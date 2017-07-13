@@ -423,7 +423,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
     out = {}
 
     # copy over requests and parameters
-    for k in data.keys():
+    for k in list(data.keys()):
         kel = data[k]
         el = {"requests":{}, "web":{}, "params":{}, "params_decrypted":{}, "monitor":{}, "internals":{}}
         for (key, prefix) in (("requests", factoryConfig.client_req_prefix),
@@ -431,7 +431,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
                              ("params", factoryConfig.glidein_param_prefix),
                              ("monitor", factoryConfig.glidein_monitor_prefix)):
             plen = len(prefix)
-            for attr in kel.keys():
+            for attr in list(kel.keys()):
                 if attr in reserved_names:
                     continue # skip reserved names
                 if attr[:plen] == prefix:
@@ -462,7 +462,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
         invalid_classad = False
         for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
             plen = len(prefix)
-            for attr in kel.keys():
+            for attr in list(kel.keys()):
                 if attr in reserved_names:
                     continue # skip reserved names
                 if attr[:plen] == prefix:
@@ -477,7 +477,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
             logSupport.log.warning("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons." % k)
             continue  # need to go this way as I may have problems in an inner loop
 
-        for attr in kel.keys():
+        for attr in list(kel.keys()):
             if attr in ("ClientName", "FrontendName", "GroupName", "ReqName", "LastHeardFrom", "ReqPubKeyID", "AuthenticatedIdentity"):
                 el["internals"][attr] = kel[attr]
 
@@ -560,7 +560,7 @@ class EntryClassad(classadSupport.Classad):
                                (factoryConfig.glidein_monitor_prefix, glidein_monitors),
                                (factoryConfig.glidein_web_prefix, glidein_web_attrs),
                                (factoryConfig.glidein_config_prefix, glidein_config_limits)):
-            for attr in data.keys():
+            for attr in list(data.keys()):
                 el = data[attr]
                 if isinstance(el, int):
                     # don't quote ints
@@ -572,9 +572,9 @@ class EntryClassad(classadSupport.Classad):
         # write job completion statistics
         if glidein_stats:
             prefix = factoryConfig.glidein_monitor_prefix
-            for k, v in glidein_stats['entry'].items():
+            for k, v in list(glidein_stats['entry'].items()):
                 self.adParams['%s%s' % (prefix, k)] = v
-            for k, v in glidein_stats['total'].items():
+            for k, v in list(glidein_stats['total'].items()):
                 self.adParams['%s%s' % (prefix, k)] = v
 
 
@@ -883,7 +883,7 @@ def createGlideinClientMonitoringFile(fname,
             for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
                                    (factoryConfig.glidein_param_prefix, client_params),
                                    (factoryConfig.glidein_monitor_prefix, client_monitors)):
-                for attr in data.keys():
+                for attr in list(data.keys()):
                     el = data[attr]
                     if isinstance(el, int):
                         # don't quote ints

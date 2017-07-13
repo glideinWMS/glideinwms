@@ -131,7 +131,7 @@ def find_entries_with_partial_id_match(config_xml, skip_disabled):
     bdii_entries = {}
     ress_entries = {}
     tg_entries = {}
-    for infosys, type in infosystems.iteritems():
+    for infosys, type in list(infosystems.items()):
         if type.lower() == 'bdii':
             bdii_entries.update(infosys_lib.query_bdii(infosys))
                 
@@ -155,7 +155,7 @@ def find_partial_id_match(infosys_entries, config_entries, source_type):
     """
     id_partial_match = [] # list of lists
     
-    for entry_name in config_entries.keys():
+    for entry_name in list(config_entries.keys()):
         entry_c = config_entries[entry_name]
         
         # Skip match if not from the same source, only compare apples to apples
@@ -163,7 +163,7 @@ def find_partial_id_match(infosys_entries, config_entries, source_type):
         if entry_c['source_type'].lower() != source_type.lower():
             continue
         
-        for infosys_id in infosys_entries.keys():
+        for infosys_id in list(infosys_entries.keys()):
             entry_i = infosys_entries[infosys_id]
             if ((entry_c['ref_id'] in entry_i['ref_id']) or (entry_i['ref_id'] in entry_c['ref_id'])) and (entry_i['ref_id'] != entry_c['ref_id']):
                 id_partial_match.append([entry_c, infosys_entries[infosys_id]])

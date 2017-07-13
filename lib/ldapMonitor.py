@@ -75,7 +75,7 @@ class BDIICEQuery(LDAPQuery):
 
     def fetch(self, additional_filter_str=None):
         out_data = LDAPQuery.fetch(self, additional_filter_str)
-        for k in out_data.keys():
+        for k in list(out_data.keys()):
             cluster_id = k.split("Mds-Vo-name=", 1)[1].split(",", 1)[0]
             out_data[k]['Mds-Vo-name'] = [cluster_id, 'local']
 
@@ -86,7 +86,7 @@ class BDIICEQuery(LDAPQuery):
         if old_data is None:
             raise RuntimeError("No data loaded")
         new_data = {}
-        for k in old_data.keys():
+        for k in list(old_data.keys()):
             if (old_data[k]['GlueCEStateStatus'][0] == 'Production') == usable:
                 new_data[k] = old_data[k]
         self.stored_data = new_data
@@ -144,7 +144,7 @@ class SearchBDII:
         ### only modify bdiiData if there is a search criteria
         if self.searchStr:
             found=False
-            for key in self.bdiiData.keys():
+            for key in list(self.bdiiData.keys()):
                 if self.searchStr in key:
                     dict[key]=self.bdiiData[key]
                     found=True
@@ -167,12 +167,12 @@ class SearchBDII:
         if file:
             try:
                 outFile=open(file, 'w')
-                for key in self.bdiiData.keys():
+                for key in list(self.bdiiData.keys()):
                     outFile.write("\n%s\n%s\n\n"%(key, self.bdiiData[key]))
             except:
                 print("Error opening or closing specified file.")
         else:
-            for key in self.bdiiData.keys():
+            for key in list(self.bdiiData.keys()):
                 print("\n")
                 print(key)
                 print("\n")
@@ -263,7 +263,7 @@ class BdiiLdap:
 
        query = "(&(objectClass=GlueCluster)"
        if ceList:
-           query += self.buildOrQuery('GlueClusterUniqueID', self.ce_to_cluster_map.values())
+           query += self.buildOrQuery('GlueClusterUniqueID', list(self.ce_to_cluster_map.values()))
        else:
            query += '(GlueClusterUniqueID=*)'
        query += ")"

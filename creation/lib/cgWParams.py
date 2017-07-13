@@ -270,13 +270,13 @@ class GlideinParams(cWParams.CommonParams):
 
         self.client_log_dirs={}
         self.client_proxies_dirs={}
-        for fename in self.security.frontends.keys():
+        for fename in list(self.security.frontends.keys()):
             if not cWParams.is_valid_name(fename):
                 raise RuntimeError("Invalid frontend name '%s'"%fename)
             if ' ' in self.security.frontends[fename].identity:
                 raise RuntimeError("Invalid frontend identity '%s'"%self.security.frontends[fename].identity)
 
-            for scname in self.security.frontends[fename].security_classes.keys():
+            for scname in list(self.security.frontends[fename].security_classes.keys()):
                 username=self.security.frontends[fename].security_classes[scname].username
                 self.client_log_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_log_dir, "user_%s"%username))
                 self.client_proxies_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_proxies_dir, "user_%s"%username))
@@ -284,17 +284,17 @@ class GlideinParams(cWParams.CommonParams):
         if not cWParams.is_valid_name(self.factory_name):
             raise RuntimeError("Invalid factory name '%s'"%self.factory_name)
 
-        entry_names=self.entries.keys()
+        entry_names=list(self.entries.keys())
         for entry_name in entry_names:
             if not cWParams.is_valid_name(entry_name):
                 raise RuntimeError("Invalid entry name '%s'"%entry_name)
 
-        attr_names=self.attrs.keys()
+        attr_names=list(self.attrs.keys())
         for attr_name in attr_names:
             if not cWParams.is_valid_name(attr_name):
                 raise RuntimeError("Invalid global attribute name '%s'."%attr_name)
         for entry_name in entry_names:
-            attr_names=self.entries[entry_name].attrs.keys()
+            attr_names=list(self.entries[entry_name].attrs.keys())
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
                     raise RuntimeError("Invalid entry '%s' attribute name '%s'."%(entry_name, attr_name))

@@ -134,7 +134,7 @@ class logSummary(cachedLogClass):
 
     def isActive(self):
         active = False
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             if not (k in ['Completed', 'Removed']):
                 if len(self.data[k]) > 0:
                     active = True # it is enought that at least one non Completed/removed job exist
@@ -150,7 +150,7 @@ class logSummary(cachedLogClass):
         elif self.data is None:
             return other
         else:
-            for k in self.data.keys():
+            for k in list(self.data.keys()):
                 try:
                     other[k] += self.data[k]
                 except: # missing key
@@ -170,12 +170,12 @@ class logSummary(cachedLogClass):
         if other is None:
             outdata={}
             if self.data is not None:
-                for k in self.data.keys():
+                for k in list(self.data.keys()):
                     outdata[k] = {'Exited':[], 'Entered':self.data[k]}
             return outdata
         elif self.data is None:
             outdata = {}
-            for k in other.keys():
+            for k in list(other.keys()):
                 outdata[k] = {'Entered':[], 'Exited':other[k]}
             return outdata
         else:
@@ -183,10 +183,10 @@ class logSummary(cachedLogClass):
             
             keys = {} # keys will contain the merge of the two lists
             
-            for s in (self.data.keys() + other.keys()):
+            for s in (list(self.data.keys()) + list(other.keys())):
                 keys[s] = None
 
-            for s in keys.keys():
+            for s in list(keys.keys()):
                 if s in self.data:
                     sel = self.data[s]
                 else:
@@ -232,7 +232,7 @@ class logCompleted(cachedLogClass):
         jobs = parseSubmitLogFastRaw(self.logname)
         status  = listAndInterpretRawStatuses(jobs, listStatuses)
         counts = {}
-        for s in status.keys():
+        for s in list(status.keys()):
             counts[s] = len(status[s])
         tmpdata['counts'] = counts
         if "Completed" in status:
@@ -245,7 +245,7 @@ class logCompleted(cachedLogClass):
     def isActive(self):
         active = False
         counts = self.data['counts']
-        for k in counts.keys():
+        for k in list(counts.keys()):
             if not (k in ['Completed', 'Removed']):
                 if counts[k] > 0:
                     # Enough that at least one non Completed/removed job exist
@@ -263,7 +263,7 @@ class logCompleted(cachedLogClass):
         elif self.data is None:
             return other
         else:
-            for k in self.data['counts'].keys():
+            for k in list(self.data['counts'].keys()):
                 try:
                     other['counts'][k] += self.data['counts'][k]
                 except: # missing key
@@ -291,7 +291,7 @@ class logCompleted(cachedLogClass):
         elif self.data is None:
             outcj = {'Entered':[], 'Exited':other['completed_jobs']}
             outct = {}
-            for s in other['counts'].keys():
+            for s in list(other['counts'].keys()):
                 outct[s] = -other['counts'][s]
             outdata = {'counts':outct, 'completed_jobs':outcj}
             return outdata
@@ -301,10 +301,10 @@ class logCompleted(cachedLogClass):
             outdata = {'counts':outct, 'completed_jobs':outcj}
 
             keys = {} # keys will contain the merge of the two lists
-            for s in (self.data['counts'].keys() + other['counts'].keys()):
+            for s in (list(self.data['counts'].keys()) + list(other['counts'].keys())):
                 keys[s] = None
 
-            for s in keys.keys():
+            for s in list(keys.keys()):
                 if s in self.data['counts']:
                     sct = self.data['counts'][s]
                 else:
@@ -345,7 +345,7 @@ class logCounts(cachedLogClass):
 
     def isActive(self):
         active = False
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             if not (k in ['Completed', 'Removed']):
                 if self.data[k] > 0:
                     # Enough that at least one non Completed/removed job exist
@@ -363,7 +363,7 @@ class logCounts(cachedLogClass):
         elif self.data is None:
             return other
         else:
-            for k in self.data.keys():
+            for k in list(self.data.keys()):
                 try:
                     other[k] += self.data[k]
                 except: # missing key
@@ -382,17 +382,17 @@ class logCounts(cachedLogClass):
                 return {}
         elif self.data is None:
             outdata = {}
-            for s in other.keys():
+            for s in list(other.keys()):
                 outdata[s] = -other[s]
             return outdata
         else:
             outdata = {}
             
             keys = {} # keys will contain the merge of the two lists
-            for s in (self.data.keys() + other.keys()):
+            for s in (list(self.data.keys()) + list(other.keys())):
                 keys[s] = None
 
-            for s in keys.keys():
+            for s in list(keys.keys()):
                 if s in self.data:
                     sel = self.data[s]
                 else:
@@ -426,7 +426,7 @@ class logSummaryTimings(cachedLogClass):
 
     def isActive(self):
         active = False
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             if not (k in ['Completed', 'Removed']):
                 if len(self.data[k]) > 0:
                     # Enough that at least one non Completed/removed job exist
@@ -443,7 +443,7 @@ class logSummaryTimings(cachedLogClass):
         elif self.data is None:
             return other
         else:
-            for k in self.data.keys():
+            for k in list(self.data.keys()):
                 try:
                     other[k] += self.data[k]
                 except: # missing key
@@ -458,12 +458,12 @@ class logSummaryTimings(cachedLogClass):
         if other is None:
             outdata={}
             if self.data is not None:
-                for k in self.data.keys():
+                for k in list(self.data.keys()):
                     outdata[k] = {'Exited':[], 'Entered':self.data[k]}
             return outdata
         elif self.data is None:
             outdata = {}
-            for k in other.keys():
+            for k in list(other.keys()):
                 outdata[k] = {'Entered':[], 'Exited':other[k]}
             return outdata
         else:
@@ -471,10 +471,10 @@ class logSummaryTimings(cachedLogClass):
             
             keys = {} # keys will contain the merge of the two lists
             
-            for s in (self.data.keys() + other.keys()):
+            for s in (list(self.data.keys()) + list(other.keys())):
                 keys[s] = None
 
-            for s in keys.keys():
+            for s in list(keys.keys()):
                 sel = []
                 if s in self.data:
                     for sel_e in self.data[s]:
@@ -1132,7 +1132,7 @@ def countStatuses(jobs):
     """
 
     counts={}
-    for e in jobs.values():
+    for e in list(jobs.values()):
         try:
             counts[e] += 1
         except: 
@@ -1154,7 +1154,7 @@ def countAndInterpretRawStatuses(jobs_raw):
 
     outc={}
     tmpc=countStatuses(jobs_raw)
-    for s in tmpc.keys():
+    for s in list(tmpc.keys()):
         i_s = interpretStatus(int(s[1:])) # ignore flags
         try:
             outc[i_s] += tmpc[s]
@@ -1176,7 +1176,7 @@ def listStatuses(jobs):
     """
 
     status={}
-    for k, e in jobs.items():
+    for k, e in list(jobs.items()):
         try:
             status[e].append(k)
         except: 
@@ -1197,7 +1197,7 @@ def listStatusesTimings(jobs):
     """
 
     status={}
-    for k, e in jobs.items():
+    for k, e in list(jobs.items()):
         try:
             status[e[0]].append((k,)+e[1:])
         except:
@@ -1223,7 +1223,7 @@ def listAndInterpretRawStatuses(jobs_raw, invert_function):
 
     outc={}
     tmpc=invert_function(jobs_raw)
-    for s in tmpc.keys():
+    for s in list(tmpc.keys()):
         try:
             i_s = interpretStatus(int(s[1:])) #ignore flags
         except: # file corrupted, protect
@@ -1249,7 +1249,7 @@ def parseSubmitLogFast(fname):
 
     jobs_raw=parseSubmitLogFastRaw(fname)
     jobs={}
-    for k in jobs_raw.keys():
+    for k in list(jobs_raw.keys()):
         jobs[rawJobId2Nr(k)] = int(jobs_raw[k])
     return jobs
 
@@ -1277,7 +1277,7 @@ def parseSubmitLogFastTimings(fname,year=None):
     jobs = {}
     if year_wrap:
         year1 = year-1
-        for k in jobs_raw.keys():
+        for k in list(jobs_raw.keys()):
             el = jobs_raw[k]
             status = int(el[0])
             diff_time = diffTimeswWrap(el[1], el[3], year1, first_time)
@@ -1287,7 +1287,7 @@ def parseSubmitLogFastTimings(fname,year=None):
                 running_time = None
             jobs[rawJobId2Nr(k)] = (status, diff_time, running_time)
     else:
-        for k in jobs_raw.keys():
+        for k in list(jobs_raw.keys()):
             el = jobs_raw[k]
             status = int(el[0])
             diff_time = diffTimes(el[1], el[3], year)

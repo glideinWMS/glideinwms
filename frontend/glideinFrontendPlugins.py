@@ -202,9 +202,9 @@ class ProxyProjectName:
         self.project_count = {}
         self.total_jobs = 0
         # Get both set of users and number of jobs for each user
-        for schedd_name in condorq_dict.keys():
+        for schedd_name in list(condorq_dict.keys()):
             condorq_data = condorq_dict[schedd_name].fetchStored()
-            for job in condorq_data.values():
+            for job in list(condorq_data.values()):
                 if job['JobStatus'] != 1:
                     continue
                 self.total_jobs += 1
@@ -234,7 +234,7 @@ class ProxyProjectName:
         # Duplicate the base credential; one per project in use.
         # Assign load proportional to the number of jobs.
         creds = []
-        for project, job_count in self.project_count.items():
+        for project, job_count in list(self.project_count.items()):
             if not project:
                 creds.append(base_cred)
             else:
@@ -376,9 +376,9 @@ class ProxyUserMapWRecycling:
         self.num_user_jobs={}
         self.total_jobs=0
         # Get both set of users and number of jobs for each user
-        for schedd_name in condorq_dict.keys():
+        for schedd_name in list(condorq_dict.keys()):
             condorq_data = condorq_dict[schedd_name].fetchStored()
-            for jid in condorq_data.keys():
+            for jid in list(condorq_data.keys()):
                 job = condorq_data[jid]
                 if job['JobStatus']==1:
                     if job['User'] in self.num_user_jobs:
@@ -386,7 +386,7 @@ class ProxyUserMapWRecycling:
                     else:
                         self.num_user_jobs[job['User']]=1
                     self.total_jobs=self.total_jobs+1
-        self.users_list = self.num_user_jobs.keys()
+        self.users_list = list(self.num_user_jobs.keys())
         return
 
     # get the proxies, given the condor_q and condor_status data
@@ -402,9 +402,9 @@ class ProxyUserMapWRecycling:
             # then we return the full list for the 
             # global advertisement
             rtnlist=[]
-            for type in total_user_map.keys():
-                for trust_domain in total_user_map[type].keys():
-                    for k in total_user_map[type][trust_domain].keys():
+            for type in list(total_user_map.keys()):
+                for trust_domain in list(total_user_map[type].keys()):
+                    for k in list(total_user_map[type][trust_domain].keys()):
                         rtnlist.append(total_user_map[type][trust_domain][k]['proxy'])
             return rtnlist
         else:
@@ -420,7 +420,7 @@ class ProxyUserMapWRecycling:
             # skip all that do not match auth method or trust_domain
                 
             if user not in user_map:
-                keys = user_map.keys()
+                keys = list(user_map.keys())
                 found=False
                 new_key=""
                 for k in keys:
@@ -516,10 +516,10 @@ class ProxyUserMapWRecycling:
             user_map = self.config_data['user_map']
 
             # need to iterate, since not indexed by proxy name
-            keys = user_map.keys()
-            for type in user_map.keys():
-                for trust_domain in user_map[type].keys():
-                    for k in user_map[type][trust_domain].keys():
+            keys = list(user_map.keys())
+            for type in list(user_map.keys()):
+                for trust_domain in list(user_map[type].keys()):
+                    for k in list(user_map[type][trust_domain].keys()):
                         el = user_map[type][trust_domain][k]
                         el_proxy = el['proxy']
                         el_proxyname = el['proxy'].filename

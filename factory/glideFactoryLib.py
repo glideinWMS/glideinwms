@@ -876,7 +876,7 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
              (client_int_name, client_log_name, req_idle, req_max_run, idle_lifetime, remove_excess))
     log.info("  Params: %s" % work_el['params'])
     # cannot log decrypted ones... they are most likely sensitive
-    log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
+    log.info("  Decrypted Param Names: %s" % list(work_el['params_decrypted'].keys()))
 
     reqs = {'IdleGlideins':req_idle, 'MaxGlideins':req_max_run}
     factoryConfig.client_stats.logRequest(client_int_name, reqs)
@@ -949,7 +949,7 @@ def sum_idle_count(qc_status):
     #   Idle==Jobstatus(1)
     #   Have to integrate all the variants
     qc_status[1] = 0
-    for k in qc_status.keys():
+    for k in list(qc_status.keys()):
         if (k >= 1000) and (k <= 1100):
             qc_status[1] += qc_status[k]
     return
@@ -987,7 +987,7 @@ def extractStaleSimple(q, factoryConfig=None):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
     qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [1, 1]))
-    qstale_list = qstale.keys()
+    qstale_list = list(qstale.keys())
 
     return qstale_list
 
@@ -995,70 +995,70 @@ def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 iterations
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig) 
                                      and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 def extractRecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 def extractRecoverableHeldSimpleWithinLimits(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig) and isGlideinWithinHeldLimits(el, factoryConfig=factoryConfig)))
-    qheld_list=qheld.keys()
+    qheld_list=list(qheld.keys())
     return qheld_list
 
 def extractHeldSimple(q, factoryConfig=None):
     #  Held==5
     qheld = q.fetchStored(lambda el:el["JobStatus"] == 5)
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 def extractIdleSimple(q, factoryConfig=None):
     #  Idle==1
     qidle = q.fetchStored(lambda el:el["JobStatus"] == 1)
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 def extractIdleUnsubmitted(q, factoryConfig=None):
     #  1001 == Unsubmitted
     qidle = q.fetchStored(lambda el:hash_status(el) == 1001)
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 def extractIdleQueued(q, factoryConfig=None):
     #  All 1xxx but 1001
     qidle = q.fetchStored(lambda el:(hash_status(el) in (1002, 1010, 1100)))
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 def extractNonRunSimple(q, factoryConfig=None):
     #  Run==2
     qnrun = q.fetchStored(lambda el:el["JobStatus"] != 2)
-    qnrun_list = qnrun.keys()
+    qnrun_list = list(qnrun.keys())
     return qnrun_list
 
 def extractRunSimple(q, factoryConfig=None):
     #  Run==2
     qrun = q.fetchStored(lambda el:el["JobStatus"] == 2)
-    qrun_list = qrun.keys()
+    qrun_list = list(qrun.keys())
     return qrun_list
 
 def extractRunStale(q, factoryConfig=None):
     # first find out the stale running jids
     #  hash: (Running==2, Stale==1)
     qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 1]))
-    qstale_list = qstale.keys()
+    qstale_list = list(qstale.keys())
 
     # these glideins were running for too long, period!
     return qstale_list
@@ -1338,7 +1338,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         if client_web is not None:
             params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
-        for k, v in params.iteritems():
+        for k, v in list(params.items()):
             # Remove the null parameters and warn
             if not str(v).strip():
                 log.warning('Skipping empty job parameter (%s)' % k)
@@ -1858,7 +1858,7 @@ class GlideinTotals:
         output += "     default frontend-sec class max_held=%s\n" % self.default_fesc_max_held
         output += "     default frontend-sec class max_glideins=%s\n" % self.default_fesc_max_glideins
 
-        for frontend in self.frontend_limits.keys():
+        for frontend in list(self.frontend_limits.keys()):
             fe_limit = self.frontend_limits[frontend]
             output += "GlideinTotals FRONTEND NAME = %s\n" % frontend
             output += "     idle = %s\n" % fe_limit['idle']

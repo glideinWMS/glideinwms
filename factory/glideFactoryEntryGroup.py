@@ -92,7 +92,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
     # there is nobody to clean up after ourselves... do it here
     logSupport.log.info("Deadvertize myself")
 
-    for entry in my_entries.values():
+    for entry in list(my_entries.values()):
         # Deadvertise glidefactory classad
         try:
             gfi.deadvertizeGlidein(
@@ -145,7 +145,7 @@ def find_work(factory_in_downtime, glideinDescript,
     logSupport.log.info("Finding work")
     work = gfi.findGroupWork(gfl.factoryConfig.factory_name,
                              gfl.factoryConfig.glidein_name,
-                             my_entries.keys(),
+                             list(my_entries.keys()),
                              gfl.factoryConfig.supported_signtypes,
                              pub_key_obj)
     log_work_info(work, key='existing')
@@ -158,7 +158,7 @@ def find_work(factory_in_downtime, glideinDescript,
         logSupport.log.info("Old factory key is still valid. Trying to find work using old factory key.")
         work_oldkey = gfi.findGroupWork(gfl.factoryConfig.factory_name,
                                         gfl.factoryConfig.glidein_name,
-                                        my_entries.keys(),
+                                        list(my_entries.keys()),
                                         gfl.factoryConfig.supported_signtypes,
                                         old_pub_key_obj)
         log_work_info(work, key='old')
@@ -359,7 +359,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     groupwork_done = {}
     done_something = 0
 
-    for entry in my_entries.values():
+    for entry in list(my_entries.values()):
         entry.initIteration(factory_in_downtime)
 
     try:
@@ -380,7 +380,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads as needed" % (gf_filename, gfc_filename))
 
     entries_to_advertise = []
-    for entry in my_entries.values():
+    for entry in list(my_entries.values()):
         # Write classads to file if work was done or if advertise flag is set
         # Actual advertise is done using multi classad advertisement
         entrywork_done = 0
@@ -499,7 +499,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 cpuCount = int(glideinDescript.data['MonitorUpdateThreadCount'])
                 logSupport.log.info("Number of parallel writes for stats: %i" % cpuCount)
 
-                entrylists = [my_entries.values()[cpu::cpuCount] for cpu in xrange(cpuCount)]
+                entrylists = [list(my_entries.values())[cpu::cpuCount] for cpu in xrange(cpuCount)]
 
                 # Fork's keyed by cpu number. Actual key is irrelevant
                 pipe_ids = {}

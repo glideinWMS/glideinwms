@@ -200,7 +200,7 @@ files and directories can be created correctly""" % self.username())
     dirs["logs"] = os.path.join(self.logs_dir(), instance_dir)
     dirs["install"] = os.path.join(self.install_location(), instance_dir)
 #    dirs["config"] = self.config_dir()
-    for frontend in self.wms.frontend_users().keys():
+    for frontend in list(self.wms.frontend_users().keys()):
       dirs["client logs"]    = self.client_log_dir()
       dirs["client proxies"] = self.client_proxy_dir()
     for subdir in ["monitor", "stage"]:
@@ -238,7 +238,7 @@ files and directories can be created correctly""" % self.username())
   #------------------------------------
   def delete_ps_directories(self, dirs):
     """ Delete the contents of directories with privilege separation in effect."""
-    for type in dirs.keys():
+    for type in list(dirs.keys()):
       if type not in ["client logs", "client proxies",]: 
         common.remove_dir_path(dirs[type])
         continue
@@ -270,7 +270,7 @@ the ini file for the %(type)s attribute.  Be careful now.
   #------------------------------------
   def delete_nps_directories(self, dirs):  
     """ Delete the contents of directories with privilege separation NOT in effect."""
-    for type in dirs.keys():
+    for type in list(dirs.keys()):
       if type in ["client logs", "client proxies",]: 
         common.remove_dir_contents(dirs[type])
         continue
@@ -283,7 +283,7 @@ the ini file for the %(type)s attribute.  Be careful now.
         Returns: a dictionary of directories to be deleted.
     """
     #--- check them --
-    for type in dirs.keys():
+    for type in list(dirs.keys()):
       if not os.path.isdir(dirs[type]): # it does not exist
         del dirs[type]  # remove from dict
         continue
@@ -495,7 +495,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 }
 
     frontend_users_dict =  self.wms.frontend_users()
-    for frontend in frontend_users_dict.keys():
+    for frontend in list(frontend_users_dict.keys()):
       data = data + """
 %(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(hostname)s">
 %(indent4)s<security_classes>
@@ -714,7 +714,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     cluster_count={}
     ress_entries={}
     python_filter_obj = self.get_python_filter(self.glidein.entry_filters())
-    for condor_id in condor_data.keys():
+    for condor_id in list(condor_data.keys()):
       condor_el = condor_data[condor_id]
 
       if not self.passed_python_filter(python_filter_obj, condor_el):
@@ -736,7 +736,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
         continue # something is wrong here, at least a.b expected
 
       t_found = False
-      for t in ress_entries.keys():
+      for t in list(ress_entries.keys()):
         test_el = ress_entries[t]
         if self.compare_entry_els(test_el, entry_el):
           # found a duplicate entry, just add the additional ress entry to the list
@@ -794,10 +794,10 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   #-------------------------------------------
   def discard_duplicate_entries(self, entries):
     #-- discarding bdii specific entries --
-    for t in entries.keys():
+    for t in list(entries.keys()):
       test_el = entries[t]
       t_found=False
-      for l in self.config_entries_list.keys():
+      for l in list(self.config_entries_list.keys()):
         l_el = self.config_entries_list[l]
         if self.compare_entry_els(test_el, l_el):
           # found a duplicate entry
@@ -821,11 +821,11 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       print()
       entry_name = raw_input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":
-        if len(self.config_entries_list.keys()) < 1:
+        if len(list(self.config_entries_list.keys())) < 1:
           print("You must insert at least one entry point")
           continue
         break
-      if entry_name in self.config_entries_list.keys():
+      if entry_name in list(self.config_entries_list.keys()):
         print("You already inserted '%s'!" % entry_name)
         continue
       gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name).strip()
@@ -883,7 +883,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     global valid_options
     print("; ------------------------------------------")
     print("; Factory minimal ini options template")
-    for section in valid_options.keys():
+    for section in list(valid_options.keys()):
       print("; ------------------------------------------")
       print("[%s]" % section)
       for option in valid_options[section]:

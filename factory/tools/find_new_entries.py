@@ -201,7 +201,7 @@ def remove_duplicates(infosys_entries):
     new_entries = {}
     site_list = []
     
-    for id in infosys_entries.keys():
+    for id in list(infosys_entries.keys()):
         entry = infosys_entries[id]
         site_def = [entry['gatekeeper'], entry['gridtype'], entry['rsl']]
         if site_def not in site_list:

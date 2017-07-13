@@ -615,10 +615,10 @@ class glideinDicts(cgWDictFile.glideinDicts):
         """
         d = {}
         i = 0
-        for key in unsorted_dict.keys():
+        for key in list(unsorted_dict.keys()):
             d[i] = (key, unsorted_dict[key])
             i = i + 1
-        temp_list = sorted([ (x[1][1], x[0]) for x in d.items() ])
+        temp_list = sorted([ (x[1][1], x[0]) for x in list(d.items()) ])
         sortedList = []
         for (tmp, key) in temp_list:
             sortedList.append(d[key][0])
@@ -769,7 +769,7 @@ def iter_to_dict(dictObject):
     """Traverses a iterable (DictMixin) recursively to convert to proper dict any nested classes"""
     newDict = {}
     try:
-        for prop, val in dictObject.iteritems():
+        for prop, val in list(dictObject.items()):
             newDict[prop] = iter_to_dict(val)
         return newDict
     except AttributeError:
@@ -1122,7 +1122,7 @@ def calc_monitoring_collectors_string(collectors):
             cWDictFile.validate_node(el[u'node'])
             collector_nodes[el[u'group']]['primary'].append(el[u'node'])
 
-    for group in collector_nodes.keys():
+    for group in list(collector_nodes.keys()):
         if len(collector_nodes[group]['secondary']) > 0:
             monitoring_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
         else:
@@ -1150,5 +1150,5 @@ def calc_primary_monitoring_collectors(collectors):
     if len(collector_nodes)==0:
         return None
     else:
-        return string.join(collector_nodes.values(), ",")
+        return string.join(list(collector_nodes.values()), ",")
 

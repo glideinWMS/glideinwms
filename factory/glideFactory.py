@@ -85,14 +85,14 @@ def update_classads():
     :return:
     """
     jobinfo = glideFactoryMonitorAggregator.aggregateJobsSummary()
-    for cnames, joblist in jobinfo.iteritems():
+    for cnames, joblist in list(jobinfo.items()):
         schedd_name = cnames[0]
         pool_name = cnames[1]
         try:
             qe = CondorQEdit(pool_name=pool_name, schedd_name=schedd_name)
-            qe.executeAll(joblist=joblist.keys(),
+            qe.executeAll(joblist=list(joblist.keys()),
                           attributes=['MONITOR_INFO']*len(joblist),
-                          values=map(json.dumps, joblist.values()))
+                          values=map(json.dumps, list(joblist.values())))
         except QueryError as qe:
             logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qe)
 
@@ -238,14 +238,14 @@ def is_file_old(filename, allowed_time):
 def clean_exit(childs):
     count = 100000000 # set it high, so it is triggered at the first iteration
     sleep_time = 0.1 # start with very little sleep
-    while len(childs.keys()) > 0:
+    while len(list(childs.keys())) > 0:
         count += 1
         if count > 4:
             # Send a term signal to the childs
             # May need to do it several times, in case there are in the
             # middle of something
             count = 0
-            logSupport.log.info("Killing EntryGroups %s" % childs.keys())
+            logSupport.log.info("Killing EntryGroups %s" % list(childs.keys()))
             for group in childs:
                 try:
                     os.kill(childs[group].pid, signal.SIGTERM)
@@ -260,7 +260,7 @@ def clean_exit(childs):
         if sleep_time > 5:
             sleep_time = 5
 
-        logSupport.log.info("Checking dying EntryGroups %s" % childs.keys())
+        logSupport.log.info("Checking dying EntryGroups %s" % list(childs.keys()))
         dead_entries = []
         for group in childs:
             child = childs[group]
@@ -444,7 +444,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 fronmonformat_list = [('WebMonitoringURL', 's'), ('FrontendName', 's')]
                 fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
                 fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
-                fronmon_list_names = fronmondata.keys()
+                fronmon_list_names = list(fronmondata.keys())
                 if fronmon_list_names is not None:
                     urlset = Set()
                     if os.path.exists(fronmonpath):
@@ -516,7 +516,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
 
-            logSupport.log.info("Checking EntryGroups %s" % childs.keys())
+            logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
             for group in childs:
                 entry_names = string.join(entry_groups[group], ':')
                 child = childs[group]

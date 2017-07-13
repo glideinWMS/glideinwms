@@ -236,9 +236,9 @@ class groupStats:
         }
         numtypes=(type(1), type(1), type(1.0))
 
-        for f in self.data['factories'].keys():
+        for f in list(self.data['factories'].keys()):
             fa=self.data['factories'][f]
-            for w in fa.keys():
+            for w in list(fa.keys()):
                 if w in total: # ignore eventual not supported classes
                     el=fa[w]
                     tel=total[w]
@@ -247,24 +247,24 @@ class groupStats:
                         # first one, just copy over
                         total[w]={}
                         tel=total[w]
-                        for a in el.keys():
+                        for a in list(el.keys()):
                             if type(el[a]) in numtypes: # copy only numbers
                                 tel[a]=el[a]
                     else:
                         # successive, sum 
-                        for a in el.keys():
+                        for a in list(el.keys()):
                             if type(el[a]) in numtypes: # consider only numbers
                                 if a in tel:
                                     tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tel.keys():
+                        for a in list(tel.keys()):
                             if a not in el:
                                 del tel[a]
                             elif not (type(el[a]) in numtypes):
                                 del tel[a]
         
-        for w in total.keys():
+        for w in list(total.keys()):
             if total[w] is None:
                 del total[w] # remove entry if not defined
 
@@ -302,11 +302,11 @@ class groupStats:
         self.write_one_rrd("total", total_el)
 
         data = self.get_factories_data()
-        for fact in data.keys():
+        for fact in list(data.keys()):
             self.write_one_rrd("factory_%s"%sanitize(fact), data[fact], 1)
 
         data = self.get_states_data()
-        for fact in data.keys():
+        for fact in list(data.keys()):
             self.write_one_rrd("state_%s"%sanitize(fact), data[fact], 1)
 
         self.files_updated=self.updated        
@@ -348,8 +348,8 @@ class groupStats:
             }
 
         #init, so that all get created properly
-        for tp in self.attributes.keys():
-            if tp in type_strings.keys():
+        for tp in list(self.attributes.keys()):
+            if tp in list(type_strings.keys()):
                 tp_str=type_strings[tp]
                 attributes_tp=self.attributes[tp]
                 for a in attributes_tp:
@@ -358,9 +358,9 @@ class groupStats:
         
         for tp in data:
             # type - Jobs,Slots
-            if not (tp in self.attributes.keys()):
+            if not (tp in list(self.attributes.keys())):
                 continue
-            if not (tp in type_strings.keys()):
+            if not (tp in list(type_strings.keys())):
                 continue
 
             tp_str=type_strings[tp]
@@ -368,7 +368,7 @@ class groupStats:
             attributes_tp=self.attributes[tp]
                 
             fe_el_tp=data[tp]
-            for a in fe_el_tp.keys():
+            for a in list(fe_el_tp.keys()):
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
                     if not isinstance(a_el, dict): # ignore subdictionaries
@@ -473,11 +473,11 @@ class factoryStats:
 
     def get_data(self):
         data1=copy.deepcopy(self.data)
-        for f in data1.keys():
+        for f in list(data1.keys()):
             fe=data1[f]
-            for w in fe.keys():
+            for w in list(fe.keys()):
                 el=fe[w]
-                for a in el.keys():
+                for a in list(el.keys()):
                     if a[-10:]=='AvgCounter': # do not publish avgcounter fields... they are internals
                         del el[a]
             
@@ -494,9 +494,9 @@ class factoryStats:
         total={'Status':None,'Requested':None,'ClientMonitor':None}
         numtypes=(type(1), type(1), type(1.0))
 
-        for f in self.data.keys():
+        for f in list(self.data.keys()):
             fe=self.data[f]
-            for w in fe.keys():
+            for w in list(fe.keys()):
                 if w in total: # ignore eventual not supported classes
                     el=fe[w]
                     tel=total[w]
@@ -505,29 +505,29 @@ class factoryStats:
                         # first one, just copy over
                         total[w]={}
                         tel=total[w]
-                        for a in el.keys():
+                        for a in list(el.keys()):
                             if type(el[a]) in numtypes: # copy only numbers
                                 tel[a]=el[a]
                     else:
                         # successive, sum 
-                        for a in el.keys():
+                        for a in list(el.keys()):
                             if type(el[a]) in numtypes: # consider only numbers
                                 if a in tel:
                                     tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tel.keys():
+                        for a in list(tel.keys()):
                             if a not in el:
                                 del tel[a]
                             elif not (type(el[a]) in numtypes):
                                 del tel[a]
         
-        for w in total.keys():
+        for w in list(total.keys()):
             if total[w] is None:
                 del total[w] # remove entry if not defined
             else:
                 tel=total[w]
-                for a in tel.keys():
+                for a in list(tel.keys()):
                     if a[-10:]=='AvgCounter':
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
@@ -569,7 +569,7 @@ class factoryStats:
 
         # update RRDs
         type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
-        for fe in [None]+data.keys():
+        for fe in [None]+list(data.keys()):
             if fe is None: # special key == Total
                 fe_dir="total"
                 fe_el=total_el
@@ -580,16 +580,16 @@ class factoryStats:
             val_dict={}
             
             #init, so that all get created properly
-            for tp in self.attributes.keys():
+            for tp in list(self.attributes.keys()):
                 tp_str=type_strings[tp]
                 attributes_tp=self.attributes[tp]
                 for a in attributes_tp:
                     val_dict["%s%s"%(tp_str, a)]=None                
             
             monitoringConfig.establish_dir(fe_dir)
-            for tp in fe_el.keys():
+            for tp in list(fe_el.keys()):
                 # type - Status, Requested or ClientMonitor
-                if not (tp in self.attributes.keys()):
+                if not (tp in list(self.attributes.keys())):
                     continue
 
                 tp_str=type_strings[tp]
@@ -597,7 +597,7 @@ class factoryStats:
                 attributes_tp=self.attributes[tp]
                 
                 fe_el_tp=fe_el[tp]
-                for a in fe_el_tp.keys():
+                for a in list(fe_el_tp.keys()):
                     if a in attributes_tp:
                         a_el=fe_el_tp[a]
                         if not isinstance(a_el, dict): # ignore subdictionaries

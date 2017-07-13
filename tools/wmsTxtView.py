@@ -75,7 +75,7 @@ glideins_obj=glideinFrontendInterface.findGlideins(pool_name, None, None, factor
 txt_data={}
 
 # extract data
-glideins=glideins_obj.keys()
+glideins=list(glideins_obj.keys())
 for glidein in glideins:
     glidein_el=glideins_obj[glidein]
 

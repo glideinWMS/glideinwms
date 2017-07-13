@@ -122,7 +122,7 @@ class ConfigFile:
     
     def __str__(self):
         output = '\n'
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             output += '%s = %s, (%s)\n' % (key, str(self.data[key]), type(self.data[key]))
         return output
 
@@ -146,7 +146,7 @@ class JoinConfigFile(ConfigFile):
         if group_validate is not None:
             self.group_hash_value=group_obj.hash_value
         #merge by overriding whatever is found in the subdir
-        for k in group_obj.data.keys():
+        for k in list(group_obj.data.keys()):
             self.data[k]=group_obj.data[k]
 
 ############################################################
@@ -176,7 +176,7 @@ class ParamsDescript(JoinConfigFile):
         self.const_data={}
         self.expr_data={} # original string
         self.expr_objs={}  # compiled object
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             type_str, val=self.data[k]
             if type_str=='EXPR':
                 try:
@@ -296,7 +296,7 @@ class ElementMergedDescript:
             for data in (self.frontend_data, self.element_data):
                 if attr in data:
                     dprs=eval(data[attr])
-                    for k in dprs.keys():
+                    for k in list(dprs.keys()):
                         proxy_descript_data[k]=dprs[k]
             self.merged_data[attr]=proxy_descript_data
         
@@ -344,7 +344,7 @@ class StageFiles:
 
     def get_file_list(self, list_type): # example list_type == 'preentry_file_list'
         if list_type not in self.stage_descript.data:
-            raise KeyError("Unknown list type '%s'; valid typtes are %s"%(list_type, self.stage_descript.data.keys()))
+            raise KeyError("Unknown list type '%s'; valid typtes are %s"%(list_type, list(self.stage_descript.data.keys())))
 
         list_fname=self.stage_descript.data[list_type]
         return self.get_stage_file(self.stage_descript.data[list_type],
@@ -384,7 +384,7 @@ class MergeStageFiles:
         main_consts=self.main_stage.get_constants()
         group_consts=self.group_stage.get_constants()
         # group constants override the main ones
-        for k in group_consts.data.keys():
+        for k in list(group_consts.data.keys()):
             main_consts.data[k]=group_consts.data[k]
         main_consts.group_name=self.group_name
         main_consts.group_hash_value=group_consts.hash_value
@@ -395,7 +395,7 @@ class MergeStageFiles:
         main_cv=self.main_stage.get_condor_vars()
         group_cv=self.group_stage.get_condor_vars()
         # group condor_vars override the main ones
-        for k in group_cv.data.keys():
+        for k in list(group_cv.data.keys()):
             main_cv.data[k]=group_cv.data[k]
         main_cv.group_name=self.group_name
         main_cv.group_hash_value=group_cv.hash_value

@@ -460,21 +460,21 @@ class BaseRRDSupport:
         """
         rrd_info=self.rrd_obj.info(filename)
         rrd_dict={}
-        for key in rrd_info.keys():
+        for key in list(rrd_info.keys()):
             #rrdtool 1.3
             if key[:3]=="ds[":
                 rrd_dict[key[3:].split("]")[0]]=None
             #rrdtool 1.2
             if key=="ds":
-                for dskey in rrd_info[key].keys():
+                for dskey in list(rrd_info[key].keys()):
                     rrd_dict[dskey]=None
         missing=[]
         extra=[]
-        for t in expected_dict.keys():
-            if t not in rrd_dict.keys():
+        for t in list(expected_dict.keys()):
+            if t not in list(rrd_dict.keys()):
                 missing.append(t)
-        for t in rrd_dict.keys():
-            if t not in expected_dict.keys():
+        for t in list(rrd_dict.keys()):
+            if t not in list(expected_dict.keys()):
                 extra.append(t)
         return (missing, extra)
 

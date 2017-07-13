@@ -87,7 +87,7 @@ procd-executable = %(procd)s
 """ % { "factory_user": self.factory_user,
         "factory_groups": self.factory_groups,
         "client_uids": string.join(self.frontend_users, " : "),
-        "client_gids": string.join(self.frontend_groups.keys(), " : "),
+        "client_gids": string.join(list(self.frontend_groups.keys()), " : "),
         "client_log_dir": self.factory.client_log_dir(),
         "client_proxy_dir": self.factory.client_proxy_dir(),
         "procd": os.path.join(self.condor_location, 'sbin/condor_procd'),
@@ -111,7 +111,7 @@ QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), %s
     common.logit("... validating frontend data")
     #--- frontend check to insure they are in ini file(s) ---
     frontend_inis = []
-    service_names = self.frontend_users_dict.keys()
+    service_names = list(self.frontend_users_dict.keys())
     for obj in self.frontends:
       frontend_inis.append(obj.service_name())
     service_names.sort() 
@@ -134,7 +134,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
       user_valid = False
       common.logit("ERROR: Factory user (%s) account not created" % self.factory_user)
     #--- frontends user check ---
-    for service_name in self.frontend_users_dict.keys():
+    for service_name in list(self.frontend_users_dict.keys()):
       user = self.frontend_users_dict[service_name]
       self.frontend_users.append(user)
       try:

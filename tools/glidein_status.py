@@ -197,7 +197,7 @@ def main():
 
     global data
     data=cs.stored_data
-    keys=data.keys()
+    keys=list(data.keys())
 
     keys.sort(machine_cmp)
 
@@ -323,7 +323,7 @@ def main():
         count_print_mask+=" %%%is"%len(c)
     print(count_print_mask%(('',)+counts_header))
 
-    ckeys=counts.keys()
+    ckeys=list(counts.keys())
 
 
     if summarize=='site':

@@ -454,11 +454,11 @@ You can only use the '--configure/--validate' options for this type.
     if len(dirs) == 0:
       return  # all directories are empty
     common.logit("""The following directories must be empty for the install to succeed: """)
-    for option in dirs.keys():
+    for option in list(dirs.keys()):
       common.logit("""  %(option)s: %(dir)s""" % \
                         { "option" : option, "dir" : dirs[option] })
     common.ask_continue("... can we remove their contents")
-    for option in dirs.keys(): 
+    for option in list(dirs.keys()): 
       common.remove_dir_contents(dirs[option])
     self.__validate_needed_directories__()
 

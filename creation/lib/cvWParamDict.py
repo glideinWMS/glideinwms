@@ -70,7 +70,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         start_expr=None
 
         # put user attributes into config files
-        for attr_name in params.attrs.keys():
+        for attr_name in list(params.attrs.keys()):
             if attr_name in ('GLIDECLIENT_Start', 'GLIDECLIENT_Group_Start'):
                 if start_expr is None:
                     start_expr=params.attrs[attr_name].value
@@ -248,7 +248,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         start_expr=None
 
         # put user attributes into config files
-        for attr_name in sub_params.attrs.keys():
+        for attr_name in list(sub_params.attrs.keys()):
             if attr_name in ('GLIDECLIENT_Group_Start', 'GLIDECLIENT_Start'):
                 if start_expr is None:
                     start_expr=sub_params.attrs[attr_name].value
@@ -328,7 +328,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
     def __init__(self,params,
                  sub_list=None): # if None, get it from params
         if sub_list is None:
-            sub_list=params.groups.keys()
+            sub_list=list(params.groups.keys())
 
         self.params=params
         cvWDictFile.frontendDicts.__init__(self, params.work_dir, params.stage_dir, sub_list, simple_work_dir=False, log_dir=params.log_dir)
@@ -449,7 +449,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('SymKeyType', params.security.sym_key)
 
         active_sub_list[:] # erase all
-        for sub in params.groups.keys():
+        for sub in list(params.groups.keys()):
             if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
         frontend_dict.add('Groups', string.join(active_sub_list, ','))
@@ -600,10 +600,10 @@ def populate_common_descript(descript_dict,        # will be modified
         descript_dict.add('%sQueryExpr' % str_tname, qry_expr)
 
         match_attrs = params.match[param_tname]['match_attrs']
-        for attr_name in match_attrs.keys():
+        for attr_name in list(match_attrs.keys()):
             attr_type = match_attrs[attr_name]['type']
-            if not (attr_type in MATCH_ATTR_CONV.keys()):
-                raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys()))
+            if not (attr_type in list(MATCH_ATTR_CONV.keys())):
+                raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, list(MATCH_ATTR_CONV.keys())))
             ma_arr.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
 
         descript_dict.add('%sMatchAttrs' % str_tname, repr(ma_arr))
@@ -678,7 +678,7 @@ def populate_common_descript(descript_dict,        # will be modified
 
         descript_dict.add('Proxies', repr(proxies))
         for attr in proxy_attrs:
-            if len(proxy_descript_values[attr].keys()) > 0:
+            if len(list(proxy_descript_values[attr].keys())) > 0:
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
@@ -701,7 +701,7 @@ def calc_glidein_collectors(collectors):
             cWDictFile.validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
 
-    for group in collector_nodes.keys():
+    for group in list(collector_nodes.keys()):
         if len(collector_nodes[group]['secondary']) > 0:
             glidein_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
         else:
@@ -722,7 +722,7 @@ def calc_glidein_ccbs(collectors):
         cWDictFile.validate_node(el.node, allow_prange=True)
         ccb_nodes[el.group].append(el.node)
 
-    for group in ccb_nodes.keys():
+    for group in list(ccb_nodes.keys()):
         glidein_ccbs.append(string.join(ccb_nodes[group], ","))
 
     return string.join(glidein_ccbs, ";")

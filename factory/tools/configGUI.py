@@ -415,7 +415,7 @@ class GlideFrame(wx.Frame):
         # clear all entries
         self.sites_list.DeleteAllItems()
         # get only entries
-        for entry in cfg.data["entries"].keys():
+        for entry in list(cfg.data["entries"].keys()):
             # put enabled servers on top
             if cfg.data["entries"][entry]["enabled"] == "True":
                 self.sites_list.InsertStringItem(self.sites_list.GetItemCount() - offline, entry)
@@ -525,7 +525,7 @@ class GlideFrame(wx.Frame):
         row = 0
         
         # insert attributes
-        for attributes in cfg.data["entries"][event.GetText()]["attrs"].keys():
+        for attributes in list(cfg.data["entries"][event.GetText()]["attrs"].keys()):
             # attribute
             self.attr_grid.InsertRows(row, 1)
             self.attr_grid.SetCellValue(row, 0, attributes)
@@ -533,7 +533,7 @@ class GlideFrame(wx.Frame):
             
             # properties
             # assumes that the order of the values is correct in the xml file: const, glidein_publish, job_publish, parameter, publish
-            for value in cfg.data["entries"][event.GetText()]["attrs"][attributes].keys():
+            for value in list(cfg.data["entries"][event.GetText()]["attrs"][attributes].keys()):
                 if(value == "value"):
                     self.attr_grid.SetCellValue(row, 2, cfg.data["entries"][event.GetText()]["attrs"][attributes][value] )
                 elif(value == "type"):

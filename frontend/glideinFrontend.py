@@ -488,7 +488,7 @@ def spawn_removal(work_dir, frontendDescript, groups,
 
 ############################################################
 def cleanup_environ():
-    for val in os.environ.keys():
+    for val in list(os.environ.keys()):
         val_low = val.lower()
         if val_low[:8] == "_condor_":
             # remove any CONDOR environment variables

@@ -77,7 +77,7 @@ class MonitoringConfig:
         """
         now=time.time()
 
-        job_ids = entered_dict.keys()
+        job_ids = list(entered_dict.keys())
         if len(job_ids) == 0:
             return # nothing to do
         job_ids.sort()
@@ -191,7 +191,7 @@ class MonitoringConfig:
                 for ds_name in ds_names:
                     ds_desc = {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
                     if ds_name in ds_desc_dict:
-                        for k in ds_desc_dict[ds_name].keys():
+                        for k in list(ds_desc_dict[ds_name].keys()):
                             ds_desc[k] = ds_desc_dict[ds_name][k]
 
                     ds_arr.append((ds_name, ds_desc['ds_type'], self.rrd_heartbeat, ds_desc['min'], ds_desc['max']))
@@ -348,20 +348,20 @@ class condorQStats:
     def finalizeClientMonitor(self):
         # convert all ClinetMonitor numbers in integers
         # needed due to fraction calculations
-        for client_name in self.data.keys():
+        for client_name in list(self.data.keys()):
             if 'ClientMonitor' in self.data[client_name]:
                 el = self.data[client_name]['ClientMonitor']
-                for k in el.keys():
+                for k in list(el.keys()):
                     el[k] = int(round(el[k]))
         return
 
     def get_data(self):
         data1 = copy.deepcopy(self.data)
-        for f in data1.keys():
+        for f in list(data1.keys()):
             fe = data1[f]
-            for w in fe.keys():
+            for w in list(fe.keys()):
                 el = fe[w]
-                for a in el.keys():
+                for a in list(el.keys()):
                     if a[-10:] == 'AvgCounter': # do not publish avgcounter fields... they are internals
                         del el[a]
 
@@ -377,9 +377,9 @@ class condorQStats:
     def get_total(self):
         total = {'Status':None, 'Requested':None, 'ClientMonitor':None}
 
-        for f in self.data.keys():
+        for f in list(self.data.keys()):
             fe = self.data[f]
-            for w in fe.keys():
+            for w in list(fe.keys()):
                 if w in total: # ignore eventual not supported classes
                     el = fe[w]
                     tel = total[w]
@@ -388,29 +388,29 @@ class condorQStats:
                         # first one, just copy over
                         total[w] = {}
                         tel = total[w]
-                        for a in el.keys():
+                        for a in list(el.keys()):
                             if isinstance(el[a], int): # copy only numbers
                                 tel[a] = el[a]
                     else:
                         # successive, sum
-                        for a in el.keys():
+                        for a in list(el.keys()):
                             if isinstance(el[a], int): # consider only numbers
                                 if a in tel:
                                     tel[a] += el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tel.keys():
+                        for a in list(tel.keys()):
                             if a not in el:
                                 del tel[a]
                             elif not isinstance(el[a], int):
                                 del tel[a]
 
-        for w in total.keys():
+        for w in list(total.keys()):
             if total[w] is None:
                 del total[w] # remove entry if not defined
             else:
                 tel = total[w]
-                for a in tel.keys():
+                for a in list(tel.keys()):
                     if a[-10:] == 'AvgCounter':
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
@@ -464,7 +464,7 @@ class condorQStats:
 
         # update RRDs
         type_strings = {'Status':'Status', 'Requested':'Req', 'ClientMonitor':'Client'}
-        for fe in [None] + data.keys():
+        for fe in [None] + list(data.keys()):
             if fe is None: # special key == Total
                 fe_dir = "total"
                 fe_el = total_el
@@ -474,16 +474,16 @@ class condorQStats:
 
             val_dict = {}
             # Initialize,  so that all get created properly
-            for tp in self.attributes.keys():
+            for tp in list(self.attributes.keys()):
                 tp_str = type_strings[tp]
                 attributes_tp = self.attributes[tp]
                 for a in attributes_tp:
                     val_dict["%s%s" % (tp_str, a)] = None
 
             monitoringConfig.establish_dir(fe_dir)
-            for tp in fe_el.keys():
+            for tp in list(fe_el.keys()):
                 # type - Status, Requested or ClientMonitor
-                if not (tp in self.attributes.keys()):
+                if not (tp in list(self.attributes.keys())):
                     continue
 
                 tp_str = type_strings[tp]
@@ -491,7 +491,7 @@ class condorQStats:
                 attributes_tp = self.attributes[tp]
 
                 fe_el_tp = fe_el[tp]
-                for a in fe_el_tp.keys():
+                for a in list(fe_el_tp.keys()):
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
                         if not isinstance(a_el, dict): # ignore subdictionaries
@@ -539,7 +539,7 @@ class condorLogSummary:
         """
         # reserve only those that has been around this time
         new_stats_data = {}
-        for c in self.stats_diff.keys():
+        for c in list(self.stats_diff.keys()):
             # but carry over all the users... should not change that often
             new_stats_data[c] = self.current_stats_data[c]
 
@@ -588,7 +588,7 @@ class condorLogSummary:
         if client_name not in self.current_stats_data:
             self.current_stats_data[client_name] = {}
 
-        for username in stats.keys():
+        for username in list(stats.keys()):
             if username not in self.current_stats_data[client_name]:
                 self.current_stats_data[client_name][username] = stats[username].get_simple()
             else:
@@ -608,11 +608,11 @@ class condorLogSummary:
         changed status, ie.
         stats_diff[frontend][username:client_int_name]["Completed"]["Entered"]
         """
-        for client_name in self.current_stats_data.keys():
+        for client_name in list(self.current_stats_data.keys()):
             self.stats_diff[client_name]={}
             if client_name in self.old_stats_data:
                 stats=self.current_stats_data[client_name]
-                for username in stats.keys():
+                for username in list(stats.keys()):
                     if username in self.old_stats_data[client_name]:
                         self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
@@ -625,14 +625,14 @@ class condorLogSummary:
         @return: returns dictionary stats_data[frontend][status]=count
         """
         stats_data={}
-        for client_name in self.current_stats_data.keys():
+        for client_name in list(self.current_stats_data.keys()):
             out_el = {}
             for s in self.job_statuses:
                 if not (s in ('Completed', 'Removed')): # I don't have their numbers from inactive logs
                     count = 0
-                    for username in self.current_stats_data[client_name].keys():
+                    for username in list(self.current_stats_data[client_name].keys()):
                         client_el = self.current_stats_data[client_name][username].data
-                        if ((client_el is not None) and (s in client_el.keys())):
+                        if ((client_el is not None) and (s in list(client_el.keys()))):
                             count += len(client_el[s])
 
                     out_el[s] = count
@@ -750,7 +750,7 @@ class condorLogSummary:
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
                           'badput':{}} #i.e. everything but jobs terminating
-        for w in count_waste_mill.keys():
+        for w in list(count_waste_mill.keys()):
             count_waste_mill_w = count_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
                 count_waste_mill_w[enle_waste_mill_w_range] = 0 # make sure all are intialized
@@ -758,12 +758,12 @@ class condorLogSummary:
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
                           'badput':{}} #i.e. everything but jobs terminating
-        for w in time_waste_mill.keys():
+        for w in list(time_waste_mill.keys()):
             time_waste_mill_w = time_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
                 time_waste_mill_w[enle_waste_mill_w_range] = 0 # make sure all are intialized
 
-        for enle_job in entered_list.keys():
+        for enle_job in list(entered_list.keys()):
             enle = entered_list[enle_job]
             enle_waste_mill = enle['wastemill']
             enle_glidein_duration = enle['duration']
@@ -799,7 +799,7 @@ class condorLogSummary:
             count_total['JobsGoodput'] += enle_jobs_duration['goodput']
 
             # find and save waste range
-            for w in enle_waste_mill.keys():
+            for w in list(enle_waste_mill.keys()):
                 if w == "duration":
                     continue # not a waste
                 # find and save time range
@@ -825,16 +825,16 @@ class condorLogSummary:
         @return: dictionary[client_name][entered/exited][status]=count
         """
         stats_data={}
-        for client_name in self.stats_diff.keys():
+        for client_name in list(self.stats_diff.keys()):
             out_el = {'Current':{}, 'Entered':{}, 'Exited':{}}
             for s in self.job_statuses:
                 entered = 0
                 entered_list = []
                 exited = 0
-                for username in self.stats_diff[client_name].keys():
+                for username in list(self.stats_diff[client_name].keys()):
                     diff_el = self.stats_diff[client_name][username]
 
-                    if ((diff_el is not None) and (s in diff_el.keys())):
+                    if ((diff_el is not None) and (s in list(diff_el.keys()))):
                         entered_list += diff_el[s]['Entered']
                         entered += len(diff_el[s]['Entered'])
                         exited -= len(diff_el[s]['Exited'])
@@ -842,10 +842,10 @@ class condorLogSummary:
                 out_el['Entered'][s] = entered
                 if not (s in ('Completed', 'Removed')): # I don't have their numbers from inactive logs
                     count = 0
-                    for username in self.current_stats_data[client_name].keys():
+                    for username in list(self.current_stats_data[client_name].keys()):
                         stats_el = self.current_stats_data[client_name][username].data
 
-                        if ((stats_el is not None) and (s in stats_el.keys())):
+                        if ((stats_el is not None) and (s in list(stats_el.keys()))):
                             count += len(stats_el[s])
                     out_el['Current'][s] = count
                     # and we can never get out of the terminal state
@@ -870,12 +870,12 @@ class condorLogSummary:
         @return: Dictionary with keys (wait,idle,running,held)
         """
         total={'Wait':None,'Idle':None,'Running':None,'Held':None}
-        for k in total.keys():
+        for k in list(total.keys()):
             tdata = []
-            for client_name in self.current_stats_data.keys():
+            for client_name in list(self.current_stats_data.keys()):
                 for username in self.current_stats_data[client_name]:
                     sdata = self.current_stats_data[client_name][username].data
-                    if ((sdata is not None) and (k in sdata.keys())):
+                    if ((sdata is not None) and (k in list(sdata.keys()))):
                         tdata = tdata + sdata[k]
             total[k] = tdata
         return total
@@ -883,7 +883,7 @@ class condorLogSummary:
     def get_stats_total_summary(self):
         in_total = self.get_stats_total()
         out_total = {}
-        for k in in_total.keys():
+        for k in list(in_total.keys()):
             out_total[k] = len(in_total[k])
         return out_total
 
@@ -900,22 +900,22 @@ class condorLogSummary:
         @return: Dictionary of client_name with sub_keys Wait,Idle,Running,Held,Completed,Removed
         """
         out_data={}
-        for client_name in self.stats_diff.keys():
+        for client_name in list(self.stats_diff.keys()):
             client_el = {'Wait':None, 'Idle':None, 'Running':None, 'Held':None, 'Completed':None, 'Removed':None}
-            for k in client_el.keys():
+            for k in list(client_el.keys()):
                 client_el[k] = {'Entered':[], 'Exited':[]}
                 tdata = client_el[k]
                 #flatten all usernames into one
-                for username in self.stats_diff[client_name].keys():
+                for username in list(self.stats_diff[client_name].keys()):
                     sdiff = self.stats_diff[client_name][username]
-                    if ((sdiff is not None) and (k in sdiff.keys())):
+                    if ((sdiff is not None) and (k in list(sdiff.keys()))):
                         if k == 'Completed':
                             # for completed jobs, add the username
                             # not for the others since there is no adequate place in the object
                             for sdel in sdiff[k]['Entered']:
                                 sdel[4]['username'] = username
 
-                        for e in tdata.keys():
+                        for e in list(tdata.keys()):
                             for sdel in sdiff[k][e]:
                                 tdata[e].append(sdel)
             out_data[client_name] = client_el
@@ -923,14 +923,14 @@ class condorLogSummary:
 
     def get_diff_total(self):
         total = {'Wait':None, 'Idle':None, 'Running':None, 'Held':None, 'Completed':None, 'Removed':None}
-        for k in total.keys():
+        for k in list(total.keys()):
             total[k] = {'Entered':[], 'Exited':[]}
             tdata = total[k]
-            for client_name in self.stats_diff.keys():
-                for username in self.stats_diff[client_name].keys():
+            for client_name in list(self.stats_diff.keys()):
+                for username in list(self.stats_diff[client_name].keys()):
                     sdiff = self.stats_diff[client_name][username]
-                    if ((sdiff is not None) and (k in sdiff.keys())):
-                        for e in tdata.keys():
+                    if ((sdiff is not None) and (k in list(sdiff.keys()))):
+                        for e in list(tdata.keys()):
                             tdata[e] = tdata[e] + sdiff[k][e]
         return total
 
@@ -938,7 +938,7 @@ class condorLogSummary:
         stats_total = self.get_stats_total()
         diff_total = self.get_diff_total()
         out_total = {'Current':{}, 'Entered':{}, 'Exited':{}}
-        for k in diff_total.keys():
+        for k in list(diff_total.keys()):
             out_total['Entered'][k] = len(diff_total[k]['Entered'])
             if k in stats_total:
                 out_total['Current'][k] = len(stats_total[k])
@@ -984,7 +984,7 @@ class condorLogSummary:
         stats_data_summary = self.get_stats_data_summary()
         diff_summary = self.get_diff_summary()
         stats_total_summary = self.get_stats_total_summary()
-        for client_name in [None] + diff_summary.keys():
+        for client_name in [None] + list(diff_summary.keys()):
             if client_name is None:
                 fe_dir = "total"
                 sdata = stats_total_summary
@@ -1007,7 +1007,7 @@ class condorLogSummary:
                     val_dict_counts["Status%s" % s] = count
                     val_dict_counts_desc["Status%s" % s] = {'ds_type':'GAUGE'}
 
-                if ((sdiff is not None) and (s in sdiff.keys())):
+                if ((sdiff is not None) and (s in list(sdiff.keys()))):
                     entered_list = sdiff[s]['Entered']
                     entered = len(entered_list)
                     exited = -len(sdiff[s]['Exited'])
@@ -1028,7 +1028,7 @@ class condorLogSummary:
                     completed_counts = self.summarize_completed_stats(completed_stats)
 
                     # save simple vals
-                    for tkey in completed_counts['Sum'].keys():
+                    for tkey in list(completed_counts['Sum'].keys()):
                         val_dict_completed[tkey] = completed_counts['Sum'][tkey]
 
                     count_entered_times = completed_counts['Lasted']
@@ -1037,24 +1037,24 @@ class condorLogSummary:
                     count_waste_mill = completed_counts['Waste']
                     time_waste_mill = completed_counts['WasteTime']
                     # save run times
-                    for timerange in count_entered_times.keys():
+                    for timerange in list(count_entered_times.keys()):
                         val_dict_stats['Lasted_%s' % timerange] = count_entered_times[timerange]
                         # they all use the same indexes
                         val_dict_stats['JobsLasted_%s' % timerange] = count_jobs_duration[timerange]
 
                     # save jobsnr
-                    for jobrange in count_jobnrs.keys():
+                    for jobrange in list(count_jobnrs.keys()):
                         val_dict_stats['JobsNr_%s' % jobrange] = count_jobnrs[jobrange]
 
                     # save waste_mill
-                    for w in count_waste_mill.keys():
+                    for w in list(count_waste_mill.keys()):
                         count_waste_mill_w = count_waste_mill[w]
-                        for p in count_waste_mill_w.keys():
+                        for p in list(count_waste_mill_w.keys()):
                             val_dict_waste['%s_%s' % (w, p)] = count_waste_mill_w[p]
 
-                    for w in time_waste_mill.keys():
+                    for w in list(time_waste_mill.keys()):
                         time_waste_mill_w = time_waste_mill[w]
-                        for p in time_waste_mill_w.keys():
+                        for p in list(time_waste_mill_w.keys()):
                             val_dict_wastetime['%s_%s' % (w, p)] = time_waste_mill_w[p]
 
             #end for s in self.job_statuses
@@ -1100,9 +1100,9 @@ class condorLogSummary:
             'collector_name': collectorName,
             'joblist': {},
         }
-        for _sec_name, sndata in self.stats_diff.iteritems():
-            for _frname, frdata in sndata.iteritems():
-                for state, jobs in frdata.iteritems():
+        for _sec_name, sndata in list(self.stats_diff.items()):
+            for _frname, frdata in list(sndata.items()):
+                for state, jobs in list(frdata.items()):
                     if state == 'Completed':
                         for job in jobs['Entered']:
                             jobid = job[0]

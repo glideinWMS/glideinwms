@@ -562,7 +562,7 @@ class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
     def __init__(self, user_dirs, work_dir, symlink_base_subdir, dir_name):
         self.symlink_base_dir=os.path.join(work_dir, symlink_base_subdir)
         cWDictFile.multiSimpleDirSupport.__init__(self, (self.symlink_base_dir,), dir_name)
-        for user in user_dirs.keys():
+        for user in list(user_dirs.keys()):
             self.add_dir_obj(cWDictFile.symlinkSupport(user_dirs[user], os.path.join(self.symlink_base_dir, "user_%s"%user), dir_name))
 
 ###########################################
@@ -592,7 +592,7 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
                                           False, #simple_work_dir=False
                                           log_dir)
         self.client_log_dirs=client_log_dirs
-        for user in client_log_dirs.keys():
+        for user in list(client_log_dirs.keys()):
             self.add_dir_obj(baseClientDirSupport(user, client_log_dirs[user], 'clientlog'))
 
         self.client_proxies_dirs=client_proxies_dirs
@@ -643,7 +643,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
                                          False, # simple_work_dir=False
                                          base_log_dir)
 
-        for user in base_client_log_dirs.keys():
+        for user in list(base_client_log_dirs.keys()):
             self.add_dir_obj(clientLogDirSupport(user, cgWConsts.get_entry_userlog_dir(base_client_log_dirs[user], sub_name)))
 
         for user in base_client_proxies_dirs:

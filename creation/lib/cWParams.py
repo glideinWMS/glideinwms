@@ -43,7 +43,7 @@ class SubParams:
 
     # make data elements look like a dictionary
     def keys(self):
-        return self.data.keys()
+        return list(self.data.keys())
     def has_key(self, name):
         return name in self.data
     def __contains__(self, name):
@@ -61,7 +61,7 @@ class SubParams:
 
     # validate input against bae template (i.e. the defaults)
     def validate(self, base, path_text):
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             if k not in base:
                 # element not in base, report
                 raise RuntimeError("Unknown parameter %s.%s"%(path_text, k))
@@ -78,12 +78,12 @@ class SubParams:
                     if isinstance(defvalue, xmlParse.OrderedDict):
                         # dictionary el elements
                         data_el=self[k]
-                        for data_subkey in data_el.keys():
+                        for data_subkey in list(data_el.keys()):
                             data_el[data_subkey].validate(subdef, "%s.%s.%s"%(path_text, k, data_subkey))
                     elif isinstance(defvalue, list):
                         # list of elements
                         if isinstance(self.data[k], xmlParse.OrderedDict):
-                            if len(self.data[k].keys())==0:
+                            if len(list(self.data[k].keys()))==0:
                                 self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
 
                         mylist=self[k]
@@ -97,7 +97,7 @@ class SubParams:
 
     # put default values where there is nothing
     def use_defaults(self, defaults):
-        for k in defaults.keys():
+        for k in list(defaults.keys()):
             defel=defaults[k]
             if isinstance(defel, xmlParse.OrderedDict):
                 # subdictionary
@@ -117,7 +117,7 @@ class SubParams:
                     else:
                         # need to set defaults on all elements in the dictionary
                         data_el=self[k]
-                        for data_subkey in data_el.keys():
+                        for data_subkey in list(data_el.keys()):
                             data_el[data_subkey].use_defaults(subdef)
                 elif isinstance(defvalue, list):
                     # list of elements

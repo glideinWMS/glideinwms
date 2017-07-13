@@ -59,7 +59,7 @@ class Classad(object):
         :param prefix: prefix used for the attribute names (Default: "")
         :return:
         """
-        for k, v in params_dict.items():
+        for k, v in list(params_dict.items()):
             if isinstance(v, int):
                 # don't quote ints
                 self.adParams['%s%s' % (prefix, k)] = v
@@ -103,7 +103,7 @@ class Classad(object):
 
         ad = ""
 
-        for key, value in self.adParams.iteritems():
+        for key, value in list(self.adParams.items()):
             if isinstance(value, str) or isinstance(value, unicode):
                 # Format according to Condor String Literal definition
                 # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
@@ -284,7 +284,7 @@ class ClassadAdvertiser:
         Advertise all the known classads to the pool
         """
 
-        self.advertiseClassads(self.classads.keys())
+        self.advertiseClassads(list(self.classads.keys()))
 
 
     def invalidateClassad(self, ad):
@@ -303,7 +303,7 @@ class ClassadAdvertiser:
         Invalidate all the known classads
         """
 
-        for ad in self.classads.keys():
+        for ad in list(self.classads.keys()):
             self.invalidateClassad(ad)
 
 
@@ -345,7 +345,7 @@ class ClassadAdvertiser:
 
         ads = ""
 
-        for ad in self.classads.keys():
+        for ad in list(self.classads.keys()):
             ads = "%s%s\n" % (ads, self.classads[ad])
         return ads
 

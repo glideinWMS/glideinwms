@@ -143,8 +143,8 @@ def verifyRRD(fix_rrd=False):
     counts_dict={}
 
     # initialize the RRD dictionaries to match the current schema for verification
-    for tp in status_attributes.keys():
-        if tp in type_strings.keys():
+    for tp in list(status_attributes.keys()):
+        if tp in list(type_strings.keys()):
             tp_str=type_strings[tp]
             attributes_tp=status_attributes[tp]
             for a in attributes_tp:
@@ -222,9 +222,9 @@ def aggregateStatus(in_downtime):
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
-    for tp in global_total.keys():
+    for tp in list(global_total.keys()):
         # type - status or requested
-        if not (tp in status_attributes.keys()):
+        if not (tp in list(status_attributes.keys())):
             continue
 
         tp_str=type_strings[tp]
@@ -252,7 +252,7 @@ def aggregateStatus(in_downtime):
             nr_entries+=1
             status['entries'][entry]['total']=entry_data['total']
 
-            for w in global_total.keys():
+            for w in list(global_total.keys()):
                 tel=global_total[w]
                 if w not in entry_data['total']:
                     continue
@@ -261,23 +261,23 @@ def aggregateStatus(in_downtime):
                     # new one, just copy over
                     global_total[w]={}
                     tel=global_total[w]
-                    for a in el.keys():
+                    for a in list(el.keys()):
                         tel[a]=int(el[a]) #coming from XML, everything is a string
                 else:
                     # successive, sum
-                    for a in el.keys():
+                    for a in list(el.keys()):
                         if a in tel:
                             tel[a]+=int(el[a])
 
                         # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tel.keys():
+                        for a in list(tel.keys()):
                             if a not in el:
                                 del tel[a]
 
         # update frontends
         if 'frontends' in entry_data:
             #loop on fe's in this entry
-            for fe in entry_data['frontends'].keys():
+            for fe in list(entry_data['frontends'].keys()):
                 #compare each to the list of fe's accumulated so far
                 if fe not in status_fe['frontends']:
                     status_fe['frontends'][fe]={}
@@ -285,12 +285,12 @@ def aggregateStatus(in_downtime):
                     nr_feentries[fe]=1 #already found one
                 else:
                     nr_feentries[fe]+=1
-                for w in entry_data['frontends'][fe].keys():
+                for w in list(entry_data['frontends'][fe].keys()):
                     if w not in status_fe['frontends'][fe]:
                         status_fe['frontends'][fe][w]={}
                     tela=status_fe['frontends'][fe][w]
                     ela=entry_data['frontends'][fe][w]
-                    for a in ela.keys():
+                    for a in list(ela.keys()):
                         #for the 'Downtime' field (only bool), do logical AND of all site downtimes
                         # 'w' is frontend attribute name, ie 'ClientMonitor' or 'Downtime'
                         # 'a' is sub-field, such as 'GlideIdle' or 'status'
@@ -314,25 +314,25 @@ def aggregateStatus(in_downtime):
                                 pass #not an int, not Downtime, so do nothing
 
                         # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tela.keys():
+                        for a in list(tela.keys()):
                             if a not in ela:
                                 del tela[a]
 
 
-    for w in global_total.keys():
+    for w in list(global_total.keys()):
         if global_total[w] is None:
             del global_total[w] # remove entry if not defined
         else:
             tel=global_total[w]
-            for a in tel.keys():
+            for a in list(tel.keys()):
                 if a in avgEntries:
                     tel[a]=tel[a]/nr_entries # since all entries must have this attr to be here, just divide by nr of entries
 
     #do average for per-fe stat--'InfoAge' only
-    for fe in status_fe['frontends'].keys():
-        for w in status_fe['frontends'][fe].keys():
+    for fe in list(status_fe['frontends'].keys()):
+        for w in list(status_fe['frontends'][fe].keys()):
             tel=status_fe['frontends'][fe][w]
-            for a in tel.keys():
+            for a in list(tel.keys()):
                 if a in avgEntries and fe in nr_feentries:
                     tel[a]=tel[a]/nr_feentries[fe] # divide per fe
 
@@ -361,9 +361,9 @@ def aggregateStatus(in_downtime):
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
     # Total rrd across all frontends and factories
-    for tp in global_total.keys():
+    for tp in list(global_total.keys()):
         # type - status or requested
-        if not (tp in status_attributes.keys()):
+        if not (tp in list(status_attributes.keys())):
             continue
 
         tp_str=type_strings[tp]
@@ -371,7 +371,7 @@ def aggregateStatus(in_downtime):
 
         tp_el=global_total[tp]
 
-        for a in tp_el.keys():
+        for a in list(tp_el.keys()):
             if a in attributes_tp:
                 a_el=int(tp_el[a])
                 val_dict["%s%s"%(tp_str, a)]=a_el
@@ -380,18 +380,18 @@ def aggregateStatus(in_downtime):
                                                             "GAUGE", updated, val_dict)
 
     # Frontend total rrds across all factories
-    for fe in status_fe['frontends'].keys():
+    for fe in list(status_fe['frontends'].keys()):
         glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s"%("frontend_"+fe))
-        for tp in status_fe['frontends'][fe].keys():
+        for tp in list(status_fe['frontends'][fe].keys()):
             # type - status or requested
-            if not (tp in type_strings.keys()):
+            if not (tp in list(type_strings.keys())):
                 continue
             tp_str=type_strings[tp]
             attributes_tp=status_attributes[tp]
 
             tp_el=status_fe['frontends'][fe][tp]
 
-            for a in tp_el.keys():
+            for a in list(tp_el.keys()):
                 if a in attributes_tp:
                     a_el=int(tp_el[a])
                     val_dict["%s%s"%(tp_str, a)]=a_el
@@ -509,16 +509,16 @@ def aggregateLogSummary():
 
         # update entry
         out_data = {}
-        for frontend in entry_data['frontends'].keys():
+        for frontend in list(entry_data['frontends'].keys()):
             fe_el = entry_data['frontends'][frontend]
             out_fe_el = {}
             for k in ['Current', 'Entered', 'Exited']:
                 out_fe_el[k] = {}
-                for s in fe_el[k].keys():
+                for s in list(fe_el[k].keys()):
                     out_fe_el[k][s] = int(fe_el[k][s])
             out_fe_el['CompletedCounts'] = {'Waste': {}, 'WasteTime': {}, 'Lasted': {}, 'JobsNr': {},
                                             'JobsDuration': {}, 'Sum': {}}
-            for tkey in fe_el['CompletedCounts']['Sum'].keys():
+            for tkey in list(fe_el['CompletedCounts']['Sum'].keys()):
                 out_fe_el['CompletedCounts']['Sum'][tkey] = int(fe_el['CompletedCounts']['Sum'][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
                 for w in ("Waste", "WasteTime"):
@@ -543,12 +543,12 @@ def aggregateLogSummary():
 
             for k in ['Current', 'Entered', 'Exited']:
                 local_total[k] = {}
-                for s in global_total[k].keys():
+                for s in list(global_total[k].keys()):
                     local_total[k][s] = int(entry_data['total'][k][s])
                     global_total[k][s] += int(entry_data['total'][k][s])
             local_total['CompletedCounts'] = {'Sum': {}, 'Waste': {}, 'WasteTime': {},
                                               'Lasted': {}, 'JobsNr': {}, 'JobsDuration': {}}
-            for tkey in entry_data['total']['CompletedCounts']['Sum'].keys():
+            for tkey in list(entry_data['total']['CompletedCounts']['Sum'].keys()):
                 local_total['CompletedCounts']['Sum'][tkey] = int(entry_data['total']['CompletedCounts']['Sum'][tkey])
                 global_total['CompletedCounts']['Sum'][tkey] += int(entry_data['total']['CompletedCounts']['Sum'][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
@@ -667,28 +667,28 @@ def writeLogSummaryRRDs(fe_dir, status_el):
             count_waste_mill=completed_counts['Waste']
             time_waste_mill=completed_counts['WasteTime']
             # save run times
-            for timerange in count_entered_times.keys():
+            for timerange in list(count_entered_times.keys()):
                 val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
                 # they all use the same indexes
                 val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration[timerange]
 
             # save jobsnr
-            for jobrange in count_jobnrs.keys():
+            for jobrange in list(count_jobnrs.keys()):
                 val_dict_stats['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
 
             # save simple vals
-            for tkey in completed_counts['Sum'].keys():
+            for tkey in list(completed_counts['Sum'].keys()):
                 val_dict_completed[tkey]=completed_counts['Sum'][tkey]
 
             # save waste_mill
-            for w in count_waste_mill.keys():
+            for w in list(count_waste_mill.keys()):
                 count_waste_mill_w=count_waste_mill[w]
-                for p in count_waste_mill_w.keys():
+                for p in list(count_waste_mill_w.keys()):
                     val_dict_waste['%s_%s'%(w, p)]=count_waste_mill_w[p]
 
-            for w in time_waste_mill.keys():
+            for w in list(time_waste_mill.keys()):
                 time_waste_mill_w=time_waste_mill[w]
-                for p in time_waste_mill_w.keys():
+                for p in list(time_waste_mill_w.keys()):
                     val_dict_wastetime['%s_%s'%(w, p)]=time_waste_mill_w[p]
 
     # write the data to disk
@@ -725,7 +725,7 @@ def aggregateRRDStats(log=logSupport.log):
             except IOError:
                 log.debug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
 
-        stats_entries=stats.keys()
+        stats_entries=list(stats.keys())
         if len(stats_entries)==0:
             continue # skip this RRD... nothing to aggregate
         stats_entries.sort()
@@ -735,13 +735,13 @@ def aggregateRRDStats(log=logSupport.log):
         frontends = set([])
         data_sets = set([])
         for entry in stats_entries:
-            entry_resolution = stats[entry]['total']['periods'].keys()
+            entry_resolution = list(stats[entry]['total']['periods'].keys())
             if len(entry_resolution)==0:
                 continue # not an interesting entry
             resolution=resolution.union(entry_resolution)
             entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
             data_sets=data_sets.union(entry_data_sets)
-            entry_frontends = stats[entry]['frontends'].keys()
+            entry_frontends = list(stats[entry]['frontends'].keys())
             frontends=frontends.union(entry_frontends)
             entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
 

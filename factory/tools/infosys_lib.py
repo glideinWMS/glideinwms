@@ -254,7 +254,7 @@ def query_ress(ress_source, vo=''):
     
     ress_entries = {}
     
-    for condor_id in condor_data.keys():
+    for condor_id in list(condor_data.keys()):
         # Condor id is the value in the Name attribute of the classad.  The same entry may have multiple Names and therefore classads but each 
         # will have a unique Name/condor_id
         condor_el = condor_data[condor_id]

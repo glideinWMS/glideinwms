@@ -89,7 +89,7 @@ def main(argv):
     if len(config_entries) == 0:
         output += "No entries were found with missing ref id.\n"
     else:
-        for entry_id, entry_val in config_entries.iteritems():
+        for entry_id, entry_val in list(config_entries.items()):
             output += "Entry Name : %s\n" % entry_val["name"]
             output += "gatekeeper : %s\n" % entry_val["gatekeeper"]
             output += "rsl : %s\n" % entry_val["rsl"]
@@ -113,7 +113,7 @@ def find_entries_missing_infosys_id(config_xml, skip_disabled=True):
         sys.exit(2)  
     
     missing_ids = {}
-    for entry_name in config_entries.keys():
+    for entry_name in list(config_entries.keys()):
         if config_entries[entry_name]['ref_id'] == '':
             missing_ids[entry_name] = config_entries[entry_name]
     

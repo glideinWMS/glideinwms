@@ -1239,7 +1239,7 @@ class fileCommonDicts:
         self.dicts=None
 
     def keys(self):
-        return self.dicts.keys()
+        return list(self.dicts.keys())
 
     def has_key(self, key):
         return key in self.dicts
@@ -1251,7 +1251,7 @@ class fileCommonDicts:
         return self.dicts[key]
 
     def set_readonly(self,readonly=True):
-        for el in self.dicts.values():
+        for el in list(self.dicts.values()):
             el.set_readonly(readonly)
 
 ################################################
@@ -1320,7 +1320,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
             return False
         if compare_stage_dir and (self.stage_dir!=other.stage_dir):
             return False
-        for k in self.dicts.keys():
+        for k in list(self.dicts.keys()):
             if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
                 return False
         return True
@@ -1402,7 +1402,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
                  compare_fnames=False):
         if compare_sub_name and (self.sub_name!=other.sub_name):
             return False
-        for k in self.dicts.keys():
+        for k in list(self.dicts.keys()):
             if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
                 return False
         return True
@@ -1467,7 +1467,7 @@ class fileDicts:
 
     def set_readonly(self,readonly=True):
         self.main_dicts.set_readonly(readonly)
-        for el in self.sub_dicts.values():
+        for el in list(self.sub_dicts.values()):
             el.set_readonly(readonly)
 
     def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
@@ -1607,7 +1607,7 @@ class MonitorFileDicts:
 
     def set_readonly(self,readonly=True):
         self.main_dicts.set_readonly(readonly)
-        for el in self.sub_dicts.values():
+        for el in list(self.sub_dicts.values()):
             el.set_readonly(readonly)
 
     def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved

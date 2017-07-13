@@ -87,7 +87,7 @@ def xml_quoteattr(el):
 ######################################################################
 def complete_class_params(class_params):
     res = class_params.copy()
-    res_keys = res.keys()
+    res_keys = list(res.keys())
     if not ("subclass_params" in res_keys):
         res["subclass_params"] = {}
     if not ("dicts_params" in res_keys):
@@ -145,20 +145,20 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
         elif type(el) in SIMPLE_TYPES:
             head_arr.append(' %s=%s' % (attr, xml_quoteattr(el)))
         elif isinstance(el, (list, tuple)):
-            if attr in lists_params.keys():
+            if attr in list(lists_params.keys()):
                 list_attrs.append(attr)
-            elif attr in dicts_params.keys():
+            elif attr in list(dicts_params.keys()):
                 dict_attrs.append(attr)
             else:
                 raise RuntimeError("No params for list attr %s (%s)" % (attr, debug_str))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT['TypeDict']):
-            if attr in dicts_params.keys():
+            if attr in list(dicts_params.keys()):
                 #print "%s is dict" % attr
                 dict_attrs.append(attr)
-            elif attr in lists_params.keys():
+            elif attr in list(lists_params.keys()):
                 #print "%s is list" % attr
                 list_attrs.append(attr)
-            elif attr in tree_params.keys():
+            elif attr in list(tree_params.keys()):
                 #print "%s is tree" % attr
                 tree_attrs.append(attr)
             else:
@@ -188,7 +188,7 @@ def class2string(inst, inst_name, params={}, subclass_params={},
                  debug_str="", override_dictionary_type=None):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params, attr):
-        if attr in subclass_params.keys():
+        if attr in list(subclass_params.keys()):
             return complete_class_params(subclass_params[attr])
         else:
             # if attr not explicitly specified, use default behaviour
@@ -238,7 +238,7 @@ def class2file(fd, inst, inst_name, params={}, subclass_params={},
                debug_str=""):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params, attr):
-        if attr in subclass_params.keys():
+        if attr in list(subclass_params.keys()):
             return complete_class_params(subclass_params[attr])
         else: # if attr not explicitly specified, use default behaviour
             return complete_class_params({})
@@ -277,7 +277,7 @@ def class2file(fd, inst, inst_name, params={}, subclass_params={},
 ######################################################################
 def complete_dict_params(dict_params):
     res = dict_params.copy()
-    res_keys = res.keys()
+    res_keys = list(res.keys())
     if not ("dict_attr_name" in res_keys):
         res["dict_attr_name"] = "name"
     if not ("el_attr_name" in res_keys):
@@ -329,29 +329,29 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
             val = xml_quoteattr(el)
             res_arr.append(leading_tab + indent_tab + ('<%s %s="%s" %s=%s/>' % (el_name, dict_attr_name, idx, el_attr_name, val)))
         elif isinstance(el, types.InstanceType):
-            if "class" in subtypes_params.keys():
+            if "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 res_arr.append(class2string(el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
             else:
                 raise RuntimeError("No params for class (at idx %s) (%s)" % (idx, debug_str))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT['TypeDict']):
             #print (idx,subtypes_params.keys())
-            if "dict" in subtypes_params.keys():
+            if "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 res_arr.append(dict2string(el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
-            elif "list" in subtypes_params.keys():
+            elif "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 res_arr.append(list2string(el, el_name, sp["el_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
-            elif "class" in subtypes_params.keys():
+            elif "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 res_arr.append(class2string(el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
             else:
                 raise RuntimeError("No params for dict (at idx %s) (%s)" % (idx, debug_str))
         elif isinstance(el, (list, tuple)):
-            if "list" in subtypes_params.keys():
+            if "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 res_arr.append(list2string(el, el_name, sp["el_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
-            elif "dict" in subtypes_params.keys():
+            elif "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 res_arr.append(dict2string(el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
             else:
@@ -406,29 +406,29 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
             val = xml_quoteattr(el)
             fd.write(leading_tab + indent_tab + ('<%s %s="%s" %s=%s/>\n' % (el_name, dict_attr_name, idx, el_attr_name, val)))
         elif isinstance(el, types.InstanceType):
-            if "class" in subtypes_params.keys():
+            if "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 class2file(fd, el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
             else:
                 raise RuntimeError("No params for class (at idx %s) (%s)" % (idx, debug_str))
         elif isinstance(el, DEFAULT_OVERRIDE_DICT['TypeDict']):
             #print (idx,subtypes_params.keys())
-            if "dict" in subtypes_params.keys():
+            if "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 dict2file(fd, el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
-            elif "list" in subtypes_params.keys():
+            elif "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 list2file(fd, el, el_name, sp["el_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
-            elif "class" in subtypes_params.keys():
+            elif "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 class2file(fd, el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
             else:
                 raise RuntimeError("No params for dict (at idx %s) (%s)" % (idx, debug_str))
         elif isinstance(el, (list, tuple)):
-            if "list" in subtypes_params.keys():
+            if "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 list2file(fd, el, el_name, sp["el_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
-            elif "dict" in subtypes_params.keys():
+            elif "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 dict2file(fd, el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {dict_attr_name:idx}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
             else:
@@ -443,7 +443,7 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
 ######################################################################
 def complete_list_params(list_params):
     res = list_params.copy()
-    res_keys = res.keys()
+    res_keys = list(res.keys())
     if not ("el_attr_name" in res_keys):
         res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
     if not ("subtypes_params" in res_keys):
@@ -495,28 +495,28 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
             val = xml_quoteattr(el)
             res_arr.append(leading_tab + indent_tab + ('<%s %s=%s/>' % (el_name, el_attr_name, val)))
         elif isinstance(el, types.InstanceType):
-            if "class" in subtypes_params.keys():
+            if "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 res_arr.append(class2string(el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
             else:
                 raise RuntimeError("No params for class in list (%s)" % debug_str)
         elif isinstance(el, DEFAULT_OVERRIDE_DICT['TypeDict']):
-            if "dict" in subtypes_params.keys():
+            if "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 res_arr.append(dict2string(el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
-            elif "list" in subtypes_params.keys():
+            elif "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 res_arr.append(list2string(el, el_name, sp["el_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
-            elif "class" in subtypes_params.keys():
+            elif "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 res_arr.append(class2string(el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
             else:
                 raise RuntimeError("No params for dict in list (%s)" % debug_str)
         elif isinstance(el, (list, tuple)):
-            if "list" in subtypes_params.keys():
+            if "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 res_arr.append(list2string(el, el_name, sp["el_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
-            elif "dict" in subtypes_params.keys():
+            elif "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 res_arr.append(dict2string(el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
             else:
@@ -571,28 +571,28 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
             val = xml_quoteattr(el)
             fd.write(leading_tab + indent_tab + ('<%s %s=%s/>\n' % (el_name, el_attr_name, val)))
         elif isinstance(el, types.InstanceType):
-            if "class" in subtypes_params.keys():
+            if "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 class2file(fd, el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
             else:
                 raise RuntimeError("No params for class in list (%s)" % debug_str)
         elif isinstance(el, DEFAULT_OVERRIDE_DICT['TypeDict']):
-            if "dict" in subtypes_params.keys():
+            if "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 dict2file(fd, el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
-            elif "list" in subtypes_params.keys():
+            elif "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 list2file(fd, el, el_name, sp["el_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
-            elif "class" in subtypes_params.keys():
+            elif "class" in list(subtypes_params.keys()):
                 c = complete_class_params(subtypes_params["class"])
                 class2file(fd, el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
             else:
                 raise RuntimeError("No params for dict in list (%s)" % debug_str)
         elif isinstance(el, (list, tuple)):
-            if "list" in subtypes_params.keys():
+            if "list" in list(subtypes_params.keys()):
                 sp = complete_list_params(subtypes_params["list"])
                 list2file(fd, el, el_name, sp["el_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
-            elif "dict" in subtypes_params.keys():
+            elif "dict" in list(subtypes_params.keys()):
                 sp = complete_dict_params(subtypes_params["dict"])
                 dict2file(fd, el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
             else:

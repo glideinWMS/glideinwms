@@ -35,13 +35,13 @@ def km(z):
 #    between elements for ease of debugging.
 
 def debug_print_dict(data):
-   for period, p in data.iteritems():
+   for period, p in list(data.items()):
       print(period)
-      for frontend, f in p.iteritems():
+      for frontend, f in list(p.items()):
          print("\t", frontend)
-         for entry, e in f.iteritems():
+         for entry, e in list(f.items()):
             print("\t\t", entry)
-            for element, value in e.iteritems():
+            for element, value in list(e.items()):
                print("\t\t\t", element, ":", value)
    return
 

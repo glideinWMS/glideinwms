@@ -243,7 +243,7 @@ def format_condor_dict(data):
 
     out = {}
 
-    for k in data.keys():
+    for k in list(data.keys()):
         kel = data[k].copy()
 
         el = {"params":{}, "monitor":{}}
@@ -257,7 +257,7 @@ def format_condor_dict(data):
         for (prefix, eldata) in ((frontendConfig.glidein_param_prefix, el["params"]),
                               (frontendConfig.glidein_monitor_prefix, el["monitor"])):
             plen = len(prefix)
-            for attr in kel.keys():
+            for attr in list(kel.keys()):
                 if attr[:plen] == prefix:
                     eldata[attr[plen:]] = kel[attr]
                     del kel[attr]
@@ -613,7 +613,7 @@ class Key4AdvertizeBuilder:
             self.keys_cache = {}
             return
 
-        for cache_id in self.keys_cache.keys():
+        for cache_id in list(self.keys_cache.keys()):
             # if at least one criteria is not satisfied, delete the entry
             delete_entry = False
 
@@ -747,7 +747,7 @@ class MultiAdvertizeWork:
     def get_queue_len(self):
         count = 0
         #for factory_pool in self.factory_queue:
-        for factory_pool in self.factory_queue.keys():
+        for factory_pool in list(self.factory_queue.keys()):
             count += len(self.factory_queue[factory_pool])
         return count
 
@@ -910,7 +910,7 @@ class MultiAdvertizeWork:
                 key_obj=self.global_key[factory_pool]
             if key_obj is not None:
                 fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
-                for attr in glidein_params_to_encrypt.keys():
+                for attr in list(glidein_params_to_encrypt.keys()):
                     el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                     escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
@@ -941,7 +941,7 @@ class MultiAdvertizeWork:
         unpublished_files={}
         if reset_unique_id:
             self.unique_id=1
-        for factory_pool in self.factory_queue.keys():
+        for factory_pool in list(self.factory_queue.keys()):
             self.unique_id+=1 # make sure ads for different factories don't end in the same file
             unpublished_files[factory_pool]=self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
         return unpublished_files
@@ -954,7 +954,7 @@ class MultiAdvertizeWork:
             """
             # the different indentation is due to code refactoring
             # this way the diff was minimized
-            if not (factory_pool in self.factory_queue.keys()):
+            if not (factory_pool in list(self.factory_queue.keys())):
                 # nothing to be done, prevent failure
                 return []
 
@@ -1131,7 +1131,7 @@ class MultiAdvertizeWork:
                                   
                 if key_obj is not None:
                     fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
-                    for attr in glidein_params_to_encrypt.keys():
+                    for attr in list(glidein_params_to_encrypt.keys()):
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                    
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
@@ -1147,7 +1147,7 @@ class MultiAdvertizeWork:
                     (frontendConfig.glidein_config_prefix, self.glidein_config_limits)
                 )
                 for (prefix, data) in classad_info_tuples:
-                    for attr in data.keys():
+                    for attr in list(data.keys()):
                         writeTypedClassadAttrToFile(fd,
                                                     '%s%s' % (prefix, attr),
                                                     data[attr])
@@ -1447,7 +1447,7 @@ class ResourceClassad(classadSupport.Classad):
         @type  limits_triggered: dictionary
         @param limits_triggered: limits and curbs that have been triggered
         """
-        for k, v in limits_triggered.iteritems():
+        for k, v in list(limits_triggered.items()):
             if k.startswith('Curb'):
                 classadmessage = "GlideClientCurb"+k
             else:

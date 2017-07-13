@@ -130,7 +130,7 @@ def find_entries_with_different_content(config_xml, skip_disabled):
     bdii_entries = {}
     ress_entries = {}
     tg_entries = {}
-    for infosys, type in infosystems.iteritems():
+    for infosys, type in list(infosystems.items()):
         if type.lower() == 'bdii':
             bdii_entries.update(infosys_lib.query_bdii(infosys))
                 
@@ -154,7 +154,7 @@ def find_entries_id_match(infosys_entries, config_entries, source_type):
     """
     id_match = [] # list of lists
     
-    for entry_name in config_entries.keys():
+    for entry_name in list(config_entries.keys()):
         entry_c = config_entries[entry_name]
         
         # Skip match if not from the same source
@@ -164,7 +164,7 @@ def find_entries_id_match(infosys_entries, config_entries, source_type):
         
         # See if information system has the ref id
         match = True
-        for infosys_id in infosys_entries.keys():
+        for infosys_id in list(infosys_entries.keys()):
             entry_i = infosys_entries[infosys_id]
             if entry_c['ref_id'] == entry_i['ref_id']:
                 # TODO - track mismatches?

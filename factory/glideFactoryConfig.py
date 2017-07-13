@@ -81,7 +81,7 @@ class ConfigFile:
     
     def __str__(self):
         output = '\n'
-        for key in self.data.keys():
+        for key in list(self.data.keys()):
             output += '%s = %s, (%s)\n' % (key, str(self.data[key]), type(self.data[key]))
         return output
 
@@ -100,7 +100,7 @@ class JoinConfigFile(ConfigFile):
         self.entry_name=entry_name
         entry_obj=EntryConfigFile(entry_name, config_file, convert_function)
         #merge by overriding whatever is found in the subdir
-        for k in entry_obj.data.keys():
+        for k in list(entry_obj.data.keys()):
             self.data[k]=entry_obj.data[k]
 
 ############################################################
@@ -331,21 +331,21 @@ class FrontendDescript(ConfigFile):
         @return: list of usernames
         """
         usernames = {}
-        for frontend in self.data.keys():
+        for frontend in list(self.data.keys()):
             fe = self.data[frontend]['usermap']
-            for sec_class in fe.keys():
+            for sec_class in list(fe.keys()):
                 username = fe[sec_class]
                 usernames[username] = True
-        return usernames.keys()
+        return list(usernames.keys())
     
     def get_all_frontend_sec_classes(self):
         """
         Get a list of all frontend:sec_class
         """
         frontend_sec_classes = []
-        for fe_name in self.data.keys():
+        for fe_name in list(self.data.keys()):
             fe = self.data[fe_name]['usermap']
-            for sec_class in fe.keys():
+            for sec_class in list(fe.keys()):
                 frontend_sec_classes.append("%s:%s" % (fe_name, sec_class))
         return frontend_sec_classes
     
@@ -353,7 +353,7 @@ class FrontendDescript(ConfigFile):
         """
         Get the frontend:sec_class mapping for the given identity
         """
-        for fe_name in self.data.keys():
+        for fe_name in list(self.data.keys()):
             if self.data[fe_name]['ident'] == identity:
                 return fe_name
         

@@ -70,7 +70,7 @@ class TestTarSupport(unittest.TestCase):
 
     def create_archive_blob(self):
         tarball = GlideinTar()
-        for k in self.strings.keys():
+        for k in list(self.strings.keys()):
             tarball.add_string(k, self.strings[k])
 
         binary_string = tarball.create_tar_blob()
@@ -105,12 +105,12 @@ class TestTarSupport(unittest.TestCase):
         extracted_files = os.listdir(self.extract_dir)
         msg = "The number of files in the extract directory does not equal the number of strings added to the archive."
 
-        self.assertTrue(len(extracted_files) == len(self.strings.keys()), msg)
+        self.assertTrue(len(extracted_files) == len(list(self.strings.keys())), msg)
 
         for f in extracted_files:
             fd = open("%s/%s" % (self.extract_dir, f), 'r')
             file_contents = fd.read()
-            self.assertTrue(f in self.strings.keys(), "a file was found that doesn't exist in the keys for the strings files")
+            self.assertTrue(f in list(self.strings.keys()), "a file was found that doesn't exist in the keys for the strings files")
             self.assertTrue(file_contents == self.strings[f], "a file was found that doesn't exist in the keys for the strings files")
 
 

@@ -143,7 +143,7 @@ def fetch_ready_fork_result_list(pipe_ids):
     failed = []
     fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
 
-    readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
+    readable_fds = select.select(list(fds_to_entry.keys()), [], [], 0)[0]
     for fd in readable_fds:
         try:
             key = fds_to_entry[fd]
@@ -252,7 +252,7 @@ class ForkManager:
                  forks_remaining += len(post_work_info_subset)
                  functions_remaining -= len(post_work_info_subset)
 
-                 for i in (post_work_info_subset.keys() + failed_keys):
+                 for i in (list(post_work_info_subset.keys()) + failed_keys):
                      del pipe_ids[i]
                  #end for
              #end while
@@ -287,7 +287,7 @@ class ForkManager:
             forks_remaining += len(post_work_info_subset)
             functions_remaining -= len(post_work_info_subset)
 
-            for i in (post_work_info_subset.keys() + failed_keys):
+            for i in (list(post_work_info_subset.keys()) + failed_keys):
                 del pipe_ids[i]
 
             if len(post_work_info_subset)>0:

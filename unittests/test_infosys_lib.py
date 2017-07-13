@@ -39,7 +39,7 @@ class TestInfosysLib(unittest.TestCase):
         # Test that information is retrieved and is populated correctly
         infosys_entries = query_bdii("exp-bdii.cern.ch", "cms")
         self.assertNotEqual(infosys_entries, {})
-        keys = infosys_entries.keys()
+        keys = list(infosys_entries.keys())
         entry = infosys_entries[keys[0]]
         self.assertTrue(entry['site_name'] != '')
         self.assertTrue(entry['gridtype'] != '')
@@ -82,7 +82,7 @@ class TestInfosysLib(unittest.TestCase):
         # Test that information is retrieved and is populated correctly
         infosys_entries = query_ress("osg-ress-1.fnal.gov", "engage")
         self.assertNotEqual(infosys_entries, {})
-        keys = infosys_entries.keys()
+        keys = list(infosys_entries.keys())
         entry = infosys_entries[keys[0]]
         self.assertTrue(entry['site_name'] != '')
         self.assertTrue(entry['gridtype'] != '')
@@ -117,7 +117,7 @@ class TestInfosysLib(unittest.TestCase):
         # There is no input to the function since it is specific to the url requested
         infosys_entries = query_teragrid()
         self.assertNotEqual(infosys_entries, {})
-        keys = infosys_entries.keys()
+        keys = list(infosys_entries.keys())
         entry = infosys_entries[keys[0]]
         self.assertTrue(entry['site_name'] != '')
         self.assertEqual(entry['gridtype'], 'gt5')

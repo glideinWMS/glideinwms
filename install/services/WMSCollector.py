@@ -208,7 +208,7 @@ If present, are you really installing both services on the same node.
     global valid_options
     print("; ------------------------------------------")
     print("; %s minimal ini options template" % self.ini_section)
-    for section in valid_options.keys():
+    for section in list(valid_options.keys()):
       print("; ------------------------------------------")
       print("[%s]" % section)
       for option in valid_options[section]:

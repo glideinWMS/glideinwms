@@ -157,13 +157,13 @@ def verifyRRD(fix_rrd=False):
 
     status_dict={}
     status_total_dict={}
-    for tp in frontend_status_attributes.keys():
-        if tp in frontend_total_type_strings.keys():
+    for tp in list(frontend_status_attributes.keys()):
+        if tp in list(frontend_total_type_strings.keys()):
             tp_str=frontend_total_type_strings[tp]
             attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
                 status_total_dict["%s%s"%(tp_str, a)]=None
-        if tp in frontend_job_type_strings.keys():
+        if tp in list(frontend_job_type_strings.keys()):
             tp_str=frontend_job_type_strings[tp]
             attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
@@ -205,18 +205,18 @@ def write_one_rrd(name,updated,data,fact=0):
         
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
-    for tp in frontend_status_attributes.keys():
-        if tp in type_strings.keys():
+    for tp in list(frontend_status_attributes.keys()):
+        if tp in list(type_strings.keys()):
             tp_str=type_strings[tp]
             attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
                 val_dict["%s%s"%(tp_str, a)]=None
 
-    for tp in data.keys():
+    for tp in list(data.keys()):
         # type - status or requested
-        if not (tp in frontend_status_attributes.keys()):
+        if not (tp in list(frontend_status_attributes.keys())):
             continue
-        if not (tp in type_strings.keys()):
+        if not (tp in list(type_strings.keys())):
             continue
 
         tp_str=type_strings[tp]
@@ -224,7 +224,7 @@ def write_one_rrd(name,updated,data,fact=0):
                 
         tp_el=data[tp]
 
-        for a in tp_el.keys():
+        for a in list(tp_el.keys()):
             if a in attributes_tp:
                 a_el=int(tp_el[a])
                 if not isinstance(a_el, dict): # ignore subdictionaries
@@ -287,15 +287,15 @@ def aggregateStatus():
 
         this_group=status['groups'][group]
         for fos in ('factories', 'states'):
-          for fact in this_group[fos].keys():
+          for fact in list(this_group[fos].keys()):
             this_fact=this_group[fos][fact]
-            if not fact in global_fact_totals[fos].keys():
+            if not fact in list(global_fact_totals[fos].keys()):
                 # first iteration through, set fact totals equal to the first group's fact totals
                 global_fact_totals[fos][fact]={}
-                for attribute in type_strings.keys():
+                for attribute in list(type_strings.keys()):
                     global_fact_totals[fos][fact][attribute]={}
-                    if attribute in this_fact.keys():
-                        for type_attribute in this_fact[attribute].keys():
+                    if attribute in list(this_fact.keys()):
+                        for type_attribute in list(this_fact[attribute].keys()):
                             this_type_attribute=this_fact[attribute][type_attribute]
                             try:
                                 global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
@@ -303,15 +303,15 @@ def aggregateStatus():
                                 pass
             else:
                 # next iterations, factory already present in global fact totals, add the new factory values to the previous ones
-                for attribute in type_strings.keys():
-                    if attribute in this_fact.keys():
-                        for type_attribute in this_fact[attribute].keys():
+                for attribute in list(type_strings.keys()):
+                    if attribute in list(this_fact.keys()):
+                        for type_attribute in list(this_fact[attribute].keys()):
                             this_type_attribute=this_fact[attribute][type_attribute]
                             if isinstance(this_type_attribute, type(global_fact_totals[fos])):
                                 # dict, do nothing
                                 pass
                             else:
-                                if attribute in global_fact_totals[fos][fact].keys() and type_attribute in global_fact_totals[fos][fact][attribute].keys():
+                                if attribute in list(global_fact_totals[fos][fact].keys()) and type_attribute in list(global_fact_totals[fos][fact][attribute].keys()):
                                    global_fact_totals[fos][fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
                                    global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
@@ -322,7 +322,7 @@ def aggregateStatus():
             nr_groups += 1
             status['groups'][group]['total'] = group_data['total']
 
-            for w in global_total.keys():
+            for w in list(global_total.keys()):
                 tel = global_total[w]
                 if w not in group_data['total']:
                     continue
@@ -332,22 +332,22 @@ def aggregateStatus():
                     # new one, just copy over
                     global_total[w] = {}
                     tel = global_total[w]
-                    for a in el.keys():
+                    for a in list(el.keys()):
                         tel[a] = int(el[a]) #coming from XML, everything is a string
                 else:                
                     # successive, sum 
-                    for a in el.keys():
+                    for a in list(el.keys()):
                         if a in tel:
                             tel[a] += int(el[a])
                               
                     # if any attribute from prev. factories are not in the current one, remove from total
-                    for a in tel.keys():
+                    for a in list(tel.keys()):
                         if a not in el:
                             del tel[a]
 
 
         
-    for w in global_total.keys():
+    for w in list(global_total.keys()):
         if global_total[w] is None:
             del global_total[w] # remove group if not defined
 
@@ -388,11 +388,11 @@ def aggregateStatus():
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
     write_one_rrd("total/Status_Attributes", updated, global_total, 0)
 
-    for fact in global_fact_totals['factories'].keys():
+    for fact in list(global_fact_totals['factories'].keys()):
         fe_dir="total/factory_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
         write_one_rrd("%s/Status_Attributes"%fe_dir, updated, global_fact_totals['factories'][fact], 1)
-    for fact in global_fact_totals['states'].keys():
+    for fact in list(global_fact_totals['states'].keys()):
         fe_dir="total/state_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
         write_one_rrd("%s/Status_Attributes"%fe_dir, updated, global_fact_totals['states'][fact], 1)

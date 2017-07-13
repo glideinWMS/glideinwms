@@ -107,7 +107,7 @@ class TestPlugins(unittest.TestCase):
         self.condorstatus_dict[key2]['MyType']='Negotiator'
         self.condorstatus_dict[key3]={}
         self.condorstatus_dict[key3]['MyType']='Collector'
-        for k in self.condorstatus_dict.keys():
+        for k in list(self.condorstatus_dict.keys()):
             self.condorstatus_dict[k]['CurrentTime']='time()'
 
     def tearDown(self):

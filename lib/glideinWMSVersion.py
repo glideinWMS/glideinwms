@@ -87,7 +87,7 @@ class GlideinWMSDistro:
             if ver != 'UNKNOWN':
                 # Read the dir contents of distro and compute the md5sum
                 computedFileHash = {}
-                for file in distroFileHash.keys():
+                for file in list(distroFileHash.keys()):
                     fd = None
                     try:
                         if (self.type != "RPM"):

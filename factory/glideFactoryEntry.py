@@ -612,9 +612,9 @@ class Entry:
                 fparams = {}
 
             params = self.jobParams.data.copy()
-            for p in fparams.keys():
+            for p in list(fparams.keys()):
                 # Can only overwrite existing params, not create new ones
-                if p in params.keys():
+                if p in list(params.keys()):
                     params[p] = fparams[p]
 
             advertizer.add(client_internals["CompleteName"],
@@ -984,7 +984,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         decrypted_params = work[work_key]['params_decrypted']
 
         # add default values if not defined
-        for k in entry.jobParams.data.keys():
+        for k in list(entry.jobParams.data.keys()):
             if k not in params:
                 params[k] = entry.jobParams.data[k]
 
@@ -1838,7 +1838,7 @@ def perform_work_v2(entry, condorQ, client_name, client_int_name,
 
     condor_pool = params.get('GLIDEIN_Collector', None)
 
-    credential_keys = credential_fnames.keys()
+    credential_keys = list(credential_fnames.keys())
     # Randomize so I don't favour any proxy over another
     random.shuffle(credential_keys)
 
