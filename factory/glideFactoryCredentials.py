@@ -158,7 +158,7 @@ def process_global(classad, glidein_descript, frontend_descript):
         # get all the credential ids by filtering keys by regex
         # this makes looking up specific values in the dict easier
         r = re.compile("^GlideinEncParamSecurityClass")
-        mkeys = filter(r.match, list(classad.keys()))
+        mkeys = list(filter(r.match, list(classad.keys())))
         for key in mkeys:
             prefix_len = len("GlideinEncParamSecurityClass")
             cred_id = key[prefix_len:]

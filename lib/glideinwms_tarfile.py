@@ -2151,8 +2151,7 @@ class TarFileCompat:
     def namelist(self):
         return map(lambda m: m.name, self.infolist())
     def infolist(self):
-        return filter(lambda m: m.type in REGULAR_TYPES,
-                      self.tarfile.getmembers())
+        return [m for m in self.tarfile.getmembers() if m.type in REGULAR_TYPES]
     def printdir(self):
         self.tarfile.list()
     def testzip(self):
