@@ -1,3 +1,22 @@
+v3_2_19 Added counters for Idle jobs older than X hours
+        Enabling GWMS_XSLT_PLUGIN_DIR by default for
+          glideinwms-vofrontend-standalone rpm
+        Linked Frontend monitoring from Factory monitoring
+        Improved glideins scale down by adding a timeout, GLIDEIN_IDLE_LIFETIME
+        Log number of activation/claims per glidein
+        Several documentation improvements, including reconfig and upgrade
+          operations in SL7 RPM installation
+        Bug Fix: reduced the number of file descriptors used per Entry in the Factory
+        Bug Fix: Factory entries submitting glideins even after hitting the limit
+        Bug Fix: Errors with HTCondor 8.5/6 upgrade: SUBSYS.LOCALNAME.* warning
+          triggered by GWMS htcondor configuration, Glidein sent unintentionally
+          to multiple schedds on the Factory
+        Bug Fix: Clarified attribute types and fixed globbing behavior
+        Bug Fix: RPM verification fails when config files are changed
+        Bug Fix: GLIDEIN_CPU settings "node" and "slot" supported also in Frontend,
+          better documented and improved to compensate for PBS misconfiguration
+        Bug Fix: Fixed submission to AWS which uses key_pair as auth_method
+
 v3_2_18 Bug Fix: ProjectId is missing double quotes
         Bug Fix: Stdout messages from startup script in SL7 are confusing
         Bug Fix: Service definition file for SL7 is marked executable 

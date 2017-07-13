@@ -1102,8 +1102,8 @@ class condorLogSummary:
             'collector_name' : collectorName,
             'joblist' : {},
         }
-        for sec_name, sndata in self.stats_diff.iteritems():
-            for frname, frdata in sndata.iteritems():
+        for _sec_name, sndata in self.stats_diff.iteritems():
+            for _frname, frdata in sndata.iteritems():
                 for state, jobs in frdata.iteritems():
                     if state == 'Completed':
                         for job in jobs['Entered']:
@@ -1111,6 +1111,9 @@ class condorLogSummary:
                             jobstats = job[4]
                             #This is the dictionary that is going to be written out as a monitoring classad
                             jobinfo['joblist'][jobid] = {
+                                #activation_claims is a new key in 3.2.19. Using "get" For backward compatiobility,
+                                #but it can be removed in future versions
+                                'activation_claims' : jobstats.get('activations_claims', 'unknown'),
                                 'glidein_duration' : jobstats['glidein_duration'],
                                 'condor_duration' : jobstats['condor_duration'],
                                 'condor_started' : jobstats['condor_started'],

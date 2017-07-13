@@ -438,25 +438,25 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             iteration_timediff = iteration_timecheck - iteration_basetime
 
             if iteration_timediff >= 3600: # every hour
-                 iteration_basetime = time.time() # reset the start time
-                 fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
-                 fronmonconstraint = '(MyType=="glideclient")'
-                 fronmonformat_list = [('WebMonitoringURL','s'), ('FrontendName','s')]
-                 fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
-                 fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
-                 fronmon_list_names = fronmondata.keys()
-                 if fronmon_list_names is not None:
-                     urlset = Set()
-                     if os.path.exists(fronmonpath):
-                         os.remove(fronmonpath)
-                     for frontend_entry in fronmon_list_names:
-                         fronmonelement = fronmondata[frontend_entry]
-                         fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
-                         fronmonfrt = fronmonelement['FrontendName'].encode('utf-8')
-                         if (fronmonfrt,fronmonurl) not in urlset:
-                             urlset.add((fronmonfrt, fronmonurl))
-                             with open(fronmonpath, 'w') as fronmonf:
-                                 fronmonf.write("%s, %s"%(fronmonfrt, fronmonurl))
+                iteration_basetime = time.time() # reset the start time
+                fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
+                fronmonconstraint = '(MyType=="glideclient")'
+                fronmonformat_list = [('WebMonitoringURL','s'), ('FrontendName','s')]
+                fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
+                fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
+                fronmon_list_names = fronmondata.keys()
+                if fronmon_list_names is not None:
+                    urlset = Set()
+                    if os.path.exists(fronmonpath):
+                        os.remove(fronmonpath)
+                    for frontend_entry in fronmon_list_names:
+                        fronmonelement = fronmondata[frontend_entry]
+                        fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
+                        fronmonfrt = fronmonelement['FrontendName'].encode('utf-8')
+                        if (fronmonfrt,fronmonurl) not in urlset:
+                            urlset.add((fronmonfrt, fronmonurl))
+                            with open(fronmonpath, 'w') as fronmonf:
+                                fronmonf.write("%s, %s"%(fronmonfrt, fronmonurl))
 
             # Record the iteration start time
             iteration_stime = time.time()

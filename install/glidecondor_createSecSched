@@ -16,9 +16,12 @@
 # Part of the glideinWMS package
 #
 
-import sys,os
+import sys
+import os
 import subprocess
-import string,copy
+import string
+import copy
+
 
 def usage():
     print "This tool creates the 11_gwms_secondary_schedds.config file"
@@ -34,169 +37,173 @@ def usage():
     print "  glidecondor_createSecSched schedd_glideins1,schedd_glideins2"
     return
 
+
 def get_config_val(attr, fail_if_missing=True):
     try:
-        p=subprocess.Popen(['condor_config_val',attr],stdout=subprocess.PIPE)
+        p = subprocess.Popen(['condor_config_val', attr], stdout=subprocess.PIPE)
     except OSError, e:
         print "Count not find condor_config_val!"
-        print "%s\n"%e
+        print "%s\n" % e
         sys.exit(2)
 
-    rc=p.wait()
-    if rc!=0:
+    rc = p.wait()
+    if rc != 0:
         if fail_if_missing:
-            print "Attribute '%s' not found"%attr
+            print "Attribute '%s' not found" % attr
             sys.exit(2)
         else:
             return None
     
-    res=p.communicate()
-    return res[0].strip('\n') # only the first line, and no trailing newline
+    res = p.communicate()
+    return res[0].strip('\n')  # only the first line, and no trailing newline
     
 
 def extract_condor_info():
     global config_dir
-    config_dir=get_config_val('LOCAL_CONFIG_DIR')
+    config_dir = get_config_val('LOCAL_CONFIG_DIR')
     global local_dir
-    local_dir=get_config_val('LOCAL_DIR')
+    local_dir = get_config_val('LOCAL_DIR')
     global log_dir
-    log_dir=get_config_val('LOG')
+    log_dir = get_config_val('LOG')
     global schedlog
-    schedlog=get_config_val('SCHEDD_LOG')
+    schedlog = get_config_val('SCHEDD_LOG')
     global shadowlog
-    shadowlog=get_config_val('SHADOW_LOG')
+    shadowlog = get_config_val('SHADOW_LOG')
 
     global shport_ad
-    shport_ad=get_config_val('SHARED_PORT_DAEMON_AD_FILE')
+    shport_ad = get_config_val('SHARED_PORT_DAEMON_AD_FILE')
     global shport_sock
-    shport_sock=get_config_val('DAEMON_SOCKET_DIR')
+    shport_sock = get_config_val('DAEMON_SOCKET_DIR')
 
-def add_schedd(schedd,config_fd):
+
+def add_schedd(schedd, config_fd):
     # first populate the config file
-    attrname=""
+    attrname = ""
     for c in schedd:
         if c in (string.ascii_uppercase+string.digits):
-            attrname+=c
+            attrname += c
         elif c in string.ascii_lowercase:
-            attrname+=c.upper()
+            attrname += c.upper()
         # drop all others
 
-    env_arr=[]
-    env_arr.append(("_CONDOR_SCHEDD_NAME","%(schedd)s"))
-    env_arr.append(("_CONDOR_LOCAL_DIR","%(localdir)s/%(schedd)s"))
-    env_arr.append(("_CONDOR_LOCK","%(localdir)s/%(schedd)s/lock"))
+    env_arr = []
+    env_arr.append(("_CONDOR_SCHEDD_NAME", "%(schedd)s"))
+    env_arr.append(("_CONDOR_LOCAL_DIR", "%(localdir)s/%(schedd)s"))
+    env_arr.append(("_CONDOR_LOCK", "%(localdir)s/%(schedd)s/lock"))
     global common_log
     if common_log:
-        env_arr.append(("_CONDOR_SCHEDD_LOG","%(schedlog)s.%(schedd)s"))
-        env_arr.append(("_CONDOR_SHADOW_LOG","%(shadowlog)s.%(schedd)s"))
+        env_arr.append(("_CONDOR_SCHEDD_LOG", "%(schedlog)s.%(schedd)s"))
+        env_arr.append(("_CONDOR_SHADOW_LOG", "%(shadowlog)s.%(schedd)s"))
 
-    
-    condor_env_arr=[]
+    condor_env_arr = []
     for a in env_arr:
         # convert in key=value pair
         # use Condor valriables in the value part
-        condor_env_arr.append("%s=%s"%(a[0],a[1]%{'schedd':schedd,
-                                                  'localdir':'$(LOCAL_DIR)','logdir':'$(LOG)',
-                                                  'schedlog':'$(SCHEDD_LOG)','shadowlog':'$(SHADOW_LOG)'}))
+        condor_env_arr.append("%s=%s" % (a[0], a[1] % {'schedd': schedd,
+                                                       'localdir': '$(LOCAL_DIR)', 'logdir': '$(LOG)',
+                                                       'schedlog': '$(SCHEDD_LOG)', 'shadowlog': '$(SHADOW_LOG)'
+                                                       }))
 
-    expenv_str='%(attrname)s_EXPENV = '%{'attrname':attrname}
-    condor_env_str=string.join(condor_env_arr," \\\n"+(" "*len(expenv_str)))
+    expenv_str = '%(attrname)s_EXPENV = ' % {'attrname': attrname}
+    condor_env_str = string.join(condor_env_arr, " \\\n"+(" "*len(expenv_str)))
     
-    config_fd.write(("# Secondary schedd %(schedd)s\n"+
-                     "%(attrname)s             = $(SCHEDD)\n"+
+    config_fd.write(("# Secondary schedd %(schedd)s\n" +
+                     "%(attrname)s             = $(SCHEDD)\n" +
                      "%(attrname)s_EXPENV = %(envstr)s\n" +
-                     '%(attrname)s_ENVIRONMENT = "$(%(attrname)s_EXPENV) $(PRESERVE_SHPORT_EXPENV)"\n'+
+                     '%(attrname)s_ENVIRONMENT = "$(%(attrname)s_EXPENV) $(PRESERVE_SHPORT_EXPENV)"\n' +
                      "SEC_SCHEDD_LIST = $(SEC_SCHEDD_LIST) %(attrname)s\n\n"
-                     )%{'attrname':attrname,'schedd':schedd,'envstr':condor_env_str})
+                     ) % {'attrname': attrname, 'schedd': schedd, 'envstr': condor_env_str})
 
     global create_dirs
     if create_dirs:
         # then run condor_init with the modified environment
-        config_fd.flush() # let's just make sure we don't have a patial -> invalid file
+        config_fd.flush()  # let's just make sure we don't have a patial -> invalid file
 
-        global local_dir,log_dir,schedlog,shadowlog
+        global local_dir, log_dir, schedlog, shadowlog
         # we must start with the old environemnt
-        sp_env_dict=copy.deepcopy(os.environ)
+        sp_env_dict = copy.deepcopy(os.environ)
         # and just add the new attributes to it
         for a in env_arr:
             # environment is a dictionary
             # use actual paths in the val part
-            sp_env_dict[a[0]]=a[1]%{'schedd':schedd,
-                                    'localdir':local_dir,'logdir':log_dir,
-                                    'schedlog':schedlog,'shadowlog':shadowlog}
+            sp_env_dict[a[0]] = a[1] % {'schedd': schedd,
+                                        'localdir': local_dir, 'logdir': log_dir,
+                                        'schedlog': schedlog, 'shadowlog': shadowlog}
         # then add the shport part
-        global shport_ad,shport_sock
-        sp_env_dict['_CONDOR_SHARED_PORT_DAEMON_AD_FILE']=shport_ad
-        sp_env_dict['_CONDOR_DAEMON_SOCKET_DIR']=shport_sock
+        global shport_ad, shport_sock
+        sp_env_dict['_CONDOR_SHARED_PORT_DAEMON_AD_FILE'] = shport_ad
+        sp_env_dict['_CONDOR_DAEMON_SOCKET_DIR'] = shport_sock
 
         try:
-            p=subprocess.Popen(['condor_init'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=sp_env_dict)
+            p = subprocess.Popen(['condor_init'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=sp_env_dict)
         except OSError, e:
             print "Count not find condor_init!"
-            print "%s"%e
+            print "%s" % e
             sys.exit(2)
 
-        rc=p.wait()
-        res=p.communicate()
-        if rc!=0:
-            print "condor_init failed for %s: %s"%(schedd,res)
+        rc = p.wait()
+        res = p.communicate()
+        if rc != 0:
+            print "condor_init failed for %s: %s" % (schedd, res)
             sys.exit(2)
-        print "Schedd %s configured and initialized"%schedd
+        print "Schedd %s configured and initialized" % schedd
     else:
-        print "Schedd %s put in config, but not initialized"%schedd
+        print "Schedd %s put in config, but not initialized" % schedd
 
 
-def create_config(fname,schedds):
+def create_config(fname, schedds):
     try:
-        fd=open(fname,"w")
+        fd = open(fname, "w")
     except IOError, e:
-        print "%s"%e
+        print "%s" % e
         sys.exit(2)
 
-    fd.write("###########################################\n"+
-             "# This file contains the secondary schedds\n"+
-             "# Generated by glidecondor_createSecSched\n"+
+    fd.write("###########################################\n" +
+             "# This file contains the secondary schedds\n" +
+             "# Generated by glidecondor_createSecSched\n" +
              "# DO NOT modify by hand\n" +
              "###########################################\n\n" +
-             "PRESERVE_SHPORT_EXPENV= _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$(SHARED_PORT_DAEMON_AD_FILE) \\\n"+
+             "PRESERVE_SHPORT_EXPENV= _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$(SHARED_PORT_DAEMON_AD_FILE) \\\n" +
              "                        _CONDOR_DAEMON_SOCKET_DIR=$(DAEMON_SOCKET_DIR)\n\n")
 
     for s in schedds:
-        add_schedd(s,fd)
+        add_schedd(s, fd)
 
-    fd.write("DAEMON_LIST = $(DAEMON_LIST) $(SEC_SCHEDD_LIST)\n"+
-             "# we assume we are the only ones re-defining DC_DAEMON_LIST\n"+
+    fd.write("DAEMON_LIST = $(DAEMON_LIST) $(SEC_SCHEDD_LIST)\n" +
+             "# we assume we are the only ones re-defining DC_DAEMON_LIST\n" +
              "DC_DAEMON_LIST = + $(SEC_SCHEDD_LIST)\n")
 
     fd.close()
 
+
 def parse_args(args):
-    global common_log, create_dirs,schedds
+    global common_log, create_dirs, schedds
 
-    common_log=False
-    create_dirs=True
+    common_log = False
+    create_dirs = True
 
-    if len(args)<1:
+    if len(args) < 1:
         usage()
         sys.exit(1)
 
-    if args[0]=='-h':
+    if args[0] == '-h':
         usage()
         sys.exit(0)
 
-    while len(args)>1:
-        if args[0]=='-commonlog':
-            common_log=True
-        elif args[0]=='-nocreatedirs':
-            create_dirs=False
+    while len(args) > 1:
+        if args[0] == '-commonlog':
+            common_log = True
+        elif args[0] == '-nocreatedirs':
+            create_dirs = False
         else:
-            print "Unknown option %s"%args[0]
+            print "Unknown option %s" % args[0]
             usage()
             sys.exit(1)
-        args=args[1:]
+        args = args[1:]
         
-    schedd_list_str=args[0]
-    schedds=schedd_list_str.split(',')
+    schedd_list_str = args[0]
+    schedds = schedd_list_str.split(',')
+
 
 def main(args):
     global common_log, create_dirs, schedds
@@ -204,9 +211,9 @@ def main(args):
     
     extract_condor_info()
     global config_dir
-    conf_fname=os.path.join(config_dir,"11_gwms_secondary_schedds.config")
+    conf_fname = os.path.join(config_dir, "11_gwms_secondary_schedds.config")
 
-    create_config(conf_fname,schedds)
+    create_config(conf_fname, schedds)
     
 
 if __name__ == '__main__':

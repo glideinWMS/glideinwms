@@ -986,6 +986,7 @@ if [ "$use_multi_monitor" -ne 1 ]; then
       monitor_starter_log='monitor/log/StarterLog'
     fi
       main_starter_log='log/StarterLog'
+      main_condor_log='log/StartdLog'
 else
     main_starter_log='log/StarterLog.vm2'
     monitor_starter_log='log/StarterLog.vm1'
@@ -1087,7 +1088,7 @@ fi
 log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
-echo "===   Stats of main   ==="
+echo "=== Stats of main ==="
 if [ -f "${main_starter_log}" ]; then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
@@ -1104,6 +1105,11 @@ if [ -f "${main_starter_log}" ]; then
     metrics+=`echo " " $parsed_metrics`
 fi
 echo "=== End Stats of main ==="
+
+if [ -f "${main_condor_log}" ]; then
+    numactivations=`grep "Got activate_claim" "${main_condor_log}" 2>/dev/null | wc -l`
+    echo "Total number of activations/claims: $numactivations"
+fi
 
 if [ 1 -eq 1 ]; then
     ls -l log 1>&2
