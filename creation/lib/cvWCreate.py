@@ -10,6 +10,7 @@
 # Author: Igor Sfiligoi
 #
 
+from builtins import range
 import os
 import stat
 import string

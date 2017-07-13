@@ -12,6 +12,7 @@ from __future__ import absolute_import
 #   Igor Sfiligoi (Mar 16th 2010)
 #
 
+from builtins import str
 import os
 import os.path
 import sys

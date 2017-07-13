@@ -14,6 +14,8 @@ from __future__ import division
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
+from builtins import range
+from builtins import str
 from past.utils import old_div
 import os
 # import sys

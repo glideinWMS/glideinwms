@@ -12,6 +12,8 @@
 #   Igor Sfiligoi (Sept 15th 2006)
 #
 
+from builtins import range
+from builtins import str
 import os
 import sys
 import copy

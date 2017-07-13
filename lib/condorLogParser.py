@@ -18,6 +18,7 @@ from __future__ import absolute_import
 # Such files will not change in the future
 #
 
+from builtins import str
 import os
 import os.path
 import stat

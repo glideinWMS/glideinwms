@@ -11,6 +11,7 @@
 #
 
 
+from builtins import range
 import types
 import xml.sax.saxutils
 import string

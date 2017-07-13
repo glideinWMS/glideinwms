@@ -13,6 +13,7 @@ from __future__ import division
 #  Igor Sfiligoi  (since Mar 31st 2009)
 #
 
+from builtins import range
 from past.utils import old_div
 import os
 import copy

@@ -10,6 +10,8 @@ from __future__ import print_function
 #   And other support functions
 #
 
+from builtins import range
+from builtins import str
 import os, os.path  # string
 import shutil
 import copy

@@ -16,6 +16,7 @@
 #
 
 from __future__ import absolute_import
+from builtins import str
 from past.builtins import cmp
 import os
 import sys

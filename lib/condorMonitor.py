@@ -14,6 +14,9 @@ from __future__ import absolute_import
 #   Igor Sfiligoi (Aug 30th 2006)
 #
 
+from builtins import range
+from builtins import zip
+from builtins import str
 import os
 import sys
 import string

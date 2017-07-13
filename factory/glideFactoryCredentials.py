@@ -4,6 +4,7 @@ Created on Jun 21, 2011
 @author: tiradani
 """
 from __future__ import absolute_import
+from builtins import filter
 import os
 import re
 import sys

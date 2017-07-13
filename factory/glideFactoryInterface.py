@@ -12,6 +12,7 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
+from builtins import str
 import os
 import time
 import string

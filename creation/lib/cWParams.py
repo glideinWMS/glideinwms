@@ -15,6 +15,7 @@ from __future__ import division
 #   Igor Sfiligoi
 #
 
+from builtins import str
 from past.utils import old_div
 import os
 import copy

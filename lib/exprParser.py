@@ -11,6 +11,7 @@
 #
 
 
+from builtins import range
 import string
 import compiler
 

@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from builtins import input
 import traceback
 import sys, os, pwd, string, time
 import xml.sax.saxutils

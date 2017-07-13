@@ -9,6 +9,7 @@
 #   (shared or hidden key)
 #
 
+from builtins import str
 import M2Crypto
 import os
 import binascii

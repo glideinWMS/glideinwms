@@ -12,6 +12,8 @@ from __future__ import print_function
 #   created out of the parameter object
 #
 
+from builtins import range
+from builtins import str
 import os, os.path, shutil, string
 from . import cvWDictFile, cWDictFile
 from . import cvWConsts, cWConsts

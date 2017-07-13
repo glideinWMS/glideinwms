@@ -9,6 +9,7 @@ from __future__ import absolute_import
 #   Parag Mhashilkar
 # 
 
+from builtins import str
 import os
 import time
 import string

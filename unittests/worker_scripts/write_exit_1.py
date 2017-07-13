@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import range
+from builtins import str
 import sys
 
 # Attempt to fill the write buffer and exit abnormally

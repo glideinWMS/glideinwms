@@ -14,6 +14,7 @@
 #
 
 from __future__ import print_function
+from builtins import range
 import os.path
 import string
 import sys

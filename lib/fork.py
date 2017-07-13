@@ -13,6 +13,7 @@ from __future__ import absolute_import
 # Author:
 #   Burt Holzman and Igor Sfiligoi
 #
+from builtins import str
 import cPickle
 import os
 import time

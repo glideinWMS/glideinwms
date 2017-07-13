@@ -5,6 +5,7 @@
 # File Version:
 #
 
+from builtins import str
 import string
 import os
 import os.path

@@ -10,6 +10,7 @@ from __future__ import absolute_import
 #   Classes and functions needed to handle dictionary files
 #
 
+from builtins import str
 import os, os.path, shutil, string, copy
 from . import cvWConsts, cWConsts
 from . import cWDictFile

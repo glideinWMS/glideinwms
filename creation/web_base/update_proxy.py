@@ -20,6 +20,7 @@
 #  Igor Sfiligoi (Mar 18th, 2010) @UCSD
 #
 
+from builtins import str
 import os
 import sys
 import binascii

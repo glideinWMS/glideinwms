@@ -13,6 +13,7 @@ from __future__ import print_function
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
+from builtins import str
 import time
 import string
 import os.path

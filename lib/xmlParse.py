@@ -10,6 +10,9 @@
 #  Igor Sfiligoi (Mar 27th, 2007)
 #
 
+from builtins import range
+from builtins import map
+from builtins import zip
 import xml.dom.minidom
 from UserDict import UserDict
 

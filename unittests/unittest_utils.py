@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import map
+from builtins import range
+from builtins import str
 import os
 import sys
 import tempfile

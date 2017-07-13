@@ -14,6 +14,7 @@ from __future__ import division
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
+from builtins import range
 from past.utils import old_div
 import os, os.path
 import re, time, copy, string, math, random, fcntl
