@@ -54,7 +54,7 @@ class DowntimeFile:
     # if start_time==None, use current time
     def startDowntime(self,start_time=None,end_time=None,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         if start_time is None:
-            start_time=long(time.time())
+            start_time=int(time.time())
         return self.addPeriod(start_time, end_time, entry, frontend, security_class, comment, create_if_empty)
 
     # end a downtime (not a scheduled one)
@@ -151,7 +151,7 @@ def read(fname, raise_on_error=False):
 
 def printDowntime(fname,entry="Any",check_time=None):
         if check_time is None:
-            check_time=long(time.time())
+            check_time=int(time.time())
         time_list=read(fname)
         downtime_keys={}
         for time_tuple in time_list:
@@ -184,7 +184,7 @@ def printDowntime(fname,entry="Any",check_time=None):
 # if check_time==None, use current time
 def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_time=None):
         if check_time is None:
-            check_time=long(time.time())
+            check_time=int(time.time())
         time_list=read(fname)
         for time_tuple in time_list:
             #make sure this is for the right entry
@@ -234,9 +234,9 @@ def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_clas
 # if cut time<0, use current_time-abs(cut_time)
 def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
         if cut_time is None:
-            cut_time=long(time.time())
+            cut_time=int(time.time())
         elif cut_time<=0:
-            cut_time=long(time.time())+cut_time
+            cut_time=int(time.time())+cut_time
 
         try:
             fd=open(fname, 'r+')
@@ -310,7 +310,7 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
         comment=comment.replace("\r", " ")
         comment=comment.replace("\n", " ")
         if end_time is None:
-            end_time=long(time.time())
+            end_time=int(time.time())
     
         try:
             fd=open(fname, 'r+')
@@ -357,7 +357,7 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
                     cur_start_time=timeConversion.extractISO8601_Local(arr[0])
                 if arr[1]!='None':
                     cur_end_time=timeConversion.extractISO8601_Local(arr[1])
-                if arr[1]=='None' or ((cur_start_time<long(time.time())) and (cur_end_time>end_time)):
+                if arr[1]=='None' or ((cur_start_time<int(time.time())) and (cur_end_time>end_time)):
                     # open period -> close
                     outlines.append("%-30s %-30s"%(arr[0], timeConversion.getISO8601_Local(end_time)))
                     if (len(arr)>2):

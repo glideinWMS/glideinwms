@@ -28,7 +28,7 @@ class DowntimeFile:
     # start a downtime that we don't know when it will end    # if start_time==None, use current time
     def startDowntime( self, start_time=None, end_time=None, create_if_empty=True):
         if start_time is None:
-            start_time=long(time.time())
+            start_time=int(time.time())
         return self.addPeriod( start_time, end_time, create_if_empty )
 
     # end a downtime (not a scheduled one)    # if end_time==None, use current time
@@ -112,7 +112,7 @@ def read(fname, raise_on_error=False):
 # if check_time==None, use current time
 def checkDowntime( fname, check_time=None ):
         if check_time is None:
-            check_time = long(time.time())
+            check_time = int(time.time())
 
         time_list = read( fname )
 
@@ -158,7 +158,7 @@ def addPeriod( fname, start_time, end_time,  create_if_empty=True):
 def endDowntime( fname, end_time=None ):
 
         if end_time is None:
-            end_time = long(time.time())
+            end_time = int(time.time())
     
         try:
             fd = open(fname, 'r+')
@@ -213,7 +213,7 @@ def endDowntime( fname, end_time=None ):
                 if arr[1] != 'None':
                     cur_end_time   = timeConversion.extractISO8601_Local( arr[1] )
                 # open period -> close
-                if arr[1] == 'None' or (  (cur_start_time < long(time.time())) and (cur_end_time > end_time)  ): 
+                if arr[1] == 'None' or (  (cur_start_time < int(time.time())) and (cur_end_time > end_time)  ): 
                     outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)) )
                     outlines.append("\n")
                     closed_nr += 1
@@ -235,7 +235,7 @@ def endDowntime( fname, end_time=None ):
 
 def printDowntime( fname, check_time=None ):
         if check_time is None:
-            check_time = long(time.time())
+            check_time = int(time.time())
 
         time_list=read( fname )
 

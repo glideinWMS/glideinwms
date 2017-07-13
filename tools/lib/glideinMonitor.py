@@ -214,7 +214,7 @@ def createSubmitFile(work_dir,sfile,mlog,
         if x509_file is not None:
             fd.write('x509userproxy = %s\n'%x509_file)
         fd.write('Requirements=(Name=?="%s")&&(Arch=!="Absurd")\n'%monitorVM)
-        fd.write("periodic_remove=(CurrentTime>%li)\n"%(long(time.time())+timeout+30)) # karakiri after timeout+delta
+        fd.write("periodic_remove=(CurrentTime>%li)\n"%(int(time.time())+timeout+30)) # karakiri after timeout+delta
         fd.write("queue\n")
     finally:
         fd.close()

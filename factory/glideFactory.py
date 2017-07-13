@@ -344,7 +344,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
     logSupport.log.info("Available Entries: %s" % entries)
 
-    group_size = long(math.ceil(float(len(entries))/entry_process_count))
+    group_size = int(math.ceil(float(len(entries))/entry_process_count))
     entry_groups = entry_grouper(group_size, entries)
 
     def _set_rlimit(soft_l=None, hard_l=None):

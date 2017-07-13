@@ -237,7 +237,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
           procid=jid[1]
           if procid>max_procid:
            max_procid=procid
-    procid_mul=long(max_procid+1)
+    procid_mul=int(max_procid+1)
 
     # Group jobs into clusters of similar attributes
 

@@ -1093,7 +1093,7 @@ def extractJobId(submit_out):
     for line in submit_out:
         found = extractJobId_recmp.search(line.strip())
         if found:
-            return (long(found.group("cluster")), int(found.group("count")))
+            return (int(found.group("cluster")), int(found.group("count")))
     raise condorExe.ExeError("Could not find cluster info!")
 
 escape_table = {'.':'.dot,',

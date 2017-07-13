@@ -466,7 +466,7 @@ class factoryStats:
                 el[ek]=int(client_monitor[ck])
 
         if 'LastHeardFrom' in client_internals:
-            el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
+            el['InfoAge']=int(time.time()-int(client_internals['LastHeardFrom']))
             el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
 
         self.updated=time.time()

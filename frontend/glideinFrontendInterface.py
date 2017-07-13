@@ -1204,7 +1204,7 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
     """
     Given the FD, type check the value and write the info the classad file
     """
-    if isinstance(attr_value, (int, long, float)):
+    if isinstance(attr_value, (int, int, float)):
         # don't quote numeric values
         fd.write('%s = %s\n' % (attr_name, attr_value))
     else:

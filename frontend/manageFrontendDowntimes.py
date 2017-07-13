@@ -38,17 +38,17 @@ def strtxt2time( timeStr ):
     darr = timeStr.split('-') # [[[YYYY-]MM-]DD-]HH:MM[:SS]
     if len(darr)>1: # we have at least part of the date
         timeStr=darr[-1]
-        day=long(darr[-2])
+        day=int(darr[-2])
         if len(darr)>2:
-            month=long(darr[-3])
+            month=int(darr[-3])
             if len(darr)>3:
-                year=long(darr[-4])
+                year=int(darr[-4])
 
     tarr = timeStr.split(':')
-    hours  =long(tarr[0])
-    minutes=long(tarr[1])
+    hours  =int(tarr[0])
+    minutes=int(tarr[1])
     if len(tarr)>2:
-        seconds=long(tarr[2])
+        seconds=int(tarr[2])
 
     outtime = time.mktime(  (year, month, day, hours, minutes, seconds, 0, 0, -1)  )
     return outtime # this is epoch format
@@ -62,7 +62,7 @@ def str2time(timeStr):
         return strtxt2time(timeStr) # has a :, so it must be a text representation
     else:
         print(timeStr)
-        return long(timeStr) # should be a simple number
+        return int(timeStr) # should be a simple number
 
 
 # [HHh][MMm][SS[s]]
@@ -74,20 +74,20 @@ def delay2time( delayStr ):
 # getting hours
     harr=delayStr.split('h', 1)
     if len(harr)==2:
-        hours=long(harr[0])
+        hours=int(harr[0])
         delayStr=harr[1]
 
 # getting minutes
     marr=delayStr.split('m', 1)
     if len(marr)==2:
-        minutes=long(marr[0])
+        minutes=int(marr[0])
         delayStr=marr[1]
 
 # getting seconds
     if delayStr[-1:]=='s':
         delayStr=delayStr[:-1] # remove final s if present
     if len(delayStr)>0:
-        seconds=long(delayStr)
+        seconds=int(delayStr)
     
     return seconds+60*(minutes+60*hours)
 
@@ -116,7 +116,7 @@ def down( opt_dict ):
     when = delay2time( opt_dict["delay"] )
 
     if (opt_dict["start"] == "None"):
-        when += long(time.time())
+        when += int(time.time())
     else:
         # delay applies only to the start time
         when += str2time(opt_dict["start"])
@@ -142,7 +142,7 @@ def up( opt_dict ):
     when = delay2time( opt_dict["delay"] )
 
     if (opt_dict["end"]=="None"):
-        when += long(time.time())
+        when += int(time.time())
     else:
         # delay applies only to the end time
         when += str2time(opt_dict["end"])
@@ -157,7 +157,7 @@ def up( opt_dict ):
 
 def printtimes( opt_dict ):
     down_fd = get_downtime_fd( opt_dict["dir"] )
-    when=delay2time( opt_dict["delay"]) + long(time.time())
+    when=delay2time( opt_dict["delay"]) + int(time.time())
     down_fd.printDowntime( check_time=when )
 
 

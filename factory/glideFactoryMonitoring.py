@@ -61,7 +61,7 @@ class MonitoringConfig:
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
                       None, log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
-                      long(max_mbs * (1024.0 * 1024.0)))
+                      int(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
     def logCompleted(self, client_name, entered_dict):
@@ -338,7 +338,7 @@ class condorQStats:
 
 
         if 'LastHeardFrom' in client_internals:
-            el['InfoAge'] += (int(time.time() - long(client_internals['LastHeardFrom'])) * fraction)
+            el['InfoAge'] += (int(time.time() - int(client_internals['LastHeardFrom'])) * fraction)
             el['InfoAgeAvgCounter'] += fraction
 
         self.updated = time.time()

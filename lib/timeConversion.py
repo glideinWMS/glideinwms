@@ -17,10 +17,10 @@ import calendar
 def getSeconds(now=None):
     if now is None:
         now = time.time()
-    return "%li" % long(now)
+    return "%li" % int(now)
 
 def extractSeconds(time_str):
-    return long(time_str)
+    return int(time_str)
 
 def getHuman(now=None):
     if now is None:
@@ -47,7 +47,7 @@ def getISO8601_Local(now=None):
 def extractISO8601_Local(time_str):
     timestr = time_str[:-6]
     tzstr = time_str[-6:]
-    tzval = (long(tzstr[:3]) * 60 + long(tzstr[4:])) * 60
+    tzval = (int(tzstr[:3]) * 60 + int(tzstr[4:])) * 60
     return calendar.timegm(time.strptime(timestr, "%Y-%m-%dT%H:%M:%S")) - tzval
 
 def getRFC2822_UTC(now=None):
@@ -67,7 +67,7 @@ def getRFC2822_Local(now=None):
 def extractRFC2822_Local(time_str):
     timestr = time_str[:-6]
     tzstr = time_str[-5:]
-    tzval = (long(tzstr[:3]) * 60 + long(tzstr[3:])) * 60
+    tzval = (int(tzstr[:3]) * 60 + int(tzstr[3:])) * 60
     return calendar.timegm(time.strptime(timestr, "%a, %d %b %Y %H:%M:%S")) - tzval
 
 def get_time_in_format(now=None, time_format=None):
