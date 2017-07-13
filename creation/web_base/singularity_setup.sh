@@ -1,12 +1,18 @@
 #!/bin/bash
 #
+# July 12 2017 Wednesday. 
+# Basic principle is, setup script checks for singularity binary and availability of cvmfs by probing 
+# the default singularity image in /cvmfs/singularity.
+# this script does not make sure /cvmfs repositories are accessible.
+# this script can NOT validate the user-specified singularity image, that's the job of wrapper script.
+# the wrapper will only allow a user singularity image that is in /cvmfs if the user wants to use his own singularity image
+# the wrapper will make sure that if the user does NOT specify his own singularity image, the default image is used. This is why this script
+# must make sure the default image is available..
+# advertise HAS_SINGULARITY "False" "C"  is very important if [ "$use_singularity" == "OPTIONAL" ]; 
+
 glidein_config="$1"
 
 error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-
-function error {
-    echo "ERROR  " $@ 1>&2
-}
 
 function info {
     echo "INFO  " $@ 1>&2
@@ -26,6 +32,7 @@ function advertise {
     atype="$3"
 
     if [ "$glidein_config" != "NONE" ]; then
+#GWMS these 2 functions are both from the same file referred to by ADD_CONFIG_LINE_SOURCE
         add_config_line $key "$value"
         add_condor_vars_line $key "$atype" "-" "+" "Y" "Y" "+"
     fi
@@ -38,8 +45,7 @@ function advertise {
 }
 
 if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
-    info "This is a setup script for the OSG-FLOCK frontend."
-    info "In case of problems, contact Mats Rynge (rynge@isi.edu)"
+    info "This is a setup/validation script for the singularity support."
     info "Running in directory $PWD"
 else
     info "Now running inside a singularity container"
@@ -53,17 +59,18 @@ else
 fi
 
 
-
-
 if [ "$glidein_config" != "NONE" -a "x$SOURCED_ADD_CONFIG_LINE" = "x" ]; then
-    ###########################################################
     # import advertise and add_condor_vars_line functions
     if [ "x$add_config_line_source" = "x" ]; then
+	#GWMS add_config_line_source points to a file
         export add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-        export condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+	#GWMS condor_vars_file points to a file e.g. /tmp/glide_B4Nv1S/main/condor_vars.lst
+	#GWMS and this variable condor_vars_file is used by the function, add_condor_vars_line 
+        export       condor_vars_file=`grep -i "^CONDOR_VARS_FILE "    $glidein_config | awk '{print $2}'`
     fi
 
     info "Sourcing $add_config_line_source"
+    #GWMS and then we source the file that contains bash functions add_config_line and add_condor_vars_line
     source $add_config_line_source
 
     # make sure we don't source a second time inside the container
@@ -71,19 +78,11 @@ if [ "$glidein_config" != "NONE" -a "x$SOURCED_ADD_CONFIG_LINE" = "x" ]; then
 fi
 
 
-
-
-
-
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 function no_use_singularity_config {
     echo "Not using singularity" 1>&2
-#    add_config_line "SINGULARITY_IMAGE_EXPR" "False"
-#    add_config_line "SINGULARITY_JOB" "False"
-#    add_condor_vars_line "SINGULARITYIMAGE_EXPR" "C" "False" "+" "Y" "Y" "-"
-#    add_condor_vars_line "SINGULARITY_JOB"       "C" "False" "+" "Y" "Y" "-"
-
+    advertise HAS_SINGULARITY "False" "C"
     "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
     exit 0
 }
@@ -99,7 +98,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     use_singularity=`grep '^GLIDEIN_Singularity_Use ' $glidein_config | awk '{print $2}'`
     if [ -z "$use_singularity" ]; then
 	echo "`date` GLIDEIN_Singularity_Use not configured. Defaulting it to OPTIONAL"
-#	use_singularity="OPTIONAL"
+# GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to NEVER
 	use_singularity="NEVER"
     fi
 
@@ -122,13 +121,9 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
 		"$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Singularity_Use"
 		exit 1
             fi
-	    #GWMS no_use_singularity_config alone might not be sufficient. 
             #GWMS If Group mistakenly use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use=NEVER
 	    #GWMS we need to set    advertise HAS_SINGULARITY "False" "C"
-#            no_use_singularity_config
-	    advertise HAS_SINGULARITY "False" "C"
-	    "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
-	    exit 0
+            no_use_singularity_config
             ;;
 	OPTIONAL) #GWMS Even in OPTIONAL case, FE will have to specify the wrapper script
             if [ "$require_singularity" == "True" ]; then
@@ -140,9 +135,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
             else
 		if [ "$singularity_bin" == "NONE" ]; then
                     echo "`date` VO has set the use singularity to OPTIONAL but site is not configured with singularity"
-		    "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
-		    advertise HAS_SINGULARITY "False" "C"
-		    exit 0
+		    no_use_singularity_config
 		fi
             fi
             ;;
@@ -160,26 +153,15 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
             exit 1
             ;;
     esac
-
 fi
-
 
 ##################
 # singularity
 # advertise availability and version
-# July 12 2017 Wednesday. 
-# Basic principle is, setup script checks for singularity binary and availability of cvmfs by probing 
-# the default singularity image in /cvmfs/singularity.
-# this script does not make sure /cvmfs repositories are accessible.
-# this script can NOT validate the user-specified singularity image, that's the job of wrapper script.
-# the wrapper will only allow a user singularity image that is in /cvmfs if the user wants to use his own singularity image
-# the wrapper will make sure that if the user does NOT specify his own singularity image, the default image is used. This is why this script
-# must make sure the default image is available..
-# advertise HAS_SINGULARITY "False" "C"  is very important if [ "$use_singularity" == "OPTIONAL" ]; 
 
 if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info "Checking for singularity..."
-
+    #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     # some known singularity locations
     for LOCATION in /usr/bin $singularity_bin; do
         if [ -e "$LOCATION" ]; then
@@ -203,9 +185,8 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
             export GWMS_SINGULARITY_PATH=`module load singularity >/dev/null 2>&1; which singularity`
         else
 	    if [ "$use_singularity" == "OPTIONAL" ]; then
-		"$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
-		advertise HAS_SINGULARITY "False" "C"
-		exit 0 #GWMS wrapper will make sure to run outside singularity
+		warn "Singularity binary does not exist."
+		no_use_singularity_config
 	    elif [ "$use_singularity" == "REQUIRED" ]; then
 		STR="Unable to find singularity in PATH=$PATH"
 		"$error_gen" -error "singularity_setup.sh" "WN_Resource" "$STR"
@@ -224,9 +205,8 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
         HAS_SINGULARITY="False" #GWMS I don't think we need this any longer..
 	if [ "$use_singularity" == "OPTIONAL" ]; then
-	    "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
-	    advertise HAS_SINGULARITY "False" "C"		
-	    exit 0 #GWMS wrapper will make sure to run outside singularity
+	    warn "$GWMS_SINGULARITY_IMAGE_DEFAULT doex not exist."
+            no_use_singularity_config
 	elif [ "$use_singularity" == "REQUIRED" ]; then
 	    STR="Default singularity image, $GWMS_SINGULARITY_IMAGE_DEFAULT, does not appear to exist"
 	    "$error_gen" -error "singularity_setup.sh"  "WN_Resource" "$STR"
@@ -253,9 +233,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
             HAS_SINGULARITY="False"
 	    if [ "$use_singularity" == "OPTIONAL" ]; then
 		warn "Simple singularity exec inside $GWMS_SINGULARITY_IMAGE_DEFAULT failed."
-		"$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
-		advertise HAS_SINGULARITY "False" "C"
-		exit 0 #GWMS wrapper will make sure to run outside singularity
+		no_use_singularity_config
 	    elif [ "$use_singularity" == "REQUIRED" ]; then
             # singularity simple exec failed - we are done
 		STR="Simple singularity exec inside $GWMS_SINGULARITY_IMAGE_DEFAULT failed."
@@ -305,16 +283,13 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     fi
     
     # if we get here, singularity is not available or not working
-#    advertise HAS_SINGULARITY "False" "C"
     if [ "$use_singularity" == "OPTIONAL" ]; then
 	warn "for some unknown reasons, singularity is not available"
-	"$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
-	advertise HAS_SINGULARITY "False" "C"
-	exit 0 #HK> wrapper will make sure to run outside singularity
+        no_use_singularity_config
     elif [ "$use_singularity" == "REQUIRED" ]; then
 	STR="for some unknown reasons, singularity is not available"
 	"$error_gen" -error "singularity_setup.sh"  "WN_Resource" "$STR"
-	exit 1 #HK> no need to proceed
+	exit 1 #GWMS no need to proceed
     fi
 
 else
@@ -336,25 +311,16 @@ else
 #GWMS because  with the source command here,   the function  add_config_line is not defined
     info "Sourcing $add_config_line_source"
     source $add_config_line_source
-    # make sure we don't source a second time inside the container
-    export SOURCED_ADD_CONFIG_LINE=1
-
 
 #GWMS moved from the original place shown above..
     # delay the advertisement until here to make sure singularity actually works
     advertise HAS_SINGULARITY "True" "C"
     advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
     advertise GWMS_SINGULARITY_IMAGE_DEFAULT "$GWMS_SINGULARITY_IMAGE_DEFAULT" "S"
-#GWMS not used anywhere, thus no need to advertize to default_singularity_wrapper.sh
-#    advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 fi
-
-##################
-# mostly done - update START validation expressions and warnings attribute
 
 ##################
 info "All done - time to do some real work!"
 
 "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True" 
-
 exit 0

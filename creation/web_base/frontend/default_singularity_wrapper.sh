@@ -56,13 +56,13 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
 
 ## from Job ClassAd
     export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
-#HK> I think I need to enable GWMS_SINGULARITY_BIND_CVMFS always
+#GWMS I think I need to enable GWMS_SINGULARITY_BIND_CVMFS always
 #    export GWMS_SINGULARITY_BIND_CVMFS=$(getPropBool $_CONDOR_JOB_AD SingularityBindCVMFS)
     export GWMS_SINGULARITY_BIND_CVMFS=1
     export CVMFS_REPOS_LIST=$(getPropStr $_CONDOR_JOB_AD CVMFSReposList)
     echo "Debug: CVMFS Repos List = $CVMFS_REPOS_LIST" 1>&2
     export GWMS_SINGULARITY_AUTOLOAD=1
-    #HK> we do not allow users to set SingularityAutoLoad
+    #GWMS we do not allow users to set SingularityAutoLoad
     #export OSG_SINGULARITY_AUTOLOAD=$(getPropStr $_CONDOR_JOB_AD SingularityAutoLoad)
 
 ## from Job ClassAd
@@ -110,12 +110,12 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
             fi
 	else ## i.e. if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]
 	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
-# HK> new code, must make sure the user own image is available
+#GWMS new code, must make sure the user own image is available
 	    if [ ! -e "$GWMS_SINGULARITY_IMAGE" ]; then
 		echo "Error: $GWMS_SINGULARITY_IMAGE is not found" 1>&2
 		exit 1
 	    fi
-# HK> existing check
+#GWMS existing check
 	    if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
 		echo "warning: $GWMS_SINGULARITY_IMAGE is not in /cvmfs area" 1>&2
 		exit 1
@@ -199,7 +199,7 @@ else
             fi
         fi
     done
-#HK> osg specific
+#GWMS osg specific
 #    # override some OSG specific variables
 #    if [ "x$OSG_WN_TMP" != "x" ]; then
 #        export OSG_WN_TMP=/tmp
@@ -235,7 +235,7 @@ elif [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh ]; then
         . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
 fi
 
-#HK> osg specific
+#GWMS osg specific
 # fix discrepancy for Squid proxy URLs
 #if [ "x$GLIDEIN_Proxy_URL" = "x" -o "$GLIDEIN_Proxy_URL" = "None" ]; then
 #    if [ "x$OSG_SQUID_LOCATION" != "x" -a "$OSG_SQUID_LOCATION" != "None" ]; then
@@ -307,8 +307,8 @@ rm -f .osgvo-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 #  Run the real job
 #
-#HK> If GLIDEIN_Singularity_Use=OPTIONAL and SINGULARITY_BIN=NONE, setup script sets HAS_SINGULARITY=False
-#HK> and this wrapper script directly executes the user script. I tested it.
+#GWMS If GLIDEIN_Singularity_Use=OPTIONAL and SINGULARITY_BIN=NONE, setup script sets HAS_SINGULARITY=False
+#GWMS and this wrapper script directly executes the user script. I tested it.
 exec "$@"
 error=$?
 echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE
