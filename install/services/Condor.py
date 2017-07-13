@@ -523,7 +523,7 @@ You can only use the '--configure/--validate' options for this type.
       if os.getuid() == 0:  #-- root user --
         common.logit("Ports less that %i are generally reserved for root." % (root_port))
         common.logit("You have specified port %s for the %s option." % (port, option))
-        yn = raw_input("Do you really want to use a privileged port %s? (y/n): "% port)
+        yn = input("Do you really want to use a privileged port %s? (y/n): "% port)
         if yn != 'y':
           common.logerr("... exiting at your request")
       else: #-- non-root user --

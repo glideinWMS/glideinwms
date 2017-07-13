@@ -365,7 +365,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #-----------------------
   def create_glideins(self):
-    yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
+    yn=input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = ".  %s" % self.env_script()
     cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(), self.config_file())
     if yn=='y':
@@ -665,7 +665,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     print("Select the indexes you want to include")
     print("Use a , separated list to include more than one")
     while True:
-      idxes = raw_input("Please select: ")
+      idxes = input("Please select: ")
       idx_arr = idxes.split(',')
       problems = 0
       for idx in idx_arr:
@@ -683,15 +683,15 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     if yn == "y":
       # customize them
       for idx in idx_arr:
-        work_dir = raw_input("Work dir for '%s': [%s] " % (idx, ress_entries[idx]['work_dir']))
+        work_dir = input("Work dir for '%s': [%s] " % (idx, ress_entries[idx]['work_dir']))
         if work_dir != "":
           ress_entries[idx]['work_dir'] = work_dir
-        site_name=raw_input("Site name for '%s': [%s] " % (idx, ress_entries[idx]['site_name']))
+        site_name=input("Site name for '%s': [%s] " % (idx, ress_entries[idx]['site_name']))
         if site_name != "":
           ress_entries[idx]['site_name'] = site_name
 
       if self.glidein.use_glexec() == "y":
-        glexec_path = raw_input("gLExec path for '%s': [%s] "%(idx, ress_entries[idx]['glexec_path']))
+        glexec_path = input("gLExec path for '%s': [%s] "%(idx, ress_entries[idx]['glexec_path']))
         if glexec_path != "":
           ress_entries[idx]['glexec_path'] = glexec_path
 
@@ -819,7 +819,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     print("Please list all additional glidein entry points,")
     while True:
       print()
-      entry_name = raw_input("Entry name (leave empty when finished): ").strip()
+      entry_name = input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":
         if len(list(self.config_entries_list.keys())) < 1:
           print("You must insert at least one entry point")
@@ -828,20 +828,20 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       if entry_name in list(self.config_entries_list.keys()):
         print("You already inserted '%s'!" % entry_name)
         continue
-      gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name).strip()
+      gatekeeper_name = input("Gatekeeper for '%s': " % entry_name).strip()
       if gatekeeper_name == "":
         print("Gatekeeper cannot be empty!")
         continue
-      rsl_name = raw_input("RSL for '%s': " % entry_name).strip() # can be empty
-      work_dir = raw_input("Work dir for '%s': [.] " % entry_name).strip()
+      rsl_name = input("RSL for '%s': " % entry_name).strip() # can be empty
+      work_dir = input("Work dir for '%s': [.] " % entry_name).strip()
       if work_dir == "":
         work_dir = "."
-      site_name = raw_input("Site name for '%s': [%s] " % (entry_name, entry_name)).strip()
+      site_name = input("Site name for '%s': [%s] " % (entry_name, entry_name)).strip()
       if site_name == "":
         site_name = entry_name
       glexec_path = ""
       if self.glidein.use_glexec() == "y":
-        glexec_path = raw_input("gLExec path for '%s': [OSG] " % entry_name).strip()
+        glexec_path = input("gLExec path for '%s': [OSG] " % entry_name).strip()
         if glexec_path == "":
           glexec_path = 'OSG'
       else:
