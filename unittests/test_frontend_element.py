@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
@@ -18,7 +20,7 @@ import dis
 import inspect
 import re
 import sys
-import StringIO
+import io
 import xmlrunner
 
 class FEElementTestCase(unittest.TestCase):

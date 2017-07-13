@@ -1,8 +1,10 @@
+from future import standard_library
+standard_library.install_aliases()
 from builtins import str
 import string
 import os.path
 import urllib
-import cPickle
+import pickle
 import copy
 
 from glideinwms.lib import hashCrypto

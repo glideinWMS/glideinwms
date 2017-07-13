@@ -8,6 +8,8 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
@@ -23,7 +25,7 @@ import dis
 import inspect
 import re
 import sys
-import StringIO
+import io
 import xmlrunner
 
 # todo
@@ -37,8 +39,8 @@ def compareLambdas(func1, func2):
         code[0] = r.group(1)
 
     def disassemble(func):
-        out = StringIO.StringIO()
-        err = StringIO.StringIO()
+        out = io.StringIO()
+        err = io.StringIO()
         saved = (sys.stdout, sys.stderr)
         sys.stdout = out
         sys.stderr = err

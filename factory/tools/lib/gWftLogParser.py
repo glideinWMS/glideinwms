@@ -8,12 +8,14 @@
 #   factory/tool specific condorLogs helper
 #
 
+from future import standard_library
+standard_library.install_aliases()
 import time
 import os.path
 import mmap
 import re
 import binascii
-import StringIO
+import io
 import gzip
 
 from glideinwms.lib import condorLogParser
@@ -98,7 +100,7 @@ def get_Compressed(log_fname, start_str):
     if raw_data!="":
         gzip_data=binascii.a2b_base64(raw_data)
         del raw_data
-        data_fd=gzip.GzipFile(fileobj=StringIO.StringIO(gzip_data))
+        data_fd=gzip.GzipFile(fileobj=io.StringIO(gzip_data))
         data=data_fd.read()
     else:
         data=raw_data

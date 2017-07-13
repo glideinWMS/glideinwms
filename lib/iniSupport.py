@@ -1,14 +1,16 @@
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
 from builtins import str
 import re
 import sys
 import types
-import ConfigParser
+import configparser
 
 class IniError(Exception): pass
 
 def load_ini(ini_path):
-    cp = ConfigParser.ConfigParser()
+    cp = configparser.ConfigParser()
     # check to see if the file exists and is a valid ini file 
     try:
         cp.read(ini_path)
@@ -34,7 +36,7 @@ def cp_get(cp, section, option, default, throw_exception=False):
     @returns: Value stored in CP for section/option, or default if it is not
         present.
     """
-    if not isinstance(cp, ConfigParser.ConfigParser):
+    if not isinstance(cp, configparser.ConfigParser):
         raise IniError('cp_get called without a proper cp as first arg')
 
     if not section or not option:  # no use looking any deeper
@@ -44,7 +46,7 @@ def cp_get(cp, section, option, default, throw_exception=False):
     
     try:
         return cp.get(section, option)
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except (configparser.NoSectionError, configparser.NoOptionError):
         if throw_exception:
             raise IniError("Section %s or Option %s do not exist" % (section, option))
         return default

@@ -13,8 +13,10 @@ from __future__ import absolute_import
 # Author:
 #   Burt Holzman and Igor Sfiligoi
 #
+from future import standard_library
+standard_library.install_aliases()
 from builtins import str
-import cPickle
+import pickle
 import os
 import time
 import select
@@ -48,7 +50,7 @@ def fork_in_bg(function, *args):
         os.close(r)
         try:
             out = function(*args)
-            os.write(w, cPickle.dumps(out))
+            os.write(w, pickle.dumps(out))
         except:
             logSupport.log.warning("Forked process '%s' failed" % str(function))
             logSupport.log.exception("Forked process '%s' failed" % str(function))
@@ -89,7 +91,7 @@ def fetch_fork_result(r, pid):
         os.close(r)
         os.waitpid(pid, 0)
 
-    out = cPickle.loads(rin)
+    out = pickle.loads(rin)
     return out
 
 

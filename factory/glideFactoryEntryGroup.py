@@ -20,6 +20,8 @@
 #
 
 from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
 from past.utils import old_div
 import signal
 import os
@@ -32,7 +34,7 @@ import string
 import math
 import copy
 import random
-import cPickle
+import pickle
 import select
 import logging
 
@@ -534,7 +536,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                 entry.log.exception("Error writing stats for entry '%s': " % (entry.name))
 
                         try:
-                            os.write(w, cPickle.dumps(return_dict))
+                            os.write(w, pickle.dumps(return_dict))
                         except:
                             # Catch and log exceptions if any to avoid
                             # runaway processes.

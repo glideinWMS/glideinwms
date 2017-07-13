@@ -12,12 +12,14 @@ from __future__ import absolute_import
 #
 ####################################
 
+from future import standard_library
+standard_library.install_aliases()
 import os
 import shutil
 import subprocess
 import stat
 import tarfile
-import cStringIO
+import io
 from . import cgWDictFile
 
 ##############################
@@ -91,7 +93,7 @@ def create_condor_tar_fd(condor_base_dir):
                 condor_bins.append(f)
 
         # tar
-        fd = cStringIO.StringIO()
+        fd = io.StringIO()
         tf = tarfile.open("dummy.tgz", 'w:gz', fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))

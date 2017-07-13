@@ -31,6 +31,8 @@
 """
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 from builtins import chr
 from builtins import next
 from past.builtins import cmp
@@ -2167,9 +2169,9 @@ class TarFileCompat:
         self.tarfile.add(filename, arcname)
     def writestr(self, zinfo, bytes):
         try:
-            from cStringIO import StringIO
+            from io import StringIO
         except ImportError:
-            from StringIO import StringIO
+            from io import StringIO
         import calendar
         zinfo.name = zinfo.filename
         zinfo.size = zinfo.file_size
