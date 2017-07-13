@@ -43,7 +43,7 @@ class OrderedDict(UserDict):
         return dict
 
     def items(self):
-        return zip(self._keys, list(self.values()))
+        return list(zip(self._keys, list(self.values())))
 
     def keys(self):
         return self._keys
