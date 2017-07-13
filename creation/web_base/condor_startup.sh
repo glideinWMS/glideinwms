@@ -1088,7 +1088,7 @@ fi
 log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
-echo "===   Stats of main   ==="
+echo "=== Stats of main ==="
 if [ -f "${main_starter_log}" ]; then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
