@@ -5,10 +5,12 @@ from __future__ import division
 #   analyze_queues and analyze_frontends.
 ########################
 
+from future import standard_library
+standard_library.install_aliases()
 from past.utils import old_div
 import os, sys, getopt, re
 import datetime
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 # Convert particularly large numbers
 #    into kilo/mega; keeps 3 sig figs

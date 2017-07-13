@@ -7,6 +7,8 @@ Library for the information system comparisons.
 from __future__ import print_function
 from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
 from past.utils import old_div
 import os
 import sys
@@ -14,7 +16,7 @@ import getopt
 import datetime
 from xml.dom import minidom
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import random
 import re
 import sys
@@ -321,7 +323,7 @@ def query_teragrid():
     """
     
     # Get list of sites by ResourceID
-    tg_infosys_xml = urllib2.urlopen('http://info.teragrid.org/web-apps/xml/ctss-resources-v1/')
+    tg_infosys_xml = urllib.request.urlopen('http://info.teragrid.org/web-apps/xml/ctss-resources-v1/')
     config_dom = minidom.parse(tg_infosys_xml)
     resource_elements = config_dom.getElementsByTagName('ResourceID')
     resource_ids = []
@@ -333,7 +335,7 @@ def query_teragrid():
     for resource_id in resource_ids:
         # Find all the entries for a site
         try:
-            resource_xml = urllib2.urlopen('http://info.teragrid.org/web-apps/xml/ctss-services-v1/ResourceID/' + resource_id)
+            resource_xml = urllib.request.urlopen('http://info.teragrid.org/web-apps/xml/ctss-services-v1/ResourceID/' + resource_id)
         except:
             print("Skipping bad resource id %s" % resource_id)
             continue
