@@ -19,6 +19,8 @@
 #   Parag Mhashilkar (October 2012)
 #
 
+from __future__ import division
+from past.utils import old_div
 import signal
 import os
 import os.path
@@ -288,7 +290,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     if parallel_workers <= 0:
         logSupport.log.debug("Setting parallel_workers limit dynamically based on the available free memory")
         free_mem = os.sysconf('SC_AVPHYS_PAGES')*os.sysconf('SC_PAGE_SIZE')
-        parallel_workers = int(free_mem / float(ENTRY_MEM_REQ_BYTES))
+        parallel_workers = int(old_div(free_mem, float(ENTRY_MEM_REQ_BYTES)))
         if parallel_workers < 1: parallel_workers = 1
 
     logSupport.log.debug("Setting parallel_workers limit of %s" % parallel_workers)

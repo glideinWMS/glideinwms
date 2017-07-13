@@ -5,7 +5,9 @@ Library for the information system comparisons.
 
 """
 from __future__ import print_function
+from __future__ import division
 
+from past.utils import old_div
 import os
 import sys
 import getopt 
@@ -78,7 +80,7 @@ def query_bdii(bdii_source, vo_name=''):
             if 'GlueCEPolicyMaxObtainableWallClockTime' in bdii_entry: 
                 wall_clocktime = int(bdii_entry['GlueCEPolicyMaxObtainableWallClockTime'][0])
                 # Adjust to max of 48 hours or default of 36 hours as needed
-                if (wall_clocktime / 60) > 48:
+                if (old_div(wall_clocktime, 60)) > 48:
                     wall_clocktime = 48 * 60
                 if wall_clocktime == 0:
                     wall_clocktime = 36 * 60
@@ -121,7 +123,7 @@ def query_bdii(bdii_source, vo_name=''):
                 'gridtype' : gridtype,
                 'gatekeeper' : gatekeeper,
                 'rsl' : rsl,
-                'wall_clocktime' : wall_clocktime/60,
+                'wall_clocktime' : old_div(wall_clocktime,60),
                 'ref_id' : bdii_dn,
                 'ce_status' : ce_status,
                 'glexec_bin' : 'NONE',
@@ -279,7 +281,7 @@ def query_ress(ress_source, vo=''):
         wall_clocktime = int(condor_el['GlueCEPolicyMaxObtainableWallClockTime'])
         # Adjust to max of 48 hours or default of 36 hours as needed
         # This value is given in minutes
-        if (wall_clocktime / 60) > 48:
+        if (old_div(wall_clocktime, 60)) > 48:
             wall_clocktime = 48 * 60
         if wall_clocktime == 0:
             wall_clocktime = 36 * 60
@@ -299,7 +301,7 @@ def query_ress(ress_source, vo=''):
                 'gridtype' : gridtype,
                 'gatekeeper' : gatekeeper_name,
                 'rsl' : rsl,
-                'wall_clocktime' : wall_clocktime/60,
+                'wall_clocktime' : old_div(wall_clocktime,60),
                 'ref_id' : condor_id,
                 'ce_status' : ce_status,
                 'glexec_bin' : glexec_bin,

@@ -10,6 +10,8 @@
 #
 
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import signal
 import os
 import os.path
@@ -1859,7 +1861,7 @@ def perform_work_v2(entry, condorQ, client_name, client_int_name,
     entry.gflFactoryConfig.log_stats.logSummary(client_log_name, log_stats)
 
     # use the extended params for submission
-    proxy_fraction = 1.0/len(credential_keys)
+    proxy_fraction = old_div(1.0,len(credential_keys))
 
     # I will shuffle proxies around, so I may as well round up all of them
     idle_glideins_pproxy = int(math.ceil(idle_glideins*proxy_fraction))

@@ -15,6 +15,8 @@
 #   Igor Sfiligoi (Apr 9th 2007 - moved old glideFactory to glideFactoryEntry)
 #
 
+from __future__ import division
+from past.utils import old_div
 import os
 import sys
 import json
@@ -175,7 +177,7 @@ def entry_grouper(size, entries):
     if len(entries) <= size:
         list.insert(0, entries)
     else:
-        for group in range(len(entries)/size):
+        for group in range(old_div(len(entries),size)):
             list.insert(group, entries[group*size:(group+1)*size])
 
         if (size*len(list) < len(entries)):
@@ -344,7 +346,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
     logSupport.log.info("Available Entries: %s" % entries)
 
-    group_size = int(math.ceil(float(len(entries))/entry_process_count))
+    group_size = int(math.ceil(old_div(float(len(entries)),entry_process_count)))
     entry_groups = entry_grouper(group_size, entries)
 
     def _set_rlimit(soft_l=None, hard_l=None):

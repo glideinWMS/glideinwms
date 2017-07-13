@@ -1,3 +1,4 @@
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -14,6 +15,7 @@
 #   Igor Sfiligoi
 #
 
+from past.utils import old_div
 import os
 import copy
 import sys
@@ -423,7 +425,7 @@ def shorten_text(text, width):
         if count>=width:
             return (text[:idx], c)
         if c=='\t':
-            count=((count+8)/8)*8 #round to neares mult of 8
+            count=(old_div((count+8),8))*8 #round to neares mult of 8
             if count>width:
                 return (text[:idx], c)
             idx=idx+1

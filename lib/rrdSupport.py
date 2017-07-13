@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -14,6 +15,7 @@ from __future__ import print_function
 #   Igor Sfiligoi
 #
 
+from past.utils import old_div
 import string
 import time
 try:
@@ -106,7 +108,7 @@ class BaseRRDSupport:
 
         # make the start time to be aligned on the rrd_step boundary
         # This is needed for optimal resoultion selection 
-        start_time = (int(time.time() - 1)/rrd_step) * rrd_step 
+        start_time = (old_div(int(time.time() - 1),rrd_step)) * rrd_step 
         #print (rrdfname,start_time,rrd_step)+rrd_ds
         args = [str(rrdfname), '-b', '%li' % start_time, '-s', '%i' % rrd_step]
         for rrd_ds in rrd_ds_arr:
@@ -264,8 +266,8 @@ class BaseRRDSupport:
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         now = int(time.time())
-        start = ((now-period)/rrd_step)*rrd_step
-        end = ((now-1)/rrd_step)*rrd_step
+        start = (old_div((now-period),rrd_step))*rrd_step
+        end = (old_div((now-1),rrd_step))*rrd_step
         return self.rrd2graph(fname, rrd_step, ds_name, ds_type, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
 
     #############################################################
@@ -397,8 +399,8 @@ class BaseRRDSupport:
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         now = int(time.time())
-        start = ((now-period)/rrd_step)*rrd_step
-        end = ((now-1)/rrd_step)*rrd_step
+        start = (old_div((now-period),rrd_step))*rrd_step
+        end = (old_div((now-1),rrd_step))*rrd_step
         return self.rrd2graph_multi(fname, rrd_step, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
 
     ###################################################

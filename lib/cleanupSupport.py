@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
 from past.builtins import cmp
 import os
 import stat
@@ -174,7 +176,7 @@ class DirCleanupWSpace(DirCleanup):
 
         if count_removes > 0:
             if self.should_log:
-                logSupport.log.info("Removed %i files for %.2fMB." % (count_removes, count_removes_bytes / (1024.0 * 1024.0)))
+                logSupport.log.info("Removed %i files for %.2fMB." % (count_removes, old_div(count_removes_bytes, (1024.0 * 1024.0))))
 
 class PrivsepDirCleanupWSpace(DirCleanupWSpace):
     def __init__(self,

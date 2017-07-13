@@ -1,3 +1,4 @@
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -13,6 +14,7 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
+from past.utils import old_div
 import os
 # import sys
 import time
@@ -789,7 +791,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     runstale_list = extractRunStale(condorq)
     if len(runstale_list) > 0:
         glideins_sanitized = 1
-        log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2] / 3600))
+        log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), old_div(factoryConfig.stale_maxage[2], 3600)))
         removeGlideins(condorq.schedd_name, runstale_list,
                        log=log, factoryConfig=factoryConfig)
 

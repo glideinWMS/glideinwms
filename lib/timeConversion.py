@@ -1,3 +1,4 @@
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -11,6 +12,7 @@
 #   Igor Sfiligoi (Mar 15th 2007)
 #
 
+from past.utils import old_div
 import time
 import calendar
 
@@ -42,7 +44,7 @@ def getISO8601_Local(now=None):
     if now is None:
         now = time.time()
     tzval = getTZval()
-    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((old_div(-tzval, 3600)), (-tzval % 3600 / 60)))
 
 def extractISO8601_Local(time_str):
     timestr = time_str[:-6]
@@ -62,7 +64,7 @@ def getRFC2822_Local(now=None):
     if now is None:
         now = time.time()
     tzval = getTZval()
-    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + ("%+03i%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
+    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + ("%+03i%02i" % ((old_div(-tzval, 3600)), (-tzval % 3600 / 60)))
 
 def extractRFC2822_Local(time_str):
     timestr = time_str[:-6]

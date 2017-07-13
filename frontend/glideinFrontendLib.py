@@ -1,3 +1,4 @@
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -13,6 +14,7 @@
 #   Igor Sfiligoi (Sept 19th 2006)
 #
 
+from past.utils import old_div
 import os.path
 import string
 import math
@@ -437,8 +439,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
             # Scale the number based on the total cpus required &
             # that provided by the worker node on the site
             
-            prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index])/out_glidein_counts[site]
-            prop_out_count = prop_cpus/glidein_cpus
+            prop_cpus = old_div((out_cpu_counts[site] * new_out_counts[site_index]),out_glidein_counts[site])
+            prop_out_count = old_div(prop_cpus,glidein_cpus)
             final_out_cpu_counts[site] = math.ceil(prop_out_count)
 
         final_unique[site]=unique_to_site[site_index]

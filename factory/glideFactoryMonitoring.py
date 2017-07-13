@@ -1,3 +1,4 @@
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -12,6 +13,7 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
+from past.utils import old_div
 import os
 import time
 import copy
@@ -415,7 +417,7 @@ class condorQStats:
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
                         aorg = a[:-10]
-                        tel[aorg] = tel[aorg] / tel[a]
+                        tel[aorg] = old_div(tel[aorg], tel[a])
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 
@@ -789,7 +791,7 @@ class condorLogSummary:
             count_jobnrs[enle_jobrange] += 1
 
             if enle_jobs_nr > 0:
-                enle_jobs_duration_range = getTimeRange(enle_jobs_duration['total'] / enle_jobs_nr)
+                enle_jobs_duration_range = getTimeRange(old_div(enle_jobs_duration['total'], enle_jobs_nr))
             else:
                 enle_jobs_duration_range = getTimeRange(-1)
             count_jobs_duration[enle_jobs_duration_range] += 1
@@ -1200,7 +1202,7 @@ class FactoryStatusData:
     def average(self, input_list):
         try:
             if len(input_list) > 0:
-                avg_list = sum(input_list) / len(input_list)
+                avg_list = old_div(sum(input_list), len(input_list))
             else:
                 avg_list = 0
             return avg_list
@@ -1229,17 +1231,17 @@ class FactoryStatusData:
                 # calculate the best resolution
                 res_idx = 0
                 rrd_res = monitoringConfig.rrd_archives[res_idx][2] * monitoringConfig.rrd_step
-                period_mul = int(res_raw / rrd_res)
+                period_mul = int(old_div(res_raw, rrd_res))
                 while (period_mul >= monitoringConfig.rrd_archives[res_idx][3]):
                     # not all elements in the higher bucket, get next lower resolution
                     res_idx += 1
                     rrd_res = monitoringConfig.rrd_archives[res_idx][2] * monitoringConfig.rrd_step
-                    period_mul = int(res_raw / rrd_res)
+                    period_mul = int(old_div(res_raw, rrd_res))
 
                 period = period_mul * rrd_res
 
                 self.data[rrd][client][period] = {}
-                end = (int(time.time() / rrd_res) - 1) * rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
+                end = (int(old_div(time.time(), rrd_res)) - 1) * rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
                 start = end - period
                 try:
                     fetched_data = self.fetchData(
@@ -1413,12 +1415,12 @@ def getTimeRange(absval):
         if absval > (64 * 3600): # limit detail to 64 hours
             return 'Days'
         # start with 7.5 min, and than exp2
-        logval = int(math.log(absval / 450.0, 4) + 0.49)
+        logval = int(math.log(old_div(absval, 450.0), 4) + 0.49)
         level = math.pow(4, logval) * 450.0
         if level < 3600:
-            return "%imins" % (int(level / 60 + 0.49))
+            return "%imins" % (int(old_div(level, 60) + 0.49))
         else:
-            return "%ihours" % (int(level / 3600 + 0.49))
+            return "%ihours" % (int(old_div(level, 3600) + 0.49))
 
 def getAllTimeRanges():
         return ('Unknown', 'Minutes', '30mins', '2hours', '8hours', '32hours', 'Days')

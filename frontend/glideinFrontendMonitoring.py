@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -13,6 +14,7 @@ from __future__ import print_function
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
+from past.utils import old_div
 import os, os.path
 import re, time, copy, string, math, random, fcntl
 import traceback
@@ -532,7 +534,7 @@ class factoryStats:
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
                         aorg=a[:-10]
-                        tel[aorg]=tel[aorg]/tel[a]
+                        tel[aorg]=old_div(tel[aorg],tel[a])
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 

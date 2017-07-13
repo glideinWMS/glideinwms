@@ -18,6 +18,8 @@
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
 #
 
+from __future__ import division
+from past.utils import old_div
 import signal
 import sys
 import os
@@ -1073,10 +1075,10 @@ class glideinFrontendElement:
                 self.global_total_max_vms_idle-global_total_idle_glideins)
 
             # since it takes a few cycles to stabilize, ask for only one third
-            glidein_min_idle=glidein_min_idle/3
+            glidein_min_idle=old_div(glidein_min_idle,3)
             # do not reserve any more than the number of old idles
             # for reserve (/3)
-            glidein_idle_reserve = min(effective_oldidle/3, self.reserve_idle)
+            glidein_idle_reserve = min(old_div(effective_oldidle,3), self.reserve_idle)
 
             glidein_min_idle+=glidein_idle_reserve
             glidein_min_idle = min(glidein_min_idle, self.max_idle)
@@ -1831,9 +1833,9 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
         if i < 100000:
             form_arr.append("%5i" % i)
         elif i < 10000000:
-            form_arr.append("%4ik" % (i / 1000))
+            form_arr.append("%4ik" % (old_div(i, 1000)))
         else:
-            form_arr.append("%4iM" % (i / 1000000))
+            form_arr.append("%4iM" % (old_div(i, 1000000)))
 
     if is_down:
         down_str = "Down"

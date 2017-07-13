@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
 import logging
 import os
 import shutil
@@ -89,7 +91,7 @@ class TestLogSupport(unittest.TestCase):
         max_bytes = float(self.config[section]["max_mbytes"]) * 1024.0 * 1024.0
 
         # we want to exceed the max size of the log but stop logging shortly after
-        required_number_of_lines = (max_bytes / 100) + 100
+        required_number_of_lines = (old_div(max_bytes, 100)) + 100
         lines = 0
         while lines < required_number_of_lines:
             log.info(create_random_string(length=100))
@@ -105,7 +107,7 @@ class TestLogSupport(unittest.TestCase):
         sleep_time_seconds = float(self.config[section]["sleep"])
 
         # we want to log enough times to rotate the log and put a few lines into the new file
-        required_number_log_attempts = (max_lifetime_seconds / sleep_time_seconds) + 5
+        required_number_log_attempts = (old_div(max_lifetime_seconds, sleep_time_seconds)) + 5
         log_attempts = 0
         while log_attempts < required_number_log_attempts:
             log.info(create_random_string(length=100))
@@ -123,7 +125,7 @@ class TestLogSupport(unittest.TestCase):
 
         # we want to exceed the max size of the log but stop logging shortly after
         line_size_bytes = 100
-        required_number_of_lines = (max_bytes / line_size_bytes) + 100
+        required_number_of_lines = (old_div(max_bytes, line_size_bytes)) + 100
 
         # we are going to force a log rotate at least 7 times
         for _ in range(0, 8):
@@ -148,7 +150,7 @@ class TestLogSupport(unittest.TestCase):
         max_bytes = float(self.config[section]["max_mbytes"]) * 1024.0 * 1024.0
 
         # we want to exceed the max size of the log but stop logging shortly after
-        required_number_of_lines = (max_bytes / 100) + 100
+        required_number_of_lines = (old_div(max_bytes, 100)) + 100
 
         # we are going to force a log rotate at least 7 times
         for _ in range(0, 8):

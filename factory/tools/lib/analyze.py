@@ -1,9 +1,11 @@
 from __future__ import print_function
+from __future__ import division
 ########################
 # Library for analyze_entries,
 #   analyze_queues and analyze_frontends.
 ########################
 
+from past.utils import old_div
 import os, sys, getopt, re
 import datetime
 import urllib
@@ -55,12 +57,12 @@ def printline(x, div, period):
       sp = ""
    else:
       try:
-         sp = " - %2d%%" % ((float(x)/float(div))*100)
+         sp = " - %2d%%" % ((old_div(float(x),float(div)))*100)
       except:
          sp = " - NA%"
    return ("%6s (%6s hours - %5s slots%s)"
       % (km(x),
-         km(float(x)/3600.0),
-         km(float(x)/float(period)),
+         km(old_div(float(x),3600.0)),
+         km(old_div(float(x),float(period))),
          sp))
 

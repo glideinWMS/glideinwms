@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -12,6 +13,7 @@ from __future__ import absolute_import
 #  Igor Sfiligoi  (since Mar 31st 2009)
 #
 
+from past.utils import old_div
 import os
 import copy
 import time
@@ -577,7 +579,7 @@ def fair_split(i, n, p):
     n1=int(n)
     i1=int(i)
     p1=int(p)
-    return int((n1*i1)/p1)-int((n1*(i1-1))/p1)
+    return int(old_div((n1*i1),p1))-int(old_div((n1*(i1-1)),p1))
 
 
 def random_split(n, p):

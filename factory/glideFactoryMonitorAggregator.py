@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 #
 # Project:
 #   glideinWMS
@@ -13,6 +14,7 @@ from __future__ import print_function
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
+from past.utils import old_div
 import copy
 import time
 import string
@@ -326,7 +328,7 @@ def aggregateStatus(in_downtime):
             tel=global_total[w]
             for a in list(tel.keys()):
                 if a in avgEntries:
-                    tel[a]=tel[a]/nr_entries # since all entries must have this attr to be here, just divide by nr of entries
+                    tel[a]=old_div(tel[a],nr_entries) # since all entries must have this attr to be here, just divide by nr of entries
 
     #do average for per-fe stat--'InfoAge' only
     for fe in list(status_fe['frontends'].keys()):
@@ -334,7 +336,7 @@ def aggregateStatus(in_downtime):
             tel=status_fe['frontends'][fe][w]
             for a in list(tel.keys()):
                 if a in avgEntries and fe in nr_feentries:
-                    tel[a]=tel[a]/nr_feentries[fe] # divide per fe
+                    tel[a]=old_div(tel[a],nr_feentries[fe]) # divide per fe
 
 
     xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
