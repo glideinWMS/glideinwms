@@ -161,7 +161,7 @@ class DictFile:
         else:
             keys=self.keys
         for k in keys:
-            fd.write("%s\n"%self.format_val(k, want_comments))
+            fd.write("%s\n"%bytes(self.format_val(k, want_comments)))
         footer=self.file_footer(want_comments)
         if footer is not None:
             fd.write("%s\n"%footer)
@@ -176,7 +176,7 @@ class DictFile:
     def save_into_str(self,
                       sort_keys=None,set_readonly=True,reset_changed=True,
                       want_comments=True):
-        fd=io.StringIO()
+        fd=io.BytesIO()
         self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         fd.seek(0)
         data=fd.read()
