@@ -393,6 +393,7 @@ function help() {
     echo "--el             Redhat version to test (Default: 6)"
     echo "--osg-version    OSG version to use (Default: 3.3)"
     echo "--osg-repo       OSG repo to use (Default: osg-development)"
+    echo "--vm_template    fermicloud template (Default: CLI_DynamicIP_SLF6_HOME"
     echo "--monitor        Launch monitoring scripts in xterm"
     echo "--frontend-proxy Frontend proxy to use. Proxy from host DN is used by default"
     echo "--jobs-proxy     Proxy used to submit jobs. Proxy from host DN is used by default"
@@ -440,6 +441,9 @@ while [[ $# -gt 0 ]] ; do
         --condor-tarball)
             [ -f "$2" ] && condor_tarball="$2"
             shift ;;
+        --vm_template)
+            vm_template="${2:-CLI_DynamicIP_SLF6_HOME}"
+            shift ;;
         --help)
             help
             exit 0;;
@@ -454,8 +458,8 @@ enable_repo="--enablerepo=$osg_repo"
 yum_rpm=yum_priorities
 [ "$el" = "7" ] && yum_rpm=yum-plugin-priorities
 
-vm_template="CLI_DynamicIP_SLF${el}_HOME"
-[ "$el" = "7" ] && vm_template="SLF${el}V_DynIP_Home"
+[ "$el" = "7" ] &&  [ "$vm_template" = "" ] && vm_template="SLF${el}V_DynIP_Home"
+[ "$el" = "6" ] &&  [ "$vm_template" = "" ] && vm_template="CLI_DynamicIP_SLF6_HOME"
 
 osg_release_rpm="http://repo.grid.iu.edu/osg/$osg_version/osg-$osg_version-el$el-release-latest.rpm"
 epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.noarch.rpm"
