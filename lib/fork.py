@@ -14,6 +14,7 @@
 #
 import cPickle
 import os
+import sys
 import time
 import select
 from pidSupport import register_sighandler, unregister_sighandler, termsignal
@@ -77,16 +78,18 @@ def fetch_fork_result(r, pid):
     @return: Unpickled object
     """
 
+    rin = ""
     try:
-        rin = ""
         s = os.read(r, 1024*1024)
         while (s != ""):  # "" means EOF
             rin += s
             s = os.read(r, 1024*1024)
+    except:
+        logSupport.log.debug('exception %s' % sys.exc_info()[0])
+      
     finally:
         os.close(r)
         os.waitpid(pid, 0)
-
     out = cPickle.loads(rin)
     return out
 
@@ -112,6 +115,7 @@ def fetch_fork_result_list(pipe_ids):
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
         except Exception, e:
+            logSupport.log.debug('exception %s' % sys.exc_info()[0])
             logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
             logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
             # Record failed keys
@@ -141,15 +145,44 @@ def fetch_ready_fork_result_list(pipe_ids):
     failures = 0
     failed = []
     fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
+    poll_obj = None
+    t_begin = time.time()
+    try:
+        #epoll tested fastest, and supports > 1024 open fds 
+        #unfortunately linux only
+        poll_obj = select.epoll()
+        poll_type = "epoll"
+        for read_fd in fds_to_entry.keys():
+            poll_obj.register(read_fd, select.EPOLLIN|select.EPOLLPRI)
+        readable_fds = poll_obj.poll()[0]
+    except:
+        try:
+            #no epoll(), try poll(). Still supports > 1024 fds and
+            #tested faster than select() on linux when multiple forks configured
+            poll_obj = select.poll()
+            poll_type = "poll"
+            for read_fd in fds_to_entry.keys():
+                poll_obj.register(read_fd, select.POLLIN|select.POLLPRI)
+            readable_fds = poll_obj.poll()[0]
+        except:
+            #no epoll() or poll(), use select()
+            readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
+            poll_type = "select"
 
-    readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
+    count = 0
     for fd in readable_fds:
+        if fd not in fds_to_entry:
+           continue 
         try:
             key = fds_to_entry[fd]
             pid = pipe_ids[key]['pid']
-            out = fetch_fork_result(fd, pid)
+            out = fetch_fork_result(fd, pid )
+            if poll_obj:
+                poll_obj.unregister(fd)
             work_info[key] = out
-        except Exception, e:
+            count += 1
+        except:
+            logSupport.log.debug('exception %s' % sys.exc_info()[0])
             logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
             logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
             # Record failed keys
@@ -158,6 +191,10 @@ def fetch_ready_fork_result_list(pipe_ids):
 
     if failures>0:
         raise ForkResultError(failures, work_info, failed=failed)
+    #
+    #logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %\
+    #        ('fetch_ready_fork_result_list', poll_type, count,
+    #         len(fds_to_entry.keys()), time.time()-t_begin))
 
     return work_info
 
@@ -252,7 +289,8 @@ class ForkManager:
                  functions_remaining -= len(post_work_info_subset)
 
                  for i in (post_work_info_subset.keys() + failed_keys):
-                     del pipe_ids[i]
+                     if pipe_ids.get(i):
+                     	del pipe_ids[i]
                  #end for
              #end while
 
