@@ -88,8 +88,9 @@ function no_use_singularity_config {
 }
 
 if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
-
-    singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{print $2}'`
+    singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
+# GWMS use awk differently here to deal with cases where the pathname contains whitespaces..
+#   singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{print $2}'`
     if [ -z "$singularity_bin" ]; then
 	singularity_bin="NONE"
     fi
@@ -163,7 +164,8 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     # some known singularity locations
-    for LOCATION in /usr/bin $singularity_bin; do
+    #GWMS, we quote $singularity_bin to deal with white spaces in the path
+    for LOCATION in /usr/bin "$singularity_bin"; do
         if [ -e "$LOCATION" ]; then
             info " ... prepending $LOCATION to PATH"
             export PATH="$LOCATION:$PATH"

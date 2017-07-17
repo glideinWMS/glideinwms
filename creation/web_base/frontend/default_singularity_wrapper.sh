@@ -30,10 +30,12 @@ function getPropStr
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
     # echo the value
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
+#    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
+    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[ \t\n\r]//g" -e "s/[ \t\n\r]$//g") 2>/dev/null`
     echo $val
 }
 
+exitsleep=10m
 
 if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     
@@ -77,7 +79,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     #  Singularity
     #
 #    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_AUTOLOAD" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
-    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
+    if [ "x$HAS_SINGULARITY" = "x1" && "x$GWMS_SINGULARITY_PATH" != "x" ]; then
 
 # We make sure that every cvmfs repository that users specify in CVMFSReposList is available, otherwise this script exits with 1
         holdfd=3
@@ -88,7 +90,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                     let "holdfd=holdfd+1"
                 else
                     echo "/cvmfs/$x NOT available"
-		    sleep 10m
+		    sleep $exitsleep
 		    exit 1
                 fi
             done
@@ -106,7 +108,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                 echo "warning: unable to access $GWMS_SINGULARITY_IMAGE" 1>&2
                 echo "$SITE_NAME" `hostname -f` 1>&2
                 touch ../../.stop-glidein.stamp >/dev/null 2>&1
-                sleep 10m
+		sleep $exitsleep
             fi
 	else ## i.e. if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]
 	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
@@ -166,7 +168,8 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
         done
 
         export SINGULARITY_REEXEC=1
-        exec $GWMS_SINGULARITY_PATH exec $GWMS_SINGULARITY_EXTRA_OPTS \
+#GWMS, we quote $GWMS_SINGULARITY_PATH to deal with a path that contains whitespaces
+        exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                    --home $PWD:/srv \
                                    --pwd /srv \
                                    --scratch /var/tmp \
@@ -222,7 +225,7 @@ fi
 # prepend HTCondor libexec dir so that we can call chirp
 if [ -e ../../main/condor/libexec ]; then
     DER=`(cd ../../main/condor/libexec; pwd)`
-    export PATH=$DER:$PATH
+    export PATH="$DER:$PATH"
 fi
 
 # load modules, if available
@@ -255,7 +258,7 @@ function setup_stashcp {
   # Determine XRootD plugin directory.
   # in lieu of a MODULE_<name>_BASE from lmod, this will do:
   export MODULE_XROOTD_BASE=$(which xrdcp | sed -e 's,/bin/.*,,')
-  export XRD_PLUGINCONFDIR=$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d
+  export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
  
 }
  
@@ -264,7 +267,7 @@ if [ "x$POSIXSTASHCACHE" = "x1" ]; then
   setup_stashcp
  
   # Add the LD_PRELOAD hook
-  export LD_PRELOAD=$MODULE_XROOTD_BASE/lib64/libXrdPosixPreload.so:$LD_PRELOAD
+  export LD_PRELOAD="$MODULE_XROOTD_BASE/lib64/libXrdPosixPreload.so:$LD_PRELOAD"
  
   # Set proxy for virtual mount point
   # Format: cache.domain.edu/local_mount_point=/storage_path

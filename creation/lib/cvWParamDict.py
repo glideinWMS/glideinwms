@@ -549,6 +549,7 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
         descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
+
 def apply_group_singularity_policy(descript_dict, sub_params, params):
 
     glidein_singularity_use = None

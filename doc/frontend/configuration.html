@@ -562,9 +562,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
             NEVER (do not use Singularity) or
             OPTIONAL (use Singularity if the site is configured with it) 
             or REQUIRED (Always use Singularity). 
-        If REQUIRED or NEVER is used, the default wrapper script that we provide should be used, in other words
-&lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt;
-        should be added in &lt;files&gt;.
+        If REQUIRED or OPTIONAL is used, the default wrapper script that we provide should be used, in other words
+a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
 	    <br>
         If you want to use your own wrapper script for singularity, you must first understand 
         <I>/var/lib/gwms-frontend/web-base/default_singularity_setup.sh</I> (that is loaded in Factory)
