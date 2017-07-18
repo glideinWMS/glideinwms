@@ -37,7 +37,6 @@ HTML_TR="padding: 5px;text-align: center;"
 HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
 HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
 
-mail_file_end='<br><br><h2>Files that need to be Refactored (if any)</h2>'
 mail_file="
     <body>
     <table style=\"$HTML_TABLE\">
@@ -95,7 +94,6 @@ process_branch () {
 
     if [[ $futurize_ret -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
         refactored_files=$(echo "$OUTPUT" | grep 'Refactored ')
-        mail_file_end="$mail_file_end<br><h3>$1</h3><p>$refactored_files</p>"
         refactored_file_count=$(echo "$refactored_files" | wc -l)
 
         echo "There are $refactored_file_count files that need to be refactered"
@@ -137,7 +135,6 @@ done
 mail_file="$mail_file
     </tbody>
 </table>
-$mail_file_end
 </body>"
 
 # Save the email to a file
