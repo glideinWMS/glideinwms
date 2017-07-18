@@ -88,9 +88,11 @@ function no_use_singularity_config {
 }
 
 if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
-    singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
+#GWMS direct use of singularity_bin before I started using echo (as below) failed..
+    temp_singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
 # GWMS use awk differently here to deal with cases where the pathname contains whitespaces..
 #   singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{print $2}'`
+    singularity_bin=$(echo $temp_singularity_bin)
     if [ -z "$singularity_bin" ]; then
 	singularity_bin="NONE"
     fi
@@ -163,15 +165,18 @@ fi
 if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
-    # some known singularity locations
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
-    for LOCATION in /usr/bin "$singularity_bin"; do
-        if [ -e "$LOCATION" ]; then
-            info " ... prepending $LOCATION to PATH"
-            export PATH="$LOCATION:$PATH"
-            break
-        fi
-    done
+#    for LOCATION in "$singularity_bin"; do
+    LOCATION="$singularity_bin"
+    if [ -e "$LOCATION" ]; then
+        info " ... prepending $LOCATION to PATH"
+        export PATH="$LOCATION:$PATH"
+#        break
+    fi
+#    done
+
+
+
 #GWMS this use of HAS_SINGULARITY="True" or "False" is simply local to this script.
 #GWMS and different from as HAS_SINGULARITY as in advertise HAS_SINGULARITY "False" "C"
     HAS_SINGULARITY="False"
@@ -222,7 +227,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     # ERROR  : Could not identify basedir for home directory path: /
     if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
         info "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $GWMS_SINGULARITY_IMAGE_DEFAULT echo Hello World | grep Hello World"
-        if ! ($GWMS_SINGULARITY_PATH exec --home $PWD:/srv \
+        if ! ("$GWMS_SINGULARITY_PATH" exec --home $PWD:/srv \
                                          --bind /cvmfs \
                                          --pwd /srv \
                                          --scratch /var/tmp \
@@ -252,7 +257,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
         # that we can rewrite env vars pointing to somewhere inside that dir (for
         # example, X509_USER_PROXY)
         export SING_OUTSIDE_BASE_DIR=`echo "$PWD" | sed -E "s;(.*/glide_[a-zA-Z0-9]+).*;\1;"`
-
+	cp "$error_gen" $SING_OUTSIDE_BASE_DIR/error_gen.sh
         # Make a copy of the user proxy - sometimes this lives outside the glidein dir
         if [ "x$X509_USER_PROXY" != "x" -a -e "$X509_USER_PROXY" ]; then
             info "Making a copy of the provided X509_USER_PROXY=$X509_USER_PROXY"
@@ -270,7 +275,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
         # let "inside" script know we are re-execing
         export GWMS_SINGULARITY_REEXEC=1
         info "$GWMS_SINGULARITY_PATH exec --home $SING_OUTSIDE_BASE_DIR:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $GWMS_SINGULARITY_IMAGE_DEFAULT $CMD"
-        if $GWMS_SINGULARITY_PATH exec --home $SING_OUTSIDE_BASE_DIR:/srv \
+        if "$GWMS_SINGULARITY_PATH" exec --home $SING_OUTSIDE_BASE_DIR:/srv \
                                       --bind /cvmfs \
                                       --pwd /srv \
                                       --scratch /var/tmp \
@@ -324,5 +329,6 @@ fi
 ##################
 info "All done - time to do some real work!"
 
-"$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True" 
+#"$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True" 
+/srv/error_gen.sh -ok "singularity_setup.sh"  "use_singularity" "True" 
 exit 0

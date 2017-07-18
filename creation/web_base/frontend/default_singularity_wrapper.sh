@@ -1,6 +1,3 @@
-#!/bin/bash
-
-
 function getPropBool
 {
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
@@ -31,11 +28,11 @@ function getPropStr
     # $2 the key
     # echo the value
 #    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[ \t\n\r]//g" -e "s/[ \t\n\r]$//g") 2>/dev/null`
+    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g") 2>/dev/null`
     echo $val
 }
 
-exitsleep=10m
+exitsleep=5m
 
 if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     
@@ -79,7 +76,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     #  Singularity
     #
 #    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_AUTOLOAD" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
-    if [ "x$HAS_SINGULARITY" = "x1" && "x$GWMS_SINGULARITY_PATH" != "x" ]; then
+    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
 
 # We make sure that every cvmfs repository that users specify in CVMFSReposList is available, otherwise this script exits with 1
         holdfd=3
