@@ -3,9 +3,6 @@
 # Get the log directory
 Log_Dir="$2"
 
-# Redirect output to a log file
-exec > >(tee -ai "$Log_Dir/all_output.txt")
-
 # Setup a fail code
 fail=0
 
