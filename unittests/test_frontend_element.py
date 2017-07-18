@@ -55,7 +55,9 @@ class FEElementTestCase(unittest.TestCase):
             'FracRunningPerEntry': '1.15', 'FactoryQueryExpr': 'True', 'MatchExpr': 'True', 'CurbIdleVMsTotal': '200',
             'GroupName': 'group1', 'MaxMatchmakers': '3',
             'MapFileWPilots': '/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile', 'CurbIdleVMsPerEntry': '5',
-            'MinRunningPerEntry': 0 }
+            'MinRunningPerEntry': 0,
+            'IdleLifetime': 0
+        }
 
         with mock.patch.object(glideinFrontendConfig, 'SignatureDescript') as m_signatureDescript:
             m_signatureDescript.return_value = signatureDescript

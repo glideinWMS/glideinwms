@@ -17,6 +17,7 @@ import cvWCreate
 from cWParamDict import is_true, add_file_unparsed
 from glideinwms.lib import x509Support
 
+
 ################################################
 #
 # This Class contains the main dicts
@@ -481,31 +482,32 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
         frontend_dict.add('HighAvailability', params.high_availability)
 
+
 #######################
 # Populate group descript
-def populate_group_descript(work_dir,group_descript_dict,        # will be modified
-                            sub_name,sub_params):
+def populate_group_descript(work_dir, group_descript_dict,        # will be modified
+                            sub_name, sub_params):
 
-    group_descript_dict.add('GroupName',sub_name)
+    group_descript_dict.add('GroupName', sub_name)
 
-    group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
-    group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
+    group_descript_dict.add('MapFile', os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
+    group_descript_dict.add('MapFileWPilots', os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
-    group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
-    group_descript_dict.add('MinRunningPerEntry',sub_params.config.running_glideins_per_entry.min)
-    group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
-    group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
-    group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
-    group_descript_dict.add('IdleLifetime',sub_params.config.idle_glideins_lifetime.max)
-    group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
-    group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
-    group_descript_dict.add('MaxIdleVMsTotal',sub_params.config.idle_vms_total.max)
-    group_descript_dict.add('CurbIdleVMsTotal',sub_params.config.idle_vms_total.curb)
-    group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
-    group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
-    group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
+    group_descript_dict.add('MaxRunningPerEntry', sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('MinRunningPerEntry', sub_params.config.running_glideins_per_entry.min)
+    group_descript_dict.add('FracRunningPerEntry', sub_params.config.running_glideins_per_entry.relative_to_queue)
+    group_descript_dict.add('MaxIdlePerEntry', sub_params.config.idle_glideins_per_entry.max)
+    group_descript_dict.add('ReserveIdlePerEntry', sub_params.config.idle_glideins_per_entry.reserve)
+    group_descript_dict.add('IdleLifetime', sub_params.config.idle_glideins_lifetime.max)
+    group_descript_dict.add('MaxIdleVMsPerEntry', sub_params.config.idle_vms_per_entry.max)
+    group_descript_dict.add('CurbIdleVMsPerEntry', sub_params.config.idle_vms_per_entry.curb)
+    group_descript_dict.add('MaxIdleVMsTotal', sub_params.config.idle_vms_total.max)
+    group_descript_dict.add('CurbIdleVMsTotal', sub_params.config.idle_vms_total.curb)
+    group_descript_dict.add('MaxRunningTotal', sub_params.config.running_glideins_total.max)
+    group_descript_dict.add('CurbRunningTotal', sub_params.config.running_glideins_total.curb)
+    group_descript_dict.add('MaxMatchmakers', sub_params.config.processing_workers.matchmakers)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
-        group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
+        group_descript_dict.add('GLIDEIN_Glexec_Use', sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
