@@ -43,7 +43,7 @@ setup_python_venv() {
     # 1. rrdtool-devel
     # 2. openssl-devel
     # 3. swig
-    pip_packages="astroid==1.2.1 pylint==1.3.1 pep8 unittest2 coverage rrdtool pyyaml mock xmlrunner"
+    pip_packages="astroid==1.2.1 pylint==1.3.1 pep8 unittest2 coverage rrdtool pyyaml mock xmlrunner future importlib argparse"
     for package in $pip_packages; do
         echo "Installing $package ..."
         status="DONE"
