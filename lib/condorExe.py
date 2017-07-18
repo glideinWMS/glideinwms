@@ -67,19 +67,38 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
 
     return iexe_cmd(cmd, stdin_data, env)
 
+
 ############################################################
 #
 # P R I V A T E, do not use
 #
 ############################################################
 def generate_bash_script(cmd, environment):
-    script = ['script to reproduce failure:']
-    script.append('-'*20 + ' begin script ' + '-'*20)
-    script.append('#!/bin/bash')
-    script += ['%s=%s' % (k, v) for k, v in list(environment.items())]
+    """
+    Print to a string a shell script setting the environment in 'environment' and running 'cmd'
+    If 'cmd' last argument is a file it will be printed as well in the string
+
+    @param cmd: command string
+    @param environment: environment as a dictionary
+    @return: multi-line string with environment, command and eventually the input file
+    """
+    script = ['script to reproduce failure:', '-'*20 + ' begin script ' + '-'*20, '#!/bin/bash']
+    script += ['%s=%s' % (k, v) for k, v in environment.iteritems()]
     script.append(cmd)
     script.append('-'*20 + '  end script  ' + '-'*20)
+    cmd_list = cmd.split()
+    if len(cmd_list) > 1:
+        last_par = cmd_list[-1]
+        if last_par and os.path.isfile(last_par):
+            script.append('-'*20 + '  parameter file: %s  ' % last_par + '-'*20)
+            try:
+                with open(last_par) as f:
+                    script += f.read().splitlines()
+            except IOError:
+                pass
+            script.append('-'*20 + '  end parameter file ' + '-'*20)
     return '\n'.join(script)
+
 
 # can throw ExeError
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
