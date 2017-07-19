@@ -1689,12 +1689,14 @@ class glideinFrontendElement:
             forkm_obj.add_fork(dt, self.subprocess_count_dt, dt)
 
         try:
+            t_begin = time.time()
             pipe_out=forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
+            t_end = time.time() - t_begin
         except RuntimeError:
             # expect all errors logged already
             logSupport.log.exception("Terminating iteration due to errors:")
             return
-        logSupport.log.info("All children terminated")
+        logSupport.log.info("All children terminated - took %s seconds" % t_end)
 
         for dt, el in self.condorq_dict_types.iteritems():
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)
