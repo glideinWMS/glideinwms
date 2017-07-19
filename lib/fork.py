@@ -84,8 +84,9 @@ def fetch_fork_result(r, pid):
         while (s != ""):  # "" means EOF
             rin += s
             s = os.read(r, 1024*1024)
-    except:
-        logSupport.log.debug('exception %s' % sys.exc_info()[0])
+    except IOError as err:
+        logSupport.log.debug('exception %s' % err)
+        logSupport.log.exception('exception %s' % err)
       
     finally:
         os.close(r)
@@ -114,10 +115,10 @@ def fetch_fork_result_list(pipe_ids):
             # Collect the results
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
-        except Exception, e:
-            logSupport.log.debug('exception %s' % sys.exc_info()[0])
-            logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
-            logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
+        except (IOError, KeyError) as err:
+            errmsg = "Failed to extract info from child '%s' %s"%(str(key),err)
+            logSupport.log.warning(errmsg)
+            logSupport.log.exception(errmsg)
             # Record failed keys
             failed.append(key)
             failures += 1
@@ -146,7 +147,9 @@ def fetch_ready_fork_result_list(pipe_ids):
     failed = []
     fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
     poll_obj = None
-    t_begin = time.time()
+    time_this = False
+    if time_this:
+        t_begin = time.time()
     try:
         #epoll tested fastest, and supports > 1024 open fds 
         #unfortunately linux only
@@ -155,7 +158,9 @@ def fetch_ready_fork_result_list(pipe_ids):
         for read_fd in fds_to_entry.keys():
             poll_obj.register(read_fd, select.EPOLLIN|select.EPOLLPRI)
         readable_fds = poll_obj.poll()[0]
-    except:
+    except (AttributeError, IOError) as err:
+        logSupport.log.warning("Failed to load select.epoll() '%s'"%\
+                str(err))
         try:
             #no epoll(), try poll(). Still supports > 1024 fds and
             #tested faster than select() on linux when multiple forks configured
@@ -164,7 +169,9 @@ def fetch_ready_fork_result_list(pipe_ids):
             for read_fd in fds_to_entry.keys():
                 poll_obj.register(read_fd, select.POLLIN|select.POLLPRI)
             readable_fds = poll_obj.poll()[0]
-        except:
+        except (AttributeError, IOError) as err:
+            logSupport.log.warning("Failed to load select.poll() '%s'"%\
+                    str(err))
             #no epoll() or poll(), use select()
             readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
             poll_type = "select"
@@ -172,29 +179,31 @@ def fetch_ready_fork_result_list(pipe_ids):
     count = 0
     for fd in readable_fds:
         if fd not in fds_to_entry:
-           continue 
+            continue
         try:
             key = fds_to_entry[fd]
             pid = pipe_ids[key]['pid']
-            out = fetch_fork_result(fd, pid )
+            out = fetch_fork_result(fd, pid)
             if poll_obj:
                 poll_obj.unregister(fd)
             work_info[key] = out
             count += 1
-        except:
-            logSupport.log.debug('exception %s' % sys.exc_info()[0])
-            logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
-            logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
+        except (IOError, ValueError, KeyError) as err:
+            errmsg = ("Failed to extract info from child '%s' %s"%\
+                    (str(key), err))
+            logSupport.log.warning(errmsg)
+            logSupport.log.exception(errmsg)
             # Record failed keys
             failed.append(key)
             failures += 1
 
     if failures>0:
         raise ForkResultError(failures, work_info, failed=failed)
-    #
-    #logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %\
-    #        ('fetch_ready_fork_result_list', poll_type, count,
-    #         len(fds_to_entry.keys()), time.time()-t_begin))
+    
+    if time_this:
+        logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %\
+            ('fetch_ready_fork_result_list', poll_type, count,
+             len(fds_to_entry.keys()), time.time()-t_begin))
 
     return work_info
 
@@ -290,7 +299,7 @@ class ForkManager:
 
                  for i in (post_work_info_subset.keys() + failed_keys):
                      if pipe_ids.get(i):
-                     	del pipe_ids[i]
+                         del pipe_ids[i]
                  #end for
              #end while
 
