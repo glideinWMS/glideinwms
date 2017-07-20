@@ -101,7 +101,9 @@ process_branch () {
         <th style=\"$HTML_TH\">$1</th>
         <td style=\"$HTML_TD_FAILED\">$refactored_file_count</td>
     </tr>"
-        fail=1
+    	if [ $futurize_ret -ne 0 ]; then
+        	fail=1
+        fi
 
     else
         echo ""
