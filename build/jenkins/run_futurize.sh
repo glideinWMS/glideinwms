@@ -19,7 +19,7 @@ WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
 source "$GLIDEINWMS_SRC/build/jenkins/utils.sh"
 setup_python_venv "$WORKSPACE"
-cd "$GLIDEINWMS_SRC" || exit 2
+cd "$GLIDEINWMS_SRC" || exit 1
 
 echo ""
 echo "Python Environment Setup Complete"
@@ -101,8 +101,10 @@ process_branch () {
         <th style=\"$HTML_TH\">$1</th>
         <td style=\"$HTML_TD_FAILED\">$refactored_file_count</td>
     </tr>"
-    	if [ $futurize_ret -ne 0 ]; then
-        	fail=1
+        if [ $futurize_ret -ne 0 ]; then
+            exit 1
+        else
+            fail=201
         fi
 
     else
@@ -144,7 +146,7 @@ echo "-----------------------"
 if [ "$fail" -ne 0 ]; then
     echo "Futurize Tests Complete - Failed"
     echo "-----------------------"
-    exit 1
+    exit $fail
 fi
 echo "Futurize Tests Complete - Success"
 echo "-----------------------"
