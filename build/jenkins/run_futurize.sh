@@ -71,7 +71,7 @@ process_branch () {
         fail=1
 
         # Continue onto the next branch
-        kill -INT $$
+        return
 
     fi
 
