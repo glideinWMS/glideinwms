@@ -105,10 +105,11 @@ class Classad(object):
         ad = ""
 
         for key, value in list(self.adParams.items()):
-            if isinstance(value, str) or isinstance(value, unicode):
+            if isinstance(value, (bytes, str, unicode)):
                 # Format according to Condor String Literal definition
                 # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
                 classad_value = value.replace('"', r'\"')
+                classad_value = bytes(classad_value)
                 ad += '%s = "%s"\n' % (key, classad_value)
             else:
                 ad += '%s = %s\n' % (key, value)

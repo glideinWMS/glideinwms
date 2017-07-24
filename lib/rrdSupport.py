@@ -163,7 +163,7 @@ class BaseRRDSupport:
         if self.rrd_obj is None:
             return # nothing to do in this case
 
-        args = [str(rrdfname)]
+        args = [bytes(rrdfname)]
         ds_names = sorted(val_dict.keys())
 
         ds_names_real = []

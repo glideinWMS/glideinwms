@@ -561,12 +561,12 @@ class FactoryKeys4Advertize:
     # returns a list of strings
     def get_key_attrs(self):
         glidein_symKey_str = self.glidein_symKey.get_code()
-        return ('ReqPubKeyID = "%s"' % self.factory_pub_key_id,
-                'ReqEncKeyCode = "%s"' % self.factory_pub_key.encrypt_hex(glidein_symKey_str),
+        return (bytes('ReqPubKeyID = "%s"' % self.factory_pub_key_id),
+                bytes('ReqEncKeyCode = "%s"' % self.factory_pub_key.encrypt_hex(bytes(glidein_symKey_str))),
                 # this attribute will be checked against the AuthenticatedIdentity
                 # this will prevent replay attacks, as only who knows the symkey can change this field
                 # no other changes needed, as Condor provides integrity of the whole classAd
-                'ReqEncIdentity = "%s"' % self.encrypt_hex(str(self.classad_identity)))
+                bytes('ReqEncIdentity = "%s"' % self.encrypt_hex(bytes(self.classad_identity))))
 
     def encrypt_hex(self, str):
         return self.glidein_symKey.encrypt_hex(str)
@@ -906,7 +906,7 @@ class MultiAdvertizeWork:
                     glidein_params_to_encrypt[cred_el.file_id(ld_fname)]=ld_data
                     if (hasattr(cred_el, 'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)]=str(cred_el.security_class)
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)]=bytes(cred_el.security_class)
 
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
@@ -914,7 +914,7 @@ class MultiAdvertizeWork:
                 fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
                 for attr in list(glidein_params_to_encrypt.keys()):
                     el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
-                    escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
+                    escaped_el = string.replace(string.replace(bytes(el), '"', '\\"'), '\n', '\\n')
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
 
             # Update Sequence number information
@@ -1077,7 +1077,7 @@ class MultiAdvertizeWork:
                             logSupport.log.warning("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain, factory_trust, params_obj.request_name))
                             continue
                     # Convert the sec class to a string so the Factory can interpret the value correctly
-                    glidein_params_to_encrypt['SecurityClass'] = str(credential_el.security_class)
+                    glidein_params_to_encrypt['SecurityClass'] = credential_el.security_class
                     classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_"+classad_name
                     if "username_password"in credential_el.type:
                         glidein_params_to_encrypt['Username'] = file_id_cache.file_id(credential_el, credential_el.filename)
@@ -1134,8 +1134,8 @@ class MultiAdvertizeWork:
                 if key_obj is not None:
                     fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
                     for attr in list(glidein_params_to_encrypt.keys()):
-                        encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
-                   
+                        encrypted_params[attr]=key_obj.encrypt_hex(bytes(glidein_params_to_encrypt[attr]))
+
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
                 fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)

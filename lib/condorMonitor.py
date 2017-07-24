@@ -316,7 +316,7 @@ class CondorQEdit:
         try:
             htcondor.reload_config()
             if self.pool_name:
-                collector = htcondor.Collector(str(self.pool_name))
+                collector = htcondor.Collector(bytes(self.pool_name))
             else:
                 collector = htcondor.Collector()
 
@@ -553,7 +553,7 @@ class CondorQ(CondorQuery):
             self.security_obj.enforce_requests()
             htcondor.reload_config()
             if self.pool_name:
-                collector = htcondor.Collector(str(self.pool_name))
+                collector = htcondor.Collector(bytes(self.pool_name))
             else:
                 collector = htcondor.Collector()
 
@@ -608,13 +608,13 @@ class CondorStatus(CondorQuery):
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
 
-        adtype = resource_str_to_py_adtype(self.resource_str)
+        adtype = resource_str_to_py_adtype(bytes(self.resource_str))
         self.security_obj.save_state()
         try:
             self.security_obj.enforce_requests()
             htcondor.reload_config()
             if self.pool_name:
-                collector = htcondor.Collector(str(self.pool_name))
+                collector = htcondor.Collector(bytes(self.pool_name))
             else:
                 collector = htcondor.Collector()
 
@@ -958,7 +958,7 @@ def applyConstraint(data, constraint_func):
         return data
     else:
         outdata = {}
-        for key, val in list(data.items()):
+        for key, val in data.iteritems():
             if constraint_func(val):
                 outdata[key] = val
     return outdata
@@ -971,7 +971,7 @@ def doGroup(indata, group_key_func, group_data_func):
     """
 
     gdata = {}
-    for k, inel in list(indata.items()):
+    for k, inel in indata.iteritems():
         gkey = group_key_func(inel)
         if gkey in gdata:
             gdata[gkey].append(inel)
@@ -998,7 +998,7 @@ def doGroup(indata, group_key_func, group_data_func):
 #
 def fetch2count(data, hash_func):
     count = {}
-    for k in list(data.keys()):
+    for k in data.keys():
         el = data[k]
 
         hid = hash_func(el)
@@ -1040,7 +1040,7 @@ def fetch2count(data, hash_func):
 #
 def fetch2list(data, hash_func):
     return_list = {}
-    for k in list(data.keys()):
+    for k in data.keys():
         el = data[k]
 
         hid = hash_func(el)
@@ -1073,7 +1073,7 @@ def fetch2list(data, hash_func):
 # Do it in place, using the first one
 #
 def addDict(base_dict, new_dict):
-    for k in list(new_dict.keys()):
+    for k in new_dict.keys():
         new_el = new_dict[k]
         if k not in base_dict:
             # nothing there?, just copy
@@ -1187,3 +1187,4 @@ class CondorQLite(CondorQuery):
             format_list = complete_format_list(format_list, [("ClusterId", 'i')])
         return CondorQuery.fetch(self, constraint=constraint,
                                  format_list=format_list)
+
