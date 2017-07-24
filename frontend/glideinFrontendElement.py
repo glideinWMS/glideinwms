@@ -807,7 +807,7 @@ class glideinFrontendElement:
     def populate_pubkey(self):
         for globalid, globals_el in list(self.globals_dict.items()):
             try:
-                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
+                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(bytes(globals_el['attrs']['PubKeyValue']))
             except:
                 # if no valid key
                 # if key needed, will handle the error later on
