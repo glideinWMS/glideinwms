@@ -69,7 +69,7 @@ DEFAULT_OVERRIDE_DICT = {'TypeDict': dict}
 #
 ##########################################################
 
-SIMPLE_TYPES = (int, float, bool) + (str, unicode)  # May need to add bytes depending on Python3
+SIMPLE_TYPES = (int, long, float, bool) + (str, unicode)  # May need to add bytes depending on Python3
 
 def xml_quoteattr(el):
     if el is None:
