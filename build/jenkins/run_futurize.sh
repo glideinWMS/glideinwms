@@ -87,7 +87,9 @@ process_branch () {
 
     # Save the output to a file
 
-    echo "$OUTPUT" > "$Log_Dir/Futurize_Log_$1.txt"
+    save_as=$(echo "${1//\//_}")
+
+    echo "$OUTPUT" > "$Log_Dir/Futurize_Log_$save_as.txt"
 
     if [[ $futurize_ret -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
         refactored_files=$(echo "$OUTPUT" | grep 'Refactored ')
