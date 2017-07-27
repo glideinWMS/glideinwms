@@ -118,7 +118,6 @@ function disable_selinux() {
     setenforce permissive
 }
 
-start_logging \$logfile
 #disable_selinux
 install_osg
 EOF
@@ -185,7 +184,6 @@ verify_factory
 [ \$? -eq 0 ] && fact_status="SUCCESS"
 echo "==================================="
 echo "FACTORY VERIFICATION: \$fact_status"
-stop_logging
 EOF
 
 }
@@ -279,19 +277,13 @@ verify_vofe
 echo "==================================="
 echo "FRONTEND VERIFICATION: \$vofe_status"
 
-#stop_logging
-
-# TODO: Need to automate job submission and testing
-#       Currently it hangs and this is not well tested
-#start_logging $JOBS_LOG
-#if [ "\$vofe_status" = "SUCCESS" ]; then
+if [ "\$vofe_status" = "SUCCESS" ]; then
 
     echo "Setting up testuser ..."
     setup_testuser
     submit_testjobs
 
-#fi
-stop_logging
+fi
 EOF
 
 }
@@ -587,13 +579,15 @@ scp -rC $deploy_config_dir root@$fact_fqdn:$AUTO_INSTALL_SRC_BASE
 # Remotely run factory installation scripts
 scp $fact_install_script root@$fact_fqdn:/tmp/fact_install.sh
 test -f "$condor_tarball"  && ssh root@$fact_fqdn 'mkdir -p /var/lib/gwms-factory/condor/' && scp $condor_tarball root@$fact_fqdn:/var/lib/gwms-factory/condor/
-ssh root@$fact_fqdn /tmp/fact_install.sh
-
+echo "ssh root@$fact_fqdn /tmp/fact_install.sh" > /tmp/ssh_fact.$TS.sh
+chmod +x /tmp/ssh_fact.$TS.sh
+bash /tmp/ssh_fact.$TS.sh 2>&1 | tee -a  $FACT_LOG.$TS 
 fact_install_status="fail"
 vofe_install_status="wait"
 
-echo "Retrieving factory installation logs to $FACT_LOG.$TS"
-scp root@$fact_fqdn:$FACT_LOG $FACT_LOG.$TS
+#echo "Retrieving factory installation logs to $FACT_LOG.$TS"
+#scp root@$fact_fqdn:$FACT_LOG $FACT_LOG.$TS
+#echo $FACT_LOG > $FACT_LOG.$TS
 
 echo "-------------------------- Factory Deployment Completed -----------------------"
 
@@ -617,20 +611,15 @@ scp -rC $deploy_config_dir root@$vofe_fqdn:$AUTO_INSTALL_SRC_BASE
 scp $vofe_install_script root@$vofe_fqdn:/tmp/vofe_install.sh
 [ "$vofe_proxy" != "" ] && scp $vofe_proxy root@$vofe_fqdn:/tmp/frontend_proxy
 [ "$jobs_proxy" != "" ] && scp $jobs_proxy root@$vofe_fqdn:/tmp/grid_proxy
-ssh root@$vofe_fqdn /tmp/vofe_install.sh
 
-echo "Retrieving frontend installation logs to $VOFE_LOG.$TS"
-scp root@$vofe_fqdn:$VOFE_LOG $VOFE_LOG.$TS
+echo "ssh root@$vofe_fqdn /tmp/vofe_install.sh" > /tmp/ssh_frontend.$TS.sh
+chmod +x /tmp/ssh_frontend.$TS.sh
+bash /tmp/ssh_frontend.$TS.sh 2>&1 | tee -a  $VOFE_LOG.$TS 
 
 echo "-------------------------- Frontend Deployment Completed ----------------------"
+frontend_status=$(grep 'FRONTEND VERIFICATION: SUCCESS' $VOFE_LOG.$TS)
 
-if [ "`tail -1 $VOFE_LOG.$TS`" != "FRONTEND VERIFICATION: SUCCESS" ] ; then
-    echo "================================================================================"
-    echo "Factory : VM_ID=$fact_vmid FQDN=$fact_fqdn VM_STATUS=$fact_fqdn_status VERIFICATION=$fact_install_status"
-    echo "Frontend: VM_ID=$vofe_vmid FQDN=$vofe_fqdn VM_STATUS=$vofe_fqdn_status VERIFICATION=$vofe_install_status"
-    echo "================================================================================"
-    exit 1
-else
+if [ "$frontend_status" = "FRONTEND VERIFICATION: SUCCESS"  ] ; then
     vofe_install_status="pass"
 fi
 
