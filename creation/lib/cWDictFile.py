@@ -1160,7 +1160,7 @@ class dirsSupport:
         return len(created_dirs)!=0
 
     def delete_dirs(self):
-        idxs=range(len(self.dir_list))
+        idxs=list(range(len(self.dir_list)))
         idxs.reverse()
         for i in idxs:
             self.dir_list[i].delete_dir()

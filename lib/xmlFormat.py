@@ -319,7 +319,7 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
     if isinstance(dict_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         keys = sorted(dict_data.keys())
     else:
-        keys = range(len(dict_data)) # allow lists to be used as dictionaries  
+        keys = list(range(len(dict_data))) # allow lists to be used as dictionaries  
     
     for idx in keys:
         el = dict_data[idx]
@@ -394,7 +394,7 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
     if isinstance(dict_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         keys = sorted(dict_data.keys())
     else:
-        keys = range(len(dict_data)) # allow lists to be used as dictionaries
+        keys = list(range(len(dict_data))) # allow lists to be used as dictionaries
     
     
     for idx in keys:

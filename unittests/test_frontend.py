@@ -8,6 +8,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from builtins import range
 from future import standard_library
 standard_library.install_aliases()
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
@@ -253,7 +254,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
 
     def test_getFactoryEntryList(self):
         entries = glideinFrontendLib.getFactoryEntryList(self.status_dict)
-        expected = [('Site_Name%s@v3_0@factory1' % (x), 'frontend%s.local' % x) for x in xrange(1, 5)]
+        expected = [('Site_Name%s@v3_0@factory1' % (x), 'frontend%s.local' % x) for x in range(1, 5)]
         expected.append(('Site_Name2@v3_0@factory1', 'frontend1.local'))
         self.assertItemsEqual(
             entries,
@@ -266,7 +267,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             m_exe_cmd.return_value = f.readlines()
             condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
             self.assertItemsEqual(list(condorStatus['coll1'].stored_data.keys()),
-                                  ['schedd%s.local' % x for x in xrange(1, 4)])
+                                  ['schedd%s.local' % x for x in range(1, 4)])
 
 class FETestCaseMisc(FETestCaseBase):
     def test_uniqueSets(self):
@@ -412,7 +413,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         cq = glideinFrontendLib.getCondorQ(['sched1'])
         condor_ids = list(cq['sched1'].fetchStored().keys())
 
-        self.assertItemsEqual(condor_ids, [(12345, x) for x in xrange(0, self.total_jobs)])
+        self.assertItemsEqual(condor_ids, [(12345, x) for x in range(0, self.total_jobs)])
 
 
 if __name__ == '__main__':
