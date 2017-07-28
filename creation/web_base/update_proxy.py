@@ -37,7 +37,7 @@ class CompressionError(Exception): pass
 
 def compress_credential(credential_data):
     try:
-        cfile = io.StringIO()
+        cfile = io.BytesIO()
         f = gzip.GzipFile(fileobj=cfile, mode='wb')
         f.write(credential_data)
         f.close()

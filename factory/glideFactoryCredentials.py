@@ -190,7 +190,7 @@ def get_key_obj(pub_key_obj, classad):
     """
     if 'ReqEncKeyCode' in classad:
         try:
-            sym_key_obj = pub_key_obj.extract_sym_key(classad['ReqEncKeyCode'])
+            sym_key_obj = pub_key_obj.extract_sym_key(bytes(classad['ReqEncKeyCode']))
             return sym_key_obj
         except:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])

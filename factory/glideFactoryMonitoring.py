@@ -121,9 +121,9 @@ class MonitoringConfig:
         """
         fname=os.path.join(self.monitor_dir, relative_fname)
         #print "Writing "+fname
-        fd = open(fname + ".tmp", "w")
+        fd = open(fname + ".tmp", "wb")
         try:
-            fd.write(output_str + "\n")
+            fd.write(bytes(output_str) + "\n")
         finally:
             fd.close()
 
@@ -145,7 +145,7 @@ class MonitoringConfig:
 
         for tp in ((".rrd", self.rrd_archives),):
             rrd_ext, rrd_archives = tp
-            fname = os.path.join(self.monitor_dir, relative_fname + rrd_ext)
+            fname = bytes(os.path.join(self.monitor_dir, relative_fname + rrd_ext))
             #print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
@@ -183,7 +183,7 @@ class MonitoringConfig:
 
         for tp in ((".rrd", self.rrd_archives),):
             rrd_ext, rrd_archives = tp
-            fname = os.path.join(self.monitor_dir, relative_fname + rrd_ext)
+            fname = bytes(os.path.join(self.monitor_dir, relative_fname + rrd_ext))
             #print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
@@ -434,7 +434,7 @@ class condorQStats:
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
     def set_downtime(self, in_downtime):
-        self.downtime = str(in_downtime)
+        self.downtime = bytes(in_downtime)
         return
 
     def get_xml_downtime(self, leading_tab=xmlFormat.DEFAULT_TAB):
@@ -489,7 +489,7 @@ class condorQStats:
                 if not (tp in list(self.attributes.keys())):
                     continue
 
-                tp_str = type_strings[tp]
+                tp_str = bytes(type_strings[tp])
 
                 attributes_tp = self.attributes[tp]
 
@@ -497,6 +497,7 @@ class condorQStats:
                 for a in list(fe_el_tp.keys()):
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
+                        a=bytes(a)
                         if not isinstance(a_el, dict): # ignore subdictionaries
                             val_dict["%s%s" % (tp_str, a)] = a_el
 
