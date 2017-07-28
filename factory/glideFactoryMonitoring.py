@@ -13,6 +13,7 @@ from __future__ import division
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
+from builtins import bytes
 from builtins import str
 from past.utils import old_div
 import os

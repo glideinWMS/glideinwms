@@ -4,6 +4,7 @@ Created on Jun 21, 2011
 @author: tiradani
 """
 from __future__ import absolute_import
+from builtins import bytes
 from future import standard_library
 standard_library.install_aliases()
 from builtins import filter

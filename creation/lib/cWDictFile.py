@@ -10,6 +10,7 @@ from __future__ import print_function
 #   And other support functions
 #
 
+from builtins import bytes
 from future import standard_library
 standard_library.install_aliases()
 from builtins import range
