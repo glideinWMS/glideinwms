@@ -93,7 +93,7 @@ def create_condor_tar_fd(condor_base_dir):
                 condor_bins.append(f)
 
         # tar
-        fd = io.StringIO()
+        fd = io.BytesIO()
         tf = tarfile.open("dummy.tgz", 'w:gz', fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))

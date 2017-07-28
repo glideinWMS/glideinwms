@@ -176,8 +176,8 @@ class BaseRRDSupport:
         if len(ds_names_real) == 0:
             return
 
-        args.append('-t')
-        args.append(string.join(ds_names_real, ':'))
+        args.append(bytes('-t'))
+        args.append(bytes(string.join(ds_names_real, ':')))
         args.append(('%li:' % time) + string.join(ds_vals, ':'))
     
         lck = self.get_disk_lock(rrdfname)
@@ -432,22 +432,22 @@ class BaseRRDSupport:
             return # nothing to do in this case
 
         if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
-            consolFunc = str(CF)
+            consolFunc = bytes(CF)
         else:
             raise RuntimeError("Invalid consolidation function %s"%CF)
-        args = [str(filename), consolFunc]
+        args = [bytes(filename), consolFunc]
         if resolution is not None:
             args.append('-r')
-            args.append(str(resolution))
+            args.append(bytes(resolution))
         if end is not None:
             args.append('-e')
-            args.append(str(end))
+            args.append(bytes(end))
         if start is not None:
             args.append('-s')
-            args.append(str(start))
+            args.append(bytes(start))
         if daemon is not None:
             args.append('--daemon')
-            args.append(str(daemon))
+            args.append(bytes(daemon))
 
         return self.rrd_obj.fetch(*args)
         

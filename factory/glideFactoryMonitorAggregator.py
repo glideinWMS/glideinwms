@@ -108,7 +108,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
         (f, tempfilename)=tempfile.mkstemp()
         (out, tempfilename2)=tempfile.mkstemp()
         (restored, restoredfilename)=tempfile.mkstemp()
-        backup_str=str(int(time.time()))+".backup"
+        backup_str=bytes(int(time.time()))+".backup"
         print("Fixing %s... (backed up to %s)" % (filename, filename+backup_str))
         os.close(out)
         os.close(restored)
@@ -340,7 +340,7 @@ def aggregateStatus(in_downtime):
                     tel[a]=old_div(tel[a],nr_feentries[fe]) # divide per fe
 
 
-    xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
+    xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':bytes(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
 
     # Write xml files
     updated=time.time()
@@ -369,13 +369,14 @@ def aggregateStatus(in_downtime):
         if not (tp in list(status_attributes.keys())):
             continue
 
-        tp_str=type_strings[tp]
+        tp_str=bytes(type_strings[tp])
         attributes_tp=status_attributes[tp]
 
         tp_el=global_total[tp]
 
         for a in list(tp_el.keys()):
             if a in attributes_tp:
+                a = bytes(a)
                 a_el=int(tp_el[a])
                 val_dict["%s%s"%(tp_str, a)]=a_el
 
@@ -389,13 +390,14 @@ def aggregateStatus(in_downtime):
             # type - status or requested
             if not (tp in list(type_strings.keys())):
                 continue
-            tp_str=type_strings[tp]
+            tp_str=bytes(type_strings[tp])
             attributes_tp=status_attributes[tp]
 
             tp_el=status_fe['frontends'][fe][tp]
 
             for a in list(tp_el.keys()):
                 if a in attributes_tp:
+                    a=bytes(a)
                     a_el=int(tp_el[a])
                     val_dict["%s%s"%(tp_str, a)]=a_el
         glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes"%("frontend_"+fe),
@@ -624,7 +626,7 @@ def aggregateLogSummary():
 
 def sumDictInt(indict, outdict):
     for orgi in indict:
-        i=str(orgi) # RRDs don't like unicode, so make sure we use strings
+        i=bytes(orgi) # RRDs don't like unicode, so make sure we use strings
         if isinstance(indict[i], int):
             if not (i in outdict):
                 outdict[i]=0
@@ -671,13 +673,13 @@ def writeLogSummaryRRDs(fe_dir, status_el):
             time_waste_mill=completed_counts['WasteTime']
             # save run times
             for timerange in list(count_entered_times.keys()):
-                val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
+                val_dict_stats[bytes('Lasted_%s'%timerange)]=count_entered_times[timerange]
                 # they all use the same indexes
-                val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration[timerange]
+                val_dict_stats[bytes('JobsLasted_%s'%timerange)]=count_jobs_duration[timerange]
 
             # save jobsnr
             for jobrange in list(count_jobnrs.keys()):
-                val_dict_stats['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
+                val_dict_stats[bytes('JobsNr_%s'%jobrange)]=count_jobnrs[jobrange]
 
             # save simple vals
             for tkey in list(completed_counts['Sum'].keys()):
@@ -692,7 +694,7 @@ def writeLogSummaryRRDs(fe_dir, status_el):
             for w in list(time_waste_mill.keys()):
                 time_waste_mill_w=time_waste_mill[w]
                 for p in list(time_waste_mill_w.keys()):
-                    val_dict_wastetime['%s_%s'%(w, p)]=time_waste_mill_w[p]
+                    val_dict_wastetime[bytes('%s_%s'%(w, p))]=time_waste_mill_w[p]
 
     # write the data to disk
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi_hetero("%s/Log_Counts"%fe_dir,
