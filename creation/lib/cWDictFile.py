@@ -11,7 +11,7 @@ from __future__ import print_function
 #
 
 from builtins import object
-from builtins import bytes
+# from builtins import bytes
 from future import standard_library
 standard_library.install_aliases()
 from builtins import range

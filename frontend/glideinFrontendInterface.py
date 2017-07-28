@@ -13,7 +13,7 @@
 #
 
 from builtins import object
-from builtins import bytes
+# from builtins import bytes
 from builtins import range
 from builtins import str
 import os

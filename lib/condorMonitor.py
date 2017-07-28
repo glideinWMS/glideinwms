@@ -15,7 +15,7 @@ from __future__ import absolute_import
 #
 
 from builtins import object
-from builtins import bytes
+# from builtins import bytes
 from builtins import range
 from builtins import zip
 from builtins import str

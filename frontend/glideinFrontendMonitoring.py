@@ -15,7 +15,7 @@ from __future__ import division
 #
 
 from builtins import object
-from builtins import bytes
+# from builtins import bytes
 from builtins import range
 from past.utils import old_div
 import os, os.path
