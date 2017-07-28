@@ -1,3 +1,4 @@
+from builtins import object
 from builtins import str
 import copy
 import os
