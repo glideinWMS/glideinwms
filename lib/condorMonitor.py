@@ -960,7 +960,7 @@ def applyConstraint(data, constraint_func):
         return data
     else:
         outdata = {}
-        for key, val in data.iteritems():
+        for key, val in data.items():
             if constraint_func(val):
                 outdata[key] = val
     return outdata
@@ -973,7 +973,7 @@ def doGroup(indata, group_key_func, group_data_func):
     """
 
     gdata = {}
-    for k, inel in indata.iteritems():
+    for k, inel in indata.items():
         gkey = group_key_func(inel)
         if gkey in gdata:
             gdata[gkey].append(inel)
@@ -1000,7 +1000,7 @@ def doGroup(indata, group_key_func, group_data_func):
 #
 def fetch2count(data, hash_func):
     count = {}
-    for k in data.keys():
+    for k in list(data.keys()):
         el = data[k]
 
         hid = hash_func(el)
@@ -1042,7 +1042,7 @@ def fetch2count(data, hash_func):
 #
 def fetch2list(data, hash_func):
     return_list = {}
-    for k in data.keys():
+    for k in list(data.keys()):
         el = data[k]
 
         hid = hash_func(el)
@@ -1075,7 +1075,7 @@ def fetch2list(data, hash_func):
 # Do it in place, using the first one
 #
 def addDict(base_dict, new_dict):
-    for k in new_dict.keys():
+    for k in list(new_dict.keys()):
         new_el = new_dict[k]
         if k not in base_dict:
             # nothing there?, just copy
