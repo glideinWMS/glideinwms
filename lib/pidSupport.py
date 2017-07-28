@@ -11,6 +11,7 @@
 #   Igor Sfiligoi
 #
 
+from builtins import object
 import os
 import os.path
 import signal
@@ -37,7 +38,7 @@ class AlreadyRunning(RuntimeError):
 #
 # self.mypid is valid only if self.fd is valid
 # or after a load
-class PidSupport:
+class PidSupport(object):
     def __init__(self, pid_fname):
         self.pid_fname = pid_fname
         self.fd = None

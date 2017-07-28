@@ -515,10 +515,10 @@ Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.  """)
       while True:
         print()
-        a_dn =input("DN (leave empty when finished): ")
+        a_dn =eval(input("DN (leave empty when finished): "))
         if a_dn == "":
           break # done
-        a_uid = input("nickname: ")
+        a_uid = eval(input("nickname: "))
         if a_uid == "":
           print("... you need a nickname. Try Again")
           continue
@@ -535,7 +535,7 @@ The following DNs are in your grid_mapfile:""")
       for a_uid in list(dns.keys()):
         print('"%s" %s' % (dns[a_uid], a_uid))
       yn = "n"
-      yn = input("Do you want to proceed or try again? (y/n) [%s]: " % yn)
+      yn = eval(input("Do you want to proceed or try again? (y/n) [%s]: " % yn))
       if yn == "y":
         break
       common.logit("... try again")
@@ -589,7 +589,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #---------------------------------
   def create_frontend(self):
-    yn=input("Do you want to create the frontend now? (y/n) [n]: ")
+    yn=eval(input("Do you want to create the frontend now? (y/n) [n]: "))
     cmd1 = ". %s" % self.env_script()
     cmd2 = "%s/creation/create_frontend %s" % (self.glidein.glideinwms_location(), self.config_file())
     if yn=='y':
@@ -675,7 +675,7 @@ or you have not defined any schedds on the submit host.""")
       while True:
         problem = False
         schedds=[]
-        idxes = input("Please select: ")
+        idxes = eval(input("Please select: "))
         idx_arr = idxes.split(',')
         for i in range(len(idx_arr)):
           try:
@@ -696,7 +696,7 @@ or you have not defined any schedds on the submit host.""")
         for i in range(len(schedds)):
          common.logit(" [%i] %s"%(i+1, schedds[i]))
         break
-      yn = input("Do you want to use these or try again?: (y/n) ")
+      yn = eval(input("Do you want to use these or try again?: (y/n) "))
       if yn == "y":
         break 
     return schedds
@@ -711,7 +711,7 @@ I have computed my best estimate for your match string,
 please verify and correct if needed.
 """)
     default_factory_attributes = string.join(self.extract_factory_attrs(), ',')
-    factory_attributes = input("Factory attributes: [%s] "%default_factory_attributes)
+    factory_attributes = eval(input("Factory attributes: [%s] "%default_factory_attributes))
     if factory_attributes == "":
         factory_attributes = default_factory_attributes
     if factory_attributes == "":
@@ -726,7 +726,7 @@ I have computed my best estimate for your match string,
 please verify and correct if needed.
 """)
     default_job_attributes = string.join(self.extract_job_attrs(), ',')
-    job_attributes = input("Job attributes: [%s] " % default_job_attributes)
+    job_attributes = eval(input("Job attributes: [%s] " % default_job_attributes))
     if job_attributes == "":
       job_attributes = default_job_attributes
     if job_attributes == "":

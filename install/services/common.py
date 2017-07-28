@@ -232,7 +232,7 @@ def validate_install_location(dir):
 #--------------------------------
 def ask_yn(question):
   while True:
-    yn = input("%s? (y/n): " % (question))
+    yn = eval(input("%s? (y/n): " % (question)))
     if yn.strip() == "y" or yn.strip() == "n":
       break
     logit("... just 'y' or 'n' please")
@@ -241,7 +241,7 @@ def ask_yn(question):
 #--------------------------------
 def ask_continue(question):
   while True:
-    yn = input("%s? (y/n): " % (question))
+    yn = eval(input("%s? (y/n): " % (question)))
     if yn.strip() == "y" or yn.strip() == "n":
       break
     logit("... just 'y' or 'n' please")

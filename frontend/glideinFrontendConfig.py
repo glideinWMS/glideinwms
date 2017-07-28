@@ -1,3 +1,4 @@
+from builtins import object
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
@@ -27,7 +28,7 @@ from glideinwms.lib import util
 #
 ############################################################
 
-class FrontendConfig:
+class FrontendConfig(object):
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -68,7 +69,7 @@ def get_group_dir(base_dir, group_name):
 #   self.config_file="name of file"
 # If validate is defined, also defines
 #   self.hash_value
-class ConfigFile:
+class ConfigFile(object):
     def __init__(self,config_dir,config_file,convert_function=repr,
                  validate=None): # if defined, must be (hash_algo,value)
         self.config_dir=config_dir
@@ -236,7 +237,7 @@ class BaseSignatureDescript(ConfigFile):
 
 # not everything is merged
 # the old element can still be accessed
-class ElementMergedDescript:
+class ElementMergedDescript(object):
     def __init__(self, base_dir, group_name):
         self.frontend_data=FrontendDescript(base_dir).data
         if not (group_name in string.split(self.frontend_data['Groups'], ',')):
@@ -313,7 +314,7 @@ class ElementMergedDescript:
         else:
             return string.split(val, ',')
         
-class GroupSignatureDescript:
+class GroupSignatureDescript(object):
     def __init__(self, base_dir, group_name):
         self.group_name=group_name
         
@@ -329,7 +330,7 @@ class GroupSignatureDescript:
         self.group_descript_fname=gd[1]
         self.group_descript_signature=gd[0]
 
-class StageFiles:
+class StageFiles(object):
     def __init__(self, base_URL, descript_fname, validate_algo, signature_hash):
         self.base_URL=base_URL
         self.validate_algo=validate_algo
@@ -375,7 +376,7 @@ class ExtStageFiles(StageFiles):
 
 # this class knows how to interpret some of the files in the Stage area
 # Will parrpopriately merge the main and the group ones
-class MergeStageFiles:
+class MergeStageFiles(object):
     def __init__(self, base_URL, validate_algo,
                  main_descript_fname, main_signature_hash,
                  group_name, group_descript_fname, group_signature_hash):
@@ -418,7 +419,7 @@ class MergeStageFiles:
 #
 ############################################################
 
-class HistoryFile:
+class HistoryFile(object):
     def __init__(self, base_dir, group_name, load_on_init=True,
                  default_factory=None):
         """

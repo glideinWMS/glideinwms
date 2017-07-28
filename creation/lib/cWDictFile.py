@@ -10,6 +10,8 @@ from __future__ import print_function
 #   And other support functions
 #
 
+from builtins import object
+from builtins import bytes
 from future import standard_library
 standard_library.install_aliases()
 from builtins import range
@@ -28,7 +30,7 @@ from glideinwms.lib import hashCrypto
 #
 ########################################
 
-class DictFile:
+class DictFile(object):
     """Dictionaries serialized in files, one line per item
 
     Comments start w/ '#' at the beginning of the line
@@ -840,7 +842,7 @@ class FileDictFile(SimpleFileDictFile):
 
 # will convert values into python format before writing them out
 #   given that it does not call any parent methods, implement an interface first
-class ReprDictFileInterface:
+class ReprDictFileInterface(object):
     def format_val(self, key, want_comments):
         return "%s \t%s"%(key, repr(self.vals[key]))
 
@@ -1063,7 +1065,7 @@ class ExeFile(SimpleFile):
 ########################################################################################################################
 
 # abstract class for a directory creation
-class dirSupport:
+class dirSupport(object):
     # returns a bool: True if the dir was created, false else
     def create_dir(self,fail_if_exists=True):
         raise RuntimeError("Undefined")
@@ -1134,7 +1136,7 @@ class symlinkSupport(dirSupport):
         os.unlink(self.symlink)
 
 # class for many directory creation
-class dirsSupport:
+class dirsSupport(object):
     def __init__(self):
         self.dir_list=[]
 
@@ -1160,7 +1162,7 @@ class dirsSupport:
         return len(created_dirs)!=0
 
     def delete_dirs(self):
-        idxs=range(len(self.dir_list))
+        idxs=list(range(len(self.dir_list)))
         idxs.reverse()
         for i in idxs:
             self.dir_list[i].delete_dir()
@@ -1238,7 +1240,7 @@ class monitorWLinkDirSupport(monitorDirSupport):
 
 
 # helper class, used below
-class fileCommonDicts:
+class fileCommonDicts(object):
     def __init__(self):
         self.dicts=None
 
@@ -1452,7 +1454,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 #
 ################################################
 
-class fileDicts:
+class fileDicts(object):
     def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
                  simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs
                  log_dir=None):         # used only if simple_work_dir=False
@@ -1583,7 +1585,7 @@ class fileDicts:
         raise RuntimeError("Undefined")
 
 
-class MonitorFileDicts:
+class MonitorFileDicts(object):
     def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
                  simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
         self.work_dir=work_dir

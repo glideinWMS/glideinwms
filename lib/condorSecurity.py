@@ -12,6 +12,7 @@
 #   Igor Sfiligoi @ UCSD (Apr 2010)
 #
 
+from builtins import object
 import os
 import copy
 
@@ -26,7 +27,7 @@ import copy
 # Condor environment
 #
 # All info is in the state attribute
-class EnvState:
+class EnvState(object):
     def __init__(self, filter):
         # filter is a list of Condor variables to save
         self.filter=filter
@@ -86,7 +87,7 @@ UNSET_VALUE='UNSET'
 #############################################
 # This class handle requests for ensuring
 # the security state is in a particular state
-class SecEnvRequest:
+class SecEnvRequest(object):
     def __init__(self,requests=None):
         # requests is a dictionary of requests [context][feature]=VAL
         self.requests={}

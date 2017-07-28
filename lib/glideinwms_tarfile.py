@@ -31,6 +31,8 @@
 """
 from __future__ import print_function
 
+from builtins import object
+from builtins import range
 from future import standard_library
 standard_library.install_aliases()
 from builtins import chr
@@ -163,7 +165,7 @@ def nti(s):
         n = int(nts(s) or "0", 8)
     else:
         n = 0
-        for i in xrange(len(s) - 1):
+        for i in range(len(s) - 1):
             n <<= 8
             n += ord(s[i + 1])
     return n
@@ -189,7 +191,7 @@ def itn(n, digits=8, posix=False):
             n = struct.unpack("L", struct.pack("l", n))[0]
 
         s = ""
-        for i in xrange(digits - 1):
+        for i in range(digits - 1):
             s = chr(n & 0o377) + s
             n >>= 8
         s = chr(0o200) + s
@@ -231,7 +233,7 @@ def copyfileobj(src, dst, length=None):
 
     BUFSIZE = 16 * 1024
     blocks, remainder = divmod(length, BUFSIZE)
-    for b in xrange(blocks):
+    for b in range(blocks):
         buf = src.read(BUFSIZE)
         if len(buf) < BUFSIZE:
             raise IOError("end of file reached")
@@ -310,7 +312,7 @@ class StreamError(TarError):
 #---------------------------
 # internal stream interface
 #---------------------------
-class _LowLevelFile:
+class _LowLevelFile(object):
     """Low-level file object. Supports reading and writing.
        It is used instead of a regular file object for streaming
        access.
@@ -336,7 +338,7 @@ class _LowLevelFile:
     def write(self, s):
         os.write(self.fd, s)
 
-class _Stream:
+class _Stream(object):
     """Class that serves as an adapter between TarFile and
        a stream-like object.  The stream-like object only
        needs to have a read() or write() method and is accessed
@@ -499,7 +501,7 @@ class _Stream:
         """
         if pos - self.pos >= 0:
             blocks, remainder = divmod(pos - self.pos, self.bufsize)
-            for i in xrange(blocks):
+            for i in range(blocks):
                 self.read(self.bufsize)
             self.read(remainder)
         else:
@@ -1943,7 +1945,7 @@ class TarFile(object):
         realpos = 0
         # There are 4 possible sparse structs in the
         # first header.
-        for i in xrange(4):
+        for i in range(4):
             try:
                 offset = nti(buf[pos:pos + 12])
                 numbytes = nti(buf[pos + 12:pos + 24])
@@ -1965,7 +1967,7 @@ class TarFile(object):
             buf = self.fileobj.read(BLOCKSIZE)
             self.offset += BLOCKSIZE
             pos = 0
-            for i in xrange(21):
+            for i in range(21):
                 try:
                     offset = nti(buf[pos:pos + 12])
                     numbytes = nti(buf[pos + 12:pos + 24])
@@ -2014,7 +2016,7 @@ class TarFile(object):
         else:
             end = members.index(tarinfo)
 
-        for i in xrange(end - 1, -1, -1):
+        for i in range(end - 1, -1, -1):
             if name == members[i].name:
                 return members[i]
 
@@ -2052,7 +2054,7 @@ class TarFile(object):
             print(msg, file=sys.stderr)
 # class TarFile
 
-class TarIter:
+class TarIter(object):
     """Iterator Class.
 
        for tarinfo in TarFile(...):
@@ -2089,7 +2091,7 @@ class TarIter:
         return tarinfo
 
 # Helper classes for sparse file support
-class _section:
+class _section(object):
     """Base class for _data and _hole.
     """
     def __init__(self, offset, size):
@@ -2136,7 +2138,7 @@ class _ringbuffer(list):
 #---------------------------------------------
 TAR_PLAIN = 0           # zipfile.ZIP_STORED
 TAR_GZIPPED = 8         # zipfile.ZIP_DEFLATED
-class TarFileCompat:
+class TarFileCompat(object):
     """TarFile class compatible with standard module zipfile's
        ZipFile class.
     """

@@ -14,6 +14,7 @@ from __future__ import division
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
+from builtins import object
 from builtins import range
 from builtins import str
 from past.utils import old_div
@@ -46,7 +47,7 @@ MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 #
 ############################################################
 
-class FactoryConfig:
+class FactoryConfig(object):
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -463,7 +464,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
 # Main function
 #   Will keep the required number of Idle glideins
 #
-class ClientWeb:
+class ClientWeb(object):
     def __init__(self, client_web_url, client_signtype, client_descript,
                  client_sign, client_group, client_group_web_url,
                  client_group_descript, client_group_sign,
@@ -1686,7 +1687,7 @@ def is_str_safe(s):
     return True
 
 
-class GlideinTotals:
+class GlideinTotals(object):
     """
     Keeps track of all glidein totals.  
     """

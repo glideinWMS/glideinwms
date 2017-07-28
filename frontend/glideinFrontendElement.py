@@ -19,6 +19,8 @@
 #
 
 from __future__ import division
+from builtins import object
+from builtins import bytes
 from builtins import range
 from builtins import str
 from past.utils import old_div
@@ -57,7 +59,7 @@ from glideinwms.frontend import glideinFrontendDowntimeLib
 # Not a 1-to-1 implementation though... just straight minimum
 # to support auto initialization to 0
 
-class CounterWrapper:
+class CounterWrapper(object):
     def __init__(self, dict_el):
         self.dict_el = dict_el
 
@@ -84,7 +86,7 @@ class CounterWrapper:
 #
 # Main class for the module
 
-class glideinFrontendElement:
+class glideinFrontendElement(object):
     def __init__(self, parent_pid, work_dir, group_name, action):
         self.parent_pid = parent_pid
         self.work_dir = work_dir

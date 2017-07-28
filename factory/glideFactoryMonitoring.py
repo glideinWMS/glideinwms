@@ -13,6 +13,8 @@ from __future__ import division
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
+from builtins import object
+from builtins import bytes
 from builtins import str
 from past.utils import old_div
 import os
@@ -37,7 +39,7 @@ rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.r
 #
 ############################################################
 
-class MonitoringConfig:
+class MonitoringConfig(object):
     def __init__(self, log=logSupport.log):
         # set default values
         # user should modify if needed
@@ -219,7 +221,7 @@ class MonitoringConfig:
 #
 #########################################################################################################################################
 
-class condorQStats:
+class condorQStats(object):
     def __init__(self, log=logSupport.log):
         self.data = {}
         self.updated = time.time()
@@ -515,7 +517,7 @@ class condorQStats:
 #
 #########################################################################################################################################
 
-class condorLogSummary:
+class condorLogSummary(object):
     """
     This class handles the data obtained from parsing the glidein log files
     """
@@ -1136,7 +1138,7 @@ class condorLogSummary:
 #
 ###############################################################################
 
-class FactoryStatusData:
+class FactoryStatusData(object):
     """documentation"""
     def __init__(self, log=logSupport.log, base_dir=None):
         self.data = {}
@@ -1312,7 +1314,7 @@ class FactoryStatusData:
 #
 #############################################################################
 
-class Descript2XML:
+class Descript2XML(object):
     def __init__(self, log=logSupport.log):
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',

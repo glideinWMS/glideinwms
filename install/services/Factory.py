@@ -366,7 +366,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #-----------------------
   def create_glideins(self):
-    yn=input("\nDo you want to create the glideins now? (y/n) [n]: ")
+    yn=eval(input("\nDo you want to create the glideins now? (y/n) [n]: "))
     cmd1 = ".  %s" % self.env_script()
     cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(), self.config_file())
     if yn=='y':
@@ -666,7 +666,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     print("Select the indexes you want to include")
     print("Use a , separated list to include more than one")
     while True:
-      idxes = input("Please select: ")
+      idxes = eval(input("Please select: "))
       idx_arr = idxes.split(',')
       problems = 0
       for idx in idx_arr:
@@ -684,15 +684,15 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     if yn == "y":
       # customize them
       for idx in idx_arr:
-        work_dir = input("Work dir for '%s': [%s] " % (idx, ress_entries[idx]['work_dir']))
+        work_dir = eval(input("Work dir for '%s': [%s] " % (idx, ress_entries[idx]['work_dir'])))
         if work_dir != "":
           ress_entries[idx]['work_dir'] = work_dir
-        site_name=input("Site name for '%s': [%s] " % (idx, ress_entries[idx]['site_name']))
+        site_name=eval(input("Site name for '%s': [%s] " % (idx, ress_entries[idx]['site_name'])))
         if site_name != "":
           ress_entries[idx]['site_name'] = site_name
 
       if self.glidein.use_glexec() == "y":
-        glexec_path = input("gLExec path for '%s': [%s] "%(idx, ress_entries[idx]['glexec_path']))
+        glexec_path = eval(input("gLExec path for '%s': [%s] "%(idx, ress_entries[idx]['glexec_path'])))
         if glexec_path != "":
           ress_entries[idx]['glexec_path'] = glexec_path
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from builtins import range
 from future import standard_library
 standard_library.install_aliases()
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
@@ -92,7 +93,7 @@ class FEElementTestCase(unittest.TestCase):
                 m_exe_cmd.return_value = f.readlines()
                 cq = self.gfe.get_condor_q('schedd1')
 
-        self.assertItemsEqual(list(cq['schedd1'].fetchStored().keys()), [(12345, x) for x in xrange(0, 13)])
+        self.assertItemsEqual(list(cq['schedd1'].fetchStored().keys()), [(12345, x) for x in range(0, 13)])
 
     def test_compute_glidein_max_run(self):
         self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 412}, 971, 0), 1591)

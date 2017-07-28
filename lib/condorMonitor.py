@@ -14,6 +14,8 @@ from __future__ import absolute_import
 #   Igor Sfiligoi (Aug 30th 2006)
 #
 
+from builtins import object
+from builtins import bytes
 from builtins import range
 from builtins import zip
 from builtins import str
@@ -81,7 +83,7 @@ class PBError(RuntimeError):
 # Caching classes
 #
 
-class NoneScheddCache:
+class NoneScheddCache(object):
     """
     Dummy caching class, when you don't want caching.
     Used as base class below, too
@@ -238,7 +240,7 @@ def condorq_attrs(q_constraint, attribute_list):
 # Condor monitoring classes
 #
 
-class AbstractQuery:
+class AbstractQuery(object):
     """
     Pure virtual class to have a minimum set of methods defined
     """
@@ -289,7 +291,7 @@ class StoredQuery(AbstractQuery):
         return applyConstraint(self.stored_data, constraint_func)
 
 
-class CondorQEdit:
+class CondorQEdit(object):
     """
     Fully implemented class that executes condorq_edit commands. Only provides a method to do bulk
     updates of jobs using transaction-based API and the condor python bindings. Cannot be used without
@@ -696,7 +698,7 @@ class Group(BaseSubQuery):
             self, query, lambda d: doGroup(d, group_key_func, group_data_func))
 
 
-class Summarize:
+class Summarize(object):
     """
     Summarizing classes
     """
@@ -958,7 +960,7 @@ def applyConstraint(data, constraint_func):
         return data
     else:
         outdata = {}
-        for key, val in data.iteritems():
+        for key, val in data.items():
             if constraint_func(val):
                 outdata[key] = val
     return outdata
@@ -971,7 +973,7 @@ def doGroup(indata, group_key_func, group_data_func):
     """
 
     gdata = {}
-    for k, inel in indata.iteritems():
+    for k, inel in indata.items():
         gkey = group_key_func(inel)
         if gkey in gdata:
             gdata[gkey].append(inel)
@@ -998,7 +1000,7 @@ def doGroup(indata, group_key_func, group_data_func):
 #
 def fetch2count(data, hash_func):
     count = {}
-    for k in data.keys():
+    for k in list(data.keys()):
         el = data[k]
 
         hid = hash_func(el)
@@ -1040,7 +1042,7 @@ def fetch2count(data, hash_func):
 #
 def fetch2list(data, hash_func):
     return_list = {}
-    for k in data.keys():
+    for k in list(data.keys()):
         el = data[k]
 
         hid = hash_func(el)
@@ -1073,7 +1075,7 @@ def fetch2list(data, hash_func):
 # Do it in place, using the first one
 #
 def addDict(base_dict, new_dict):
-    for k in new_dict.keys():
+    for k in list(new_dict.keys()):
         new_el = new_dict[k]
         if k not in base_dict:
             # nothing there?, just copy
@@ -1140,7 +1142,7 @@ def bindings_friendly_attrs(format_list):
 #       during code cleanup.
 ################################################################################
 
-class SummarizeMulti:
+class SummarizeMulti(object):
     def __init__(self, queries, hash_func=lambda x:1):
         self.counts = []
         for query in queries:

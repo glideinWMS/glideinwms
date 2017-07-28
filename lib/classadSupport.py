@@ -9,6 +9,8 @@ from __future__ import absolute_import
 #   Parag Mhashilkar
 # 
 
+from builtins import bytes
+from builtins import object
 from builtins import str
 import os
 import time
@@ -105,7 +107,7 @@ class Classad(object):
         ad = ""
 
         for key, value in list(self.adParams.items()):
-            if isinstance(value, (bytes, str, unicode)):
+            if isinstance(value, (bytes, str)):
                 # Format according to Condor String Literal definition
                 # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
                 classad_value = value.replace('"', r'\"')
@@ -120,7 +122,7 @@ class Classad(object):
 # Generic Classad Advertiser
 ###############################################################################
 
-class ClassadAdvertiser:
+class ClassadAdvertiser(object):
     """
     Base Class to handle the advertisement of classads to condor pools.
     It contains a dictionary of classads keyed by the classad name and 

@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from builtins import object
 import traceback
 import sys, os, os.path, string, time
 import pwd, grp
@@ -15,7 +16,7 @@ from . import VOFrontend
 #os.environ["PYTHONPATH"] = "."
 #-------------------------
 
-class PrivilegeSeparation:
+class PrivilegeSeparation(object):
 
   def __init__(self, condor_location, factory_obj, frontend_objs, frontend_users_dict):
 

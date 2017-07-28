@@ -12,6 +12,7 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
+from builtins import object
 from builtins import str
 import os
 import time
@@ -49,7 +50,7 @@ advertizeGlobalCounter = 0
 #    def write(self,str):
 #        pass
 
-class FactoryConfig:
+class FactoryConfig(object):
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -736,7 +737,7 @@ def advertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name,
                                       glidein_attrs, client_params, client_monitors)
     advertizeGlideinClientMonitoringFromFile(tmpnam, remove_file=True, factory_collector=factory_collector)
 
-class MultiAdvertizeGlideinClientMonitoring:
+class MultiAdvertizeGlideinClientMonitoring(object):
     # glidein_attrs is a dictionary of values to publish
     #  like {"Arch":"INTEL","MinDisk":200000}
     def __init__(self, factory_name, glidein_name, entry_name, glidein_attrs, factory_collector=DEFAULT_VAL):

@@ -4,6 +4,8 @@ Created on Jun 21, 2011
 @author: tiradani
 """
 from __future__ import absolute_import
+from builtins import object
+from builtins import bytes
 from future import standard_library
 standard_library.install_aliases()
 from builtins import filter
@@ -30,7 +32,7 @@ MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 # and let the "real" errors propagate up
 class CredentialError(Exception): pass
 
-class SubmitCredentials:
+class SubmitCredentials(object):
     """
     Data class containing all information needed to submit a glidein.
     """

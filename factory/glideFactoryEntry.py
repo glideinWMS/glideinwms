@@ -11,6 +11,7 @@
 
 from __future__ import print_function
 from __future__ import division
+from builtins import object
 from builtins import range
 from past.utils import old_div
 import signal
@@ -44,7 +45,7 @@ from glideinwms.lib import cleanupSupport
 
 
 ############################################################
-class Entry:
+class Entry(object):
 
     def __init__(self, name, startup_dir, glidein_descript, frontend_descript):
         """
@@ -913,7 +914,7 @@ def dump_obj(obj):
 
 ###############################################################################
 
-class X509Proxies:
+class X509Proxies(object):
 
     def __init__(self, frontendDescript, client_security_name):
         self.frontendDescript=frontendDescript

@@ -9,6 +9,7 @@
 #   (shared or hidden key)
 #
 
+from builtins import object
 from builtins import str
 import M2Crypto
 import os
@@ -31,7 +32,7 @@ import binascii
 
 # you probably don't want to use this
 # Use the child classes instead
-class SymKey:
+class SymKey(object):
     def __init__(self,
                  cypher_name, key_len, iv_len,
                  key_str=None, iv_str=None,

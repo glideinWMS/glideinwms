@@ -5,6 +5,7 @@
 # File Version:
 #
 
+from builtins import object
 from builtins import str
 import string
 import os
@@ -19,7 +20,7 @@ from glideinwms.lib import pubCrypto, symCrypto
 #
 ############################################################
 
-class FactoryConfig:
+class FactoryConfig(object):
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -49,7 +50,7 @@ factoryConfig=FactoryConfig()
 #   self.data[NAME]=VAL
 # It also defines:
 #   self.config_file="name of file"
-class ConfigFile:
+class ConfigFile(object):
     def __init__(self,config_file,convert_function=repr):
         self.config_file=config_file
         self.load(config_file, convert_function)
@@ -110,7 +111,7 @@ class JoinConfigFile(ConfigFile):
 #
 ############################################################
 
-class GlideinKey:
+class GlideinKey(object):
     def __init__(self,pub_key_type,key_fname=None,recreate=False):
         self.pub_key_type=pub_key_type
         self.load(key_fname, recreate)

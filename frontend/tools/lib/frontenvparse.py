@@ -10,10 +10,11 @@
 #   Igor Sfiligoi
 #
 
+from builtins import object
 import os
 from glideinwms.frontend import glideinFrontendConfig
 
-class FEConfig:
+class FEConfig(object):
     def config_optparse(self, argparser):
         """
         Configure a optparse.OptionParser object

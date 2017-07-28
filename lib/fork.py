@@ -13,6 +13,7 @@ from __future__ import absolute_import
 # Author:
 #   Burt Holzman and Igor Sfiligoi
 #
+from builtins import object
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
@@ -187,7 +188,7 @@ def wait_for_pids(pid_list):
 ################################################
 # Fork Class
 
-class ForkManager:
+class ForkManager(object):
      def __init__(self):
           self.functions_tofork = {}
           # I need a separate list to keep the order

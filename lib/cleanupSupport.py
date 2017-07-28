@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
+from builtins import object
+from builtins import range
 from past.utils import old_div
 from past.builtins import cmp
 import os
@@ -13,7 +15,7 @@ from .pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
-class Cleanup:
+class Cleanup(object):
     def __init__(self):
         self.cleanup_objects = []
         self.cleanup_pids = []
@@ -27,8 +29,8 @@ class Cleanup:
                                    self.cleanup_pids)
         else:
             num_forks = 4 # arbitrary - could be configurable
-            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in xrange(num_forks)]
-            for i in xrange(num_forks):
+            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in range(num_forks)]
+            for i in range(num_forks):
                 unregister_sighandler()
                 cl_pid = os.fork()
                 if cl_pid != 0:
@@ -72,7 +74,7 @@ class CredCleanup(Cleanup):
 cred_cleaners = CredCleanup()
 
 # this class is used for cleanup
-class DirCleanup:
+class DirCleanup(object):
     def __init__(self, dirname, fname_expression, # regular expression, used with re.match
                  maxlife, should_log=True, should_log_warnings=True):
         self.dirname = dirname

@@ -7,6 +7,7 @@
 #   This module defines classes to perform hash based cryptography
 #
 
+from builtins import object
 import M2Crypto
 import binascii
 import os
@@ -25,7 +26,7 @@ import os
 
 ##########################################################################
 # Generic hash class    
-class Hash:
+class Hash(object):
     def __init__(self,
                  hash_algo):
         self.hash_algo = hash_algo

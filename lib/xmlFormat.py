@@ -70,12 +70,12 @@ DEFAULT_OVERRIDE_DICT = {'TypeDict': dict}
 #
 ##########################################################
 
-SIMPLE_TYPES = (int, long, float, bool) + (str, unicode)  # May need to add bytes depending on Python3
+SIMPLE_TYPES = (int, long, float, bool) + (str, bytes)  # May need to add bytes depending on Python3
 
 def xml_quoteattr(el):
     if el is None:
         val = '"None"'
-    elif type(el) in (str, unicode):  # May need to add bytes depending on Python3
+    elif type(el) in (str, bytes):  # May need to add bytes depending on Python3
         val = xml.sax.saxutils.quoteattr(el)
     elif isinstance(el, bool):
         val = '"%s"' % el
@@ -138,7 +138,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
                 continue
             else:
                 head_arr.append(' %s="None"' % attr)
-        elif type(el) in (str, unicode):  # May need to add bytes depending on Python3
+        elif type(el) in (str, bytes):  # May need to add bytes depending on Python3
             if attr in text_params:
                 text_attrs.append(attr)
             else:
@@ -319,7 +319,7 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
     if isinstance(dict_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         keys = sorted(dict_data.keys())
     else:
-        keys = range(len(dict_data)) # allow lists to be used as dictionaries  
+        keys = list(range(len(dict_data))) # allow lists to be used as dictionaries  
     
     for idx in keys:
         el = dict_data[idx]
@@ -394,7 +394,7 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
     if isinstance(dict_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         keys = sorted(dict_data.keys())
     else:
-        keys = range(len(dict_data)) # allow lists to be used as dictionaries
+        keys = list(range(len(dict_data))) # allow lists to be used as dictionaries
     
     
     for idx in keys:

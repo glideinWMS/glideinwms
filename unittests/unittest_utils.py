@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from builtins import object
 from builtins import map
 from builtins import range
 from builtins import str
@@ -79,7 +80,7 @@ def runAllTests():
     for test in modules:
         test.main()
 
-class FakeLogger:
+class FakeLogger(object):
     """
     Super simple logger for the unittests
     """

@@ -13,6 +13,7 @@
 #
 
 
+from builtins import object
 from builtins import range
 import os
 import os.path
@@ -33,7 +34,7 @@ rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
 
 
-class logSummaryTimingsOutWrapper:
+class logSummaryTimingsOutWrapper(object):
     def __init__(self):
         self.obj = None
 
@@ -228,7 +229,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         return outdata
 
 
-class dirSummarySimple:
+class dirSummarySimple(object):
     """
     dirSummary Simple
 

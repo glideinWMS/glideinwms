@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 #!/usr/bin/python
 
+from builtins import object
 from future import standard_library
 standard_library.install_aliases()
 from . import common
@@ -20,7 +21,7 @@ import io
 import inspect
 
 #### Class Configuration ############################
-class Configuration:
+class Configuration(object):
 
   def __init__ (self, fileName):
     self.cp       = None 
