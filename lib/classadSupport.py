@@ -122,7 +122,7 @@ class Classad(object):
 # Generic Classad Advertiser
 ###############################################################################
 
-class ClassadAdvertiser:
+class ClassadAdvertiser(object):
     """
     Base Class to handle the advertisement of classads to condor pools.
     It contains a dictionary of classads keyed by the classad name and 

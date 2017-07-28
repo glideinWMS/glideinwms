@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import
+from builtins import object
 from builtins import range
 from builtins import str
 import os
@@ -22,12 +23,12 @@ from glideinwms.lib import logSupport
 from glideinwms.frontend import glideinFrontendPlugins
 from glideinwms.frontend.glideinFrontendInterface import Credential
 
-class fakeObj:
+class fakeObj(object):
     def __init__(self):
         self.min_nr_glideins=10
         self.max_run_glideins=30
 
-class fakeDescript:
+class fakeDescript(object):
 
     def __init__(self):
         self.merged_data={}

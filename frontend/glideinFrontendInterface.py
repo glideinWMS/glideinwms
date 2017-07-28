@@ -12,6 +12,7 @@
 #   Igor Sfiligoi (Sept 15th 2006)
 #
 
+from builtins import object
 from builtins import bytes
 from builtins import range
 from builtins import str
@@ -41,7 +42,7 @@ from glideinwms.lib import glideinWMSVersion
 #
 ############################################################
 
-class FrontendConfig:
+class FrontendConfig(object):
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -283,7 +284,7 @@ def format_condor_dict(data):
 # This also means that the credential objects should be created much before
 # and not for every iteration.
 
-class Credential:
+class Credential(object):
     def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle = 0
         self.req_max_run = 0
@@ -490,7 +491,7 @@ class Credential:
 # PM: Credential.getId() should be much faster way of geting the Id
 #     Maybe CredentialCache is now obsolete? Can we get rid of it?
 
-class CredentialCache:
+class CredentialCache(object):
     def __init__(self):
         self.file_id_cache={}
 
@@ -500,7 +501,7 @@ class CredentialCache:
             self.file_id_cache[k] = credential_el.file_id(filename)
         return self.file_id_cache[k]
 
-class FrontendDescript:
+class FrontendDescript(object):
     def __init__(self,
                  my_name,frontend_name,group_name,
                  web_url, main_descript, group_descript,
@@ -543,7 +544,7 @@ class FrontendDescript:
                 'WebGroupDescriptSign = "%s"'%self.group_sign)
 
 
-class FactoryKeys4Advertize:
+class FactoryKeys4Advertize(object):
     def __init__(self,
                  classad_identity,
                  factory_pub_key_id, factory_pub_key,
@@ -574,7 +575,7 @@ class FactoryKeys4Advertize:
 
 # class for creating FactoryKeys4Advertize objects
 # will reuse the symkey as much as possible
-class Key4AdvertizeBuilder:
+class Key4AdvertizeBuilder(object):
     def __init__(self):
         self.keys_cache = {} # will contain a tuple of (key_obj,creation_time, last_access_time)
 
@@ -632,7 +633,7 @@ class Key4AdvertizeBuilder:
 #######################################
 # INTERNAL, do not use directly
 
-class AdvertizeParams:
+class AdvertizeParams(object):
     def __init__(self,
                  request_name, glidein_name,
                  min_nr_glideins, max_run_glideins,
@@ -692,7 +693,7 @@ def advertizeWorkFromFile(factory_pool,
 ########################################
 
 
-class MultiAdvertizeWork:
+class MultiAdvertizeWork(object):
     def __init__(self,
                  descript_obj):        # must be of type FrontendDescript
         self.descript_obj = descript_obj

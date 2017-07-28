@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from __future__ import division
+from builtins import object
 from builtins import range
 from past.utils import old_div
 from past.builtins import cmp
@@ -14,7 +15,7 @@ from .pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
-class Cleanup:
+class Cleanup(object):
     def __init__(self):
         self.cleanup_objects = []
         self.cleanup_pids = []
@@ -73,7 +74,7 @@ class CredCleanup(Cleanup):
 cred_cleaners = CredCleanup()
 
 # this class is used for cleanup
-class DirCleanup:
+class DirCleanup(object):
     def __init__(self, dirname, fname_expression, # regular expression, used with re.match
                  maxlife, should_log=True, should_log_warnings=True):
         self.dirname = dirname

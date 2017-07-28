@@ -1,6 +1,7 @@
 #!/usr/bin/python -B
 
 from __future__ import print_function
+from builtins import object
 from builtins import range
 import os, sys
 import subprocess, shlex
@@ -19,7 +20,7 @@ class ExeError(RuntimeError):
         RuntimeError.__init__(self, str)
 
 
-class Release:
+class Release(object):
 
     def __init__(self, ver, srcDir, relDir, rc, rpmRel):
 
@@ -115,7 +116,7 @@ class Release:
         print(35*"_")
 
 
-class TaskRelease:
+class TaskRelease(object):
 
     def __init__(self, name, rel):
         self.name = name
@@ -402,7 +403,7 @@ class TaskRPM(TaskTar):
             self.status = 'COMPLETE'
 
 
-class PackageExcludes:
+class PackageExcludes(object):
 
     def __init__(self):
 

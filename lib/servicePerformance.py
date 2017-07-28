@@ -13,9 +13,10 @@
 #
 ###############################################################################
 
+from builtins import object
 import time
 
-class PerfMetric:
+class PerfMetric(object):
     """
     Class to store performance metrics for different events in a service
     """

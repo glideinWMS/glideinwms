@@ -14,6 +14,7 @@ from __future__ import division
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
+from builtins import object
 from builtins import bytes
 from builtins import range
 from past.utils import old_div
@@ -29,7 +30,7 @@ from glideinwms.lib import logSupport
 #
 ############################################################
 
-class MonitoringConfig:
+class MonitoringConfig(object):
     def __init__(self):
         # set default values
         # user should modify if needed
@@ -111,7 +112,7 @@ class MonitoringConfig:
 #
 #########################################################################################################################################
 
-class groupStats:
+class groupStats(object):
     def __init__(self):
         self.data={'factories':{},'states':{},'totals':{}}
         self.updated=time.time()
@@ -384,7 +385,7 @@ class groupStats:
 
 ########################################################################
     
-class factoryStats:
+class factoryStats(object):
     def __init__(self):
         self.data={}
         self.updated=time.time()

@@ -312,7 +312,7 @@ class StreamError(TarError):
 #---------------------------
 # internal stream interface
 #---------------------------
-class _LowLevelFile:
+class _LowLevelFile(object):
     """Low-level file object. Supports reading and writing.
        It is used instead of a regular file object for streaming
        access.
@@ -338,7 +338,7 @@ class _LowLevelFile:
     def write(self, s):
         os.write(self.fd, s)
 
-class _Stream:
+class _Stream(object):
     """Class that serves as an adapter between TarFile and
        a stream-like object.  The stream-like object only
        needs to have a read() or write() method and is accessed
@@ -2054,7 +2054,7 @@ class TarFile(object):
             print(msg, file=sys.stderr)
 # class TarFile
 
-class TarIter:
+class TarIter(object):
     """Iterator Class.
 
        for tarinfo in TarFile(...):
@@ -2091,7 +2091,7 @@ class TarIter:
         return tarinfo
 
 # Helper classes for sparse file support
-class _section:
+class _section(object):
     """Base class for _data and _hole.
     """
     def __init__(self, offset, size):
@@ -2138,7 +2138,7 @@ class _ringbuffer(list):
 #---------------------------------------------
 TAR_PLAIN = 0           # zipfile.ZIP_STORED
 TAR_GZIPPED = 8         # zipfile.ZIP_DEFLATED
-class TarFileCompat:
+class TarFileCompat(object):
     """TarFile class compatible with standard module zipfile's
        ZipFile class.
     """

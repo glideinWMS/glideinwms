@@ -13,10 +13,11 @@ from __future__ import print_function
 #   Igor Sfiligoi (Jul 22nd 2008)
 #
 
+from builtins import object
 import ldap #@UnresolvedImport
 import re
 
-class LDAPQuery:
+class LDAPQuery(object):
     def __init__(self,
                  ldap_url, ldap_port, # where to find LDAP server
                  base, filter_str):   # what to read
@@ -92,7 +93,7 @@ class BDIICEQuery(LDAPQuery):
         self.stored_data = new_data
 
 
-class SearchBDII:
+class SearchBDII(object):
     def __init__(self,url,port=None,VO=None,CE=None,
                  GlueCEUniqueID=None,ldapSearchStr=None,searchStr=None):
         
@@ -179,7 +180,7 @@ class SearchBDII:
                 print(self.bdiiData[key])
                 print("\n\n")
 
-class BdiiLdap:
+class BdiiLdap(object):
    def __init__(self, bdii="uscmsbd2.fnal.gov"):
        self.bdii = bdii
        self.DEBUG = 0

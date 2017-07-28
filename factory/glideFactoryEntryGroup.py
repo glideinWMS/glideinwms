@@ -20,6 +20,7 @@
 #
 
 from __future__ import division
+from builtins import object
 from builtins import range
 from future import standard_library
 standard_library.install_aliases()
@@ -66,7 +67,7 @@ from glideinwms.factory import glideFactoryDowntimeLib
 ENTRY_MEM_REQ_BYTES = 500000000 * 2
 ############################################################
 
-class EntryGroup:
+class EntryGroup(object):
 
     def __init__(self):
         pass

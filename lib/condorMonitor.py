@@ -14,6 +14,7 @@ from __future__ import absolute_import
 #   Igor Sfiligoi (Aug 30th 2006)
 #
 
+from builtins import object
 from builtins import bytes
 from builtins import range
 from builtins import zip
@@ -82,7 +83,7 @@ class PBError(RuntimeError):
 # Caching classes
 #
 
-class NoneScheddCache:
+class NoneScheddCache(object):
     """
     Dummy caching class, when you don't want caching.
     Used as base class below, too
@@ -239,7 +240,7 @@ def condorq_attrs(q_constraint, attribute_list):
 # Condor monitoring classes
 #
 
-class AbstractQuery:
+class AbstractQuery(object):
     """
     Pure virtual class to have a minimum set of methods defined
     """
@@ -290,7 +291,7 @@ class StoredQuery(AbstractQuery):
         return applyConstraint(self.stored_data, constraint_func)
 
 
-class CondorQEdit:
+class CondorQEdit(object):
     """
     Fully implemented class that executes condorq_edit commands. Only provides a method to do bulk
     updates of jobs using transaction-based API and the condor python bindings. Cannot be used without
@@ -697,7 +698,7 @@ class Group(BaseSubQuery):
             self, query, lambda d: doGroup(d, group_key_func, group_data_func))
 
 
-class Summarize:
+class Summarize(object):
     """
     Summarizing classes
     """
@@ -1141,7 +1142,7 @@ def bindings_friendly_attrs(format_list):
 #       during code cleanup.
 ################################################################################
 
-class SummarizeMulti:
+class SummarizeMulti(object):
     def __init__(self, queries, hash_func=lambda x:1):
         self.counts = []
         for query in queries:

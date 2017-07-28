@@ -13,6 +13,7 @@ from __future__ import division
 #  Igor Sfiligoi  (since Mar 31st 2009)
 #
 
+from builtins import object
 from builtins import range
 from past.utils import old_div
 import os
@@ -61,7 +62,7 @@ from . import glideinFrontendInterface
 # Useful when there is only one proxy
 # or for testing
 #
-class ProxyFirst:
+class ProxyFirst(object):
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -94,7 +95,7 @@ class ProxyFirst:
 # This plugin returns all the proxies
 # This is can be a very useful default policy
 #
-class ProxyAll:
+class ProxyAll(object):
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -134,7 +135,7 @@ class ProxyAll:
 # then the later ones
 # Also good for testing
 #
-class ProxyUserCardinality:
+class ProxyUserCardinality(object):
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -184,7 +185,7 @@ class ProxyUserCardinality:
 # Given a 'normal' credential, create sub-credentials based on the ProjectName
 # attribute of jobs
 #
-class ProxyProjectName:
+class ProxyProjectName(object):
 
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
@@ -262,7 +263,7 @@ class ProxyProjectName:
 # Once any user leaves, the most used credential is rotated to the back of the list
 # If more users enter, they will reach farther down the list to access
 #   less used credentials
-class ProxyUserRR:
+class ProxyUserRR(object):
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
         self.config_dir = config_dir
@@ -359,7 +360,7 @@ class ProxyUserRR:
 #  * if an old user comes back, it may be mapped to the old account, if not
 #    yet recycled, else it is treated as a new user
 #
-class ProxyUserMapWRecycling:
+class ProxyUserMapWRecycling(object):
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
         self.config_dir = config_dir

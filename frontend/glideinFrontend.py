@@ -16,6 +16,7 @@
 #
 
 from __future__ import absolute_import
+from builtins import object
 from builtins import str
 from past.builtins import cmp
 import os
@@ -49,7 +50,7 @@ def aggregate_stats():
 
 
 ############################################################
-class FailureCounter:
+class FailureCounter(object):
     def __init__(self, my_name, max_lifetime):
         self.my_name = my_name
         self.max_lifetime = max_lifetime

@@ -15,6 +15,7 @@ from __future__ import division
 #   Igor Sfiligoi
 #
 
+from builtins import object
 from builtins import bytes
 from builtins import str
 from past.utils import old_div
@@ -28,7 +29,7 @@ import subprocess
 import shlex
 from . import subprocessSupport
 
-class BaseRRDSupport:
+class BaseRRDSupport(object):
     #############################################################
     def __init__(self, rrd_obj):
         self.rrd_obj = rrd_obj
@@ -515,7 +516,7 @@ class rrdSupport(BaseRRDSupport):
 ##################################
 # Dummy, do nothing
 # Used just to get a object
-class DummyDiskLock:
+class DummyDiskLock(object):
     def close(self):
         return
 
@@ -532,7 +533,7 @@ def string_quote_join(arglist):
 #################################
 # this class is used in place of the rrdtool
 # python module, if that one is not available
-class rrdtool_exe:
+class rrdtool_exe(object):
     def __init__(self):
         self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
 

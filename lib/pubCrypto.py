@@ -8,6 +8,7 @@
 #   This module defines classes to perform public key cryptography
 #
 
+from builtins import object
 import M2Crypto
 import os
 import binascii
@@ -48,7 +49,7 @@ def default_callback(*args):
 
 ##########################################################################
 # Public part of the RSA key    
-class PubRSAKey:
+class PubRSAKey(object):
     def __init__(self,
                  key_str=None,key_fname=None,
                  encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,

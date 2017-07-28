@@ -19,6 +19,7 @@
 
 
 from __future__ import print_function
+from builtins import object
 import os
 import sys
 try:
@@ -31,9 +32,9 @@ except ImportError:
 
 import string
 
-class GlideinWMSDistro:
+class GlideinWMSDistro(object):
 
-    class __impl:
+    class __impl(object):
         """ Implementation of the singleton interface """
 
         def __init__(self, dir, chksumFile='checksum'):

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import object
 import time
 import fcntl
 import os.path
@@ -12,7 +13,7 @@ from glideinwms.lib import timeConversion
 # expressed in utime
 # if end_time is None, the downtime does not have a set expiration
 #  (i.e. it runs forever)
-class DowntimeFile:
+class DowntimeFile(object):
     def __init__(self, fname):
         self.fname=fname
 

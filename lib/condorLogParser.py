@@ -18,6 +18,7 @@ from __future__ import absolute_import
 # Such files will not change in the future
 #
 
+from builtins import object
 from builtins import str
 import os
 import os.path
@@ -31,7 +32,7 @@ from . import util
 
 # -------------- Single Log classes ------------------------
 
-class cachedLogClass:
+class cachedLogClass(object):
     """
     This is the base class for most Log Parsers in lib/condorLogParser
     and factory/glideFactoryLogParser. (I{virtual, do not use})
@@ -517,7 +518,7 @@ class logSummaryTimings(cachedLogClass):
             
 # -------------- Multiple Log classes ------------------------
 
-class cacheDirClass:
+class cacheDirClass(object):
     """
     This is the base class for all the directory log Parser
     classes.  It parses some/all log files in a directory.

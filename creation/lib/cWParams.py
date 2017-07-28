@@ -15,6 +15,7 @@ from __future__ import division
 #   Igor Sfiligoi
 #
 
+from builtins import object
 from builtins import str
 from past.utils import old_div
 import os
@@ -29,7 +30,7 @@ from glideinwms.lib import xmlParse
 import xml.parsers.expat
 from glideinwms.lib import xmlFormat
 
-class SubParams:
+class SubParams(object):
     def __init__(self, data):
         self.data=data
 
@@ -162,7 +163,7 @@ class SubParams:
 #   init_defaults(self)
 #   derive(self)
 #   get_xml_format(self)
-class Params:
+class Params(object):
     def __init__(self, usage_prefix, src_dir, argv):
         self.usage_prefix=usage_prefix
 

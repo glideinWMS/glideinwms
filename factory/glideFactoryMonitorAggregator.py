@@ -14,6 +14,7 @@ from __future__ import division
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
+from builtins import object
 from builtins import bytes
 from builtins import str
 from past.utils import old_div
@@ -39,7 +40,7 @@ from glideinwms.factory import glideFactoryLib
 #
 ############################################################
 
-class MonitorAggregatorConfig:
+class MonitorAggregatorConfig(object):
     def __init__(self):
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"

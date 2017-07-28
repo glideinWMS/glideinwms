@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from builtins import object
 from future import standard_library
 standard_library.install_aliases()
 import os
@@ -16,7 +17,7 @@ class FileDoesNotExist(Exception):
         # Call the base class constructor with the parameters it needs
         Exception.__init__(self, message)
 
-class GlideinTar:
+class GlideinTar(object):
     """This class provides a container for creating tarballs.  The class provides
     methods to add files and string data (ends up as a file in the tarball).
     The tarball can be written to a file on disk or written to memory.

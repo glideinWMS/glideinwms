@@ -13,6 +13,7 @@ from __future__ import print_function
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
+from builtins import object
 from builtins import str
 import time
 import string
@@ -35,7 +36,7 @@ from glideinwms.frontend import glideinFrontendMonitoring
 #
 ############################################################
 
-class MonitorAggregatorConfig:
+class MonitorAggregatorConfig(object):
     def __init__(self):
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
