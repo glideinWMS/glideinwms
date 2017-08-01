@@ -3,6 +3,12 @@
 # Get the log directory and clear it
 Log_Dir="$2"
 
+# Make sure parameters were given
+if [[ -z "${2// }" ]]; then
+    echo "1st Parameter: comma separated git branches; 2nd Parameter: empty log directory"
+    exit 1
+fi
+
 # Remove any existing logs
 rm -rf "$Log_Dir/"*.xml
 rm -rf "$Log_Dir/"*.log
