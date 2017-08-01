@@ -124,25 +124,21 @@ process_branch () {
 
     echo "Running Pylint Test"
     run_pylint "$Log_Dir" "$branch_prefix"
-    pylint_results_FILES_CHECKED=`echo "$FILES_CHECKED" | wc -l `
-    pylint_results_PYLINT_ERROR_FILES_COUNT=$PYLINT_ERROR_FILES_COUNT
-    pylint_results_PYLINT_ERROR_COUNT=$PYLINT_ERROR_COUNT
-    pylint_results_PEP8_ERROR_COUNT=$PEP8_ERROR_COUNT
 
     if [ "$pylint_results" -eq "0" ]; then
         # Success
         mail_file="$mail_file
-            <td style=\"$HTML_TD_PASSED\">$pylint_results_FILES_CHECKED</td>
-            <td style=\"$HTML_TD_PASSED\">$pylint_results_PYLINT_ERROR_FILES_COUNT</td>
-            <td style=\"$HTML_TD_PASSED\">$pylint_results_PYLINT_ERROR_COUNT</td>
-            <td style=\"$HTML_TD_PASSED\">$pylint_results_PEP8_ERROR_COUNT</td>"
+            <td style=\"$HTML_TD_PASSED\">$FILES_CHECKED_COUNT</td>
+            <td style=\"$HTML_TD_PASSED\">$PYLINT_ERROR_FILES_COUNT</td>
+            <td style=\"$HTML_TD_PASSED\">$PYLINT_ERROR_COUNT</td>
+            <td style=\"$HTML_TD_PASSED\">$PEP8_ERROR_COUNT</td>"
     else
         # Failed
         mail_file="$mail_file
-            <td style=\"$HTML_TD_FAILED\">$pylint_results_FILES_CHECKED</td>
-            <td style=\"$HTML_TD_FAILED\">$pylint_results_PYLINT_ERROR_FILES_COUNT</td>
-            <td style=\"$HTML_TD_FAILED\">$pylint_results_PYLINT_ERROR_COUNT</td>
-            <td style=\"$HTML_TD_FAILED\">$pylint_results_PEP8_ERROR_COUNT</td>"
+            <td style=\"$HTML_TD_FAILED\">$FILES_CHECKED_COUNT</td>
+            <td style=\"$HTML_TD_FAILED\">$PYLINT_ERROR_FILES_COUNT</td>
+            <td style=\"$HTML_TD_FAILED\">$PYLINT_ERROR_COUNT</td>
+            <td style=\"$HTML_TD_FAILED\">$PEP8_ERROR_COUNT</td>"
     fi
 
     echo "Running Unittests"
