@@ -2,7 +2,10 @@
 
 # Get the log directory and clear it
 Log_Dir="$2"
-rm $Log_Dir/* -rf
+
+# Remove any existing logs
+rm -rf "$Log_Dir/"*.xml
+rm -rf "$Log_Dir/"*.log
 
 # Setup a fail code
 fail=0
