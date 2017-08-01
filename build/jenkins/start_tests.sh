@@ -46,10 +46,12 @@ mail_file="
           <th style=\"$HTML_THEAD_TH\">GIT BRANCH</th>
           <th style=\"$HTML_THEAD_TH\">Futurize Errors</th>
           <th style=\"$HTML_THEAD_TH\">Pylint File Count</th>
-          <th style=\"$HTML_THEAD_TH\">Pylint Error Count</th>
-          <th style=\"$HTML_THEAD_TH\">Pylint Errors Total</th>
-          <th style=\"$HTML_THEAD_TH\">Pylint PEP8 Errors</th>
-          <th style=\"$HTML_THEAD_TH\">Pylint Unittests Errors</th>
+          <th style=\"$HTML_THEAD_TH\">Error Count</th>
+          <th style=\"$HTML_THEAD_TH\">Errors Total</th>
+          <th style=\"$HTML_THEAD_TH\">PEP8 Errors</th>
+          <th style=\"$HTML_THEAD_TH\">Unittests Count</th>
+          <th style=\"$HTML_THEAD_TH\">Error</th>
+          <th style=\"$HTML_THEAD_TH\">Failure</th>
         </tr>
       </thead>
       <tbody>"
@@ -140,11 +142,15 @@ process_branch () {
     if [ "$unittest_errors" -eq "0" ]; then
         # Success
         mail_file="$mail_file
+            <td style=\"$HTML_TD_PASSED\">$unittest_test_count</td>
             <td style=\"$HTML_TD_PASSED\">0</td>"
+            <td style=\"$HTML_TD_PASSED\">$unittest_failure_count</td>
     else
         # Failed
         mail_file="$mail_file
+            <td style=\"$HTML_TD_FAILED\">$unittest_test_count</td>
             <td style=\"$HTML_TD_FAILED\">$unittest_errors</td>
+            <td style=\"$HTML_TD_FAILED\">$unittest_failure_count</td>
             </tr>"
     fi
 
