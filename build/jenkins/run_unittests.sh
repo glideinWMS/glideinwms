@@ -42,4 +42,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	setup_python_venv $WORKSPACE
 
 	run_unittests $current_dir "Unittests"
+
+	echo "$unittest_errors unittests had errors"
 fi
