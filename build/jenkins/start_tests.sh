@@ -152,8 +152,9 @@ process_branch () {
         # Success
         mail_file="$mail_file
             <td style=\"$HTML_TD_PASSED\">$unittest_test_count</td>
-            <td style=\"$HTML_TD_PASSED\">0</td>"
+            <td style=\"$HTML_TD_PASSED\">0</td>
             <td style=\"$HTML_TD_PASSED\">$unittest_failure_count</td>
+            </tr>"
     else
         # Failed
         mail_file="$mail_file
