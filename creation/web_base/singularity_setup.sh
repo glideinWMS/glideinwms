@@ -168,6 +168,18 @@ if [ "x$TEMP_CONDITION" = "x1" ]; then
     # default image for this glidein
     export GWMS_SINGULARITY_IMAGE_DEFAULT=`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | awk '{print $2}'`
 
+    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT" = "x" ]; then
+        HAS_SINGULARITY="False"
+	if [ "$use_singularity" == "OPTIONAL" ]; then
+	    warn "SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
+            no_use_singularity_config
+	elif [ "$use_singularity" == "REQUIRED" ]; then
+	    STR="SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
+	    "$error_gen" -error "singularity_setup.sh"  "WN_Resource" "$STR"
+	    exit 1
+	fi
+    fi
+
     # for now, we will only advertise singularity on nodes which can access cvmfs
     if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
         HAS_SINGULARITY="False" #GWMS I don't think we need this any longer..
