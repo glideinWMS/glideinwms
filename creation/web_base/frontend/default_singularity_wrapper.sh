@@ -27,12 +27,12 @@ function getPropStr
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
     # echo the value
-#    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
+#   val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed     "s/[\"' \t\n\r]//g") 2>/dev/null`
     val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
     echo $val
 }
 
-exitsleep=10
+exitsleep=5
 
 if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     
@@ -43,7 +43,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
         export _CONDOR_MACHINE_AD="NONE"
     fi
 
-# from the default_singularity_setup.sh
+# from the singularity_setup.sh
     export HAS_SINGULARITY=$(getPropBool $_CONDOR_MACHINE_AD HAS_SINGULARITY)
     export SINGULARITY_PATH=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_PATH)
     export SINGULARITY_IMAGE_DEFAULT6=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT6)
@@ -51,7 +51,6 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
 
 ## from Job ClassAd
     export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
-#GWMS I think I need to enable GWMS_SINGULARITY_BIND_CVMFS always
     export GWMS_SINGULARITY_BIND_CVMFS=1
     export CVMFS_REPOS_LIST=$(getPropStr $_CONDOR_JOB_AD CVMFSReposList)
     echo "Debug: CVMFS Repos List = $CVMFS_REPOS_LIST" 1>&2
@@ -211,8 +210,6 @@ rm -f .osgvo-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 #  Run the real job
 #
-#GWMS If GLIDEIN_Singularity_Use=OPTIONAL and SINGULARITY_BIN=NONE, setup script sets HAS_SINGULARITY=False
-#GWMS and this wrapper script directly executes the user script. I tested it.
 exec "$@"
 error=$?
 echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE

@@ -565,6 +565,10 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         If REQUIRED or OPTIONAL is used, the default wrapper script that we provide should be used, in other words
 a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
 	    <br>
+        If GLIDEIN_Singularity_Use has REQUIRED as its value, one of two vo-specific pre-setup script must be used,
+namely this line &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/osg(or cms)_pre_singularity_setup.sh</I>&quot; 
+ after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group. These 2 scripts identify default vo-specific singularity images for El6 and El7.
+	    <br>
         If you want to use your own wrapper script for singularity, you must first understand 
         <I>/var/lib/gwms-frontend/web-base/default_singularity_setup.sh</I> (that is loaded in Factory)
         and make your custom script compatible with this setup script.
