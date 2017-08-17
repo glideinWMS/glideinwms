@@ -25,7 +25,7 @@ function is_vm_up() {
     local retries=0
     echo "Waiting for $fqdn to boot up ..."
     while [ $retries -lt 10 ] ; do
-        tmpout=`ssh -o ConnectTimeout=5 $fqdn hostname`
+        tmpout=`ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $fqdn hostname`
         if [ "$tmpout" != "$fqdn" ] ; then
             echo "... Retry count: $retries ..."
             sleep 30
@@ -152,7 +152,12 @@ function configure_fact() {
             cp \$SRC \$TGT
         done
     fi
-    /sbin/service gwms-factory upgrade
+
+    if which systemctl > /dev/null 2>&1 ; then
+        gwms-factory upgrade
+    else
+        /sbin/service gwms-factory upgrade
+    fi
 }
 
 
@@ -165,7 +170,7 @@ function verify_factory() {
 }
 
 uname -a
-install_rpms $enable_repo glideinwms-factory condor-python
+install_rpms $enable_repo glideinwms-factory${gwms_release} condor-python
 
 patch_privsep_config
 
@@ -241,8 +246,11 @@ function configure_vofe() {
            cp \$SRC \$TGT
        done
     fi
-
-    /sbin/service gwms-frontend upgrade
+    if which systemctl > /dev/null 2>&1 ; then
+        gwms-frontend upgrade
+    else
+        /sbin/service gwms-frontend upgrade
+    fi
 }
 
 function verify_vofe() {
@@ -257,7 +265,7 @@ function submit_testjobs() {
     runuser -c "cd ~/testjobs; mkdir -p mkdir joboutput;  condor_submit ~/testjobs/testjob.glexec.jdf" testuser
 }
 
-install_rpms $enable_repo glideinwms-vofrontend condor-python
+install_rpms $enable_repo glideinwms-vofrontend${gwms_release} condor-python
 
 add_dn_to_condor_mapfile "$jobs_dn" testuser
 add_dn_to_condor_mapfile "$vofe_dn" vofrontend_service
@@ -378,7 +386,7 @@ function read_arg_value() {
 
 
 function help() {
-    echo "test-rpms.sh [OPTIONS]"
+    echo "${prog} [OPTIONS]"
     echo
     echo "OPTIONS:"
     echo "--tag            GlideinWMS tag to test (Default: rpm)"
@@ -390,7 +398,14 @@ function help() {
     echo "--frontend-proxy Frontend proxy to use. Proxy from host DN is used by default"
     echo "--jobs-proxy     Proxy used to submit jobs. Proxy from host DN is used by default"
     echo "--condor-tarball Location of condor Tarball"
+    echo "--gwms-release   glideinwms rpm release (Default: latest)"
     echo "--help           Print this help message"
+    echo ""
+    echo "#examples"
+    echo "#deploy SL6 frontend+factory version 3.2.17"
+    echo "./deploy_glideinwms.sh --osg-repo osg --gwms-release 3.2.17"
+    echo "#deploy SL7 latest in osg-development"
+    echo "./deploy_glideinwms.sh --el 7"
 }
 
 ######################################################################################
@@ -418,8 +433,11 @@ while [[ $# -gt 0 ]] ; do
         --osg-version)
             osg_version="${2:-3.3}"
             shift ;;
-        --osg-repo)
+       --osg-repo)
             osg_repo="${2:-osg-development}"
+            shift ;;
+       --gwms-release)
+            gwms_release="$2"
             shift ;;
         --monitor)
             launch_monitor="true"
@@ -452,6 +470,10 @@ yum_rpm=yum_priorities
 
 [ "$el" = "7" ] &&  [ "$vm_template" = "" ] && vm_template="SLF${el}V_DynIP_Home"
 [ "$el" = "6" ] &&  [ "$vm_template" = "" ] && vm_template="CLI_DynamicIP_SLF6_HOME"
+
+[ "$gwms_release" != "" ] && [ "$(echo "$gwms_release" | grep '^-')" = "" ]  && gwms_release="-${gwms_release}"
+#echo gwms_release=$gwms_release
+#exit
 
 osg_release_rpm="http://repo.grid.iu.edu/osg/$osg_version/osg-$osg_version-el$el-release-latest.rpm"
 epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.noarch.rpm"
