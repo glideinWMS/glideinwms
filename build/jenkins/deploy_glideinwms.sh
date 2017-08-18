@@ -24,7 +24,7 @@ function is_vm_up() {
     # When ssh is successfull, machine is usable
     local retries=0
     echo "Waiting for $fqdn to boot up ..."
-    while [ $retries -lt 10 ] ; do
+    while [ $retries -lt 30 ] ; do
         tmpout=`ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $fqdn hostname`
         if [ "$tmpout" != "$fqdn" ] ; then
             echo "... Retry count: $retries ..."
@@ -143,7 +143,9 @@ EOF
 function configure_fact() {
     mkdir -p $ENTRIES_CONFIG_DIR
     cp $AUTO_INSTALL_SRC_DIR/Dev_Sites.xml $ENTRIES_CONFIG_DIR
-    test -f /var/lib/gwms-factory/condor/$base_condor_tarball  && cd /var/lib/gwms-factory/condor/ && tar xvzf $base_condor_tarball && sed -e s/__CONDOR_DIR__/$condor_dir/ -e s/__RH_MAJOR__/${el}/ $AUTO_INSTALL_SRC_DIR/Condor_Tarballs.xml > $ENTRIES_CONFIG_DIR/Condor_Tarballs.xml
+    sed -e  s/__CONDOR_ARCH__/${condor_arch}/ -e s/__CONDOR_OS__/${condor_os}/ -e s/__CONDOR_VERSION__/${condor_version}/ $AUTO_INSTALL_SRC_DIR/Dev_Sites.xml > $ENTRIES_CONFIG_DIR/Dev_Sites.xml
+    test -f /var/lib/gwms-factory/condor/$base_condor_tarball  && cd /var/lib/gwms-factory/condor/ && tar xvzf $base_condor_tarball 
+    sed -e s/__CONDOR_DIR__/${base_condor_dir}/ -e s/__CONDOR_ARCH__/${condor_arch}/ -e s/__CONDOR_OS__/${condor_os}/ -e s/__CONDOR_VERSION__/${condor_version}/ $AUTO_INSTALL_SRC_DIR/Condor_Tarballs.xml > $ENTRIES_CONFIG_DIR/Condor_Tarballs.xml
     if [ -d $AUTO_INSTALL_SRC_DIR/patch/factory ]; then
         cd $AUTO_INSTALL_SRC_DIR/patch/factory
         for SRC in \$(find . -type f); do
@@ -478,10 +480,19 @@ yum_rpm=yum_priorities
 osg_release_rpm="http://repo.grid.iu.edu/osg/$osg_version/osg-$osg_version-el$el-release-latest.rpm"
 epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.noarch.rpm"
 
+condor_version="default"
+condor_os="default"
+condor_arch="default"
 
 # Some constants
 fact_vm_name="fact-el$el-$tag-test"
 vofe_vm_name="vofe-el$el-$tag-test"
+test -f "$condor_tarball"  && base_condor_tarball=`basename $condor_tarball` && base_condor_dir=`echo $base_condor_tarball | sed s/.tar.gz//`
+test -f "$condor_tarball" && condor_version=$(echo $base_condor_tarball | sed s/condor-// | sed s/-.*//)
+test -f "$condor_tarball" && condor_os=$(echo $base_condor_tarball | sed s/.*_// | sed s/-.*//)
+test -f "$condor_tarball" && condor_arch=$(echo $base_condor_tarball | sed s/_${condor_os}.*// | sed s/condor-${condor_version}-//)
+condor_os=$(echo $condor_os | sed s/RedHat/rhel/g)
+
 #for some reason this one is kicking me out, so do this...
 SSH="ssh fermicloudui.fnal.gov"
 $SSH exit 0
@@ -547,7 +558,6 @@ else
     esac
 fi
 
-test -f "$condor_tarball"  && base_condor_tarball=`basename $condor_tarball` && condor_dir=`echo $base_condor_tarball | sed s/.tar.gz//`
 
 FACT_LOG=/tmp/fact_install.log
 VOFE_LOG=/tmp/vofe_install.log
