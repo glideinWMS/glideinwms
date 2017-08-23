@@ -1434,7 +1434,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         client_int_name, client_security_name,
         submit_credentials.security_class, idle_glideins,
         max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig,
-        glidein_cores=entry.getExpectedGlideinCores())
+        glidein_cores=entry.getGlideinExpectedCores())
 
     all_security_names.add((client_security_name, credential_security_class))
 
