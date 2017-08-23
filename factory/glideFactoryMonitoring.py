@@ -70,6 +70,8 @@ class MonitoringConfig:
         logs them in logs/entry_Name/completed_jobs_date.log in an
         XML-like format.
 
+        It counts the jobs completed on a glidein but does not keep track of the cores received or used by the jobs
+
         @type client_name: String
         @param client_name: the name of the frontend client
         @type entered_dict: Dictionary of dictionaries
@@ -232,8 +234,8 @@ class condorQStats:
 
         self.files_updated = None
         self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
-                         'Requested':("Idle", "MaxGlideins"),
-                         'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
+                           'Requested':("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
+                           'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
 
@@ -272,6 +274,9 @@ class condorQStats:
         At the moment, it looks only for
           'IdleGlideins'
           'MaxGlideins'
+
+        Request contains only that (no real cores info)
+        It is eveluated using GLIDEIN_CPUS
         """
         if self.data.has_key(client_name):
             t_el = self.data[client_name]
@@ -286,7 +291,8 @@ class condorQStats:
             el = {}
             t_el['Requested'] = el
 
-        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins')):
+        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins'),
+                         ('IdleCores', 'IdleCores'), ('MaxCores', 'MaxCores')):
             org, new = reqpair
             if not el.has_key(new):
                 el[new] = 0
