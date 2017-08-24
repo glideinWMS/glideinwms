@@ -61,20 +61,21 @@ def rrd_site(name):
     sname = name.split(".")[0]
     return "rrd_%s.xml" %sname
 
+
 ###########################################################
 #
 # Functions
 #
 ###########################################################
 
-status_attributes={'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
-                   'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
-                   'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
-type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
+status_attributes = {'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
+                     'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
+                     'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
+type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
 
 ##############################################################################
-rrd_problems_found=False
-def verifyHelper(filename,dict, fix_rrd=False):
+rrd_problems_found = False
+def verifyHelper(filename, dict, fix_rrd=False):
     """
     Helper function for verifyRRD.  Checks one file,
     prints out errors.  if fix_rrd, will attempt to
@@ -109,13 +110,13 @@ def verifyHelper(filename,dict, fix_rrd=False):
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
-        #Use exe version since dump, restore not available in rrdtool
+        # Use exe version since dump, restore not available in rrdtool
         dump_obj=rrdSupport.rrdtool_exe()
         outstr=dump_obj.dump(filename)
         for line in outstr:
             os.write(f,"%s\n"%line)
         os.close(f)
-        #Move file to backup location
+        # Move file to backup location
         shutil.move(filename,filename+backup_str)
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
         outstr=dump_obj.restore(tempfilename2,restoredfilename)
@@ -125,6 +126,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
     if len(extra) > 0:
         rrd_problems_found=True
 
+
 def verifyRRD(fix_rrd=False):
     """
     Go through all known monitoring rrds and verify that they
@@ -133,69 +135,65 @@ def verifyRRD(fix_rrd=False):
     """
     global rrd_problems_found
     global monitorAggregatorConfig
-    dir=monitorAggregatorConfig.monitor_dir
-    total_dir=os.path.join(dir,"total")
+    dir = monitorAggregatorConfig.monitor_dir
+    total_dir = os.path.join(dir, "total")
 
-    status_dict={}
-    completed_stats_dict={}
-    completed_waste_dict={}
-    counts_dict={}
+    status_dict = {}
+    completed_stats_dict = {}
+    completed_waste_dict = {}
+    counts_dict = {}
 
     # initialize the RRD dictionaries to match the current schema for verification
     for tp in status_attributes.keys():
         if tp in type_strings.keys():
-            tp_str=type_strings[tp]
-            attributes_tp=status_attributes[tp]
+            tp_str = type_strings[tp]
+            attributes_tp = status_attributes[tp]
             for a in attributes_tp:
-                status_dict["%s%s"%(tp_str,a)]=None
+                status_dict["%s%s" % (tp_str, a)] = None
 
     for jobrange in glideFactoryMonitoring.getAllJobRanges():
-        completed_stats_dict["JobsNr_%s"%(jobrange)]=None
+        completed_stats_dict["JobsNr_%s" % (jobrange,)] = None
     for timerange in glideFactoryMonitoring.getAllTimeRanges():
-        completed_stats_dict["Lasted_%s"%(timerange)]=None
-        completed_stats_dict["JobsLasted_%s"%(timerange)]=None
+        completed_stats_dict["Lasted_%s" % (timerange,)] = None
+        completed_stats_dict["JobsLasted_%s" % (timerange,)] = None
 
     for jobtype in glideFactoryMonitoring.getAllJobTypes():
         for timerange in glideFactoryMonitoring.getAllMillRanges():
-            completed_waste_dict["%s_%s"%(jobtype,timerange)]=None
+            completed_waste_dict["%s_%s" % (jobtype, timerange)] = None
 
-    for jobtype in ('Entered','Exited','Status'):
-        for jobstatus in ('Wait','Idle','Running','Held'):
-            counts_dict["%s%s"%(jobtype,jobstatus)]=None
-    for jobstatus in ('Completed','Removed'):
-            counts_dict["%s%s"%('Entered',jobstatus)]=None
+    for jobtype in ('Entered', 'Exited', 'Status'):
+        for jobstatus in ('Wait', 'Idle', 'Running', 'Held'):
+            counts_dict["%s%s" % (jobtype, jobstatus)] = None
+    for jobstatus in ('Completed', 'Removed'):
+            counts_dict["%s%s" % ('Entered', jobstatus)] = None
 
-    verifyHelper(os.path.join(total_dir,
-        "Status_Attributes.rrd"),status_dict, fix_rrd)
-    verifyHelper(os.path.join(total_dir,
-        "Log_Completed.rrd"),
-        glideFactoryMonitoring.getLogCompletedDefaults(), fix_rrd)
-    verifyHelper(os.path.join(total_dir,
-        "Log_Completed_Stats.rrd"),completed_stats_dict, fix_rrd)
-    verifyHelper(os.path.join(total_dir,
-        "Log_Completed_WasteTime.rrd"),completed_waste_dict, fix_rrd)
-    verifyHelper(os.path.join(total_dir,
-        "Log_Counts.rrd"),counts_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir, "Status_Attributes.rrd"),
+                 status_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir, "Log_Completed.rrd"),
+                 glideFactoryMonitoring.getLogCompletedDefaults(), fix_rrd)
+    verifyHelper(os.path.join(total_dir, "Log_Completed_Stats.rrd"),
+                 completed_stats_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir, "Log_Completed_WasteTime.rrd"),
+                 completed_waste_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir, "Log_Counts.rrd"),
+                 counts_dict, fix_rrd)
     for filename in os.listdir(dir):
-        if filename[:6]=="entry_":
-            entrydir=os.path.join(dir,filename)
+        if filename[:6] == "entry_":
+            entrydir = os.path.join(dir,filename)
             for subfilename in os.listdir(entrydir):
-                if subfilename[:9]=="frontend_":
-                    current_dir=os.path.join(entrydir,subfilename)
-                    verifyHelper(os.path.join(current_dir,
-                        "Status_Attributes.rrd"),status_dict, fix_rrd)
-                    verifyHelper(os.path.join(current_dir,
-                        "Log_Completed.rrd"),
-                        glideFactoryMonitoring.getLogCompletedDefaults(),fix_rrd)
-                    verifyHelper(os.path.join(current_dir,
-                        "Log_Completed_Stats.rrd"),completed_stats_dict,fix_rrd)
-                    verifyHelper(os.path.join(current_dir,
-                        "Log_Completed_WasteTime.rrd"),
-                        completed_waste_dict,fix_rrd)
-                    verifyHelper(os.path.join(current_dir,
-                        "Log_Counts.rrd"),counts_dict,fix_rrd)
+                if subfilename[:9] == "frontend_" or subfilename == "total":
+                    current_dir = os.path.join(entrydir, subfilename)
+                    verifyHelper(os.path.join(current_dir, "Status_Attributes.rrd"),
+                                 status_dict, fix_rrd)
+                    verifyHelper(os.path.join(current_dir, "Log_Completed.rrd"),
+                                 glideFactoryMonitoring.getLogCompletedDefaults(), fix_rrd)
+                    verifyHelper(os.path.join(current_dir, "Log_Completed_Stats.rrd"),
+                                 completed_stats_dict, fix_rrd)
+                    verifyHelper(os.path.join(current_dir, "Log_Completed_WasteTime.rrd"),
+                                 completed_waste_dict, fix_rrd)
+                    verifyHelper(os.path.join(current_dir, "Log_Counts.rrd"),
+                                 counts_dict, fix_rrd)
     return not rrd_problems_found
-
 
 
 ##############################################################################
