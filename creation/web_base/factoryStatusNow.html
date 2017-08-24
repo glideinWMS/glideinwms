@@ -57,11 +57,11 @@ var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var d
 var trChildArry = new Array(); var trFEChildArry = new Array();
 
 var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
-							"Max glideins", "Idle", 
+							"Max glideins", "Idle", "Max cores", "Idle cores",
 							"Claimed", "User run here", "User running","Unmatched", "User idle", "Registered", "Info age");
 
 var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
-							  "Max glideins", "Idle", 
+							  "Max glideins", "Idle", "Max cores", "Idle cores",
 							  "Claimed", "User run here", "User running", "Unmatched", "User idle", "Registered", "Info age");		
 												
 var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
@@ -72,11 +72,12 @@ var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running", "Clie
 
 								 
 var columnArray = new Array("entryName", "downtimeStatus","statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", 
-						    "statusHeld", "requestMax", "requestIdle", "cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmGlideinIdle", 
+						    "statusHeld", "requestMax", "requestIdle", "requestMaxCores", "requestIdleCores", "cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmGlideinIdle",
 							"cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
 		
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
-						     "Status: Stage out", "Status: Unknown", "Status: Held", "Requested: Max glideins", "Requested : Idle", "Client Monitor: Claimed", 
+						     "Status: Stage out", "Status: Unknown", "Status: Held",
+						     "Requested: Max glideins", "Requested : Idle", "Requested: Max cores", "Requested : Idle cores", "Client Monitor: Claimed",
 							 "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched", "Client Monitor: User idle",
 							 "Client Monitor: Registered", "Client Monitor: Info age");  
 							 
@@ -85,12 +86,12 @@ var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Runnin
 							   
 							   
 var xmlAttPeriodArry = new Array("EntryName", "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", 
-								 "StatusHeld", "ReqMaxGlideins", "ReqIdle", "ClientGlideRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientGlideIdle", 
+								 "StatusHeld", "ReqMaxGlideins", "ReqIdle", "ReqMaxCores", "ReqIdleCores", "ClientGlideRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientGlideIdle",
 								 "ClientJobsIdle", "ClientGlideTotal",  "ClientInfoAge"); /* ONE LESS ATT THAN DEFAULT */ 
 								 
 var xmlAttDTArry = new Array("Status"); 						 					
 var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held");
-var xmlAttReqArry = new Array("MaxGlideins", "Idle"); 
+var xmlAttReqArry = new Array("MaxGlideins", "Idle", "MaxCores", "IdleCores");
 var xmlAttCMArry = new Array("GlideRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "JobsIdle", "GlideTotal", "InfoAge");
 var xmlAttStatNumArry = new Array(); 
 var xmlAttReqNumArry = new Array(); 

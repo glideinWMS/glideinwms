@@ -291,7 +291,7 @@ class condorQStats:
             el = {}
             t_el['Requested'] = el
 
-        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins'),
+        for reqpair in (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins'),
                          ('IdleCores', 'IdleCores'), ('MaxCores', 'MaxCores')):
             org, new = reqpair
             if not el.has_key(new):
