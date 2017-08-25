@@ -68,7 +68,7 @@ def rrd_site(name):
 #
 ###########################################################
 
-status_attributes = {'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
+status_attributes = {'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
                      'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
                      'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
 type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}

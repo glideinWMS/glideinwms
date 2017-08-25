@@ -856,7 +856,7 @@ def logStats(condorq, client_int_name, client_security_name,
 
 def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
                    req_idle, req_max_run, work_el, fraction=1.0,
-                   log=logSupport.log, factoryConfig=None, glidein_cores=1):
+                   log=logSupport.log, factoryConfig=None):
 
     # temporary workaround; the requests should always be processed
     # at the caller level
@@ -880,8 +880,7 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
     # requests use GLIDEIN_CPUS to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
-    reqs = {'IdleGlideins': req_idle, 'MaxGlideins': req_max_run,
-            'IdleCores': req_idle*glidein_cores, 'MaxCores': req_max_run*glidein_cores}
+    reqs = {'IdleGlideins': req_idle, 'MaxGlideins': req_max_run}
     factoryConfig.client_stats.logRequest(client_int_name, reqs)
     factoryConfig.qc_stats.logRequest(client_log_name, reqs)
 

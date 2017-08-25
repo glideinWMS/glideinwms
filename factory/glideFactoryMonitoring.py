@@ -227,17 +227,18 @@ class MonitoringConfig:
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
 #       This is inconsistent and should be changed, Redmine [#17244]
 class condorQStats:
-    def __init__(self, log=logSupport.log):
+    def __init__(self, log=logSupport.log, cores=1):
         self.data = {}
         self.updated = time.time()
         self.log = log
 
         self.files_updated = None
-        self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
+        self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
                            'Requested':("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
                            'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
+        self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
 
     def logSchedd(self, client_name, qc_status):
         """
@@ -255,7 +256,7 @@ class condorQStats:
             el = {}
             t_el['Status'] = el
 
-        status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
+        status_pairs = ((1, "Idle"), (2, "Running"), (2, "RunningCores"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
@@ -263,6 +264,14 @@ class condorQStats:
                 el[status] = 0
             if qc_status.has_key(nr):
                 el[status] += qc_status[nr]
+        status_pairs = ((2, "RunningCores"))  # There may be multiple cores accounting pairs in the future
+        for p in status_pairs:
+            nr, status = p
+            # TODO: rewrite w/ if in ... else (after m31)
+            if not el.has_key(status):
+                el[status] = 0
+            if qc_status.has_key(nr):
+                el[status] += qc_status[nr] * self.expected_cores
 
         self.updated = time.time()
 
@@ -291,13 +300,18 @@ class condorQStats:
             el = {}
             t_el['Requested'] = el
 
-        for reqpair in (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins'),
-                         ('IdleCores', 'IdleCores'), ('MaxCores', 'MaxCores')):
+        for reqpair in (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins')):
             org, new = reqpair
             if not el.has_key(new):
                 el[new] = 0
             if requests.has_key(org):
                 el[new] += requests[org]
+        for reqpair in (('IdleGlideins', 'IdleCores'), ('MaxGlideins', 'MaxCores')):
+            org, new = reqpair
+            if not el.has_key(new):
+                el[new] = 0
+            if requests.has_key(org):
+                el[new] += requests[org] * self.expected_cores
 
         # Had to get rid of this
         # Does not make sense when one aggregates
