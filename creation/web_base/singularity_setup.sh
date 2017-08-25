@@ -56,8 +56,8 @@ function no_use_singularity_config {
     exit 0
 }
 
-TEMP_CONDITION=1
-if [ "x$TEMP_CONDITION" = "x1" ]; then
+
+if true; then
 #GWMS direct use of singularity_bin before I started using echo (as below) failed..
     temp_singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
 # GWMS use awk differently here to deal with cases where the pathname contains whitespaces..
@@ -126,10 +126,8 @@ if [ "x$TEMP_CONDITION" = "x1" ]; then
             exit 1
             ;;
     esac
-fi
 
 
-if [ "x$TEMP_CONDITION" = "x1" ]; then
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
@@ -166,9 +164,20 @@ if [ "x$TEMP_CONDITION" = "x1" ]; then
     fi
 
     # default image for this glidein
-    export GWMS_SINGULARITY_IMAGE_DEFAULT=`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | awk '{print $2}'`
+    # if we take action here about the absence of SINGULARITY_IMAGE_DEFAULT
+    # this would remove the change of user-provides singularity image being used
+    # But some users might rely on the assumption that the Frontend VO would have default singularity images
+    # Thus, we enforce the use of vo_pre_singularity_setup.sh.
+    # Also more importantly, this script itself needs a default image in order to conduct a validation test below!
+    # we provide {cms,osg}_pre_singularity_setup.sh and generic_pre_singularity_setup.sh for a generic use
+    # So, if a VO wants to have their own _new_pre_singularity_setup.sh, they must copy and modify
+    # generic_pre_singularity_setup.sh and also must put their default singularity images 
+    # under /cvmfs/singularity.opensciencegrid.org
+    export GWMS_SINGULARITY_IMAGE_DEFAULT6=`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | awk '{print $2}'`
+    export GWMS_SINGULARITY_IMAGE_DEFAULT7=`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | awk '{print $2}'`
 
-    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT" = "x" ]; then
+#    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT" = "x" ]; then
+    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
         HAS_SINGULARITY="False"
 	if [ "$use_singularity" == "OPTIONAL" ]; then
 	    warn "SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
@@ -181,7 +190,8 @@ if [ "x$TEMP_CONDITION" = "x1" ]; then
     fi
 
     # for now, we will only advertise singularity on nodes which can access cvmfs
-    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
+#    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
+    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT6" -o ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT7" ]; then
         HAS_SINGULARITY="False" #GWMS I don't think we need this any longer..
 	if [ "$use_singularity" == "OPTIONAL" ]; then
 	    warn "$GWMS_SINGULARITY_IMAGE_DEFAULT doex not exist."
@@ -192,6 +202,8 @@ if [ "x$TEMP_CONDITION" = "x1" ]; then
 	    exit 1
 	fi
     fi
+
+    export GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT6
 
     if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
         info "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $GWMS_SINGULARITY_IMAGE_DEFAULT echo Hello World | grep Hello World"

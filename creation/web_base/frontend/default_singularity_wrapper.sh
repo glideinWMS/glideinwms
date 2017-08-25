@@ -1,3 +1,5 @@
+EXITSLEEP=5
+
 function getPropBool
 {
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
@@ -31,8 +33,6 @@ function getPropStr
     val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
     echo $val
 }
-
-exitsleep=5
 
 if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     
@@ -72,7 +72,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                     let "holdfd=holdfd+1"
                 else
                     echo "/cvmfs/$x NOT available"
-		    sleep $exitsleep
+		    sleep $EXITSLEEP
 		    exit 1
                 fi
             done
