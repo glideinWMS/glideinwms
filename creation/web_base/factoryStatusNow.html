@@ -56,11 +56,11 @@ var periodV;
 var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var dtChild; var ftFEChild; var totStatChild; var totReqChild; var totCMChild; 
 var trChildArry = new Array(); var trFEChildArry = new Array();
 
-var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "RunningCores",
+var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
 							"Max glideins", "Idle", "Max cores", "Idle cores",
 							"Claimed", "User run here", "User running","Unmatched", "User idle", "Registered", "Info age");
 
-var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "RunningCores",
+var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
 							  "Max glideins", "Idle", "Max cores", "Idle cores",
 							  "Claimed", "User run here", "User running", "Unmatched", "User idle", "Registered", "Info age");		
 												
@@ -76,7 +76,7 @@ var columnArray = new Array("entryName", "downtimeStatus","statusRunning", "stat
 							"cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
 		
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
-						     "Status: Stage out", "Status: Unknown", "Status: Held", "Status: RunningCores",
+						     "Status: Stage out", "Status: Unknown", "Status: Held", "Status: Running cores",
 						     "Requested: Max glideins", "Requested : Idle", "Requested: Max cores", "Requested : Idle cores", "Client Monitor: Claimed",
 							 "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched", "Client Monitor: User idle",
 							 "Client Monitor: Registered", "Client Monitor: Info age");  
@@ -2055,10 +2055,10 @@ function makeTable()
 	table = document.createElement('table');
 	tBody=document.createElement('tbody');
 	table.setAttribute('id','table');
-	colSpanArry = new Array(1, 1, 8, 2, 7); 
+	colSpanArry = new Array(1, 1, 9, 4, 7);
 	headTxt = new Array("" , "" ,"Status: ", "Requested: ", "Client Monitor: ");
 	headId = new Array('empty', 'downtime','status', 'requested', 'client');  
-	headClr = new Array('#DCDCDC', '#DCDCDC', '#FAF0E6', '#FFDAB9', '#CDAF95'); 
+	headClr = new Array('#DCDCDC', '#DCDCDC', '#FAF0E6', '#FFDAB9', '#CDAF95');
 	
 	/* HEADER */
 	for(x = 0; x < headTxt.length; x++)
@@ -2177,13 +2177,14 @@ function sortSignal()
     if(sortColNum == -2) return; /* INCOMPATIBLE COL */ 	
 
 	/* COLOR SELECTED COLS */
+	/* TODO: use colSpanArry or	hArry3 or lenghs like (1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length) */
 	for(i = 0; i < totalEntries.length; i++)
 	{	
 		if(sortColNum > 0 && sortColNum <= 1 + xmlAttStatNumArry.length)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FAF0E6";
 		}
-		else if(sortColNum == 10 || sortColNum == 11)
+		else if(sortColNum >= 11 && sortColNum <= 14)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FFDAB9";
 		}

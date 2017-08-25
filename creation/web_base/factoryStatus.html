@@ -211,19 +211,19 @@ function recreate_graph() {
         gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle');
 
         gtype_formats=new Object();
-        gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#00f802", checked:true,
-                                                    lines: { show: true, fill: true, fillColor:"#00ff02"} },
-                                  'StatusRunningCores':{ title: 'Running glidein cores', label:'Running cores',color: "#00f800", checked:true,
+        gtype_formats['running']={'StatusRunningCores':{ title: 'Running glidein cores', label:'Running cores',color: "#00f800", checked:true,
                                                     lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'ReqMaxGlideins':{title: 'Max requested glideins', label:'Max requested', color: "#c00080"},
+                                  'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#20a680", checked:true,
+                                                    lines: { show: true, fill: true, fillColor:"#20ad80"} },
                                   'ReqMaxCores':{title: 'Max requested cores', label:'Max requested cores', color: "#c00000"},
+                                  'ReqMaxGlideins':{title: 'Max requested glideins', label:'Max requested', color: "#c00080"},
                                   'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#000000"},
                                   'ClientGlideRunning':{title: 'Glideins claimed by user jobs', label:'Claimed', color: "#8000ff", checked:true},
                                   'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},
                                   'ClientJobsRunning':{title: 'User jobs running', label:'User running', color: "#0080ff"},
-                                  'ClientJobsIdle':{title: 'User jobs idle', label:'User idle', color: "#008000"},
-                                  'ReqIdle':{ title: 'Requested idle glideins', label:'Requested', color: "#ff8080"}, 
+                                  'ClientJobsIdle':{title: 'User jobs idle', label:'User idle', color: "#006000"},
                                   'ReqIdleCores':{ title: 'Requested idle cores', label:'Requested cores', color: "#ff8000"},
+                                  'ReqIdle':{ title: 'Requested idle glideins', label:'Requested', color: "#ff8080"},
                                   'StatusIdle':{title: 'Idle glidein jobs', label:'Idle', color: "#00ffff"},
                                   'ClientInfoAge':{title: 'Info age', label:'Info age', color: "#808080", yaxis: 2}};
 
