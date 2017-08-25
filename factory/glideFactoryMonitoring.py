@@ -264,7 +264,7 @@ class condorQStats:
                 el[status] = 0
             if qc_status.has_key(nr):
                 el[status] += qc_status[nr]
-        status_pairs = ((2, "RunningCores"))  # There may be multiple cores accounting pairs in the future
+        status_pairs = ((2, "RunningCores"),)  # There may be multiple cores accounting pairs in the future
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
