@@ -853,6 +853,7 @@ def logStats(condorq, client_int_name, client_security_name,
 
     return
 
+
 def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
                    req_idle, req_max_run, work_el, fraction=1.0,
                    log=logSupport.log, factoryConfig=None):
@@ -877,8 +878,9 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     log.info("  Params: %s" % work_el['params'])
     # cannot log decrypted ones... they are most likely sensitive
     log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
-
-    reqs = {'IdleGlideins':req_idle, 'MaxGlideins':req_max_run}
+    # requests use GLIDEIN_CPUS to estimate cores
+    # TODO: this may change for multi_node requests (GLIDEIN_NODES)
+    reqs = {'IdleGlideins': req_idle, 'MaxGlideins': req_max_run}
     factoryConfig.client_stats.logRequest(client_int_name, reqs)
     factoryConfig.qc_stats.logRequest(client_log_name, reqs)
 
