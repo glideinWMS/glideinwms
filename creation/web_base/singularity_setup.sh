@@ -175,9 +175,17 @@ if true; then
     # under /cvmfs/singularity.opensciencegrid.org
     export GWMS_SINGULARITY_IMAGE_DEFAULT6=`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | awk '{print $2}'`
     export GWMS_SINGULARITY_IMAGE_DEFAULT7=`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | awk '{print $2}'`
+    export GWMS_SINGULARITY_IMAGE_DEFAULT=''
 
 #    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT" = "x" ]; then
-    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
+    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" != "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
+	GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT6
+    elif [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" != "x" ]; then
+	GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT7
+    elif [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" != "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" != "x" ]; then
+	GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT7
+    elif [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
+#    if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" -o "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
         HAS_SINGULARITY="False"
 	if [ "$use_singularity" == "OPTIONAL" ]; then
 	    warn "SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
@@ -190,9 +198,8 @@ if true; then
     fi
 
     # for now, we will only advertise singularity on nodes which can access cvmfs
-#    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
-    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT6" -o ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT7" ]; then
-        HAS_SINGULARITY="False" #GWMS I don't think we need this any longer..
+    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
+        HAS_SINGULARITY="False"
 	if [ "$use_singularity" == "OPTIONAL" ]; then
 	    warn "$GWMS_SINGULARITY_IMAGE_DEFAULT doex not exist."
             no_use_singularity_config
@@ -202,8 +209,6 @@ if true; then
 	    exit 1
 	fi
     fi
-
-    export GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT6
 
     if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
         info "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $GWMS_SINGULARITY_IMAGE_DEFAULT echo Hello World | grep Hello World"

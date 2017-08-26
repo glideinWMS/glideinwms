@@ -2,8 +2,6 @@
 #
 glidein_config="$1"
 
-#error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-
 function advertise {
     key="$1"
     value="$2"
@@ -30,9 +28,14 @@ if [ "$glidein_config" != "NONE" ]; then
     source $add_config_line_source
 fi
 
+# Important: each VO must replace the following two variables with the paths to 
+# singularity images that they want to use.
+# And also remember that for now, GWMS supports singularity images under /cvmfs/
+# preferably under /cvmfs/singularity.opensciencegrid.org/
 export SINGULARITY_IMAGE_DEFAULT6="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
 export SINGULARITY_IMAGE_DEFAULT7="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
 
+# Do not touch below
 advertise SINGULARITY_IMAGE_DEFAULT6 "$SINGULARITY_IMAGE_DEFAULT6" "S"
 advertise SINGULARITY_IMAGE_DEFAULT7 "$SINGULARITY_IMAGE_DEFAULT7" "S"
 

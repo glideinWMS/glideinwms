@@ -49,6 +49,8 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     export SINGULARITY_IMAGE_DEFAULT6=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT6)
     export SINGULARITY_IMAGE_DEFAULT7=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT7)
 
+    export GLIDEIN_REQUIRED_OS=$(getPropStr $_CONDOR_MACHINE_AD GLIDEIN_REQUIRED_OS)
+    export REQUIRED_OS=$(getPropStr $_CONDOR_JOB_AD REQUIRED_OS)
 ## from Job ClassAd
     export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
     export GWMS_SINGULARITY_BIND_CVMFS=1
@@ -90,12 +92,22 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
             fi
 
             if [ "x$DESIRED_OS" = "x" ]; then
-                export GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT6"
+		if [ "x$SINGULARITY_IMAGE_DEFAULT6" != "x" ]; then 
+		    GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT6"
+		else
+		    GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT7"
+		fi
             elif [ "x$DESIRED_OS" = "xrhel6" ]; then
-                export GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT6"
+                GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT6"
             else # For now, we just enumerate RHEL6 and RHEL7.
-                export GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT7"
+                GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT7"
             fi
+	    # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
+	    if [ "x$GWMS_SINGULARITY_IMAGE" = "x" ]; then 
+		echo "Error: If you get this error when you did not specify desired OS, your VO does not support any default image" 1>&2
+		echo "Error: If you get this error when you specified desired OS, your VO does not support that OS" 1>&2
+		exit 1
+	    fi
 	else
 	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
 	    if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
