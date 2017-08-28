@@ -814,6 +814,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Mon Aug 28 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-0.1.rc1
+- Glideinwms v3.2.20
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_20/history.html
+- Release candidates: 3.2.20-0.1.rc1
+
 * Tue May 30 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.19-1
 - Glideinwms v3.2.19
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_19/history.html
@@ -884,7 +889,7 @@ rm -rf $RPM_BUILD_ROOT
 - Glideinwms v3.2.11 release
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_11/history.html
 
-* Thu Jul 16 2015 Mátyás Selmeci <matyas@cs.wisc.edu> - 3.2.10-1.1.osg
+* Thu Jul 16 2015 M??ty??s Selmeci <matyas@cs.wisc.edu> - 3.2.10-1.1.osg
 - vofrontend-standalone: Replace osg-client dep with most of osg-client's
   contents (except the networking stuff), since osg-client has been dropped in
   OSG 3.3
