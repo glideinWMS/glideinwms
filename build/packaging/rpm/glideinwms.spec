@@ -819,6 +819,9 @@ rm -rf $RPM_BUILD_ROOT
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_20/history.html
 - Release candidates: 3.2.20-0.1.rc1
 
+* Thu Jun 01 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.19-2
+- Removed obsolete osg-cert-scripts dependency
+
 * Tue May 30 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.19-1
 - Glideinwms v3.2.19
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_19/history.html
