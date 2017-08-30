@@ -85,6 +85,20 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_20</b> released on September 5, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_20/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_19/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_19.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Verified that Factory can start 1500 entries at a time</li>
+          <li>Improved Factory monitoring by adding cores count for running jobs and requests</li>
+          <li>Removed dependency from Globus clients</li>
+          <li>Support Singularity (future replacement for glexec)</li>
+          <li>Bug Fix: -fix_rrd is always in the upgrade command beside reconfig option
+          <li>Bug Fix: Fixed some failing unit tests
+          <li>Bug Fix: Fixed Factory job stats are empty
+          <li>Bug Fix: Custom Google search in the documentation pointing to the new site, not the old mirror on uscms.org
+          <li>Bug Fix: Fix DC_DAEMON_LIST
+       </ul>
+      </li>
+      <li>
         <b>v3_2_19</b> released on May 30, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_19/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_19/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_19.tgz">Tarball</a>)<br>
         <ul>
           <li>NOTE: If using HTCondor 8.6.x you have to disable the collector use of shared port. In /etc/condor/config.d/01_gwms_factory_collectors.config (factory) /etc/condor/config.d/01_gwms_collectors.config (frontend, wms user collector) and (after the line COLLECTOR_USES_SHARED_PORT=False) add the line:

@@ -211,10 +211,9 @@ function recreate_graph() {
         gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle');
 
         gtype_formats=new Object();
-        gtype_formats['running']={'StatusRunningCores':{ title: 'Running glidein cores', label:'Running cores',color: "#00f800", checked:true,
+        gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#00f800", checked:true,
                                                     lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#20a680", checked:true,
-                                                    lines: { show: true, fill: true, fillColor:"#20ad80"} },
+                                  'StatusRunningCores':{ title: 'Running glidein cores', label:'Running cores',color: "#20a680", checked:true},
                                   'ReqMaxCores':{title: 'Max requested cores', label:'Max requested cores', color: "#c00000"},
                                   'ReqMaxGlideins':{title: 'Max requested glideins', label:'Max requested', color: "#c00080"},
                                   'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#000000"},
