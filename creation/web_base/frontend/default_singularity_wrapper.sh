@@ -85,7 +85,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
             if [ "x$GLIDEIN_REQUIRED_OS" = "xany" ]; then
                 DESIRED_OS=$REQUIRED_OS
                 if [ "x$DESIRED_OS" = "xany" ]; then
-                    DESIRED_OS=rhel7
+                    DESIRED_OS="rhel7"
                 fi
             else
                 DESIRED_OS=$(python -c "print sorted(list(set('$REQUIRED_OS'.split(',')).intersection('$GLIDEIN_REQUIRED_OS'.split(','))))[0]" 2>/dev/null)

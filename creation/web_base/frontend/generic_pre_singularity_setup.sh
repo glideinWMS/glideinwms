@@ -32,11 +32,14 @@ fi
 # singularity images that they want to use.
 # And also remember that for now, GWMS supports singularity images under /cvmfs/
 # preferably under /cvmfs/singularity.opensciencegrid.org/
-export SINGULARITY_IMAGE_DEFAULT6="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
-export SINGULARITY_IMAGE_DEFAULT7="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
 
-# Do not touch below
+# Another important message is, if you do not need either SINGULARITY_IMAGE_DEFAULT6 or SINGULARITY_IMAGE_DEFAULT7
+# you have to comment out both export and advertise lines together!!
+
+export SINGULARITY_IMAGE_DEFAULT6="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
 advertise SINGULARITY_IMAGE_DEFAULT6 "$SINGULARITY_IMAGE_DEFAULT6" "S"
+
+export SINGULARITY_IMAGE_DEFAULT7="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
 advertise SINGULARITY_IMAGE_DEFAULT7 "$SINGULARITY_IMAGE_DEFAULT7" "S"
 
 exit 0

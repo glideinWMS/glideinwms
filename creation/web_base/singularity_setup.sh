@@ -236,7 +236,7 @@ if true; then
 
     advertise HAS_SINGULARITY "True" "C"
     advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
-
+    advertise GLIDEIN_REQUIRED_OS "any" "S"
 fi
 
 info "All done - time to do some real work!"
