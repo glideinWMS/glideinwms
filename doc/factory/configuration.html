@@ -160,7 +160,7 @@ for a more detailed description.
                     <blockquote>
                     <a href="#config">&lt;submit_attrs&gt;</a><br/>
                         <blockquote>
-                        <a href="#config">&lt;submit_attr name="RequestMemory" value="2000"&gt;</a><br/>
+                        <a href="#config">&lt;submit_attr name="RequestMemory" value="2000"/&gt;</a><br/>
                         </blockquote>
                     <a href="#config">&lt;submit_attrs/&gt;</a><br/>
                     </blockquote>
@@ -1010,6 +1010,24 @@ deploying a larger one. In this section, the various advanced aspects
 of glidein pools will be presented. 
 </p>
 </div>
+
+<div class="section">
+<H3 CLASS="western"><A NAME="glexec"></A>Integration with Singularity</H3>
+<UL>
+    <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity AND enforces the use of Singularity, you must have 
+&lt;attr name=&quot;GLIDEIN_SINGULARITY_REQUIRE&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;True&quot;/&gt; in &lt;attrs&gt;
+and SINGULARITY_BIN must be given the full path name of singularity binary, for example,
+&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin/singularity&quot;/&gt; in &lt;attrs&gt;.
+    </P>
+    <LI><P STYLE="margin-bottom: 0in">If an entry is not capable of Singularity at all, make sure you don't have SINGULARITY_BIN in &lt;attrs&gt;.
+	Remember that SINGULARITY_BIN should NEVER be set in the factory configuration if your site does not support the Singularity.
+    </P>
+    <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity BUT does not necessarily enforce the use of Singularity,
+you don't need to have GLIDEIN_SINGULARITY_REQUIRE in &lt;attrs&gt; but 
+SINGULARITY_BIN must be given the path of singularity binary(not including the filename), for example,
+&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin&quot;/&gt;.
+    </P>
+</UL>
 
 <div class="section">
 <H3 CLASS="western"><A NAME="glexec"></A>Integration with gLExec</H3>
