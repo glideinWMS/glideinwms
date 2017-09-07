@@ -82,10 +82,6 @@ Requires: condor >= 8.4.0
 Requires: python-rrdtool
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
-Requires: globus-common-progs
-Requires: globus-gram-client-tools
-Requires: globus-gsi-cert-utils-progs
-Requires: gsi-openssh-clients
 Requires: osg-system-profiler
 Requires: osg-version
 Requires: osg-wn-client

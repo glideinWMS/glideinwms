@@ -218,7 +218,7 @@ the factory config's security_class element name attribute. </li>
         Error 7: authentication failed with remote server.
     </blockquote>
     Make sure the proxy/cert is correct.  
-    Try the following to make sure the user is authorized to run jobs on the site.
+    Try the following to make sure the user is authorized to run jobs on the site (You need to have globus-gram-client-tools installed).
     <blockquote>
         X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
     </blockquote>
