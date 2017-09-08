@@ -364,6 +364,7 @@ install -m 644 creation/web_base/frontendRRDGroupMatrix.html $RPM_BUILD_ROOT%{we
 install -m 644 creation/web_base/frontendStatus.html $RPM_BUILD_ROOT%{web_dir}/monitor/frontendStatus.html
 install -m 644 creation/web_base/frontend/index.html $RPM_BUILD_ROOT%{web_dir}/monitor/
 install -m 644 creation/web_base/factory/index.html $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
+install -m 644 creation/web_base/factory/factoryFrontendMonitorLink.html $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
 cp -arp creation/web_base/factory/images $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
 cp -arp creation/web_base/frontend/images $RPM_BUILD_ROOT%{web_dir}/monitor/
 
