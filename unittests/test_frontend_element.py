@@ -23,6 +23,7 @@ import xmlrunner
 class FEElementTestCase(unittest.TestCase):
     def setUp(self):
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript('fixtures/frontend')
 
         with mock.patch.object(glideinFrontendConfig.ConfigFile, 'load') as m_load:

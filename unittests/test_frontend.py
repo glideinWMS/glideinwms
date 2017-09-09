@@ -58,6 +58,9 @@ def compareLambdas(func1, func2):
 
 class FETestCaseBase(unittest.TestCase):
     def setUp(self):
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        # Only condor cliens are mocked, not the python bindings
+        condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
             f = open('cs.fixture')
             m_exe_cmd.return_value = f.readlines()
@@ -96,7 +99,6 @@ class FETestCaseCount(FETestCaseBase):
 
     def setUp(self):
         super(FETestCaseCount, self).setUp()
-        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
 
     def test_countMatch_missingKey(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
