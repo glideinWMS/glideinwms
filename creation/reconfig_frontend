@@ -23,6 +23,7 @@ STARTUP_DIR=sys.path[0]
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 fix_rrd = False
 
+import signal
 import os.path
 import string
 import shutil
@@ -121,6 +122,8 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
+    signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+
     usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
 
@@ -236,4 +239,6 @@ if __name__ == '__main__':
 
     if sighupreload:
         print2("switching back to the main glideinFrontend process")
+        reloadlock = lockSupport.LockSupport()
+        reloadlock.delete()
         os.execv( os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'] )

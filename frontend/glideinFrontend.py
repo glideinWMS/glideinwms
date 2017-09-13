@@ -38,6 +38,7 @@ from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinFrontendElement import glideinFrontendElement
+from glideinwms.lib import lockSupport
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
@@ -572,6 +573,7 @@ def main(work_dir, action):
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except HUPException:
+            signal.signal( signal.SIGHUP,  signal.SIG_IGN )
             logSupport.log.info("Received SIGHUP, reload config")
             pid_obj.relinquish()
             os.execv( os.path.join(FRONTEND_DIR, "../creation/reconfig_frontend"), ['reconfig_frontend', '-sighupreload', '-xml', '/etc/gwms-frontend/frontend.xml'] )
@@ -593,12 +595,22 @@ def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
 
 def hupsignal(signr, frame):
-    raise HUPException, "Received signal %s" % signr
+    reloadlock = lockSupport.LockSupport()
+    if reloadlock.check():
+        logSupport.log.info("Received signal but a reload is in progress...ignoring")
+    else:
+        reloadlock.create()
+        logSupport.log.info("Received signal reloadlock is created")
+        raise HUPException, "Received signal %s" % signr
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
     signal.signal(signal.SIGHUP,  hupsignal)
+
+    reloadlock = lockSupport.LockSupport()
+    if reloadlock.check():
+        reloadlock.delete()
 
     if len(sys.argv) == 2:
         action = "run"
