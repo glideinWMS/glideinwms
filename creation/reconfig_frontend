@@ -122,8 +122,6 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
-    signal.signal( signal.SIGHUP,  signal.SIG_IGN )
-
     usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
 
@@ -163,6 +161,9 @@ if __name__ == '__main__':
         if argv[i] == '-help':
             print2(usage)
             sys.exit(1)
+
+    if sighupreload:
+      signal.signal( signal.SIGHUP,  signal.SIG_IGN )
 
     if xml == '':
         # to support upgrading from versions older than v2.5.3
