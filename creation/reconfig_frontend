@@ -163,7 +163,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     if sighupreload:
-      signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+        signal.signal( signal.SIGHUP,  signal.SIG_IGN )
 
     if xml == '':
         # to support upgrading from versions older than v2.5.3
@@ -240,6 +240,4 @@ if __name__ == '__main__':
 
     if sighupreload:
         print2("switching back to the main glideinFrontend process")
-        reloadlock = lockSupport.LockSupport()
-        reloadlock.delete()
         os.execv( os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'] )
