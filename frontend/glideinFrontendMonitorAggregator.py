@@ -151,43 +151,35 @@ def verifyRRD(fix_rrd=False):
     """
     global rrd_problems_found
     global monitorAggregatorConfig
-    dir=monitorAggregatorConfig.monitor_dir
-    total_dir=os.path.join(dir,"total")
+    mon_dir = monitorAggregatorConfig.monitor_dir
 
-    status_dict={}
-    status_total_dict={}
+    status_dict = {}
+    status_total_dict = {}
     for tp in frontend_status_attributes.keys():
         if tp in frontend_total_type_strings.keys():
-            tp_str=frontend_total_type_strings[tp]
-            attributes_tp=frontend_status_attributes[tp]
+            tp_str = frontend_total_type_strings[tp]
+            attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
-                status_total_dict["%s%s"%(tp_str,a)]=None
+                status_total_dict["%s%s"%(tp_str, a)] = None
         if tp in frontend_job_type_strings.keys():
-            tp_str=frontend_job_type_strings[tp]
-            attributes_tp=frontend_status_attributes[tp]
+            tp_str = frontend_job_type_strings[tp]
+            attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
-                status_dict["%s%s"%(tp_str,a)]=None
+                status_dict["%s%s"%(tp_str, a)] = None
 
-    if not os.path.isdir(dir):
+    if not os.path.isdir(mon_dir):
         print "WARNING: monitor/ directory does not exist, skipping rrd verification."
         return True
-    for filename in os.listdir(dir):
-        if (filename[:6]=="group_") or (filename=="total"):
-            current_dir=os.path.join(dir,filename)
-            if filename=="total":
-                verifyHelper(os.path.join(current_dir,
-                    "Status_Attributes.rrd"),status_total_dict, fix_rrd)
-            for dirname in os.listdir(current_dir):
-                current_subdir=os.path.join(current_dir,dirname)
-                if dirname[:6]=="state_":
-                    verifyHelper(os.path.join(current_subdir,
-                        "Status_Attributes.rrd"),status_dict, fix_rrd)
-                if dirname[:8]=="factory_":
-                    verifyHelper(os.path.join(current_subdir,
-                        "Status_Attributes.rrd"),status_dict, fix_rrd)
-                if dirname=="total":
-                    verifyHelper(os.path.join(current_subdir,
-                        "Status_Attributes.rrd"),status_total_dict, fix_rrd)
+    for dir_name, sdir_name, f_list in os.walk(mon_dir):
+        for file_name in f_list:
+            if file_name == 'Status_Attributes.rrd':
+                if os.path.basename(dir_name) == 'total':
+                    verifyHelper(os.path.join(dir_name, file_name),
+                                 status_total_dict, fix_rrd)
+                else:
+                    verifyHelper(os.path.join(dir_name, file_name),
+                                 status_dict, fix_rrd)
+
     return not rrd_problems_found
 
 
