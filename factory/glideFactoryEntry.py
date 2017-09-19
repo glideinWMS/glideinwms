@@ -201,6 +201,18 @@ class Entry:
         gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
+    def getGlideinExpectedCores(self):
+        """
+        Return the number of cores expected for each glidein.
+         This is the GLIDEIN_CPU attribute or 1 if not set
+         The actual cores received will depend on the RSL or HTCondor attributes and the Entry
+         and could also vary over time.
+        """
+        try:
+            res = int(self.jobAttributes.data['GLIDEIN_CPUS'])
+            return res
+        except (KeyError, ValueError):
+            return 1
 
     def loadWhitelist(self):
         """
@@ -339,9 +351,11 @@ class Entry:
         self.gflFactoryConfig.log_stats.reset()
 
         # This one is used for stats advertized in the ClassAd
-        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(log=self.log)
+        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(log=self.log,
+                                                                                 cores=self.getGlideinExpectedCores())
         # These two are used to write the history to disk
-        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log)
+        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log,
+                                                                             cores=self.getGlideinExpectedCores())
         self.gflFactoryConfig.client_internals = {}
         self.log.info("Iteration initialized")
 
@@ -1358,6 +1372,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     #
 
     remove_excess = work['requests'].get('RemoveExcess', 'NO')
+    idle_lifetime = work['requests'].get('IdleLifetime', 0)
 
     if 'IdleGlideins' not in work['requests']:
         # Malformed, if no IdleGlideins
@@ -1420,7 +1435,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     glideFactoryLib.logWorkRequest(
         client_int_name, client_security_name,
         submit_credentials.security_class, idle_glideins,
-        max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+        max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig
+    )
 
     all_security_names.add((client_security_name, credential_security_class))
 
@@ -1449,7 +1465,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     done_something = perform_work_v3(entry, entry_condorQ, client_name,
                                      client_int_name, client_security_name,
                                      submit_credentials, remove_excess,
-                                     idle_glideins, max_glideins,
+                                     idle_glideins, max_glideins, idle_lifetime,
                                      credential_username, entry.glideinTotals,
                                      frontend_name, client_web, params)
 
@@ -1615,6 +1631,8 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
     #
 
     remove_excess = work['requests'].get('RemoveExcess', 'NO')
+    idle_lifetime = work['requests'].get('IdleLifetime', 0)
+
 
     if 'IdleGlideins' not in work['requests']:
         # Malformed, if no IdleGlideins
@@ -1715,7 +1733,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
                              entry, entry_condorQ, client_name, client_int_name,
                              client_security_name, x509_proxy_security_class,
                              remove_excess, idle_glideins_pc, max_glideins_pc,
-                             x509_proxies.fnames[x509_proxy_security_class],
+                             idle_lifetime, x509_proxies.fnames[x509_proxy_security_class],
                              x509_proxies.get_username(x509_proxy_security_class),
                              identity_credentials, entry.glideinTotals,
                              frontend_name, client_web, params)
@@ -1731,7 +1749,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
 
 def perform_work_v3(entry, condorQ, client_name, client_int_name,
                     client_security_name, submit_credentials, remove_excess,
-                    idle_glideins, max_glideins, credential_username,
+                    idle_glideins, max_glideins, idle_lifetime, credential_username,
                     glidein_totals, frontend_name, client_web, params):
 
     # find out the users it is using
@@ -1761,7 +1779,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     entry.log.info("Using v3+ protocol and credential %s" % submit_credentials.id)
     nr_submitted = glideFactoryLib.keepIdleGlideins(
                        condorQ, client_int_name, idle_glideins,
-                       max_glideins, remove_excess, submit_credentials,
+                       max_glideins, idle_lifetime, remove_excess, submit_credentials,
                        glidein_totals, frontend_name, client_web, params,
                        log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
@@ -1778,7 +1796,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
 
 def perform_work_v2(entry, condorQ, client_name, client_int_name,
                     client_security_name, credential_security_class,
-                    remove_excess, idle_glideins, max_running,
+                    remove_excess, idle_glideins, max_running, idle_lifetime,
                     credential_fnames, credential_username,
                     identity_credentials, glidein_totals, frontend_name,
                     client_web, params):
@@ -1877,7 +1895,7 @@ def perform_work_v2(entry, condorQ, client_name, client_int_name,
         entry.log.info("Using v2+ protocol and credential %s" % submit_credentials.id)
         nr_submitted += glideFactoryLib.keepIdleGlideins(
                             condorQ, client_int_name,
-                            idle_glideins_pproxy, max_glideins_pproxy,
+                            idle_glideins_pproxy, max_glideins_pproxy, idle_lifetime,
                             remove_excess, submit_credentials,
                             glidein_totals, frontend_name,
                             client_web, params, log=entry.log,

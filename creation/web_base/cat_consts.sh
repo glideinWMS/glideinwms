@@ -45,8 +45,9 @@ if [ -n "$consts_file" ]; then
     # merge constants
     while read line
     do
-	add_config_line $line
-	let ++nr_lines
+        # disable globbing but keep the splitting in $line
+        ( set -f; add_config_line $line )
+        let ++nr_lines
     done < "$consts_file"
     echo "# --- End $dir_id constants       ---" >> $glidein_config
 fi

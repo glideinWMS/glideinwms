@@ -553,6 +553,52 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         factory to submit jobs to sites that have GLEXEC configured.
         </P></li>
         <LI><P>
+        <a name="attr_singularity" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
+            </div>
+        This determines whether or not you want to mandate
+        the use of Singularity. Possible values are 
+            NEVER (do not use Singularity) or
+            OPTIONAL (use Singularity if the site is configured with it) 
+            or REQUIRED (always use Singularity). 
+        If REQUIRED or OPTIONAL is used, the default wrapper script that we provide should be used, in other words
+a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
+	    <br>
+        If REQUIRED or OPTIONAL is used, you have to copy generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/, rename it
+and set SINGULARITY_IMAGE_DEFAULT6 and SINGULARITY_IMAGE_DEFAULT7 to the pathnames of your singularity images for El6 and El7 respectively in /cvmfs area.
+Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/(your vo)_pre_singularity_setup.sh</I>&quot; 
+ after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
+	    <br>
+        If you want to use your own wrapper script for singularity, you must first understand 
+        <I>/var/lib/gwms-frontend/web-base/default_singularity_setup.sh</I>
+        and make your custom script compatible with this setup script.
+	<br>
+        Users can specify the following 2 lines in their job submit file
+	<ul>
+	  <li> If their jobs need a list of repositories, they must specify the list between double quotes, separated by commas, for example,
+	    <br>
+          +CVMFSReposList = &quot;cms.cern.ch,atlas.cern.ch&quot;.
+	    <br>
+	    If any of these cvmfs repositories is not availale, the user jobs will fail.
+          </li>
+	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I>
+	    <br>
+          and use +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/&lt;path name to the image&gt;&quot;.
+	    <br>
+	    If users use this feature and if the singularity image is not in /cvmfs repository, the user job will error out.
+          </li>
+	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
+	    But if any default singularity image is not available, the user job will fail.
+	    Also, if the users specify REQUIRED_OS as rhel6 or rhel7, the corresponding version of default singularity image will be used.
+	    But if the corresponding version of default singularity image is not available, the user job will fail.
+	    If the users specify REQUIRED_OS as any, any default singularity image available will be used 
+            and the user job will fail if there is no default singularity image.
+	  </li>
+	</ul>
+        </P></li>
+
+        <LI><P>
         <a name="attr_client_rank" />
             <div class="xml">
             &lt;attr name=&quot;GLIDECLIENT_Rank&quot; &gt;
@@ -668,6 +714,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     aggressive the provisioning requests should be.<br>
      The number specified in <b>max</b> is the highest number of idle/pending 
      glideins that the resource associated with any factory entry will ever see.
+     <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
+         state in the factory queue before they are automatically removed (through a periodic_remove expression)
      <li>The next two are used to throttle the requests, if the provisioned glideins (counted as number of slots) 
          are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
          <b>idle_vms_per_entry</b> throttles based on a per factory entry basis (e.g. Grid site), <br>while
