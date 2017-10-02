@@ -84,7 +84,7 @@
    </groups>
    <collectors>
       <collector DN="__VOCOLLECTOR_DN__" group="default" node="__VOCOLLECTOR_FQDN__:9618" secondary="False"/>
-      <collector DN="__VOCOLLECTOR_DN__" group="default" node="__VOCOLLECTOR_FQDN__:9619-9620" secondary="True"/>
+      <collector DN="__VOCOLLECTOR_DN__" group="default" node="__VOCOLLECTOR_FQDN__:9620-9630" secondary="True"/>
    </collectors>
    <files>
    </files>

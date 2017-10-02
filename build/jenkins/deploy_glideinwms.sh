@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Tool to automate the GlideinWMS rpm deployment and testing
 # Author: Parag Mhashilkar
@@ -23,14 +23,15 @@ function is_vm_up() {
     # Wait for 5 min trying ssh into the machine every 30 sec
     # When ssh is successfull, machine is usable
     local retries=0
-    echo "Waiting for $fqdn to boot up ..."
+    echo -n "Waiting for $fqdn to boot up ..."
     while [ $retries -lt 30 ] ; do
-        tmpout=`ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $fqdn hostname`
+        tmpout=`ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $fqdn hostname 2>&1`
         if [ "$tmpout" != "$fqdn" ] ; then
-            echo "... Retry count: $retries ..."
+            echo -n "."
             sleep 30
             retries=`expr $retries + 1`
         else
+            echo
             return 0
         fi
     done
@@ -176,7 +177,12 @@ install_rpms $enable_repo glideinwms-factory${gwms_release} condor-python
 
 patch_privsep_config
 
+add_dn_to_condor_mapfile "$jobs_dn" testuser
 add_dn_to_condor_mapfile "$vofe_dn" vofrontend_service
+if [ "$vofe_dn" != "$vo_collector_dn" ]; then
+    add_dn_to_condor_mapfile "$vo_collector_dn" condor
+fi
+add_dn_to_condor_mapfile "$fact_vm_dn" factory
 
 configure_fact
 
@@ -236,6 +242,7 @@ function configure_vofe() {
 
     if [ "$vofe_proxy" = "" ]; then
         grid-proxy-init -valid 48:0 -cert /etc/grid-security/hostcert.pem -key /etc/grid-security/hostkey.pem -out /tmp/frontend_proxy
+        echo 00 \* \* \* \*   /usr/bin/grid-proxy-init -valid 48:0 -cert /etc/grid-security/hostcert.pem -key /etc/grid-security/hostkey.pem -out /tmp/host_proxy \; /bin/cp /tmp/host_proxy /tmp/frontend_proxy \; /bin/cp /tmp/host_proxy /tmp/vo_proxy \;/bin/cp /tmp/host_proxy /tmp/grid_proxy | crontab -
     fi
     chown frontend:frontend /tmp/frontend_proxy
     cp /tmp/frontend_proxy /tmp/vo_proxy
@@ -271,7 +278,10 @@ install_rpms $enable_repo glideinwms-vofrontend${gwms_release} condor-python
 
 add_dn_to_condor_mapfile "$jobs_dn" testuser
 add_dn_to_condor_mapfile "$vofe_dn" vofrontend_service
-add_dn_to_condor_mapfile "$vo_collector_dn" condor
+if [ "$vofe_dn" != "$vo_collector_dn" ]; then
+    add_dn_to_condor_mapfile "$vo_collector_dn" condor
+fi
+add_dn_to_condor_mapfile "$fact_vm_dn" factory
 
 start_common_services
 sleep 10
@@ -399,7 +409,7 @@ function help() {
     echo "--monitor        Launch monitoring scripts in xterm"
     echo "--frontend-proxy Frontend proxy to use. Proxy from host DN is used by default"
     echo "--jobs-proxy     Proxy used to submit jobs. Proxy from host DN is used by default"
-    echo "--condor-tarball Location of condor Tarball"
+    echo "--condor-tarball Location of condor Tarball (local file or remote URL)"
     echo "--gwms-release   glideinwms rpm release (Default: latest)"
     echo "--help           Print this help message"
     echo ""
@@ -451,7 +461,7 @@ while [[ $# -gt 0 ]] ; do
             [ -f "$2" ] && jobs_proxy="$2"
             shift ;;
         --condor-tarball)
-            [ -f "$2" ] && condor_tarball="$2"
+            condor_tarball="$2"
             shift ;;
         --vm_template)
             vm_template="${2:-CLI_DynamicIP_SLF6_HOME}"
@@ -460,7 +470,7 @@ while [[ $# -gt 0 ]] ; do
             help
             exit 0;;
         *)
-            echo "Invalid option: $1" &2
+            echo "Invalid option: $1" 
             exit 1 ;;
     esac
     shift
@@ -487,14 +497,20 @@ condor_arch="default"
 # Some constants
 fact_vm_name="fact-el$el-$tag-test"
 vofe_vm_name="vofe-el$el-$tag-test"
-test -f "$condor_tarball"  && base_condor_tarball=`basename $condor_tarball` && base_condor_dir=`echo $base_condor_tarball | sed s/.tar.gz//`
-test -f "$condor_tarball" && condor_version=$(echo $base_condor_tarball | sed s/condor-// | sed s/-.*//)
-test -f "$condor_tarball" && condor_os=$(echo $base_condor_tarball | sed s/.*_// | sed s/-.*//)
-test -f "$condor_tarball" && condor_arch=$(echo $base_condor_tarball | sed s/_${condor_os}.*// | sed s/condor-${condor_version}-//)
+test -n "$condor_tarball"  && base_condor_tarball=`basename $condor_tarball` && base_condor_dir=`echo $base_condor_tarball | sed s/.tar.gz//`
+test -n "$condor_tarball" && condor_version=$(echo $base_condor_tarball | sed s/condor-// | sed s/-.*//)
+test -n "$condor_tarball" && condor_os=$(echo $base_condor_tarball | sed s/.*_// | sed s/-.*//)
+test -n "$condor_tarball" && condor_arch=$(echo $base_condor_tarball | sed s/_${condor_os}.*// | sed s/condor-${condor_version}-//)
 condor_os=$(echo $condor_os | sed s/RedHat/rhel/g)
 
-#for some reason this one is kicking me out, so do this...
+#for some reason fermicloudui.fnal.gov is kicking me out, so 
+#find one that doesnt...
+
 SSH="ssh fermicloudui.fnal.gov"
+$SSH exit 0
+if [ $? -ne 0 ]; then
+    SSH="ssh fcluigpvm01.fnal.gov"
+fi
 $SSH exit 0
 if [ $? -ne 0 ]; then
     SSH="ssh fcluigpvm02.fnal.gov"
@@ -503,8 +519,6 @@ fi
 ENTRIES_CONFIG_DIR=/etc/gwms-factory/config.d
 HTTPD_CONF=/etc/httpd/conf/httpd.conf
 PRIVSEP_CONF=/etc/condor/privsep_config
-# TODO: Remove the dependence on ~parag
-#       Currently it has several config and installation files
 AUTO_INSTALL_SRC_BASE="/tmp"
 AUTO_INSTALL_SRC_DIR="$AUTO_INSTALL_SRC_BASE/deploy_config"
 TS=`date +%s`
@@ -516,9 +530,10 @@ vofe_vmid=`launch_vm $vofe_vm_name $vm_template`
 fact_fqdn=`vm_hostname $fact_vmid`
 vofe_fqdn=`vm_hostname $vofe_vmid`
 
-touch /tmp/installed.nodes
-echo $fact_vm_name $fact_fqdn >> /tmp/installed.nodes
-echo $vofe_vm_name $vofe_fqdn >> /tmp/installed.nodes
+installed_node_list=/tmp/installed.nodes
+touch $installed_node_list
+echo $fact_vm_name $fact_fqdn >>  $installed_node_list
+echo $vofe_vm_name $vofe_fqdn >>  $installed_node_list
 
 fact_fqdn_status="down"
 is_vm_up $fact_fqdn
@@ -610,8 +625,29 @@ echo "-------------------------- Factory Deployment Starting -------------------
 scp -rC $deploy_config_dir root@$fact_fqdn:$AUTO_INSTALL_SRC_BASE
 # Remotely run factory installation scripts
 scp $fact_install_script root@$fact_fqdn:/tmp/fact_install.sh
-test -f "$condor_tarball"  && ssh root@$fact_fqdn 'mkdir -p /var/lib/gwms-factory/condor/' && scp $condor_tarball root@$fact_fqdn:/var/lib/gwms-factory/condor/
-echo "ssh root@$fact_fqdn /tmp/fact_install.sh" > /tmp/ssh_fact.$TS.sh
+if [ -n "$condor_tarball" ]; then
+    ssh root@$fact_fqdn 'mkdir -p /var/lib/gwms-factory/condor/' 
+    if [ -f "$condor_tarball" ]; then
+        scp $condor_tarball root@$fact_fqdn:/var/lib/gwms-factory/condor/
+        if [ $? -ne 0 ]; then
+            echo "failed to copy $condor_tarball to $fact_fqdn, aborting installation"
+            exit 1
+        fi
+    else
+        cmd="/usr/bin/wget $condor_tarball -O /var/lib/gwms-factory/condor/$base_condor_tarball"
+        echo wget command: ssh root@$fact_fqdn $cmd
+        ssh root@$fact_fqdn "$cmd"
+        if [ $? -ne 0 ]; then
+            echo "failed to load condor_tarball $condor_tarball to $fact_fqdn, check URL"
+            echo "aborting installation"
+            exit 1
+        fi
+    fi
+else
+    echo "make sure rpm installation of condor on factory works with start_condor.sh see issue 15924"
+fi
+#test -f "$condor_tarball"  && ssh root@$fact_fqdn 'mkdir -p /var/lib/gwms-factory/condor/' && scp $condor_tarball root@$fact_fqdn:/var/lib/gwms-factory/condor/
+echo "ssh root@$fact_fqdn /tmp/fact_install.sh " > /tmp/ssh_fact.$TS.sh
 chmod +x /tmp/ssh_fact.$TS.sh
 bash /tmp/ssh_fact.$TS.sh 2>&1 | tee -a  $FACT_LOG.$TS 
 fact_install_status="fail"
@@ -654,6 +690,10 @@ frontend_status=$(grep 'FRONTEND VERIFICATION: SUCCESS' $VOFE_LOG.$TS)
 if [ "$frontend_status" = "FRONTEND VERIFICATION: SUCCESS"  ] ; then
     vofe_install_status="pass"
 fi
+
+echo "export fact_fqdn=$fact_fqdn " > /tmp/setnodes.$TS.sh
+echo "export vofe_fqdn=$vofe_fqdn " >> /tmp/setnodes.$TS.sh
+
 
 echo "================================================================================"
 echo "Factory : VM_ID=$fact_vmid FQDN=$fact_fqdn VM_STATUS=$fact_fqdn_status VERIFICATION=$fact_install_status"

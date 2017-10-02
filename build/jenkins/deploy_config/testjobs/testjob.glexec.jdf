@@ -15,10 +15,10 @@ x509userproxy=/tmp/grid_proxy
 Requirements = stringListMember(GLIDEIN_Site,DESIRED_Sites) && (Arch == "INTEL" || Arch == "X86_64")
 
 +DESIRED_Sites = "Test_Site_1"
-queue 2
+queue 4
 
-#+DESIRED_Sites = "Test_Site_2"
-#queue 1
++DESIRED_Sites = "Test_Site_2"
+queue 4
 
 #+DESIRED_Sites = "Fermicloud-1CPU"
 #queue 5
