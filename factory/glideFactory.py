@@ -581,7 +581,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
-            if glideinDescript.data.get('AdvertisePilotAccounting', False):
+            if glideinDescript.data.get('AdvertisePilotAccounting', False) in ['True', '1']:   # data attributes are strings
                 logSupport.log.info("Starting updating job classads")
                 update_classads()
                 logSupport.log.info("Finishing updating job classads")
