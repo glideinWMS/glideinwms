@@ -93,8 +93,8 @@ def update_classads():
             qe.executeAll(joblist=joblist.keys(),
                           attributes=['MONITOR_INFO']*len(joblist),
                           values=map(json.dumps, joblist.values()))
-        except QueryError as qe:
-            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qe)
+        except QueryError as qerr:
+            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qerr)
 
 
 def save_stats(stats, fname):
