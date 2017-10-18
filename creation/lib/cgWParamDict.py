@@ -536,8 +536,11 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 class glideinDicts(cgWDictFile.glideinDicts):
     def __init__(self,conf,
                  sub_list=None): # if None, get it from params
+        import pdb
+        pdb.set_trace()
         if sub_list is None:
             sub_list = [e[u'name'] for e in conf.get_child_list(u'entries')]
+#            sub_list = [e[u'name'] for e in conf.get_child_list(u'entries') if u'name' in e]
 
         self.conf=conf
         submit_dir = conf.get_submit_dir()

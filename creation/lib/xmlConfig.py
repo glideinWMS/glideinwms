@@ -32,25 +32,25 @@ class Handler(xml.sax.ContentHandler):
     def startElement(self, name, attrs):
         if self.file is None:
             if name in LIST_TAGS:
-                el = ListElement(name)
+                el = ListElement(name, parent=self.ancestry[-1:])
             elif name in TAG_CLASS_MAPPING:
                 el = TAG_CLASS_MAPPING[name](name)
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
             else:
-                el = DictElement(name)
+                el = DictElement(name, parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
         else:
             # _locator is an undocumented feature of SAX...
             if name in LIST_TAGS:
-                el = ListElement(name, self.file, self._locator.getLineNumber())
+                el = ListElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
             elif name in TAG_CLASS_MAPPING:
-                el = TAG_CLASS_MAPPING[name](name, self.file, self._locator.getLineNumber())
+                el = TAG_CLASS_MAPPING[name](name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
             else:
-                el = DictElement(name, self.file, self._locator.getLineNumber())
+                el = DictElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
         
@@ -66,10 +66,11 @@ class Handler(xml.sax.ContentHandler):
 
 
 class Element(object):
-    def __init__(self, tag, file="default", line_no=None):
+    def __init__(self, tag, file="default", line_no=None, parent=None):
         self.tag = tag
         self.file = file
         self.line_no = line_no
+        self.parent = parent[0] if parent else None
 
     # children should override these (signature should be the same)
     def add_child(self, child):
@@ -137,6 +138,9 @@ class DictElement(Element, mutablemap):
         self.merge_default_attrs(default)
         for tag in default.children:
             # xml blob completely missing from config, add it
+            if tag == 'entry_sets':
+                import pdb
+                pdb.set_trace()
             if tag not in self.children:
                 # if its an xml list that is missing just create a new empty one
                 if isinstance(default.children[tag], ListElement):
@@ -192,7 +196,12 @@ class ListElement(Element):
 
     def merge_defaults(self, default):
         for child in self.children:
-            child.merge_defaults(default.children[0])
+            try:
+                child.merge_defaults(default.children[0])
+            except:
+                import pdb
+                pdb.set_trace()
+                raise
 
     def check_sort_key(self):
         for child in self.children:
