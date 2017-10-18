@@ -1,7 +1,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Glidein creation module
@@ -14,6 +14,7 @@ import sys
 import cgWDictFile, cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
+
 #
 # see the note in add_file_unparsed def below to understand
 # why this is commented out for now
@@ -21,6 +22,7 @@ import cgWConsts,cWConsts
 #from cWParamDict import is_true, add_file_unparsed
 
 from glideinwms.lib import pubCrypto
+from factoryXmlConfig import EntrySetElement
 
 class UnconfiguredScheddError(Exception):
 
@@ -62,7 +64,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.monitor_htmls=[]
 
     def populate(self, other=None):
-        # put default files in place first       
+        # put default files in place first
         self.dicts['file_list'].add_placeholder('error_gen.sh',allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('error_augment.sh',allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('setup_script.sh',allow_overwrite=True)
@@ -108,7 +110,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
         condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
-        
+
         prev_tar_dir_map = {}
         if other is not None and other.main_dicts.dicts['glidein'].has_key('CondorTarballDirMap'):
             prev_tar_dir_map = eval(other.main_dicts.dicts['glidein']['CondorTarballDirMap'])
@@ -168,7 +170,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 self.dicts['untar_cfg'].add(condor_platform_fname,
                                             cgWConsts.CONDOR_DIR)
-                # Add cond_name in the config, so that it is known 
+                # Add cond_name in the config, so that it is known
                 # But leave it disabled by default
                 self.dicts['consts'].add(cond_name, "0",
                                          allow_overwrite=False)
@@ -192,7 +194,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
         populate_gridmap(self.conf,self.dicts['gridmap'])
-        
+
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
                              'setup_x509.sh',
@@ -282,8 +284,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
-            self.monitor_htmls.append(mfobj)            
-        
+            self.monitor_htmls.append(mfobj)
+
         # add the index page and its images
         mfobj=cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/', 'index.html')
         mfobj.load()
@@ -313,13 +315,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 if file_name == name:
                     return root
         raise RuntimeError,"Unable to find %(file)s in %(dir)s path" % \
-                           { "file" : name,  "dir" : search_path, } 
+                           { "file" : name,  "dir" : search_path, }
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
-        
+
         return cgWDictFile.glideinMainDicts.reuse(self,other)
 
     def save(self,set_readonly=True):
@@ -332,7 +334,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_pub_key(self):
         sec_el = self.conf.get_child(u'security')
         if u'pub_key' not in sec_el:
@@ -347,10 +349,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # I have no way to do it in  RSAKey class
                 fd=os.open(rsa_key_fname,os.O_CREAT,0600)
                 os.close(fd)
-                
+
                 key_obj=pubCrypto.RSAKey()
                 key_obj.new(int(sec_el[u'key_length']))
-                key_obj.save(rsa_key_fname)            
+                key_obj.save(rsa_key_fname)
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key']
 
@@ -368,7 +370,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def save_monitor_config(self, work_dir, glidein_dict):
         monitor_config_file = os.path.join(self.conf.get_monitor_dir(), cgWConsts.MONITOR_CONFIG_FILE)
         monitor_config_line = []
-        
+
         monitor_config_fd = open(monitor_config_file,'w')
         monitor_config_line.append("<monitor_config>")
         monitor_config_line.append("  <entries>")
@@ -377,24 +379,24 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 for entry in self.conf.get_child_list(u'entries'):
                     if eval(entry[u'enabled'],{},{}):
                         monitor_config_line.append("    <entry name=\"%s\">" % entry[u'name'])
-                        monitor_config_line.append("      <monitorgroups>")                
+                        monitor_config_line.append("      <monitorgroups>")
                         for group in entry.get_child_list(u'monitorgroups'):
                             monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group[u'group_name'])
                             monitor_config_line.append("        </monitorgroup>")
-                        
+
                         monitor_config_line.append("      </monitorgroups>")
                         monitor_config_line.append("    </entry>")
-        
+
                 monitor_config_line.append("  </entries>")
                 monitor_config_line.append("</monitor_config>")
-        
+
                 for line in monitor_config_line:
                     monitor_config_fd.write(line + "\n")
             except IOError,e:
                 raise RuntimeError,"Error writing into file %s"%monitor_config_file
         finally:
             monitor_config_fd.close()
-    
+
 ################################################
 #
 # This Class contains the entry dicts
@@ -412,25 +414,27 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         client_proxy_dirs = conf.get_client_proxy_dirs()
         cgWDictFile.glideinEntryDicts.__init__(self,submit_dir,stage_dir,sub_name,summary_signature,workdir_name,
                                                log_dir,client_log_dirs,client_proxy_dirs)
-                                               
+
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.conf=conf
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
-        self.dicts['condor_jdl']=cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE)
-        
+        self.dicts['condor_jdl']=[cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE)]
+
     def load(self):
         cgWDictFile.glideinEntryDicts.load(self)
-        self.dicts['condor_jdl'].load()
+        for cj in self.dicts['condor_jdl']:
+            cj.load()
 
     def save_final(self,set_readonly=True):
         sub_stage_dir=cgWConsts.get_entry_stage_dir("",self.sub_name)
-        
-        self.dicts['condor_jdl'].finalize(self.summary_signature['main'][0],self.summary_signature[sub_stage_dir][0],
-                                          self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
-        self.dicts['condor_jdl'].save(set_readonly=set_readonly)
+
+        for cj in self.dicts['condor_jdl']:
+            cj.finalize(self.summary_signature['main'][0],self.summary_signature[sub_stage_dir][0],
+                                              self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
+            cj.save(set_readonly=set_readonly)
 
     def populate(self,entry,schedd):
         # put default files in place first
@@ -453,8 +457,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         #load system files
         self.dicts['vars'].load(cgWConsts.WEB_BASE_DIR,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
-        
-        
+
         # put user files in stage
         for user_file in entry.get_child_list(u'files'):
             add_file_unparsed(user_file, self.dicts, True)
@@ -471,23 +474,23 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         restrictions = config.get_child(u'restrictions')
         submit = config.get_child(u'submit')
         for dtype in ('attrs','consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry[u'gatekeeper'],allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType",entry[u'gridtype'],allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry.get(u'gatekeeper'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",entry.get(u'gridtype'),allow_overwrite=True)
             # MERGENOTE:
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
-            # using the normal Condor Requirements string. 
+            # using the normal Condor Requirements string.
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",restrictions[u'require_voms_proxy'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",restrictions[u'require_glidein_glexec_use'],allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry[u'trust_domain'],allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry[u'auth_method'],allow_overwrite=True)
-            if u'rsl' in entry:
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry[u'rsl'],allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry.get(u'trust_domain'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry.get(u'auth_method'),allow_overwrite=True)
+            if entry.get(u'rsl') is not None:
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry.get(u'rsl'),allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit[u'slots_layout'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_WorkDir", entry[u'work_dir'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_Verbosity", entry[u'verbosity'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_WorkDir", entry.get(u'work_dir'), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Verbosity", entry.get(u'verbosity'), allow_overwrite=True)
             if u'proxy_url' in entry:
-                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
+                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry.get(u'proxy_url'), allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",restrictions[u'require_voms_proxy'],None,False,True,True)
@@ -505,26 +508,36 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
                               self.sub_name,entry,schedd)
 
-        ################################################################################################################
-        # This is the original function call:
-        #
-        # self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
-        #                                   params.factory_name,params.glidein_name,self.sub_name,
-        #                                   sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
-        #                                   params.web_url,sub_params.proxy_url,sub_params.work_dir,
-        #                                   params.submit.base_client_log_dir, sub_params.submit.submit_attrs)
-        #
-        # Almost all of the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
-        # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
-        # to the function and call it a day.
-        ################################################################################################################
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+
+        #Now that we have the EntrySet fill the condor_jdl for its entries
+        if type(entry)==EntrySetElement:
+            self.dicts['condor_jdl'] = []
+            for subentry in entry.get_child_list('entries'):
+                condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry['name'])
+                condorJdl.load()
+                condorJdl.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+                self.dicts['condor_jdl'].append(condorJdl)
+        for cj in self.dicts['condor_jdl']:
+            ################################################################################################################
+            # This is the original function call:
+            #
+            # self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
+            #                                   params.factory_name,params.glidein_name,self.sub_name,
+            #                                   sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
+            #                                   params.web_url,sub_params.proxy_url,sub_params.work_dir,
+            #                                   params.submit.base_client_log_dir, sub_params.submit.submit_attrs)
+            #
+            # Almost all of the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
+            # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
+            # to the function and call it a day.
+            ################################################################################################################
+            cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: entry monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
-        
+
         return cgWDictFile.glideinEntryDicts.reuse(self,other)
 
 ################################################
@@ -538,7 +551,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def __init__(self,conf,
                  sub_list=None): # if None, get it from params
         if sub_list is None:
-            sub_list = [e[u'name'] for e in conf.get_child_list(u'entries')]
+            sub_list = [e[u'name'] for e in conf.get_child_list(u'entries')] + [e[u'alias'] for e in conf.get_child_list(u'entry_sets')]
 
         self.conf=conf
         submit_dir = conf.get_submit_dir()
@@ -566,8 +579,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         # count all schedds we will reuse and keep track of the entries
         if other is not None:
-            for entry in self.conf.get_child_list(u'entries'):
-                entry_name = entry[u'name']
+            for entry in self.conf.get_child_list(u'entries') + self.conf.get_child_list(u'entry_sets'):
+                entry_name = entry.get(u'name') or entry.get(u'alias')
                 if entry_name in other.sub_dicts:
                     schedd = other.sub_dicts[entry_name]['job_descript']['Schedd']
                     if schedd in schedd_counts:
@@ -577,14 +590,15 @@ class glideinDicts(cgWDictFile.glideinDicts):
                             schedd_counts[schedd] += 1
 
         # now that we have the counts, populate with the best schedd
-        for entry in self.conf.get_child_list(u'entries'):
-            entry_name = entry[u'name']
+        for entry in self.conf.get_child_list(u'entries') + self.conf.get_child_list(u'entry_sets'):
+            entry_name = entry.get(u'name') or entry.get(u'alias')
             if entry_name in prev_entries:
                 schedd = prev_entries[entry_name]
             else:
                 # pick the schedd with the lowest count
                 schedd = sorted(schedd_counts, key=schedd_counts.get)[0]
                 # only count it against us if new entry is active
+                #TODO make sure Entryset have enabled in validate
                 if eval(entry[u'enabled']):
                     schedd_counts[schedd] += 1
             self.sub_dicts[entry_name].populate(entry, schedd)
@@ -595,7 +609,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
-        
+
         return cgWDictFile.glideinDicts.reuse(self,other)
 
     ###########
@@ -633,11 +647,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def new_SubDicts(self,sub_name):
         return glideinEntryDicts(self.conf,sub_name,
                                  self.main_dicts.get_summary_signature(),self.workdir_name)
-        
+
 ############################################################
 #
 # P R I V A T E - Do not use
-# 
+#
 ############################################################
 
 #############################################
@@ -647,11 +661,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
 # !!! NOTE !!! keep using this function in factory. Until
 # FE code is updated to use new xml parsing we can't use
 # the common cWParamDict version
-# 
+#
 # is_factory is just a dummy placeholder to make the transition easier later
 def add_file_unparsed(user_file,dicts, is_factory):
     absfname=user_file['absfname']
-    
+
     if 'relfname' not in user_file:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
     else:
@@ -722,12 +736,12 @@ def add_attr_unparsed(attr,dicts,description):
 
 def add_attr_unparsed_real(attr,dicts):
     attr_name = attr[u'name']
-    
+
     do_publish=eval(attr[u'publish'],{},{})
     is_parameter=eval(attr[u'parameter'],{},{})
     is_const=eval(attr[u'const'],{},{})
     attr_val=attr.get_val()
-    
+
     if do_publish: # publish in factory ClassAd
         if is_parameter: # but also push to glidein
             if is_const:
@@ -781,7 +795,7 @@ def populate_factory_descript(work_dir, glidein_dict,
                               active_sub_list,        # will be modified
                               disabled_sub_list,        # will be modified
                               conf):
-        
+
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
         sec_el = conf.get_child(u'security')
@@ -801,11 +815,11 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('RemoveOldCredAge', sec_el[u'remove_old_cred_age'])
         del active_sub_list[:] # clean
 
-        for entry in conf.get_child_list(u'entries'):
+        for entry in conf.get_child_list(u'entries') + conf.get_child_list(u'entry_sets'):
             if eval(entry[u'enabled'],{},{}):
-                active_sub_list.append(entry[u'name'])
+                active_sub_list.append(entry.getName())
             else:
-                disabled_sub_list.append(entry[u'name'])
+                disabled_sub_list.append(entry.getName())
 
         glidein_dict.add('Entries',string.join(active_sub_list,','))
         glidein_dict.add('AdvertiseWithTCP',conf[u'advertise_with_tcp'])
@@ -820,10 +834,10 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('ClientLogBaseDir',sub_el[u'base_client_log_dir'])
         glidein_dict.add('ClientProxiesBaseDir',sub_el[u'base_client_proxies_dir'])
         glidein_dict.add('DowntimesFile',down_fname)
-        
+
         glidein_dict.add('MonitorDisplayText',mon_foot_el[u'display_txt'])
         glidein_dict.add('MonitorLink',mon_foot_el[u'href_link'])
-        
+
         monitoring_collectors=calc_primary_monitoring_collectors(conf.get_child_list(u'monitoring_collectors'))
         if monitoring_collectors is not None:
             glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
@@ -847,11 +861,11 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('ProcessLogs', str(proc_logs))
 
 #######################
-def populate_job_descript(work_dir, job_descript_dict, 
+def populate_job_descript(work_dir, job_descript_dict,
                           sub_name, entry, schedd):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
-    
+
     @type work_dir: string
     @param work_dir: location of entry files
     @type job_descript_dict: dict
@@ -861,28 +875,28 @@ def populate_job_descript(work_dir, job_descript_dict,
     @type sub_params: dict
     @param sub_params: entry parameters
     """
-    
+
     down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
 
     config = entry.get_child(u'config')
     max_jobs = config.get_child(u'max_jobs')
 
     job_descript_dict.add('EntryName', sub_name)
-    job_descript_dict.add('GridType', entry[u'gridtype'])
-    job_descript_dict.add('Gatekeeper', entry[u'gatekeeper'])
-    job_descript_dict.add('AuthMethod', entry[u'auth_method'])
-    job_descript_dict.add('TrustDomain', entry[u'trust_domain'])
-    if u'vm_id' in entry:
-        job_descript_dict.add('EntryVMId', entry[u'vm_id'])
-    if u'vm_type' in entry:
-        job_descript_dict.add('EntryVMType', entry[u'vm_type'])
-    if u'rsl' in entry:
-        job_descript_dict.add('GlobusRSL', entry[u'rsl'])
+    job_descript_dict.add('GridType', entry.get(u'gridtype'))
+    job_descript_dict.add('Gatekeeper', entry.get(u'gatekeeper'))
+    job_descript_dict.add('AuthMethod', entry.get(u'auth_method'))
+    job_descript_dict.add('TrustDomain', entry.get(u'trust_domain'))
+    if entry.get(u'vm_id') is not None:
+        job_descript_dict.add('EntryVMId', entry.get(u'vm_id'))
+    if entry.get(u'vm_type') is not None:
+        job_descript_dict.add('EntryVMType', entry.get(u'vm_type'))
+    if entry.get(u'rsl') is not None:
+        job_descript_dict.add('GlobusRSL', entry.get(u'rsl'))
     job_descript_dict.add('Schedd', schedd)
-    job_descript_dict.add('StartupDir', entry[u'work_dir'])
-    if u'proxy_url' in entry:
-        job_descript_dict.add('ProxyURL', entry[u'proxy_url'])
-    job_descript_dict.add('Verbosity', entry[u'verbosity'])
+    job_descript_dict.add('StartupDir', entry.get(u'work_dir'))
+    if entry.get(u'proxy_url') is not None:
+        job_descript_dict.add('ProxyURL', entry.get(u'proxy_url'))
+    job_descript_dict.add('Verbosity', entry.get(u'verbosity'))
     job_descript_dict.add('DowntimesFile', down_fname)
     per_entry = max_jobs.get_child(u'per_entry')
     job_descript_dict.add('PerEntryMaxGlideins', per_entry[u'glideins'])
@@ -906,7 +920,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     restrictions = config.get_child(u'restrictions')
     job_descript_dict.add('RequireVomsProxy',restrictions[u'require_voms_proxy'])
     job_descript_dict.add('RequireGlideinGlexecUse',restrictions[u'require_glidein_glexec_use'])
-   
+
     # Add the frontend specific job limits to the job.descript file
     max_held_frontend = ""
     max_idle_frontend = ""
@@ -919,7 +933,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
-    
+
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
     #  to it.
@@ -947,7 +961,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
             sc_name = sc_el[u'name']
             username=sc_el['username']
             maps[sc_name]=username
-        
+
         frontend_dict.add(fe_name,{'ident':ident,'usermap':maps})
 
 
@@ -973,7 +987,7 @@ def copy_file(infile,outfile):
         shutil.copy2(infile,outfile)
     except IOError, e:
         raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
- 
+
 
 ###############################################
 # Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
@@ -984,7 +998,7 @@ def validate_condor_tarball_attrs(conf):
     common_version = None
     common_os = None
     common_arch = None
-    
+
     for attr in conf.get_child_list(u'attrs'):
         if attr[u'name'] == u'CONDOR_VERSION':
             common_version = attr[u'value']
@@ -1007,7 +1021,7 @@ def validate_condor_tarball_attrs(conf):
         my_version = None
         my_os = None
         my_arch = None
-        match_found = False        
+        match_found = False
 
         for attr in entry.get_child_list(u'attrs'):
             if attr[u'name'] == u'CONDOR_VERSION':
@@ -1043,8 +1057,8 @@ def validate_condor_tarball_attrs(conf):
                     match_found = True
                     break
         else:
-            tarball = { 'version': my_version, 
-                        'os'     : my_os, 
+            tarball = { 'version': my_version,
+                        'os'     : my_os,
                         'arch'   : my_arch
                       }
             if tarball in valid_tarballs:
@@ -1146,7 +1160,7 @@ def calc_primary_monitoring_collectors(collectors):
             if collector_nodes.has_key(el[u'group']):
                 raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el[u'group']
             collector_nodes[el[u'group']]=el[u'node']
-    
+
     if len(collector_nodes)==0:
         return None
     else:

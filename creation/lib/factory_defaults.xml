@@ -77,6 +77,16 @@
           </monitorgroups>
       </entry>
    </entries>
+   <entry_sets>
+      <!-- entry_set are optional -->
+      <entry_set>
+         <entries>
+            <!-- required: name, gatekeeper; optional: vm_id, vm_type, rsl, proxy_url, remote_username -->
+            <entry auth_method="grid_proxy" enabled="True" gridtype="condor" trust_domain="grid" work_dir="." verbosity="std">
+            </entry>
+         </entries>
+      </entry_set>
+   </entry_sets>
    <!-- at least one tarball is required -->
    <condor_tarballs>
       <!-- one of the following is required: tar_file, base_dir -->

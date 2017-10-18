@@ -117,15 +117,15 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         """
 
         glidein_name = conf[u'glidein_name']
-        gridtype = entry[u'gridtype']
-        gatekeeper = entry[u'gatekeeper']
-        if u'rsl' in entry:
-            rsl = entry[u'rsl']
+        gridtype = entry.get(u'gridtype')
+        gatekeeper = entry.get(u'gatekeeper')
+        if entry.get(u'rsl') is not None:
+            rsl = entry.get(u'rsl')
         else:
             rsl = None
-        auth_method = entry[u'auth_method']
-        if u'proxy_url' in entry:
-            proxy_url = entry[u'proxy_url']
+        auth_method = entry.get(u'auth_method')
+        if entry.get('proxy_url') is not None:
+            proxy_url = entry.get(u'proxy_url')
         else:
             proxy_url = None
         client_log_base_dir =  conf.get_child(u'submit')[u'base_client_log_dir']

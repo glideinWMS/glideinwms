@@ -262,7 +262,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work = {}
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)
-
     # TODO: If we return here check if we need to do cleanup of held glideins?
     #       So far only de-advertising is confirmed to trigger not cleanup
     work_count = get_work_count(work)

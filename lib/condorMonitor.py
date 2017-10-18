@@ -1,3 +1,4 @@
+
 #
 # Project:
 #   glideinWMS
@@ -432,7 +433,7 @@ class CondorQuery(StoredQuery):
                 return self.fetch_using_exe(constraint=constraint,
                                             format_list=format_list)
         except Exception as ex:
-            err_str = 'Error executing htcondor query with constraint %s and format_list %s: %s' % (constraint, format_list, ex)
+            err_str = 'Error executing htcondor query to pool %s with constraint %s and format_list %s: %s. Env is %s' % (self.pool_name, constraint, format_list, ex, os.environ)
             raise QueryError(err_str), None, sys.exc_info()[2]
 
     def fetch_using_exe(self, constraint=None, format_list=None):

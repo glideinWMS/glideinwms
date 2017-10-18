@@ -87,6 +87,8 @@ def spawn_group(work_dir, group_name, action):
                     work_dir,
                     group_name,
                     action]
+#    import pdb
+#    pdb.set_trace()
     child = subprocess.Popen(command_list, shell=False,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
@@ -284,6 +286,8 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
                             work_dir,
                             group_name,
                             "deadvertise"]
+#            import pdb
+#            pdb.set_trace()
             #logSupport.log.debug("Command list: %s" % command_list)
             child = subprocess.Popen(command_list, shell=False,
                                      stdout=subprocess.PIPE,
