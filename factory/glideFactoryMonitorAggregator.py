@@ -70,7 +70,7 @@ def rrd_site(name):
 
 status_attributes = {'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
                      'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
-                     'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
+                     'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
 type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
 
 ##############################################################################
@@ -710,7 +710,10 @@ def aggregateRRDStats(log=logSupport.log):
             try:
                 stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
             except IOError:
-                log.debug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
+                if os.path.exists(rrd_fname):
+                    log.debug("aggregateRRDStats %s exception: parse_xml, IOError" % rrd_fname)
+                else:
+                    log.debug("aggregateRRDStats %s exception: parse_xml, IOError, File not existing (OK if first time)" % rrd_fname)
 
         stats_entries=stats.keys()
         if len(stats_entries)==0:
