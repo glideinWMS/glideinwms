@@ -811,10 +811,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Wed Sep 20 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-0.2.rc2
+* Mon Nov 6 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-0.3.rc3
 - Glideinwms v3.2.20
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_20/history.html
-- Release candidates: 3.2.20-0.2.rc2
+- Release candidates: 3.2.20-0.3.rc3
 
 * Thu Jun 01 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.19-2
 - Removed obsolete osg-cert-scripts dependency
