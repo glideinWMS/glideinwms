@@ -46,6 +46,8 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
+from glideinwms.lib import condorMonitor
+from sets import Set
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 ############################################################
@@ -344,8 +346,30 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
     group_size = long(math.ceil(float(len(entries))/entry_process_count))
     entry_groups = entry_grouper(group_size, entries)
-    def _set_rlimit():
-        resource.setrlimit(resource.RLIMIT_NOFILE, [1024, 1024])
+
+    def _set_rlimit(soft_l=None, hard_l=None):
+        #set new hard and soft open file limits
+        #if setting limits fails or no input parameters use inherited limits
+        #from parent process 
+        #nb 1.  it is possible to raise limits 
+        #up to [hard_l,hard_l] but once lowered they cannot be raised
+        #nb 2. it may be better just to omit calling this function at
+        #all from subprocess - in which case it inherits limits from
+        #parent process
+
+        lim =  resource.getrlimit(resource.RLIMIT_NOFILE)
+        if soft_l is not None or hard_l is not None:
+            if not hard_l:
+                hard_l = soft_l
+            if not soft_l:
+                soft_l=hard_l
+            try:    
+                new_lim = [soft_l,hard_l]
+                resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
+            except:
+                resource.setrlimit(resource.RLIMIT_NOFILE, lim)
+
+
 
     try:
         for group in range(len(entry_groups)):
@@ -407,7 +431,32 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     "(credential_*)", remove_old_cred_age)
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 
+        iteration_basetime = time.time()
         while 1:
+            # retrieves WebMonitoringURL from glideclient classAd
+            iteration_timecheck  = time.time()
+            iteration_timediff = iteration_timecheck - iteration_basetime
+
+            if iteration_timediff >= 3600: # every hour
+                iteration_basetime = time.time() # reset the start time
+                fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
+                fronmonconstraint = '(MyType=="glideclient")'
+                fronmonformat_list = [('WebMonitoringURL','s'), ('FrontendName','s')]
+                fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
+                fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
+                fronmon_list_names = fronmondata.keys()
+                if fronmon_list_names is not None:
+                    urlset = Set()
+                    if os.path.exists(fronmonpath):
+                        os.remove(fronmonpath)
+                    for frontend_entry in fronmon_list_names:
+                        fronmonelement = fronmondata[frontend_entry]
+                        fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
+                        fronmonfrt = fronmonelement['FrontendName'].encode('utf-8')
+                        if (fronmonfrt,fronmonurl) not in urlset:
+                            urlset.add((fronmonfrt, fronmonurl))
+                            with open(fronmonpath, 'w') as fronmonf:
+                                fronmonf.write("%s, %s"%(fronmonfrt, fronmonurl))
 
             # Record the iteration start time
             iteration_stime = time.time()
@@ -532,7 +581,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
-            if glideinDescript.data.get('AdvertisePilotAccounting', False):
+            if glideinDescript.data.get('AdvertisePilotAccounting', False) in ['True', '1']:   # data attributes are strings
                 logSupport.log.info("Starting updating job classads")
                 update_classads()
                 logSupport.log.info("Finishing updating job classads")

@@ -302,16 +302,18 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                            forked_check_and_perform_work,
                            factory_in_downtime, entry, work)
     try:
+        t_begin = time.time()
         post_work_info = forkm_obj.bounded_fork_and_collect(parallel_workers)
+        t_end = time.time() - t_begin
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
+        t_end = time.time() - t_begin
 
     logSupport.roll_all_logs()
-
     # Gather results from the forked children
-    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
-    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
+    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry." % t_end)
+    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry." % t_end)
 
     for entry in my_entries:
         # Update the entry object from the post_work_info
@@ -320,7 +322,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             (my_entries[entry]).setState(post_work_info[entry])
 
         else:
-            logSupport.log.debug("No work found for entry %s from anyt frontends" % entry)
+            logSupport.log.debug("No work found for entry %s from any frontends" % entry)
 
     if work_info_read_err:
         logSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")

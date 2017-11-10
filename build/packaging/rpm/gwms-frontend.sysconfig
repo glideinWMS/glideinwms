@@ -4,4 +4,4 @@
 # Plugin directory to get xslt transformations from
 #
 
-#GWMS_XSLT_PLUGIN_DIR=/etc/gwms-frontend/plugin.d
+GWMS_XSLT_PLUGIN_DIR=/etc/gwms-frontend/plugin.d

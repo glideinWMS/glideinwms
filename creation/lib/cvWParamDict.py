@@ -17,6 +17,7 @@ import cvWCreate
 from cWParamDict import is_true, add_file_unparsed
 from glideinwms.lib import x509Support
 
+
 ################################################
 #
 # This Class contains the main dicts
@@ -279,6 +280,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # Apply group specific glexec policy
         apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
 
+        # Apply group specific singularity policy
+        apply_group_singularity_policy(self.dicts['group_descript'], sub_params, params)
+
         # populate security data
         populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
@@ -478,30 +482,32 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
         frontend_dict.add('HighAvailability', params.high_availability)
 
+
 #######################
 # Populate group descript
-def populate_group_descript(work_dir,group_descript_dict,        # will be modified
-                            sub_name,sub_params):
+def populate_group_descript(work_dir, group_descript_dict,        # will be modified
+                            sub_name, sub_params):
 
-    group_descript_dict.add('GroupName',sub_name)
+    group_descript_dict.add('GroupName', sub_name)
 
-    group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
-    group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
+    group_descript_dict.add('MapFile', os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
+    group_descript_dict.add('MapFileWPilots', os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
-    group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
-    group_descript_dict.add('MinRunningPerEntry',sub_params.config.running_glideins_per_entry.min)
-    group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
-    group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
-    group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
-    group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
-    group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
-    group_descript_dict.add('MaxIdleVMsTotal',sub_params.config.idle_vms_total.max)
-    group_descript_dict.add('CurbIdleVMsTotal',sub_params.config.idle_vms_total.curb)
-    group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
-    group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
-    group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
+    group_descript_dict.add('MaxRunningPerEntry', sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('MinRunningPerEntry', sub_params.config.running_glideins_per_entry.min)
+    group_descript_dict.add('FracRunningPerEntry', sub_params.config.running_glideins_per_entry.relative_to_queue)
+    group_descript_dict.add('MaxIdlePerEntry', sub_params.config.idle_glideins_per_entry.max)
+    group_descript_dict.add('ReserveIdlePerEntry', sub_params.config.idle_glideins_per_entry.reserve)
+    group_descript_dict.add('IdleLifetime', sub_params.config.idle_glideins_lifetime.max)
+    group_descript_dict.add('MaxIdleVMsPerEntry', sub_params.config.idle_vms_per_entry.max)
+    group_descript_dict.add('CurbIdleVMsPerEntry', sub_params.config.idle_vms_per_entry.curb)
+    group_descript_dict.add('MaxIdleVMsTotal', sub_params.config.idle_vms_total.max)
+    group_descript_dict.add('CurbIdleVMsTotal', sub_params.config.idle_vms_total.curb)
+    group_descript_dict.add('MaxRunningTotal', sub_params.config.running_glideins_total.max)
+    group_descript_dict.add('CurbRunningTotal', sub_params.config.running_glideins_total.curb)
+    group_descript_dict.add('MaxMatchmakers', sub_params.config.processing_workers.matchmakers)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
-        group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
+        group_descript_dict.add('GLIDEIN_Glexec_Use', sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
@@ -541,6 +547,38 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
             descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
                               allow_overwrite=True)
+
+        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
+        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+
+def apply_group_singularity_policy(descript_dict, sub_params, params):
+
+    glidein_singularity_use = None
+    query_expr = descript_dict['FactoryQueryExpr']
+    match_expr = descript_dict['MatchExpr']
+    ma_arr = []
+    match_attrs = None
+
+    # Consider GLIDEIN_Singularity_Use from Group level, else global
+    if sub_params.attrs.has_key('GLIDEIN_Singularity_Use'):
+        glidein_singularity_use = sub_params.attrs['GLIDEIN_Singularity_Use']['value']
+    elif params.attrs.has_key('GLIDEIN_Singularity_Use'):
+        glidein_singularity_use = params.attrs['GLIDEIN_Singularity_Use']['value']
+
+    if (glidein_singularity_use):
+        descript_dict.add('GLIDEIN_Singularity_Use', glidein_singularity_use)
+
+        if (glidein_singularity_use == 'REQUIRED'):
+            query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+            ma_arr.append(('SINGULARITY_BIN', 's'))
+        elif (glidein_singularity_use == 'NEVER'):
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "False") == "False")' % match_expr
+
+        if ma_arr:
+            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
+            descript_dict.add('FactoryMatchAttrs', repr(match_attrs), allow_overwrite=True)
 
         descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)

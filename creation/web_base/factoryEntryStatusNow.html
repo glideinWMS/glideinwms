@@ -41,11 +41,12 @@ var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var t
 
 var xmlAttPeriodArry = new Array("StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", "StatusHeld", 
 								"ReqMaxGlideins", "ReqIdle", 
-								"ClientGlideRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientGlideIdle", "ClientJobsIdle", "ClientGlideTotal",  "ClientInfoAge"); 	
+								"ClientGlideRunning", "ClientCoresRunning", "ClientJobsRunHere", "ClientJobsRunning",
+								"ClientGlideIdle", "ClientCoresIdle", "ClientJobsIdle", "ClientGlideTotal", "ClientCoresTotal", "ClientInfoAge");
 								 								 					
 var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held");
 var xmlAttReqArry = new Array("MaxGlideins", "Idle"); 
-var xmlAttCMArry = new Array("GlideRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "JobsIdle", "GlideTotal", "InfoAge");
+var xmlAttCMArry = new Array("GlideRunning", "CoresRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "CoresIdle", "JobsIdle", "GlideTotal", "CoresTotal", "InfoAge");
 var xmlAttStatNumArry = new Array(); 
 var xmlAttReqNumArry = new Array(); 
 var xmlAttCMNumArry = new Array(); 
