@@ -820,6 +820,7 @@ def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
 
 def hupsignal(signr, frame):
+    signal.signal( signal.SIGHUP,  signal.SIG_IGN )
     raise HUPException, "Received signal %s" % signr
 
 if __name__ == '__main__':
