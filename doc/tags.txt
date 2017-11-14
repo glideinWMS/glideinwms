@@ -13,6 +13,7 @@ v3_2_20 Verified that Factory can start 1500 entries at a time<
         Bug Fix: verifyRRD hard coded paths, missing some files during -fix_rr
         Bug Fix: HTCondor QEdit triggered also when advertise_pilot_accounting is not set
         Bug Fix: Downtime setting correctly distinguish daylight saving
+        Bug Fix: Added usercollector RPM dependency from ganglia
 
 v3_2_19 Added counters for Idle jobs older than X hours
         Enabling GWMS_XSLT_PLUGIN_DIR by default for
