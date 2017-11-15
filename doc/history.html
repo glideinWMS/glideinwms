@@ -87,6 +87,7 @@ Related Pages:
       <li>
         <b>v3_2_20</b> released on November 15, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_20/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_20/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_20.tgz">Tarball</a>)<br>
         <ul>
+            <li>NOTE: during the first "upgrade" or "reconfig --fix-rrd" you will see some warning because of missing RRD attributes. This is OK, is caused by the schema change.</li>
           <li>Verified that Factory can start 1500 entries at a time</li>
           <li>Improved Factory monitoring by adding cores count for running and idle jobs and requests</li>
           <li>Removed dependency from Globus clients</li>
