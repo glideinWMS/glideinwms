@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_20_rc4
+# GLIDEINWMS_VERSION v3_2_20
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -14,7 +14,7 @@ f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-7a4c5865aa2c44cb270182e548f7c15b  ./build/packaging/rpm/glideinwms.spec
+6c5899a2f1fa98e5c94d2e7180de17cd  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg

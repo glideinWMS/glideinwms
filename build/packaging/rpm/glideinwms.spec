@@ -812,7 +812,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Mon Nov 14 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-1
+* Wed Nov 15 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-1
 - Glideinwms v3.2.20
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_20/history.html
 - Release candidates: 3.2.20-0.1.rc1 to 3.2.20-0.4.rc4
