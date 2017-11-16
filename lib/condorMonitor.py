@@ -332,7 +332,13 @@ class CondorQEdit:
             p = 'default'
             if self.pool_name is not None:
                 p = self.pool_name
-            err_str = 'Error querying schedd %s in pool %s using python bindings: %s' % (s, p, ex)
+            try:
+                j1 = jobid
+                j2 = attr
+                j3 = val
+            except:
+                j1 = j2 = j3 = 'unknown'
+            err_str = 'Error querying schedd %s in pool %s using python bindings (qedit of job/attr/val %s/%s/%s): %s' % (s, p, j1, j2, j3, ex)
             raise QueryError(err_str)
 
 

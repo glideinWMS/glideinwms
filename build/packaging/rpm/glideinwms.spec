@@ -106,6 +106,7 @@ This package is for a standalone vofrontend install
 Summary:        The VOFrontend glideinWMS collector host
 Group:          System Environment/Daemons
 Requires: condor >= 8.4.0
+Requires: ganglia
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 %description usercollector
@@ -811,10 +812,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Mon Aug 28 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-0.1.rc1
+* Wed Nov 15 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-1
 - Glideinwms v3.2.20
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_20/history.html
-- Release candidates: 3.2.20-0.1.rc1
+- Release candidates: 3.2.20-0.1.rc1 to 3.2.20-0.4.rc4
 
 * Thu Jun 01 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.19-2
 - Removed obsolete osg-cert-scripts dependency

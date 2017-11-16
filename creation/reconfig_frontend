@@ -23,6 +23,7 @@ STARTUP_DIR=sys.path[0]
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 fix_rrd = False
 
+import signal
 import os.path
 import string
 import shutil
@@ -160,6 +161,9 @@ if __name__ == '__main__':
         if argv[i] == '-help':
             print2(usage)
             sys.exit(1)
+
+    if sighupreload:
+        signal.signal( signal.SIGHUP,  signal.SIG_IGN )
 
     if xml == '':
         # to support upgrading from versions older than v2.5.3

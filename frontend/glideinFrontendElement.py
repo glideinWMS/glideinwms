@@ -1666,8 +1666,8 @@ class glideinFrontendElement:
 
 
     def do_match(self):
-        ''' Do the actual matching.  This forks subprocess_count as children
-        to do the work in parallel. '''
+        """Do the actual matching.  This forks subprocess_count as children
+        to do the work in parallel. """
 
         # IS: Heauristics of 100 glideins per fork
         #     Based on times seen by CMS
@@ -1749,7 +1749,11 @@ class glideinFrontendElement:
         return out
 
     def subprocess_count_glidein(self, glidein_list):
-        # will make calculations in parallel,using multiple processes
+        """
+        Will make calculations in parallel, using multiple processes
+        @param glidein_list:
+        @return:
+        """
         out = ()
 
         count_status_multi={}
