@@ -180,7 +180,7 @@ def getCondorQUsers(condorq_dict):
 def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                condorq_match_list=None, match_policies=[]):
     """
-    Get the number of jobs that match each glideina
+    Get the number of jobs that match each glidein
     
     @param match_obj: output of re.compile(match string,'<string>','eval')
     @type condorq_dict: dictionary: sched_name->CondorQ object
@@ -612,12 +612,19 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
 def evalParamExpr(expr_obj, frontend, glidein):
     return eval(expr_obj)
 
-#
-# Return a dictionary of collectors containing interesting classads
-# Each element is a condorStatus
-#
+
 def getCondorStatus(collector_names, constraint=None, format_list=None,
                     want_format_completion=True, want_glideins_only=True):
+    """
+    Return a dictionary of collectors containing interesting classads
+    Each element is a condorStatus
+    @param collector_names:
+    @param constraint:
+    @param format_list:
+    @param want_format_completion:
+    @param want_glideins_only:
+    @return:
+    """
     type_constraint = '(True)'
     if format_list is not None:
         if want_format_completion:
