@@ -235,7 +235,7 @@ class condorQStats:
         self.files_updated = None
         self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
                            'Requested':("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
-                           'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
+                           'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
         self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
@@ -324,18 +324,20 @@ class condorQStats:
     def logClientMonitor(self, client_name, client_monitor, client_internals,
                          fraction=1.0):
         """
-        client_monitor is a dictinary of monitoring info
-        client_internals is a dictinary of internals
+        client_monitor is a dictinary of monitoring info (GlideinMonitor... from glideclient ClassAd)
+        client_internals is a dictinary of internals  (from glideclient ClassAd)
         If fraction is specified it will be used to extract partial info
 
         At the moment, it looks only for
           'Idle'
           'Running'
           'RunningHere'
-          'GlideinsIdle'
-          'GlideinsRunning'
-          'GlideinsTotal'
+          'GlideinsIdle', 'GlideinsIdleCores'
+          'GlideinsRunning', 'GlideinsRunningCores'
+          'GlideinsTotal', 'GlideinsTotalCores'
           'LastHeardFrom'
+
+        updates go in self.data (self.data[client_name]['ClientMonitor'])
         """
 
         if self.data.has_key(client_name):
@@ -350,7 +352,9 @@ class condorQStats:
             el = {}
             t_el['ClientMonitor'] = el
 
-        for karr in (('Idle', 'JobsIdle'), ('Running', 'JobsRunning'), ('RunningHere', 'JobsRunHere'), ('GlideinsIdle', 'GlideIdle'), ('GlideinsRunning', 'GlideRunning'), ('GlideinsTotal', 'GlideTotal')):
+        for karr in (('Idle', 'JobsIdle'), ('Running', 'JobsRunning'), ('RunningHere', 'JobsRunHere'),
+                     ('GlideinsIdle', 'GlideIdle'), ('GlideinsRunning', 'GlideRunning'), ('GlideinsTotal', 'GlideTotal'),
+                     ('GlideinsIdleCores', 'CoresIdle'), ('GlideinsRunningCores', 'CoresRunning'), ('GlideinsTotalCores', 'CoresTotal')):
             ck, ek = karr
             if not el.has_key(ek):
                 el[ek] = 0

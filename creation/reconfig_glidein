@@ -16,7 +16,7 @@ import logging
 import os.path
 import subprocess
 import tempfile
-
+import signal
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
@@ -213,6 +213,8 @@ if __name__ == '__main__':
             print2(usage)
             sys.exit(1)
 
+    if sighupreload:
+        signal.signal( signal.SIGHUP,  signal.SIG_IGN )
     # conf is of type factoryXmlConfig.Config
     # pylint: disable=maybe-no-member
     conf = factoryXmlConfig.parse(xml)

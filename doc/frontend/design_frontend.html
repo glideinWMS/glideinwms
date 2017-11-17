@@ -61,7 +61,7 @@
          <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>Frontend Design Overview</h3>
+        <h3>Frontend Design Internals</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
@@ -72,59 +72,31 @@
 <div class="related">
 Related Information:
 <ul>
-    <li><a href="design_frontend.html">Frontend internals</a></li>
+    <li><a href="design.html">Frontend design overview</a></li>
     <li><a href="../factory/design.html">Factory design</a></li>
-    <li> <a href="../factory/design_data_exchange.html">
+    <li><a href="../factory/design_data_exchange.html">
            Factory/Frontend Data Exchange
     </a></li>
 </ul>
 </div>
 <div class="section">
+<div class="section">
 
-<H2 CLASS="western"><A NAME="implementation"></A>Implementation</H2>
-<P>The current implementation of the VO Frontend is <A HREF="http://www.python.org/">Python</A>
-based. It uses a tree of process like the factory does.
-<BR>
-<BR><BR>
-The sub-process (group) code is composed of 4 logical pieces:</P>
-<UL>
-
-    <LI>An element that holds the user jobs Ads </li>
-    <LI>A matchmaking procedure</li>
-    <LI>A procedure that advertises the requests</li>
-    <LI>... and the glue that links the above together. </li>
-</UL>
-<P><A NAME="match_expr"></A>The top two elements simply contact the
-appropriate HTCondor Collector and store the data in memory.<BR><BR>The
-matchmaking procedure loops over all the <A HREF="../factory/design.html#factory_classads">factory
-ads</A> and&nbsp;counts the number of idle user jobs that match the
-attributes of that particular factory entry point. <BR><BR>The
-matching expression is a <A HREF="http://www.python.org/doc/">Python
-expression</A>, having as inputs 
-
+<H2><A NAME="flow"></A>Program flow</H2>
+<P>The main tasks of the Frontend Daemon (glideinFrontend.py) are the startup the Group Programs (glideinFrontendElement.py)  and the aggregation of statistics from the entries.
+See picture below for an overview.
 </P>
-<UL>
-    <LI><P STYLE="margin-bottom: 0in">an object holding the job
-    attributes, named <FONT FACE="monospace"><B>job</B></FONT>, and&nbsp;
-        </P>
-    <LI><P>an object holding the entry point attributes, named <FONT FACE="monospace"><B>glidein</B></FONT>.
-        </P>
-</UL>
-<P>Both objects are dictionaries, with keys being attribute names,
-and values being attribute values.<BR><BR>A few examples:</P>
+    <p>The only non trivial operation is the statistics aggregation. The Frontend Daemon reads the XML files produced by the Frontend Group Daemons, aggregates them, and writes out an aggregate XML file. It also updates the RRD files used to keep the history and creates the rrdtool graphs and HTML pages for human consumption.
+</p>
+<IMG SRC="../images/flow_frontend_main.png">
 
-<PRE STYLE="margin-left: 0.39in">job[&quot;CDFMaxHours&quot;]&lt;glidein[&quot;attrs&quot;][&quot;WMSMaxHours&quot;]
-job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot;SitesWithRequiredData&quot;]))
-(job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE><P>
+<P>The Frontend Group Program (glideinFrontendElement.py) is invoked to process the requests and statistics for a Group (e.g. a VO or a set of schedds sharing the same Glideins) and then it ends. There is no infinite loop. It is invoked also to cleanup the ClassAd of the Group (e.g. if the Frontend is terminating).
+The glideinFrontendElement queries the Factory to know the available entries, the load and the status of previous requests. It queries also the Schedds to know the job requests. And also the WMS collector to know number and types of available Glideins.
+Stats are updated. The jobs are clustered (autoclustering) and matched with the Entries that can run them. Running jobs are also matched with the Glideins (Entries) that are running them.
+</P>
+<IMG SRC="../images/flow_frontend_element.png">
 
-Finally, the advertise procedure loops over the counts and converts
-them into appropriate <A HREF="../factory/design_data_exchange.html#frontend_classads">HTCondor
-Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
-input parameters, loading the configuration values and loop over the
-above steps.</P>
-<P>The frontend also can handle multiple proxies. The proxy selection
-is handled by a plugin mechanism.</P>
-</div>
+
 
 <div class="footer">
 Banner image by

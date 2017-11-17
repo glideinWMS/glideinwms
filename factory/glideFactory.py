@@ -93,8 +93,8 @@ def update_classads():
             qe.executeAll(joblist=joblist.keys(),
                           attributes=['MONITOR_INFO']*len(joblist),
                           values=map(json.dumps, joblist.values()))
-        except QueryError as qe:
-            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qe)
+        except QueryError as qerr:
+            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qerr)
 
 
 def save_stats(stats, fname):
@@ -581,7 +581,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
-            if glideinDescript.data.get('AdvertisePilotAccounting', False):
+            if glideinDescript.data.get('AdvertisePilotAccounting', False) in ['True', '1']:   # data attributes are strings
                 logSupport.log.info("Starting updating job classads")
                 update_classads()
                 logSupport.log.info("Finishing updating job classads")
@@ -820,6 +820,7 @@ def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
 
 def hupsignal(signr, frame):
+    signal.signal( signal.SIGHUP,  signal.SIG_IGN )
     raise HUPException, "Received signal %s" % signr
 
 if __name__ == '__main__':
