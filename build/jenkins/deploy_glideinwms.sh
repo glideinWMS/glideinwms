@@ -44,6 +44,11 @@ function write_common_functions() {
 
     cat >> $setup_script << EOF
 
+yell() { echo "\$0: \$*" >&2; }
+die() { yell "\$*"; exit 111; }
+try() { echo "\$@"; "\$@" || die "FAILED \$*"; }
+
+
 function start_logging() {
     logfile=\$1
     logpipe=\$logfile.pipe
@@ -79,7 +84,7 @@ function patch_privsep_config() {
 }
 
 function install_rpms() {
-    yum install -y \$*
+    try yum install -y \$*
 }
 
 
@@ -477,8 +482,9 @@ while [[ $# -gt 0 ]] ; do
 done
 enable_repo="--enablerepo=$osg_repo"
 
-yum_rpm=yum_priorities
-[ "$el" = "7" ] && yum_rpm=yum-plugin-priorities
+#yum_rpm=yum_priorities
+#[ "$el" = "7" ] && yum_rpm=yum-plugin-priorities
+yum_rpm=yum-plugin-priorities
 
 [ "$el" = "7" ] &&  [ "$vm_template" = "" ] && vm_template="SLF${el}V_DynIP_Home"
 [ "$el" = "6" ] &&  [ "$vm_template" = "" ] && vm_template="CLI_DynamicIP_SLF6_HOME"
@@ -506,11 +512,7 @@ condor_os=$(echo $condor_os | sed s/RedHat/rhel/g)
 #for some reason fermicloudui.fnal.gov is kicking me out, so 
 #find one that doesnt...
 
-SSH="ssh fermicloudui.fnal.gov"
-$SSH exit 0
-if [ $? -ne 0 ]; then
-    SSH="ssh fcluigpvm01.fnal.gov"
-fi
+SSH="ssh fcluigpvm01.fnal.gov"
 $SSH exit 0
 if [ $? -ne 0 ]; then
     SSH="ssh fcluigpvm02.fnal.gov"
@@ -690,9 +692,9 @@ frontend_status=$(grep 'FRONTEND VERIFICATION: SUCCESS' $VOFE_LOG.$TS)
 if [ "$frontend_status" = "FRONTEND VERIFICATION: SUCCESS"  ] ; then
     vofe_install_status="pass"
 fi
-
-echo "export fact_fqdn=$fact_fqdn " > /tmp/setnodes.$TS.sh
-echo "export vofe_fqdn=$vofe_fqdn " >> /tmp/setnodes.$TS.sh
+mkdir -p $SPOOF/tmp
+echo "export fact_fqdn=$fact_fqdn " > $SPOOF/tmp/setnodes.$TS.sh
+echo "export vofe_fqdn=$vofe_fqdn " >> $SPOOF/tmp/setnodes.$TS.sh
 
 
 echo "================================================================================"
