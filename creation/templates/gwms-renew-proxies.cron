@@ -1,0 +1,1 @@
+23 * * * * [ -f /var/lock/subsys/gwms-renew-proxies ] && /sbin/renew_proxies
