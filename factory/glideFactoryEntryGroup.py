@@ -297,6 +297,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # work todo, ie glideclient classads.
     for ent in work:
         entry = my_entries[ent]
+
         forkm_obj.add_fork(entry.name,
                            forked_check_and_perform_work,
                            factory_in_downtime, entry, work)

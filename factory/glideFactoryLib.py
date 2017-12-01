@@ -23,6 +23,7 @@ import pwd
 import binascii
 import base64
 import tempfile
+from itertools import groupby
 
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
@@ -182,7 +183,7 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
          factoryConfig.credential_id_schedd_attribute)
     q_glidein_format_list = [
         ("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"),
-        ("EnteredCurrentStatus", "i"),
+        ("EnteredCurrentStatus", "i"), ("GlideinEntrySubmitFile", "s"),
         (factoryConfig.credential_id_schedd_attribute, "s"),
         ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
         ("HoldReason","s"), ("NumSystemHolds","i"),
@@ -292,6 +293,16 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     entry_condorQ.client_name = condorq.client_name
     entry_condorQ.load()
     return entry_condorQ
+
+def getQStatusSF(condorq):
+    """ Return a dictionary where keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
+    """
+    qc_status = {}
+    submit_files = set(v.get('GlideinEntrySubmitFile') for k,v in condorq.stored_data.items()) - set([None])
+    for sf in submit_files:
+        sf_status = sorted(v['JobStatus'] for k,v in condorq.stored_data.items() if v.get('GlideinEntrySubmitFile')==sf)
+        qc_status[sf] = dict( (key, len(list(group))) for key, group in groupby(sf_status))
+    return qc_status
 
 def getQStatus(condorq):
     qc_status = condorMonitor.Summarize(condorq, hash_status).countStored()
@@ -539,7 +550,7 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     condorq.load()
 
     # Check that have not exceeded max held for this security class
-    if False and glidein_totals.has_sec_class_exceeded_max_held(frontend_name):
+    if glidein_totals.has_sec_class_exceeded_max_held(frontend_name):
         # Too many held, don't submit
         log.info("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'],
                    glidein_totals.frontend_limits[frontend_name]['max_held']))
@@ -549,6 +560,8 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
 
     # Count glideins for this request credential by status
     qc_status = getQStatus(condorq)
+    # Count by status and group by submit file glideins for this request credential
+    qc_status_sf = getQStatusSF(condorq)
 
     # Held==JobStatus(5)
     q_held_glideins = 0
@@ -619,7 +632,7 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     try:
         log.debug("Submitting %i glideins" % add_glideins)
         submitGlideins(condorq.entry_name, client_int_name, add_glideins, idle_lifetime,
-                       frontend_name, submit_credentials, client_web, params,
+                       frontend_name, submit_credentials, client_web, params, qc_status_sf,
                        log=log, factoryConfig=factoryConfig)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
         return add_glideins # exit, some submitted
@@ -1175,8 +1188,26 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     return submit_out
 
 
+def pickSubmitFile(submit_files, status_sf, nr_submitted_sf, log):
+    """ Function that given the status of the submit file,
+        and the already submitted glideins decide which submit file to use.
+
+        Currently sum idle+running of each resource and send to the one with less
+        jobs (counting jobs just submitted).
+    """
+    minsf = None #submit file with minimun jobs
+    minNJ = -1
+    for sf in submit_files:
+        curr = status_sf.get(sf, {})
+        currNJ = curr.get(1, 0) + curr.get(2, 0) + nr_submitted_sf.get(sf, 0) #sum idle + running + just submitted
+        if minNJ == -1 or currNJ < minNJ: #if it's the first, or the number of jobs is less than the previous minumum
+            minsf = sf
+            minNJ = currNJ
+    return minsf
+
+
 def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend_name,
-                   submit_credentials, client_web, params, log=logSupport.log,
+                   submit_credentials, client_web, params, status_sf, log=logSupport.log,
                    factoryConfig=None):
 
     """
@@ -1219,9 +1250,10 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                     msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
                     log.warning(msg)
     try:
-        submitFiles = glob.glob("entry_%s/job.*.condor" % entry_name)
-        currentSubmitFile = 0
+        submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
+
         nr_submitted = 0
+        nr_submitted_sf = {}
         while (nr_submitted < nr_glideins):
             sub_env = []
             if nr_submitted != 0:
@@ -1230,18 +1262,21 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
+
+            submit_file = pickSubmitFile(submit_files, status_sf, nr_submitted_sf, log)
+
             sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
             sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+            sub_env.append('GLIDEIN_ENTRY_SUBMIT_FILE=%s' % submit_file)
             exe_env = entry_env + sub_env
 
-            submitFile = submitFiles[currentSubmitFile%len(submitFiles)]
-            submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile)
-            currentSubmitFile += 1
+            submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
 
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster, j))
             nr_submitted += count
+            nr_submitted_sf[submit_file] = nr_submitted_sf.setdefault(submit_file, 0) + count
     finally:
         # write out no matter what
         log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids),

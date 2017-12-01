@@ -80,6 +80,50 @@
    <entry_sets>
       <!-- entry_set are optional -->
       <entry_set>
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100"/>
+               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <per_frontends>
+                  <!-- required: name -->
+                  <per_frontend glideins="5000" held="50" idle="100"/>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+               <submit_attrs>
+                  <!-- required: name -->
+                  <submit_attr value="All"/>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+            <!-- required: name -->
+            <allow_frontend security_class="All"/>
+         </allow_frontends>
+         <attrs>
+            <!-- required: name, value -->
+            <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
+         </attrs>
+         <files>
+            <!-- required: absfname; optional: relfname -->
+            <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
+               <!-- optional: dir, absdir_outattr -->
+               <untar_options cond_attr="TRUE"/>
+            </file>
+         </files>
+         <!-- infosys_refs are optional -->
+         <infosys_refs>
+            <!-- required: ref, server, type -->
+            <infosys_ref/>
+         </infosys_refs>
+         <!-- monitorgroups are optional -->
+         <monitorgroups>
+            <!-- required: group_name -->
+            <monitorgroup/>
+         </monitorgroups>
          <entries>
             <!-- required: name, gatekeeper; optional: vm_id, vm_type, rsl, proxy_url, remote_username -->
             <entry auth_method="grid_proxy" enabled="True" gridtype="condor" trust_domain="grid" work_dir="." verbosity="std">

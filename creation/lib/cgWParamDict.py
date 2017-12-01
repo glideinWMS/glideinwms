@@ -11,6 +11,7 @@
 
 import os,os.path,shutil,string
 import sys
+import glob
 import cgWDictFile, cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
@@ -376,9 +377,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         monitor_config_line.append("  <entries>")
         try:
             try:
-                for entry in self.conf.get_child_list(u'entries'):
+                for entry in self.conf.get_entries():
                     if eval(entry[u'enabled'],{},{}):
-                        monitor_config_line.append("    <entry name=\"%s\">" % entry[u'name'])
+                        monitor_config_line.append("    <entry name=\"%s\">" % entry.getName())
                         monitor_config_line.append("      <monitorgroups>")
                         for group in entry.get_child_list(u'monitorgroups'):
                             monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group[u'group_name'])
@@ -421,7 +422,13 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
-        self.dicts['condor_jdl']=[cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE)]
+        condor_jdls = glob.glob(os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE_ENTRYSET % '*'))
+        if condor_jdls:
+            self.dicts['condor_jdl'] = []
+            for cj in condor_jdls:
+                self.dicts['condor_jdl'].append(cgWCreate.GlideinSubmitDictFile(self.work_dir, os.path.basename(cj)))
+        else:
+            self.dicts['condor_jdl']=[cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE)]
 
     def load(self):
         cgWDictFile.glideinEntryDicts.load(self)
@@ -511,13 +518,15 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         #Now that we have the EntrySet fill the condor_jdl for its entries
         if type(entry)==EntrySetElement:
-            self.dicts['condor_jdl'] = []
-            for subentry in entry.get_child_list('entries'):
-                condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry['name'])
+            self.dicts[u'condor_jdl'] = []
+            for subentry in entry.get_child_list(u'entries'):
+                condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry[u'name'])
                 condorJdl.load()
+                entry.select(subentry)
                 condorJdl.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
-                self.dicts['condor_jdl'].append(condorJdl)
-        for cj in self.dicts['condor_jdl']:
+                entry.select(None)
+                self.dicts[u'condor_jdl'].append(condorJdl)
+        else:
             ################################################################################################################
             # This is the original function call:
             #
@@ -531,7 +540,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
             # to the function and call it a day.
             ################################################################################################################
-            cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+            self.dicts[u'condor_jdl'][0].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -551,7 +560,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def __init__(self,conf,
                  sub_list=None): # if None, get it from params
         if sub_list is None:
-            sub_list = [e[u'name'] for e in conf.get_child_list(u'entries')] + [e[u'alias'] for e in conf.get_child_list(u'entry_sets')]
+            sub_list = [e.getName() for e in conf.get_entries()]
 
         self.conf=conf
         submit_dir = conf.get_submit_dir()
@@ -579,8 +588,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         # count all schedds we will reuse and keep track of the entries
         if other is not None:
-            for entry in self.conf.get_child_list(u'entries') + self.conf.get_child_list(u'entry_sets'):
-                entry_name = entry.get(u'name') or entry.get(u'alias')
+            for entry in self.conf.get_entries():
+                entry_name = entry.getName()
                 if entry_name in other.sub_dicts:
                     schedd = other.sub_dicts[entry_name]['job_descript']['Schedd']
                     if schedd in schedd_counts:
@@ -590,15 +599,14 @@ class glideinDicts(cgWDictFile.glideinDicts):
                             schedd_counts[schedd] += 1
 
         # now that we have the counts, populate with the best schedd
-        for entry in self.conf.get_child_list(u'entries') + self.conf.get_child_list(u'entry_sets'):
-            entry_name = entry.get(u'name') or entry.get(u'alias')
+        for entry in self.conf.get_entries():
+            entry_name = entry.getName()
             if entry_name in prev_entries:
                 schedd = prev_entries[entry_name]
             else:
                 # pick the schedd with the lowest count
                 schedd = sorted(schedd_counts, key=schedd_counts.get)[0]
                 # only count it against us if new entry is active
-                #TODO make sure Entryset have enabled in validate
                 if eval(entry[u'enabled']):
                     schedd_counts[schedd] += 1
             self.sub_dicts[entry_name].populate(entry, schedd)
@@ -815,7 +823,7 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('RemoveOldCredAge', sec_el[u'remove_old_cred_age'])
         del active_sub_list[:] # clean
 
-        for entry in conf.get_child_list(u'entries') + conf.get_child_list(u'entry_sets'):
+        for entry in conf.get_entries():
             if eval(entry[u'enabled'],{},{}):
                 active_sub_list.append(entry.getName())
             else:
@@ -1017,7 +1025,7 @@ def validate_condor_tarball_attrs(conf):
         common_arch = "default"
 
     # Check the configuration for every entry
-    for entry in conf.get_child_list(u'entries'):
+    for entry in conf.get_entries():
         my_version = None
         my_os = None
         my_arch = None

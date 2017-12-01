@@ -1246,7 +1246,7 @@ class fileCommonDicts:
 
     def set_readonly(self,readonly=True):
         for el in self.dicts.values():
-            #condor_jdl are lists in case. Iterating over its elements it it is the case
+            #condor_jdl are lists. Iterating over its elements in this case
             if type(el) == list:
                 for cj in el:
                     cj.set_readonly(readonly)

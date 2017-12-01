@@ -985,8 +985,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     #
     # STEP: Process every work one at a time
     #
-    import pdb
-    pdb.set_trace()
     for work_key in work:
         if not glideFactoryLib.is_str_safe(work_key):
             # may be used to write files... make sure it is reasonable
@@ -1754,6 +1752,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
                     idle_glideins, max_glideins, idle_lifetime, credential_username,
                     glidein_totals, frontend_name, client_web, params):
 
+    # find out the users it is using
     log_stats = {}
     log_stats[credential_username + ":" + client_int_name] = \
         glideFactoryLogParser.dirSummaryTimingsOut(
