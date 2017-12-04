@@ -506,6 +506,10 @@ def populate_group_descript(work_dir, group_descript_dict,        # will be modi
     group_descript_dict.add('MaxRunningTotal', sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal', sub_params.config.running_glideins_total.curb)
     group_descript_dict.add('MaxMatchmakers', sub_params.config.processing_workers.matchmakers)
+    group_descript_dict.add('RemovalType', sub_params.config.glideins_removal.type)
+    group_descript_dict.add('RemovalWait', sub_params.config.glideins_removal.wait)
+    group_descript_dict.add('RemovalRequestsTracking', sub_params.config.glideins_removal.requests_tracking)
+    group_descript_dict.add('RemovalMargin', sub_params.config.glideins_removal.margin)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
         group_descript_dict.add('GLIDEIN_Glexec_Use', sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 

@@ -137,6 +137,11 @@ class glideinFrontendElement:
 
         self.max_matchmakers = int(self.elementDescript.element_data['MaxMatchmakers'])
 
+        self.removal_type = self.elementDescript.element_data['RemovalType']
+        self.removal_wait = int(self.elementDescript.element_data['RemovalWait'])
+        self.removal_requests_tracking = self.elementDescript.element_data['RemovalRequestsTracking']
+        self.removal_margin = int(self.elementDescript.element_data['RemovalMargin'])
+
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
@@ -627,6 +632,7 @@ class glideinFrontendElement:
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
+            remove_excess_str = self.check_removal_type(glideid, remove_excess_str)
 
             this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'],
                               effective_idle, prop_jobs['OldIdle'],
@@ -1228,6 +1234,25 @@ class glideinFrontendElement:
         )
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
+    def check_removal_type(self, glideid, remove_excess_str):
+        """ Decides what kind of excess glideins to remove:
+            "ALL", "IDLE", "WAIT", or "NO"
+        """
+        #TODO: tracking will be handled in a future iteration, for now remove all glideins if there are no requests
+        if self.removal_type is None or self.removal_type == 'NO':
+            # No special semoval requested, leave things unchanged
+            return remove_excess_str
+        # History counters have been just updated in self.choose_remove_excess_type
+        history_idle0 = CounterWrapper(self.history_obj['idle0'])
+        if history_idle0[glideid] > self.removal_wait:
+            # keep the "max" between self.removal_type and  remove_excess_str (ALL>IDLE>WAIT>NO)
+            if remove_excess_str == 'ALL' or self.removal_type == 'ALL':
+                return 'ALL'
+            if remove_excess_str == 'IDLE' or self.removal_type == 'IDLE':
+                return 'IDLE'
+            # self.removal_type is at least WAIT
+            return 'WAIT'
+
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
         """ Decides what kind of excess glideins to remove:
             "ALL", "IDLE", "WAIT", or "NO"
@@ -1283,13 +1308,13 @@ class glideinFrontendElement:
             history_glidetotal0[glideid] = 0
 
         if remove_excess_running:
-            remove_excess_str = "ALL"
+            remove_excess_str = 'ALL'
         elif remove_excess_idle:
-            remove_excess_str = "IDLE"
+            remove_excess_str = 'IDLE'
         elif remove_excess_wait:
-            remove_excess_str = "WAIT"
+            remove_excess_str = 'WAIT'
         else:
-            remove_excess_str = "NO"
+            remove_excess_str = 'NO'
         return remove_excess_str
 
     def count_factory_entries_without_classads(self, total_down_stats_arr):

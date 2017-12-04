@@ -163,6 +163,7 @@ Click on any piece for a more detailed description.
                 <a href="#group_config">&lt;idle_vms_total curb="500" max="1000" /&gt;</a><br/>
                 <a href="#group_config">&lt;running_glideins_per_entry max="2000" relative_to_queue="1.15" min="0" /&gt;</a><br/>
                 <a href="#group_config">&lt;running_glideins_total curb="30000" max="40000" /&gt;</a><br/>
+                <a href="#group_config"><glideins_removal margin="0" requests_tracking="False" type="ALL" wait="0"/></a><br/>
             </blockquote>
             <a href="#group_config">&lt;/config&gt;</a><br/>
             <a href="#group_match">&lt;match match_expr="True" start_expr="True"&gt;</a><br/>
@@ -713,22 +714,29 @@ glideins.  Groups are used to group users with similar requirements, such as pro
      <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
     aggressive the provisioning requests should be.<br>
      The number specified in <b>max</b> is the highest number of idle/pending 
-     glideins that the resource associated with any factory entry will ever see.
+     glideins that the resource associated with any factory entry will ever see.</li>
      <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
-         state in the factory queue before they are automatically removed (through a periodic_remove expression)
+         state in the factory queue before they are automatically removed (through a periodic_remove expression)</li>
      <li>The next two are used to throttle the requests, if the provisioned glideins (counted as number of slots) 
          are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
          <b>idle_vms_per_entry</b> throttles based on a per factory entry basis (e.g. Grid site), <br>while
          <b>idle_vms_total</b> throttles based on the states of all the glideins provisioned by this group.<br>
          The frontend will stop requesting more glideins if/when <b>max</b> is reached.
          If/when <b>curb</b> is reached/exceeded, the number of glideins requested in each provisioning request 
-         is cut in half.
-     <li>The last two elements are used to put an upper bound on how many glideins will the frontend try to provision.<br>
+         is cut in half.</li>
+     <li>The next two elements are used to put an upper bound on how many glideins will the frontend try to provision.<br>
          Similarly to the previoues two, 
          <b>running_glideins_per_entry</b> will throttle the provisioning requests based on per factory entry basis, <br>while
          <b>running_glideins_total</b> throttles based on number of all the glideins provisioned by this group.
          The <b>min</b> attribute of <b>running_glideins_per_entry</b> is the minimum number of glidens that are kept running
-         for each entry associated to the group (even if there are no jobs idle).
+         for each entry associated to the group (even if there are no jobs idle).</li>
+        <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
+        Glidein can expire () and die when not used, anyway you can trigger early removal.
+        The current implementation ignores <b>margin</b> and <b>requests_tracking</b>.
+        It removes glideins when there are no pending job requests for this group.
+        <b>type</b> selects what to remove: NO (default) no removal, IDLE only Idle glideins -not submitted-,
+        WAIT also glideins waiting in the remote queues, ALL also running glideins.
+        <b>wait</b> waits for N cycles without requests before triggering the removal.</li>
       </ul>
     </P></li>
 
