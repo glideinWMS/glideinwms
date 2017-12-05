@@ -1,1 +1,1 @@
-23 * * * * [ -f /var/lock/subsys/gwms-renew-proxies ] && sleep $((RANDOM % 600)) && /sbin/renew_proxies
+23 * * * * [ -f /var/lock/subsys/gwms-renew-proxies ] && sleep $((RANDOM % 600)) && /usr/libexec/gwms_renew_proxies
