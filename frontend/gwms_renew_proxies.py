@@ -109,6 +109,7 @@ def main():
         vo_info = re.findall(r'"(\w+)"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"', _.read(), re.IGNORECASE)
         vomses = dict([(vo[0].lower(), {'name': vo[0], 'uri': vo[1] + ':' + vo[2], 'subject': vo[3]}) for vo in vo_info])
 
+    retcode = 0
     # Proxy renewals
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
@@ -120,29 +121,32 @@ def main():
             continue
 
         if proxy_section == 'FRONTEND':
-            stdout, stderr, retcode = voms_proxy_init(proxy)
+            stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
             voms_info = vomses[proxy_config['vo'].lower()]
             vo_attr = VO(voms_info['name'], proxy_config['fqan'])
 
             if proxy_config['use_voms_server'].lower() == 'true':
                 # we specify '-order' because some European CEs care about VOMS AC order
-                stdout, stderr, retcode = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', vo_attr.fqan)
+                stdout, stderr, client_rc = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', vo_attr.fqan)
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']
-                stdout, stderr, retcode = voms_proxy_fake(proxy, vo_attr, voms_info['uri'])
+                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr, voms_info['uri'])
         else:
             print "WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) + \
                 "Valid configuration sections: 'FRONTEND' or 'PILOT'."
 
-        if retcode == 0:
+        if client_rc == 0:
             proxy.write()
             os.chown(proxy.output, fe_user.pw_uid, fe_user.pw_gid)
             print "Renewed proxy from '%s' to '%s'." % (proxy.cert, proxy.output)
         else:
+            retcode = 1
             # don't raise an exception here to continue renewing other proxies
             print "ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr)
+
+    return retcode
 
 if __name__ == "__main__":
     try:
