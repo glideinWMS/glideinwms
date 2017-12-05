@@ -6,7 +6,7 @@ LOCK=/var/lock/subsys/gwms-renew-proxies
 RETVAL=0
 
 start() {
-    action $"Enabling frontend and pilot proxy renewal:" /sbin/renew_proxies && touch "$LOCK"
+    action $"Enabling frontend and pilot proxy renewal:" /usr/libexec/gwms_renew_proxies && touch "$LOCK"
     RETVAL=$?
 }
 

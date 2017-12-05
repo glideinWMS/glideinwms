@@ -5,7 +5,7 @@ Wants=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/sbin/renew_proxies
+ExecStart=/usr/libexec/gwms_renew_proxies
 
 [Install]
 WantedBy=multi-user.target
