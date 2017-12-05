@@ -6,7 +6,7 @@ Wants=network.target
 [Timer]
 OnActiveSec=0s
 OnUnitActiveSec=1h
-Persistent=true
+RandomizedDelaySec=5m
 
 [Install]
 WantedBy=multi-user.target
