@@ -42,12 +42,13 @@ class Proxy(object):
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
-    def __init__(self, vo, command, cert=None, key=None):
+    def __init__(self, vo, fqan, cert=None, key=None):
+        if not fqan.startswith('/%s/' % vo):
+            raise ValueError('FQAN (%s) does not begin with specified VO (%s). Verify %s.' % (fqan, vo, CONFIG))
         self.name = vo
-        command = command.lstrip('/')
-        self.fqan = '/%s/%s' % (vo, command)
+        self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
-        self.voms = '%s:/%s' % (vo, command)
+        self.voms = fqan.replace('/%s' % vo, vo + ':')
         self.cert = cert
         self.key = key
 
@@ -94,15 +95,15 @@ def main():
 
     # Verify config sections
     if proxies.count('FRONTEND') != 1:
-        raise RuntimeError("ERROR: there must be only one [FRONTEND] section in %s" % CONFIG)
+        raise RuntimeError("there must be only one [FRONTEND] section in %s" % CONFIG)
     if len([x for x in proxies if x.startswith('PILOT')]) < 1:
-        raise RuntimeError("ERROR: there must be at least one [PILOT] section in %s" % CONFIG)
+        raise RuntimeError("there must be at least one [PILOT] section in %s" % CONFIG)
 
     # Proxies need to be owned by the 'frontend' user
     try:
         fe_user = pwd.getpwnam('frontend')
     except KeyError:
-        raise RuntimeError("ERROR: missing 'frontend' user")
+        raise RuntimeError("missing 'frontend' user")
 
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
     with open('/etc/vomses', 'r') as _:
@@ -151,5 +152,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except RuntimeError, exc:
-        sys.exit(exc)
+    except (RuntimeError, ValueError), exc:
+        print "ERROR: " + str(exc)
+        sys.exit(1)
