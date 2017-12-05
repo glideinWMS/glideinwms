@@ -11,7 +11,7 @@ import sys
 
 CONFIG = '/etc/gwms-frontend/proxies.ini'
 
-DEFAULTS = {'use_voms_admin': 'false',
+DEFAULTS = {'use_voms_server': 'false',
             'fqan': '/Role=NULL/Capability=NULL',
             'frequency': '1',
             'lifetime': '24'}
@@ -125,7 +125,7 @@ def main():
             voms_info = vomses[proxy_config['vo'].lower()]
             vo_attr = VO(voms_info['name'], proxy_config['fqan'])
 
-            if proxy_config['use_voms_admin'].lower() == 'true':
+            if proxy_config['use_voms_server'].lower() == 'true':
                 # we specify '-order' because some European CEs care about VOMS AC order
                 stdout, stderr, retcode = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', vo_attr.fqan)
             else:
