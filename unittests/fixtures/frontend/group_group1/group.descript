@@ -23,3 +23,7 @@ FactoryCollectors 	[]
 JobSchedds 	
 MatchExpr 	True
 GLIDEIN_Glexec_Use 	OPTIONAL
+RemovalType         NO
+RemovalWait         0
+RemovalRequestsTracking     False
+RemovalMargin       0
