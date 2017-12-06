@@ -1,4 +1,6 @@
-v3_2_20 Verified that Factory can start 1500 entries at a time<
+v3_2_21 Have frontend groups request the removal of unused glideins
+
+v3_2_20 Verified that Factory can start 1500 entries at a time
         Improved Factory monitoring by adding cores count for running and idle jobs and requests
         Removed dependency from Globus clients
         Support Singularity (future replacement for glexec)
