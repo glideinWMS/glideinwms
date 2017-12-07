@@ -43,12 +43,17 @@ class VO(object):
     """Class for holding information related to VOMS attributes
     """
     def __init__(self, vo, fqan, cert=None, key=None):
+        """vo - name of the Virtual Organization. Case should match folder names in /etc/grid-security/vomsdir/
+        fqan - VOMS attribute FQAN with format "/vo/command", e.g. /osg/Role=NULL/Capability=NULL
+        cert - path to VOMS server certificate used to sign VOMS attributes (for use with voms_proxy_fake)
+        key - path to key associated with the cert argument
+        """
         if not fqan.startswith('/%s/' % vo):
             raise ValueError('FQAN (%s) does not begin with specified VO (%s). Verify %s.' % (fqan, vo, CONFIG))
         self.name = vo
         self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
-        self.voms = fqan.replace('/%s' % vo, vo + ':')
+        self.voms = fqan.replace('/%s' % vo, vo + ':', 1)
         self.cert = cert
         self.key = key
 
