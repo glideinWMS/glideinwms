@@ -8,6 +8,7 @@ import pwd
 import re
 import subprocess
 import sys
+import tempfile
 
 CONFIG = '/etc/gwms-frontend/proxies.ini'
 
@@ -19,16 +20,21 @@ DEFAULTS = {'use_voms_server': 'false',
 class Proxy(object):
     """Class for holding information related to the proxy
     """
-    def __init__(self, cert, key, output, lifetime):
+    def __init__(self, cert, key, output, lifetime, uid=0, gid=0):
         self.cert = cert
         self.key = key
+        self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
+        os.chown(self.tmp_output_fd.name, uid, gid)
         self.output = output
         self.lifetime = lifetime
 
     def write(self):
         """Move output proxy from temp location to its final destination
         """
-        os.rename(self.output + '.new', self.output)
+        self.tmp_output_fd.flush()
+        os.fsync(self.tmp_output_fd)
+        self.tmp_output_fd.close()
+        os.rename(self.tmp_output_fd.name, self.output)
 
     def timeleft(self):
         """Returns the remaining lifetime of the proxy in seconds
@@ -71,7 +77,7 @@ def voms_proxy_init(proxy, *args):
     cmd = ['voms-proxy-init', '--debug',
            '-cert', proxy.cert,
            '-key', proxy.key,
-           '-out', proxy.output + '.new',
+           '-out', proxy.tmp_output_fd.name,
            '-valid', '%s:00' % proxy.lifetime] + list(args)
     return _run_command(cmd)
 
@@ -82,7 +88,7 @@ def voms_proxy_fake(proxy, vo_info, voms_uri):
     cmd = ['voms-proxy-fake', '--debug',
            '-cert', proxy.cert,
            '-key', proxy.key,
-           '-out', proxy.output + '.new',
+           '-out', proxy.tmp_output_fd.name,
            '-hours', proxy.lifetime,
            '-voms', vo_info.name,
            '-hostcert', vo_info.cert,
@@ -120,7 +126,8 @@ def main():
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
-                      proxy_config['output'], proxy_config['lifetime'])
+                      proxy_config['output'], proxy_config['lifetime'],
+                      fe_user.pw_uid, fe_user.pw_gid)
 
         if int(proxy.lifetime)*3600 - proxy.timeleft() < int(proxy_config['frequency'])*3600:
             print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
@@ -145,7 +152,6 @@ def main():
 
         if client_rc == 0:
             proxy.write()
-            os.chown(proxy.output, fe_user.pw_uid, fe_user.pw_gid)
             print "Renewed proxy from '%s' to '%s'." % (proxy.cert, proxy.output)
         else:
             retcode = 1
