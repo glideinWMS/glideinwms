@@ -400,7 +400,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
 ################################################
 #
-# This Class contains the entry dicts
+# This Class contains the entry and entry set dicts
 #
 ################################################
 
@@ -481,23 +481,23 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         restrictions = config.get_child(u'restrictions')
         submit = config.get_child(u'submit')
         for dtype in ('attrs','consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry.get(u'gatekeeper'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType",entry.get(u'gridtype'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry[u'gatekeeper'],allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",entry[u'gridtype'],allow_overwrite=True)
             # MERGENOTE:
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",restrictions[u'require_voms_proxy'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",restrictions[u'require_glidein_glexec_use'],allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry.get(u'trust_domain'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry.get(u'auth_method'),allow_overwrite=True)
-            if entry.get(u'rsl') is not None:
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry.get(u'rsl'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry[u'trust_domain'],allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry[u'auth_method'],allow_overwrite=True)
+            if u'rsl' in entry:
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry[u'rsl'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit[u'slots_layout'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_WorkDir", entry.get(u'work_dir'), allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_Verbosity", entry.get(u'verbosity'), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_WorkDir", entry[u'work_dir'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Verbosity", entry[u'verbosity'], allow_overwrite=True)
             if u'proxy_url' in entry:
-                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry.get(u'proxy_url'), allow_overwrite=True)
+                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",restrictions[u'require_voms_proxy'],None,False,True,True)
@@ -517,7 +517,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
 
         #Now that we have the EntrySet fill the condor_jdl for its entries
-        if type(entry)==EntrySetElement:
+        if isinstance(entry, EntrySetElement):
             self.dicts[u'condor_jdl'] = []
             for subentry in entry.get_child_list(u'entries'):
                 condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry[u'name'])
@@ -551,8 +551,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
 ################################################
 #
-# This Class contains both the main and
-# the entry dicts
+# This Class contains both the main, the entry,
+# and the entry set dicts
 #
 ################################################
 
@@ -890,21 +890,21 @@ def populate_job_descript(work_dir, job_descript_dict,
     max_jobs = config.get_child(u'max_jobs')
 
     job_descript_dict.add('EntryName', sub_name)
-    job_descript_dict.add('GridType', entry.get(u'gridtype'))
-    job_descript_dict.add('Gatekeeper', entry.get(u'gatekeeper'))
-    job_descript_dict.add('AuthMethod', entry.get(u'auth_method'))
-    job_descript_dict.add('TrustDomain', entry.get(u'trust_domain'))
-    if entry.get(u'vm_id') is not None:
-        job_descript_dict.add('EntryVMId', entry.get(u'vm_id'))
-    if entry.get(u'vm_type') is not None:
-        job_descript_dict.add('EntryVMType', entry.get(u'vm_type'))
-    if entry.get(u'rsl') is not None:
-        job_descript_dict.add('GlobusRSL', entry.get(u'rsl'))
+    job_descript_dict.add('GridType', entry[u'gridtype'])
+    job_descript_dict.add('Gatekeeper', entry[u'gatekeeper'])
+    job_descript_dict.add('AuthMethod', entry[u'auth_method'])
+    job_descript_dict.add('TrustDomain', entry[u'trust_domain'])
+    if u'vm_id' in entry:
+        job_descript_dict.add('EntryVMId', entry[u'vm_id'])
+    if u'vm_type' in entry:
+        job_descript_dict.add('EntryVMType', entry[u'vm_type'])
+    if u'rsl' in entry:
+        job_descript_dict.add('GlobusRSL', entry[u'rsl'])
     job_descript_dict.add('Schedd', schedd)
-    job_descript_dict.add('StartupDir', entry.get(u'work_dir'))
-    if entry.get(u'proxy_url') is not None:
-        job_descript_dict.add('ProxyURL', entry.get(u'proxy_url'))
-    job_descript_dict.add('Verbosity', entry.get(u'verbosity'))
+    job_descript_dict.add('StartupDir', entry[u'work_dir'])
+    if u'proxy_url' in entry:
+        job_descript_dict.add('ProxyURL', entry[u'proxy_url'])
+    job_descript_dict.add('Verbosity', entry[u'verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
     per_entry = max_jobs.get_child(u'per_entry')
     job_descript_dict.add('PerEntryMaxGlideins', per_entry[u'glideins'])
@@ -1024,7 +1024,7 @@ def validate_condor_tarball_attrs(conf):
     if common_arch is None:
         common_arch = "default"
 
-    # Check the configuration for every entry
+    # Check the configuration for every entry and entry set
     for entry in conf.get_entries():
         my_version = None
         my_os = None

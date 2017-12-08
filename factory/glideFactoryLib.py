@@ -587,7 +587,6 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
                                    factoryConfig=factoryConfig)
     else:
         # Need more idle
-        q_held_glideins = 0
         # Check that adding more idle doesn't exceed request max_glideins
         if q_idle_glideins + q_held_glideins + q_running_glideins + add_glideins >= req_max_glideins:
             # Exceeded limit, try to adjust

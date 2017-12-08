@@ -76,6 +76,8 @@ class EntryElement(xmlConfig.DictElement):
         self.check_missing(u'name')
         self.check_missing(u'gatekeeper')
         self.check_boolean(u'enabled')
+        #Using parent.parent because EntryElements are inside the <entries> tag
+        #Hence the EntrySetElement is parent.parent
         if isinstance(self.parent.parent, EntrySetElement):
             #no need to check more if the parent is an entryset
             return
@@ -110,11 +112,18 @@ class EntrySetElement(EntryElement):
     def select(self, entry):
         self.selected_entry = entry
 
-    def get(self, attrname):
+    def __contains__(self, item):
+        try:
+            _ = self[item]
+            return True
+        except KeyError:
+            return False
+
+    def __getitem__(self, attrname):
         if getattr(self, 'selected_entry', False) and attrname in self.selected_entry:
             val = self.selected_entry[attrname]
         else:
-            val = xmlConfig.DictElement.get(self, attrname)
+            val = self.attrs.get(attrname)
         if val == None and attrname in self.get_child_list(u'entries')[0]:
             val = self.get_child_list(u'entries')[0][attrname]
 #            val = [ x[attrname] for x in self.get_child_list(u'entries') ]

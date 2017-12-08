@@ -1247,7 +1247,7 @@ class fileCommonDicts:
     def set_readonly(self,readonly=True):
         for el in self.dicts.values():
             #condor_jdl are lists. Iterating over its elements in this case
-            if type(el) == list:
+            if isinstance(el, list):
                 for cj in el:
                     cj.set_readonly(readonly)
             else:
@@ -1468,7 +1468,6 @@ class fileDicts:
         self.main_dicts.set_readonly(readonly)
         for el in self.sub_dicts.values():
             el.set_readonly(readonly)
-
 
     def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
         self.main_dicts.erase()
