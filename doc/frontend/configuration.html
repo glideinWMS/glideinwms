@@ -43,13 +43,13 @@
     <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
-    <img align="right" width="280px" border="0px"
+    <img align="right" width="280px" border="0px" alt="GlideinWMS diagram"
         src="../images/simple_diagram.png" usemap="#rightimage">
     <map name="rightimage">
-        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
-        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+        <area shape="rect" coords="90,3,177,60" alt="main" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" alt="collector" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" alt="factory" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" alt="frontend" target="_blank" href="../corral.html" />
     </map>
 
     <h2>Glidein Frontend</h2>
@@ -84,7 +84,7 @@ Related Information:
 </ul>
 </div>
 <div class="section">
-<a name="example" />
+    <a name="example"></a>
 <h2>Example Configuration</h2>
 
 Below is an example frontend configuration xml file.
@@ -416,6 +416,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
         security_class=&quot;<I>frontend</I>&quot;
         trust_domain=&quot;<I>id</I>&quot;
+        [creation_script=&quot;<I>creationcommand</I>&quot;]
+        [update_frequency=&quot;<I>time_left</I>&quot;]
         [remote_username=&quot;<I>username</I>&quot;]
         [vm_id=&quot;<I>id</I>&quot;]
         [vm_type=&quot;<I>type</I>&quot;]
@@ -453,6 +455,9 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     but an actual x509 proxy will be needed for the glidein on the cloud 
     to connect to the HTCondor user pool.
     <br/><br/>
+        The attributes <i>creation_script</i> and <i>update_frequency</i> are optional attributes used to renew the credential.
+        During the Frontend loop, the script <i>creationcommand</i> is invoked when <i>time_left</i> seconds or less are left to the credential.
+    <br/><br/>
         The attribute <i>remote_username</i> is an optional attribute used with key pair authentication method.
         If specified it replaces the user name specified in the factory entry using the USERNAME@HOST:PORT string of the <i>gatekeeper</i> attribute.
         The username has to be specified in at least one of these two places.
@@ -471,7 +476,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     requirements. 
     </P></li>
     <LI><P>
-        <a name="work" />
+        <a name="work"></a>
         <div class="xml">
         &lt;frontend&gt;&lt;work
         base_dir=&quot;<I>directory</I>&quot; /&gt;
@@ -480,7 +485,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         This defines the path to the Glidein Frontend directory. 
     </P></li>
         <LI><P>
-                <a name="files" />
+            <a name="files"></a>
                 <div class="xml">
                 &lt;frontend&gt;&lt;files&gt;&lt;file
                 absfname=&quot;<I>filepath</I>&quot;
@@ -499,7 +504,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         </P></li>
 
     <LI><P>
-        <a name="attrs" />
+        <a name="attrs"></a>
         <div class="xml">
         &lt;frontend&gt;&lt;attrs&gt;&lt;attr
         name=&quot;<I>attr_name</I>&quot;
@@ -627,7 +632,7 @@ Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/
             happens if the GLIDEIN_MaxMemMBs_Estimate is not configured by the
             factory for the entry.
         </P></li>
-    </UL>
+    </UL></LI>
 </UL>
     <P>Other attributes can be specified as well. They are used by the
     VO Frontend matchmaking and job matchmaking. The format is similar
