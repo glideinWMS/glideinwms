@@ -294,7 +294,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
                        child.stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-            
+
             while poll_group_process(group_name,child) is None:
                 # None means "still alive"
                 time.sleep(0.01)

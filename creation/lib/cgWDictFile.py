@@ -629,7 +629,7 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
 
 ################################################
 #
-# This Class contains the entry dicts
+# This Class contains the entry and entry set dicts
 #
 ################################################
 
@@ -685,8 +685,8 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 
 ################################################
 #
-# This Class contains both the main and
-# the entry dicts
+# This Class contains the main,the entry dicts
+# and the entry set dicts
 #
 ################################################
 
