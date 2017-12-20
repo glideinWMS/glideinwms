@@ -1,3 +1,4 @@
+
 #
 # Project:
 #   glideinWMS
@@ -332,7 +333,13 @@ class CondorQEdit:
             p = 'default'
             if self.pool_name is not None:
                 p = self.pool_name
-            err_str = 'Error querying schedd %s in pool %s using python bindings: %s' % (s, p, ex)
+            try:
+                j1 = jobid
+                j2 = attr
+                j3 = val
+            except:
+                j1 = j2 = j3 = 'unknown'
+            err_str = 'Error querying schedd %s in pool %s using python bindings (qedit of job/attr/val %s/%s/%s): %s' % (s, p, j1, j2, j3, ex)
             raise QueryError(err_str)
 
 
@@ -432,7 +439,7 @@ class CondorQuery(StoredQuery):
                 return self.fetch_using_exe(constraint=constraint,
                                             format_list=format_list)
         except Exception as ex:
-            err_str = 'Error executing htcondor query with constraint %s and format_list %s: %s' % (constraint, format_list, ex)
+            err_str = 'Error executing htcondor query to pool %s with constraint %s and format_list %s: %s. Env is %s' % (self.pool_name, constraint, format_list, ex, os.environ)
             raise QueryError(err_str), None, sys.exc_info()[2]
 
     def fetch_using_exe(self, constraint=None, format_list=None):

@@ -42,6 +42,7 @@
             <idle_glideins_per_entry max="100" reserve="5"/>
             <idle_vms_per_entry curb="5" max="100"/>
             <running_glideins_per_entry max="10000" relative_to_queue="1.15"/>
+            <glideins_removal type="NO" wait="0" />
          </config>
          <match match_expr="True">
             <factory query_expr="True">
