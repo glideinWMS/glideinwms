@@ -115,7 +115,7 @@ def main():
         raise RuntimeError("missing 'frontend' user")
 
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
-    with open('/etc/vomses', 'r') as _:
+    with open(os.getenv('VOMS_USERCONF', '/etc/vomses'), 'r') as _:
         vo_info = re.findall(r'"(\w+)"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"', _.read(), re.IGNORECASE)
         vomses = dict([(vo[0].lower(), {'name': vo[0], 'uri': vo[1] + ':' + vo[2], 'subject': vo[3]}) for vo in vo_info])
 
