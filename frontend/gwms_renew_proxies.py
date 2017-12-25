@@ -15,7 +15,8 @@ CONFIG = '/etc/gwms-frontend/proxies.ini'
 DEFAULTS = {'use_voms_server': 'false',
             'fqan': '/Role=NULL/Capability=NULL',
             'frequency': '1',
-            'lifetime': '24'}
+            'lifetime': '24',
+            'owner': 'frontend'}
 
 class Proxy(object):
     """Class for holding information related to the proxy
@@ -105,12 +106,14 @@ def main():
     proxies = config.sections()
 
     # Verify config sections
+    if proxies.count('COMMON') != 1:
+        raise RuntimeError("there must be only one [COMMON] section in %s" % CONFIG)
     if len([x for x in proxies if x.startswith('PILOT')]) < 1:
         raise RuntimeError("there must be at least one [PILOT] section in %s" % CONFIG)
 
     # Proxies need to be owned by the 'frontend' user
     try:
-        fe_user = pwd.getpwnam('frontend')
+        fe_user = pwd.getpwnam(config.get('COMMON', 'owner'))
     except KeyError:
         raise RuntimeError("missing 'frontend' user")
 
