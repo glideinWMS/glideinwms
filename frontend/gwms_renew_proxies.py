@@ -105,8 +105,6 @@ def main():
     proxies = config.sections()
 
     # Verify config sections
-    if proxies.count('FRONTEND') != 1:
-        raise RuntimeError("there must be only one [FRONTEND] section in %s" % CONFIG)
     if len([x for x in proxies if x.startswith('PILOT')]) < 1:
         raise RuntimeError("there must be at least one [PILOT] section in %s" % CONFIG)
 
