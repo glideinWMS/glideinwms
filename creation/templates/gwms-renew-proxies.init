@@ -1,0 +1,57 @@
+#!/bin/bash
+
+. /etc/rc.d/init.d/functions
+
+LOCK=/var/lock/subsys/gwms-renew-proxies
+RETVAL=0
+
+start() {
+    action $"Enabling frontend and pilot proxy renewal:" /usr/libexec/gwms_renew_proxies && touch "$LOCK"
+    RETVAL=$?
+}
+
+stop() {
+    action $"Disabling frontend and pilot proxy renewal:" rm -f "$LOCK"
+    RETVAL=$?
+}
+
+restart() {
+    stop
+    start
+}
+
+status() {
+    if [ -f $lockfile ]; then
+        renew_status="enabled"
+        RETVAL=0
+    else
+        renew_status="disabled"
+        RETVAL=3
+    fi
+    echo "Frontend and pilot proxy renewal is $renew_status."
+}
+
+case $1  in
+  start)
+	start
+	;;
+  stop) 
+	stop
+	;;
+  restart|force-reload)
+	restart
+	;;
+  reload)
+	;;
+  condrestart)
+	[ ! -f "$lockfile" ] && restart
+	;;
+  status)
+	status
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+	exit 1
+esac
+
+exit $RETVAL
