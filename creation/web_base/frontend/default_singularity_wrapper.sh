@@ -1,3 +1,5 @@
+#!/bin/bash
+# 
 EXITSLEEP=5
 
 function info {
@@ -5,7 +7,9 @@ function info {
 }
 
 function info_dbg {
-    info "$0 $@"
+    if [ "x$GLIDEIN_DEBUG_OUTPUT" != "x" ]; then
+        info "DEBUG: file:"$0 $@
+    fi
 }
 
 function getPropBool
@@ -44,6 +48,7 @@ function getPropStr
 
 
 if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
+    # set up environment so we can execute singularity
     
     if [ "x$_CONDOR_JOB_AD" = "x" ]; then
         export _CONDOR_JOB_AD="NONE"
@@ -52,41 +57,38 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
         export _CONDOR_MACHINE_AD="NONE"
     fi
 
-    if [ ! -e "$_CONDOR_MACHINE_AD" ]; then 
-       if [ -e "/srv/$(basename $_CONDOR_MACHINE_AD)" ]; then
-          export _CONDOR_MACHINE_AD="/srv/$(basename $_CONDOR_MACHINE_AD)" 
-       fi
-    fi
-
-    if [ ! -e "$_CONDOR_JOB_AD" ]; then 
-       if [ -e "/srv/$(basename $_CONDOR_JOB_AD)" ]; then
-          export _CONDOR_JOB_AD="/srv/$(basename $_CONDOR_JOB_AD)" 
-       fi
-    fi
-
-    # from the singularity_setup.sh
+ 
+    ## from singularity_setup.sh executed earlier
     export HAS_SINGULARITY=$(getPropBool $_CONDOR_MACHINE_AD HAS_SINGULARITY)
     export GWMS_SINGULARITY_PATH=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_PATH)
+    export GWMS_SINGULARITY_VERSION=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_VERSION)
     export GWMS_SINGULARITY_IMAGE_DEFAULT6=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT6)
     export GWMS_SINGULARITY_IMAGE_DEFAULT7=$(getPropStr $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT7)
-
     export GLIDEIN_REQUIRED_OS=$(getPropStr $_CONDOR_MACHINE_AD GLIDEIN_REQUIRED_OS)
-    export REQUIRED_OS=$(getPropStr $_CONDOR_JOB_AD REQUIRED_OS)
+    export GLIDEIN_DEBUG_OUTPUT=$(getPropStr $_CONDOR_MACHINE_AD GLIDEIN_DEBUG_OUTPUT)
+  
     ## from Job ClassAd
+    export REQUIRED_OS=$(getPropStr $_CONDOR_JOB_AD REQUIRED_OS)
     export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
-    export GWMS_SINGULARITY_BIND_CVMFS=1
     export CVMFS_REPOS_LIST=$(getPropStr $_CONDOR_JOB_AD CVMFSReposList)
-    info_dbg "CVMFS Repos List = $CVMFS_REPOS_LIST" 
-    export GWMS_SINGULARITY_AUTOLOAD=1
+    if [ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]; then
+        export GLIDEIN_DEBUG_OUTPUT=$(getPropStr $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
+    fi
+  
+ 
+ 
     #GWMS we do not allow users to set SingularityAutoLoad
+    export GWMS_SINGULARITY_AUTOLOAD=1
+    export GWMS_SINGULARITY_BIND_CVMFS=1
 
     #############################################################################
     #
     #  Singularity
     #
-    if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ]; then
+    if [ "x$HAS_SINGULARITY" = "x1" -a "xGWMS_SINGULARITY_PATH" != "x" ]; then
 
-       # We make sure that every cvmfs repository that users specify in CVMFSReposList is available, otherwise this script exits with 1
+        # We make sure that every cvmfs repository that users specify in CVMFSReposList is available, otherwise this script exits with 1
+        info_dbg "CVMFS Repos List = $CVMFS_REPOS_LIST" 
         holdfd=3
         if [ "x$CVMFS_REPOS_LIST" != "x" ]; then
             for x in $(echo $CVMFS_REPOS_LIST | sed 's/,/ /g'); do
@@ -123,6 +125,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
             else # For now, we just enumerate RHEL6 and RHEL7.
                 GWMS_SINGULARITY_IMAGE="$SINGULARITY_IMAGE_DEFAULT7"
             fi
+        fi
         # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
         if [ "x$GWMS_SINGULARITY_IMAGE" = "x" ]; then 
            echo "Error: If you get this error when you did not specify desired OS, your VO does not support any default image" 1>&2
@@ -166,7 +169,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     # to do that, we have to make sure everything we need is in $PWD, most
     # notably the user-job-wrapper.sh (this script!)
     cp $0 .osgvo-user-job-wrapper.sh
-    export NEW_WRAPPER="/srv/.osgvo-user-job-wrapper.sh"
+    export JOB_WRAPPER_SINGULARITY="/srv/.osgvo-user-job-wrapper.sh"
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to omewhere inside that dir (for example, X509_USER_PROXY)
@@ -188,24 +191,24 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info_dbg "about to invoke singularity pwd is $PWD" 
     export GWMS_SINGULARITY_REEXEC=1
 
-    #quote $SINGULARITY_PATH to deal with a path that contains whitespaces
+    #quote $GWMS_SINGULARITY_PATH to deal with a path that contains whitespaces
     #
-    info_dbg  exec "$SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
-                               --home $PWD:/srv 
+    info_dbg  exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
+                               --home $PWD:/srv \
                                --pwd /srv  --scratch /var/tmp  --scratch /tmp  \
                                --contain --ipc --pid   \
-                               "$GWMS_SINGULARITY_IMAGE"  $NEW_WRAPPER $CMD
+                               "$GWMS_SINGULARITY_IMAGE"  $JOB_WRAPPER_SINGULARITY $CMD
 
-    exec "$SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
+    exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                --home $PWD:/srv \
                                --pwd /srv --scratch /var/tmp --scratch /tmp \
                                --contain --ipc --pid  \
-                               "$GWMS_SINGULARITY_IMAGE" $NEW_WRAPPER  $CMD
-   fi
+                               "$GWMS_SINGULARITY_IMAGE" $JOB_WRAPPER_SINGULARITY  $CMD
+   
 
 else # if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ] 
     # we are now inside singularity - fix up the env
-    info_dbg "inside singularity pwd = $PWD GWMS_SINGULARITY_REEXEC=$GWMS_SINGULARITY_REEXEC"
+    info_dbg "running inside singularity env = "`printenv`
     unset TMP
     unset TEMP
     unset X509_CERT_DIR
@@ -214,6 +217,7 @@ else # if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]
         eval val="\$$key"
         val=`echo "$val" | sed -E "s;$GWMS_SINGULARITY_OUTSIDE_PWD(.*);/srv\1;"`
         eval $key=$val
+        info_dbg "changed $key => $val"
     done
 
     # If X509_USER_PROXY and friends are not set by the job, we might see the
@@ -223,6 +227,7 @@ else # if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]
         if [ "x$val" != "x" ]; then
             if [ ! -e "$val" ]; then
                 eval unset $key >/dev/null 2>&1 || true
+                info_dbg "unset $key"
             fi
         fi
     done
@@ -257,5 +262,5 @@ exec "$@"
 error=$?
 echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE
 info "exec $@ failed: exit code $error"
-exit 1
+exit $error
 

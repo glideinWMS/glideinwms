@@ -8,6 +8,13 @@ function info {
     echo "INFO " $@  1>&2
 }
 
+function info_dbg {
+    if [ "x$GLIDEIN_DEBUG_OUTPUT" != "x" ]; then
+        info "DEBUG: file:"$0 $@
+    fi
+}
+
+
 function warn {
     echo "WARN " $@  1>&2
 }
@@ -44,27 +51,30 @@ function no_use_singularity_config {
 
 function test_singularity_exec {
 
-   image="$GWMS_SINGULARITY_IMAGE_DEFAULT"
-   info "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs \
-          --pwd /srv --scratch /var/tmp --scratch /tmp \
-          --contain --ipc --pid $image \
-          echo Hello World | grep Hello World"
+   #image="$GWMS_SINGULARITY_IMAGE_DEFAULT"
+   info_dbg "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs \
+             --pwd /srv --scratch /var/tmp --scratch /tmp \
+             --contain --ipc --pid $image \
+             echo Hello World | grep Hello World"
 
-   ("$GWMS_SINGULARITY_PATH" exec --home $PWD:/srv \
+   if ("$GWMS_SINGULARITY_PATH" exec --home $PWD:/srv \
                                          --bind /cvmfs \
                                          --pwd /srv \
                                          --scratch /var/tmp \
                                          --scratch /tmp \
                                          --contain --ipc --pid \
-                                         "$image" \
-                                         echo "Hello World" \
-                                         | grep "Hello World") 1>&2 
-
+                                         "$GWMS_SINGULARITY_IMAGE_DEFAULT" \
+                                         printenv \
+                                         | grep "$GWMS_SINGULARITY_PATH" 1>&2)  
+   then
+       info "Singularity at $GWMS_SINGULARITY_PATH appears to work"
+       true
+   else
+       info "Singularity at $GWMS_SINGULARITY_PATH failed "
+       false
+   fi
 }
 
-function return_false {
-    grep THIS_WILL_FAIL /dev/null
-}
 
 function locate_singularity {
     info "Checking for singularity..."
@@ -74,7 +84,7 @@ function locate_singularity {
     if [  -d "$LOCATION" ] && [ -x "$LOCATION/singularity" ]; then
         PATH="$LOCATION:$PATH"
     else
-        warn "SINGULARITY_BIN = $1  in factory xml configuration is not a directory or does not exist!"
+        warn "SINGULARITY_BIN = $1  in factory xml configuration is not a directory or does not contain singularity!"
         warn "will try to proceed with default value '/usr/bin' but this misconfiguration may cause errors later!"
     fi
 
@@ -82,7 +92,7 @@ function locate_singularity {
     GWMS_SINGULARITY_VERSION=$("$LOCATION"/singularity --version 2>/dev/null)
     if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
         HAS_SINGULARITY="True"
-        GWMS_SINGULARITY_PATH="$LOCATION/singularity"
+        export GWMS_SINGULARITY_PATH="$LOCATION/singularity"
     else
         # some sites requires us to do a module load first - not sure if we always want to do that
         PATH="$LOCATION:$PATH"
@@ -94,14 +104,17 @@ function locate_singularity {
     fi
     if [ "$HAS_SINGULARITY" = "True" ] && test_singularity_exec; then
         info " ... prepending $LOCATION to PATH"
-        export PATH=$PATH
+        export PATH=$LOCATION:$PATH
         export HAS_SINGULARITY=$HAS_SINGULARITY
-        export GWMS_SINGULARITY_PATH=$GWMS_SINGULARITY_PATH
+        export GWMS_SINGULARITY_PATH="$LOCATION/singularity"
         export GWMS_SINGULARITY_VERSION=$GWMS_SINGULARITY_VERSION
+        true
      else
         export HAS_SINGULARITY=$HAS_SINGULARITY
+        export GWMS_SINGULARITY_PATH=""
+        export GWMS_SINGULARITY_VERSION=""
         warn "Singularity not found at $LOCATION"
-        return_false
+        false
      fi
 }
 
@@ -125,6 +138,8 @@ fi
 
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
+
+export GLIDEIN_DEBUG_OUTPUT = `grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk '{print $2}'`
 
 #some hackery to deal with spaces in SINGULARITY_BIN
 temp_singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
@@ -158,11 +173,11 @@ case "$use_singularity" in
         if [ "$require_singularity" = "True" ]; then
             STR="Factory requires glidein to use singularity."
             "$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Singularity_Use"
+            #If Group mistakenly use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use=NEVER
+            #we need to set    advertise HAS_SINGULARITY "False" "C"
+            no_use_singularity_config
             exit 1
         fi
-        #GWMS If Group mistakenly use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use=NEVER
-        #GWMS we need to set    advertise HAS_SINGULARITY "False" "C"
-        no_use_singularity_config
         ;;
     OPTIONAL) #GWMS Even in OPTIONAL case, FE will have to specify the wrapper script
         if [ "$require_singularity" = "True" ]; then
@@ -272,8 +287,13 @@ fi
 
 advertise HAS_SINGULARITY "True" "C"
 advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
+advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
+advertise SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
+advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise GLIDEIN_REQUIRED_OS "any" "S"
-
+if [ "x$GLIDEIN_DEBUG_OUTPUT" != "x" ]; then
+    advertise GLIDEIN_DEBUG_OUTPUT "$GLIDEIN_DEBUG_OUTPUT" "S"
+fi
 info "All done - time to do some real work!"
 
 "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True"
