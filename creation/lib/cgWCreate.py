@@ -19,6 +19,7 @@ import tarfile
 import cStringIO
 import cgWDictFile
 
+
 ##############################
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
@@ -74,10 +75,10 @@ def create_condor_tar_fd(condor_base_dir):
 
         # check that dir and files exist
         if not os.path.isdir(condor_base_dir):
-            raise RuntimeError, "%s is not a directory"%condor_base_dir
+            raise RuntimeError("%s is not a directory" % condor_base_dir)
         for f in condor_bins:
-            if not os.path.isfile(os.path.join(condor_base_dir,f)):
-                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
+            if not os.path.isfile(os.path.join(condor_base_dir, f)):
+                raise RuntimeError("Cannot find %s" % os.path.join(condor_base_dir, f))
 
         # Get the list of dlls required
         dlls = get_condor_dlls(
@@ -86,19 +87,19 @@ def create_condor_tar_fd(condor_base_dir):
 
         # Get list of all the files & directories that exist
         for f in (condor_opt_bins+condor_opt_libs+condor_opt_libexecs+dlls):
-            if os.path.exists(os.path.join(condor_base_dir,f)):
+            if os.path.exists(os.path.join(condor_base_dir, f)):
                 condor_bins.append(f)
 
         # tar
         fd = cStringIO.StringIO()
-        tf = tarfile.open("dummy.tgz",'w:gz',fd)
+        tf = tarfile.open("dummy.tgz", 'w:gz', fd)
         for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir,f), condor_bins_map.get(f, f))
+            tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)
     except RuntimeError, e:
-        raise RuntimeError, "Error creating condor tgz: %s"%e
+        raise RuntimeError("Error creating condor tgz: %s" % e)
     return fd
 
 
@@ -128,7 +129,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             proxy_url = entry[u'proxy_url']
         else:
             proxy_url = None
-        client_log_base_dir =  conf.get_child(u'submit')[u'base_client_log_dir']
+        client_log_base_dir = conf.get_child(u'submit')[u'base_client_log_dir']
         submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
 
         # Add in some common elements before setting up grid type specific attributes
@@ -138,23 +139,31 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
             # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username form env
-            # This retuens always the host:port part: gatekeeper.split('@')[-1]
-            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
-                     (gridtype, gatekeeper.split('@')[-1]))
+            # This returns always the host:port part: gatekeeper.split('@')[-1]
+            if u'bosco_dir' in entry:
+                bosco_dir = "--rgahp-glite ~/%s/glite" % entry[u'bosco_dir']
+            else:
+                bosco_dir = ''
+            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
+                     (gridtype, bosco_dir, gatekeeper.split('@')[-1]))
+        elif gridtype == "gce":
+            self.add("Grid_Resource", "%s %s $ENV(GRID_RESOURCE_OPTIONS)" % (gridtype, gatekeeper))
         else:
             self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
 
         # set up the grid specific attributes
         if gridtype == 'ec2':
-            self.populate_ec2_grid()
+            self.populate_ec2_grid(submit_attrs)
+        if gridtype == 'gce':
+            self.populate_gce_grid(submit_attrs)
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
             self.populate_standard_grid(rsl, auth_method, gridtype)
             # next we add the Condor-C additions
             self.populate_condorc_grid(submit_attrs)
-        elif (gridtype.startswith('batch ')):
+        elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
             self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
         else:
@@ -181,10 +190,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_standard_grid(self, rsl, auth_method, gridtype):
-        if gridtype == 'gt2' or gridtype =='gt5':
-            if "project_id" in auth_method or ((rsl is not None) and rsl !=""):
+        if gridtype == 'gt2' or gridtype == 'gt5':
+            if "project_id" in auth_method or ((rsl is not None) and rsl != ""):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
-        elif gridtype == 'cream' and ((rsl is not None) and rsl !=""):
+        elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
@@ -223,22 +232,39 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         for submit_attr in submit_attrs:
             self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
+
     def populate_condorc_grid(self, submit_attrs):
         self.populate_submit_attrs(submit_attrs)
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
-    def populate_ec2_grid(self):
-        self.add("ec2_ami_id", "$ENV(AMI_ID)")
+
+    def populate_gce_grid(self, submit_attrs):
+        self.add("gce_image", "$ENV(IMAGE_ID)")
+        self.add("gce_machine_type", "$ENV(INSTANCE_TYPE)")
+        # self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
+        # self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
+        self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
+        self.add("gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+        self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.populate_submit_attrs(submit_attrs)
+
+
+    def populate_ec2_grid(self, submit_attrs):
+        self.add("ec2_ami_id", "$ENV(IMAGE_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
         self.add("ec2_secret_access_key", "$ENV(SECRET_KEY_FILE)")
         self.add("ec2_keypair_file", "$ENV(CREDENTIAL_DIR)/ssh_key_pair.$(Cluster).$(Process).pem")
-        # We do not add the entire argument list to the userdata directly since we want to be able
-        # to change the argument list without having to modify every piece of code under the sun
-        # this way only the submit_glideins function has to change (and of course glidein_startup.sh)
-        self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+        # We do not add the entire argument list to the userdata directly
+        # since we want to be able to change the argument list without
+        # having to modify every piece of code under the sun
+        # This way only the submit_glideins function has to change
+        # (and of course glidein_startup.sh)
+        self.add("ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.populate_submit_attrs(submit_attrs)
+
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector
@@ -248,9 +274,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinEntrySubmitFile', '"$ENV(GLIDEIN_ENTRY_SUBMIT_FILE)"')
         self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
-        self.add('+GlideinCredentialIdentifier','"$ENV(GLIDEIN_CREDENTIAL_ID)"')
+        self.add('+GlideinCredentialIdentifier', '"$ENV(GLIDEIN_CREDENTIAL_ID)"')
         self.add('+GlideinSecurityClass', '"$ENV(GLIDEIN_SEC_CLASS)"')
-        self.add('+GlideinWebBase', '"$ENV(WEB_URL)"')
+        self.add('+GlideinWebBase', '"$ENV(GLIDEIN_WEB_URL)"')
         self.add('+GlideinLogNr', '"$ENV(GLIDEIN_LOGNR)"')
         self.add('+GlideinWorkDir', '"$ENV(GLIDEIN_STARTUP_DIR)"')
         self.add('+GlideinSlotsLayout', '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')

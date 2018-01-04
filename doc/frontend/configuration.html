@@ -103,9 +103,9 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-        <a href="#match">&lt;match match_expr="True" start_expr="True"&gt;</a><br/>
+        <a href="#group_match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
         <blockquote>
-            <a href="#match">&lt;factory query_expr="True"&gt;</a><br/>
+            <a href="#group_match">&lt;factory query_expr="True"&gt;</a><br/>
             <blockquote>
                 <a href="#group_match_attr">&lt;match_attrs /&gt;</a><br/>
                 <a href="#wmscollector">&lt;collectors&gt;</a><br/>
@@ -114,10 +114,10 @@ Click on any piece for a more detailed description.
                 </blockquote>
                 <a href="#wmscollector">&lt;/collectors&gt;</a><br/>
             </blockquote>
-            <a href="#match">&lt;/factory&gt;</a><br/>
+            <a href="#group_match">&lt;/factory&gt;</a><br/>
             <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)"&gt;</a><br/>
             <blockquote>
-                <a href="#match">&lt;match_attrs /&gt;</a><br/>
+                <a href="#group_match">&lt;match_attrs /&gt;</a><br/>
                 <a href="#schedd">&lt;schedds&gt;</a><br/>
                 <blockquote>
                     <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="userpool.fnal.gov" /&gt;</a><br/>
@@ -128,7 +128,7 @@ Click on any piece for a more detailed description.
             </blockquote>
             <a href="#job_query">&lt;/job&gt;</a><br/>
         </blockquote>
-        <a href="#match">&lt;/match&gt;</a><br/>
+        <a href="#group_match">&lt;/match&gt;</a><br/>
         <br/>
         <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
         <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/><br/>
@@ -166,7 +166,7 @@ Click on any piece for a more detailed description.
                 <a href="#group_config">&lt;glideins_removal margin="0" requests_tracking="False" type="ALL" wait="0"/&gt;</a><br/>
             </blockquote>
             <a href="#group_config">&lt;/config&gt;</a><br/>
-            <a href="#group_match">&lt;match match_expr="True" start_expr="True"&gt;</a><br/>
+            <a href="#group_match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
             <blockquote>
                 <a href="#group_factory">&lt;factory query_expr="True"&gt;</a><br/>
                 <blockquote>
@@ -433,6 +433,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         <li><b>cert_pair</b>: A x509 certificate pair with the cert in the <i>absfname</i> location and the certkey in the <i>keyabsfname</i> location.</li>
         <li><b>key_pair</b>: A key pair stored with the public key in <i>absfname</i> location and the private key in <i>keyabsfname</i> location.</li>
         <li><b>username_password</b>: A username/password combination with the username stored in a text at the <i>absfname</i> location and a password stored in a text file in the <i>keyabsfname</i> location.</li>
+        <li><b>auth_file</b>: Auth file or token stored as text at the <i>absfname</i> location.</li>
     </ul>
     In addition, if you have a cloud (non-grid type) entry, you may also be required to specify the identity credentials VM id and VM type.  
     If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods (types) above.  For example,
@@ -749,7 +750,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         <a name="group_match" />
         <div class="xml">
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match
-        match_expr=&quot;<I>expr</I>&quot; start_expr=&quot;<I>expr</I>&quot; &gt;
+        match_expr=&quot;<I>expr</I>&quot; start_expr=&quot;<I>expr</I>&quot; policy_file=&quot;/path/to/python-policy-file&quot;&gt;
         </div>
     The match_expr is Python boolean expression is used to match glideins
     to jobs. The glidein and job dictionaries are used in the
@@ -762,7 +763,16 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     The start_expr is a Condor expression that will be evaluated
     to match glideins to jobs.  This should be a valid Condor ClassAd
     expression, i.e. <tt>(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)</tt>.
-    <br/>
+    <br/><br/>
+
+    policy_file lets you optionally configure frontend or group's policy that includes factory_query_expr, factory_match_attrs, job_query_expr, job_match_attrs and the match_expr without having to enter similar information in the frontend.xml.
+    When policy info is specified in both frontend.xml and through a policy file, information from both the sources is considered.
+    <ul>
+        <li>match_expr from frontend.xml is ANDed with match(job, glidein) from the policy file</li>
+        <li>job/factory query_expr from the frontend.xml is ANDed with respective job/factory's query_expr form the policy file</li>
+        <li>List of job/factory's match_attrs created by merging the list from both frontend.xml and policy file together</li>
+    </ul>
+
     Note that there are two expressions.  The "match_expr" will be 
     evaluated when matching glidein (pilot) requests to entries.
     This will determine which sites glideins are submitted to.
@@ -773,6 +783,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     are included in the DESIRED_Sites list of one of the queued jobs (match_expr) and 
     start a job only on a pilot running on a site that is listed in the 
     DESIRED_Sites list (start_expr).
+    <br/><br/>
     <a href="#match_example">More on match expressions</a>
     </P></li>
 
@@ -1134,6 +1145,43 @@ i   any action requested (execute, untar, just keep it, ...).
             <br/>
             &lt;/match &gt;
         </div>
+</p>
+
+<p><B><u>Example</u></b></p>
+        Here is an example of policy.py that is equivalent to above example
+        <div class="xml">
+            &lt;match match_expr='True'
+            policy_file='/path/to/policy.py'
+            start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &gt;
+            <br/>
+            &lt;factory query_expr="True"&gt;
+                &lt;match_attrs /&gt;
+             &lt;/factory&gt;
+            <br/>
+            &lt;job query_expr="True"&gt;
+                &lt;match_attrs /&gt;
+             &lt;/job&gt;
+            <br/>
+            &lt;/match &gt;
+        </div>
+        <pre>
+# Filename: /path/to/policy.py
+# match(job, glidein) is equivalent to match_expr in frontend.xml
+def match(job, glidein):
+    return (glidein['attrs'].get('GLIDEIN_Site') in job["DESIRED_Sites"].split(","))
+
+# factory/job query_expr is a string of HTCondor expression
+factory_query_expr = '(GLIDEIN_Site=!=UNDEFINED)'
+job_query_expr = '(DESIRED_Sites=!=UNDEFINED)'
+
+# factory/job match_attrs is a dict with following structure
+factory_match_attrs = {
+    'GLIDEIN_Site': {'type': 'string', 'comment': 'From policy'}
+}
+job_match_attrs = {
+        'DESIRED_Sites': {'type': 'string', 'comment': 'From policy'}
+}
+        </pre>
 </p>
 </div>
 <div class="section">

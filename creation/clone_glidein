@@ -13,77 +13,81 @@
 
 import os
 import sys
-
-STARTUP_DIR=sys.path[0]
-
 import os.path
 import copy
 import re
 import string
-import shutil
-import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+# not used  import shutil
+# not used  import traceback
+
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 from glideinwms.creation.lib import cgWParams
 
 
 ################################################################################
 
-def run_attr_regexp(params,entry_name,attr,ro):
-    if not params.entries[entry_name].attrs.has_key(attr):
+def run_attr_regexp(params, entry_name, attr, ro):
+    if attr not in params.entries[entry_name].attrs:
         return False
-    return re.search(ro,params.entries[entry_name].attrs[attr].value) is not None
+    return re.search(ro, params.entries[entry_name].attrs[attr].value) is not None
 
-def run_descr_regexp(params,entry_name,attr,ro):
-    if not params.subparams.data['entries'][entry_name].has_key(attr):
+
+def run_descr_regexp(params, entry_name, attr, ro):
+    if attr not in params.subparams.data['entries'][entry_name]:
         return False
-    return re.search(ro,params.subparams.data['entries'][entry_name][attr]) is not None
-
-def run_name_regexp(params,entry_name,ro):
-    return re.search(ro,entry_name) is not None
+    return re.search(ro, params.subparams.data['entries'][entry_name][attr]) is not None
 
 
-def create_filter(attr,regexp):
-    ro=re.compile(regexp)
-    if attr=="name":
-        return lambda params,entry_name:run_name_regexp(params,entry_name,ro)
-    elif attr in ("gatekeeper","gridtype","rsl",'schedd_name',"work_dir",'proxy_url','verbosity',"enabled"):
-        return lambda params,entry_name:run_descr_regexp(params,entry_name,attr,ro)
+def run_name_regexp(params, entry_name, ro):
+    return re.search(ro, entry_name) is not None
+
+
+def create_filter(attr, regexp):
+    ro = re.compile(regexp)
+    if attr == "name":
+        return lambda params, entry_name:run_name_regexp(params, entry_name, ro)
+    elif attr in ("gatekeeper", "gridtype", "rsl", "bosco_dir", "schedd_name", "work_dir",
+                  "proxy_url", "verbosity", "enabled"):
+        return lambda params, entry_name:run_descr_regexp(params, entry_name, attr, ro)
     else:
-        return lambda params,entry_name:run_attr_regexp(params,entry_name,attr,ro)
+        return lambda params, entry_name:run_attr_regexp(params, entry_name, attr, ro)
     
-def match_list(params,entry_name,include_list,exclude_list):
-    if len(include_list)!=0: # if empty, include all
-        found=False
+
+def match_list(params, entry_name, include_list, exclude_list):
+    if len(include_list) != 0:  # if empty, include all
+        found = False
         for f in include_list:
-            if f(params,entry_name):
-                found=True
+            if f(params, entry_name):
+                found = True
                 break
-        if not found: # not in whitelist
+        if not found:  # not in whitelist
             return False
 
     for f in exclude_list:
-        if f(params,entry_name):
+        if f(params, entry_name):
             return False
 
-    return True #not in blacklist
+    return True  # not in blacklist
 
 
 def preserve_el_comments(new_arr, old_arr):
     for k in new_arr.keys():
         if old_arr.has_key(k):
-            if k=="comment":
-                new_arr[k]=copy.deepcopy(old_arr[k])
+            if k == "comment":
+                new_arr[k] = copy.deepcopy(old_arr[k])
             else:
                 try:
-                    dummy=new_arr[k].keys()
+                    dummy = new_arr[k].keys()
                     # dictionary-like, climb the tree, recurse
-                    preserve_el_comments(new_arr[k],old_arr[k])
+                    preserve_el_comments(new_arr[k], old_arr[k])
                 except:
-                    pass # not a dictionary-like object
+                    pass  # not a dictionary-like object
         else:
-            if  k=="comment":
+            if k == "comment":
                 # old version did not have a comment, so the new one should not either
                 del new_arr[k]
+
 
 ################################################################################
 

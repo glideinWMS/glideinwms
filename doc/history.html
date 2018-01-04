@@ -312,13 +312,13 @@ COLLECTOR.USE_SHARED_PORT=False
           node This can be used to advertise resources like GPUs. GPUs can also 
           be auto discovered and advertised
           <li>Several improvements to rpm packaging. Useful frontend tools are
-          now available in the user path
-          <li>Support of version control for the factory configuration and
-          splitting of entries configuration form the main factory
-          configuration (entries.d)
+          now available in the user path.
+          <li>Support splitting of factory configuration into factory's
+          deployment specific configuration and entry specific configuration.
+          <li>Support of version control for the factory configuration and splitting 
+          of entries configuration form the main factory configuration (entries.d)
           <li>Unique idle jobs matched by the frontend is now available in
           glideresource classads
-          deloyment specific configuration and entry specific configuration.
           <li>Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
           glidein was not created correclty under certain conditions
           <li>Bug Fix: create_frontend script now correctly populates images
@@ -957,8 +957,7 @@ COLLECTOR.USE_SHARED_PORT=False
       </li>
       <li>
         <b>v2_5_7</b> released on April 5, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_5_7/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_7/install.ht
-ml">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputin
-g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
+ml">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         <ul>
           <li>Patch of the clean_glidein_queue to return 1 only when something was really done
           <li>Fix handling of held jobs when hitting the held limit

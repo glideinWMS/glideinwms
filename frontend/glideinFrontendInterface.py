@@ -18,6 +18,7 @@ import copy
 import calendar
 import time
 import string
+import re
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
@@ -295,9 +296,17 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
+        proxy_vmid_fname = elementDescript.merged_data['ProxyVMIdFname']
+        proxy_vmtype_fname = elementDescript.merged_data['ProxyVMTypeFname']
         proxy_remote_username = elementDescript.merged_data['ProxyRemoteUsernames']
         proxy_project_id = elementDescript.merged_data['ProxyProjectIds']
         self.proxy_id = proxy_id
+        # self.filename (absfname) always contains component of credential
+        # used to submit glidein and based on the type contains following:
+        # grid_proxy: x509 proxy (also used by pilot to talk to User collector 
+        # key_pair: public/access key
+        # cert_pair: public cert
+        # auth_file: auth file used
         self.filename = proxy_fname
         self.type = proxy_types.get(proxy_fname, "Unknown")
         self.security_class = proxy_security_classes.get(proxy_fname, proxy_id)
@@ -305,6 +314,8 @@ class Credential:
         self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
         # Following items can be None
+        self.vm_id_fname   = proxy_vmid_fname.get(proxy_fname)
+        self.vm_type_fname = proxy_vmtype_fname.get(proxy_fname)
         self.vm_id = proxy_vm_ids.get(proxy_fname)
         self.vm_type = proxy_vm_types.get(proxy_fname)
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
@@ -312,6 +323,7 @@ class Credential:
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
         self.remote_username = proxy_remote_username.get(proxy_fname)
         self.project_id = proxy_project_id.get(proxy_fname)
+
         # Will be initialized when getId() is called
         self._id = None
 
@@ -1004,6 +1016,39 @@ class MultiAdvertizeWork:
 
             return [] # No files left to be advertized
 
+    def vm_attribute_from_file(self, filename, prefix):
+        """
+        Expected syntax: VM_ID=<ami id> or VM_TYPE=<instance type>
+
+        Note: This method does not check if the string that follows VM_ID
+              is meaningful AMI or the string that follows VM_TYPE is one
+              of AWS instance types.
+        """
+
+        values = []
+        try:
+            vmfile = open(filename, 'r')
+            for line in vmfile.readlines():
+                sep_idx = line.find('=')
+                if (sep_idx > 0):
+                    key = (line[:sep_idx]).strip()
+                    if (key.upper() == prefix.upper()):
+                        value = (line[sep_idx+1:]).strip()
+                        if value != '':
+                            values.append(value)
+        except:
+            logSupport.log.exception('Failed to read the file %s' % (filename))
+            raise NoCredentialException
+
+        if len(values) > 1:
+            logSupport.log.error("Found multiple lines that contain %s in %s" % (prefix, filename))
+            raise NoCredentialException
+        elif len(values) == 0:
+            logSupport.log.error("File %s does not contain %s" % (filename, prefix))
+            raise NoCredentialException
+
+        logSupport.log.debug("Found %s = %s from file %s" % (prefix, values[0], filename))
+        return values[0]
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
         """
@@ -1076,7 +1121,7 @@ class MultiAdvertizeWork:
                             continue
                     # Convert the sec class to a string so the Factory can interpret the value correctly
                     glidein_params_to_encrypt['SecurityClass'] = str(credential_el.security_class)
-                    classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_"+classad_name
+                    classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_" + classad_name
                     if "username_password"in credential_el.type:
                         glidein_params_to_encrypt['Username'] = file_id_cache.file_id(credential_el, credential_el.filename)
                         glidein_params_to_encrypt['Password'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
@@ -1088,25 +1133,36 @@ class MultiAdvertizeWork:
                     if "key_pair" in credential_el.type:
                         glidein_params_to_encrypt['PublicKey'] = file_id_cache.file_id(credential_el, credential_el.filename)
                         glidein_params_to_encrypt['PrivateKey'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
+                    if "auth_file" in credential_el.type:
+                        glidein_params_to_encrypt['AuthFile'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                    if "vm_id" in credential_el.type:
+                        if credential_el.vm_id_fname:
+                            glidein_params_to_encrypt['VMId'] = self.vm_attribute_from_file(credential_el.vm_id_fname, 'VM_ID')
+                        else:
+                            glidein_params_to_encrypt['VMId'] = str(credential_el.vm_id)
+                    if "vm_type" in credential_el.type:
+                        if credential_el.vm_type_fname:
+                            glidein_params_to_encrypt['VMType'] = self.vm_attribute_from_file(credential_el.vm_type_fname, 'VM_TYPE')
+                        else:
+                            glidein_params_to_encrypt['VMType'] = str(credential_el.vm_type)
+                        # removing this, was here by mistake? glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+
+                    # Process additional information of the credential
                     if credential_el.pilot_fname:
                         glidein_params_to_encrypt['GlideinProxy'] = file_id_cache.file_id(credential_el, credential_el.pilot_fname)
-                    
-                    if "vm_id" in credential_el.type:
-                        glidein_params_to_encrypt['VMId'] = str(credential_el.vm_id)
-                    if "vm_type" in credential_el.type:
-                        glidein_params_to_encrypt['VMType'] = str(credential_el.vm_type)
-                        
-                    if credential_el.remote_username:  # MMDB or "username" in credential_el.type
+
+                    if credential_el.remote_username:  # MM: or "username" in credential_el.type
                         glidein_params_to_encrypt['RemoteUsername'] = str(credential_el.remote_username)
                     if credential_el.project_id:
-                        glidein_params_to_encrypt['ProjectId'] = str(credential_el.project_id)
-                        
-                    (req_idle,req_max_run)=credential_el.get_usage_details()
-                    logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
-                
+                        glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
+
+                    (req_idle, req_max_run) = credential_el.get_usage_details()
+                    logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s" %
+                                         (credential_el.filename, req_idle, req_max_run, params_obj.request_name))
+
                     glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
 
-                if (frontendConfig.advertise_use_multi is True):
+                if frontendConfig.advertise_use_multi is True:
                     fname = self.adname
                     cred_filename_arr.append(fname)
                 else:

@@ -76,6 +76,7 @@ class CounterWrapper:
     def __delitem__(self, keyid):
         del self.dict_el[keyid]
 
+
 #####################################################
 #
 # Main class for the module
@@ -1756,7 +1757,8 @@ class glideinFrontendElement:
                         self.condorq_dict_types[dt]['dict'],
                         self.glidein_dict,
                         self.attr_dict,
-                        self.condorq_match_list)
+                        self.condorq_match_list,
+                        match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out=(c,p,h,pmc,t)
@@ -1770,7 +1772,8 @@ class glideinFrontendElement:
                   self.condorq_dict_running,
                   self.glidein_dict,
                   self.attr_dict,
-                  self.condorq_match_list)
+                  self.condorq_match_list,
+                  match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
         return out
 
     def subprocess_count_glidein(self, glidein_list):

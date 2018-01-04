@@ -13,15 +13,16 @@
 
 import os
 import copy
-import sys  # not used
-import os.path  # not needed (os is sufficient)
-import string  # not used
+import re
+import imp
+import os.path
+import imp
+import string
 import socket
-import types  # not used
-import traceback  # not used
 from glideinwms.lib import xmlParse
-from glideinwms.lib import condorExe  # not used
 import cWParams
+from  matchPolicy import MatchPolicy
+import pprint
 
 
 class VOFrontendSubParams(cWParams.CommonSubParams):
@@ -36,13 +37,16 @@ class VOFrontendParams(cWParams.CommonParams):
     def init_defaults(self):
         self.init_support_defaults()
 
-        # VO scripts should start after the factory has been set completely up
+        # VO scripts should start after the factory has been set completely
         # but there could be exceptions
+
+        # Files/Validation/Custom scripts settings for frontend
         self.file_defaults["after_entry"]=("True",'Bool','Should this file be loaded after the factory entry ones?',None)
 
-        # publishing specific to frontend
+        # Publishing attr specific to frontend
         self.attr_defaults["type"]=["string","string|int|expr","What kind on data is value. (if expr, a python expression with access to frontend and glidein dictionaries)",None]
 
+        # Config section exclusive to frontend group
         group_config_defaults=cWParams.commentedOrderedDict()
         
         group_config_running_defaults=cWParams.commentedOrderedDict()
@@ -70,6 +74,7 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
 
+        # Global config section
         common_config_vms_total_defaults=cWParams.commentedOrderedDict()
         common_config_vms_total_defaults["max"]=['1000',"nr_jobs","How many total idle VMs should I tollerate, before stopping submitting glideins",None]
         common_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
@@ -90,41 +95,49 @@ class VOFrontendParams(cWParams.CommonParams):
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),
                       'files':([],'List of files',"Each file group contains",self.file_defaults)}
 
-        query_attrs_defaults=cWParams.commentedOrderedDict()
-        query_attrs_defaults['type']=('string','string|int|real|bool','Attribute type',None)
-
-        fj_match_defaults=cWParams.commentedOrderedDict()
-        fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
-        fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
-
+        # User Pool collectors
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
         collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",None)
         collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
         collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
-        factory_match_defaults=copy.deepcopy(fj_match_defaults)
-        factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
-
+        # User schedulers
         schedd_defaults=cWParams.commentedOrderedDict()
         schedd_defaults["fullname"]=(None,"name","User schedd name (for example, schedd_3@sb1.my.org)",None)
         schedd_defaults["DN"]=(None,"dn","User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",None)
 
+        # match_attr for factory and job query_expr
+        query_attrs_defaults=cWParams.commentedOrderedDict()
+        query_attrs_defaults['type']=('string','string|int|real|bool','Attribute type',None)
+
+        # Factory and job query_expr
+        fj_match_defaults=cWParams.commentedOrderedDict()
+        fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
+        fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
+
+        # Factory match settings
+        factory_match_defaults=copy.deepcopy(fj_match_defaults)
+        factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
+
+        # Job match settings
         job_match_defaults=copy.deepcopy(fj_match_defaults)
         job_match_defaults["schedds"]=([],"List of user schedds","Each schedd contains",schedd_defaults)
 
+        # Match section. Aka VO policies.
         match_defaults=cWParams.commentedOrderedDict()
         match_defaults["factory"]=factory_match_defaults
         match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
         match_defaults["start_expr"]=('True','CondorExpr', 'Condor expression for matching jobs to glideins at runtime',None)
+        match_defaults["policy_file"]=(None, 'PolicyFile', 'External policy file where match_expr, query_expr, start_expr and match_attr are defined',None)
 
-
+        # Credential settings
         proxy_defaults=cWParams.commentedOrderedDict()
         proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_idx_list)",None)
         proxy_defaults["keyabsfname"]=(None,"fname","for key files, file name of the key pair",None)
         proxy_defaults["pilotabsfname"]=(None,"fname","to specify a different pilot proxy instead of using submit proxy",None)
-        proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,cert_pair,key_pair,username_password",None)
+        proxy_defaults["type"]=("grid_proxy","credential type","Type of credential: grid_proxy,cert_pair,key_pair,username_password,auth_file",None)
         proxy_defaults["trust_domain"]=("OSG","grid_type","Trust Domain",None)
         proxy_defaults["creation_script"]=(None,"command","Script to re-create credential",None)
         proxy_defaults["update_frequency"]=(None,"int","Update proxy when there is this much time left",None)
@@ -134,13 +147,15 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["pool_idx_len"]=(None,"boolean","Adds leading zeros to the suffix so all filenames the same length",None)
         proxy_defaults["pool_idx_list"]=(None,"string","List of indices, can include ranges of indices",None)
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
+        proxy_defaults["vm_id_fname"]=(None,"fname","to specify a vm id without reconfig",None)
+        proxy_defaults["vm_type_fname"]=(None,"fname","to specify a vm type without reconfig",None)
         proxy_defaults["project_id"] = (None,"string","OSG Project ID. Ex TG-12345", None)
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which credentials selection plugin should I use (ProxyAll if None)",None)
         security_defaults["credentials"]=([],'List of credentials',"Each credential element contains",proxy_defaults)
         security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
-        
+
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
         self.group_defaults["enabled"]=("True","Bool","Is this group enabled?",None)
@@ -148,7 +163,6 @@ class VOFrontendParams(cWParams.CommonParams):
         self.group_defaults["attrs"]=sub_defaults['attrs']
         self.group_defaults["files"]=sub_defaults['files']
         self.group_defaults["security"]=copy.deepcopy(security_defaults)
-        
 
         ###############################
         # Start defining the defaults
@@ -157,7 +171,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 
         self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?',None)
-        
+
         work_defaults=cWParams.commentedOrderedDict()
         work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
         work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
@@ -215,16 +229,15 @@ class VOFrontendParams(cWParams.CommonParams):
         ccb_defaults["group"]=("default","string","CCB collector group name useful to group HA setup",None)
         self.defaults["ccbs"]=([],'List of CCB collectors',"Each CCB contains",ccb_defaults)
 
-
-
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
         self.defaults["security"]["proxy_DN"]=(None,"dn","Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
 
         self.defaults["match"]=copy.deepcopy(match_defaults)
-        # change default match value
-        # by default we want to look only for vanilla universe jobs that are not monitoring jobs
+        # Change default match value
+        # By default we want to look only for vanilla universe jobs
+        # that are not monitoring jobs
         self.defaults["match"]["job"]["query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
 
         self.defaults["attrs"]=sub_defaults['attrs']
@@ -240,10 +253,14 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["config"]=global_config_defaults
 
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
+
+        # Initialize the external policy modules data structure
+        self.match_policy_modules = {
+            'frontend': None,
+            'groups': {},
+        }
         
         # High Availability Configuration settings
-
-
         haf_defaults = cWParams.commentedOrderedDict()
         haf_defaults['frontend_name'] = (None, 'frontend_name',
                                          'Name of the frontend', None)
@@ -255,7 +272,6 @@ class VOFrontendParams(cWParams.CommonParams):
         ha_defaults["check_interval"]=('300', 'NR', 'How frequently should slav check if the master is down', None)
         #ha_defaults["activation_delay"]=('150', 'NR', 'How many sec to wait before slav activates after detecting that master is down', None)
         self.defaults['high_availability'] = ha_defaults
-
 
         return
 
@@ -292,7 +308,6 @@ class VOFrontendParams(cWParams.CommonParams):
             self.monitoring_web_url=self.buildDir(frontendVersioning, self.monitor.web_base_url)
         else:
             self.monitoring_web_url=self.web_url.replace("stage","monitor")
-
 
         self.derive_match_attrs()
 
@@ -364,35 +379,83 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
-        self.validate_match('frontend',self.match.match_expr,
-                            self.match.factory.match_attrs,self.match.job.match_attrs,self.attrs)
 
-        group_names=self.groups.keys()
-        for group_name in group_names:
-            # merge general and group matches
+        # Load all the match policy modules upfront since we need them
+        self.load_match_policies()
+
+        # TODO: Do we really need to validate frontend main section?
+        # This gets validated any ways in the groups section
+        policy_modules = []
+        if self.match_policy_modules['frontend']:
+            policy_modules.append(self.match_policy_modules['frontend'])
+        self.validate_match('frontend', self.match.match_expr,
+                            self.match.factory.match_attrs,
+                            self.match.job.match_attrs, self.attrs,
+                            policy_modules)
+
+        for group_name in self.groups.keys():
+            # Merge group match info and attrs from
+            # global section with those sepcific to group
+            # Match and query expressions are ANDed
+            # attrs, job & factory match_attrs are appended with group
+            # specific values overriding the global values
+
+            # Get frontend and group specific policy modules to use
+            pmodules = list(policy_modules)
+            if self.match_policy_modules['groups'].get(group_name):
+                pmodules.append(self.match_policy_modules['groups'][group_name])
+            #if self.match_policy_modules['frontend']:
+            #    policy_modules.append(self.match_policy_modules['frontend'])
+            #if self.match_policy_modules['groups'].get(group_name):
+            #    policy_modules.append(self.match_policy_modules['groups'][group_name])
+            # Construct group specific dict of attrs in <attrs>
             attrs_dict={}
             for attr_name in self.attrs.keys():
                 attrs_dict[attr_name]=self.attrs[attr_name]
             for attr_name in self.groups[group_name].attrs.keys():
                 attrs_dict[attr_name]=self.groups[group_name].attrs[attr_name]
+
+            # Construct group specific dict of factory_attrs in <match_attrs>
+            # and those from the policy_modules
             factory_attrs={}
             for attr_name in self.match.factory.match_attrs.keys():
                 factory_attrs[attr_name]=self.match.factory.match_attrs[attr_name]
             for attr_name in self.groups[group_name].match.factory.match_attrs.keys():
                 factory_attrs[attr_name]=self.groups[group_name].match.factory.match_attrs[attr_name]
+            for pmodule in pmodules:
+                if pmodule.factoryMatchAttrs:
+                    for attr_name in pmodule.factoryMatchAttrs.keys():
+                        factory_attrs[attr_name] = pmodule.factoryMatchAttrs[attr_name]
+
+            # Construct group specific dict of job_attrs in <match_attrs>
+            # and those from the policy_modules
             job_attrs={}
             for attr_name in self.match.job.match_attrs.keys():
                 job_attrs[attr_name]=self.match.job.match_attrs[attr_name]
             for attr_name in self.groups[group_name].match.job.match_attrs.keys():
                 job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
-            match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
-            self.validate_match('group %s'%group_name,match_expr,
-                                factory_attrs,job_attrs,attrs_dict)
+            for pmodule in pmodules:
+                if pmodule.jobMatchAttrs:
+                    for attr_name in pmodule.jobMatchAttrs.keys():
+                        job_attrs[attr_name] = pmodule.jobMatchAttrs[attr_name]
+
+            # AND global and group specific match_expr 
+            # and those from the policy_modules
+            match_expr = "(%s) and (%s)" % (
+                self.match.match_expr, self.groups[group_name].match.match_expr)
+
+            self.validate_match('group %s'%group_name, match_expr,
+                                factory_attrs, job_attrs, attrs_dict,
+                                pmodules)
 
         return
 
-    # return xml formatting
+
     def get_xml_format(self):
+        """
+        Return xml formatting for the config
+        """
+
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
                                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
@@ -404,7 +467,12 @@ class VOFrontendParams(cWParams.CommonParams):
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},
                                 'match_attrs':{'el_name':'match_attr','subtypes_params':{'class':{}}}}}
 
+
     def validate_names(self):
+        """
+        Validate frontend, group name and attr name
+        """
+
         # glidein name does not have a reasonable default
         if self.frontend_name is None:
             raise RuntimeError, "Missing frontend name"
@@ -424,7 +492,7 @@ class VOFrontendParams(cWParams.CommonParams):
             if group_name[:4]=='XPVO':
                 raise RuntimeError, "Invalid group name '%s', starts with reserved sequence 'XPVO'."%group_name
             if group_name.find('.')!=-1:
-                raise RuntimeError, "Invalid group name '%s', contains a point."%group_name
+                raise RuntimeError, "Invalid group name '%s', contains a period '.'"%group_name
 
         attr_names=self.attrs.keys()
         for attr_name in attr_names:
@@ -437,35 +505,62 @@ class VOFrontendParams(cWParams.CommonParams):
                     raise RuntimeError, "Invalid group '%s' attribute name '%s'."%(group_name,attr_name)
         return
 
-    def validate_match(self,loc_str,
-                       match_str,factory_attrs,job_attrs,attr_dict):
-        env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
-        for attr_name in factory_attrs.keys():
-            attr_type=factory_attrs[attr_name]['type']
-            if attr_type=='string':
-                attr_val='a'
-            elif attr_type=='int':
-                attr_val=1
-            elif attr_type=='bool':
-                attr_val=True
-            elif attr_type=='real':
-                attr_val=1.0
-            else:
-                raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
-            env['glidein']['attrs'][attr_name]=attr_val
-        for attr_name in job_attrs.keys():
-            attr_type=job_attrs[attr_name]['type']
-            if attr_type=='string':
-                attr_val='a'
-            elif attr_type=='int':
-                attr_val=1
-            elif attr_type=='bool':
-                attr_val=True
-            elif attr_type=='real':
-                attr_val=1.0
-            else:
-                raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
-            env['job'][attr_name]=attr_val
+
+    def translate_match_attrs(self, loc_str, match_attrs_name, match_attrs):
+        """
+        Translate the passed factory/job match_attrs to format useful
+        for match validation step
+        """
+
+        translations = { 'string': 'a', 'int': 1, 'bool': True, 'real': 1.0 }
+        translated_attrs = {}
+
+        for attr_name in match_attrs.keys():
+            attr_type = match_attrs[attr_name]['type']
+            try:
+                translated_attrs[attr_name] =  translations[attr_type]
+            except KeyError, e:
+                raise RuntimeError, "Invalid %s %s attr type '%s'" % (
+                    loc_str, match_attrs_name, attr_type)
+
+        return translated_attrs
+
+
+    def validate_match(self, loc_str, match_str, factory_attrs,
+                       job_attrs, attr_dict, policy_modules):
+        """
+        Validate match_expr, factory_match_attrs, job_match_attrs,
+        <attrs> and their equivalents in policy_modules. This is done
+        during the config load
+
+        @param loc_str: Section to be validated. i.e. 'frontend' or 'group x'
+        @type loc_str: string
+
+        @param match_str: match_expr to be applied to this section
+        @type match_str: string
+
+        @param factory_attrs: factory_match_attrs for this section
+        @type factory_attrs: dict
+
+        @param job_attrs: job_match_attrs for this section
+        @type job_attrs: dict
+
+        @param attr_dict: attrs for this section
+        @type job_attrs: dict
+        """
+
+        # Globals/Locals that will be passed to the eval so that we
+        # can validate the match_expr as well
+
+        env = {'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
+
+        # Validate factory's match_attrs
+        env['glidein']['attrs'] = self.translate_match_attrs(loc_str, 'factory', factory_attrs)
+
+        # Validate job's match_attrs
+        env['job'] = self.translate_match_attrs(loc_str, 'job', job_attrs)
+
+        # Validate attr
         for attr_name in attr_dict.keys():
             attr_type=attr_dict[attr_name]['type']
             if attr_type=='string':
@@ -477,14 +572,27 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str,attr_type)
             env['attr_dict'][attr_name]=attr_val
+
+        # Now that we have validated the match_attrs, compile match_obj
         try:
-            match_obj=compile(match_str,"<string>","eval")
-            eval(match_obj,env)
+            match_obj = compile(match_str, "<string>", "exec")
+            eval(match_obj, env)
         except KeyError, e:
             raise RuntimeError, "Invalid %s match_expr '%s': Missing attribute %s"%(loc_str,match_str,e)
         except Exception, e:
             raise RuntimeError, "Invalid %s match_expr '%s': %s"%(loc_str,match_str,e)
-            
+
+        # Validate the match(job, glidein) from the policy modules
+        try:
+            for pmodule in policy_modules:
+                if 'match' in dir(pmodule.pyObject):
+                    match_result = pmodule.pyObject.match(env['job'],
+                                                          env['glidein'])
+        except KeyError, e:
+            raise RuntimeError, "Error in %s policy module's %s.match(job, glidein): Missing attribute %s" % (loc_str, pmodule.name, e)
+        except Exception, e:
+            raise RuntimeError, "Error in %s policy module's %s.match(job, glidein): %s" % (loc_str, pmodule.name, e)
+
         return
 
 
@@ -492,13 +600,54 @@ class VOFrontendParams(cWParams.CommonParams):
     def extract_attr_val(self,attr_obj):
         return extract_attr_val(attr_obj)
 
+
     def get_subparams_class(self):
         return VOFrontendSubParams
-    
+
+
+    def load_match_policies(self):
+        """
+        Load external match policies for frontend and groups
+        """
+
+        # Load global frontend policy module
+        if self.match.policy_file:
+            self.match_policy_modules['frontend'] = MatchPolicy(self.match.policy_file)
+
+        # Load per group policy module
+        self.match_policy_modules['groups'] = {}
+        for group_name in self.groups.keys():
+            # Only load if the group is enabled
+            policy_file = self.groups[group_name].match.policy_file
+            if self.groups[group_name].enabled and policy_file:
+                work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
+                self.match_policy_modules['groups'][group_name] = \
+                    MatchPolicy(policy_file)
+
+
+    def update_match_attrs(self):
+        # Load global match_attrs from externally loaded match_policies
+        if self.match_policy_modules['frontend']:
+            if self.match_policy_modules['frontend'].factoryMatchAttrs:
+                self.match.factory.match_attrs.data = self.match_policy_modules['frontend'].factoryMatchAttrs
+            if self.match_policy_modules['frontend'].jobMatchAttrs:
+                self.match.job.match_attrs.data = self.match_policy_modules['frontend'].jobMatchAttrs
+
+        # Load group match_attrs from externally loaded match_policies
+        for group_name in self.groups.keys():
+            # Shorthand for easy access
+            group_module = self.match_policy_modules['groups'].get(group_name)
+            if group_module:
+                if group_module.factoryMatchAttrs:
+                    self.groups[group_name].match.factory.match_attrs.data = group_module.factoryMatchAttrs
+                if group_module.jobMatchAttrs:
+                    self.groups[group_name].match.job.match_attrs.data = group_module.jobMatchAttrs
+
 ####################################################################
 # INTERNAL, do not use directly
 # Use the class method instead
-#
+####################################################################
+
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
     if (not attr_obj.type in ("string","int","expr")):

@@ -44,7 +44,6 @@ v3_2_18 Bug Fix: ProjectId is missing double quotes
         Bug Fix: Use of daemon function to start process does not play well 
           with non empty pid files
 
-
 v3_2_17 Glideins fallback to curl if transferring files from the 
 	  factory/frontend staging area fails using wget
 	Bug Fix: Factory not correctly consider the cluster size when
@@ -66,7 +65,6 @@ v3_2_17 Glideins fallback to curl if transferring files from the
 	  rather than trying to auto detect available cores
 	Bug Fix: Glideins will not use UTMP be default
 	
-
 v3_2_16	Information about job and machine features are now available in glidein
 	  startd's classad
 	New tool manual_glidein_startup now lets you manually start a glidein

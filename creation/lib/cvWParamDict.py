@@ -15,7 +15,9 @@ import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
 from cWParamDict import is_true, add_file_unparsed
+import shutil
 from glideinwms.lib import x509Support
+from cvWParams import MatchPolicy
 
 
 ################################################
@@ -150,6 +152,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # populate security data
         populate_main_security(self.client_security,params)
 
+        
     def find_parent_dir(self,search_path,name):
         """ Given a search path, determine if the given file exists
             somewhere in the path.
@@ -163,17 +166,30 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         raise RuntimeError,"Unable to find %(file)s in %(dir)s path" % \
                            { "file" : name,  "dir" : search_path, }
 
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+
+    def reuse(self, other):
+        """
+        Reuse as much of the other as possible
+        other must be of the same class
+
+        @type other: frontendMainDicts
+        @param other: Object to reuse
+        """
+
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendMainDicts.reuse(self,other)
 
-    def save(self,set_readonly=True):
+
+    def save(self, set_readonly=True):
         cvWDictFile.frontendMainDicts.save(self,set_readonly)
         self.save_monitor()
         self.save_client_security()
+        # Create a local copy of the policy file so we are not impacted
+        # if the admin is changing the file and if it has errors
+        if self.params.match['policy_file']:
+            shutil.copy(self.params.match['policy_file'], self.work_dir)
 
 
     ########################################
@@ -288,16 +304,30 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         populate_group_security(self.client_security,params,sub_params)
 
 
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+    def reuse(self,other):
+        """
+        Reuse as much of the other as possible
+        other must be of the same class
+
+        @type other: frontendMainDicts
+        @param other: Object to reuse
+        """
+
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendGroupDicts.reuse(self,other)
 
+
     def save(self,set_readonly=True):
         cvWDictFile.frontendGroupDicts.save(self,set_readonly)
         self.save_client_security()
+        # Create a local copy of the policy file so we are not impacted
+        # if the admin is changing the file and if it has errors
+        if self.params.groups[self.sub_name].match['policy_file']:
+            shutil.copy(
+                self.params.groups[self.sub_name].match['policy_file'],
+                self.work_dir)
 
     ########################################
     # INTERNAL
@@ -450,7 +480,7 @@ def populate_frontend_descript(work_dir,
         
         frontend_dict.add('SymKeyType',params.security.sym_key)
 
-        active_sub_list[:] # erase all
+        active_sub_list[:]  # erase all
         for sub in params.groups.keys():
             if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
@@ -626,25 +656,45 @@ def get_pool_list(credential):
     for idx in pool_idx_list_expanded:
         pool_idx_list_strings.append(idx.zfill(pool_idx_len))
     return pool_idx_list_strings
-    
 
-def populate_common_descript(descript_dict,        # will be modified
-                             params):
+
+def match_attrs_to_array(match_attrs):
+    ma_array = []
+
+    for attr_name in match_attrs.keys():
+        attr_type = match_attrs[attr_name]['type']
+        if not (attr_type in MATCH_ATTR_CONV):
+            raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys()))
+        ma_array.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
+
+    return ma_array
+
+
+def populate_common_descript(descript_dict, params):
+    """
+    Populate info in the common descript dict
+    descript_dict will be modified in this function
+    """
+
+    if params.match.policy_file:
+        policy_module = MatchPolicy(params.match.policy_file)
+
+        # Populate the descript_dict
+        descript_dict.add('MatchPolicyFile', params.match.policy_file)
+        descript_dict.add('MatchPolicyModuleFactoryMatchAttrs',
+                          match_attrs_to_array(policy_module.factoryMatchAttrs))
+        descript_dict.add('MatchPolicyModuleJobMatchAttrs',
+                          match_attrs_to_array(policy_module.jobMatchAttrs))
+        descript_dict.add('MatchPolicyModuleFactoryQueryExpr',
+                          policy_module.factoryQueryExpr)
+        descript_dict.add('MatchPolicyModuleJobQueryExpr',
+                          policy_module.jobQueryExpr)
 
     for tel in (("factory", "Factory"), ("job", "Job")):
         param_tname, str_tname = tel
-        ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
-
         descript_dict.add('%sQueryExpr' % str_tname, qry_expr)
-
-        match_attrs = params.match[param_tname]['match_attrs']
-        for attr_name in match_attrs.keys():
-            attr_type = match_attrs[attr_name]['type']
-            if not (attr_type in MATCH_ATTR_CONV.keys()):
-                raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys()))
-            ma_arr.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
-
+        ma_arr = match_attrs_to_array(params.match[param_tname]['match_attrs'])
         descript_dict.add('%sMatchAttrs' % str_tname, repr(ma_arr))
 
     if params.security.security_name is not None:
@@ -671,15 +721,14 @@ def populate_common_descript(descript_dict,        # will be modified
 
     if len(params.security.credentials) > 0:
         proxies = []
-        proxy_attrs = ['security_class', 'trust_domain', 'type',
-                       'keyabsfname', 'pilotabsfname', 'remote_username', 'vm_id', 'vm_type',
-                       'creation_script', 'update_frequency', 'project_id']
         proxy_attr_names = {'security_class': 'ProxySecurityClasses',
                             'trust_domain': 'ProxyTrustDomains',
-                            'type': 'ProxyTypes', 'keyabsfname': 'ProxyKeyFiles',
+                            'type': 'ProxyTypes',
+                            'keyabsfname': 'ProxyKeyFiles',
                             'pilotabsfname': 'ProxyPilotFiles',
                             'remote_username': 'ProxyRemoteUsernames',
-                            'vm_id': 'ProxyVMIds', 'vm_type': 'ProxyVMTypes',
+                            'vm_id': 'ProxyVMIds',
+                            'vm_type': 'ProxyVMTypes',
                             'creation_script': 'ProxyCreationScripts',
                             'project_id': 'ProxyProjectIds',
                             'update_frequency': 'ProxyUpdateFrequency'}
@@ -688,13 +737,18 @@ def populate_common_descript(descript_dict,        # will be modified
                                 'vm_type': 'vm_type',
                                 'username': 'remote_username',
                                 'project_id': 'project_id'}
+
+        # TODO: this list is used in for loops, replace with "for i in proxy_attr_names"
+        proxy_attrs = proxy_attr_names.keys()
         proxy_descript_values = {}
         for attr in proxy_attrs:
             proxy_descript_values[attr] = {}
         proxy_trust_domains = {}  # TODO: not used, remove
+        # print params.security.credentials
         for pel in params.security.credentials:
+            validate_credential_type(pel['type'])
             if pel['absfname'] is None:
-                raise RuntimeError("All proxies need a absfname!")
+                raise RuntimeError("All credentials need a absfname!")
             for i in pel['type'].split('+'):
                 attr = proxy_attr_type_list.get(i)
                 if attr and pel[attr] is None:
@@ -722,6 +776,16 @@ def populate_common_descript(descript_dict,        # will be modified
 
     match_expr = params.match.match_expr
     descript_dict.add('MatchExpr', match_expr)
+
+
+def validate_credential_type(cred_type):
+    mutually_exclusive = set(['grid_proxy', 'cert_pair', 'key_pair',
+                              'username_password', 'auth_file'])
+    types_set = set(cred_type.split('+'))
+    common_types = mutually_exclusive.intersection(types_set)
+
+    if len(common_types) > 1:
+        raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
 
 
 #####################################################

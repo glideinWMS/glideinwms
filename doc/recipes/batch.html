@@ -152,6 +152,7 @@ and the credentials configuration on the Frontend.
     gatekeeper="cmsuser@carvergrid.nersc.gov"
     gridtype="batch pbs" 
     schedd_name="fermicloud199.fnal.gov" 
+    boeco_dir="altbosco"
     trust_domain="bosco" 
     verbosity="std" 
     work_dir="AUTO"&gt;
@@ -227,6 +228,16 @@ and the credentials configuration on the Frontend.
                         <td>
                             <p>It must be the keyword "batch" followed by the batch system used in the cluster (must be one supported by HTCondor/BOSCO, 
                             e.g pbs, condor, lsf, sge.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>bosco_dir</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"altbosco"</td>
+                        <td>
+                            <p>This is optional, default is "bosco". It is the BOSCO directory on the BOSCO resource (containing BLAHP and other HTCondor sw). This is installed by "bosco_cluter -add". The value is relative to $HOME. If you move it manually note the hardcoded paths in <tt>~/bosco/glite/etc/condor_config.ft-gahp</tt>. 
+                            </p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
