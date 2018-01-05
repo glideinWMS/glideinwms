@@ -1,4 +1,5 @@
 #!/bin/bash
+# Code and configuration files contributed by Brian Lin, OSG Software
 
 . /etc/rc.d/init.d/functions
 

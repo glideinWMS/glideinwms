@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Code and configuration files contributed by Brian Lin, OSG Software
 """Automatical renewal of proxies necessary for a glideinWMS frontend
 """
 
