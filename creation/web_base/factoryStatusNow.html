@@ -71,11 +71,25 @@ var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running", "Clie
 							    "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 
 								 
-var columnArray = new Array("entryName", "downtimeStatus", "statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther",
+var columnArray = new Array("entryName", "downtimeStatus", 
+                            "statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther",
 						    "statusHeld", "statusRunningCores",
 						    "requestMax", "requestIdle", "requestMaxCores", "requestIdleCores",
 						    "cmGlideinRunning", "cmCoresRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmGlideinIdle", "cmCoresIdle",
 							"cmGlideinJobsIdle", "cmGlideinTotal", "cmCoresTotal", "cmGlideinInfoAge");
+/* columnArrayStruct describes columnArray: total length (length) and length and offset of its component: DT, Status, Req, CM 
+   it is used to display the table w/ the values
+   DT offset is 1 (entryName), following offsets are offset+length of previous element
+   offset+length of CM should give the total length (columnArray.length, 25)
+   */
+var columnArrayDesc = { length: columnArray.length,
+                        DT: { length: 1, offset:1 },
+                        Status: { length: 9, offset:2 },
+                        Req: { length: 4, offset:11 },                         
+                        CM: { length: 10, offset:15 },
+                    }
+
+
 		
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
 						     "Status: Stage out", "Status: Unknown", "Status: Held", "Status: Running cores",
@@ -191,7 +205,7 @@ function showPopUp(hoveritem)
 	else
 		attTxtNode = document.createTextNode(exactColumns[column]);
 	
-	/* ADJUST COLUMN IF IN TR VIEW */
+	/* ADJUST COLUMN IF IN TR VIEW */ // TODO - FIX ??
 	if(troubleshoot)
 	{
 		if(column == 3) column = 17; 
@@ -1388,7 +1402,7 @@ function fillIn()
 	}
 	
 	/* FILL IN 0's FOR EMPTY ENTRIES */
-	for(j = 2; j < 18; j++)
+	for(j = columnArrayDesc.Status.offset; j < columnArrayDesc.length; j++)
 	{	
 		for(i = 0; i< total.length - 1; i++)
 		{
@@ -1411,13 +1425,13 @@ function fillIn()
 		
 		if(item == "True"){ item = "&darr;"; table.rows[i].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; table.rows[i].cells[1].style.color = "#008B00";  }            /* UP ARROW */
-		table.rows[i].cells[1].innerHTML = item; 
+		table.rows[i].cells[columnArrayDesc.DT.offset].innerHTML = item; 
 	}
 	
 	/* 
 	 * FILL STATUS FIELDS  
 	 */
-	for(var counter = 2; counter<= 9; counter++)
+	for(var counter = 0; counter < columnArrayDesc.Status.length; counter++) 
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
@@ -1425,15 +1439,15 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 2]].value;
+					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter]].value;
 				}
 				else
-					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 2]].value;
-				table.rows[i].cells[counter].innerHTML = item; 
+					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter]].value;
+				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = item; 
 			}
 			else
 			{
-				table.rows[i].cells[counter].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0; 
 			}
 		}	
  	}
@@ -1441,7 +1455,7 @@ function fillIn()
 	/*
 	 * FILL REQUESTED FIELDS 
 	 */
-	for(var counter = 10; counter <= 11; counter++)
+	for(var counter = 0; counter < columnArrayDesc.Req.length; counter++) 
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
@@ -1449,15 +1463,15 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 10]].value; 
+					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value; 
 				}
 				else
-					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 10]].value; 
-				table.rows[i].cells[counter].innerHTML = item; 
+					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value; 
+				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = item; 
 			}
 			else
 			{
-				table.rows[i].cells[counter].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0; 
 			}
 		}
 	}
@@ -1465,7 +1479,7 @@ function fillIn()
 	/* 
      * FILL CM FIELDS  
  	 */
-	for(var counter = 12; counter <= 18; counter++)
+	for(var counter = 0; counter <= columnArrayDesc.CM.length; counter++)
 	{
 		for(i = 0; i< totalEntries.length; i++)
 		{	
@@ -1473,15 +1487,15 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 12]].value;
+					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter]].value;
 				}
 				else
-					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 12]].value;
-				table.rows[i].cells[counter].innerHTML = item; 
+					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;
+				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = item; 
 			}
 			else
 			{
-				table.rows[i].cells[counter].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0; 
 			}
 		}
 	}
@@ -3104,7 +3118,11 @@ function troubleshooting()
 			child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
 			
 		count = 0; 
-		att = new Array(4, 2, 1, 0, 4); 
+        /* Picking the attributes in the arrays: StatusRunning(Running) , ClientGlideTotal(Registered), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
+        MM: These are positions in the XML file (e.g. schedd_status.xml) and is relying on them being the same across runs 
+        Don't know how reliable it is, maybe the code should be changed in comparing the name
+        */
+		att = new Array(4, 5, 1, 0, 7);  
 		rows = new Array(); 
 		cols = new Array();
 		trTable = document.createElement('table'); 
@@ -3810,23 +3828,29 @@ function periodTrView()
 		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
 	
 	/* ARRAYS FOR INFO ACCESSING */
-	trAttArry = new Array();         	   trChildArry = new Array();	  trFEChildArry = new Array();
-	trAttArry.push(xmlAttTotalNumArry[1]); trChildArry.push(totStatChild); trFEChildArry.push(feStatChild);
-	trAttArry.push(xmlAttTotalNumArry[16]); trChildArry.push(totCMChild);   trFEChildArry.push(feCMChild);
-	trAttArry.push(0);               	   trChildArry.push(0);			  trFEChildArry.push(0);
-	trAttArry.push(xmlAttTotalNumArry[2]); trChildArry.push(totStatChild); trFEChildArry.push(feStatChild);
-	trAttArry.push(xmlAttTotalNumArry[10]); trChildArry.push(totReqChild);  trFEChildArry.push(feReqChild);  
-	trAttArry.push(0); 					   trChildArry.push(0);            trFEChildArry.push(0);
-	trAttArry.push(xmlAttTotalNumArry[15]); trChildArry.push(totCMChild);   trFEChildArry.push(feCMChild);
+    // MM trChildArry, trFEChildArry and child seem redundant
+    trChildArry = new Array(totStatChild, totCMChild, 0, totStatChild, totReqChild, 0, totCMChild);
+    trFEChildArry = new Array(feStatChild, feCMChild, 0, feStatChild, feReqChild, 0, feCMChild);
+    // StatusRunning(Running) , ClientGlideTotal(Registered), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
+    // using columnArrayDesc, i starts w/ Entry_name, xmlAttTotalNumArry starts w/ DT (-1), xmlAttPeriodNumArry starts w/ Status (-columnArrayDesc.Status.offset)
+    // In elements offset: 0, 7, -, 1, 1, -, 6
+	trAttArry = new Array();         	   
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1]); 
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+7]); 
+	trAttArry.push(0);               	   
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+1]); 
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset-1+1]); 
+	trAttArry.push(0); 					   
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+6]); 
 
 	prAttArry = new Array(); 
-	prAttArry.push(xmlAttPeriodNumArry[0]);
-	prAttArry.push(xmlAttPeriodNumArry[15]);
+	prAttArry.push(xmlAttPeriodNumArry[0]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+7]);
 	prAttArry.push(0);
-	prAttArry.push(xmlAttPeriodNumArry[1]);
-	prAttArry.push(xmlAttPeriodNumArry[9]);
+	prAttArry.push(xmlAttPeriodNumArry[1]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+1
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.Req.offset-columnArrayDesc.Status.offset+1]);
 	prAttArry.push(0);
-	prAttArry.push(xmlAttPeriodNumArry[14]);
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+6]);
 	
 	rows = new Array(); 
 	cols = new Array();
@@ -3953,7 +3977,7 @@ function periodTrView()
 		trpr_Table.rows[DISPLACE].cells[1].innerHTML = item; 
 	}
 	
-	childArry = new Array(0, 3, 5, 1); 
+	childArry = new Array(0, 3, 5, 1);  // MMWIP
 	
 	/* PERIOD NAMES */
 	count = 0;
@@ -4508,52 +4532,54 @@ function fillInPeriod()
 	/* 
 	 * Fill in STATUS fields.  
 	 */
-	var attArry = new Array(13,10,16,12,14,15,11,9); 
-	var attArry2 = new Array(4,1,7,3,5,6,2,0); 
-	attCount = 0;
-	att2Count = 0; 
+    // Column offset is increased by 1 because of the period column
+	var attArry = new Array(13,10,16,12,14,15,11,9);  // MM not used
+	var attArry2 = new Array(4,1,7,3,5,6,2,0);  // MM not used 
+	attCount = 0; // MM not used - incremented but never accessed
+	att2Count = 0; // MM not used - incremented but never accessed - misspelled attCount2
 	child = 1; 
-	count = 0;
+	count = 0; 
 	for(i = 0; i < totalEntriesP.length; i++)
 	{
 		child = 1;
 		for(j = 0; j < 4; j++)
 		{ 
-			attCount = 0; 
-			attCount2 = 0;  
-			for(counter = 3; counter <= 10; counter++)
+			attCount = 0;  // MM not used - incremented but never accessed
+			attCount2 = 0;  // MM not used - incremented but never accessed
+			for(counter = 0; counter < columnArrayDesc.Status.length; counter++) 
 			{
 				if(j == 0)
 				{
-					/* Period elements have one extra att so when going back to totla noew field we move back att by one sortColNum. */
+					/* Period elements have one extra attr so we need to add 1 in table row for j==0 (now), not for the following lines
+                    that have period but no entry name */
 					if(total[i].childNodes.length != 0 && total[i].childNodes.length >= 7)
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 3]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 3]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter]].value;
 					}
 					else
 					{
-						tableP.rows[count].cells[counter].innerHTML = 0;
+						tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = 0;
 					}
-					attCount2++; 
+					attCount2++; // MM not used - incremented but never accessed
 					continue;
-				}
-				try
+				} 
+                try   // continue makes this like an else branch
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value; 
-					x = Math.round(x * 100)/100; 
-				   	tableP.rows[count].cells[counter - 1].innerHTML = x; 
-					attCount++; 
-				}
-				catch(err)
-				{
-				   	tableP.rows[count].cells[counter - 1].innerHTML = 0; 
-					attCount++;
-				}
+				    x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter]].value;  // xmlAttPeriodNumArry starts w/ status values
+                    x = Math.round(x * 100)/100; 
+                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = x; 
+                    attCount++; // MM not used - incremented but never accessed
+                }
+                catch(err)
+                {
+                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0; 
+                    attCount++; // MM not used - incremented but never accessed
+                }
 			}
 			count++; 	
 		}
@@ -4564,8 +4590,8 @@ function fillInPeriod()
 	 */
 	var attArry = new Array(8,7);
 	var attArry2 = new Array(1,0); 
-	attCount = 0;
-	attCount2 = 0; 
+	attCount = 0; // MM not used - incremented but never accessed
+	attCount2 = 0; // MM not used - incremented but never accessed
 	child = 1; 
 	count = 0; 
 	for(i = 0; i < totalEntries.length; i++)
@@ -4573,9 +4599,9 @@ function fillInPeriod()
 		child = 1;
 		for(j = 0; j < 4; j++)
 		{ 
-			attCount = 0; 
-			attCount2 = 0;  
-			for(counter = 11; counter <= 12; counter++)
+			attCount = 0; // MM not used - incremented but never accessed
+			attCount2 = 0;  // MM not used - incremented but never accessed
+			for(counter = 0; counter < columnArrayDesc.Req.length; counter++) 
 			{
 				if(j == 0)
 				{
@@ -4584,29 +4610,29 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 11]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 11]].value;					
+							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value;					
 					}
 					else
 					{
-						tableP.rows[count].cells[counter].innerHTML = 0;
+						tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = 0;
 					}
-					attCount2++; 
+					attCount2++; // MM not used - incremented but never accessed
 					continue;
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter+columnArrayDesc.Req.offset-columnArrayDesc.Status.offset]].value;
 					x = Math.round(x * 100)/100; 
-					tableP.rows[count].cells[counter - 1].innerHTML = x; 
-					attCount++; 
+					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = x; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 				catch(err)
 				{
-					tableP.rows[count].cells[counter - 1].innerHTML = 0; 
-					attCount++; 
+					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 				
 			}
@@ -4619,8 +4645,8 @@ function fillInPeriod()
  	 */
 	var attArry = new Array(2,6,1,5,3,4); 
 	var attArry2 = new Array(1,5,0,4,2,3); 
-	attCount = 0;
-	attCount2 = 0; 
+	attCount = 0; // MM not used - incremented but never accessed
+	attCount2 = 0;  // MM not used - incremented but never accessed
 	child = 1; 
 	count = 0; 
 	for(i = 0; i < totalEntriesP.length; i++)
@@ -4630,7 +4656,7 @@ function fillInPeriod()
 		{ 
 			attCount = 0; 
 			attCount2 = 0;  
-			for(counter = 13; counter < cell_num; counter++)
+			for(counter = 0; counter < columnArrayDesc.CM.length; counter++) // 13; counter < cell_num;
 			{
 				if(j == 0)
 				{
@@ -4639,29 +4665,29 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 13]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 13]].value;					
+							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;					
 					}
 					else
 					{
-						tableP.rows[count].cells[counter].innerHTML = 0;
+						tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = 0;
 					}
-					attCount2++; 
+					attCount2++; // MM not used - incremented but never accessed
 					continue;
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter+columnArrayDesc.Req.offset-columnArrayDesc.Status.offset]].value;
 					x = Math.round(x * 100)/100; 
-					tableP.rows[count].cells[counter - 1].innerHTML = x; 
-					attCount++;
+					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = x; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 				catch(err)
 				{
-					tableP.rows[count].cells[counter - 1].innerHTML = 0; 
-					attCount++;
+					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 			}
 			count++; 	
