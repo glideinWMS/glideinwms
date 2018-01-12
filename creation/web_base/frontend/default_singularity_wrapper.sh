@@ -6,9 +6,10 @@ function info {
     echo "INFO  " $@ 1>&2
 }
 
+GLIDEIN_THIS_SCRIPT=$0
 function info_dbg {
     if [ "x$GLIDEIN_DEBUG_OUTPUT" != "x" ]; then
-        info "DEBUG: file:"$0 $@
+        info "DEBUG: file:"$GLIDEIN_THIS_SCRIPT $@
     fi
 }
 
@@ -168,8 +169,8 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
     # notably the user-job-wrapper.sh (this script!)
-    cp $0 .osgvo-user-job-wrapper.sh
-    export JOB_WRAPPER_SINGULARITY="/srv/.osgvo-user-job-wrapper.sh"
+    cp $0 .gwms-user-job-wrapper.sh
+    export JOB_WRAPPER_SINGULARITY="/srv/.gwms-user-job-wrapper.sh"
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to omewhere inside that dir (for example, X509_USER_PROXY)
@@ -232,6 +233,11 @@ else # if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]
         fi
     done
 
+    # override some OSG specific variables
+    if [ "x$OSG_WN_TMP" != "x" ]; then
+        export OSG_WN_TMP=/tmp
+    fi
+
     # Some java programs have seen problems with the timezone in our containers.
     # If not already set, provide a default TZ
     if [ "x$TZ" = "x" ]; then
@@ -252,7 +258,7 @@ if [ -e ../../main/condor/libexec ]; then
     export PATH="$DER:$PATH"
 fi
 
-rm -f .osgvo-user-job-wrapper.sh >/dev/null 2>&1 || true
+rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 
 #############################################################################
 #

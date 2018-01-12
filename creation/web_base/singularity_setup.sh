@@ -8,9 +8,10 @@ function info {
     echo "INFO " $@  1>&2
 }
 
+GLIDEIN_THIS_SCRIPT=$0
 function info_dbg {
     if [ "x$GLIDEIN_DEBUG_OUTPUT" != "x" ]; then
-        info "DEBUG: file:"$0 $@
+        info "DEBUG: file:"$GLIDEIN_THIS_SCRIPT $@
     fi
 }
 
