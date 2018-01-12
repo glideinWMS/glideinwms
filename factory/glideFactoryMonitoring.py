@@ -256,7 +256,8 @@ class condorQStats:
             el = {}
             t_el['Status'] = el
 
-        status_pairs = ((1, "Idle"), (2, "Running"), (2, "RunningCores"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
+        # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
+        status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
@@ -264,7 +265,8 @@ class condorQStats:
                 el[status] = 0
             if qc_status.has_key(nr):
                 el[status] += qc_status[nr]
-        status_pairs = ((2, "RunningCores"),)  # There may be multiple cores accounting pairs in the future
+        # Listing pairs counting the cores (expected_cores). Avoid duplicates with the list above
+        status_pairs = ((2, "RunningCores"),)
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
