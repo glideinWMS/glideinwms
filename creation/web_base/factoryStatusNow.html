@@ -64,10 +64,10 @@ var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pendi
 							  "Max glideins", "Idle", "Max cores", "Idle cores",
 							  "Claimed", "Claimed cores", "User run here", "User running", "Unmatched", "Unmatched cores", "User idle", "Registered", "Registered cores", "Info age");
 												
-var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
+var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 							  "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");	
 							  
-var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
+var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 							    "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 
 								 
@@ -98,7 +98,7 @@ var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running"
 							 "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched", "Client Monitor: Unmatched cores", "Client Monitor: User idle",
 							 "Client Monitor: Registered", "Client Monitor: Registered cores", "Client Monitor: Info age");
 							 
-var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Running", "Client Monitor: Registered", "Diff(Status: Running, Client: Registered)", 
+var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client Monitor: Registered cores", "Diff(Status: Running cores, Client: Registered cores)",
 							   "Status: Idle", "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client Monitor: User Idle");
 							   
 							   
@@ -205,18 +205,22 @@ function showPopUp(hoveritem)
 	else
 		attTxtNode = document.createTextNode(exactColumns[column]);
 	
-	/* ADJUST COLUMN IF IN TR VIEW */ // TODO - FIX ??
+	/* ADJUST COLUMN IF IN TR VIEW */ // TODO - FIX ?? //MMDB ch1
+	/* troubleshoot column numbers based on the column position in the non Troubleshoot table (starting w/ 2)
+	   att1/2 (in diff columns is instead based on attributes order in xml file (value in xmlAttTotalNumArry)
+	 */
 	if(troubleshoot)
 	{
-		if(column == 3) column = 17; 
-		else if(column == 5) column = 3; 
-		else if(column == 6) column = 11; 
-		else if(column == 8) column = 16; 
+		if(column == 2) column = 10;
+		else if(column == 3) column = 23;
+		else if(column == 5) column = 3;
+		else if(column == 6) column = 12;
+		else if(column == 8) column = 21;
 		else if(column == 4)
 		{
 			child1 = feStatChild;
 			child2 = feCMChild;
-			att1 = 4;
+			att1 = 5;
 			att2 = 2;
 		}
 		else if(column == 7)
@@ -296,13 +300,13 @@ function showPopUp(hoveritem)
 				txt2 = document.createTextNode(diff);
 			}
 			/* STATUS COLS */
-			else if(column > 1 && column < 10)
+			else if(column > 1 && column < columnArrayDesc.Req.offset)
 			{
 				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0);}
 			} 
 			/* REQ COLS */
-			else if(column == 10 || column == 11)
+			else if(column >= columnArrayDesc.Req.offset && column < columnArrayDesc.CM.offset)
 			{
 				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0); }
@@ -385,17 +389,17 @@ function showPopUpPeriod(hoveritem)
 	/* ADJUST COL IF IN PERIOD VIEW */
 	if(periodV){ column--; } 
 	
-	/* ADJUST COLS FOR PERIOD + TROUBLESHOOT VIEW */
+	/* ADJUST COLS FOR PERIOD + TROUBLESHOOT VIEW */ //MMDB ch2
 	if(prTr)
 	{
-		/* STAT RUNNING */ if(column == 2){ column = 1;}
-		/* CM REG */       else if(column == 3){ column = 16;}
+		/* STAT RUNNING */ if(column == 2){ column = 9;}
+		/* CM REG */       else if(column == 3){ column = 22;}
 		/* STAT IDLE */    else if(column == 5){ column = 2;}
-		/* REQ IDLE */     else if(column == 6){ column = 10;}
-		/* CM USER IDLE */ else if(column == 8){ column = 15; }
+		/* REQ IDLE */     else if(column == 6){ column = 11;}
+		/* CM USER IDLE */ else if(column == 8){ column = 20; }
 		
-		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 1; dCol2 = 16;}
-		/* DIFF COL 2 */ else if(column == 7){ diffCol = 2; dCol = 2; dCol2 = 10;}
+		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 9; dCol2 = 22;}
+		/* DIFF COL 2 */ else if(column == 7){ diffCol = 2; dCol = 2; dCol2 = 11;}
 	}
  	 
 	/* IF HOVER EXISTS REMOVE */
@@ -416,7 +420,7 @@ function showPopUpPeriod(hoveritem)
 		if(!diffCol)
 			attTxtNode = document.createTextNode(exactColumns[column + 1] + timeFrame);
 		else if(diffCol == 1)
-			attTxtNode = document.createTextNode("Diff(Status: Running, Client: Registered) " + timeFrame);
+			attTxtNode = document.createTextNode("Diff(Status: Running cores, Client: Registered cores) " + timeFrame);
 		else
 			attTxtNode = document.createTextNode("Diff(Status: Idle, Requested: Idle) " + timeFrame);
 			
@@ -458,7 +462,7 @@ function showPopUpPeriod(hoveritem)
 	if(!diffCol)
 		cont2 = document.createTextNode(exactColumns[column + 1] + timeFrame);
 	else if(diffCol == 1)
-		cont2 = document.createTextNode("Diff(Status: Running, Client: Registered) " + timeFrame);
+		cont2 = document.createTextNode("Diff(Status: Running cores, Client: Registered cores) " + timeFrame);
 	else
 		cont2 = document.createTextNode("Diff(Status: Idle, Requested: Idle) " + timeFrame);
 	
@@ -566,7 +570,7 @@ function showPopUpPeriod(hoveritem)
 					attributes[xmlAttPeriodNumArry[dCol2 - 1]].value) * 100)/100);}
 				}
 			/* STATUS */
-			else if(column < 9)
+			else if(column < columnArrayDesc.Req.offset-1)
 			{
 				if(sortedFE[i].childNodes.length >= 7)				 
 				{
@@ -578,7 +582,7 @@ function showPopUpPeriod(hoveritem)
 					txt2 = document.createTextNode(0);
 			} 
 			/* REQ */
-			else if(column == 9 || column == 10)
+			else if(column >= columnArrayDesc.Req.offset-1 && column < columnArrayDesc.CM.offset-1)
 			{
 				if(sortedFE[i].childNodes.length >= 5)
 				{
@@ -899,7 +903,7 @@ function checkUrl()
 							if(periodV){periodV = 0; period(); fillInPeriod();} /* Put period table back. */
 							return;   
 						}
-						/* DIFFERENCE COLUMN SORT */
+						/* DIFFERENCE COLUMN SORT */ //MMDB ch3
 						else
 						{
 							if(troubleshoot || prTr)
@@ -2454,7 +2458,7 @@ function goToLink()
 		/* ACTIVE + TROUBLESHOOT + PERIOD */
 		if(active && prTr)
 		{
-			/* DIFF COLUMN SORT */
+			/* DIFF COLUMN SORT */ //MMDB ch4
 			if(diffSorted)
 			{
 				if(diffColNum == 1)
@@ -3076,7 +3080,7 @@ function goToDestination(option)
 	document.getElementById("destination").selectedIndex = 0;
 }
 
-/* BUILD TR TABLE */
+/* BUILD TR TABLE */ //MMDB ch5
 function troubleshooting()
 {	 
 	/* RESTORE PERIOD + TR VIEW */
@@ -3106,7 +3110,7 @@ function troubleshooting()
 		troubleshoot = 1; 
 		document.getElementById("scroll").removeChild(table); 
 		document.getElementById('header').removeChild(thead);
-		columnText = new Array("Entry Name","", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", "Requested: Idle", 
+		columnText = new Array("Entry Name","", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle", "Requested: Idle",
 		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 
 		trColumnId = new Array("entryLinks","downtime", "status", "client","difference", "status", "requested", "difference","client"); 
 		colors = new Array("#DCDCDC","DCDCDC","#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
@@ -3118,11 +3122,11 @@ function troubleshooting()
 			child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
 			
 		count = 0; 
-        /* Picking the attributes in the arrays: StatusRunning(Running) , ClientGlideTotal(Registered), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
+        /* Picking the attributes in the arrays: StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
         MM: These are positions in the XML file (e.g. schedd_status.xml) and is relying on them being the same across runs 
         Don't know how reliable it is, maybe the code should be changed in comparing the name
         */
-		att = new Array(4, 5, 1, 0, 7);  
+		att = new Array(5, 2, 1, 0, 7);
 		rows = new Array(); 
 		cols = new Array();
 		trTable = document.createElement('table'); 
@@ -3307,7 +3311,7 @@ function troubleshooting()
 	}
 }
 
-/* SORT TROUBELSHOOT || TROUBLESHOOT + PERIOD VIEW */
+/* SORT TROUBELSHOOT || TROUBLESHOOT + PERIOD VIEW */ //MMDB ch6
 function sortTrCol(col)
 {
 	diffArry = new Array;
@@ -3336,9 +3340,9 @@ function sortTrCol(col)
 	}
 
 	entryLog = new Array(); 
-	colMaster = new Array("Status: Running", "Client: Registered", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
+	colMaster = new Array("Status: Running cores", "Client: Registered cores", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
 	sortColNum = new Array("statusRunning", "cmGlideinTotal", "diff", "statusIdle", "requestIdle", "diff", "cmGlideinJobsIdle"); 
-	diffCol = new Array("Diff(Status: Running, Client: Registered)", "Diff(Status: Idle, Requested: Idle)");
+	diffCol = new Array("Diff(Status: Running cores, Client: Registered cores)", "Diff(Status: Idle, Requested: Idle)");
 	
 	if(!prTr) diffCell = new Array(4, 7);
 	else diffCell = new Array(5, 8);
@@ -3352,7 +3356,7 @@ function sortTrCol(col)
 	else	 
 		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild); 
 		
-	att = new Array(4, 2, 1, 0); 
+	att = new Array(5, 2, 1, 0);  // child and att are used only for the diff values
 	diffColSort = 0; 
 
 	/* REGULAR NONE DIFF SORT */
@@ -3503,7 +3507,7 @@ function sortTrCol(col)
 
 			diffColNum = (j + 1); 
 			
-			/* SORT ATUAL ENTRY CONTENTS */
+			/* SORT ACTUAL ENTRY CONTENTS */
 			for(l = 0; l < diffArry.length; l++)
 			{
 				for(k = 0; k < totalEntries.length; k++)
@@ -3752,7 +3756,7 @@ function trSortSignal(col)
 	catch(err){}
 }
 
-/* PERIOD + TR VIEW */
+/* PERIOD + TR VIEW */ //MMDB ch7
 function periodTrView()
 {
 	/* GET OUT OF THIS VIEW */
@@ -3814,9 +3818,8 @@ function periodTrView()
 		tempTotalP = totalP; 
 	}
 	
-	headerText = new Array("Entry Name","", "Period", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
-	"Requested: Idle", 
-		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 	
+	headerText = new Array("Entry Name","", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
+	"Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 	colors = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
 	trColumnId = new Array("entryLinks", "downtime","period",  "status", "client","difference", "status", "requested", "difference","client"); 
 
@@ -3831,12 +3834,12 @@ function periodTrView()
     // MM trChildArry, trFEChildArry and child seem redundant
     trChildArry = new Array(totStatChild, totCMChild, 0, totStatChild, totReqChild, 0, totCMChild);
     trFEChildArry = new Array(feStatChild, feCMChild, 0, feStatChild, feReqChild, 0, feCMChild);
-    // StatusRunning(Running) , ClientGlideTotal(Registered), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
+    // StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
     // using columnArrayDesc, i starts w/ Entry_name, xmlAttTotalNumArry starts w/ DT (-1), xmlAttPeriodNumArry starts w/ Status (-columnArrayDesc.Status.offset)
-    // In elements offset: 0, 7, -, 1, 1, -, 6
+    // In elements offset: 8, 8, -, 1, 1, -, 6
 	trAttArry = new Array();         	   
-	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1]); 
-	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+7]); 
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+8]);
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+8]);
 	trAttArry.push(0);               	   
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+1]); 
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset-1+1]); 
@@ -3844,8 +3847,8 @@ function periodTrView()
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+6]); 
 
 	prAttArry = new Array(); 
-	prAttArry.push(xmlAttPeriodNumArry[0]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset
-	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+7]);
+	prAttArry.push(xmlAttPeriodNumArry[8]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+8
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+8]);
 	prAttArry.push(0);
 	prAttArry.push(xmlAttPeriodNumArry[1]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+1
 	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.Req.offset-columnArrayDesc.Status.offset+1]);
