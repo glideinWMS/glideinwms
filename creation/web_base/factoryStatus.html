@@ -206,7 +206,9 @@ Description:
 // the indentation is a bit weird due to incremental changes
 function recreate_graph() {
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('StatusRunning','StatusRunningCores','ReqMaxGlideins','ReqMaxCores','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientCoresTotal','ClientCoresRunning','ClientCoresIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','ReqIdleCores','StatusIdle','ClientInfoAge');
+        // Keeping old values around, commented, in case they have to be added back
+        // gtype_DSs['running']=new Array('StatusRunning','StatusRunningCores','ReqMaxGlideins','ReqMaxCores','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientCoresTotal','ClientCoresRunning','ClientCoresIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','ReqIdleCores','StatusIdle','ClientInfoAge');
+        gtype_DSs['running']=new Array('StatusRunning','StatusRunningCores','ReqMaxGlideins','ClientCoresTotal','ClientCoresRunning','ClientCoresIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
         gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
         gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle');
 
@@ -217,17 +219,17 @@ function recreate_graph() {
         gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#ED90A4", checked:true,
                                                     lines: { show: true, fill: true, fillColor:"#E09B77"} },
                                   'StatusRunningCores':{ title: 'Running glidein cores', label:'Running cores',color: "#D4A263", checked:true},
-                                  'ReqMaxCores':{title: 'Max requested cores', label:'Max requested cores', color: "#C4A955"},
+                                  // 'ReqMaxCores':{title: 'Max requested cores', label:'Max requested cores', color: "#C4A955"},
                                   'ReqMaxGlideins':{title: 'Max requested glideins', label:'Max requested', color: "#B1AF50"},
-                                  'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#9BB556"},
-                                  'ClientGlideRunning':{title: 'Glideins claimed by user jobs', label:'Claimed', color: "#81BA66", checked:true},
-                                  'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#61BE7A", checked:true},
+                                  // 'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#9BB556"},
+                                  // 'ClientGlideRunning':{title: 'Glideins claimed by user jobs', label:'Claimed', color: "#81BA66", checked:true},
+                                  // 'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#61BE7A", checked:true},
                                   'ClientCoresTotal':{title: 'Cores at Collector', label:'Registered cores', color: "#39C090"},
                                   'ClientCoresRunning':{title: 'Cores claimed by user jobs', label:'Claimed cores', color: "#00C1A5", checked:true},
                                   'ClientCoresIdle':{title: 'Cores not matched', label:'Unmatched cores', color: "#00C1B9", checked:true},
                                   'ClientJobsRunning':{title: 'User jobs running', label:'User running', color: "#00BECC"},
                                   'ClientJobsIdle':{title: 'User jobs idle', label:'User idle', color: "#38B9DA"},
-                                  'ReqIdleCores':{ title: 'Requested idle cores', label:'Requested cores', color: "#68B3E5"},
+                                  // 'ReqIdleCores':{ title: 'Requested idle cores', label:'Requested cores', color: "#68B3E5"},
                                   'ReqIdle':{ title: 'Requested idle glideins', label:'Requested', color: "#8EABEB"},
                                   'StatusIdle':{title: 'Idle glidein jobs', label:'Idle', color: "#ADA2EC"},
                                   'ClientInfoAge':{title: 'Info age', label:'Info age', color: "#C699E7", yaxis: 2}};

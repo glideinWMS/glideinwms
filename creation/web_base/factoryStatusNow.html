@@ -57,12 +57,14 @@ var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var d
 var trChildArry = new Array(); var trFEChildArry = new Array();
 
 var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
-							"Max glideins", "Idle", "Max cores", "Idle cores",
-							"Claimed", "Claimed cores", "User run here", "User running", "Unmatched", "Unmatched cores", "User idle", "Registered", "Registered cores", "Info age");
+							"Max glideins", "Idle",
+							// "Claimed", "Unmatched", "Registered",
+							"Claimed cores", "User run here", "User running", "Unmatched cores", "User idle", "Registered cores", "Info age");
 
 var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
-							  "Max glideins", "Idle", "Max cores", "Idle cores",
-							  "Claimed", "Claimed cores", "User run here", "User running", "Unmatched", "Unmatched cores", "User idle", "Registered", "Registered cores", "Info age");
+							  "Max glideins", "Idle",
+							  // "Claimed", "Unmatched", "Registered",
+							  "Claimed cores", "User run here", "User running", "Unmatched cores", "User idle", "Registered cores", "Info age");
 												
 var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 							  "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");	
@@ -72,11 +74,10 @@ var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running cores",
 
 								 
 var columnArray = new Array("entryName", "downtimeStatus", 
-                            "statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther",
-						    "statusHeld", "statusRunningCores",
-						    "requestMax", "requestIdle", "requestMaxCores", "requestIdleCores",
-						    "cmGlideinRunning", "cmCoresRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmGlideinIdle", "cmCoresIdle",
-							"cmGlideinJobsIdle", "cmGlideinTotal", "cmCoresTotal", "cmGlideinInfoAge");
+                            "statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld", "statusRunningCores",
+                            "requestMax", "requestIdle",
+						    // "cmGlideinRunning", "cmGlideinIdle", "cmGlideinTotal",
+						    "cmCoresRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmCoresIdle", "cmGlideinJobsIdle", "cmCoresTotal", "cmGlideinInfoAge");
 /* columnArrayStruct describes columnArray: total length (length) and length and offset of its component: DT, Status, Req, CM 
    it is used to display the table w/ the values
    DT offset is 1 (entryName), following offsets are offset+length of previous element
@@ -85,34 +86,34 @@ var columnArray = new Array("entryName", "downtimeStatus",
 var columnArrayDesc = { length: columnArray.length,
                         DT: { length: 1, offset:1 },
                         Status: { length: 9, offset:2 },
-                        Req: { length: 4, offset:11 },                         
-                        CM: { length: 10, offset:15 },
+                        Req: { length: 2, offset:11 },
+                        CM: { length: 7, offset:13 },
                     }
 
 
 		
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
 						     "Status: Stage out", "Status: Unknown", "Status: Held", "Status: Running cores",
-						     "Requested: Max glideins", "Requested : Idle", "Requested: Max cores", "Requested : Idle cores",
-						     "Client Monitor: Claimed", "Client Monitor: Claimed cores",
-							 "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched", "Client Monitor: Unmatched cores", "Client Monitor: User idle",
-							 "Client Monitor: Registered", "Client Monitor: Registered cores", "Client Monitor: Info age");
+						     "Requested: Max glideins", "Requested : Idle",
+						     // "Client Monitor: Claimed", "Client Monitor: Unmatched", "Client Monitor: Registered",
+						     "Client Monitor: Claimed cores", "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched cores", "Client Monitor: User idle",
+							 "Client Monitor: Registered cores", "Client Monitor: Info age");
 							 
 var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client Monitor: Registered cores", "Diff(Status: Running cores, Client: Registered cores)",
 							   "Status: Idle", "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client Monitor: User Idle");
 							   
 							   
-var xmlAttPeriodArry = new Array("EntryName", "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther",
-                                 "StatusHeld", "StatusRunningCores",
-								 "ReqMaxGlideins", "ReqIdle", "ReqMaxCores", "ReqIdleCores",
-								 "ClientGlideRunning", "ClientCoresRunning", "ClientJobsRunHere", "ClientJobsRunning",
-								 "ClientGlideIdle", "ClientCoresIdle", "ClientJobsIdle",
-								 "ClientGlideTotal", "ClientCoresTotal", "ClientInfoAge");  /* ONE LESS ATT THAN DEFAULT */
+var xmlAttPeriodArry = new Array("EntryName",
+                                 "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", "StatusHeld", "StatusRunningCores",
+								 "ReqMaxGlideins", "ReqIdle",
+								 // "ClientGlideRunning", "ClientGlideIdle", "ClientGlideTotal",
+								 "ClientCoresRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientCoresIdle", "ClientJobsIdle", "ClientCoresTotal", "ClientInfoAge");  /* ONE LESS ATT THAN DEFAULT, no Downtime */
 								 
 var xmlAttDTArry = new Array("Status"); 						 					
 var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held", "RunningCores");
-var xmlAttReqArry = new Array("MaxGlideins", "Idle", "MaxCores", "IdleCores");
-var xmlAttCMArry = new Array("GlideRunning", "CoresRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "CoresIdle", "JobsIdle", "GlideTotal", "CoresTotal", "InfoAge");
+var xmlAttReqArry = new Array("MaxGlideins", "Idle");
+// var xmlAttCMArry = new Array("GlideRunning", "CoresRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "CoresIdle", "JobsIdle", "GlideTotal", "CoresTotal", "InfoAge");
+var xmlAttCMArry = new Array("CoresRunning", "JobsRunHere", "JobsRunning", "CoresIdle", "JobsIdle", "CoresTotal", "InfoAge");
 var xmlAttStatNumArry = new Array(); 
 var xmlAttReqNumArry = new Array(); 
 var xmlAttCMNumArry = new Array(); 
@@ -121,7 +122,7 @@ var FExmlAttStatNumArry = new Array();
 var FExmlAttReqNumArry = new Array(); 
 var FExmlAttCMNumArry = new Array();
 var xmlAttPeriodNumArry = new Array();
-var xmlAttTotalNumArry = new Array();            
+var xmlAttTotalNumArry = new Array();
 var preFrontEndName = "Total"; 
 var links = new Array(); 
 var sortColName; 
@@ -205,17 +206,17 @@ function showPopUp(hoveritem)
 	else
 		attTxtNode = document.createTextNode(exactColumns[column]);
 	
-	/* ADJUST COLUMN IF IN TR VIEW */ // TODO - FIX ?? //MMDB ch1
+	/* ADJUST COLUMN IF IN TR VIEW */
 	/* troubleshoot column numbers based on the column position in the non Troubleshoot table (starting w/ 2)
 	   att1/2 (in diff columns is instead based on attributes order in xml file (value in xmlAttTotalNumArry)
 	 */
 	if(troubleshoot)
 	{
 		if(column == 2) column = 10;
-		else if(column == 3) column = 23;
+		else if(column == 3) column = 18;
 		else if(column == 5) column = 3;
 		else if(column == 6) column = 12;
-		else if(column == 8) column = 21;
+		else if(column == 8) column = 17;
 		else if(column == 4)
 		{
 			child1 = feStatChild;
@@ -389,16 +390,16 @@ function showPopUpPeriod(hoveritem)
 	/* ADJUST COL IF IN PERIOD VIEW */
 	if(periodV){ column--; } 
 	
-	/* ADJUST COLS FOR PERIOD + TROUBLESHOOT VIEW */ //MMDB ch2
+	/* ADJUST COLS FOR PERIOD + TROUBLESHOOT VIEW */
 	if(prTr)
 	{
 		/* STAT RUNNING */ if(column == 2){ column = 9;}
-		/* CM REG */       else if(column == 3){ column = 22;}
+		/* CM REG */       else if(column == 3){ column = 17;}
 		/* STAT IDLE */    else if(column == 5){ column = 2;}
 		/* REQ IDLE */     else if(column == 6){ column = 11;}
-		/* CM USER IDLE */ else if(column == 8){ column = 20; }
+		/* CM USER IDLE */ else if(column == 8){ column = 16; }
 		
-		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 9; dCol2 = 22;}
+		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 9; dCol2 = 17;}
 		/* DIFF COL 2 */ else if(column == 7){ diffCol = 2; dCol = 2; dCol2 = 11;}
 	}
  	 
@@ -903,7 +904,7 @@ function checkUrl()
 							if(periodV){periodV = 0; period(); fillInPeriod();} /* Put period table back. */
 							return;   
 						}
-						/* DIFFERENCE COLUMN SORT */ //MMDB ch3
+						/* DIFFERENCE COLUMN SORT */
 						else
 						{
 							if(troubleshoot || prTr)
@@ -1483,7 +1484,7 @@ function fillIn()
 	/* 
      * FILL CM FIELDS  
  	 */
-	for(var counter = 0; counter <= columnArrayDesc.CM.length; counter++)
+	for(var counter = 0; counter < columnArrayDesc.CM.length; counter++)
 	{
 		for(i = 0; i< totalEntries.length; i++)
 		{	
@@ -2078,7 +2079,8 @@ function makeTable()
 	table = document.createElement('table');
 	tBody=document.createElement('tbody');
 	table.setAttribute('id','table');
-	colSpanArry = new Array(1, 1, 9, 4, 10);
+
+	colSpanArry = new Array(1, 1, columnArrayDesc.Status.length, columnArrayDesc.Req.length, columnArrayDesc.CM.length);
 	headTxt = new Array("" , "" ,"Status: ", "Requested: ", "Client Monitor: ");
 	headId = new Array('empty', 'downtime','status', 'requested', 'client');  
 	headClr = new Array('#DCDCDC', '#DCDCDC', '#FAF0E6', '#FFDAB9', '#CDAF95');
@@ -2142,8 +2144,8 @@ function makeTable()
 				y = "sortTableDescending(" + k + ")"; 
 				cell[k].setAttribute("onclick", y);
 				if(k == 1) cell[k].setAttribute('bgColor', headClr[1]);
-				else if(k < 11 && k > 1) cell[k].setAttribute('bgColor', headClr[2]);
-				else if(k > 10 && k < 15) cell[k].setAttribute('bgColor', headClr[3]);
+				else if(k < columnArrayDesc.Req.offset && k > 1) cell[k].setAttribute('bgColor', headClr[2]);
+				else if(k >= columnArrayDesc.Req.offset && k < columnArrayDesc.CM.offset) cell[k].setAttribute('bgColor', headClr[3]);
 				else cell[k].setAttribute('bgColor', headClr[4]); 	 
 			}
 			/* PLACE 0 IN EACH CELL INITIALLY */
@@ -2203,11 +2205,11 @@ function sortSignal()
 	/* TODO: use colSpanArry or	hArry3 or lenghs like (1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length) */
 	for(i = 0; i < totalEntries.length; i++)
 	{	
-		if(sortColNum > 0 && sortColNum <= 1 + xmlAttStatNumArry.length)
+		if(sortColNum > 0 && sortColNum < columnArrayDesc.Req.offset)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FAF0E6";
 		}
-		else if(sortColNum >= 11 && sortColNum <= 14)
+		else if(sortColNum >= columnArrayDesc.Req.offset && sortColNum < columnArrayDesc.CM.offset)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FFDAB9";
 		}
@@ -2246,7 +2248,7 @@ function sortSignal()
 		/* COLOR SELECTED COLS */
 		for(i = 0; i < totalEntries.length * 4; i++)
 		{
-			if((sortColNum + 1) >= 3 && (sortColNum + 1) < 11)
+			if((sortColNum + 1) >= 3 && sortColNum < columnArrayDesc.Req.offset)
 			{
 				if(i % 4 == 0)
 				{
@@ -2255,7 +2257,7 @@ function sortSignal()
 				else
 					tableP.rows[i].cells[sortColNum].bgColor = "#FAF0E6";
 			}
-			else if((sortColNum + 1) == 11 || (sortColNum + 1) == 12)
+			else if(sortColNum >= columnArrayDesc.Req.offset || sortColNum < columnArrayDesc.CM.offset)
 			{
 				if(i % 4 == 0)
 				{
@@ -2335,10 +2337,10 @@ function sortTableDescending(column)
 	length = lengthArry[sortColNum - 1]; att = xmlAttTotalNumArry[sortColNum - 1]; trSortColNum = trSortColNumArry[sortColNum]; ;
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 	{
-		if(sortColNum < 10){child = feChildArry[0];}else if(sortColNum < 12){child = feChildArry[1];}else{child = feChildArry[2];}
+		if(sortColNum < columnArrayDesc.Req.offset){child = feChildArry[0];}else if(sortColNum < columnArrayDesc.CM.offset){child = feChildArry[1];}else{child = feChildArry[2];}
 	}
 	else
-		if(sortColNum < 10){child = totChildArry[0];}else if(sortColNum < 12){child = totChildArry[1];}else{child = totChildArry[2];}
+		if(sortColNum < columnArrayDesc.Req.offset){child = totChildArry[0];}else if(sortColNum < columnArrayDesc.CM.offset){child = totChildArry[1];}else{child = totChildArry[2];}
 	
 			
 	/* GET EVERYTHING NOT 0 */
@@ -2458,7 +2460,7 @@ function goToLink()
 		/* ACTIVE + TROUBLESHOOT + PERIOD */
 		if(active && prTr)
 		{
-			/* DIFF COLUMN SORT */ //MMDB ch4
+			/* DIFF COLUMN SORT */
 			if(diffSorted)
 			{
 				if(diffColNum == 1)
@@ -3080,7 +3082,7 @@ function goToDestination(option)
 	document.getElementById("destination").selectedIndex = 0;
 }
 
-/* BUILD TR TABLE */ //MMDB ch5
+/* BUILD TR TABLE */
 function troubleshooting()
 {	 
 	/* RESTORE PERIOD + TR VIEW */
@@ -3311,7 +3313,7 @@ function troubleshooting()
 	}
 }
 
-/* SORT TROUBELSHOOT || TROUBLESHOOT + PERIOD VIEW */ //MMDB ch6
+/* SORT TROUBELSHOOT || TROUBLESHOOT + PERIOD VIEW */
 function sortTrCol(col)
 {
 	diffArry = new Array;
@@ -3709,11 +3711,12 @@ function trSortSignal(col)
 			}
 		}
 	}
-	
-	if(prTr && diffSorted){ col--; }
-	/* TR + PR TABLE */
-	try
+	else
 	{
+	  if(prTr && diffSorted){ col--; }
+	  /* TR + PR TABLE */
+	  try
+	  {
 		for(i = 2; i < headColArryTRPR.length; i++)
 		{
 			for(j = 0; j < trpr_Table.rows.length; j++)
@@ -3752,11 +3755,12 @@ function trSortSignal(col)
 				}
 			}
 		}
+  	  }
+	  catch(err){}
 	}
-	catch(err){}
 }
 
-/* PERIOD + TR VIEW */ //MMDB ch7
+/* PERIOD + TR VIEW */
 function periodTrView()
 {
 	/* GET OUT OF THIS VIEW */
@@ -3821,7 +3825,7 @@ function periodTrView()
 	headerText = new Array("Entry Name","", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 	"Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 	colors = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
-	trColumnId = new Array("entryLinks", "downtime","period",  "status", "client","difference", "status", "requested", "difference","client"); 
+	trColumnId = new Array("entryLinks", "downtime", "period", "status", "client", "difference", "status", "requested", "difference", "client");
 
 	/* FRONTEND VIEW */
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
@@ -3836,24 +3840,24 @@ function periodTrView()
     trFEChildArry = new Array(feStatChild, feCMChild, 0, feStatChild, feReqChild, 0, feCMChild);
     // StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
     // using columnArrayDesc, i starts w/ Entry_name, xmlAttTotalNumArry starts w/ DT (-1), xmlAttPeriodNumArry starts w/ Status (-columnArrayDesc.Status.offset)
-    // In elements offset: 8, 8, -, 1, 1, -, 6
+    // In elements offset: 8, 5, -, 1, 1, -, 4
 	trAttArry = new Array();         	   
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+8]);
-	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+8]);
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+5]);
 	trAttArry.push(0);               	   
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+1]); 
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset-1+1]); 
 	trAttArry.push(0); 					   
-	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+6]); 
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+4]);
 
 	prAttArry = new Array(); 
 	prAttArry.push(xmlAttPeriodNumArry[8]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+8
-	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+8]);
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+5]);
 	prAttArry.push(0);
 	prAttArry.push(xmlAttPeriodNumArry[1]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+1
 	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.Req.offset-columnArrayDesc.Status.offset+1]);
 	prAttArry.push(0);
-	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+6]);
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+4]);
 	
 	rows = new Array(); 
 	cols = new Array();
@@ -4241,8 +4245,9 @@ function period()
 	colorArry = new Array("#FAF0E6", "#FFDAB9", "#CDAF95"); 
 	hArry = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#FFDAB9", "#CDAF95");
 	hArry2 = new Array("", "", "Period:", "Status:", "Requested:", "Client Monitor:");
-	hArry3 = new Array(1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length);
-	
+	// hArry3 = new Array(1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length);
+	hArry3 = new Array(1, 1, 1, columnArrayDesc.Status.length, columnArrayDesc.Req.length, columnArrayDesc.CM.length);
+
 	/*
 	 * BEGIN BUILDING TABLE -------------------------------------------------------------------------------
 	 */ 
@@ -4263,7 +4268,7 @@ function period()
 	}
 	
 	thBodyP.appendChild(row2); 
-	friend = cell_num; 
+	friend = cell_num;
 
 	/* BODY (ROWS * 4) */
 	for(c = 0; c < row_num * 4 + 1; c++)
@@ -4342,12 +4347,12 @@ function period()
 				cont = document.createTextNode(headColArryPR[k - 2])
 				cell[k].appendChild(cont);
 				cell[k].setAttribute('id', 'k'); 
-			    cell[k].setAttribute("onclick", "sortTableDescending(this)"); 
-				if(k < 12)
+			    cell[k].setAttribute("onclick", "sortTableDescending(this)");
+				if(k < columnArrayDesc.Req.offset+1)
 				{
 					cell[k].setAttribute('bgColor', colorArry[0]); 
 				}
-				else if(k < 16)
+				else if(k < columnArrayDesc.CM.offset+1)
 				{
 					cell[k].setAttribute('bgColor', colorArry[1]); 
 				}
@@ -4531,8 +4536,8 @@ function fillInPeriod()
 			four++; 
 		}	
 	}
-	
-	/* 
+
+	/*
 	 * Fill in STATUS fields.  
 	 */
     // Column offset is increased by 1 because of the period column
@@ -4659,7 +4664,7 @@ function fillInPeriod()
 		{ 
 			attCount = 0; 
 			attCount2 = 0;  
-			for(counter = 0; counter < columnArrayDesc.CM.length; counter++) // 13; counter < cell_num;
+			for(counter = 0; counter < columnArrayDesc.CM.length; counter++)
 			{
 				if(j == 0)
 				{
