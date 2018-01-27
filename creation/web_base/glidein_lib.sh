@@ -1,5 +1,19 @@
 #!/bin/bash
 
+function sanitizedCat {
+    # This function prints the saniteized content of the file passed as argument.
+    # If the content is a number it just prints it, if it is an alphanumeric string it adds quotes
+    # and prints it, otherwise it prints "WrongFormat"
+    VAL=$(cat "$1")
+    if [[ $VAL =~ ^-?[0-9]+(.[0-9]+)?$ ]]; then
+        echo $VAL
+    elif [[ $VAL =~ ^[0-9a-zA-Z]+$ ]]; then
+        echo \"$VAL\"
+    else
+        echo '"WrongFormat"'
+    fi
+}
+
 function getValueFromFileOrURL {
     # The function takes as an argument a filename and a variable name
     # The variable contains the url or the directory location of the file,
@@ -11,7 +25,7 @@ function getValueFromFileOrURL {
     VARNAME="$2"
     if [ -n "$VARNAME" ]; then
         if [ -f "$VARNAME/$FILENAME" ]; then
-            cat "$VARNAME/$FILENAME"
+            sanitizedCat "$VARNAME/$FILENAME"
             return
         else
             #check if shutdowntime job is a URL and wget it
@@ -22,7 +36,7 @@ function getValueFromFileOrURL {
                 TMPFILE=tmp_$(uuidgen)
                 wget -qO- $ADDRESS > $TMPFILE
                 if [ $? -eq 0 ]; then
-                    cat $TMPFILE
+                    sanitizedCat $TMPFILE
                     rm $TMPFILE
                     return
                 fi
