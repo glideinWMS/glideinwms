@@ -5,9 +5,9 @@ function sanitizedCat {
     # If the content is a number it just prints it, if it is an alphanumeric string it adds quotes
     # and prints it, otherwise it prints "WrongFormat"
     VAL=$(cat "$1")
-    if [[ $VAL =~ ^-?[0-9]+(.[0-9]+)?$ ]]; then
+    if [[ $VAL =~ ^[0-9]+(.[0-9]+)?$ ]]; then
         echo $VAL
-    elif [[ $VAL =~ ^[0-9a-zA-Z]+$ ]]; then
+    elif [[ $VAL =~ ^[^\"\\]+$ ]]; then
         echo \"$VAL\"
     else
         echo '"WrongFormat"'

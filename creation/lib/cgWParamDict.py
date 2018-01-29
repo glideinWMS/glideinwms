@@ -234,7 +234,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #Add the MJF script
         mjf_script = "mjf_setparams.sh"
         self.dicts['file_list'].add_from_file(mjf_script,
-                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 60, 'MJF_'),
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 1800, 'MJF_'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
