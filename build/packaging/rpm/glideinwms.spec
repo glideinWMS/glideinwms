@@ -832,7 +832,10 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Jan 31 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-0.3
 - Glideinwms v3.2.21
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_21/history.html
-- Release candidates: 3.2.21-0.1.rc1 to 3.2.21-0.2.rc3
+- Release candidates: 3.2.21-0.1.rc1 to 3.2.21-0.3.rc3
+
+* Wed Jan 31 2018 Brian Lin <blin@cs.wisc.edu> - 3.2.20-2
+- Fix uncaught exceptions and fd backlog on gwms frontends (SOFTWARE-3120)
 
 * Wed Nov 15 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.20-1
 - Glideinwms v3.2.20
