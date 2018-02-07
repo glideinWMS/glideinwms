@@ -125,18 +125,6 @@ pre
     background:    #abc; 
 }
 
-div#searchcontent
-{
-	float:left;
-	width:82%;
-	display:none;
-}
-div#searchcontent h2 
-{
-    font-size: 2.2em;
-    text-decoration: underline;
-}   
-
 div.content
 {
 	float:left;
@@ -261,10 +249,24 @@ width: 95%;
 padding: 2px;
 }
 
-
+/*
 td.gsc-clear-button, div.gsc-clear-button {
 display:none;
 }
+
+div#searchcontent
+{
+	float:left;
+	width:82%;
+	display:none;
+}
+div#searchcontent h2 
+{
+    font-size: 2.2em;
+    text-decoration: underline;
+}   
+
+*/
 
 input.gsc-search-button {
 padding: 0px;
