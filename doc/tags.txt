@@ -7,6 +7,7 @@ v3_2_21 Have frontend groups request the removal of unused glideins
 	Bug Fix: Fix fork.py behavior
 	Bug Fix: Uninitialized variable caused skipping fix-rrd
 	Bug Fix: Sanitize content of MJF attributes
+	Bug Fix: Update Google custom search to new API
 
 v3_2_20 Verified that Factory can start 1500 entries at a time
         Improved Factory monitoring by adding cores count for running and idle jobs and requests
