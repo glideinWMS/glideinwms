@@ -18,6 +18,17 @@ v3_3    Includes all features and bug fixes released in v3_2_15
         Bug Fix: create_condor_tarball now also includes required globus libraries
 	  from lib/condor that HTCondor loads at runtime
 
+v3_2_21 Have frontend groups request the removal of unused glideins
+	Support of unprivileged singularity and new singularity scripts
+	Automatically renew gwms proxies
+	Factory monitoring displaying correctly core counters
+	Balancing glidein pressure to sites that are aliases or Meta-Sites
+	Remove osg-version requirements
+	Bug Fix: Fix fork.py behavior
+	Bug Fix: Uninitialized variable caused skipping fix-rrd
+	Bug Fix: Sanitize content of MJF attributes
+	Bug Fix: Update Google custom search to new API
+
 v3_2_20 Verified that Factory can start 1500 entries at a time
         Improved Factory monitoring by adding cores count for running and idle jobs and requests
         Removed dependency from Globus clients

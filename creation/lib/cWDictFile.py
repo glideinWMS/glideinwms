@@ -435,7 +435,7 @@ class DescriptionDictFile(DictFileTwoKeys):
 class GridMapDict(DictFileTwoKeys):
     def file_header(self,want_comments):
         return None
-    
+
     def format_val(self,key,want_comments):
         return '"%s" %s'%(key,self.vals[key])
 
@@ -455,7 +455,7 @@ class GridMapDict(DictFileTwoKeys):
 
         if line[-len(user)-2:-len(user)-1]!='"':
             raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
-        
+
         dn=line[1:-len(user)-2]
         return self.add(dn,user)
 
@@ -879,7 +879,7 @@ class StrWWorkTypeDictFile(StrDictFile):
                  fname_idx=None):      # if none, use fname
         StrDictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
         self.typed_vals={}
-                             
+
     def erase(self):
         StrDictFile.erase(self)
         self.typed_vals={}
@@ -888,7 +888,7 @@ class StrWWorkTypeDictFile(StrDictFile):
         StrDictFile.remove(self,key,fail_if_missing)
         if self.typed_vals.has_key(key):
             del self.typed_vals[key]
-        
+
     def get_typed_val(self,key):
         return self.typed_vals[key]
 
@@ -1252,7 +1252,12 @@ class fileCommonDicts:
 
     def set_readonly(self,readonly=True):
         for el in self.dicts.values():
-            el.set_readonly(readonly)
+            #condor_jdl are lists. Iterating over its elements in this case
+            if isinstance(el, list):
+                for cj in el:
+                    cj.set_readonly(readonly)
+            else:
+                el.set_readonly(readonly)
 
 ################################################
 #

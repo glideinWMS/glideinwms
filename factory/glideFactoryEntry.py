@@ -985,7 +985,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     #
     # STEP: Process every work one at a time
     #
-
     for work_key in work:
         if not glideFactoryLib.is_str_safe(work_key):
             # may be used to write files... make sure it is reasonable
@@ -1436,6 +1435,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # malformed classad, skip
         entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
         return return_dict
+
 
 
     # Should log here or in perform_work

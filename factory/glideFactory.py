@@ -387,7 +387,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                             startup_dir,
                             entry_names,
                             str(group)]
-
             childs[group] = subprocess.Popen(command_list, shell=False,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE,

@@ -271,6 +271,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinFactory', '"$ENV(FACTORY_NAME)"')
         self.add('+GlideinName', '"$ENV(GLIDEIN_NAME)"')
         self.add('+GlideinEntryName', '"$ENV(GLIDEIN_ENTRY_NAME)"')
+        self.add('+GlideinEntrySubmitFile', '"$ENV(GLIDEIN_ENTRY_SUBMIT_FILE)"')
         self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
         self.add('+GlideinCredentialIdentifier', '"$ENV(GLIDEIN_CREDENTIAL_ID)"')
