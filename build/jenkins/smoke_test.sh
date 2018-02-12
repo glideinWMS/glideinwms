@@ -11,15 +11,17 @@ usage(){
     echo "5a)   kill all glideins and user jobs,"
     echo "5b)   upgrade factory/frontend, "
     echo "5c)   repeat steps 2-4  for upgrade"
+    echo "6) generate a report of condor and python errors for factory and frontend"
     echo ""
     echo "usage: $0 config_file    reads config_file and performs above steps"
     echo "       $0 --help         print this message and exit"
     echo
-    echo "sample config files in this directory are named osg_version-linux_major.config "
-    echo "example 3.4-el7.config"
+    echo "to run all the tests, do the following:"
+    echo "for CFG in $(ls *.cfg); do echo $CFG; ./smoke_test.sh ./$CFG | tee $CFG.out ; done "
     echo
     exit 0
 }
+
 
 
 yell() { echo "$0: $*" >&2; }
@@ -35,42 +37,14 @@ main() {
         usage
     fi
 
-    source $1
-
-    cmd="./deploy_glideinwms.sh"
-
-    if [ "$OS_VERSION" != "" ]; then
-        cmd="$cmd --el $OS_VERSION"
-    fi
-
-    if [ "$CONDOR_TARBALL" != "" ]; then
-        cmd="$cmd --condor-tarball $CONDOR_TARBALL"
-    fi
-
-    if [ "$OSG_VERSION" != "" ]; then
-        cmd="$cmd --osg-version $OSG_VERSION"
-    fi
-
-    if [ "$JOBS_PROXY" != "" ]; then
-        cmd="$cmd --jobs-proxy $JOBS_PROXY"
-    fi
-
-    if [ "$FRONTEND_PROXY" != "" ]; then
-        cmd="$cmd --frontend-proxy $FRONTEND_PROXY"
-        if [ "$REGENERATE_FRONTEND_PROXY" != "" ]; then
-            opts="-noregen -rfc -ignorewarn -valid 72:00 -bits 1024 "
-            voms="fermilab:/fermilab/Role=Analysis"
-            voms-proxy-init $opts -voms $voms -out $FRONTEND_PROXY
-        fi
-    fi
-
-    if [ "$GWMS_RELEASE" != "" ]; then
-        cmd="$cmd --gwms-release $GWMS_RELEASE"
-    fi
-    try $cmd
+    try source $1
+    export PERFORM_UPGRADE=$(echo $PERFORM_UPGRADE | tr 'a-z' 'A-Z')
+    echo DEPLOY_COMMAND is $DEPLOY_COMMAND
+    echo PERFORM_UPGRADE is $PERFORM_UPGRADE
+    try $DEPLOY_COMMAND
     cd deploy_utilities
     try ./monitor_job_progress.sh
-    if [ "$PERFORM_UPGRADE" != "" ]; then
+    if [ "$PERFORM_UPGRADE" = "TRUE" ]; then
         try ./factory.clear_jobs.sh
         try ./frontend.clear_jobs.sh
         try ./factory.perform_upgrade.sh
@@ -78,10 +52,8 @@ main() {
         try ./frontend.submit_jobs.sh
         try ./monitor_job_progress.sh
     fi
-    ./factory.condor_errs.sh > /tmp/$COMBO_VERSION.factory.condor.errs
-    ./frontend.condor_errs.sh  > /tmp/$COMBO_VERSION.frontend.condor.errs
-    ./factory.exceptions.sh  > /tmp/$COMBO_VERSION.factory.exceptions
-    ./frontend.exceptions.sh  > /tmp/$COMBO_VERSION.frontend.exceptions
+    try ./report.sh
+    cd -
 }
 
 
