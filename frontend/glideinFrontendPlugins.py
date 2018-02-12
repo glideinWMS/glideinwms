@@ -52,13 +52,11 @@ from . import glideinFrontendInterface
 #                                                                              #
 ################################################################################
 
-############################################
-#
-# This plugin always returns the first proxy
-# Useful when there is only one proxy
-# or for testing
-#
+
 class ProxyFirst:
+    """ This plugin always returns the first proxy
+     Useful when there is only one proxy or for testing
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -86,12 +84,12 @@ class ProxyFirst:
             return [cred]
         return []
 
-############################################
-#
-# This plugin returns all the proxies
-# This is can be a very useful default policy
-#
+
 class ProxyAll:
+    """This plugin returns all the proxies
+
+     This is can be a very useful default policy
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -122,16 +120,13 @@ class ProxyAll:
             rtnlist = fair_assign(rtnlist, params_obj)
         return rtnlist
 
-##########################################################
-#
-# This plugin uses the first N proxies
-# where N is the number of users currently in the system
-#
-# This is useful if the first proxies are higher priority
-# then the later ones
-# Also good for testing
-#
+
 class ProxyUserCardinality:
+    """This plugin uses the first N proxies where N is the number of users currently in the system
+
+     This is useful if the first proxies are higher priority then the later ones
+     Also good for testing
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -176,13 +171,10 @@ class ProxyUserCardinality:
                 rtnlist.append(cred)
         return rtnlist
 
-#####################################################################
-#
-# Given a 'normal' credential, create sub-credentials based on the ProjectName
-# attribute of jobs
-#
-class ProxyProjectName:
 
+class ProxyProjectName:
+    """Given a 'normal' credential, create sub-credentials based on the ProjectName attribute of jobs
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
         self.proxy_list = proxy_list
@@ -248,18 +240,12 @@ class ProxyProjectName:
         return creds
 
 
-
-
-
-######################################################################
-#
-# This plugin implements a user-based round-robin policy
-# The same proxies are used as long as the users don't change
-#  (we keep a disk-based memory for this purpose)
-# Once any user leaves, the most used credential is rotated to the back of the list
-# If more users enter, they will reach farther down the list to access
-#   less used credentials
 class ProxyUserRR:
+    """This plugin implements a user-based round-robin policy
+    The same proxies are used as long as the users don't change (we keep a disk-based memory for this purpose)
+    Once any user leaves, the most used credential is rotated to the back of the list
+    If more users enter, they will reach farther down the list to access less used credentials
+    """
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
         self.config_dir = config_dir
@@ -346,17 +332,14 @@ class ProxyUserRR:
             list.append(list.pop(0))
         return
 
-######################################################################
-#
-# This plugin implements a user-based mapping policy
-#  with possibility of recycling of accounts:
-#  * when a user first enters the system, it gets mapped to a
-#    pilot proxy that was not used for the longest time
-#  * for existing users, just use the existing mapping
-#  * if an old user comes back, it may be mapped to the old account, if not
-#    yet recycled, else it is treated as a new user
-#
+
 class ProxyUserMapWRecycling:
+    """This plugin implements a user-based mapping policy with possibility of recycling of accounts:
+    * when a user first enters the system, it gets mapped to a pilot proxy that was not used for the longest time
+    * for existing users, just use the existing mapping
+    * if an old user comes back, it may be mapped to the old account, if not yet recycled,
+      else it is treated as a new user
+    """
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
         self.config_dir = config_dir

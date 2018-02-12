@@ -11,6 +11,7 @@ xmlConfig.register_list_elements({
     u'allow_frontends': lambda d: d[u'name'],
     u'condor_tarballs': lambda d: "%s,%s,%s" % (d[u'arch'], d[u'os'], d[u'version']),
     u'entries': lambda d: d[u'name'],
+    u'entry_sets': lambda d: d[u'alias'],
     u'frontends': lambda d: d[u'name'],
     u'infosys_refs': lambda d: d[u'ref'],
     u'monitorgroups': lambda d: d[u'group_name'],
@@ -76,6 +77,14 @@ class EntryElement(xmlConfig.DictElement):
         self.check_missing(u'name')
         self.check_missing(u'gatekeeper')
         self.check_boolean(u'enabled')
+        #Using parent.parent because EntryElements are inside the <entries> tag
+        #Hence the EntrySetElement is parent.parent
+        if isinstance(self.parent.parent, EntrySetElement):
+            #no need to check more if the parent is an entryset
+            return
+        self.validate_sub_elements()
+
+    def validate_sub_elements(self):
         for per_fe in self.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
             per_fe.check_missing(u'name')
         for submit_attr in self.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs'):
@@ -89,8 +98,45 @@ class EntryElement(xmlConfig.DictElement):
         for group in self.get_child_list(u'monitorgroups'):
             group.check_missing(u'group_name')
 
+    def getName(self):
+        return self[u'name']
 
 xmlConfig.register_tag_classes({u'entry': EntryElement})
+
+
+class EntrySetElement(EntryElement):
+    def validate(self):
+        self.check_missing(u'alias')
+        self.check_boolean(u'enabled')
+        self.validate_sub_elements()
+
+    def select(self, entry):
+        self.selected_entry = entry
+
+    def __contains__(self, item):
+        try:
+            _ = self[item]
+            return True
+        except KeyError:
+            return False
+
+    def __getitem__(self, attrname):
+        if getattr(self, 'selected_entry', False) and attrname in self.selected_entry:
+            val = self.selected_entry[attrname]
+        else:
+            val = self.attrs.get(attrname)
+        if val == None and attrname in self.get_child_list(u'entries')[0]:
+            val = self.get_child_list(u'entries')[0][attrname]
+#            val = [ x[attrname] for x in self.get_child_list(u'entries') ]
+        return val
+
+    def getName(self):
+        """ The name for entry sets is actaully called alias """
+        return self[u'alias']
+
+xmlConfig.register_tag_classes({u'entry_set': EntrySetElement})
+
+
 
 
 class Config(xmlConfig.DictElement):
@@ -198,6 +244,9 @@ class Config(xmlConfig.DictElement):
 
     def get_web_url(self):
         return self.web_url
+
+    def get_entries(self):
+        return self.get_child_list(u'entries') + self.get_child_list(u'entry_sets')
 
 
 xmlConfig.register_tag_classes({u'glidein': Config})

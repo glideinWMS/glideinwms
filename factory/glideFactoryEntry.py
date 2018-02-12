@@ -202,6 +202,18 @@ class Entry:
         gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
+    def getGlideinExpectedCores(self):
+        """
+        Return the number of cores expected for each glidein.
+         This is the GLIDEIN_CPU attribute or 1 if not set
+         The actual cores received will depend on the RSL or HTCondor attributes and the Entry
+         and could also vary over time.
+        """
+        try:
+            res = int(self.jobAttributes.data['GLIDEIN_CPUS'])
+            return res
+        except (KeyError, ValueError):
+            return 1
 
     def loadWhitelist(self):
         """
@@ -340,9 +352,11 @@ class Entry:
         self.gflFactoryConfig.log_stats.reset()
 
         # This one is used for stats advertized in the ClassAd
-        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(log=self.log)
+        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(log=self.log,
+                                                                                 cores=self.getGlideinExpectedCores())
         # These two are used to write the history to disk
-        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log)
+        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log,
+                                                                             cores=self.getGlideinExpectedCores())
         self.gflFactoryConfig.client_internals = {}
         self.log.info("Iteration initialized")
 
@@ -972,7 +986,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     #
     # STEP: Process every work one at a time
     #
-
     for work_key in work:
         if not glideFactoryLib.is_str_safe(work_key):
             # may be used to write files... make sure it is reasonable
@@ -1418,11 +1431,13 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         return return_dict
 
 
+
     # Should log here or in perform_work
     glideFactoryLib.logWorkRequest(
         client_int_name, client_security_name,
         submit_credentials.security_class, idle_glideins,
-        max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+        max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig
+    )
 
     all_security_names.add((client_security_name, credential_security_class))
 

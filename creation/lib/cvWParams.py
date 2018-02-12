@@ -71,21 +71,28 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_vms_defaults["curb"]=['5', "nr_vms", "How many idle VMs should I tollerate, before starting to curb submissions.", None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
 
-        common_config_vms_total_defaults=cWParams.commentedOrderedDict()
-        common_config_vms_total_defaults["max"]=['1000', "nr_jobs", "How many total idle VMs should I tollerate, before stopping submitting glideins", None]
-        common_config_vms_total_defaults["curb"]=['200', "nr_jobs", "How many total idle VMs should I tollerate, before starting to curb submissions.", None]
-        group_config_defaults['idle_vms_total']=common_config_vms_total_defaults
+        common_config_vms_total_defaults = cWParams.commentedOrderedDict()
+        common_config_vms_total_defaults["max"] = ['1000', "nr_jobs", "How many total idle VMs should I tollerate, before stopping submitting glideins", None]
+        common_config_vms_total_defaults["curb"] = ['200', "nr_jobs", "How many total idle VMs should I tollerate, before starting to curb submissions.", None]
+        group_config_defaults['idle_vms_total'] = common_config_vms_total_defaults
 
-        group_config_proc_work_defaults=cWParams.commentedOrderedDict()
-        group_config_proc_work_defaults["matchmakers"]=['3', "NR", "Max number of worker processes that will be doing the matchmaking", None]
-        group_config_defaults['processing_workers']=group_config_proc_work_defaults
+        group_config_proc_work_defaults = cWParams.commentedOrderedDict()
+        group_config_proc_work_defaults["matchmakers"] = ['3', "NR", "Max number of worker processes that will be doing the matchmaking", None]
+        group_config_defaults['processing_workers'] = group_config_proc_work_defaults
+
+        group_config_removal_defaults = cWParams.commentedOrderedDict()
+        group_config_removal_defaults["type"] = ['NO', "ALL|IDLE|WAIT|NO", "Trigger the removal of these glideins", None]
+        group_config_removal_defaults["wait"] = ['0', "NR", "Time without requests to wait before triggering the removal (cycles)", None]
+        group_config_removal_defaults["requests_tracking"] = ['False', "Bool", "Remove glideins as soon as the requests are less than the available glideins (instead of 0)", None]
+        group_config_removal_defaults["margin"] = ['0', "NR", "How closely to follow the number of requests", None]
+        group_config_defaults['glideins_removal'] = group_config_removal_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
-        sub_defaults={'attrs':(xmlParse.OrderedDict(), 'Dictionary of attributes', "Each attribute group contains", self.attr_defaults),
-                      'files':([], 'List of files', "Each file group contains", self.file_defaults)}
+        sub_defaults = {'attrs': (xmlParse.OrderedDict(), 'Dictionary of attributes', "Each attribute group contains", self.attr_defaults),
+                        'files': ([], 'List of files', "Each file group contains", self.file_defaults)}
 
-        query_attrs_defaults=cWParams.commentedOrderedDict()
-        query_attrs_defaults['type']=('string', 'string|int|real|bool', 'Attribute type', None)
+        query_attrs_defaults = cWParams.commentedOrderedDict()
+        query_attrs_defaults['type'] = ('string', 'string|int|real|bool', 'Attribute type', None)
 
         fj_match_defaults=cWParams.commentedOrderedDict()
         fj_match_defaults["query_expr"]=['True', 'CondorExpr', 'Expression for selecting user jobs', None]

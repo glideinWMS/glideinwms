@@ -262,7 +262,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work = {}
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)
-
     # TODO: If we return here check if we need to do cleanup of held glideins?
     #       So far only de-advertising is confirmed to trigger not cleanup
     work_count = get_work_count(work)
@@ -298,20 +297,23 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # work todo, ie glideclient classads.
     for ent in work:
         entry = my_entries[ent]
+
         forkm_obj.add_fork(entry.name,
                            forked_check_and_perform_work,
                            factory_in_downtime, entry, work)
     try:
+        t_begin = time.time()
         post_work_info = forkm_obj.bounded_fork_and_collect(parallel_workers)
+        t_end = time.time() - t_begin
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
+        t_end = time.time() - t_begin
 
     logSupport.roll_all_logs()
-
     # Gather results from the forked children
-    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
-    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
+    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry." % t_end)
+    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry." % t_end)
 
     for entry in my_entries:
         # Update the entry object from the post_work_info

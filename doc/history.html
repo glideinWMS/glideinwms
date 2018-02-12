@@ -85,6 +85,33 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_21</b> released on December 10, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_21/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_21/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Have frontend groups request the removal of unused glideins</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_20</b> released on November 15, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_20/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_20/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_20.tgz">Tarball</a>)<br>
+        <ul>
+            <li>NOTE: during the first "upgrade" or "reconfig --fix-rrd" you will see some warning because of missing RRD attributes. This is OK, is caused by the schema change.</li>
+          <li>Verified that Factory can start 1500 entries at a time</li>
+          <li>Improved Factory monitoring by adding cores count for running and idle jobs and requests</li>
+          <li>Removed dependency from Globus clients</li>
+          <li>Support Singularity (future replacement for glexec)</li>
+          <li>Avoid race conditions with multiple reload quick invocations in SL7</li>
+          <li>Bug Fix: -fix_rrd is always in the upgrade command beside reconfig option</li>
+          <li>Bug Fix: Fixed some failing unit tests</li>
+          <li>Bug Fix: Fixed Factory job stats are empty</li>
+          <li>Bug Fix: Bad link to Frontend monitoring</li>
+          <li>Bug Fix: Custom Google search in the documentation pointing to the new site, not the old mirror on uscms.org</li>
+          <li>Bug Fix: Fix DC_DAEMON_LIST</li>
+          <li>Bug Fix: verifyRRD hard coded paths, missing some files during -fix_rr</li>
+          <li>Bug Fix: HTCondor QEdit triggered also when advertise_pilot_accounting is not set</li>
+          <li>Bug Fix: Downtime setting correctly distinguish daylight saving</li>
+            <li>Bug Fix: Added usercollector RPM dependency from ganglia</li>
+       </ul>
+      </li>
+      <li>
         <b>v3_2_19</b> released on May 30, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_19/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_19/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_19.tgz">Tarball</a>)<br>
         <ul>
           <li>NOTE: If using HTCondor 8.6.x you have to disable the collector use of shared port. In /etc/condor/config.d/01_gwms_factory_collectors.config (factory) /etc/condor/config.d/01_gwms_collectors.config (frontend, wms user collector) and (after the line COLLECTOR_USES_SHARED_PORT=False) add the line:

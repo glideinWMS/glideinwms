@@ -19,6 +19,7 @@ from . import cvWCreate
 from .cWParamDict import is_true, add_file_unparsed
 from glideinwms.lib import x509Support
 
+
 ################################################
 #
 # This Class contains the main dicts
@@ -281,6 +282,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # Apply group specific glexec policy
         apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
 
+        # Apply group specific singularity policy
+        apply_group_singularity_policy(self.dicts['group_descript'], sub_params, params)
+
         # populate security data
         populate_main_security(self.client_security, params)
         populate_group_security(self.client_security, params, sub_params)
@@ -325,24 +329,23 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 ################################################
 
 class frontendDicts(cvWDictFile.frontendDicts):
-    def __init__(self,params,
-                 sub_list=None): # if None, get it from params
+    def __init__(self, params, sub_list=None):  # if sub_list None, get it from params
         if sub_list is None:
-            sub_list=params.groups.keys()
+            sub_list = params.groups.keys()
 
-        self.params=params
+        self.params = params
         cvWDictFile.frontendDicts.__init__(self, params.work_dir, params.stage_dir, sub_list, simple_work_dir=False, log_dir=params.log_dir)
 
-        self.monitor_dir=params.monitor_dir
-        self.active_sub_list=[]
+        self.monitor_dir = params.monitor_dir
+        self.active_sub_list = []
         return
 
-    def populate(self,params=None): # will update params (or self.params)
+    def populate(self,params=None):  # will update params (or self.params)
         if params is None:
-            params=self.params
+            params = self.params
         
         self.main_dicts.populate(params)
-        self.active_sub_list=self.main_dicts.active_sub_list
+        self.active_sub_list = self.main_dicts.active_sub_list
 
         self.local_populate(params)
         for sub_name in self.sub_list:
@@ -350,8 +353,9 @@ class frontendDicts(cvWDictFile.frontendDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
-        if self.monitor_dir!=other.monitor_dir:
-            print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
+        if self.monitor_dir != other.monitor_dir:
+            print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'" %
+                  (self.monitor_dir, other.monitor_dir))
         
         return cvWDictFile.frontendDicts.reuse(self, other)
 
@@ -360,7 +364,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
     ###########
 
     def local_populate(self, params):
-        return # nothing to do
+        return  # nothing to do
         
 
     ######################################
@@ -369,8 +373,8 @@ class frontendDicts(cvWDictFile.frontendDicts):
         return frontendMainDicts(self.params, self.workdir_name)
 
     def new_SubDicts(self, sub_name):
-        return frontendGroupDicts(self.params, sub_name,
-                                 self.main_dicts.get_summary_signature(), self.workdir_name)
+        return frontendGroupDicts(self.params, sub_name, self.main_dicts.get_summary_signature(), self.workdir_name)
+
 
 ############################################################
 #
@@ -387,8 +391,9 @@ def add_attr_unparsed(attr_name, params, dicts, description):
     except RuntimeError as e:
         raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr_name, str(e)))
 
+
 def add_attr_unparsed_real(attr_name, params, dicts):
-    attr_obj=params.attrs[attr_name]
+    attr_obj = params.attrs[attr_name]
     
     if attr_obj.value is None:
         raise RuntimeError("Attribute '%s' does not have a value: %s"%(attr_name, attr_obj))
@@ -396,7 +401,7 @@ def add_attr_unparsed_real(attr_name, params, dicts):
     is_parameter = is_true(attr_obj.parameter)
     # attr_obj.type=="expr" is now used for HTCondor expression
     is_expr = False
-    attr_val=params.extract_attr_val(attr_obj)
+    attr_val = params.extract_attr_val(attr_obj)
     
     if is_parameter:
         dicts['params'].add_extended(attr_name, is_expr, attr_val)
@@ -410,20 +415,21 @@ def add_attr_unparsed_real(attr_name, params, dicts):
             # need to add a line only if will be published
             if attr_name in dicts['vars']:
                 # already in the var file, check if compatible
-                attr_var_el=dicts['vars'][attr_name]
-                attr_var_type=attr_var_el[0]
-                if (((attr_obj.type=="int") and (attr_var_type!='I')) or
-                    ((attr_obj.type=="expr") and (attr_var_type=='I')) or
-                    ((attr_obj.type=="string") and (attr_var_type=='I'))):
-                    raise RuntimeError("Types not compatible (%s,%s)"%(attr_obj.type, attr_var_type))
+                attr_var_el = dicts['vars'][attr_name]
+                attr_var_type = attr_var_el[0]
+                if (((attr_obj.type == "int") and (attr_var_type != 'I')) or
+                    ((attr_obj.type == "expr") and (attr_var_type == 'I')) or
+                    ((attr_obj.type == "string") and (attr_var_type == 'I'))):
+                    raise RuntimeError("Types not compatible (%s,%s)" % (attr_obj.type, attr_var_type))
                 attr_var_export=attr_var_el[4]
                 if do_glidein_publish and (attr_var_export=='N'):
                     raise RuntimeError("Cannot force glidein publishing")
-                attr_var_job_publish=attr_var_el[5]
-                if do_job_publish and (attr_var_job_publish=='-'):
+                attr_var_job_publish = attr_var_el[5]
+                if do_job_publish and (attr_var_job_publish == '-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
                 dicts['vars'].add_extended(attr_name, attr_obj.type, None, None, False, do_glidein_publish, do_job_publish)
+
 
 ###################################
 # Create the frontend descript file
@@ -441,14 +447,14 @@ def populate_frontend_descript(work_dir,
 
         if params.security.classad_proxy is None:
             raise RuntimeError("Missing security.classad_proxy")
-        params.subparams.data['security']['classad_proxy']=os.path.abspath(params.security.classad_proxy)
+        params.subparams.data['security']['classad_proxy'] = os.path.abspath(params.security.classad_proxy)
         if not os.path.isfile(params.security.classad_proxy):
-            raise RuntimeError("security.classad_proxy(%s) is not a file"%params.security.classad_proxy)
+            raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
         frontend_dict.add('ClassAdProxy', params.security.classad_proxy)
         
         frontend_dict.add('SymKeyType', params.security.sym_key)
 
-        active_sub_list[:] # erase all
+        active_sub_list[:]  # erase all
         for sub in params.groups.keys():
             if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
@@ -480,6 +486,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CurbRunningTotalGlobal', params.config.running_glideins_total_global.curb)
         frontend_dict.add('HighAvailability', params.high_availability)
 
+
 #######################
 # Populate group descript
 def populate_group_descript(work_dir, group_descript_dict,        # will be modified
@@ -503,6 +510,10 @@ def populate_group_descript(work_dir, group_descript_dict,        # will be modi
     group_descript_dict.add('MaxRunningTotal', sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal', sub_params.config.running_glideins_total.curb)
     group_descript_dict.add('MaxMatchmakers', sub_params.config.processing_workers.matchmakers)
+    group_descript_dict.add('RemovalType', sub_params.config.glideins_removal.type)
+    group_descript_dict.add('RemovalWait', sub_params.config.glideins_removal.wait)
+    group_descript_dict.add('RemovalRequestsTracking', sub_params.config.glideins_removal.requests_tracking)
+    group_descript_dict.add('RemovalMargin', sub_params.config.glideins_removal.margin)
     if ('GLIDEIN_Glexec_Use' in sub_params.attrs):
         group_descript_dict.add('GLIDEIN_Glexec_Use', sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
@@ -544,6 +555,38 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
             descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
                               allow_overwrite=True)
+
+        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
+        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+
+def apply_group_singularity_policy(descript_dict, sub_params, params):
+
+    glidein_singularity_use = None
+    query_expr = descript_dict['FactoryQueryExpr']
+    match_expr = descript_dict['MatchExpr']
+    ma_arr = []
+    match_attrs = None
+
+    # Consider GLIDEIN_Singularity_Use from Group level, else global
+    if sub_params.attrs.has_key('GLIDEIN_Singularity_Use'):
+        glidein_singularity_use = sub_params.attrs['GLIDEIN_Singularity_Use']['value']
+    elif params.attrs.has_key('GLIDEIN_Singularity_Use'):
+        glidein_singularity_use = params.attrs['GLIDEIN_Singularity_Use']['value']
+
+    if (glidein_singularity_use):
+        descript_dict.add('GLIDEIN_Singularity_Use', glidein_singularity_use)
+
+        if (glidein_singularity_use == 'REQUIRED'):
+            query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+            ma_arr.append(('SINGULARITY_BIN', 's'))
+        elif (glidein_singularity_use == 'NEVER'):
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "False") == "False")' % match_expr
+
+        if ma_arr:
+            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
+            descript_dict.add('FactoryMatchAttrs', repr(match_attrs), allow_overwrite=True)
 
         descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)

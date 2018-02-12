@@ -417,16 +417,16 @@ class DictFileTwoKeys(DictFile):
 # descriptions
 class DescriptionDictFile(DictFileTwoKeys):
     def format_val(self, key, want_comments):
-        return "%s \t%s"%(self.vals[key], key)
+        return "%s \t%s" % (self.vals[key], key)
 
     def parse_val(self, line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None, 1)
-        if len(arr)==0:
-            return # empty line
-        if len(arr)!=2:
-            raise RuntimeError("Not a valid description line: '%s'"%line)
+        if line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 1)
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr) != 2:
+            raise RuntimeError("Not a valid description line: '%s'" % line)
 
         return self.add(arr[1], arr[0])
 
@@ -435,28 +435,28 @@ class DescriptionDictFile(DictFileTwoKeys):
 class GridMapDict(DictFileTwoKeys):
     def file_header(self, want_comments):
         return None
-    
+
     def format_val(self, key, want_comments):
-        return '"%s" %s'%(key, self.vals[key])
+        return '"%s" %s' % (key, self.vals[key])
 
     def parse_val(self, line):
-        if line[0]=='#':
-            return # ignore comments
+        if line[0] == '#':
+            return  # ignore comments
         arr=line.split()
-        if len(arr)==0:
-            return # empty line
-        if len(arr[0])==0:
-            return # empty key
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr[0]) == 0:
+            return  # empty key
 
-        if line[0:1]!='"':
-            raise RuntimeError('Not a valid gridmap line; not starting with ": %s'%line)
+        if line[0:1] != '"':
+            raise RuntimeError('Not a valid gridmap line; not starting with ": %s' % line)
 
-        user=arr[-1]
+        user = arr[-1]
 
-        if line[-len(user)-2:-len(user)-1]!='"':
-            raise RuntimeError('Not a valid gridmap line; DN not ending with ": %s'%line)
-        
-        dn=line[1:-len(user)-2]
+        if line[-len(user)-2:-len(user)-1] != '"':
+            raise RuntimeError('Not a valid gridmap line; DN not ending with ": %s' % line)
+
+        dn = line[1:-len(user)-2]
         return self.add(dn, user)
 
 
@@ -862,39 +862,43 @@ class ReprDictFileInterface:
         self.add=lambda x, y:True
         raise NotImplementedError("This function must never be called")
 
+
 #   this one actually has the full semantics
 class ReprDictFile(ReprDictFileInterface, DictFile):
     pass
 
+
 # will hold only strings
 class StrDictFile(DictFile):
-    def add(self,key,val,allow_overwrite=False):
+    def add(self, key, val, allow_overwrite=False):
         DictFile.add(self, key, str(val), allow_overwrite)
+
 
 # will save only strings
 # while populating, it may hold other types
 # not guaranteed to have typed values on (re-)load
 class StrWWorkTypeDictFile(StrDictFile):
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False,
                  fname_idx=None):      # if none, use fname
         StrDictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
-        self.typed_vals={}
-                             
+        self.typed_vals = {}
+
     def erase(self):
         StrDictFile.erase(self)
-        self.typed_vals={}
+        self.typed_vals = {}
 
-    def remove(self,key,fail_if_missing=False):
+    def remove(self, key, fail_if_missing=False):
         StrDictFile.remove(self, key, fail_if_missing)
         if key in self.typed_vals:
             del self.typed_vals[key]
-        
+
     def get_typed_val(self, key):
         return self.typed_vals[key]
 
-    def add(self,key,val,allow_overwrite=False):
+    def add(self, key, val, allow_overwrite=False):
         StrDictFile.add(self, key, val, allow_overwrite)
-        self.typed_vals[key]=val
+        self.typed_vals[key] = val
+
 
 # values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):
@@ -912,74 +916,74 @@ class VarsDictFile(DictFile):
         else:
             return None
 
-    def add(self,key,val,allow_overwrite=0):
+    def add(self, key, val, allow_overwrite=0):
         if not (type(val) in (type(()), type([]))):
-            raise RuntimeError("Values '%s' not a list or tuple"%val)
-        if len(val)!=6:
-            raise RuntimeError("Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%str(val))
+            raise RuntimeError("Values '%s' not a list or tuple" % val)
+        if len(val) != 6:
+            raise RuntimeError("Values '%s' not (Type,Default,CondorName,Required,Export,UserName)" % str(val))
         if not (val[0] in ('C', 'S', 'I')):
-            raise RuntimeError("Invalid var type '%s', should be either C, S or I in val: %s"%(val[1], str(val)))
+            raise RuntimeError("Invalid var type '%s', should be either C, S or I in val: %s" % (val[1], str(val)))
         for i, t in ((3, "Required"), (4, "Export")):
             if not (val[i] in ('Y', 'N')):
-                raise RuntimeError("Invalid var %s '%s', should be either Y or N in val: %s"%(t, val[i], str(val)))
+                raise RuntimeError("Invalid var %s '%s', should be either Y or N in val: %s" % (t, val[i], str(val)))
 
         return DictFile.add(self, key, val, allow_overwrite)
 
     def add_extended(self,key,
                      type,
-                     val_default, # None or False==No default (i.e. -)
-                     condor_name, # if None or false, Varname (i.e. +)
+                     val_default,  # None or False==No default (i.e. -)
+                     condor_name,  # if None or false, Varname (i.e. +)
                      required,
                      export_condor,
-                     user_name,   # If None or false, do not export (i.e. -)
-                                  # if True, set to VarName (i.e. +)
+                     user_name,    # If None or false, do not export (i.e. -)
+                                   # if True, set to VarName (i.e. +)
                      allow_overwrite=0):
-        if type=="string":
-            type_str='S'
-        elif type=="expr":
-            type_str='C'
+        if type == "string":
+            type_str = 'S'
+        elif type == "expr":
+            type_str = 'C'
         else:
-            type_str='I'
+            type_str = 'I'
 
-        if (val_default is None) or (val_default==False):
-            val_default='-'
+        if (val_default is None) or (val_default == False):
+            val_default = '-'
 
-        if (condor_name is None) or (condor_name==False):
-            condor_name="+"
+        if (condor_name is None) or (condor_name == False):
+            condor_name = "+"
 
         if required:
-            req_str='Y'
+            req_str = 'Y'
         else:
-            req_str='N'
+            req_str = 'N'
 
         if export_condor:
-            export_condor_str='Y'
+            export_condor_str = 'Y'
         else:
-            export_condor_str='N'
+            export_condor_str = 'N'
 
-        if (user_name is None) or (user_name==False):
-            user_name='-'
-        elif user_name==True:
-            user_name='+'
+        if (user_name is None) or (user_name == False):
+            user_name = '-'
+        elif user_name == True:
+            user_name = '+'
 
         self.add(key, (type_str, val_default, condor_name, req_str, export_condor_str, user_name), allow_overwrite)
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key, self.vals[key][0], self.vals[key][1], self.vals[key][2], self.vals[key][3], self.vals[key][4], self.vals[key][5])
-
+        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
+                                                       self.vals[key][3], self.vals[key][4], self.vals[key][5])
 
     def parse_val(self, line):
-        if len(line)==0:
-            return #ignore emoty lines
-        if line[0]=='#':
-            return # ignore comments
+        if len(line) == 0:
+            return  #ignore emoty lines
+        if line[0] == '#':
+            return  # ignore comments
         arr=line.split(None, 6)
-        if len(arr)==0:
-            return # empty line
-        if len(arr)!=7:
-            raise RuntimeError("Not a valid var line (expected 7, found %i elements): '%s'"%(len(arr), line))
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr) != 7:
+            raise RuntimeError("Not a valid var line (expected 7, found %i elements): '%s'" % (len(arr), line))
 
-        key=arr[0]
+        key = arr[0]
         return self.add(key, arr[1:])
 
 
@@ -987,16 +991,16 @@ class VarsDictFile(DictFile):
 # with key 'content'
 # Any other key is invalid
 class SimpleFile(DictFile):
-    def add(self,key,val,allow_overwrite=False):
-        if key!='content':
-            raise RuntimeError("Invalid key '%s'!='content'"%key)
+    def add(self, key, val, allow_overwrite=False):
+        if key != 'content':
+            raise RuntimeError("Invalid key '%s'!='content'" % key)
         return DictFile.add(self, key, val, allow_overwrite)
 
     def file_header(self, want_comments):
-        return None # no comment, anytime
+        return None  # no comment, anytime
 
     def format_val(self, key, want_comments):
-        if key=='content':
+        if key == 'content':
             return self.vals[key]
         else:
             raise RuntimeError("Invalid key '%s'!='content'"%key)
@@ -1007,16 +1011,16 @@ class SimpleFile(DictFile):
         if erase_first:
             self.erase()
 
-        data=fd.read()
+        data = fd.read()
 
         # remove final newline, since it will be added at save time
-        if data[-1:]=='\n':
-            data=data[:-1]
+        if data[-1:] == '\n':
+            data = data[:-1]
 
         self.add('content', data)
 
         if set_not_changed:
-            self.changed=False # the memory copy is now same as the one on disk
+            self.changed = False  # the memory copy is now same as the one on disk
         return
 
     def parse_val(self, line):
@@ -1252,7 +1256,12 @@ class fileCommonDicts:
 
     def set_readonly(self,readonly=True):
         for el in self.dicts.values():
-            el.set_readonly(readonly)
+            #condor_jdl are lists. Iterating over its elements in this case
+            if isinstance(el, list):
+                for cj in el:
+                    cj.set_readonly(readonly)
+            else:
+                el.set_readonly(readonly)
 
 ################################################
 #

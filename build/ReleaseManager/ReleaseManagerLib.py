@@ -472,6 +472,7 @@ class PackageExcludes:
             'creation/web_base/condor_startup.sh',
             'creation/web_base/create_mapfile.sh',
             'creation/web_base/gcb_setup.sh',
+            'creation/web_base/singularity_setup.sh',
             'creation/web_base/glexec_setup.sh',
             'creation/web_base/glidein_startup.sh',
             'creation/web_base/job_submit.sh',

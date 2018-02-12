@@ -1,0 +1,12 @@
+[Unit]
+Description=Hourly frontend and pilot proxy renewal
+After=syslog.target network.target
+Wants=network.target
+
+[Timer]
+OnActiveSec=0s
+OnUnitActiveSec=1h
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=multi-user.target

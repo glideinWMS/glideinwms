@@ -20,7 +20,9 @@ function findByClass(tagName, className) {
 
 
 function onLoad() {
-    var customSearchControl = new google.search.CustomSearchControl('006450287401290132076:v1ncvuycvmi');
+    // old www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/ (cse - ?) 006450287401290132076:v1ncvuycvmi
+    // glideinwms.fnal.gov/doc.prd (cse - Marco Mambelli) : 013439253731257915088:h-xvmglqvrq 
+    var customSearchControl = new google.search.CustomSearchControl('013439253731257915088:h-xvmglqvrq');
     customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
     var options = new google.search.DrawOptions();
     options.setSearchFormRoot('cse-search-form');
