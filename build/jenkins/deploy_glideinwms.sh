@@ -701,3 +701,5 @@ echo "==========================================================================
 echo "Factory : VM_ID=$fact_vmid FQDN=$fact_fqdn VM_STATUS=$fact_fqdn_status VERIFICATION=$fact_install_status"
 echo "Frontend: VM_ID=$vofe_vmid FQDN=$vofe_fqdn VM_STATUS=$vofe_fqdn_status VERIFICATION=$vofe_install_status"
 echo "================================================================================"
+test "$fact_install_status" = "pass" && test "$vofe_install_status" = "pass" && exit 0
+exit 1
