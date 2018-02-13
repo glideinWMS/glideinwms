@@ -171,7 +171,7 @@ def verifyRRD(fix_rrd=False):
             for a in attributes_tp:
                 status_dict["%s%s" % (tp_str, a)] = None
 
-    if not os.path.isdir(dir):
+    if not os.path.isdir(mon_dir):
         print("WARNING: monitor/ directory does not exist, skipping rrd verification.")
         return True
     # FROM: migration_3_1
