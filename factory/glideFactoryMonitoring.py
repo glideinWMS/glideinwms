@@ -77,11 +77,11 @@ class MonitoringConfig:
         @type entered_dict: Dictionary of dictionaries
         @param entered_dict: This is the dictionary of all jobs that have "Entered" the "Completed" states.  It is indexed by job_id.  Each data is an info dictionary containing the keys: username, jobs_duration (subkeys:total,goodput,terminated), wastemill (subkeys:validation,idle,nosuccess,badput) , duration, condor_started, condor_duration, jobsnr
         """
-        now=time.time()
+        now = time.time()
 
         job_ids = entered_dict.keys()
         if len(job_ids) == 0:
-            return # nothing to do
+            return  # nothing to do
         job_ids.sort()
 
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
@@ -89,26 +89,26 @@ class MonitoringConfig:
         fd = open(fname, "a")
         try:
             for job_id in job_ids:
-                el=entered_dict[job_id]
-                username=el['username']
-                username=username.split(":")[0]
-                jobs_duration=el['jobs_duration']
-                waste_mill=el['wastemill']
-                fd.write(("<job %37s %34s %22s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                                 ('client="%s"'%client_name),
-                                                                 ('username="%s"'%username),
-                                                                 ('id="%s"'%job_id),
-                                                                 ('duration="%i"'%el['duration']),
-                                                                 ('condor_started="%s"'%(el['condor_started']==True)),
-                                                                 ('condor_duration="%i"'%el['condor_duration'])))+
-                         ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
-                                                         ('duration="%i"'%jobs_duration['total']),
-                                                         ('goodput="%i"'%jobs_duration['goodput']),
-                                                         ('terminated="%i"'%jobs_duration['terminated'])))+
-                         ("<wastemill %17s %11s %16s %13s/></job>\n"%(('validation="%i"'%waste_mill['validation']),
-                                                                      ('idle="%i"'%waste_mill['idle']),
-                                                                      ('nosuccess="%i"'%waste_mill['nosuccess']),
-                                                                      ('badput="%i"'%waste_mill['badput']))))
+                el = entered_dict[job_id]
+                username = el['username']
+                username = username.split(":")[0]
+                jobs_duration = el['jobs_duration']
+                waste_mill = el['wastemill']
+                fd.write(("<job %37s %34s %22s %17s %17s %22s %24s>"%(('terminated="%s"' % timeConversion.getISO8601_Local(now)),
+                                                                 ('client="%s"' % client_name),
+                                                                 ('username="%s"' % username),
+                                                                 ('id="%s"' % job_id),
+                                                                 ('duration="%i"' % el['duration']),
+                                                                 ('condor_started="%s"' % (el['condor_started']==True)),
+                                                                 ('condor_duration="%i"' % el['condor_duration']))) +
+                         ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"' % el['jobsnr']),
+                                                         ('duration="%i"' % jobs_duration['total']),
+                                                         ('goodput="%i"' % jobs_duration['goodput']),
+                                                         ('terminated="%i"' % jobs_duration['terminated']))) +
+                         ("<wastemill %17s %11s %16s %13s/></job>\n"%(('validation="%i"' % waste_mill['validation']),
+                                                                      ('idle="%i"' % waste_mill['idle']),
+                                                                      ('nosuccess="%i"' % waste_mill['nosuccess']),
+                                                                      ('badput="%i"' % waste_mill['badput']))))
         finally:
             fd.close()
 
@@ -116,10 +116,10 @@ class MonitoringConfig:
         """
         Writes out a string to a file
         @param relative_fname: The relative path name to write out
-        @param str: the string to write to the file
+        @param output_str: the string to write to the file
         """
-        fname=os.path.join(self.monitor_dir, relative_fname)
-        #print "Writing "+fname
+        fname = os.path.join(self.monitor_dir, relative_fname)
+        # print "Writing "+fname
         fd = open(fname + ".tmp", "w")
         try:
             fd.write(output_str + "\n")
@@ -140,7 +140,7 @@ class MonitoringConfig:
         Create a RRD file, using rrdtool.
         """
         if self.rrd_obj.isDummy():
-            return # nothing to do, no rrd bin no rrd creation
+            return  # nothing to do, no rrd bin no rrd creation
 
         # MM don't understand the need for this loop, there is only one element in the tuple, why not:
         # rrd_ext = ".rrd"
@@ -148,10 +148,10 @@ class MonitoringConfig:
         for tp in ((".rrd", self.rrd_archives),):
             rrd_ext, rrd_archives = tp
             fname = os.path.join(self.monitor_dir, relative_fname + rrd_ext)
-            #print "Writing RRD "+fname
+            # print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
-                #print "Create RRD "+fname
+                # print "Create RRD "+fname
                 if min_val is None:
                     min_val = 'U'
                 if max_val is None:
@@ -165,10 +165,10 @@ class MonitoringConfig:
                                               self.rrd_step, rrd_archives,
                                               ds_arr)
 
-            #print "Updating RRD "+fname
+            # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception as e: #@UnusedVariable
+            except Exception as e:  # @UnusedVariable
                 self.log.exception("Failed to update %s: " % fname)
         return
 
@@ -179,7 +179,7 @@ class MonitoringConfig:
         if ds_desc_dict[name] is not present, the defaults are {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
         """
         if self.rrd_obj.isDummy():
-            return # nothing to do, no rrd bin no rrd creation
+            return  # nothing to do, no rrd bin no rrd creation
 
         # MM don't understand the need for this loop, there is only one element in the tuple, why not:
         # rrd_ext = ".rrd"
@@ -190,12 +190,12 @@ class MonitoringConfig:
             # print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
-                #print "Create RRD "+fname
+                # print "Create RRD "+fname
                 ds_names = sorted(val_dict.keys())
 
                 ds_arr = []
                 for ds_name in ds_names:
-                    ds_desc = {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
+                    ds_desc = {'ds_type': 'GAUGE', 'min': 'U', 'max': 'U'}
                     if ds_name in ds_desc_dict:
                         for k in ds_desc_dict[ds_name].keys():
                             ds_desc[k] = ds_desc_dict[ds_name][k]
@@ -205,22 +205,21 @@ class MonitoringConfig:
                                               self.rrd_step, rrd_archives,
                                               ds_arr)
 
-            #print "Updating RRD "+fname
+            # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception as e: #@UnusedVariable
+            except Exception as e:  # @UnusedVariable
                 self.log.exception("Failed to update %s: " % fname)
         return
 
 
-
-#########################################################################################################################################
+#######################################################################################################################
 #
 #  condorQStats
 #
 #  This class handles the data obtained from condor_q
 #
-#########################################################################################################################################
+#######################################################################################################################
 
 # TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
 #       This is inconsistent and should be changed, Redmine [#17244]

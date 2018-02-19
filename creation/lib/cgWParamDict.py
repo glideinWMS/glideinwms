@@ -18,6 +18,7 @@ from . import cgWDictFile, cWDictFile
 from . import cgWCreate
 from . import cgWConsts, cWConsts
 from . import factoryXmlConfig
+
 #
 # see the note in add_file_unparsed def below to understand
 # why this is commented out for now
@@ -35,6 +36,7 @@ class UnconfiguredScheddError(Exception):
 
     def __str__(self):
         return repr(self.err_str)
+
 
 ################################################
 #
@@ -331,7 +333,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.save_monitor()
         self.save_monitor_config(self.work_dir, self.dicts['glidein'])
 
-
     ########################################
     # INTERNAL
     ########################################
@@ -398,6 +399,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         finally:
             monitor_config_fd.close()
 
+
 ################################################
 #
 # This Class contains the entry and entry set dicts
@@ -428,7 +430,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             for cj in condor_jdls:
                 self.dicts['condor_jdl'].append(cgWCreate.GlideinSubmitDictFile(self.work_dir, os.path.basename(cj)))
         else:
-            self.dicts['condor_jdl']=[cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)]
+            self.dicts['condor_jdl'] = [cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)]
 
     def load(self):
         cgWDictFile.glideinEntryDicts.load(self)
@@ -440,7 +442,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         for cj in self.dicts['condor_jdl']:
             cj.finalize(self.summary_signature['main'][0], self.summary_signature[sub_stage_dir][0],
-                        self.summary_signature['main'][1], self.summary_signature[sub_stage_dir][1])
+                        self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
             cj.save(set_readonly=set_readonly)
 
     def populate(self, entry, schedd):
@@ -499,7 +501,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if u'proxy_url' in entry:
                 self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
 
-
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", restrictions[u'require_voms_proxy'], None, False, True, True)
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", restrictions[u'require_glidein_glexec_use'], None, False, True, True)
 
@@ -515,8 +516,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         populate_job_descript(self.work_dir, self.dicts['job_descript'],
                               self.sub_name, entry, schedd)
 
-
-        #Now that we have the EntrySet fill the condor_jdl for its entries
+        # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
             self.dicts[u'condor_jdl'] = []
             for subentry in entry.get_child_list(u'entries'):
@@ -731,6 +731,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                                                cWDictFile.FileDictFile.make_val_tuple(relfname, val),
                                                absfname)  # no timestamp if it can be modified
 
+
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
@@ -740,25 +741,25 @@ def add_attr_unparsed(attr, dicts, description):
     except RuntimeError as e:
         raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr[u'name'], str(e)))
 
+
 def add_attr_unparsed_real(attr, dicts):
     attr_name = attr[u'name']
-
     do_publish = eval(attr[u'publish'], {}, {})
     is_parameter = eval(attr[u'parameter'], {}, {})
     is_const = eval(attr[u'const'], {}, {})
-    attr_val = attr.get_val()
+    attr_val=attr.get_val()
 
-    if do_publish: # publish in factory ClassAd
-        if is_parameter: # but also push to glidein
+    if do_publish:  # publish in factory ClassAd
+        if is_parameter:  # but also push to glidein
             if is_const:
                 dicts['attrs'].add(attr_name, attr_val)
                 dicts['consts'].add(attr_name, attr_val)
             else:
                 dicts['params'].add(attr_name, attr_val)
-        else: # only publish
+        else:  # only publish
             dicts['attrs'].add(attr_name, attr_val)
             dicts['consts'].add(attr_name, attr_val)
-    else: # do not publish, only to glidein
+    else:  # do not publish, only to glidein
         dicts['consts'].add(attr_name, attr_val)
 
     do_glidein_publish=eval(attr[u'glidein_publish'], {}, {})
@@ -770,18 +771,19 @@ def add_attr_unparsed_real(attr, dicts):
                 # already in the var file, check if compatible
                 attr_var_el=dicts['vars'][attr_name]
                 attr_var_type=attr_var_el[0]
-                if (((attr[u'type']=="int") and (attr_var_type!='I')) or
-                    ((attr[u'type']=="expr") and (attr_var_type=='I')) or
-                    ((attr[u'type']=="string") and (attr_var_type=='I'))):
-                    raise RuntimeError("Types not compatible (%s,%s)"%(attr[u'type'], attr_var_type))
-                attr_var_export=attr_var_el[4]
-                if do_glidein_publish and (attr_var_export=='N'):
+                if (((attr[u'type'] == "int") and (attr_var_type != 'I')) or
+                    ((attr[u'type'] == "expr") and (attr_var_type == 'I')) or
+                    ((attr[u'type'] == "string") and (attr_var_type == 'I'))):
+                    raise RuntimeError("Types not compatible (%s,%s)" % (attr[u'type'], attr_var_type))
+                attr_var_export = attr_var_el[4]
+                if do_glidein_publish and (attr_var_export == 'N'):
                     raise RuntimeError("Cannot force glidein publishing")
                 attr_var_job_publish=attr_var_el[5]
                 if do_job_publish and (attr_var_job_publish=='-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
                 dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False, do_glidein_publish, do_job_publish)
+
 
 ##################################
 # Used in populate_factory_descript for compatibility with Python 2.4
@@ -794,6 +796,7 @@ def iter_to_dict(dictObject):
         return newDict
     except AttributeError:
         return dictObject
+
 
 ###################################
 # Create the glidein descript file
@@ -819,7 +822,7 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('MonitorUpdateThreadCount', conf.get_child(u'monitor')[u'update_thread_count'])
         glidein_dict.add('RemoveOldCredFreq', sec_el[u'remove_old_cred_freq'])
         glidein_dict.add('RemoveOldCredAge', sec_el[u'remove_old_cred_age'])
-        del active_sub_list[:] # clean
+        del active_sub_list[:]  # clean
 
         for entry in conf.get_entries():
             if eval(entry[u'enabled'], {}, {}):
@@ -827,7 +830,7 @@ def populate_factory_descript(work_dir, glidein_dict,
             else:
                 disabled_sub_list.append(entry.getName())
 
-        glidein_dict.add('Entries', string.join(active_sub_list, ','))
+        glidein_dict.add('Entries', string.join(active_sub_list,','))
         glidein_dict.add('AdvertiseWithTCP', conf[u'advertise_with_tcp'])
         glidein_dict.add('AdvertiseWithMultiple', conf[u'advertise_with_multiple'])
         glidein_dict.add('LoopDelay', conf[u'loop_delay'])
@@ -865,6 +868,7 @@ def populate_factory_descript(work_dir, glidein_dict,
                 di_pl = iter_to_dict(pl)
             proc_logs.append(di_pl)
         glidein_dict.add('ProcessLogs', str(proc_logs))
+
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict,
@@ -1073,7 +1077,6 @@ def validate_condor_tarball_attrs(conf):
             raise RuntimeError("Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry[u'name']))
 
 
-
 ####################################################
 # Extract valid CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
@@ -1124,6 +1127,7 @@ def itertools_product(*args, **kwds):
     for prod in result:
         yield tuple(prod)
 
+
 #####################################################
 # Returns a string usable for GLIDEIN_Factory_Collector
 # Returns None if there are no collectors defined
@@ -1147,10 +1151,11 @@ def calc_monitoring_collectors_string(collectors):
         else:
             monitoring_collectors.append(string.join(collector_nodes[group]['primary'], ","))
 
-    if len(monitoring_collectors)==0:
+    if len(monitoring_collectors) == 0:
         return None
     else:
         return string.join(monitoring_collectors, ";")
+
 
 # Returns a string listing the primary monitoring collectors
 # Returns None if there are no collectors defined
@@ -1166,7 +1171,7 @@ def calc_primary_monitoring_collectors(collectors):
                 raise RuntimeError("Duplicate primary monitoring collector found for group %s"%el[u'group'])
             collector_nodes[el[u'group']]=el[u'node']
 
-    if len(collector_nodes)==0:
+    if len(collector_nodes) == 0:
         return None
     else:
         return string.join(collector_nodes.values(), ",")

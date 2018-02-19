@@ -56,7 +56,7 @@ class MonitorAggregatorConfig:
         self.log = log
 
 # global configuration of the module
-monitorAggregatorConfig=MonitorAggregatorConfig()
+monitorAggregatorConfig = MonitorAggregatorConfig()
 
 def rrd_site(name):
     sname = name.split(".")[0]
@@ -103,19 +103,19 @@ def verifyHelper(filename, dict, fix_rrd=False):
         if len(missing) > 0:
             rrd_problems_found=True
     if fix_rrd and (len(missing) > 0):
-        (f, tempfilename)=tempfile.mkstemp()
-        (out, tempfilename2)=tempfile.mkstemp()
-        (restored, restoredfilename)=tempfile.mkstemp()
-        backup_str=str(int(time.time()))+".backup"
+        (f, tempfilename) = tempfile.mkstemp()
+        (out, tempfilename2) = tempfile.mkstemp()
+        (restored, restoredfilename) = tempfile.mkstemp()
+        backup_str = str(int(time.time()))+".backup"
         print("Fixing %s... (backed up to %s)" % (filename, filename+backup_str))
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
         # Use exe version since dump, restore not available in rrdtool
-        dump_obj=rrdSupport.rrdtool_exe()
-        outstr=dump_obj.dump(filename)
+        dump_obj = rrdSupport.rrdtool_exe()
+        outstr = dump_obj.dump(filename)
         for line in outstr:
-            os.write(f, "%s\n"%line)
+            os.write(f, "%s\n" % line)
         os.close(f)
         # Move file to backup location
         shutil.move(filename, filename+backup_str)
@@ -125,7 +125,7 @@ def verifyHelper(filename, dict, fix_rrd=False):
         os.unlink(tempfilename2)
         shutil.move(restoredfilename, filename)
     if len(extra) > 0:
-        rrd_problems_found=True
+        rrd_problems_found = True
 
 
 def verifyRRD(fix_rrd=False):
@@ -137,9 +137,6 @@ def verifyRRD(fix_rrd=False):
     global rrd_problems_found
     global monitorAggregatorConfig
     mon_dir = monitorAggregatorConfig.monitor_dir
-    # FROM: lib2to3.fixes.fix_ws_comma
-    # dir=monitorAggregatorConfig.monitor_dir
-    # total_dir=os.path.join(dir, "total")
 
     status_dict = {}
     completed_stats_dict = {}
@@ -224,7 +221,6 @@ def verifyRRD(fix_rrd=False):
                 verifyHelper(os.path.join(dir_name, file_name),
                              rrdict[file_name],
                              fix_rrd)
-
 
     return not rrd_problems_found
 
@@ -425,12 +421,11 @@ def aggregateStatus(in_downtime):
                 if a in attributes_tp:
                     a_el=int(tp_el[a])
                     val_dict["%s%s"%(tp_str, a)]=a_el
-        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes"%("frontend_"+fe),
-                                                            "GAUGE", updated, val_dict)
-
-
+        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes" % ("frontend_"+fe),
+                                                                "GAUGE", updated, val_dict)
 
     return status
+
 
 ######################################################################################
 def aggregateJobsSummary():
@@ -456,7 +451,7 @@ def aggregateJobsSummary():
                                     monitorAggregatorConfig.jobsummary_relname)
         try:
             with open(status_fname) as fd:
-                entry_joblist =  pickle.load(fd)
+                entry_joblist = pickle.load(fd)
         except IOError:
             continue
         schedd_name = entry_joblist.get('schedd_name', None)

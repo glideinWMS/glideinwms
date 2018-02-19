@@ -769,7 +769,8 @@ def main(startup_dir):
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(
         os.path.join(startup_dir, "monitor"), entries,
-        log = logSupport.log)
+        log=logSupport.log
+    )
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
@@ -795,12 +796,13 @@ def main(startup_dir):
             # then the code within the finally will run
             # which will terminate glideFactoryEntryGroup children processes
             # and then the following 3 lines will be executed.
-            logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid() )
+            logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid())
             # must empty the lock file so that when the thread returns from reconfig_glidein and 
             # begins from the beginning, it will not error out which will happen 
             # if the lock file is not empty
             pid_obj.relinquish()
-            os.execv( os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"), ['reconfig_glidein', '-update_scripts', 'no', '-sighupreload', '-xml', '/etc/gwms-factory/glideinWMS.xml'] )
+            os.execv(os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"),
+                     ['reconfig_glidein', '-update_scripts', 'no', '-sighupreload', '-xml', '/etc/gwms-factory/glideinWMS.xml'])
         except:
             logSupport.log.exception("Exception occurred spawning the factory: ")
     finally:
@@ -821,7 +823,7 @@ def termsignal(signr, frame):
 
 
 def hupsignal(signr, frame):
-    signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
     raise HUPException("Received signal %s" % signr)
 
 

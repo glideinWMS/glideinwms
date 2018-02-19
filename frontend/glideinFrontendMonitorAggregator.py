@@ -152,7 +152,7 @@ def verifyRRD(fix_rrd=False):
     """
     global rrd_problems_found
     global monitorAggregatorConfig
-    # FROM: lib2to3.fixes.fix_ws_comma
+    # FROM: migration_3_1
     # dir=monitorAggregatorConfig.monitor_dir
     # total_dir=os.path.join(dir, "total")
     mon_dir = monitorAggregatorConfig.monitor_dir
@@ -174,7 +174,7 @@ def verifyRRD(fix_rrd=False):
     if not os.path.isdir(mon_dir):
         print("WARNING: monitor/ directory does not exist, skipping rrd verification.")
         return True
-    # FROM: lib2to3.fixes.fix_ws_comma
+    # FROM: migration_3_1
     # for filename in os.listdir(dir):
     #     if (filename[:6]=="group_") or (filename=="total"):
     #         current_dir=os.path.join(dir, filename)
@@ -208,20 +208,20 @@ def verifyRRD(fix_rrd=False):
 ####################################
 # PRIVATE - Used by aggregateStatus
 # Write one RRD
-def write_one_rrd(name,updated,data,fact=0):
-    if fact==0:
-        type_strings=frontend_total_type_strings
+def write_one_rrd(name, updated, data, fact=0):
+    if fact == 0:
+        type_strings = frontend_total_type_strings
     else:
-        type_strings=frontend_job_type_strings
+        type_strings = frontend_job_type_strings
         
     # initialize the RRD dictionary, so it gets created properly
-    val_dict={}
+    val_dict = {}
     for tp in frontend_status_attributes.keys():
         if tp in type_strings.keys():
-            tp_str=type_strings[tp]
-            attributes_tp=frontend_status_attributes[tp]
+            tp_str = type_strings[tp]
+            attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
-                val_dict["%s%s"%(tp_str, a)]=None
+                val_dict["%s%s" % (tp_str, a)] = None
 
     for tp in data.keys():
         # type - status or requested
@@ -230,21 +230,20 @@ def write_one_rrd(name,updated,data,fact=0):
         if not (tp in type_strings.keys()):
             continue
 
-        tp_str=type_strings[tp]
-        attributes_tp=frontend_status_attributes[tp]
+        tp_str = type_strings[tp]
+        attributes_tp = frontend_status_attributes[tp]
                 
-        tp_el=data[tp]
+        tp_el = data[tp]
 
         for a in tp_el.keys():
             if a in attributes_tp:
-                a_el=int(tp_el[a])
-                if not isinstance(a_el, dict): # ignore subdictionaries
-                    val_dict["%s%s"%(tp_str, a)]=a_el
+                a_el = int(tp_el[a])
+                if not isinstance(a_el, dict):  # ignore subdictionaries
+                    val_dict["%s%s" % (tp_str, a)] = a_el
                 
-    glideinFrontendMonitoring.monitoringConfig.establish_dir("%s"%name)
-    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s"%name,
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s" % name,
                                                                "GAUGE", updated, val_dict)
-
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -253,12 +252,12 @@ def aggregateStatus():
     global monitorAggregatorConfig
 
     type_strings = {
-        'Jobs':'Jobs',
-        'Glideins':'Glidein',
-        'MatchedJobs':'MatchJob',
-        'MatchedGlideins':'MatchGlidein',
-        'MatchedCores':'MatchCore',
-        'Requested':'Req'
+        'Jobs': 'Jobs',
+        'Glideins': 'Glidein',
+        'MatchedJobs': 'MatchJob',
+        'MatchedGlideins': 'MatchGlidein',
+        'MatchedCores': 'MatchCore',
+        'Requested': 'Req'
     }
     global_total = {
         'Jobs': None,
@@ -268,17 +267,17 @@ def aggregateStatus():
         'MatchedGlideins': None,
         'MatchedCores': None,
     }
-    status={'groups':{},'total':global_total}
-    global_fact_totals={}
+    status={'groups': {}, 'total': global_total}
+    global_fact_totals = {}
 
     for fos in ('factories', 'states'):
-        global_fact_totals[fos]={}
+        global_fact_totals[fos] = {}
     
-    nr_groups=0
+    nr_groups = 0
     for group in monitorAggregatorConfig.groups:
         # load group status file
-        status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'group_'+group),
-                                  monitorAggregatorConfig.status_relname)
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'group_'+group),
+                                    monitorAggregatorConfig.status_relname)
         try:
             group_data=xmlParse.xmlfile2dict(status_fname)
         except xmlParse.CorruptXML as e:
@@ -286,31 +285,31 @@ def aggregateStatus():
             os.unlink(status_fname)
             continue
         except IOError:
-            continue # file not found, ignore
+            continue  # file not found, ignore
 
         # update group
-        status['groups'][group]={}
+        status['groups'][group] = {}
         for fos in ('factories', 'states'):
             try:
-                status['groups'][group][fos]=group_data[fos]
+                status['groups'][group][fos] = group_data[fos]
             except KeyError as e:
                 # first time after upgrade factories may not be defined
-                status['groups'][group][fos]={}
+                status['groups'][group][fos] = {}
 
         this_group=status['groups'][group]
         for fos in ('factories', 'states'):
           for fact in this_group[fos].keys():
-            this_fact=this_group[fos][fact]
+            this_fact = this_group[fos][fact]
             if not fact in global_fact_totals[fos].keys():
                 # first iteration through, set fact totals equal to the first group's fact totals
                 global_fact_totals[fos][fact]={}
                 for attribute in type_strings.keys():
-                    global_fact_totals[fos][fact][attribute]={}
+                    global_fact_totals[fos][fact][attribute] = {}
                     if attribute in this_fact.keys():
                         for type_attribute in this_fact[attribute].keys():
                             this_type_attribute=this_fact[attribute][type_attribute]
                             try:
-                                global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
+                                global_fact_totals[fos][fact][attribute][type_attribute] = int(this_type_attribute)
                             except:
                                 pass
             else:
@@ -318,15 +317,15 @@ def aggregateStatus():
                 for attribute in type_strings.keys():
                     if attribute in this_fact.keys():
                         for type_attribute in this_fact[attribute].keys():
-                            this_type_attribute=this_fact[attribute][type_attribute]
+                            this_type_attribute = this_fact[attribute][type_attribute]
                             if isinstance(this_type_attribute, type(global_fact_totals[fos])):
                                 # dict, do nothing
                                 pass
                             else:
                                 if attribute in global_fact_totals[fos][fact].keys() and type_attribute in global_fact_totals[fos][fact][attribute].keys():
-                                   global_fact_totals[fos][fact][attribute][type_attribute]+=int(this_type_attribute)
+                                   global_fact_totals[fos][fact][attribute][type_attribute] += int(this_type_attribute)
                                 else:
-                                   global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
+                                   global_fact_totals[fos][fact][attribute][type_attribute] = int(this_type_attribute)
         #nr_groups+=1
         #status['groups'][group]={}
 

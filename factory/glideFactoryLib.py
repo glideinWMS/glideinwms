@@ -634,14 +634,14 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
                        frontend_name, submit_credentials, client_web, params, qc_status_sf,
                        log=log, factoryConfig=factoryConfig)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
-        return add_glideins # exit, some submitted
+        return add_glideins  # exit, some submitted
     except RuntimeError as e:
         log.warning("%s" % e)
-        return 0 # something is wrong... assume 0 and exit
+        return 0  # something is wrong... assume 0 and exit
     except:
         log.warning("Unexpected error submiting glideins")
         log.exception("Unexpected error submiting glideins")
-        return 0 # something is wrong... assume 0 and exit
+        return 0  # something is wrong... assume 0 and exit
 
     return 0
 
@@ -993,6 +993,7 @@ def diffList(base_list, subtract_list):
 
     return out_list
 
+
 #
 # Extract functions
 # Will compare with the status info to make sure it does not show good ones
@@ -1001,82 +1002,94 @@ def diffList(base_list, subtract_list):
 def extractStaleSimple(q, factoryConfig=None):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [1, 1]))
+    qstale = q.fetchStored(lambda el: (hash_statusStale(el) == [1, 1]))
     qstale_list = qstale.keys()
 
     return qstale_list
 
+
 def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable
-    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
+    # qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
+    qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
 
+
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 iterations
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
-                                     and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
+    qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
+                                      and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
     qheld_list = qheld.keys()
     return qheld_list
+
 
 def extractRecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
+    qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
+
 
 def extractRecoverableHeldSimpleWithinLimits(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
-    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig) and isGlideinWithinHeldLimits(el, factoryConfig=factoryConfig)))
+    qheld=q.fetchStored(lambda el: (el["JobStatus"]==5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig) and isGlideinWithinHeldLimits(el, factoryConfig=factoryConfig)))
     qheld_list=qheld.keys()
     return qheld_list
 
+
 def extractHeldSimple(q, factoryConfig=None):
     #  Held==5
-    qheld = q.fetchStored(lambda el:el["JobStatus"] == 5)
+    qheld = q.fetchStored(lambda el: el["JobStatus"] == 5)
     qheld_list = qheld.keys()
     return qheld_list
 
+
 def extractIdleSimple(q, factoryConfig=None):
     #  Idle==1
-    qidle = q.fetchStored(lambda el:el["JobStatus"] == 1)
+    qidle = q.fetchStored(lambda el: el["JobStatus"] == 1)
     qidle_list = qidle.keys()
     return qidle_list
+
 
 def extractIdleUnsubmitted(q, factoryConfig=None):
     #  1001 == Unsubmitted
-    qidle = q.fetchStored(lambda el:hash_status(el) == 1001)
+    qidle = q.fetchStored(lambda el: hash_status(el) == 1001)
     qidle_list = qidle.keys()
     return qidle_list
+
 
 def extractIdleQueued(q, factoryConfig=None):
     #  All 1xxx but 1001
-    qidle = q.fetchStored(lambda el:(hash_status(el) in (1002, 1010, 1100)))
+    qidle = q.fetchStored(lambda el: (hash_status(el) in (1002, 1010, 1100)))
     qidle_list = qidle.keys()
     return qidle_list
 
+
 def extractNonRunSimple(q, factoryConfig=None):
     #  Run==2
-    qnrun = q.fetchStored(lambda el:el["JobStatus"] != 2)
+    qnrun = q.fetchStored(lambda el: el["JobStatus"] != 2)
     qnrun_list = qnrun.keys()
     return qnrun_list
 
+
 def extractRunSimple(q, factoryConfig=None):
     #  Run==2
-    qrun = q.fetchStored(lambda el:el["JobStatus"] == 2)
+    qrun = q.fetchStored(lambda el: el["JobStatus"] == 2)
     qrun_list = qrun.keys()
     return qrun_list
+
 
 def extractRunStale(q, factoryConfig=None):
     # first find out the stale running jids
     #  hash: (Running==2, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 1]))
+    qstale = q.fetchStored(lambda el: (hash_statusStale(el) == [2, 1]))
     qstale_list = qstale.keys()
 
     # these glideins were running for too long, period!
     return qstale_list
+
 
 # helper function of extractStaleUnclaimed
 def group_unclaimed(el_list):
@@ -1155,14 +1168,12 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     if username != MY_USERNAME:  # Use privsep
         try:
             args = ["condor_submit", "-name", schedd, submitFile]
-            submit_out = condorPrivsep.condor_execute(
-                username, factoryConfig.submit_dir,
-                "condor_submit", args, env=exe_env)
+            submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir,
+                                                      "condor_submit", args, env=exe_env)
             log.debug(str(submit_out))
         except condorPrivsep.ExeError as e:
             submit_out = []
-            msg = "condor_submit failed (user %s): %s" % (username,
-                str(e))
+            msg = "condor_submit failed (user %s): %s" % (username, str(e))
             log.error(msg)
             raise RuntimeError(msg)
         except:
@@ -1173,7 +1184,7 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     else:  # Do not use privsep
         try:
             submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                child_env=env_list2dict(exe_env))
+                                            child_env=env_list2dict(exe_env))
         except condorExe.ExeError as e:
             submit_out = []
             msg = "condor_submit failed: %s" % str(e)
@@ -1194,12 +1205,12 @@ def pickSubmitFile(submit_files, status_sf, nr_submitted_sf, log):
         Currently sum idle+running of each resource and send to the one with less
         jobs (counting jobs just submitted).
     """
-    minsf = None #submit file with minimun jobs
+    minsf = None  # submit file with minimun jobs
     minNJ = -1
     for sf in submit_files:
         curr = status_sf.get(sf, {})
         currNJ = curr.get(1, 0) + curr.get(2, 0) + nr_submitted_sf.get(sf, 0) #sum idle + running + just submitted
-        if minNJ == -1 or currNJ < minNJ: #if it's the first, or the number of jobs is less than the previous minumum
+        if minNJ == -1 or currNJ < minNJ:  # if it's the first, or the number of jobs is less than the previous minumum
             minsf = sf
             minNJ = currNJ
     return minsf
@@ -1270,44 +1281,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
             exe_env = entry_env + sub_env
 
             submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
-            # FROM: Initial fixes from lib2to3.fixes.fix_except
-            # # check to see if the username for the proxy is
-            # # same as the factory username
-            # if username != MY_USERNAME:
-            #     # Use privsep
-            #     try:
-            #         args = ["condor_submit", "-name",
-            #                 schedd, "entry_%s/job.condor" % entry_name]
-            #         submit_out = condorPrivsep.condor_execute(
-            #                          username, factoryConfig.submit_dir,
-            #                          "condor_submit", args, env=exe_env)
-            #         log.debug(str(submit_out))
-            #     except condorPrivsep.ExeError as e:
-            #         submit_out = []
-            #         msg = "condor_submit failed (user %s): %s" % (username,
-            #                                                       str(e))
-            #         log.error(msg)
-            #         raise RuntimeError, msg
-            #     except:
-            #         submit_out = []
-            #         msg = "condor_submit failed (user %s): Unknown privsep error" % username
-            #         log.error(msg)
-            #         raise RuntimeError, msg
-            # else:
-            #     # Do not use privsep
-            #     try:
-            #         submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
-            #                                         child_env=env_list2dict(exe_env))
-            #     except condorExe.ExeError as e:
-            #         submit_out=[]
-            #         msg = "condor_submit failed: %s" % str(e)
-            #         log.error(msg)
-            #         raise RuntimeError, msg
-            #     except Exception as e:
-            #         submit_out=[]
-            #         msg = "condor_submit failed: Unknown error: %s" % str(e)
-            #         log.error(msg)
-            #         raise RuntimeError, msg
 
             cluster, count=extractJobId(submit_out)
             for j in range(count):

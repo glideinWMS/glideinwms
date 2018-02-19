@@ -254,89 +254,88 @@ def wait_for_pids(pid_list):
 # Fork Class
 
 class ForkManager:
-     def __init__(self):
-          self.functions_tofork = {}
-          # I need a separate list to keep the order
-          self.key_list = []
-          return
+    def __init__(self):
+        self.functions_tofork = {}
+        # I need a separate list to keep the order
+        self.key_list = []
+        return
 
-     def __len__(self):
-          return len(self.functions_tofork)
+    def __len__(self):
+        return len(self.functions_tofork)
 
-     def add_fork(self, key, function, *args):
-          if key in self.functions_tofork:
-               raise KeyError("Fork key '%s' already in use"%key)
-          self.functions_tofork[key] = ( (function, ) + args)
-          self.key_list.append(key)
+    def add_fork(self, key, function, *args):
+        if key in self.functions_tofork:
+            raise KeyError("Fork key '%s' already in use" % key)
+        self.functions_tofork[key] = ((function, ) + args)
+        self.key_list.append(key)
 
-     def fork_and_wait(self):
-          pids=[]
-          for key in self.key_list:
-               pids.append(fork_in_bg(*self.functions_tofork[key]))
-          wait_for_pids(pids)
+    def fork_and_wait(self):
+        pids = []
+        for key in self.key_list:
+            pids.append(fork_in_bg(*self.functions_tofork[key]))
+        wait_for_pids(pids)
 
-     def fork_and_collect(self):
-          pipe_ids = {}
-          for key in self.key_list:
-               pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
-          results = fetch_fork_result_list(pipe_ids)
-          return results
+    def fork_and_collect(self):
+        pipe_ids = {}
+        for key in self.key_list:
+            pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
+        results = fetch_fork_result_list(pipe_ids)
+        return results
 
-     def bounded_fork_and_collect(self, max_forks,
-                                  log_progress=True, sleep_time=0.01):
+    def bounded_fork_and_collect(self, max_forks, log_progress=True, sleep_time=0.01):
 
-         post_work_info = {}
-         nr_errors = 0
+        post_work_info = {}
+        nr_errors = 0
 
-         pipe_ids = {}
-         forks_remaining = max_forks
-         functions_remaining = len(self.functions_tofork)
+        pipe_ids = {}
+        forks_remaining = max_forks
+        functions_remaining = len(self.functions_tofork)
 
-         # try to fork all the functions
-         for key in self.key_list:
-             # Check if we can fork more
-             if (forks_remaining == 0):
-                  if log_progress:
-                       # log here, since we will have to wait
-                       logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks, functions_remaining))
-             while (forks_remaining == 0):
-                 failed_keys = []
-                 # Give some time for the processes to finish the work
-                 # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
-                 time.sleep(sleep_time)
+        # try to fork all the functions
+        for key in self.key_list:
+            # Check if we can fork more
+            if (forks_remaining == 0):
+                if log_progress:
+                    # log here, since we will have to wait
+                    logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks, functions_remaining))
+            while (forks_remaining == 0):
+                failed_keys = []
+                # Give some time for the processes to finish the work
+                # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
+                time.sleep(sleep_time)
 
-                 # Wait and gather results for work done so far before forking more
-                 try:
-                     # logSupport.log.debug("Checking finished workers")
-                     post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
-                 except ForkResultError as e:
-                     # Collect the partial result
-                     post_work_info_subset = e.good_results
-                     # Expect all errors logged already, just count
-                     nr_errors += e.nr_errors
-                     functions_remaining -= e.nr_errors
-                     failed_keys = e.failed
+                # Wait and gather results for work done so far before forking more
+                try:
+                    # logSupport.log.debug("Checking finished workers")
+                    post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
+                except ForkResultError as e:
+                    # Collect the partial result
+                    post_work_info_subset = e.good_results
+                    # Expect all errors logged already, just count
+                    nr_errors += e.nr_errors
+                    functions_remaining -= e.nr_errors
+                    failed_keys = e.failed
 
-                 post_work_info.update(post_work_info_subset)
-                 forks_remaining += len(post_work_info_subset)
-                 functions_remaining -= len(post_work_info_subset)
+                post_work_info.update(post_work_info_subset)
+                forks_remaining += len(post_work_info_subset)
+                functions_remaining -= len(post_work_info_subset)
 
-                 for i in (post_work_info_subset.keys() + failed_keys):
-                     if pipe_ids.get(i):
-                         del pipe_ids[i]
-                 #end for
-             #end while
+                for i in (post_work_info_subset.keys() + failed_keys):
+                    if pipe_ids.get(i):
+                        del pipe_ids[i]
+                # end for
+            # end while
 
-             # yes, we can, do it
-             pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
-             forks_remaining -= 1
-         #end for
+            # yes, we can, do it
+            pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
+            forks_remaining -= 1
+        # end for
 
-         if log_progress:
-              logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining, functions_remaining))
-         
-         # now we just have to wait for all to finish
-         while (functions_remaining>0):
+        if log_progress:
+            logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
+
+        # now we just have to wait for all to finish
+        while (functions_remaining>0):
             failed_keys = []
             # Give some time for the processes to finish the work
             time.sleep(sleep_time)
@@ -361,12 +360,11 @@ class ForkManager:
                 del pipe_ids[i]
 
             if len(post_work_info_subset)>0:
-                 if log_progress:
-                      logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
-         # end while
+                if log_progress:
+                    logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
+        # end while
 
-          
-         if nr_errors>0:
-              raise ForkResultError(nr_errors, post_work_info)
+        if nr_errors>0:
+            raise ForkResultError(nr_errors, post_work_info)
 
-         return post_work_info
+        return post_work_info
