@@ -17,6 +17,7 @@ import glob
 from . import cgWDictFile, cWDictFile
 from . import cgWCreate
 from . import cgWConsts, cWConsts
+from . import factoryXmlConfig
 #
 # see the note in add_file_unparsed def below to understand
 # why this is commented out for now
@@ -24,7 +25,7 @@ from . import cgWConsts, cWConsts
 #from cWParamDict import is_true, add_file_unparsed
 
 from glideinwms.lib import pubCrypto
-from factoryXmlConfig import EntrySetElement
+#from factoryXmlConfig import EntrySetElement
 
 class UnconfiguredScheddError(Exception):
 
@@ -376,10 +377,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         monitor_config_line.append("  <entries>")
         try:
             try:
-                for entry in self.conf.get_child_list(u'entries'):
+                for entry in self.conf.get_entries():
                     if eval(entry[u'enabled'], {}, {}):
-                        # FROM: lib2to3.fixes.fix_ws_comma
-                        # monitor_config_line.append("    <entry name=\"%s\">" % entry[u'name'])
                         monitor_config_line.append("    <entry name=\"%s\">" % entry.getName())
                         monitor_config_line.append("      <monitorgroups>")
                         for group in entry.get_child_list(u'monitorgroups'):
@@ -518,7 +517,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
 
         #Now that we have the EntrySet fill the condor_jdl for its entries
-        if isinstance(entry, EntrySetElement):
+        if isinstance(entry, factoryXmlConfig.EntrySetElement):
             self.dicts[u'condor_jdl'] = []
             for subentry in entry.get_child_list(u'entries'):
                 condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry[u'name'])

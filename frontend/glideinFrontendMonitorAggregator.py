@@ -152,10 +152,10 @@ def verifyRRD(fix_rrd=False):
     """
     global rrd_problems_found
     global monitorAggregatorConfig
-    mon_dir = monitorAggregatorConfig.monitor_dir
     # FROM: lib2to3.fixes.fix_ws_comma
     # dir=monitorAggregatorConfig.monitor_dir
     # total_dir=os.path.join(dir, "total")
+    mon_dir = monitorAggregatorConfig.monitor_dir
 
     status_dict = {}
     status_total_dict = {}
@@ -174,15 +174,6 @@ def verifyRRD(fix_rrd=False):
     if not os.path.isdir(mon_dir):
         print("WARNING: monitor/ directory does not exist, skipping rrd verification.")
         return True
-    for dir_name, sdir_name, f_list in os.walk(mon_dir):
-        for file_name in f_list:
-            if file_name == 'Status_Attributes.rrd':
-                if os.path.basename(dir_name) == 'total':
-                    verifyHelper(os.path.join(dir_name, file_name),
-                                 status_total_dict, fix_rrd)
-                else:
-                    verifyHelper(os.path.join(dir_name, file_name),
-                                 status_dict, fix_rrd)
     # FROM: lib2to3.fixes.fix_ws_comma
     # for filename in os.listdir(dir):
     #     if (filename[:6]=="group_") or (filename=="total"):
@@ -201,6 +192,15 @@ def verifyRRD(fix_rrd=False):
     #             if dirname=="total":
     #                 verifyHelper(os.path.join(current_subdir,
     #                     "Status_Attributes.rrd"), status_total_dict, fix_rrd)
+    for dir_name, sdir_name, f_list in os.walk(mon_dir):
+        for file_name in f_list:
+            if file_name == 'Status_Attributes.rrd':
+                if os.path.basename(dir_name) == 'total':
+                    verifyHelper(os.path.join(dir_name, file_name),
+                                 status_total_dict, fix_rrd)
+                else:
+                    verifyHelper(os.path.join(dir_name, file_name),
+                                 status_dict, fix_rrd)
 
     return not rrd_problems_found
 
