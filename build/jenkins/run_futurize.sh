@@ -1,7 +1,50 @@
 #!/bin/bash
 
+
+function help_msg {
+  cat << EOF
+$0 [options] BRANCH_NAMES LOG_DIR
+Runs futurize tests in the glideinwms repository (a glidienwms subdirectory with the git repository must exist).
+Tests are run on each of the branches in the list. Test results are saved in LOG_DIR
+BRANCH_NAMES  Comma separated list of branches that needs to be inspected (from glideinwms git repository)
+LOG_DIR       Directory including log files
+  -v          verbose
+  -h          print this message
+  -2          runs futurize stage 2 tests (default is stage 1)
+  -l          list files that need to be refactored
+  -d          print diffs about the refactoring
+EOF
+}
+
+FUTURIZE_STAGE='-1'
+DIFF_OPTION='--no-diffs'
+
+while getopts "hvld2f:" option
+do
+  case "${option}"
+  in
+  h) help_msg; exit 0;;
+  v) VERBOSE=yes;;
+  l) LIST_FILES=yes;;
+  d) DIFF_OPTION=;;
+  2) FUTURIZE_STAGE='-2';;
+  esac
+done
+
+# f) BRANCHES_FILE=$OPTARG;;
+
+shift $((OPTIND-1))
+
+branch_names=$1
+
 # Get the log directory
 Log_Dir="$2"
+
+if [ -z "$Log_Dir" ]; then
+  echo "Bad syntax:"
+  help_msg
+  exit 1
+fi
 
 # Setup a fail code
 fail=0
@@ -46,7 +89,7 @@ mail_file="
       <tbody>"
 
 # Get the git branches in to an array
-IFS=',' read -r -a git_branches <<< "$1"
+IFS=',' read -r -a git_branches <<< "$branch_names"
 
 # Create a process branch function
 process_branch () {
@@ -80,7 +123,7 @@ process_branch () {
     echo "Now running test"
     echo ""
 
-    OUTPUT="$(futurize -1 --no-diffs . 2>&1)"
+    OUTPUT="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
     futurize_ret=$?
 
     refactoring_ret="$(echo "$OUTPUT" | grep 'Refactored ')"
@@ -92,7 +135,7 @@ process_branch () {
     echo "$OUTPUT" > "$Log_Dir/Futurize_Log_$save_as.txt"
 
     if [[ $futurize_ret -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
-        refactored_files=$(echo "$OUTPUT" | grep 'Refactored ')
+        refactored_files=$(echo "$OUTPUT" | grep 'RefactoringTool: Refactored ')
         refactored_file_count=$(echo "$refactored_files" | wc -l)
 
         echo "There are $refactored_file_count files that need to be refactered"
