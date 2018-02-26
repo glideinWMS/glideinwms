@@ -267,9 +267,9 @@ class condorQStats:
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
-            if not el.has_key(status):
+            if status not in el:
                 el[status] = 0
-            if qc_status.has_key(nr):
+            if nr in qc_status:
                 el[status] += qc_status[nr] * self.expected_cores
 
         self.updated = time.time()
@@ -307,9 +307,9 @@ class condorQStats:
                 el[new] += requests[org]
         for reqpair in (('IdleGlideins', 'IdleCores'), ('MaxGlideins', 'MaxCores')):
             org, new = reqpair
-            if not el.has_key(new):
+            if new not in el:
                 el[new] = 0
-            if requests.has_key(org):
+            if org in requests:
                 el[new] += requests[org] * self.expected_cores
 
         # Had to get rid of this

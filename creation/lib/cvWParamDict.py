@@ -569,9 +569,9 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
     match_attrs = None
 
     # Consider GLIDEIN_Singularity_Use from Group level, else global
-    if sub_params.attrs.has_key('GLIDEIN_Singularity_Use'):
+    if 'GLIDEIN_Singularity_Use' in sub_params.attrs:
         glidein_singularity_use = sub_params.attrs['GLIDEIN_Singularity_Use']['value']
-    elif params.attrs.has_key('GLIDEIN_Singularity_Use'):
+    elif 'GLIDEIN_Singularity_Use' in params.attrs:
         glidein_singularity_use = params.attrs['GLIDEIN_Singularity_Use']['value']
 
     if (glidein_singularity_use):
