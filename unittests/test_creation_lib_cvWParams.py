@@ -48,12 +48,9 @@ class TestVOFrontendSubParams(unittest.TestCase):
 
     def test_looks_like_dict(self):
         self.assertTrue(len(list(self.sub_params.keys())) > 0)
-        #the following fails
-        #for k in self.sub_params:
-        #this passes unittest, but 2to3 will complain 
-        #as .keys() is an iter in python3
-        #list of an iter is should be OK 
-        for k in list(self.sub_params.keys()):
+        #for k in self.sub_params: FAILS in the __getitem__ step
+        #for k in self.sub_params.keys(): PASSES __getitem__
+        for k in self.sub_params.keys():
             self.assertTrue(k in self.sub_params)
             val1 = self.sub_params.__getitem__(k)
             val2 = self.sub_params[k]
