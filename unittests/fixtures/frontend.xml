@@ -1,0 +1,95 @@
+<frontend advertise_delay="5" advertise_with_multiple="True" advertise_with_tcp="True" downtimes_file="frontenddowntime" frontend_monitor_index_page="True" frontend_name="Frontend-master-v1_0" frontend_versioning="False" group_parallel_workers="2" loop_delay="60" restart_attempts="3" restart_interval="1800">
+   <config>
+      <idle_vms_total curb="200" max="1000"/>
+      <idle_vms_total_global curb="200" max="1000"/>
+      <running_glideins_total curb="90000" max="100000"/>
+      <running_glideins_total_global curb="90000" max="100000"/>
+   </config>
+   <high_availability check_interval="60" enabled="False">
+      <ha_frontends>
+         <ha_frontend frontend_name="Frontend-master-v1_0"/>
+      </ha_frontends>
+   </high_availability>
+   <log_retention>
+      <process_logs>
+         <process_log backup_count="5" compression="" extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO,ERR,EXCEPTION,WARN,DEBUG"/>
+      </process_logs>
+   </log_retention>
+   <match match_expr="True" start_expr="True">
+      <factory query_expr="True">
+         <match_attrs>
+         </match_attrs>
+         <collectors>
+            <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud308.fnal.gov" comment="Define factory collectors globally for simplicity" factory_identity="gfactory@fermicloud308.fnal.gov" my_identity="vofrontend_service@fermicloud308.fnal.gov" node="fermicloud308.fnal.gov"/>
+         </collectors>
+      </factory>
+      <job comment="Define job constraint and schedds globally for simplicity" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)">
+         <match_attrs>
+         </match_attrs>
+         <schedds>
+            <schedd DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" fullname="fermicloud312.fnal.gov"/>
+         </schedds>
+      </job>
+   </match>
+   <monitor base_dir="/var/lib/gwms-frontend/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
+   <monitor_footer display_txt="" href_link=""/>
+   <security classad_proxy="/tmp/frontend_proxy" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
+      <credentials>
+         <credential absfname="/tmp/vo_proxy" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
+      </credentials>
+   </security>
+   <stage base_dir="/var/lib/gwms-frontend/web-area/stage" use_symlink="True" web_base_url="http://fermicloud312.fnal.gov/vofrontend/stage"/>
+   <work base_dir="/var/lib/gwms-frontend/vofrontend" base_log_dir="/var/log/gwms-frontend"/>
+   <attrs>
+      <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>
+      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"/>
+      <attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"/>
+      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>
+   </attrs>
+   <groups>
+      <group name="main" enabled="True">
+         <config>
+            <glideins_removal margin="0" requests_tracking="False" type="NO" wait="0"/>
+            <idle_glideins_lifetime max="0"/>
+            <idle_glideins_per_entry max="100" reserve="5"/>
+            <idle_vms_per_entry curb="50" max="100"/>
+            <idle_vms_total curb="200" max="1000"/>
+            <processing_workers matchmakers="1"/>
+            <running_glideins_per_entry max="50000" min="0" relative_to_queue="1.15"/>
+            <running_glideins_total curb="90000" max="100000"/>
+         </config>
+         <match match_expr='glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")' start_expr="True">
+            <factory query_expr="(GLIDEIN_Site=!=UNDEFINED)">
+               <match_attrs>
+                  <match_attr name="GLIDEIN_Site" type="string"/>
+               </match_attrs>
+               <collectors>
+               </collectors>
+            </factory>
+            <job query_expr="(DESIRED_Sites=!=UNDEFINED)">
+               <match_attrs>
+                  <match_attr name="DESIRED_Sites" type="string"/>
+               </match_attrs>
+               <schedds>
+               </schedds>
+            </job>
+         </match>
+         <security>
+            <credentials>
+            </credentials>
+         </security>
+         <attrs>
+         </attrs>
+         <files>
+         </files>
+      </group>
+   </groups>
+   <ccbs>
+   </ccbs>
+   <collectors>
+      <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" group="default" node="fermicloud312.fnal.gov:9618" secondary="False"/>
+      <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" group="default" node="fermicloud312.fnal.gov:9620-9630" secondary="True"/>
+   </collectors>
+   <files>
+   </files>
+</frontend>
