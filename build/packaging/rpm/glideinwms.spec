@@ -829,6 +829,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Tue Feb 27 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-2
+- Fixed a problem with proxy outo-renewal, see [19147]
+
 * Wed Feb 7 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-1
 - Glideinwms v3.2.21
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_21/history.html
