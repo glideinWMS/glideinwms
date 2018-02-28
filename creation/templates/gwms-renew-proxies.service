@@ -1,0 +1,11 @@
+[Unit]
+Description=Frontend and pilot proxy renewal
+After=syslog.target network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/gwms_renew_proxies
+
+[Install]
+WantedBy=multi-user.target

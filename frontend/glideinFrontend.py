@@ -15,6 +15,7 @@
 #   Igor Sfiligoi
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import fcntl
@@ -25,7 +26,7 @@ import time
 import logging
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
 from glideinwms.lib import condorExe
 from glideinwms.lib import logSupport
@@ -37,7 +38,7 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
-from glideinFrontendElement import glideinFrontendElement
+from glideinwms.frontend.glideinFrontendElement import glideinFrontendElement
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
@@ -199,8 +200,9 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
                 '600': stats['total']['Jobs']['OldIdle'],
                 '3600': stats['total']['Jobs']['Idle_3600'],
             }
-        except:
-            logSupport.log.warn("setting idle_jobs['3600'] Failed, reconfig the frontend with -fix_rrd ")
+        except KeyError as err:
+            idle_jobs = {'Total': 0, '600': 0, '3600': 0}
+            logSupport.log.error("Error in RRD Database. Setting idle_jobs[%s] Failed. Reconfig the frontend with -fix_rrd to fix this error" % (err.message,))
 
         fm_classad.setIdleJobCount(idle_jobs)
         fm_classad.setPerfMetrics(servicePerformance.getPerfMetric('frontend'))
@@ -240,8 +242,8 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
 
         if max_num_failures > max_failures:
             logSupport.log.info("Too many group failures, aborting")
-            logSupport.log.debug("Failed %i times (limit %i), aborting"%(max_num_failures,max_failures))
-            raise RuntimeError, "Too many group failures, aborting" 
+            logSupport.log.debug("Failed %i times (limit %i), aborting"%(max_num_failures, max_failures))
+            raise RuntimeError("Too many group failures, aborting") 
     finally:
         # cleanup at exit
         # if anything goes wrong, hardkill the rest
@@ -294,8 +296,8 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
                        child.stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-            
-            while poll_group_process(group_name,child) is None:
+
+            while poll_group_process(group_name, child) is None:
                 # None means "still alive"
                 time.sleep(0.01)
         except:
@@ -328,7 +330,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
         # once the master becomes alive.
         # Master never loops infinitely here, but instead it does in
         # the inner loop while(mode=='master') ...
-        while 1:
+        while True:
 
             while hibernate:
                 # If I am slave enter hibernation cycle while Master is alive
@@ -365,7 +367,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
 
                 # order the groups by walltime
                 # longest walltime first
-                timings.sort(lambda x,y:-cmp(x[1],y[1]))
+                timings.sort(lambda x, y:-cmp(x[1], y[1]))
                 # recreate the groups list, with new ordering
                 groups = [el[0] for el in timings]
                 assert num_groups == len(groups), "Something went wrong, number of groups changed"
@@ -469,7 +471,7 @@ def set_env(env):
 
 
 def clean_htcondor_env():
-    for v in ('CONDOR_CONFIG','_CONDOR_CERTIFICATE_MAPFILE','X509_USER_PROXY'):
+    for v in ('CONDOR_CONFIG', '_CONDOR_CERTIFICATE_MAPFILE', 'X509_USER_PROXY'):
         if os.environ.get(v):
             del os.environ[v]
 
@@ -534,8 +536,7 @@ def main(work_dir, action):
         restart_interval = int(frontendDescript.data['RestartInterval'])
 
 
-        groups = frontendDescript.data['Groups'].split(',')
-        groups.sort()
+        groups = sorted(frontendDescript.data['Groups'].split(','))
 
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir, "monitor"), groups)
     except:
@@ -553,9 +554,9 @@ def main(work_dir, action):
     # start
     try:
         pid_obj.register(action)
-    except  glideinFrontendPidLib.pidSupport.AlreadyRunning, err:
+    except  glideinFrontendPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
-        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % (action, pid_obj.mypid , str(pid_obj.action_type), err))
+        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % (action, pid_obj.mypid, str(pid_obj.action_type), err))
         raise
 
     try:
@@ -564,11 +565,11 @@ def main(work_dir, action):
                 spawn(sleep_time, advertize_rate, work_dir,
                       frontendDescript, groups, max_parallel_workers,
                       restart_interval, restart_attempts)
-            elif action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
+            elif action in ('removeWait', 'removeIdle', 'removeAll', 'removeWaitExcess', 'removeIdleExcess', 'removeAllExcess'):
                 spawn_removal(work_dir, frontendDescript, groups,
                               max_parallel_workers, action)
             else:
-                raise ValueError, "Unknown action: %s" % action
+                raise ValueError("Unknown action: %s" % action)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except HUPException:
@@ -580,6 +581,7 @@ def main(work_dir, action):
     finally:
         pid_obj.relinquish()
 
+
 ############################################################
 #
 # S T A R T U P
@@ -589,12 +591,15 @@ def main(work_dir, action):
 class HUPException(Exception):
     pass
 
+
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
+    raise KeyboardInterrupt("Received signal %s" % signr)
+
 
 def hupsignal(signr, frame):
     signal.signal( signal.SIGHUP,  signal.SIG_IGN )
-    raise HUPException, "Received signal %s" % signr
+    raise HUPException("Received signal %s" % signr)
+
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)

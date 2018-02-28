@@ -14,14 +14,14 @@ import os
 from glideinwms.frontend import glideinFrontendConfig
 
 class FEConfig:
-    def config_optparse(self,argparser):
+    def config_optparse(self, argparser):
         """
         Configure a optparse.OptionParser object
         """
-        argparser.add_option("-d","--work-dir", dest="work_dir",
+        argparser.add_option("-d", "--work-dir", dest="work_dir",
                              help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR",
                              default=os.environ.get("FE_WORK_DIR"))
-        argparser.add_option("-g","--group-name", dest="group_name",
+        argparser.add_option("-g", "--group-name", dest="group_name",
                              help="Frontend group name (default: $FE_GROUP_NAME)", metavar="GROUP_NAME",
                              default=os.environ.get("FE_GROUP_NAME"))
         
@@ -59,14 +59,14 @@ class FEConfig:
     # INTERNAL
     def validate_options(self):
         if self.options.work_dir is None:
-            raise ValueError, "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
-        if not os.path.isfile(os.path.join(self.options.work_dir,"frontend.descript")):
-            raise ValueError, "%s is not a valid FE work dir"%self.options.work_dir
+            raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
+        if not os.path.isfile(os.path.join(self.options.work_dir, "frontend.descript")):
+            raise ValueError("%s is not a valid FE work dir"%self.options.work_dir)
 
         if self.options.group_name is None:
-            raise ValueError, "FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting"
-        if not os.path.isfile(os.path.join(self.options.work_dir,"group_%s/group.descript"%self.options.group_name)):
-            raise ValueError, "%s is not a valid FE group name (no valid group_%s subdir found)"%(self.options.group_name,self.options.group_name)
+            raise ValueError("FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting")
+        if not os.path.isfile(os.path.join(self.options.work_dir, "group_%s/group.descript"%self.options.group_name)):
+            raise ValueError("%s is not a valid FE group name (no valid group_%s subdir found)"%(self.options.group_name, self.options.group_name))
 
 
     

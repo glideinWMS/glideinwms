@@ -82,7 +82,7 @@ def xmlfile2dict(fname,
 
     try:
         doc=xml.dom.minidom.parse(fname)
-    except xml.parsers.expat.ExpatError, e:
+    except xml.parsers.expat.ExpatError as e:
         raise CorruptXML("XML corrupt in file %s: %s" % (fname, e))
 
     data = domel2dict(doc.documentElement, use_ord_dict, always_singular_list)
@@ -198,11 +198,11 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
         eldata = domel2dict(el, use_ord_dict, always_singular_list)
         if is_singular_of(tag, myname, always_singular_list): 
             # subelements, like "param" - "params"
-            if eldata.has_key("name"):
+            if "name" in eldata:
                 data[eldata['name']] = eldata
                 del eldata['name']
             elif ((data == {}) or              # first element, will define everything
-                  (type(data) == type([]))):   # already a list
+                  (isinstance(data, list))):   # already a list
                 # most probably one wants a list in this case
                 if data == {}:
                     data = []

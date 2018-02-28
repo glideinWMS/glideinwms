@@ -32,25 +32,25 @@ class Handler(xml.sax.ContentHandler):
     def startElement(self, name, attrs):
         if self.file is None:
             if name in LIST_TAGS:
-                el = ListElement(name)
+                el = ListElement(name, parent=self.ancestry[-1:])
             elif name in TAG_CLASS_MAPPING:
                 el = TAG_CLASS_MAPPING[name](name)
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
             else:
-                el = DictElement(name)
+                el = DictElement(name, parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
         else:
             # _locator is an undocumented feature of SAX...
             if name in LIST_TAGS:
-                el = ListElement(name, self.file, self._locator.getLineNumber())
+                el = ListElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
             elif name in TAG_CLASS_MAPPING:
-                el = TAG_CLASS_MAPPING[name](name, self.file, self._locator.getLineNumber())
+                el = TAG_CLASS_MAPPING[name](name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
             else:
-                el = DictElement(name, self.file, self._locator.getLineNumber())
+                el = DictElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
         
@@ -66,10 +66,14 @@ class Handler(xml.sax.ContentHandler):
 
 
 class Element(object):
-    def __init__(self, tag, file="default", line_no=None):
+    def __init__(self, tag, file="default", line_no=None, parent=None):
         self.tag = tag
         self.file = file
         self.line_no = line_no
+        #Notice that in Handler.startElement the parent is passed as a slice (=>self.ancestry[:-1])
+        #instead of just taking the last element (=>self.ancestry[-1]). This way if self.ancestry is an
+        #empty list we pass an empty list (instad of throwing IndexError) and we set None here
+        self.parent = parent[0] if parent else None
 
     # children should override these (signature should be the same)
     def add_child(self, child):
@@ -198,7 +202,7 @@ class ListElement(Element):
         for child in self.children:
             try:
                 LIST_TAGS[self.tag](child)
-            except KeyError, e:
+            except KeyError as e:
                 raise RuntimeError(child.err_str('missing "%s" attribute' % e.message))
                 
     # this creates references into other rather than deep copies for efficiency

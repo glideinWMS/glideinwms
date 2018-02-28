@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import os
 import sys
 import unittest2 as unittest
@@ -6,7 +7,7 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from unittest_utils import runTest
+from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.lib import condorExe
 from glideinwms.lib.condorExe import iexe_cmd
@@ -54,7 +55,7 @@ class TestCondorExe(unittest.TestCase):
             for script in self.normal_exit_scripts:
                 cmd = os.path.join(condorExe.condor_bin_path, script)
                 output = iexe_cmd(cmd)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
         # Execution should exit with an exception.  If no exception, then fail
@@ -71,7 +72,7 @@ class TestCondorExe(unittest.TestCase):
         try:
             for script in self.normal_exit_scripts:
                 output = exe_cmd(script, self.dummy_args)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
         # Execution should exit with an exception.  If no exception, then fail
@@ -87,7 +88,7 @@ class TestCondorExe(unittest.TestCase):
         try:
             for script in self.normal_exit_scripts:
                 output = exe_cmd_sbin(script, self.dummy_args)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
         # Execution should exit with an exception.  If no exception, then fail

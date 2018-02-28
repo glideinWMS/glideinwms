@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 #---------------------
+from __future__ import absolute_import
 import sys
 import os
 import os.path
@@ -10,17 +11,17 @@ import glob
 import pwd
 
 import glideinwms.lib.subprocessSupport
-import common
-from VDT import VDT
+from . import common
+from .VDT import VDT
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 
 
 class Certificates(VDT):
-  def __init__(self,inifile,section):
+  def __init__(self, inifile, section):
     self.ini_section = section
-    VDT.__init__(self,self.ini_section,inifile)
+    VDT.__init__(self, self.ini_section, inifile)
     self.option = "x509_cert_dir"
     self.package = "%s:CA-Certificates" % (self.vdt_cache())
     self.vdt_services = ["fetch-crl", "vdt-rotate-logs", "vdt-update-certs",]
@@ -28,8 +29,8 @@ class Certificates(VDT):
   #-------------------
   def x509_cert_dir(self):
     """ Returns the full path the X509 certificates directory.  """
-    cert_dir = self.option_value(self.ini_section,self.option)
-    common.check_for_value("x509_cert_dir",cert_dir)
+    cert_dir = self.option_value(self.ini_section, self.option)
+    common.check_for_value("x509_cert_dir", cert_dir)
     return cert_dir
 
     ## ---------------------------------------------------------------------
@@ -70,26 +71,26 @@ If you want to do this, these options must be set:
 Additionally your %(option)s should specify this location: 
    vdt_location/globus/TRUSTED_CA 
 Is it OK to proceed with the installation of certificates with these settings.
-If not, stop and correct the %(option)s""" % { "option"       : self.option, })
+If not, stop and correct the %(option)s""" % { "option": self.option, })
 
     common.logit("... verifying vdt_location: %s" % self.vdt_location())
-    common.check_for_value("vdt_location",self.vdt_location())
+    common.check_for_value("vdt_location", self.vdt_location())
     common.logit("... verifying pacman_location: %s" % self.pacman_location())
-    common.check_for_value("pacman_location",self.pacman_location())
+    common.check_for_value("pacman_location", self.pacman_location())
     common.logit("... verifying pacman_url: %s" % self.pacman_url())
-    common.check_for_value("pacman_url",self.pacman_url())
+    common.check_for_value("pacman_url", self.pacman_url())
 
     expected_x509_cert_dir = "%s/globus/TRUSTED_CA" % self.vdt_location()
     if self.x509_cert_dir() != expected_x509_cert_dir:
       common.logerr("""Sorry but the %(option)s must be set to %(expected)s""" % \
-                       { "option"  : self.option,
-                         "expected" : expected_x509_cert_dir,} )
+                       { "option": self.option,
+                         "expected": expected_x509_cert_dir,} )
 
     if common.not_writeable(self.vdt_location()):
       common.logerr("""You do not have permissions to create the vdt_location 
-option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
+option specified: %(dir)s""" %  { "dir": self.vdt_location(),})
     common.logit(""" CA certificates install starting. The packages that will be installed are:
-   %(package)s""" % { "package" : self.package,})
+   %(package)s""" % { "package": self.package,})
     self.install_vdt_package(self.package)
     common.logit("... retrieving certificates") 
     common.run_script(". %(vdt_location)s/setup.sh; %(vdt_location)s/vdt/bin/vdt-ca-manage setupca --location %(dir)s --url osg" % \
@@ -113,28 +114,28 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
       non_root_arg = " --non-root"
 
     for service in self.vdt_services:
-      common.logit("\n...... %(service)s" % { "service" :service,})
+      common.logit("\n...... %(service)s" % { "service": service,})
       common.run_script(". %(vdt_location)s/setup.sh;vdt-control %(non_root_arg)s --enable %(service)s;vdt-control %(non_root_arg)s --on %(service)s" % \
-           { "vdt_location" : self.vdt_location(),
-             "non_root_arg" : non_root_arg,
-             "service"      : service,} )
+           { "vdt_location": self.vdt_location(),
+             "non_root_arg": non_root_arg,
+             "service": service,} )
     common.logit("\nvdt-control --list")
     cmd = ". %(vdt_location)s/setup.sh;vdt-control --list" % \
-           { "vdt_location" : self.vdt_location(),}
-    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+           { "vdt_location": self.vdt_location(),}
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     common.logit(stdout)
 
     #-- show the cron entries added - extract the lines put in cron
     common.logit("\n... %(user)s crontab entries:" % \
-         { "user" : pwd.getpwuid(os.getuid())[0],})
+         { "user": pwd.getpwuid(os.getuid())[0],})
     services_file = "%(vdt_location)s/vdt/services/state" % \
-         { "vdt_location" : self.vdt_location(),}
+         { "vdt_location": self.vdt_location(),}
     try:
-      fd = open(services_file,'r')
+      fd = open(services_file, 'r')
       lines = fd.readlines()
     except:
       common.logerr("Unable to read VDT services file: %(services_file)s" % 
-         { "services_file" : services_file,})
+         { "services_file": services_file,})
     fd.close()
     fetch_crl_script = None
     for line in lines:
@@ -143,8 +144,8 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
         continue # not a cron line
       if els[0] in self.vdt_services:
          common.logit("  %(cron_time)s %(cron_process)s" % \
-             { "cron_time"    : els[4],
-               "cron_process" : els[5].rstrip(),})
+             { "cron_time": els[4],
+               "cron_process": els[5].rstrip(),})
       if els[0] == "fetch-crl":
         fetch_crl_script = els[5].rstrip()
     common.ask_continue("""\n... the glidein services require that CRL files (*.r0) be present
@@ -169,8 +170,8 @@ in the certificates directory.  Is it OK to run the script now?""")
 no CRL (*.r0) files.  This is not a satifactory condition.
 Suggest you check this out before proceeding:
    %(dir)s""" % \
-        { "option" : self.option,
-           "dir"   : self.x509_cert_dir(),})
+        { "option": self.option,
+           "dir": self.x509_cert_dir(),})
     #-- checking for other files to insure we are in the correct directory
     files = glob.glob(os.path.join(self.x509_cert_dir(), '*'))
     if len(files) > 0:
@@ -178,8 +179,8 @@ Suggest you check this out before proceeding:
 certificates directory BUT some other files do exist.  This does not make sense.
 Suggest you check this out before proceeding:
    %(dir)s""" % \
-        { "option" : self.option,
-           "dir"   : self.x509_cert_dir(),})
+        { "option": self.option,
+           "dir": self.x509_cert_dir(),})
     #-- looks good.. we can proceed with an install
     return False
 
@@ -190,14 +191,14 @@ Suggest you check this out before proceeding:
     vdt_script = "%s/setp.sh" % self.vdt_location()
     if os.path.exists(vdt_script):
       cmd = ". %s;echo $X509_CERT_DIR" % vdt_script
-      cert_dir = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+      cert_dir = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     return cert_dir
 
 ##########################################
 def main(argv):
   try:
     inifile = "/home/weigand/weigand-glidein/glideinWMS.ini"
-    certs = Certificates(inifile,"WMSCollector")
+    certs = Certificates(inifile, "WMSCollector")
     certs.install()
   except common.WMSerror:
     return 1

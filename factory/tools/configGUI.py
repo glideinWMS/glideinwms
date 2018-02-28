@@ -14,6 +14,7 @@
 #
 
 #import wxWidgets
+from __future__ import print_function
 import wx
 import wx.grid
 
@@ -23,7 +24,7 @@ import os.path
 import copy
 
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 
 from glideinwms.creation.lib import cgWParams
 
@@ -74,7 +75,7 @@ class MyGrid(wx.grid.Grid):
         property = self.GetColLabelValue(column)
         
         # in case of Unicode wxWidgets
-        attribute = attribute.encode('ascii','ignore')
+        attribute = attribute.encode('ascii', 'ignore')
         
 
 
@@ -214,7 +215,7 @@ class GlideFrame(wx.Frame):
         # if command line argument is set, load that config file
         if(len(sys.argv) > 1):
             self.targetFile = sys.argv[1]
-            cfg=cgWParams.GlideinParams('','',['',self.targetFile])
+            cfg=cgWParams.GlideinParams('', '', ['', self.targetFile])
             self.doTable()
         # parse GlideinWMS XML file
 
@@ -357,30 +358,30 @@ class GlideFrame(wx.Frame):
         global rowToRemove
         
         menu = wx.Menu()
-        menu.Append( self.ADD, "Add Attribute","" )
+        menu.Append( self.ADD, "Add Attribute", "" )
         menu.AppendSeparator()
-        menu.Append( self.REMOVE, "Remove Attribute","" )
+        menu.Append( self.REMOVE, "Remove Attribute", "" )
         
         wx.EVT_MENU( menu, self.ADD, self.MenuSelect )
         wx.EVT_MENU( menu, self.REMOVE, self.MenuSelect )
         rowToRemove = event.GetRow()
-        self.PopupMenu( menu, event.GetPosition() +(650,50) )
+        self.PopupMenu( menu, event.GetPosition() +(650, 50) )
         
         menu.Destroy()
 
         
-    def MenuSelect(self,event):
+    def MenuSelect(self, event):
         global currentSiteEntry
         global rowToRemove
         global cfg
         
         if(event.GetId() == self.ADD):
-            input = wx.GetTextFromUser("Please enter name of new attribute","New Attribute", "");
+            input = wx.GetTextFromUser("Please enter name of new attribute", "New Attribute", "");
             if(input == ""):
                 pass
             else:
                 newRowNumber = self.attr_grid.GetNumberRows()
-                self.attr_grid.InsertRows(newRowNumber,1)
+                self.attr_grid.InsertRows(newRowNumber, 1)
                 self.attr_grid.SetCellValue(newRowNumber, 0, input)
                 
                 # initialize new cfg entry
@@ -448,9 +449,9 @@ class GlideFrame(wx.Frame):
         global currentSiteEntry
         
         menu = wx.Menu()
-        menu.Append( self.ENABLE, "Enable entry","" )
+        menu.Append( self.ENABLE, "Enable entry", "" )
         menu.AppendSeparator()
-        menu.Append( self.DISABLE, "Disable entry","" )
+        menu.Append( self.DISABLE, "Disable entry", "" )
     
         wx.EVT_MENU( menu, self.DISABLE, self.disable )
         wx.EVT_MENU( menu, self.ENABLE, self.enable )
@@ -481,7 +482,7 @@ class GlideFrame(wx.Frame):
             pass
         else:
             self.targetFile = filename
-            cfg = cgWParams.GlideinParams('','',['',self.targetFile])
+            cfg = cgWParams.GlideinParams('', '', ['', self.targetFile])
             self.doTable()
             
     def do_select(self, event): 
@@ -526,7 +527,7 @@ class GlideFrame(wx.Frame):
         # insert attributes
         for attributes in cfg.data["entries"][event.GetText()]["attrs"].keys():
             # attribute
-            self.attr_grid.InsertRows(row,1)
+            self.attr_grid.InsertRows(row, 1)
             self.attr_grid.SetCellValue(row, 0, attributes)
             self.attr_grid.SetReadOnly(row, 0)
             
@@ -639,7 +640,7 @@ class GlideFrame(wx.Frame):
 
 
 
-        print "Changes Applied..."
+        print("Changes Applied...")
         
         cfg.save_into_file_wbackup(self.targetFile)
         
@@ -648,17 +649,17 @@ class GlideFrame(wx.Frame):
         del cfg
         
         #reinitialize
-        cfg = cgWParams.GlideinParams('','',['', self.targetFile])
+        cfg = cgWParams.GlideinParams('', '', ['', self.targetFile])
         
-        wx.MessageBox("Changes Applied.", "",wx.OK, self);
+        wx.MessageBox("Changes Applied.", "", wx.OK, self);
         
     def apply_attributes(self, event): 
-        print "Event handler `apply_attributes' not implemented"
+        print("Event handler `apply_attributes' not implemented")
         event.Skip()
     
 
     def attr_select(self, event):
-        print event.GetData()
+        print(event.GetData())
 
 
 class ConfigMain(wx.App):

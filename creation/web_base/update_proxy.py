@@ -47,14 +47,14 @@ def compress_credential(credential_data):
 def update_credential(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
+        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0o600)
         try:
             os.write(fd, credential_data)
         finally:
             os.close(fd)
     else:
         # old file exists, check if same content
-        fl = open(fname,'r')
+        fl = open(fname, 'r')
         try:
             old_data = fl.read()
         finally:
@@ -70,7 +70,7 @@ def update_credential(fname, credential_data):
                 pass # just protect
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
+            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0o600)
             try:
                 os.write(fd, credential_data)
             finally:
@@ -87,16 +87,16 @@ def update_credential(fname, credential_data):
 def get_env():
     # Extract data from environment
     # Arguments not used
-    if not os.environ.has_key('HEXDATA'):
+    if 'HEXDATA' not in os.environ:
         raise ProxyEnvironmentError('HEXDATA env variable not defined.')
 
-    if not os.environ.has_key('FNAME'):
+    if 'FNAME' not in os.environ:
         raise ProxyEnvironmentError('FNAME env variable not defined.')
 
     credential_data = binascii.a2b_hex(os.environ['HEXDATA'])
     fname = os.environ['FNAME']
 
-    if os.environ.has_key('FNAME_COMPRESSED'):
+    if 'FNAME_COMPRESSED' in os.environ:
         fname_compressed = os.environ['FNAME_COMPRESSED']
     else:
         fname_compressed = None
@@ -111,10 +111,10 @@ def main():
         if fname_compressed:
             compressed_credential = compress_credential(credential_data)
             update_credential(fname_compressed, compressed_credential)
-    except ProxyEnvironmentError, ex:
+    except ProxyEnvironmentError as ex:
         sys.stderr.write(str(ex))
         update_code = 2
-    except Exception, ex:
+    except Exception as ex:
         sys.stderr.write(str(ex))
         update_code = 4
 

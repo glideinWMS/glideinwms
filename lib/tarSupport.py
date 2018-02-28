@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import os
-import glideinwms_tarfile
+from . import glideinwms_tarfile
 import cStringIO
 
 class FileDoesNotExist(Exception):
@@ -80,7 +81,7 @@ class GlideinTar:
             ti.size = len(string)
             ti.name = filename
             ti.type = glideinwms_tarfile.REGTYPE
-            ti.mode = 0400
+            ti.mode = 0o400
             tf.addfile(ti, fd_str)
 
     def create_tar_file(self, archive_full_path, compression="gz"):
