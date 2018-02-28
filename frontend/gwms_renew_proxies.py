@@ -132,6 +132,7 @@ def main():
 
     retcode = 0
     # Proxy renewals
+    proxies.remove('COMMON') # no proxy renewal info in the COMMON section
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
