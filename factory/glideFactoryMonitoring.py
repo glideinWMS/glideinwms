@@ -13,6 +13,7 @@
 #
 
 import os
+import re
 import time
 import copy
 import math
@@ -237,7 +238,7 @@ class condorQStats:
         self.downtime = 'True'
         self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
 
-    def logSchedd(self, client_name, qc_status):
+    def logSchedd(self, client_name, qc_status, qc_status_sf):
         """
         qc_status is a dictionary of condor_status:nr_jobs
         """
@@ -252,7 +253,31 @@ class condorQStats:
         else:
             el = {}
             t_el['Status'] = el
+        self.aggregateStates(qc_status, el)
 
+        # And now aggregate states by submit file
+        if 'StatusEntries' in t_el:
+            dsf = t_el['StatusEntries']
+        else:
+            dsf = {}
+            t_el['StatusEntries'] = dsf
+        for sf in qc_status_sf:
+            ksf = self.getEntryFromSubmitFile(sf)
+            if ksf:
+                elsf = dsf.setdefault(ksf, {})
+                self.aggregateStates(qc_status_sf[sf], elsf)
+        self.updated = time.time()
+
+    def getEntryFromSubmitFile(self, submitFile):
+        """ Extract the entry name from submit files that look like:
+            'entry_T2_CH_CERN/job.CMSHTPC_T2_CH_CERN_ce301.condor'
+        """
+        #Matches: anything that is not a dot, a dot, anything that is not a dot (captured),
+        #another dot, and finally anything that is not a dot
+        m = re.match(r'^[^\.]+\.([^\.]+)\.[^\.]+$', submitFile)
+        return m.group(1) if m else ""
+
+    def aggregateStates(self, qc_status, el):
         # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
         status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
@@ -262,6 +287,7 @@ class condorQStats:
                 el[status] = 0
             if nr in qc_status:
                 el[status] += qc_status[nr]
+
         # Listing pairs counting the cores (expected_cores). Avoid duplicates with the list above
         status_pairs = ((2, "RunningCores"),)
         for p in status_pairs:
@@ -271,8 +297,6 @@ class condorQStats:
                 el[status] = 0
             if nr in qc_status:
                 el[status] += qc_status[nr] * self.expected_cores
-
-        self.updated = time.time()
 
     def logRequest(self, client_name, requests):
         """
