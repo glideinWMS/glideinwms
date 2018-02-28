@@ -852,6 +852,8 @@ def logStats(condorq, client_int_name, client_security_name,
 
     # Count glideins by status
     qc_status = getQStatus(condorq)
+    qc_status_sf = getQStatusSF(condorq)
+
     sum_idle_count(qc_status)
 
 
@@ -861,8 +863,8 @@ def logStats(condorq, client_int_name, client_security_name,
     if factoryConfig.qc_stats is not None:
         client_log_name = secClass2Name(client_security_name,
                                         proxy_security_class)
-        factoryConfig.client_stats.logSchedd(client_int_name, qc_status)
-        factoryConfig.qc_stats.logSchedd(client_log_name, qc_status)
+        factoryConfig.client_stats.logSchedd(client_int_name, qc_status, qc_status_sf)
+        factoryConfig.qc_stats.logSchedd(client_log_name, qc_status, qc_status_sf)
 
     return
 
