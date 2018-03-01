@@ -410,22 +410,29 @@ by the VO factory clients.</P>
  	<TD> None </TD>
  	<TD> <p>Special purpose resources added in separate slots or the main slot of the glidein. The separate slots will never be available for the regular jobs.
         This string is a semicolon separated list of comma separated resource descriptions.
-        Each resource description contains the <b>name</b> (case insensitive) and optionally the <b>number</b> of resource instances (default is 1 (*), the
-        total <b>memory</b> reserved
-        (default is 128MB time the number of resources), a <b>type</b> option to say if the resource is added to the main slot (<tt>main</tt>) or has a new dedicated
-        slot (<tt>partitionable</tt>) or many dedicated slots (one per instance, <tt>static</tt>).
-        The default is partitionable, unless there is only one resource instance, then is static, and the <b>disk</b> reserved
+        Each resource description contains the <b>name</b> (case insensitive) and optionally the <b>number</b> of resource instances (default is 1 (*)), the
+        total <b>memory</b> reserved (default is 128MB time the number of resources),
+        a <b>type</b> to control how the resource is handled (see below for more), and the <b>disk</b> reserved
         (default is <tt>auto</tt>, where HTCondor splits evenly).
-        When adding resources to the <tt>main</tt> slots: the memory and disk parameters are ignored; HTCondor splits automatically resources
+        Possible type values are:
+        <ul>
+          <li><b>main</b> - the resource is added to the main slot</li>
+          <li><b>extra</b> - the resource is added to the main slot with virtual CPUs</li>
+          <li><b>partitionable</b> - the resource has a new dedicated slot with virtual CPUs</li>
+          <li><b>static</b> - the resource has many dedicated slots (one per instance) with a virtual CPU each</li>
+        </ul>
+        The default type is partitionable, unless there is only one resource instance, then is static.
+        When adding resources to the main slots (type is <tt>main</tt> or <tt>extra</tt>): the memory and disk parameters are ignored; HTCondor splits automatically resources
         depending on the number of CPUs and having a partitionable main slot or not;
-        if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots
+        if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots for the Glideins
         (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOTS_LAYOUT partitionable in the frontend configuration)
-        otherwise the startd may fail due to impossible configuration
+        otherwise the startd may fail due to impossible configuration. When adding resources to the main slots, regular jobs (not using the resource) may use
+        all memory and CPUs (including the virtual ones). Only separate slots (type is <tt>partitionable</tt> or <tt>static</tt>) reserve CPUs and memory.
         <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
         -->
-        (check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
-            HTCondor manual to learn more on how resources are split</a>)
+        Check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
+            HTCondor manual to learn more on how resources are split</a>.
         </p>
         <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type, disk (see the last example below).</p>
         <p>Characters may be appended to a numerical value of memory to indicate percentage (%) or units. K or KB indicates KiB, $2^{10}$ numbers of bytes.
