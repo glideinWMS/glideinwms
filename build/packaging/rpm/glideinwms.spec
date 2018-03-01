@@ -302,6 +302,7 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-renew-
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.init
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.service
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.timer
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/proxies.ini
 
 %if %{?rhel}%{!?rhel:0} == 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
@@ -379,7 +380,7 @@ install -d $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
 install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
-# MM tmp remove - install -m 0644 config/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
+install -m 0644 creation/templates/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
 install -m 0644 %{SOURCE8} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
 
 # Install the factory config dir
@@ -786,7 +787,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, frontend) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
-# MM tmp remove -  %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
+%attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 
@@ -831,6 +832,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Tue Feb 27 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-2
+- Fixed a problem with proxy outo-renewal, see [19147]
+
 * Wed Feb 7 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-1
 - Glideinwms v3.2.21
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_21/history.html

@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys, os, os.path, string, time
+import stat, re
 import xml.sax.saxutils
 import optparse
 #-------------------------
 from glideinwms.lib import xmlFormat
-import common
-import Condor
-from VOFrontend import VOFrontend
+from . import common
+from . import Condor
+from .VOFrontend import VOFrontend
 #-------------------------
 #os.environ["PYTHONPATH"] = ""
 
@@ -69,11 +71,11 @@ usercollector_options = [
 ]
 
 valid_options = { 
-"VOFrontend"    : frontend_options,
-"UserCollector" : usercollector_options,
-"WMSCollector"  : wmscollector_options,
-"Factory"       : factory_options,
-"Submit"        : submit_options,
+"VOFrontend": frontend_options,
+"UserCollector": usercollector_options,
+"WMSCollector": wmscollector_options,
+"Factory": factory_options,
+"Submit": submit_options,
 }
 
 
@@ -86,7 +88,7 @@ class RPM(VOFrontend):
     self.ini_section = "VOFrontend"
     if optionsDict != None:
       valid_options = optionsDict 
-    VOFrontend.__init__(self,self.inifile,valid_options)
+    VOFrontend.__init__(self, self.inifile, valid_options)
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "COLLECTOR, NEGOTIATOR, SCHEDD" 
 ##    #-- instances of other services ---
@@ -104,7 +106,7 @@ class RPM(VOFrontend):
   def get_condor(self):
     if self.condor == None:
       #self.condor = Condor.Condor(self.inifile,self.ini_section,valid_options["UserCollector"])
-      self.condor = Condor.Condor(self.inifile,"UserCollector",valid_options["UserCollector"])
+      self.condor = Condor.Condor(self.inifile, "UserCollector", valid_options["UserCollector"])
 
   #########################################################
   #--------------------------------
@@ -115,7 +117,7 @@ class RPM(VOFrontend):
     return "%s/frontend.xml" % (self.config_dir())
   #--------------------------------
   def frontend_name(self):
-    return "%s_OSG_gWMSFrontend" % (self.hostname().replace(".","-"))
+    return "%s_OSG_gWMSFrontend" % (self.hostname().replace(".", "-"))
   #--------------------------------
   def install(self):
      common.logerr("There is no '--install' for the OSG RPM Frontend")
@@ -175,7 +177,7 @@ class RPM(VOFrontend):
       cnt = cnt + 1
       comment  = "glidein_pilot_%d" % cnt
       
-      users.append([comment,dn,comment])
+      users.append([comment, dn, comment])
     return users
 
   #--------------------------------
@@ -186,15 +188,15 @@ class RPM(VOFrontend):
       cnt = cnt + 1
       comment  = "glidein_pilot_%d" % cnt
       
-      users.append([comment,dn,comment])
-    users.append(["WMSCollector",self.wms.x509_gsi_dn(),"wmscollector"])
+      users.append([comment, dn, comment])
+    users.append(["WMSCollector", self.wms.x509_gsi_dn(), "wmscollector"])
     return users
 
 #---------------------------
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):
@@ -203,7 +205,7 @@ def validate_args(args):
 This will install a VO Frontend service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
@@ -218,14 +220,14 @@ specified.
 #-------------------------
 def create_template():
   global valid_options
-  print "; ------------------------------------------"
-  print "; Submit minimal ini options template"
+  print("; ------------------------------------------")
+  print("; Submit minimal ini options template")
   for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
+    print("; ------------------------------------------")
+    print("[%s]" % section)
     for option in valid_options[section]:
-      print "%-25s =" % option
-    print
+      print("%-25s =" % option)
+    print()
 
 ##########################################
 def main(argv):
@@ -239,14 +241,14 @@ def main(argv):
     #vo.get_usercollector()
     #print vo.config_collectors_data()
     #vo.configure_gsi_security()
-  except KeyboardInterrupt, e:
+  except KeyboardInterrupt as e:
     common.logit("\n... looks like you aborted this script... bye.")
     return 1
   except EOFError:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
   except common.WMSerror:
-    print;return 1
+    print();return 1
   return 0
 
 #--------------------------

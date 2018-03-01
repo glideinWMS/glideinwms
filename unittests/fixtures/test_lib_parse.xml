@@ -1,0 +1,12 @@
+<test date="1/2/07">
+  <params what="xx">
+  <param name="x" value="12"/>
+  <param name="y" value="88"/>
+  </params>
+  <files>
+  <file absname="/tmp/abc.txt"/>
+  <file absname="/tmp/w.log" mod="-rw-r--r--"/>
+  </files>
+  <temperature F="100" C="40"/>
+</test>
+

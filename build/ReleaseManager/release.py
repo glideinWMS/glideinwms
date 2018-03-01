@@ -1,5 +1,6 @@
 #!/usr/bin/python -B
 
+from __future__ import print_function
 import sys
 import os
 import getopt
@@ -9,17 +10,17 @@ import optparse
 import ReleaseManagerLib
 
 def usage():
-    print "%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0])
-    print "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)"
-    print "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz"
-    print "         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm"
-    print "release.py --version=3_2_11 --rc=4 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=4 --rpm-version=3.2.11"
-    print ""
-    print "Example: Final Release v3.2.11"
-    print "         Generate tarball: glideinWMS_v3_2_11*.tgz"
-    print "         Generate rpms   : glideinWMS-*-v3.2.11-3-*.rpm"
-    print "release.py --version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3 --rpm-version=3.2.11"
-    print ""
+    print("%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0]))
+    print("Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)")
+    print("         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz")
+    print("         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm")
+    print("release.py --version=3_2_11 --rc=4 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=4 --rpm-version=3.2.11")
+    print("")
+    print("Example: Final Release v3.2.11")
+    print("         Generate tarball: glideinWMS_v3_2_11*.tgz")
+    print("         Generate rpms   : glideinWMS-*-v3.2.11-3-*.rpm")
+    print("release.py --version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3 --rpm-version=3.2.11")
+    print("")
 
 
 def parse_opts(argv):
@@ -62,14 +63,14 @@ def parse_opts(argv):
 
 
     if len(argv) < 4:
-        print "ERROR: Insufficient arguments specified"
+        print("ERROR: Insufficient arguments specified")
         parser.print_help()
         sys.exit(1)
     options, remainder = parser.parse_args(argv)
     if len(remainder) > 1:
         parser.print_help(file)
     if not required_args_present(options):
-        print "ERROR: Missing required arguments"
+        print("ERROR: Missing required arguments")
         parser.print_help()
         sys.exit(1)
     return options
@@ -96,11 +97,11 @@ def main(argv):
     rc = options.rc
     rpmRel = options.rpmRel
 
-    print "___________________________________________________________________"
-    print "Creating following glideinwms release"
-    print "Version=%s\nSourceDir=%s\nReleaseDir=%s\nReleaseCandidate=%s\nRPMRelease=%s" % (ver, srcDir, relDir, rc, rpmRel)
-    print "___________________________________________________________________"
-    print
+    print("___________________________________________________________________")
+    print("Creating following glideinwms release")
+    print("Version=%s\nSourceDir=%s\nReleaseDir=%s\nReleaseCandidate=%s\nRPMRelease=%s" % (ver, srcDir, relDir, rc, rpmRel))
+    print("___________________________________________________________________")
+    print()
     rel = ReleaseManagerLib.Release(ver, srcDir, relDir, rc, rpmRel)
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))

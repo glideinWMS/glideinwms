@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import sys
 import types
@@ -10,7 +11,7 @@ def load_ini(ini_path):
     # check to see if the file exists and is a valid ini file 
     try:
         cp.read(ini_path)
-    except Exception, ex:
+    except Exception as ex:
         raise IniError("Invalid ini file specified.\nInternal Error: %s" % ex)
 
     return cp
@@ -109,7 +110,7 @@ def cp_getList(cp, section, option, default, throw_exception=False):
     """
     try:
         results = cp_get(cp, section, option, default, throw_exception=throw_exception)
-        if isinstance(results, types.StringType):
+        if isinstance(results, bytes):
             results = split_re.split(results)
         return results
     except:
@@ -118,8 +119,8 @@ def cp_getList(cp, section, option, default, throw_exception=False):
 
 def configContents(cp, stream=sys.stderr):
     for section in cp.sections():
-        print >> stream, "[%s]" % section
+        print("[%s]" % section, file=stream)
         for option in cp.options(section):
             msg = "   %-25s : %s" % (option, cp.get(section, option))
-            print >> stream, msg
-        print >> stream, " "
+            print(msg, file=stream)
+        print(" ", file=stream)

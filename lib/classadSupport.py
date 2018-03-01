@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -11,8 +12,8 @@
 import os
 import time
 import string
-import logSupport
-import condorManager
+from . import logSupport
+from . import condorManager
 
 
 ###############################################################################
@@ -59,12 +60,12 @@ class Classad(object):
         :return:
         """
         for k, v in params_dict.items():
-            if type(v)==type(1):
+            if isinstance(v, int):
                 # don't quote ints
-                self.adParams['%s%s' % (prefix,k)] = v
+                self.adParams['%s%s' % (prefix, k)] = v
             else:
-                escaped_v=string.replace(str(v),'\n','\\n')
-                self.adParams['%s%s' % (prefix,k)] = "%s" % escaped_v
+                escaped_v=string.replace(str(v), '\n', '\\n')
+                self.adParams['%s%s' % (prefix, k)] = "%s" % escaped_v
 
     def writeToFile(self, filename, append=True):
         """Write a ClassAd to file, adding a blank line if in append mode to separate the ClassAd
@@ -239,7 +240,7 @@ class ClassadAdvertiser:
             finally:
                 os.remove(fname)
         else:
-            raise RuntimeError, 'Failed advertising %s classads' % self.adType
+            raise RuntimeError('Failed advertising %s classads' % self.adType)
 
 
     def advertiseClassads(self, ads=None):
@@ -316,7 +317,7 @@ class ClassadAdvertiser:
 
         try:
             fname = self.getUniqClassadFilename()
-            fd = file(fname,"w")
+            fd = file(fname, "w")
             try:
                 fd.write('MyType = "Query"\n')
                 fd.write('TargetType = "%s"\n' % self.adType)

@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 import os
 import xml.sax
-import xmlConfig
+from . import xmlConfig
 
 ENTRY_INDENT = 6
 CONFIG_DIR = 'config.d'

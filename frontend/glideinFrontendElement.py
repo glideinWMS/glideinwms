@@ -28,9 +28,9 @@ import string
 import logging
 import re
 
-sys.path.append(os.path.join(sys.path[0],"../.."))
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
-from glideinwms.lib import symCrypto,pubCrypto
+from glideinwms.lib import symCrypto, pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import servicePerformance
@@ -58,7 +58,7 @@ class CounterWrapper:
         self.dict_el = dict_el
 
     def has_key(self, keyid):
-        return self.dict_el.has_key(keyid)
+        return keyid in self.dict_el
 
     def __contains__(self, keyid):
         return (keyid in self.dict_el)
@@ -66,7 +66,7 @@ class CounterWrapper:
     def __getitem__(self, keyid):
         try:
             return self.dict_el[keyid]
-        except KeyError,e:
+        except KeyError as e:
             self.dict_el[keyid] = 0
             return self.dict_el[keyid]
 
@@ -196,7 +196,7 @@ class glideinFrontendElement:
                     proxy_plugins.keys())
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](
-                group_dir,glideinFrontendPlugins.createCredentialList(self.elementDescript))
+                group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript))
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ['CONDOR_CONFIG'] = self.elementDescript.frontend_data['CondorConfig']
@@ -248,7 +248,7 @@ class glideinFrontendElement:
                 logSupport.log.info("Received signal...exit")
                 rc = 1
             except:
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                 logSupport.log.exception("Unhandled exception, dying: %s" % tb)
                 rc = 2
         finally:
@@ -260,7 +260,7 @@ class glideinFrontendElement:
     def iterate(self):
         self.stats = {'group' : glideinFrontendMonitoring.groupStats()}
 
-        if not self.elementDescript.frontend_data.has_key('X509Proxy'):
+        if 'X509Proxy' not in self.elementDescript.frontend_data:
             self.published_frontend_name = '%s.%s' % (self.frontend_name,
                                                       self.group_name)
         else:
@@ -298,7 +298,7 @@ class glideinFrontendElement:
         elif self.action=="deadvertise":
             logSupport.log.info("Deadvertize my ads")
             self.deadvertiseAllClassads()
-        elif self.action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
+        elif self.action in ('removeWait', 'removeIdle', 'removeAll', 'removeWaitExcess', 'removeIdleExcess', 'removeAllExcess'):
             # use the standard logic for most things, but change what is being requested
             if self.action.endswith("Excess"):
                 self.request_removal_wtype = self.action[6:-6].upper()
@@ -357,16 +357,16 @@ class glideinFrontendElement:
         idx=0
         for factory_pool in self.factory_pools:
             idx+=1
-            forkm_obj.add_fork(('factory',idx), self.query_factory, factory_pool)
+            forkm_obj.add_fork(('factory', idx), self.query_factory, factory_pool)
 
         ## schedd
         idx=0
         for schedd_name in self.elementDescript.merged_data['JobSchedds']:
             idx+=1
-            forkm_obj.add_fork(('schedd',idx), self.get_condor_q, schedd_name)
+            forkm_obj.add_fork(('schedd', idx), self.get_condor_q, schedd_name)
 
         ## resource
-        forkm_obj.add_fork(('collector',0), self.get_condor_status)
+        forkm_obj.add_fork(('collector', 0), self.get_condor_status)
 
         logSupport.log.debug("%i child query processes started"%len(forkm_obj))
         try:
@@ -375,7 +375,7 @@ class glideinFrontendElement:
             pipe_out=forkm_obj.fork_and_collect()
             servicePerformance.endPerfMetricEvent(
                 self.group_name, 'condor_queries')
-        except RuntimeError, e:
+        except RuntimeError as e:
             # expect all errors logged already
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
@@ -389,7 +389,7 @@ class glideinFrontendElement:
         self.condorq_dict = {}
 
         for pkel in pipe_out:
-            ptype,idx=pkel
+            ptype, idx=pkel
             if ptype=='factory':
                 pglobals_dict, pglidein_dict, pfactoryclients_dict = pipe_out[pkel]
                 self.globals_dict.update(pglobals_dict)
@@ -405,7 +405,7 @@ class glideinFrontendElement:
             # collector dealt with outside the loop
             # nothing else left
 
-        (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[('collector',0)]
+        (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[('collector', 0)]
 
         # M2Crypto objects are not picklable, so do the transforamtion here
         self.populate_pubkey()
@@ -436,13 +436,13 @@ class glideinFrontendElement:
                                              self.status_dict_types['Running']['dict'])
 
         self.stats['group'].logGlideins({
-             'Total':self.status_dict_types['Total']['abs'],
-             'Idle':self.status_dict_types['Idle']['abs'],
-             'Running':self.status_dict_types['Running']['abs'],
-             'Failed':self.status_dict_types['Failed']['abs'],
-             'TotalCores':self.status_dict_types['TotalCores']['abs'],
-             'IdleCores':self.status_dict_types['IdleCores']['abs'],
-             'RunningCores':self.status_dict_types['RunningCores']['abs'],
+             'Total': self.status_dict_types['Total']['abs'],
+             'Idle': self.status_dict_types['Idle']['abs'],
+             'Running': self.status_dict_types['Running']['abs'],
+             'Failed': self.status_dict_types['Failed']['abs'],
+             'TotalCores': self.status_dict_types['TotalCores']['abs'],
+             'IdleCores': self.status_dict_types['IdleCores']['abs'],
+             'RunningCores': self.status_dict_types['RunningCores']['abs'],
         })
 
         total_glideins = self.status_dict_types['Total']['abs']
@@ -526,7 +526,7 @@ class glideinFrontendElement:
 
         # Add globals
         for globalid, globals_el in self.globals_dict.iteritems():
-            if globals_el['attrs'].has_key('PubKeyObj'):
+            if 'PubKeyObj' in globals_el['attrs']:
                 key_obj = key_builder.get_key_obj(
                               globals_el['attrs']['FactoryPoolId'],
                               globals_el['attrs']['PubKeyID'],
@@ -537,11 +537,10 @@ class glideinFrontendElement:
         # Add glidein config limits to the glideclient classads
         advertizer.set_glidein_config_limits(self.glidein_config_limits)
 
-        glideid_list = condorq_dict_types['Idle']['count'].keys()
+        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys())
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
         # sort for the sake of monitoring
-        glideid_list.sort()
 
         # we will need this for faster lookup later
         self.processed_glideid_strs=[]
@@ -741,7 +740,7 @@ class glideinFrontendElement:
             for globalid in self.globals_dict:
                 if glideid[1].endswith(globalid):
                     globals_el = self.globals_dict[globalid]
-                    if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
+                    if ('PubKeyObj' in globals_el['attrs'] and 'PubKeyID' in globals_el['attrs']):
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break
 
@@ -792,9 +791,9 @@ class glideinFrontendElement:
         for ad_factname in ad_factnames:
                 logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
                 adname=advertizer.initialize_advertize_batch()+"_"+ad_factname # they will run in parallel, make sure they don't collide
-                g_ads=advertizer.do_global_advertize_one(ad_factname,adname=adname,create_files_only=True, reset_unique_id=False)
-                s_ads=advertizer.do_advertize_one(ad_factname,ad_file_id_cache,adname=adname,create_files_only=True, reset_unique_id=False)
-                pids.append(fork_in_bg(advertizer.do_advertize_batch_one,ad_factname,tuple(set(g_ads)|set(s_ads))))
+                g_ads=advertizer.do_global_advertize_one(ad_factname, adname=adname, create_files_only=True, reset_unique_id=False)
+                s_ads=advertizer.do_advertize_one(ad_factname, ad_file_id_cache, adname=adname, create_files_only=True, reset_unique_id=False)
+                pids.append(fork_in_bg(advertizer.do_advertize_batch_one, ad_factname, tuple(set(g_ads)|set(s_ads))))
 
         del ad_file_id_cache
 
@@ -1327,7 +1326,7 @@ class glideinFrontendElement:
 
         factory_entry_list.sort() # sort for the sake of monitoring
         for request_name, factory_pool_node  in factory_entry_list:
-            glideid_str="%s@%s"%(request_name,factory_pool_node)
+            glideid_str="%s@%s"%(request_name, factory_pool_node)
             if glideid_str in processed_glideid_str_set:
                 continue # already processed... ignore
 
@@ -1335,7 +1334,7 @@ class glideinFrontendElement:
             for st in self.status_dict_types:
                 c = glideinFrontendLib.getClientCondorStatus(
                         self.status_dict_types[st]['dict'],
-                        self.frontend_name, self.group_name,request_name)
+                        self.frontend_name, self.group_name, request_name)
                 if st in ('TotalCores', 'IdleCores', 'RunningCores'):
                     self.count_status_multi[request_name][st] = \
                         glideinFrontendLib.countCoresCondorStatus(c, st)
@@ -1353,7 +1352,7 @@ class glideinFrontendElement:
 
             # ignore matching jobs
             # since we don't have the entry classad, we have no clue how to match
-            this_stats_arr=(0,0,0,0,0,0,0,0,
+            this_stats_arr=(0, 0, 0, 0, 0, 0, 0, 0,
                             count_status['Total'],
                             count_status['Idle'],
                             count_status['Running'],
@@ -1361,7 +1360,7 @@ class glideinFrontendElement:
                             count_status['TotalCores'],
                             count_status['IdleCores'],
                             count_status['RunningCores'],
-                            0,0)
+                            0, 0)
 
             self.stats['group'].logMatchedGlideins(
                 glideid_str, count_status['Total'], count_status['Idle'],
@@ -1376,7 +1375,7 @@ class glideinFrontendElement:
                                        this_stats_arr, total_down_stats_arr)
         return total_down_stats_arr
 
-    def query_globals(self,factory_pool):
+    def query_globals(self, factory_pool):
         # Query glidefactoryglobal ClassAd
         globals_dict = {}
 
@@ -1400,7 +1399,7 @@ class glideinFrontendElement:
 
             for globalid in factory_globals_dict:
                 globals_el = factory_globals_dict[globalid]
-                if not globals_el['attrs'].has_key('PubKeyType'):
+                if 'PubKeyType' not in globals_el['attrs']:
                     # no pub key at all, nothing to do
                     pass
                 elif globals_el['attrs']['PubKeyType'] == 'RSA':
@@ -1421,7 +1420,7 @@ class glideinFrontendElement:
                         # if no valid key, just notify...
                         # if key needed, will handle the error later on
                         logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                         logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
                 else:
                     # don't know what to do with this key, notify the admin
@@ -1481,7 +1480,7 @@ class glideinFrontendElement:
         # Query glidefactory ClassAd
         try:
             glidein_dict = {}
-            factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
+            factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'], self.attr_dict)
 
             factory_pool_node = factory_pool[0]
             factory_identity = factory_pool[1]
@@ -1511,7 +1510,7 @@ class glideinFrontendElement:
                     break
                 glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
 
-        except Exception, ex:
+        except Exception as ex:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return glidein_dict
@@ -1534,12 +1533,12 @@ class glideinFrontendElement:
                 condorq_format_list = list(condorq_format_list) + list(self.x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509userproxy', 's'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
-                               expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
+                               expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),
                                condorq_format_list)
         except Exception:
             logSupport.log.exception("In query schedd child, exception:")
@@ -1685,7 +1684,7 @@ class glideinFrontendElement:
                 # This is not critical information, do not fail
                 logSupport.log.warning('Error gathering job stats from schedd. Defaulting to %s' % status_schedd_dict)
 
-        except Exception, ex:
+        except Exception as ex:
             logSupport.log.exception("Error talking to the user pool (condor_status):")
 
         return (status_dict, fe_counts, global_counts, status_schedd_dict)
@@ -1707,7 +1706,7 @@ class glideinFrontendElement:
         forkm_obj = ForkManager()
 
         for i in range(len(split_glidein_list)):
-            forkm_obj.add_fork(('Glidein',i), self.subprocess_count_glidein, split_glidein_list[i])
+            forkm_obj.add_fork(('Glidein', i), self.subprocess_count_glidein, split_glidein_list[i])
 
         forkm_obj.add_fork('Real', self.subprocess_count_real)
 
@@ -1732,9 +1731,9 @@ class glideinFrontendElement:
         self.count_status_multi = {}
         self.count_status_multi_per_cred = {}
         for i in range(len(split_glidein_list)):
-            tmp_count_status_multi = pipe_out[('Glidein',i)][0]
+            tmp_count_status_multi = pipe_out[('Glidein', i)][0]
             self.count_status_multi.update(tmp_count_status_multi)
-            tmp_count_status_multi_per_cred = pipe_out[('Glidein',i)][1]
+            tmp_count_status_multi_per_cred = pipe_out[('Glidein', i)][1]
             self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
 
         self.glexec='UNDEFINED'
@@ -1752,7 +1751,7 @@ class glideinFrontendElement:
         """
         out = ()
 
-        c,p,h,pmc = glideinFrontendLib.countMatch(
+        c, p, h, pmc = glideinFrontendLib.countMatch(
                         self.elementDescript.merged_data['MatchExprCompiledObj'],
                         self.condorq_dict_types[dt]['dict'],
                         self.glidein_dict,
@@ -1761,7 +1760,7 @@ class glideinFrontendElement:
                         match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
-        out=(c,p,h,pmc,t)
+        out=(c, p, h, pmc, t)
 
         return out
 
@@ -1827,7 +1826,7 @@ class glideinFrontendElement:
 
                 for cred in self.x509_proxy_plugin.cred_list:
                     cred_id=cred.getId()
-                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
+                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict, cred_id)
 
                     if st in ('TotalCores', 'IdleCores', 'RunningCores'):
                         count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
@@ -1849,7 +1848,7 @@ def check_parent(parent_pid):
         return # parent still exists, we are fine
 
     logSupport.log.warning("Parent died, exit.")
-    raise KeyboardInterrupt, "Parent died"
+    raise KeyboardInterrupt("Parent died")
 
 ############################################################
 def write_stats(stats):
@@ -1891,21 +1890,21 @@ def log_factory_header():
 
 ######################
 # expand $$(attribute)
-def expand_DD(qstr,attr_dict):
+def expand_DD(qstr, attr_dict):
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
-    while 1:
+    while True:
         m=robj.search(qstr)
         if m is None:
             break # no more substitutions to do
         attr_name=m.group('attrname')
-        if not attr_dict.has_key(attr_name):
-            raise KeyError, "Missing attribute %s"%attr_name
+        if attr_name not in attr_dict:
+            raise KeyError("Missing attribute %s"%attr_name)
         attr_val=attr_dict[attr_name]
-        if type(attr_val)==type(1):
+        if isinstance(attr_val, int):
             attr_str=str(attr_val)
         else: # assume it is a string for all other purposes... quote and escape existing quotes
-            attr_str='"%s"'%attr_val.replace('"','\\"')
-        qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
+            attr_str='"%s"'%attr_val.replace('"', '\\"')
+        qstr="%s%s%s"%(qstr[:m.start()], attr_str, qstr[m.end():])
     return qstr
 
 ############################################################

@@ -4,6 +4,7 @@
 Library for the information system comparisons.
 
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -134,17 +135,16 @@ def query_bdii(bdii_source, vo_name=''):
 
             ceList[bdii_dn] = ceEntry
         
-        except KeyError, e:
+        except KeyError as e:
             # Bad BDII entry for a site.. Keep going
             continue
 
-    ceListKeys = ceList.keys()
-    ceListKeys.sort()
+    ceListKeys = sorted(ceList.keys())
     ceType = siteType(ceListKeys, Bdii)
 
     # Update work dir and glexec bin according to site type
     for ce in ceListKeys:
-        if ceType.has_key(ce):
+        if ce in ceType:
             ceList[ce]['site_type'] = ceType[ce]
             if ceType[ce] == 'OSG':
                 ceList[ce]['work_dir'] = 'OSG'
@@ -177,7 +177,7 @@ def siteType(ceList, Bdii):
            item = x[0][1]
            site = item['GlueSiteUniqueID'][0]
            siteDescr = item['GlueSiteDescription'][0]
-           if item.has_key('GlueSiteOtherInfo'):
+           if 'GlueSiteOtherInfo' in item:
                siteInfo = item['GlueSiteOtherInfo']
            gridType = parseGridType(siteDescr, siteInfo)
 
@@ -191,10 +191,10 @@ def siteType(ceList, Bdii):
            cluster = Bdii.ce_to_cluster_map[ce]
            site = Bdii.cluster_to_site_map[cluster]
 
-           if siteGridType.has_key(site):
+           if site in siteGridType:
                ceType[ce] = siteGridType[site]
 
-       except KeyError, e:
+       except KeyError as e:
            #print 'KeyError in %s' % ce, e
            continue
 
@@ -249,8 +249,8 @@ def query_ress(ress_source, vo=''):
 
     # Get RESS info
     condor_obj = condorMonitor.CondorStatus(pool_name=ress_source)
-    format_list=[('GlueCEInfoContactString','s'),('GlueCEName','s'),('GlueSiteName','s'),('GlueCEInfoJobManager','s'),('GlueCEUniqueID','s'),('GlueCEPolicyMaxObtainableWallClockTime','i'),('GlueCEStateStatus','s')]
-    condor_data = condor_obj.fetch(constraint=ress_constraint,format_list=format_list)
+    format_list=[('GlueCEInfoContactString', 's'), ('GlueCEName', 's'), ('GlueSiteName', 's'), ('GlueCEInfoJobManager', 's'), ('GlueCEUniqueID', 's'), ('GlueCEPolicyMaxObtainableWallClockTime', 'i'), ('GlueCEStateStatus', 's')]
+    condor_data = condor_obj.fetch(constraint=ress_constraint, format_list=format_list)
     
     ress_entries = {}
     
@@ -333,7 +333,7 @@ def query_teragrid():
         try:
             resource_xml = urllib2.urlopen('http://info.teragrid.org/web-apps/xml/ctss-services-v1/ResourceID/' + resource_id)
         except:
-            print "Skipping bad resource id %s" % resource_id
+            print("Skipping bad resource id %s" % resource_id)
             continue
         
         config_dom = minidom.parse(resource_xml)
@@ -382,7 +382,7 @@ def parse_entries(config_dom, skip_missing_ref_id=True, skip_disabled=True):
     entry_elements = config_dom.getElementsByTagName('entry')
     
     if len(entry_elements) == 0:
-        raise KeyError, "Error, no entries listed in configuration file."
+        raise KeyError("Error, no entries listed in configuration file.")
     
     for entry_element in entry_elements:
         
@@ -401,7 +401,7 @@ def parse_entries(config_dom, skip_missing_ref_id=True, skip_disabled=True):
         entry['gridtype'] = entry_element.attributes['gridtype'].value.encode('utf-8')
         entry['work_dir'] = entry_element.attributes['work_dir'].value.encode('utf-8')
                 
-        if entry_element.attributes.has_key('rsl'):
+        if 'rsl' in entry_element.attributes:
             entry['rsl'] = entry_element.attributes["rsl"].value.encode('utf-8')
         else:
             entry['rsl'] = ""

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -17,7 +18,7 @@ import subprocess
 import stat
 import tarfile
 import cStringIO
-import cgWDictFile
+from . import cgWDictFile
 
 
 ##############################
@@ -98,7 +99,7 @@ def create_condor_tar_fd(condor_base_dir):
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)
-    except RuntimeError, e:
+    except RuntimeError as e:
         raise RuntimeError("Error creating condor tgz: %s" % e)
     return fd
 
@@ -297,7 +298,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
     Creates the factory startup script from the template.
     """
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname,"w")
+    fd = open(startup_fname, "w")
     try:
         template = template % {"factory_dir": factory_dir,
                                "glideinWMS_dir": glideinWMS_dir,
@@ -314,11 +315,11 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
 #####################
 # INTERNAL
 # Simply copy a file
-def copy_file(infile,outfile):
+def copy_file(infile, outfile):
     try:
-        shutil.copy2(infile,outfile)
-    except IOError, e:
-        raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
+        shutil.copy2(infile, outfile)
+    except IOError as e:
+        raise RuntimeError("Error copying %s in %s: %s"%(infile, outfile, e))
 
 #####################################
 # Copy an executable between two dirs
@@ -330,7 +331,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         # Remove file if already exists
         os.remove(os.path.join(work_dir, filename))
     copy_file(os.path.join(org_dir, filename), work_dir)
-    os.chmod(os.path.join(work_dir, filename), 0555)
+    os.chmod(os.path.join(work_dir, filename), 0o555)
 
 def get_template(template_name, glideinWMS_dir):
     template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")

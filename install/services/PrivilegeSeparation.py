@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import traceback
-import sys,os,os.path,string,time
-import pwd,grp
+import sys, os, os.path, string, time
+import pwd, grp
 import stat
 import optparse
 
-import common
-import WMSCollector
-import Factory
-import VOFrontend
+from . import common
+from . import WMSCollector
+from . import Factory
+from . import VOFrontend
 #os.environ["PYTHONPATH"] = "."
 #-------------------------
 
 class PrivilegeSeparation:
 
-  def __init__(self,condor_location,factory_obj,frontend_objs,frontend_users_dict):
+  def __init__(self, condor_location, factory_obj, frontend_objs, frontend_users_dict):
 
     self.condor_location = condor_location
     self.factory        = factory_obj
@@ -27,7 +29,7 @@ class PrivilegeSeparation:
     self.config_file = "/etc/condor/privsep_config"
 
     # -- condor switchboard that must have setuid ----
-    self.switchboard_bin = os.path.join(self.condor_location,'sbin/condor_root_switchboard')
+    self.switchboard_bin = os.path.join(self.condor_location, 'sbin/condor_root_switchboard')
     # -- users and groups ----
     self.factory_user    = self.factory.username()
     self.factory_groups  = None
@@ -53,22 +55,22 @@ full path to client files: """)
     dirs = [ self.factory.client_log_dir(), self.factory.client_proxy_dir(), ]
     for dir in dirs:
       common.logit("client directory: %s" % dir)
-      while dir <> "/":
+      while dir != "/":
         common.logit("   validating %s" % dir)
         if not os.path.exists(dir):
           dir = os.path.dirname(dir)
           continue
         if not os.path.isdir(dir):
           common.logerr("This is not a directory: %s" % dir)
-        if os.stat(dir)[4] <> 0:
+        if os.stat(dir)[4] != 0:
           common.logerr("Group is not root: %s" % dir)
-        if os.stat(dir)[5] <> 0:
+        if os.stat(dir)[5] != 0:
           common.logerr("Owner is not root: %s" % dir)
-        if not common.has_permissions(dir,"USR",["R","W","X",]):
+        if not common.has_permissions(dir, "USR", ["R", "W", "X",]):
           common.logerr("Incorrect 'owner' permissions: %s" % dir)
-        if not common.has_permissions(dir,"GRP",["R","X",]) or common.has_permissions(dir,"GRP",["W",]):
+        if not common.has_permissions(dir, "GRP", ["R", "X",]) or common.has_permissions(dir, "GRP", ["W",]):
           common.logerr("Incorrect 'group' permissions: %s" % dir)
-        if not common.has_permissions(dir,"OTH",["R","X",]) or common.has_permissions(dir,"OTH",["W",]):
+        if not common.has_permissions(dir, "OTH", ["R", "X",]) or common.has_permissions(dir, "OTH", ["W",]):
           common.logerr("Incorrect 'other' permissions: %s" % dir)
         dir = os.path.dirname(dir)
 
@@ -82,13 +84,13 @@ valid-target-gids = %(client_gids)s
 valid-dirs = %(client_log_dir)s 
 valid-dirs = %(client_proxy_dir)s 
 procd-executable = %(procd)s
-""" % { "factory_user"     : self.factory_user,
-        "factory_groups"   : self.factory_groups,
-        "client_uids"      : string.join(self.frontend_users," : "),
-        "client_gids"      : string.join(self.frontend_groups.keys()," : "),
-        "client_log_dir"   : self.factory.client_log_dir(),
-        "client_proxy_dir" : self.factory.client_proxy_dir(),
-        "procd"    : os.path.join(self.condor_location,'sbin/condor_procd'),
+""" % { "factory_user": self.factory_user,
+        "factory_groups": self.factory_groups,
+        "client_uids": string.join(self.frontend_users, " : "),
+        "client_gids": string.join(self.frontend_groups.keys(), " : "),
+        "client_log_dir": self.factory.client_log_dir(),
+        "client_proxy_dir": self.factory.client_proxy_dir(),
+        "procd": os.path.join(self.condor_location, 'sbin/condor_procd'),
        }
     return data
 
@@ -114,11 +116,11 @@ QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), %s
       frontend_inis.append(obj.service_name())
     service_names.sort() 
     frontend_inis.sort()
-    if service_names <> frontend_inis:
+    if service_names != frontend_inis:
       msg = """The service_names of VOFrontends in your ini file do not match 
 those in your frontend_users attribute of the WMSCollector ini file:  
   frontend_users = %s 
-  frontend inis  = %s""" % (self.frontend_users_dict,frontend_inis)
+  frontend inis  = %s""" % (self.frontend_users_dict, frontend_inis)
       common.logerr(msg)
 
   #--------------------------------
@@ -128,7 +130,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
     user_valid = True
     try:
       self.factory_groups = self.get_groups(self.factory_user)
-    except Exception,e:
+    except Exception as e:
       user_valid = False
       common.logit("ERROR: Factory user (%s) account not created" % self.factory_user)
     #--- frontends user check ---
@@ -139,9 +141,9 @@ those in your frontend_users attribute of the WMSCollector ini file:
         group = self.get_groups(user)
       except:
         user_valid = False
-        common.logit("ERROR: for frontend(%s), user (%s) account not created" % (service_name,user))
+        common.logit("ERROR: for frontend(%s), user (%s) account not created" % (service_name, user))
         continue
-      if not self.frontend_groups.has_key(group):
+      if group not in self.frontend_groups:
         self.frontend_groups[group] = []
       # multiple users may share  the same group, so group them together
       self.frontend_groups[group].append(user)
@@ -149,10 +151,10 @@ those in your frontend_users attribute of the WMSCollector ini file:
       common.logerr("One or more errors have occurred. Please correct them.")
 
   #--------------------------------
-  def get_groups(self,user):
+  def get_groups(self, user):
     try:
       groups = grp.getgrgid(pwd.getpwnam(user)[3])[0]
-    except Exception,e:
+    except Exception as e:
       raise
     return groups
 
@@ -171,26 +173,26 @@ those in your frontend_users attribute of the WMSCollector ini file:
     common.logit("... creating condor config file: %s" % (self.config_file))
     if not os.path.isdir(os.path.dirname(self.config_file)):
       os.mkdir(os.path.dirname(self.config_file))
-    common.write_file("w",0644,self.config_file,self.config_data())
+    common.write_file("w", 0o644, self.config_file, self.config_data())
     #-- setuid on swtichboard ---
-    common.logit("... changing permissions on %s to %s" % (self.switchboard_bin,"04755"))
-    os.chmod(self.switchboard_bin,04755)
+    common.logit("... changing permissions on %s to %s" % (self.switchboard_bin, "04755"))
+    os.chmod(self.switchboard_bin, 0o4755)
     #-- create factory directories ---
     #-- factory dirs done in Factory install --
     # self.factory.create_factory_dirs(self.factory.username(),0755)
-    self.create_factory_client_dirs('root',0755)
+    self.create_factory_client_dirs('root', 0o755)
     common.logit("--- End of updates for Privilege Separation.--- ")
 
   #--------------------------------
-  def create_factory_client_dirs(self,owner,perm):
-    dirs = [self.factory.client_log_dir(),self.factory.client_proxy_dir(),]
+  def create_factory_client_dirs(self, owner, perm):
+    dirs = [self.factory.client_log_dir(), self.factory.client_proxy_dir(),]
     for dir in dirs:
       common.logit("... checking factory client directory: %s" % dir)
       if os.path.isdir(dir):
         if len(os.listdir(dir)) > 0:
           common.ask_continue("This directory must be empty.  Can we delete the contents")
           common.remove_dir_contents(dir)
-      common.make_directory(dir,owner,perm)
+      common.make_directory(dir, owner, perm)
 
 
   #--------------------------------
@@ -214,20 +216,20 @@ def main(argv):
 #    privsep = PrivilegeSeparation(wms.condor_location(),factory,[frontend,],{"zzz":"xxxx",})
 #    privsep = PrivilegeSeparation(wms.condor_location(),factory,[frontend,],{"vo_cms":"vo_cms"})
     #privsep = PrivilegeSeparation(wms.condor_location(),factory,[frontend,],{"vo_cms":"o_cms"})
-    privsep = PrivilegeSeparation(wms.condor_location(),factory,[frontend,],{"vo_cms":"vo_cms"})
+    privsep = PrivilegeSeparation(wms.condor_location(), factory, [frontend,], {"vo_cms":"vo_cms"})
     privsep.validate_frontends()
 
     #privsep = PrivilegeSeparation("/home/weigand/condor-wms",factory,[frontend,]) 
     #privsep.update()
     #privsep.validate_after_condor_install()
-  except KeyboardInterrupt, e:
+  except KeyboardInterrupt as e:
     common.logit("\n... looks like you aborted this script... bye.")
     return 1
   except EOFError:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
   except common.WMSerror:
-    print;return 1
+    print();return 1
   return 0
 
 

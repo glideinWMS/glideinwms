@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -24,7 +25,7 @@ import re
 import mmap
 import time
 
-import util
+from . import util
 
 
 # -------------- Single Log classes ------------------------
@@ -78,7 +79,7 @@ class cachedLogClass:
             # cache is newer, just load the cache
             return self.loadCache()
 
-        while 1:  # could need more than one loop if the log file is changing
+        while True:  # could need more than one loop if the log file is changing
             fstat = os.lstat(self.logname)
             start_logtime = fstat[stat.ST_MTIME]
             del fstat
@@ -119,8 +120,8 @@ class logSummary(cachedLogClass):
     self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
     """
 
-    def __init__(self,logname,cache_dir):
-        self.clInit(logname,cache_dir,".cstpk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".cstpk")
 
     def loadFromLog(self):
         """
@@ -139,7 +140,7 @@ class logSummary(cachedLogClass):
                     active = True # it is enought that at least one non Completed/removed job exist
         return active
 
-    def merge(self,other):
+    def merge(self, other):
         """
         Merge self data with other info
         @return: merged data, may modify other
@@ -156,7 +157,7 @@ class logSummary(cachedLogClass):
                     other[k] = self.data[k]
             return other
 
-    def diff(self,other):
+    def diff(self, other):
         """
         diff self data with other info.  Used to compare
         previous iteration with current iteration
@@ -186,12 +187,12 @@ class logSummary(cachedLogClass):
                 keys[s] = None
 
             for s in keys.keys():
-                if self.data.has_key(s):
+                if s in self.data:
                     sel = self.data[s]
                 else:
                     sel = []
                     
-                if other.has_key(s):
+                if s in other:
                     oel = other[s]
                 else:
                     oel = []
@@ -218,8 +219,8 @@ class logCompleted(cachedLogClass):
     {'completed_jobs':['123.002','555.001'],
     'counts':{'Idle': 1145, 'Completed': 2}}
     """
-    def __init__(self,logname,cache_dir):
-        self.clInit(logname,cache_dir,".clspk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".clspk")
 
     def loadFromLog(self):
         """
@@ -234,7 +235,7 @@ class logCompleted(cachedLogClass):
         for s in status.keys():
             counts[s] = len(status[s])
         tmpdata['counts'] = counts
-        if status.has_key("Completed"):
+        if "Completed" in status:
             tmpdata['completed_jobs'] = status['Completed']
         else:
             tmpdata['completed_jobs'] = []
@@ -252,7 +253,7 @@ class logCompleted(cachedLogClass):
         return active
 
 
-    def merge(self,other):
+    def merge(self, other):
         """
         Merge self data with other info
         @return: merged data, may modify other
@@ -271,7 +272,7 @@ class logCompleted(cachedLogClass):
             return other
 
 
-    def diff(self,other):
+    def diff(self, other):
         """
         Diff self.data with other info.
         For use in comparing previous iteration with current iteration
@@ -304,12 +305,12 @@ class logCompleted(cachedLogClass):
                 keys[s] = None
 
             for s in keys.keys():
-                if self.data['counts'].has_key(s):
+                if s in self.data['counts']:
                     sct = self.data['counts'][s]
                 else:
                     sct = 0
                     
-                if other['counts'].has_key(s):
+                if s in other['counts']:
                     oct = other['counts'][s]
                 else:
                     oct = 0
@@ -334,8 +335,8 @@ class logCounts(cachedLogClass):
     For example self.data={'Idle': 1145, 'Completed': 2}
     """
 
-    def __init__(self,logname,cache_dir):
-        self.clInit(logname,cache_dir,".clcpk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".clcpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -352,7 +353,7 @@ class logCounts(cachedLogClass):
         return active
 
 
-    def merge(self,other):
+    def merge(self, other):
         """
         Merge self data with other info
         @return: merged data, may modify other
@@ -369,7 +370,7 @@ class logCounts(cachedLogClass):
                     other[k] = self.data[k]
             return other
 
-    def diff(self,other):
+    def diff(self, other):
         """
         Diff self data with other info
         @return: diff of counts
@@ -392,12 +393,12 @@ class logCounts(cachedLogClass):
                 keys[s] = None
 
             for s in keys.keys():
-                if self.data.has_key(s):
+                if s in self.data:
                     sel = self.data[s]
                 else:
                     sel = 0
                     
-                if other.has_key(s):
+                if s in other:
                     oel = other[s]
                 else:
                     oel = 0
@@ -415,8 +416,8 @@ class logSummaryTimings(cachedLogClass):
     self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
     """
 
-    def __init__(self,logname,cache_dir):
-        self.clInit(logname,cache_dir,".ctstpk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".ctstpk")
 
     def loadFromLog(self):
         jobs, self.startTime, self.endTime = parseSubmitLogFastRawTimings(self.logname)
@@ -432,7 +433,7 @@ class logSummaryTimings(cachedLogClass):
                     active = True
         return active
 
-    def merge(self,other):
+    def merge(self, other):
         """
         merge self data with other info
         @return: merged data, may modify other
@@ -449,7 +450,7 @@ class logSummaryTimings(cachedLogClass):
                     other[k] = self.data[k]
             return other
 
-    def diff(self,other):
+    def diff(self, other):
         """
         diff self data with other info
         @return: data[status]['Entered'|'Exited'] - list of jobs
@@ -475,12 +476,12 @@ class logSummaryTimings(cachedLogClass):
 
             for s in keys.keys():
                 sel = []
-                if self.data.has_key(s):
+                if s in self.data:
                     for sel_e in self.data[s]:
                         sel.append(sel_e[0])
 
                 oel = []
-                if other.has_key(s):
+                if s in other:
                     for oel_e in other[s]:
                         oel.append(oel_e[0])
 
@@ -496,14 +497,14 @@ class logSummaryTimings(cachedLogClass):
 
                 entered_set = sset.difference(oset)
                 entered = []
-                if self.data.has_key(s):
+                if s in self.data:
                     for sel_e in self.data[s]:
                         if sel_e[0] in entered_set:
                             entered.append(sel_e)
 
                 exited_set = oset.difference(sset)
                 exited = []
-                if other.has_key(s):
+                if s in other:
                     for oel_e in other[s]:
                         if oel_e[0] in exited_set:
                             exited.append(oel_e)
@@ -533,7 +534,7 @@ class cacheDirClass:
         """
         self.cdInit(logClass, dirname, log_prefix, log_suffix, cache_ext,
                     inactive_files, inactive_timeout, cache_dir,
-                    wrapperClass=wrapperClass,username=username)
+                    wrapperClass=wrapperClass, username=username)
 
     def cdInit(self, logClass, dirname, log_prefix, log_suffix=".log",
                cache_ext=".cifpk", inactive_files=None,
@@ -558,7 +559,7 @@ declared inactive
         self.log_prefix=log_prefix
         self.log_suffix=log_suffix
         self.inactive_timeout=inactive_timeout
-        self.inactive_files_cache=os.path.join(cache_dir,log_prefix+log_suffix+cache_ext)
+        self.inactive_files_cache=os.path.join(cache_dir, log_prefix+log_suffix+cache_ext)
         if inactive_files is None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files = loadCache(self.inactive_files_cache)
@@ -603,11 +604,11 @@ declared inactive
         for fname in fnames:
             if (self.wrapperClass is not None) and (self.username is not None):
                 obj = self.wrapperClass.getObj(
-                          logname=os.path.join(self.dirname,fname),
+                          logname=os.path.join(self.dirname, fname),
                           cache_dir=self.cache_dir,
                           username=self.username)
             else:
-                obj=self.logClass(os.path.join(self.dirname,fname),
+                obj=self.logClass(os.path.join(self.dirname, fname),
                                   self.cache_dir)
 
             ch=(ch or obj.has_changed()) # it is enough that one changes
@@ -634,7 +635,7 @@ declared inactive
         now = time.time()
         # load and merge data
         for fname in fnames:
-            absfname=os.path.join(self.dirname,fname)
+            absfname=os.path.join(self.dirname, fname)
             if os.path.getsize(absfname)<1:
                 continue # skip empty files
             last_mod=os.path.getmtime(absfname)
@@ -662,7 +663,7 @@ declared inactive
 
         return
 
-    def diff(self,other):
+    def diff(self, other):
         """
         Diff self data with other info
         
@@ -675,7 +676,7 @@ declared inactive
                                                            'dummy.txt'),
                                               self.cache_dir, self.username)
         else:
-            dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),
+            dummyobj=self.logClass(os.path.join(self.dirname, 'dummy.txt'),
                                    self.cache_dir)
 
         dummyobj.data=self.data # a little rough but works
@@ -700,7 +701,7 @@ class dirSummary(cacheDirClass):
         @param cache_dir: if None, use dirname
         """
 
-        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
+        self.cdInit(logSummary, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
 
 class dirCompleted(cacheDirClass):
@@ -724,7 +725,7 @@ class dirCompleted(cacheDirClass):
         @param cache_dir: if None, use dirname
         """
 
-        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
+        self.cdInit(logCompleted, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
 
 class dirCounts(cacheDirClass):
@@ -745,7 +746,7 @@ class dirCounts(cacheDirClass):
         @param cache_dir: if None, use dirname
         """
 
-        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
+        self.cdInit(logCounts, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
 class dirSummaryTimings(cacheDirClass):
     """
@@ -770,7 +771,7 @@ class dirSummaryTimings(cacheDirClass):
         @param cache_dir: if None, use dirname
         """
 
-        self.cdInit(logSummaryTimings,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
+        self.cdInit(logSummaryTimings, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
 
 
@@ -822,7 +823,7 @@ class dirSummaryTimings(cacheDirClass):
 # 0XX - No Flag
 # YXX - Y is number of flags set
 
-def get_new_status(old_status,new_status):
+def get_new_status(old_status, new_status):
     """
     Given a job with an old and new status,
     will return the appropriate status to register to the job.
@@ -843,10 +844,10 @@ def get_new_status(old_status,new_status):
             if old_status[0] != "0": # may have already fixed it, out of order
                 status = str(int(old_status[0]) - 1) + old_status[1:]
             # else keep the old one
-    elif new_status in ('004','007','024'):
+    elif new_status in ('004', '007', '024'):
         # this is an abort... back to idle/wait
         status='000'
-    elif new_status in ('003','006','008','028'):
+    elif new_status in ('003', '006', '008', '028'):
         pass # do nothing, that was just informational
     else:
         # a significant status found, use it
@@ -869,8 +870,8 @@ def parseSubmitLogFastRaw(fname):
         # nothing to read, if empty
         return jobs
     
-    fd=open(fname,"r")
-    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+    fd=open(fname, "r")
+    buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -888,7 +889,7 @@ def parseSubmitLogFastRaw(fname):
         jobid = buf[idx:i1-4]
         idx = i1 + 1
 
-        if jobs.has_key(jobid):
+        if jobid in jobs:
             jobs[jobid] = get_new_status(jobs[jobid], status)
         else:
             jobs[jobid] = status
@@ -921,10 +922,10 @@ def parseSubmitLogFastRawTimings(fname):
     size = os.path.getsize(fname)
     if size==0:
         # nothing to read, if empty
-        return jobs,first_time,last_time
+        return jobs, first_time, last_time
     
-    fd=open(fname,"r")
-    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+    fd=open(fname, "r")
+    buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -949,7 +950,7 @@ def parseSubmitLogFastRawTimings(fname):
             first_time = line_time
         last_time = line_time
             
-        if jobs.has_key(jobid):
+        if jobid in jobs:
             if status == '001':
                 running_time = line_time
             else:
@@ -983,8 +984,8 @@ def parseSubmitLogFastRawCallback(fname, callback):
         # nothing to read, if empty
         return
 
-    fd=open(fname,"r")
-    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+    fd=open(fname, "r")
+    buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -1005,12 +1006,12 @@ def parseSubmitLogFastRawCallback(fname, callback):
         line_time = buf[idx:idx+14]
         idx += 16
 
-        if jobs.has_key(jobid):
+        if jobid in jobs:
             old_status=jobs[jobid]
             new_status = get_new_status(old_status, status)
             if new_status != old_status:
-                callback(new_status,line_time,jobid)
-                if new_status in ('005','009'):
+                callback(new_status, line_time, jobid)
+                if new_status in ('005', '009'):
                     del jobs[jobid] #end of live, don't need it anymore
                 else:
                     jobs[jobid] = new_status
@@ -1035,11 +1036,11 @@ def rawJobId2Nr(str):
     """
     arr=str.split(".")
     if len(arr)>=2:
-        return (int(arr[0]),int(arr[1]))
+        return (int(arr[0]), int(arr[1]))
     else:
         return (-1, -1) #invalid
 
-def rawTime2cTime(instr,year):
+def rawTime2cTime(instr, year):
     """
     Convert the log representation into ctime
 
@@ -1060,26 +1061,26 @@ def rawTime2cTimeLastYear(instr):
     """
     now=time.time()
     current_year=time.localtime(now)[0]
-    ctime=rawTime2cTime(instr,current_year)
+    ctime=rawTime2cTime(instr, current_year)
     if ctime<=now:
         return ctime
     else: # cannot be in the future... it must have been in the past year
         ctime = rawTime2cTime(instr, current_year-1)
         return ctime
 
-def diffTimes(start_time,end_time,year):
+def diffTimes(start_time, end_time, year):
     """
     Get two condor time strings and compute the difference
     The start_time must be before the end_time
     """
-    start_ctime=rawTime2cTime(start_time,year)
-    end_ctime=rawTime2cTime(end_time,year)
+    start_ctime=rawTime2cTime(start_time, year)
+    end_ctime=rawTime2cTime(end_time, year)
     if (start_time<0) or (end_time<0):
         return -1 #invalid
     
     return int(end_ctime) - int(start_ctime)
 
-def diffTimeswWrap(start_time,end_time,year,wrap_time):
+def diffTimeswWrap(start_time, end_time, year, wrap_time):
     """
     Get two condor time strings and compute the difference
     The start_time must be before the end_time
@@ -1175,7 +1176,7 @@ def listStatuses(jobs):
     """
 
     status={}
-    for k,e in jobs.items():
+    for k, e in jobs.items():
         try:
             status[e].append(k)
         except: 
@@ -1196,7 +1197,7 @@ def listStatusesTimings(jobs):
     """
 
     status={}
-    for k,e in jobs.items():
+    for k, e in jobs.items():
         try:
             status[e[0]].append((k,)+e[1:])
         except:
@@ -1204,7 +1205,7 @@ def listStatusesTimings(jobs):
             status[e[0]] = [(k,)+e[1:]]
     return status
 
-def listAndInterpretRawStatuses(jobs_raw,invert_function):
+def listAndInterpretRawStatuses(jobs_raw, invert_function):
     """
     Given a dictionary of job statuses 
     (whatever the invert_function recognises)

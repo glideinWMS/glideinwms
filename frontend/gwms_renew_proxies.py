@@ -2,6 +2,7 @@
 # Code and configuration files contributed by Brian Lin, OSG Software
 """Automatical renewal of proxies necessary for a glideinWMS frontend
 """
+from __future__ import print_function
 
 import ConfigParser
 import os
@@ -18,6 +19,7 @@ DEFAULTS = {'use_voms_server': 'false',
             'frequency': '1',
             'lifetime': '24',
             'owner': 'frontend'}
+
 
 class Proxy(object):
     """Class for holding information related to the proxy
@@ -47,6 +49,7 @@ class Proxy(object):
         except ValueError:
             return 0
 
+
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
@@ -65,12 +68,14 @@ class VO(object):
         self.cert = cert
         self.key = key
 
+
 def _run_command(command):
     """Runs the specified command, specified as a list. Returns stdout, stderr and return code
     """
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
     return stdout, stderr, proc.returncode
+
 
 def voms_proxy_init(proxy, *args):
     """Create a proxy using voms-proxy-init. Without any additional args, it generates a proxy without VOMS attributes.
@@ -82,6 +87,7 @@ def voms_proxy_init(proxy, *args):
            '-out', proxy.tmp_output_fd.name,
            '-valid', '%s:00' % proxy.lifetime] + list(args)
     return _run_command(cmd)
+
 
 def voms_proxy_fake(proxy, vo_info, voms_uri):
     """ Create a valid proxy without contacting a VOMS Admin server. VOMS attributes are created from user config.
@@ -98,6 +104,7 @@ def voms_proxy_fake(proxy, vo_info, voms_uri):
            '-uri', voms_uri,
            '-fqan', vo_info.fqan]
     return _run_command(cmd)
+
 
 def main():
     """Main entrypoint
@@ -125,6 +132,7 @@ def main():
 
     retcode = 0
     # Proxy renewals
+    proxies.remove('COMMON') # no proxy renewal info in the COMMON section
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
@@ -132,7 +140,7 @@ def main():
                       fe_user.pw_uid, fe_user.pw_gid)
 
         if int(proxy.lifetime)*3600 - proxy.timeleft() < int(proxy_config['frequency'])*3600:
-            print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
+            print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
             continue
 
         if proxy_section == 'FRONTEND':
@@ -149,22 +157,23 @@ def main():
                 vo_attr.key = proxy_config['vo_key']
                 stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr, voms_info['uri'])
         else:
-            print "WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) + \
-                "Valid configuration sections: 'FRONTEND' or 'PILOT'."
+            print("WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) +
+                  "Valid configuration sections: 'FRONTEND' or 'PILOT'.")
 
         if client_rc == 0:
             proxy.write()
-            print "Renewed proxy from '%s' to '%s'." % (proxy.cert, proxy.output)
+            print("Renewed proxy from '%s' to '%s'." % (proxy.cert, proxy.output))
         else:
             retcode = 1
             # don't raise an exception here to continue renewing other proxies
-            print "ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr)
+            print("ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr))
 
     return retcode
+
 
 if __name__ == "__main__":
     try:
         main()
-    except (RuntimeError, ValueError), exc:
-        print "ERROR: " + str(exc)
+    except (RuntimeError, ValueError) as exc:
+        print("ERROR: " + str(exc))
         sys.exit(1)

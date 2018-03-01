@@ -202,7 +202,7 @@ class ListElement(Element):
         for child in self.children:
             try:
                 LIST_TAGS[self.tag](child)
-            except KeyError, e:
+            except KeyError as e:
                 raise RuntimeError(child.err_str('missing "%s" attribute' % e.message))
                 
     # this creates references into other rather than deep copies for efficiency

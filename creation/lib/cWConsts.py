@@ -29,12 +29,12 @@ TIMESTR=get_timestr()
 
 # insert timestr just before the last .
 def insert_timestr(str):
-    arr=string.split(str,'.')
+    arr=string.split(str, '.')
     if len(arr)==1:
       arr.append(TIMESTR)
     else:  
-      arr.insert(-1,TIMESTR)
-    return string.join(arr,'.')
+      arr.insert(-1, TIMESTR)
+    return string.join(arr, '.')
     
 # these two are in the work dir, so they can be changed
 SUMMARY_SIGNATURE_FILE="signatures.sha1"

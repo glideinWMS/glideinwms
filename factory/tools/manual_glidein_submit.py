@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import sys
 import ConfigParser
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,".."))
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
+sys.path.append(os.path.join(STARTUP_DIR, ".."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../lib"))
 
 from glideinwms.factory.glideFactoryCredentials import SubmitCredentials
 from glideinwms.factory.glideFactoryLib import submitGlideins
@@ -24,19 +25,19 @@ Usage: manual_glidein_submit <ini_file>
   ini_file: (REQUIRED) This file contains all the required information for a 
             glidein to be submitted and run on a remote site.
 """
-    print sys.stderr, msg
+    print(sys.stderr, msg)
 
 def check_args():
     if len(sys.argv) > 1:
-        raise ArgumentError, "Too many arguments!"
+        raise ArgumentError("Too many arguments!")
     if len(sys.argv) < 1:
-        raise ArgumentError, "You must specify an ini file!"
+        raise ArgumentError("You must specify an ini file!")
 
 def main():
     try:
         check_args()
-    except ArgumentError, ae:
-        print sys.stderr, ae
+    except ArgumentError as ae:
+        print(sys.stderr, ae)
         usage()
 
     try:
@@ -80,10 +81,10 @@ def main():
         # call the submit
         submitGlideins(entry_name, client_name, nr_glideins, frontend_name, credentials, client_web, params)
 
-    except IniError, ie:
-        print sys.stderr, "ini file error make this message better"
-    except Exception, ex:
-        print sys.stderr, "general error make this message better"
+    except IniError as ie:
+        print(sys.stderr, "ini file error make this message better")
+    except Exception as ex:
+        print(sys.stderr, "general error make this message better")
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -14,10 +15,10 @@
 import os
 import os.path
 import sys
-import condorExe
-from condorExe import UnconfigError
-from condorExe import ExeError
-import logSupport
+from . import condorExe
+from .condorExe import UnconfigError
+from .condorExe import ExeError
+from . import logSupport
 
 # All the functions below can throw either ExeError or UnconfigError exceptions
 def mkdir(base_dir, subdir, target_user):
@@ -168,7 +169,7 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
 
     """
     if condorExe.condor_bin_path is None:
-        raise UnconfigError, "condor_bin_path is undefined!"
+        raise UnconfigError("condor_bin_path is undefined!")
 
     condor_exe_path = os.path.join(condorExe.condor_bin_path, condor_exe)
 

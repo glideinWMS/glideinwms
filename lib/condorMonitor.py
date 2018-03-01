@@ -1,4 +1,4 @@
-
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -20,8 +20,8 @@ import string
 import copy
 import socket
 import xml.parsers.expat
-import condorExe
-import condorSecurity
+from . import condorExe
+from . import condorSecurity
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
@@ -39,8 +39,8 @@ try:
     import classad
     USE_HTCONDOR_PYTHON_BINDINGS = True
 except:
-    #TODO Maybe we should print a message here? Even though I don't know if
-    #logSupport has been initialized. But I'd try to put it log.debug
+    # TODO Maybe we should print a message here? Even though I don't know if
+    # logSupport has been initialized. But I'd try to put it log.debug
     pass
 
 
@@ -122,7 +122,7 @@ class LocalScheddCache(NoneScheddCache):
         self.my_ips = socket.gethostbyname_ex(socket.gethostname())[2]
         try:
             self.my_ips += socket.gethostbyname_ex('localhost')[2]
-        except socket.gaierror, e:
+        except socket.gaierror as e:
             pass  # localhost not defined, ignore
 
     def enable(self):
@@ -168,12 +168,12 @@ class LocalScheddCache(NoneScheddCache):
     # Can raise exceptions
     def iGetEnv(self, schedd_name, pool_name):
         cs = CondorStatus('schedd', pool_name)
-        data = cs.fetch(constraint='Name=?="%s"'%schedd_name,
-                        format_list=[('ScheddIpAddr','s'),
-                                     ('SPOOL_DIR_STRING','s'),
-                                     ('LOCAL_DIR_STRING','s')])
-        if not data.has_key(schedd_name):
-            raise RuntimeError, "Schedd '%s' not found"%schedd_name
+        data = cs.fetch(constraint='Name=?="%s"' % schedd_name,
+                        format_list=[('ScheddIpAddr', 's'),
+                                     ('SPOOL_DIR_STRING', 's'),
+                                     ('LOCAL_DIR_STRING', 's')])
+        if schedd_name not in data:
+            raise RuntimeError("Schedd '%s' not found" % schedd_name)
 
         el = data[schedd_name]
         if 'SPOOL_DIR_STRING' not in el and 'LOCAL_DIR_STRING' not in el:
@@ -181,23 +181,24 @@ class LocalScheddCache(NoneScheddCache):
             return None
         if 'ScheddIpAddr' not in el:
             # This should never happen
-            raise RuntimeError, "Schedd '%s' is not advertising ScheddIpAddr"%schedd_name
+            raise RuntimeError("Schedd '%s' is not advertising ScheddIpAddr" % schedd_name)
 
         schedd_ip = el['ScheddIpAddr'][1:].split(':')[0]
         if schedd_ip in self.my_ips:  # seems local, go for the dir
-            l=el.get('SPOOL_DIR_STRING', el.get('LOCAL_DIR_STRING'))
+            l = el.get('SPOOL_DIR_STRING', el.get('LOCAL_DIR_STRING'))
             if os.path.isdir(l):  # making sure the directory exists
                 if 'SPOOL_DIR_STRING' in el:
-                    return {'_CONDOR_SPOOL': '%s' %l }
+                    return {'_CONDOR_SPOOL': '%s' % l}
                 else:  # LOCAL_DIR_STRING, assuming spool is LOCAL_DIR_STRING/spool
-                    if os.path.isdir('%s/spool' %l):
-                        return {'_CONDOR_SPOOL': '%s/spool' %l }
+                    if os.path.isdir('%s/spool' % l):
+                        return {'_CONDOR_SPOOL': '%s/spool' % l}
             else:
                 # dir does not exist, not relevant, revert to standard behaviour
                 return None
         else:
             # not local
             return None
+
 
 # default global object
 local_schedd_cache = LocalScheddCache()
@@ -248,13 +249,13 @@ class AbstractQuery:
         @rtype: dict
         @return: Dict containing classad attributes and values
         """
-        raise NotImplementedError, "Fetch not implemented"
+        raise NotImplementedError("Fetch not implemented")
 
     def load(self, constraint=None, format_list=None):
         """
         Fetch the data and store it in self.stored_data
         """
-        raise NotImplementedError, "Load not implemented"
+        raise NotImplementedError("Load not implemented")
 
     def fetchStored(self, constraint_func=None):
         """
@@ -265,7 +266,7 @@ class AbstractQuery:
         @rtype: dict
         @return: Same as fetch(), but limited to constraint_func(el)==True
         """
-        raise NotImplementedError, "fetchStored not implemented"
+        raise NotImplementedError("fetchStored not implemented")
 
 
 class StoredQuery(AbstractQuery):
@@ -361,22 +362,22 @@ class CondorQuery(StoredQuery):
 
     def __init__(self, exe_name, resource_str, group_attribute,
                  pool_name=None, security_obj=None, env={}):
-        self.exe_name=exe_name
-        self.env=env
-        self.resource_str=resource_str
-        self.group_attribute=group_attribute
-        self.pool_name=pool_name
+        self.exe_name = exe_name
+        self.env = env
+        self.resource_str = resource_str
+        self.group_attribute = group_attribute
+        self.pool_name = pool_name
         if pool_name is None:
-            self.pool_str=""
+            self.pool_str = ""
         else:
             self.pool_str = "-pool %s" % pool_name
 
         if security_obj is not None:
             if security_obj.has_saved_state():
-                raise RuntimeError, "Cannot use a security object which has saved state."
-            self.security_obj=copy.deepcopy(security_obj)
+                raise RuntimeError("Cannot use a security object which has saved state.")
+            self.security_obj = copy.deepcopy(security_obj)
         else:
-            self.security_obj=condorSecurity.ProtoRequest()
+            self.security_obj = condorSecurity.ProtoRequest()
 
     def require_integrity(self, requested_integrity):
         """
@@ -388,7 +389,7 @@ class CondorQuery(StoredQuery):
             condor_val = "REQUIRED"
         else:
             # Not required, set OPTIONAL if the other side requires it
-            condor_val='OPTIONAL'
+            condor_val = 'OPTIONAL'
         self.security_obj.set('CLIENT', 'INTEGRITY', condor_val)
 
     def get_requested_integrity(self):
@@ -461,7 +462,7 @@ class CondorQuery(StoredQuery):
         else:
             constraint_str = "-constraint '%s'"%constraint
 
-        full_xml=(format_list is None)
+        full_xml = (format_list is None)
         if format_list is not None:
             format_arr = []
             for format_el in format_list:
@@ -479,6 +480,7 @@ class CondorQuery(StoredQuery):
                 xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" %
                                              (self.resource_str, self.pool_str, constraint_str), env=self.env)
             else:
+                # format_str is defined because full_xml False means (format_list is not None)
                 xml_data = condorExe.exe_cmd(self.exe_name, "%s %s -xml %s %s" %
                                              (self.resource_str, format_str, self.pool_str, constraint_str), env=self.env)
         finally:
@@ -494,7 +496,7 @@ class CondorQuery(StoredQuery):
         """
         Fetch the results using htcondor-python bindings
         """
-        raise NotImplementedError, "fetch_using_bindings() not implemented"
+        raise NotImplementedError("fetch_using_bindings() not implemented")
 
     def load(self, constraint=None, format_list=None):
         """
@@ -810,7 +812,7 @@ def xml2list_start_element(name, attrs):
         xml2list_intype = "r"
     elif name == "b":
         xml2list_intype = "b"
-        if attrs.has_key('v'):
+        if 'v' in attrs:
             xml2list_inattr["val"] = (attrs["v"] in ('T', 't', '1'))
         else:
             # extended syntax... value in text area
@@ -819,11 +821,12 @@ def xml2list_start_element(name, attrs):
         xml2list_intype = "un"
         xml2list_inattr["val"] = None
     elif name in ("s", "e"):
-        pass # nothing to do
+        pass  # nothing to do
     elif name == "classads":
-        pass # top element, nothing to do
+        pass  # top element, nothing to do
     else:
-        raise TypeError, "Unsupported type: %s" % name
+        raise TypeError("Unsupported type: %s" % name)
+
 
 def xml2list_end_element(name):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
@@ -840,7 +843,8 @@ def xml2list_end_element(name):
     elif name == "classads":
         pass # top element, nothing to do
     else:
-        raise TypeError, "Unexpected type: %s" % name
+        raise TypeError("Unexpected type: %s" % name)
+
 
 def xml2list_char_data(data):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
@@ -854,16 +858,17 @@ def xml2list_char_data(data):
         xml2list_inattr["val"] = float(data)
     elif xml2list_intype == "b":
         if xml2list_inattr["val"] is not None:
-            #nothing to do, value was in attribute
+            # nothing to do, value was in attribute
             pass
         else:
             xml2list_inattr["val"] = (data[0] in ('T', 't', '1'))
     elif xml2list_intype == "un":
-        #nothing to do, value was in attribute
+        # nothing to do, value was in attribute
         pass
     else:
         unescaped_data = string.replace(data, '\\"', '"')
         xml2list_inattr["val"] += unescaped_data
+
 
 def xml2list(xml_data):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
@@ -888,13 +893,14 @@ def xml2list(xml_data):
     if found_xml >= 0:
         try:
             p.Parse(string.join(xml_data[found_xml:]), 1)
-        except TypeError, e:
-            raise RuntimeError, "Failed to parse XML data, TypeError: %s" % e
+        except TypeError as e:
+            raise RuntimeError("Failed to parse XML data, TypeError: %s" % e)
         except:
-            raise RuntimeError, "Failed to parse XML data, generic error"
+            raise RuntimeError("Failed to parse XML data, generic error")
     # else no xml, so return an empty list
 
     return xml2list_data
+
 
 def list2dict(list_data, attr_name):
     """
@@ -987,6 +993,7 @@ def doGroup(indata, group_key_func, group_data_func):
 
     return outdata
 
+
 #
 # Inputs
 #  data        - data from a fetch()
@@ -1013,21 +1020,22 @@ def fetch2count(data, hash_func):
         cel = count
 
         # check if it is a list
-        if (type(hid) == type([])):
+        if (isinstance(hid, list)):
             # have to create structure inside count
             for h in hid[:-1]:
-                if not cel.has_key(h):
+                if h not in cel:
                     cel[h] = {}
                 cel = cel[h]
             hid = hid[-1]
 
-        if cel.has_key(hid):
+        if hid in cel:
             count_el = cel[hid] + 1
         else:
             count_el = 1
         cel[hid] = count_el
 
     return count
+
 
 #
 # Inputs
@@ -1055,21 +1063,22 @@ def fetch2list(data, hash_func):
         lel = return_list
 
         # check if it is a list
-        if (type(hid) == type([])):
+        if (isinstance(hid, list)):
             # have to create structure inside list
             for h in hid[:-1]:
-                if not lel.has_key(h):
+                if h not in lel:
                     lel[h] = {}
                 lel = lel[h]
             hid = hid[-1]
 
-        if lel.has_key(hid):
+        if hid in lel:
             list_el = lel[hid].append[k]
         else:
             list_el = [k]
         lel[hid] = list_el
 
     return return_list
+
 
 #
 # Recursivelly add two dictionaries
@@ -1078,16 +1087,15 @@ def fetch2list(data, hash_func):
 def addDict(base_dict, new_dict):
     for k in new_dict.keys():
         new_el = new_dict[k]
-        if not base_dict.has_key(k):
+        if k not in base_dict:
             # nothing there?, just copy
             base_dict[k] = new_el
         else:
-            if type(new_el) == type({}):
-                #another dictionary, recourse
+            if isinstance(new_el, dict):
+                # another dictionary, recourse
                 addDict(base_dict[k], new_el)
             else:
                 base_dict[k] += new_el
-
 
 
 ################################################################################
@@ -1147,7 +1155,7 @@ class SummarizeMulti:
     def __init__(self, queries, hash_func=lambda x:1):
         self.counts = []
         for query in queries:
-            self.counts.append(self.count(query,hash_func))
+            self.counts.append(self.count(query, hash_func))
         self.hash_func=hash_func
 
     # see Count for description
@@ -1177,9 +1185,9 @@ class CondorQLite(CondorQuery):
         self.schedd_name=schedd_name
 
         if schedd_lookup_cache is None:
-            schedd_lookup_cache=NoneScheddCache()
+            schedd_lookup_cache = NoneScheddCache()
 
-        schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+        schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)

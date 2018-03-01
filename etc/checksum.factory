@@ -14,7 +14,7 @@ f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-df8621f9a33d4417dd8990796440cab6  ./build/packaging/rpm/glideinwms.spec
+08e833ee242cc7a4960efc6b55d9890b  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -49,6 +49,7 @@ a75191d15612c481b0bf9d46dffce893  ./creation/templates/factory_initd_startup_tem
 8011ddbcfcf75edadb1a8456ee832b52  ./creation/templates/gwms-renew-proxies.init
 7d7d2ee057fdbc10ec548b01d85c8229  ./creation/templates/gwms-renew-proxies.service
 11a437db8f082df96ea3858d2912cc29  ./creation/templates/gwms-renew-proxies.timer
+d54684f520856a54572008b3b53e3656  ./creation/templates/proxies.ini
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
 51add17bdf975a239ece77647b61aa4c  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh

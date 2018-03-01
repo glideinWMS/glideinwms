@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import os
 import sys
 import shutil
@@ -9,10 +10,10 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from unittest_utils import runTest
-from unittest_utils import create_temp_file
-from unittest_utils import create_random_string
-from unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import runTest
+from glideinwms.unittests.unittest_utils import create_temp_file
+from glideinwms.unittests.unittest_utils import create_random_string
+from glideinwms.unittests.unittest_utils import FakeLogger
 
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
@@ -43,7 +44,7 @@ class fakeDescript:
         self.merged_data['ProxyUpdateFrequency']={}
 
 
-    def addproxy(self,name):
+    def addproxy(self, name):
         self.merged_data['ProxySecurityClasses'][name]="frontend"
         self.merged_data['ProxyTrustDomains'][name]="OSG"
         self.merged_data['ProxyTypes'][name]="grid_proxy"
@@ -61,13 +62,13 @@ class TestPlugins(unittest.TestCase):
         # Create fake Credentials
         rtnlist=[]
         for t in range(30):
-            (f,proxyfile)= tempfile.mkstemp()
+            (f, proxyfile)= tempfile.mkstemp()
             os.close(f)
             self.elementDescript.addproxy(proxyfile)
-            rtnlist.append(Credential(t,proxyfile,self.elementDescript))
+            rtnlist.append(Credential(t, proxyfile, self.elementDescript))
         return rtnlist
 
-    def killCredlist(self,list):
+    def killCredlist(self, list):
         for cred in list:
             os.remove(cred.filename)
 
@@ -87,15 +88,15 @@ class TestPlugins(unittest.TestCase):
         key='schedd_job1@schedd1.domain.tld'
         key2='schedd1.domain.tld'
         key3='usercollector_service@schedd1.domain.tld'
-        self.condorq_dict[key]=condorMonitor.CondorQ(key,schedd_lookup_cache=None)
+        self.condorq_dict[key]=condorMonitor.CondorQ(key, schedd_lookup_cache=None)
         self.condorq_dict[key].stored_data={}
         for jid in range(10):
             user_str="user"+str(jid)+"@random.domain.tld"
-            self.condorq_dict[key].stored_data[(jid,0)]={}
-            self.condorq_dict[key].stored_data[(jid,0)]['User']=user_str
-            self.condorq_dict[key].stored_data[(jid,0)]['ClusterId']=0
-            self.condorq_dict[key].stored_data[(jid,0)]['ProcId']=jid
-            self.condorq_dict[key].stored_data[(jid,0)]['JobStatus']=1
+            self.condorq_dict[key].stored_data[(jid, 0)]={}
+            self.condorq_dict[key].stored_data[(jid, 0)]['User']=user_str
+            self.condorq_dict[key].stored_data[(jid, 0)]['ClusterId']=0
+            self.condorq_dict[key].stored_data[(jid, 0)]['ProcId']=jid
+            self.condorq_dict[key].stored_data[(jid, 0)]['JobStatus']=1
             self.condorstatus_dict[user_str]={}
             self.condorstatus_dict[user_str]['MyType']='Submitter'
         entry_str="entry_name@instance@service@vofrontend_service-vofrontend_instance.main"
@@ -119,51 +120,51 @@ class TestPlugins(unittest.TestCase):
 
     def test_proxy_first(self):
         self.credlist=self.getCredlist()
-        p=glideinFrontendPlugins.ProxyFirst(self.config_dir,self.credlist)
+        p=glideinFrontendPlugins.ProxyFirst(self.config_dir, self.credlist)
         p.update_usermap(self.condorq_dict, self.condorq_dict, 
             self.condorstatus_dict, self.condorstatus_dict)
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","OSG")
-        self.assertEqual(testlist,[self.credlist[0]])
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","FAKE")
-        self.assertEqual(testlist,[])
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "OSG")
+        self.assertEqual(testlist, [self.credlist[0]])
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "FAKE")
+        self.assertEqual(testlist, [])
         self.killCredlist(self.credlist)
 
     def test_proxy_all(self):
         self.credlist=self.getCredlist()
-        p=glideinFrontendPlugins.ProxyAll(self.config_dir,self.credlist)
+        p=glideinFrontendPlugins.ProxyAll(self.config_dir, self.credlist)
         p.update_usermap(self.condorq_dict, self.condorq_dict, 
             self.condorstatus_dict, self.condorstatus_dict)
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","OSG")
-        self.assertEqual(testlist,self.credlist)
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","FAKE")
-        self.assertEqual(testlist,[])
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "OSG")
+        self.assertEqual(testlist, self.credlist)
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "FAKE")
+        self.assertEqual(testlist, [])
         self.killCredlist(self.credlist)
     
     def test_proxy_userr(self):
         self.credlist=self.getCredlist()
-        p=glideinFrontendPlugins.ProxyUserRR(self.config_dir,self.credlist)
+        p=glideinFrontendPlugins.ProxyUserRR(self.config_dir, self.credlist)
         p.update_usermap(self.condorq_dict, self.condorq_dict, 
             self.condorstatus_dict, self.condorstatus_dict)
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","OSG")
-        self.assertEqual(testlist,self.credlist[0:10])
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "OSG")
+        self.assertEqual(testlist, self.credlist[0:10])
         self.killCredlist(self.credlist)
 
     def test_proxy_cardinality(self):
         self.credlist=self.getCredlist()
-        p=glideinFrontendPlugins.ProxyUserCardinality(self.config_dir,self.credlist)
+        p=glideinFrontendPlugins.ProxyUserCardinality(self.config_dir, self.credlist)
         p.update_usermap(self.condorq_dict, self.condorq_dict, 
             self.condorstatus_dict, self.condorstatus_dict)
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","OSG")
-        self.assertEqual(testlist,self.credlist[0:10])
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "OSG")
+        self.assertEqual(testlist, self.credlist[0:10])
         self.killCredlist(self.credlist)
 
     def test_proxy_usermap(self):
         self.credlist=self.getCredlist()
-        p=glideinFrontendPlugins.ProxyUserMapWRecycling(self.config_dir,self.credlist)
+        p=glideinFrontendPlugins.ProxyUserMapWRecycling(self.config_dir, self.credlist)
         p.update_usermap(self.condorq_dict, self.condorq_dict, 
             self.condorstatus_dict, self.condorstatus_dict)
-        testlist=p.get_credentials(fakeObj(),"grid_proxy","OSG")
-        self.assertEqual(testlist,self.credlist[0:10])
+        testlist=p.get_credentials(fakeObj(), "grid_proxy", "OSG")
+        self.assertEqual(testlist, self.credlist[0:10])
         self.killCredlist(self.credlist)
 
 

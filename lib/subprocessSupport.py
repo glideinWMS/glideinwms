@@ -14,7 +14,7 @@ class CalledProcessError(Exception):
         self.cmd = cmd
         self.output = output
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode,self.output)
+        return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode, self.output)
 
 
 def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
@@ -74,9 +74,9 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
         stdoutdata, stderrdata = process.communicate(input=stdin_data)
         exitStatus = process.returncode
 
-    except OSError, e:
+    except OSError as e:
         err_str = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError:%s"
-        raise RuntimeError, err_str % (cmd, stdoutdata, stderrdata, e)
+        raise RuntimeError(err_str % (cmd, stdoutdata, stderrdata, e))
     if exitStatus:
         raise CalledProcessError(exitStatus, cmd, output="".join(stderrdata))
     return stdoutdata

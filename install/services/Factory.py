@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import traceback
-import sys,os,pwd,string,time
+import sys, os, pwd, string, time
 import xml.sax.saxutils
 import optparse
 
@@ -9,13 +11,13 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
 
-import common
-import WMSCollector
-import VOFrontend
-from Condor import Condor
-from Glidein import Glidein
-from Configuration import Configuration
-from Configuration import ConfigurationError
+from . import common
+from . import WMSCollector
+from . import VOFrontend
+from .Condor import Condor
+from .Glidein import Glidein
+from .Configuration import Configuration
+from .Configuration import ConfigurationError
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -57,11 +59,11 @@ submit_options        = []
 frontend_options = [ 
 ]
 
-valid_options = { "Factory"       : factory_options,
-                  "WMSCollector"  : wmscollector_options,
-                  "UserCollector" : usercollector_options,
-                  "Submit"        : submit_options,
-                  "VOFrontend"    : frontend_options,
+valid_options = { "Factory": factory_options,
+                  "WMSCollector": wmscollector_options,
+                  "UserCollector": usercollector_options,
+                  "Submit": submit_options,
+                  "VOFrontend": frontend_options,
 }
 
 
@@ -75,8 +77,8 @@ class Factory(Condor):
       return
     if optionsDict != None:
       valid_options = optionsDict
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
-    self.glidein = Glidein(self.inifile,self.ini_section,valid_options[self.ini_section])
+    Condor.__init__(self, self.inifile, self.ini_section, valid_options[self.ini_section])
+    self.glidein = Glidein(self.inifile, self.ini_section, valid_options[self.ini_section])
     self.config_entries_list = {} # Config file entries elements
     self.wms      = None
     self.frontend = None
@@ -86,11 +88,11 @@ class Factory(Condor):
   #-- get service instances --------
   def get_wms(self):
     if self.wms == None:
-      self.wms = WMSCollector.WMSCollector(self.inifile,valid_options)
+      self.wms = WMSCollector.WMSCollector(self.inifile, valid_options)
 
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
+      self.frontend = VOFrontend.VOFrontend(self.inifile, valid_options)
 
   #---------------------
   def glideinwms_location(self):
@@ -100,17 +102,17 @@ class Factory(Condor):
     return self.glidein.install_location()
   #---------------------
   def config_dir(self):
-    return "%s/glidein_%s.cfg" % (self.install_location(),self.glidein.instance_name())
+    return "%s/glidein_%s.cfg" % (self.install_location(), self.glidein.instance_name())
   #---------------------
   def config_file(self):
     return "%s/glideinWMS.xml" % (self.config_dir())
   #---------------------
   def logs_dir(self):
-     return self.option_value(self.ini_section,"logs_dir")
+     return self.option_value(self.ini_section, "logs_dir")
   #---------------------
   def glidein_dir(self):
     # this directory is hardcoded in the createglidein script
-    return "%s/glidein_%s" % (self.glidein.install_location(),self.glidein.instance_name())
+    return "%s/glidein_%s" % (self.glidein.install_location(), self.glidein.instance_name())
   #---------------------
   def username(self):
     return self.glidein.username()
@@ -125,10 +127,10 @@ class Factory(Condor):
     return self.glidein.service_name()
   #---------------------
   def client_log_dir(self):
-    return self.option_value(self.ini_section,"client_log_dir")
+    return self.option_value(self.ini_section, "client_log_dir")
   #---------------------
   def client_proxy_dir(self):
-    return self.option_value(self.ini_section,"client_proxy_dir")
+    return self.option_value(self.ini_section, "client_proxy_dir")
 
   #----------------------------
   def get_new_config_entries(self):
@@ -138,14 +140,14 @@ class Factory(Condor):
        merged into the existing Factory configuration file.
     """
     self.get_config_entries_data()
-    filename = "%s/new_entries.%s" % (self.config_dir(),common.time_suffix())
-    common.write_file("w",0644,filename,self.config_entries_data())
+    filename = "%s/new_entries.%s" % (self.config_dir(), common.time_suffix())
+    common.write_file("w", 0o644, filename, self.config_entries_data())
 
   #-----------------------
   def validate(self):
     if self.not_validated:
       common.logit( "Verifying Factory options")
-      if os.getuid() <> pwd.getpwnam(self.username())[2]:
+      if os.getuid() != pwd.getpwnam(self.username())[2]:
         common.logerr("""You need to install this as the Factory unix acct (%s) so
 files and directories can be created correctly""" % self.username())
       self.install_vdtclient()
@@ -172,7 +174,7 @@ files and directories can be created correctly""" % self.username())
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
     if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
-      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
+      common.start_service(self.glideinwms_location(), self.ini_section, self.inifile)
 
   #-----------------------------
   def validate_needed_directories(self):
@@ -193,16 +195,16 @@ files and directories can be created correctly""" % self.username())
         as the owners are different and permissions problems will occur.
     """
     instance_dir = "glidein_%(instance)s" % \
-                     { "instance" : self.glidein.instance_name(), }
+                     { "instance": self.glidein.instance_name(), }
     dirs = {}
-    dirs["logs"] = os.path.join(self.logs_dir(),instance_dir)
-    dirs["install"] = os.path.join(self.install_location(),instance_dir)
+    dirs["logs"] = os.path.join(self.logs_dir(), instance_dir)
+    dirs["install"] = os.path.join(self.install_location(), instance_dir)
 #    dirs["config"] = self.config_dir()
     for frontend in self.wms.frontend_users().keys():
       dirs["client logs"]    = self.client_log_dir()
       dirs["client proxies"] = self.client_proxy_dir()
-    for subdir in ["monitor","stage"]:
-      dirs["web %s" % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
+    for subdir in ["monitor", "stage"]:
+      dirs["web %s" % subdir] = os.path.join(self.glidein.web_location(), subdir, instance_dir)
 
     #--- check them --
     dirs = self.verify_directories_empty(dirs)
@@ -214,8 +216,7 @@ files and directories can be created correctly""" % self.username())
 
     #--- See if we can remove them ---
     common.logit("""The following directories must be empty for the install to succeed: """)
-    types = dirs.keys()
-    types.sort()
+    types = sorted(dirs.keys())
     for type in types:
       common.logit("""  %(type)s: %(dir)s""" % \
                         { "type" : type, "dir" : dirs[type] })
@@ -235,7 +236,7 @@ files and directories can be created correctly""" % self.username())
     return  # all directories are empty
 
   #------------------------------------
-  def delete_ps_directories(self,dirs):
+  def delete_ps_directories(self, dirs):
     """ Delete the contents of directories with privilege separation in effect."""
     for type in dirs.keys():
       if type not in ["client logs", "client proxies",]: 
@@ -245,14 +246,14 @@ files and directories can be created correctly""" % self.username())
       #-- when privspep is in effect
       condor_sbin = "%s/sbin" % self.wms.condor_location()
       condor_bin  = "%s/bin"  % self.wms.condor_location()
-      condorExe.set_path(condor_bin,condor_sbin)
+      condorExe.set_path(condor_bin, condor_sbin)
       parent_dir = dirs[type]
       subdirs = os.listdir(parent_dir)
       for base_dir in subdirs:
-        if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
+        if os.path.isdir("%s/%s" % (parent_dir, base_dir)): 
           try:
-            condorPrivsep.rmtree(parent_dir,base_dir)
-          except Exception,e:
+            condorPrivsep.rmtree(parent_dir, base_dir)
+          except Exception as e:
             common.logerr("""Encountered a problem in executing condor_root_switchboard 
 to remove this client's sub-directories:
   %(dir)s
@@ -261,13 +262,13 @@ to remove this client's sub-directories:
 Check your /etc/condor/privsep.conf file to verify.
 You may need to configure/install your WMS Collector to resolve or correct
 the ini file for the %(type)s attribute.  Be careful now.
-""" % { "dir"    : parent_dir,
-        "type" : type, 
-        "error"  : e, } )
+""" % { "dir": parent_dir,
+        "type": type, 
+        "error": e, } )
           common.logit("Files in %s deleted" % parent_dir) 
 
   #------------------------------------
-  def delete_nps_directories(self,dirs):  
+  def delete_nps_directories(self, dirs):  
     """ Delete the contents of directories with privilege separation NOT in effect."""
     for type in dirs.keys():
       if type in ["client logs", "client proxies",]: 
@@ -276,7 +277,7 @@ the ini file for the %(type)s attribute.  Be careful now.
       common.remove_dir_path(dirs[type])
 
   #-----------------------------
-  def verify_directories_empty(self,dirs):
+  def verify_directories_empty(self, dirs):
     """ This method checks to see if certain directories are empty when
         privilege separation is NOT in effect. 
         Returns: a dictionary of directories to be deleted.
@@ -319,7 +320,7 @@ the ini file for the %(type)s attribute.  Be careful now.
   #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),self.username(),0755)
+    common.make_directory(self.logs_dir(), self.username(), 0o755)
 
   #---------------------------------
   def validate_client_log_dir(self):
@@ -331,7 +332,7 @@ the ini file for the %(type)s attribute.  Be careful now.
 created by the WMS Collector installation or you did not start the service 
 or you changed the ini file and did not reinstall that service.""")
     else:
-      common.make_directory(self.client_log_dir(),self.username(),0755)
+      common.make_directory(self.client_log_dir(), self.username(), 0o755)
 
   #---------------------------------
   def validate_client_proxy_dir(self):
@@ -343,7 +344,7 @@ or you changed the ini file and did not reinstall that service.""")
 created by the WMS Collector installation or you did not start the service 
 or you changed the ini file and did not reinstall that service.""")
     else:
-      common.make_directory(self.client_proxy_dir(),self.username(),0755)
+      common.make_directory(self.client_proxy_dir(), self.username(), 0o755)
 
   #-----------------------
   def create_env_script(self):
@@ -355,10 +356,10 @@ or you changed the ini file and did not reinstall that service.""")
 export X509_CERT_DIR=%(x509_cert_dir)s
 .  %(condor_location)s/condor.sh
 export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
-""" % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
-        "condor_location" : self.wms.condor_location(),
-        "install_location" : self.glideinwms_location(),}
-    common.write_file("w",0644,self.env_script(),data)
+""" % { "x509_cert_dir": self.wms.x509_cert_dir(), 
+        "condor_location": self.wms.condor_location(),
+        "install_location": self.glideinwms_location(),}
+    common.write_file("w", 0o644, self.env_script(), data)
     common.logit("%s\n" % data)
 
 
@@ -366,11 +367,11 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = ".  %s" % self.env_script()
-    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.config_file())
+    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(), self.config_file())
     if yn=='y':
-      common.run_script("%s;%s" % (cmd1,cmd2))
+      common.run_script("%s;%s" % (cmd1, cmd2))
     else:
-      common.logit("\nTo create the glideins, you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
+      common.logit("\nTo create the glideins, you need to run the following:\n  %s\n  %s" % (cmd1, cmd2))
 
   #-----------------------
   def schedds(self):
@@ -378,15 +379,15 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     schedd_list = [self.wms.hostname(),]
     for filename in os.listdir(self.wms.condor_local()):
       if filename[0:6] == "schedd":
-        schedd_list.append("%s@%s" % (filename,collector_hostname))
+        schedd_list.append("%s@%s" % (filename, collector_hostname))
     return schedd_list
 
   #-------------------------
   def create_config(self):
     config_xml = self.config_data()
     common.logit("\nCreating configuration file: %s" % self.config_file())
-    common.make_directory(self.config_dir(),self.username(),0755)
-    common.write_file("w",0644,self.config_file(),config_xml)
+    common.make_directory(self.config_dir(), self.username(), 0o755)
+    common.write_file("w", 0o644, self.config_file(), config_xml)
 
   #-------------------------
   def config_data(self):
@@ -402,7 +403,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % \
 { "service_name"  : self.glidein.service_name(), 
   "instance_name" : self.glidein.instance_name(), 
-  "schedds"       : string.join(self.schedds(),',')
+  "schedds"       : string.join(self.schedds(), ',')
 }
 
     data += """\
@@ -425,13 +426,13 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   </files>
 </glidein>
 """ % \
-{ "condor"       : self.config_condor_data(),
-  "submit"       : self.config_submit_data(),
-  "stage"        : self.config_stage_data(),
-  "monitor"      : self.config_monitor_data(),
-  "security"     : self.config_security_data(),
-  "default_attr" : self.config_default_attr_data(),
-  "entries"      : self.config_entries_data(),
+{ "condor": self.config_condor_data(),
+  "submit": self.config_submit_data(),
+  "stage": self.config_stage_data(),
+  "monitor": self.config_monitor_data(),
+  "security": self.config_security_data(),
+  "default_attr": self.config_default_attr_data(),
+  "entries": self.config_entries_data(),
 }
     return data
   #---------------
@@ -440,9 +441,9 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent1)s<condor_tarballs>
 %(indent2)s<condor_tarball arch="default" os="default" base_dir="%(condor_location)s"/>
 %(indent1)s</condor_tarballs> """ % \
-{ "indent1"          : common.indent(1),
-  "indent2"          : common.indent(2),
-  "condor_location"  : self.wms.condor_location(),
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
+  "condor_location": self.wms.condor_location(),
 }
   #---------------
   def config_submit_data(self): 
@@ -451,11 +452,11 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent1)s        base_log_dir="%(factory_logs)s" 
 %(indent1)s        base_client_log_dir="%(client_log_dir)s" 
 %(indent1)s        base_client_proxies_dir="%(client_proxy_dir)s"/> """ % \
-{ "indent1"          : common.indent(1),
-  "install_location" : self.install_location(),
-  "factory_logs"     : self.logs_dir(),
-  "client_log_dir"   : self.client_log_dir(),
-  "client_proxy_dir" : self.client_proxy_dir(),
+{ "indent1": common.indent(1),
+  "install_location": self.install_location(),
+  "factory_logs": self.logs_dir(),
+  "client_log_dir": self.client_log_dir(),
+  "client_proxy_dir": self.client_proxy_dir(),
 }
   #---------------
   def config_stage_data(self): 
@@ -463,10 +464,10 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage" 
 %(indent1)s       use_symlink="True" 
 %(indent1)s       base_dir="%(web_location)s/stage"/>""" % \
-{ "indent1"       : common.indent(1),
-  "web_url"       : self.glidein.web_url(),
-  "web_location"  : self.glidein.web_location(),
-  "web_dir"  : os.path.basename(self.glidein.web_location()),
+{ "indent1": common.indent(1),
+  "web_url": self.glidein.web_url(),
+  "web_location": self.glidein.web_location(),
+  "web_dir": os.path.basename(self.glidein.web_location()),
 }
   #---------------
   def config_monitor_data(self): 
@@ -476,11 +477,11 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent1)s        javascriptRRD_dir="%(javascriptrrd)s" 
 %(indent1)s        flot_dir="%(flot)s" 
 %(indent1)s        jquery_dir="%(jquery)s"/>"""  % \
-{ "indent1"       : common.indent(1),
-  "web_location"  : self.glidein.web_location(),  
-  "javascriptrrd" : self.glidein.javascriptrrd_dir, 
-  "jquery"        : self.glidein.jquery_dir,
-  "flot"          : self.glidein.flot_dir,
+{ "indent1": common.indent(1),
+  "web_location": self.glidein.web_location(),  
+  "javascriptrrd": self.glidein.javascriptrrd_dir, 
+  "jquery": self.glidein.jquery_dir,
+  "flot": self.glidein.flot_dir,
 }
 
   #---------------
@@ -489,8 +490,8 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     data = """
 %(indent1)s<security key_length="2048" pub_key="RSA" >
 %(indent2)s<frontends>""" % \
-{ "indent1":common.indent(1),
-  "indent2":common.indent(2),
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
 }
 
     frontend_users_dict =  self.wms.frontend_users()
@@ -500,26 +501,26 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent4)s<security_classes>
 %(indent5)s<security_class name="frontend" username="%(frontend_user)s"/>
 """ %  \
-{ "indent3" : common.indent(3),
-  "indent4" : common.indent(4),
-  "indent5" : common.indent(5),
+{ "indent3": common.indent(3),
+  "indent4": common.indent(4),
+  "indent5": common.indent(5),
   "frontend": frontend,
-  "hostname"      : self.hostname(),
-  "frontend_user" : frontend_users_dict[frontend],
+  "hostname": self.hostname(),
+  "frontend_user": frontend_users_dict[frontend],
 }
 
       data = data + """
 %(indent4)s</security_classes>
 %(indent3)s</frontend>""" %  \
-{ "indent3" : common.indent(3),
-  "indent4" : common.indent(4),
+{ "indent3": common.indent(3),
+  "indent4": common.indent(4),
 }
 
     data = data + """
 %(indent2)s</frontends>
 %(indent1)s</security>""" % \
-{ "indent1":common.indent(1),
-  "indent2":common.indent(2),
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
 }
     return data
 
@@ -545,8 +546,8 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent2)s<attr name="CONDOR_VERSION" value="default" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent1)s</attrs>
 """ % \
-{ "indent1" : common.indent(1),
-  "indent2" : common.indent(2),
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
 }
     return data
 
@@ -554,10 +555,9 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   #---------------
   def config_entries_data(self):
     data = """\
-%(indent1)s<entries>""" % { "indent1" : common.indent(1), }
+%(indent1)s<entries>""" % { "indent1": common.indent(1), }
 
-    sorted_entry_names =self.config_entries_list.keys()
-    sorted_entry_names.sort()
+    sorted_entry_names =sorted(self.config_entries_list.keys())
     for entry_name in sorted_entry_names:
       entry_el=self.config_entries_list[entry_name]
       if entry_el['rsl']!="":
@@ -581,23 +581,23 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 %(indent3)s<files>
 %(indent3)s</files>
 %(indent2)s</entry> 
-""" % { "indent2"     : common.indent(2),
-  "indent3"     : common.indent(3), 
-  "indent4"     : common.indent(4),
-  "entry_name"  : entry_name,
-  "rsl"         : rsl_str,
-  "gridtype"    : entry_el['gridtype'],
-  "gatekeeper"  : entry_el['gatekeeper'],
-  "workdir"     : entry_el['work_dir'],
-  "infosys_ref" : self.entry_infosys_ref_data(entry_el['is_ids']),
-  "ccb_attr"    : self.entry_ccb_attrs(),
-  "site_name"   : entry_el['site_name'],
-  "glexec_path" : entry_el['glexec_path'],
+""" % { "indent2": common.indent(2),
+  "indent3": common.indent(3), 
+  "indent4": common.indent(4),
+  "entry_name": entry_name,
+  "rsl": rsl_str,
+  "gridtype": entry_el['gridtype'],
+  "gatekeeper": entry_el['gatekeeper'],
+  "workdir": entry_el['work_dir'],
+  "infosys_ref": self.entry_infosys_ref_data(entry_el['is_ids']),
+  "ccb_attr": self.entry_ccb_attrs(),
+  "site_name": entry_el['site_name'],
+  "glexec_path": entry_el['glexec_path'],
 }
 
     #--- end of entry element --
     data = data + """%(indent1)s</entries> """ % \
-{ "indent1" : common.indent(1), 
+{ "indent1": common.indent(1), 
 }
     return data
 
@@ -610,26 +610,26 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     return data
 
   #-------------
-  def entry_infosys_ref_data(self,is_els):
+  def entry_infosys_ref_data(self, is_els):
     data = ""
     for is_el in is_els:
       data = data + """%(indent4)s<infosys_ref type="%(type)s" server="%(server)s" ref="%(name)s"/>
 """ % \
-{ "indent4" : common.indent(4),
-  "type"    : is_el['type'],
-  "server"  : is_el['server'],
-  "name"    : is_el['name'],
+{ "indent4": common.indent(4),
+  "type": is_el['type'],
+  "server": is_el['server'],
+  "name": is_el['name'],
 }
     return data
 
   #----------------------------
   def get_config_entries_data(self):
     common.logit("\nCollecting  configuration file data. It will be question/answer time.")
-    os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
+    os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(), os.environ["PATH"])
     os.environ["CONDOR_CONFIG"] = self.wms.condor_config()
     common.logit("Using %s" % (os.environ["CONDOR_CONFIG"])) 
     self.config_entries_list = {}  # config files entries elements
-    while 1:
+    while True:
       yn = common.ask_yn("Do you want to fetch entries from RESS")
       if yn == 'y':
         ress_data     = self.get_ress_data()
@@ -645,11 +645,10 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
    
 
   #----------------------------
-  def ask_user(self,ress_entries):
-    ress_keys=ress_entries.keys()
-    ress_keys.sort()
+  def ask_user(self, ress_entries):
+    ress_keys=sorted(ress_entries.keys())
 
-    print "Found %i additional entries" % len(ress_keys)
+    print("Found %i additional entries" % len(ress_keys))
     if len(ress_keys) == 0:
       return
     yn = common.ask_yn("Do you want to use them all")
@@ -659,19 +658,19 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
             self.config_entries_list[key] = ress_entries[key]
         return
 
-    print "This is the list of entries found in RESS:"
+    print("This is the list of entries found in RESS:")
     for key in ress_keys:
-        print "[%s] %s(%s)"%(string.ljust(key,20),ress_entries[key]['gatekeeper'],ress_entries[key]['rsl'])
+        print("[%s] %s(%s)"%(string.ljust(key, 20), ress_entries[key]['gatekeeper'], ress_entries[key]['rsl']))
 
-    print "Select the indexes you want to include"
-    print "Use a , separated list to include more than one"
-    while 1:
+    print("Select the indexes you want to include")
+    print("Use a , separated list to include more than one")
+    while True:
       idxes = raw_input("Please select: ")
       idx_arr = idxes.split(',')
       problems = 0
       for idx in idx_arr:
         if not (idx in ress_keys):
-          print "'%s' is not a valid index!" % idx
+          print("'%s' is not a valid index!" % idx)
           problems=1
           break
       if problems:
@@ -684,15 +683,15 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     if yn == "y":
       # customize them
       for idx in idx_arr:
-        work_dir = raw_input("Work dir for '%s': [%s] " % (idx,ress_entries[idx]['work_dir']))
+        work_dir = raw_input("Work dir for '%s': [%s] " % (idx, ress_entries[idx]['work_dir']))
         if work_dir != "":
           ress_entries[idx]['work_dir'] = work_dir
-        site_name=raw_input("Site name for '%s': [%s] " % (idx,ress_entries[idx]['site_name']))
+        site_name=raw_input("Site name for '%s': [%s] " % (idx, ress_entries[idx]['site_name']))
         if site_name != "":
           ress_entries[idx]['site_name'] = site_name
 
       if self.glidein.use_glexec() == "y":
-        glexec_path = raw_input("gLExec path for '%s': [%s] "%(idx,ress_entries[idx]['glexec_path']))
+        glexec_path = raw_input("gLExec path for '%s': [%s] "%(idx, ress_entries[idx]['glexec_path']))
         if glexec_path != "":
           ress_entries[idx]['glexec_path'] = glexec_path
 
@@ -702,7 +701,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     return
 
   #----------------------------
-  def apply_filters_to_ress(self,condor_data):
+  def apply_filters_to_ress(self, condor_data):
     #-- set up the  python filter ---
     common.logit("Filters: %s" % self.glidein.entry_filters())
 
@@ -718,7 +717,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     for condor_id in condor_data.keys():
       condor_el = condor_data[condor_id]
 
-      if not self.passed_python_filter(python_filter_obj,condor_el):
+      if not self.passed_python_filter(python_filter_obj, condor_el):
         continue # has not passed the filter
 
       cluster_name    = condor_el['GlueClusterName']
@@ -739,7 +738,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       t_found = False
       for t in ress_entries.keys():
         test_el = ress_entries[t]
-        if self.compare_entry_els(test_el,entry_el):
+        if self.compare_entry_els(test_el, entry_el):
           # found a duplicate entry, just add the additional ress entry to the list
           test_el['is_ids'].append(ress_id)
           t_found = True
@@ -751,14 +750,14 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       cluster_id = "ress_%s"%site_name
 
       count = 1
-      if cluster_count.has_key(cluster_id):
+      if cluster_id in cluster_count:
         count = cluster_count[cluster_id] + 1
       cluster_count[cluster_id] = count
 
       if count == 1:
         key_name = cluster_id
       else:
-        key_name="%s_%i" % (cluster_id,count)
+        key_name="%s_%i" % (cluster_id, count)
 
         if count == 2: # rename id -> id_1
           key_name_tmp = "%s_1" % cluster_id
@@ -772,35 +771,35 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     return entries
 
   #-------------------------------------------
-  def get_python_filter(self,filter):
+  def get_python_filter(self, filter):
     obj = None
     try: 
       if len(filter) > 0:
-        obj=compile(filter,"<string>","eval")
-    except Exception, e:
+        obj=compile(filter, "<string>", "eval")
+    except Exception as e:
       common.logerr("Syntax error in filters")
     return obj
 
   #-------------------------------------------
-  def passed_python_filter(self,filter_obj,site):
+  def passed_python_filter(self, filter_obj, site):
     if filter_obj is None:  # no filters
       return True 
     try:
-      if eval(filter_obj,site):
+      if eval(filter_obj, site):
         return True
-    except Exception, e:
+    except Exception as e:
       common.logerr("Problem applying filters -  %s" % e)
     return False
 
   #-------------------------------------------
-  def discard_duplicate_entries(self,entries):
+  def discard_duplicate_entries(self, entries):
     #-- discarding bdii specific entries --
     for t in entries.keys():
       test_el = entries[t]
       t_found=False
       for l in self.config_entries_list.keys():
         l_el = self.config_entries_list[l]
-        if self.compare_entry_els(test_el,l_el):
+        if self.compare_entry_els(test_el, l_el):
           # found a duplicate entry
           l_el['is_ids']+=test_el['is_ids']
           del entries[t] 
@@ -809,35 +808,35 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     return entries
 
   #----------------------------
-  def compare_entry_els(self,el1,el2):
-    for attr in ('gatekeeper','rsl'):
+  def compare_entry_els(self, el1, el2):
+    for attr in ('gatekeeper', 'rsl'):
       if el1[attr]!=el2[attr]:
         return False
     return True
 
   #----------------------
   def additional_entry_points(self):
-    print "Please list all additional glidein entry points,"
-    while 1:
-      print
+    print("Please list all additional glidein entry points,")
+    while True:
+      print()
       entry_name = raw_input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":
         if len(self.config_entries_list.keys()) < 1:
-          print "You must insert at least one entry point"
+          print("You must insert at least one entry point")
           continue
         break
       if entry_name in self.config_entries_list.keys():
-        print "You already inserted '%s'!" % entry_name
+        print("You already inserted '%s'!" % entry_name)
         continue
       gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name).strip()
       if gatekeeper_name == "":
-        print "Gatekeeper cannot be empty!"
+        print("Gatekeeper cannot be empty!")
         continue
       rsl_name = raw_input("RSL for '%s': " % entry_name).strip() # can be empty
       work_dir = raw_input("Work dir for '%s': [.] " % entry_name).strip()
       if work_dir == "":
         work_dir = "."
-      site_name = raw_input("Site name for '%s': [%s] " % (entry_name,entry_name)).strip()
+      site_name = raw_input("Site name for '%s': [%s] " % (entry_name, entry_name)).strip()
       if site_name == "":
         site_name = entry_name
       glexec_path = ""
@@ -848,13 +847,13 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       else:
         glexec_path = "NONE"
 
-      self.config_entries_list[entry_name]={'gatekeeper':gatekeeper_name,
-                                            'rsl':rsl_name,
-                                            'gridtype':'gt2',
-                                            'work_dir':work_dir,
-                                            'site_name':site_name,
-                                            'glexec_path':glexec_path,
-                                            'is_ids':[],}
+      self.config_entries_list[entry_name]={'gatekeeper': gatekeeper_name,
+                                            'rsl': rsl_name,
+                                            'gridtype': 'gt2',
+                                            'work_dir': work_dir,
+                                            'site_name': site_name,
+                                            'glexec_path': glexec_path,
+                                            'is_ids': [],}
 
   #----------------------------
   def get_ress_data(self):
@@ -865,7 +864,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
     condor_sbin = "%s/sbin" % self.wms.condor_location()
     condor_bin  = "%s/bin" % self.wms.condor_location()
-    condorExe.set_path(condor_bin,condor_sbin)
+    condorExe.set_path(condor_bin, condor_sbin)
     #-- get gatekeeper data from ReSS --
     common.logit("Supported VOs: %s" % self.glidein.entry_vos())
     constraint = self.glidein.ress_vo_constraint()
@@ -874,7 +873,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     try:
       condor_obj.load(constraint=constraint)
       condor_data=condor_obj.fetchStored()
-    except Exception,e: 
+    except Exception as e: 
       common.logerr(e)
     del condor_obj
     return condor_data
@@ -882,14 +881,14 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   #-------------------------
   def create_template(self):
     global valid_options
-    print "; ------------------------------------------"
-    print "; Factory minimal ini options template"
+    print("; ------------------------------------------")
+    print("; Factory minimal ini options template")
     for section in valid_options.keys():
-      print "; ------------------------------------------"
-      print "[%s]" % section
+      print("; ------------------------------------------")
+      print("[%s]" % section)
       for option in valid_options[section]:
-        print "%-25s =" % option
-      print 
+        print("%-25s =" % option)
+      print() 
 
 ### END OF CLASS ###
 
@@ -897,7 +896,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):
@@ -906,7 +905,7 @@ def validate_args(args):
 This will install a Factory service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
@@ -939,10 +938,10 @@ def main(argv):
   except EOFError:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+  except ConfigurationError as e:
+    print();print("ConfigurationError ERROR(should not get these): %s"%e);return 1
   except common.WMSerror:
-    print;return 1
+    print();return 1
   return 0
 
 #-------------------------
