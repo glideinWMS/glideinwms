@@ -1,7 +1,68 @@
 #!/bin/bash
 
-# Get the log directory
-Log_Dir="$2"
+
+function help_msg {
+  filename="$(basename $0)"
+  cat << EOF
+$filename -i [other options] LOG_DIR
+  Runs the Futurize tests on the current glideinwm subdirectory. No branch is checked out.
+$filename [options] BRANCH_NAMES LOG_DIR
+  Runs Futurize tests in the glideinwms repository (a glidienwms subdirectory with the git repository must exist).
+  Tests are run on each of the branches in the list. Test results are saved in LOG_DIR
+  Note that the script is checking out the branch and running the tests. It is not cleaning up or restoring to the
+  initial content. For something less intrusive use '-i' option to run in place without changing any source file.
+BRANCH_NAMES  Comma separated list of branches that needs to be inspected (from glideinwms git repository)
+LOG_DIR       Directory including log files
+  -v          verbose
+  -h          print this message
+  -2          runs futurize stage 2 tests (default is stage 1)
+  -l          list files that need to be refactored
+  -d          print diffs about the refactoring
+EOF
+}
+
+FUTURIZE_STAGE='-1'
+DIFF_OPTION='--no-diffs'
+
+while getopts "hvldi12f:" option
+do
+  case "${option}"
+  in
+  h) help_msg; exit 0;;
+  v) VERBOSE=yes;;
+  l) LIST_FILES=yes;;
+  d) DIFF_OPTION='';;
+  i) INPLACE=yes;;
+  1) FUTURIZE_STAGE='-1';;
+  2) FUTURIZE_STAGE='-2';;
+  esac
+done
+
+# f) BRANCHES_FILE=$OPTARG;;
+
+shift $((OPTIND-1))
+
+# Get the parameters: branch names and log directory
+if [ -n "$INPLACE" ]; then
+  branch_names=''
+  Log_Dir="$1"
+else
+  branch_names=$1
+  Log_Dir="$2"
+fi
+
+if [ -z "$Log_Dir" ]; then
+  echo "Bad syntax:"
+  help_msg
+  exit 1
+fi
+
+# This works only on linux:
+# Log_Dir="$(dirname $(readlink -e $Log_Dir))/$(basename $Log_Dir)"
+# Less precise but mor portable
+log_head=$(dirname "$Log_Dir")
+log_head=$(cd "$log_head" && pwd)
+Log_Dir="$log_head/$(basename $Log_Dir)"
 
 # Setup a fail code
 fail=0
@@ -46,33 +107,39 @@ mail_file="
       <tbody>"
 
 # Get the git branches in to an array
-IFS=',' read -r -a git_branches <<< "$1"
+IFS=',' read -r -a git_branches <<< "$branch_names"
 
 # Create a process branch function
 process_branch () {
     # Global Variables Used: $mail_file & $fail - and HTML Constants
-    echo ""
-    echo "Now checking out branch $1"
-    echo ""
+    if [ -n "$INPLACE" ]; then
+        echo ""
+        echo "Running on local files in glideinwms subdirectory ($1)"
+        echo ""
+    else
+        echo ""
+        echo "Now checking out branch $1"
+        echo ""
 
-    git checkout "$1"
+        git checkout "$1"
 
-    if [ $? -ne 0 ]; then
-        echo "~~~~~~"
-        echo "ERROR: Could not switch to branch $1"
-        echo "~~~~~~"
+        if [ $? -ne 0 ]; then
+            echo "~~~~~~"
+            echo "ERROR: Could not switch to branch $1"
+            echo "~~~~~~"
 
-        # Add a failed entry to the email
-        mail_file="$mail_file
-    <tr style=\"$HTML_TR\">
-        <th style=\"$HTML_TH\">$1</th>
-        <td style=\"$HTML_TD_FAILED\">ERROR: Could not switch to branch</td>
-    </tr>"
-        fail=1
+            # Add a failed entry to the email
+            mail_file="$mail_file
+        <tr style=\"$HTML_TR\">
+            <th style=\"$HTML_TH\">$1</th>
+            <td style=\"$HTML_TD_FAILED\">ERROR: Could not switch to branch</td>
+        </tr>"
+            fail=1
 
-        # Continue onto the next branch
-        return
+            # Continue onto the next branch
+            return
 
+        fi
     fi
 
     # Starting the futurize test
@@ -80,7 +147,7 @@ process_branch () {
     echo "Now running test"
     echo ""
 
-    OUTPUT="$(futurize -1 --no-diffs . 2>&1)"
+    OUTPUT="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
     futurize_ret=$?
 
     refactoring_ret="$(echo "$OUTPUT" | grep 'Refactored ')"
@@ -92,7 +159,7 @@ process_branch () {
     echo "$OUTPUT" > "$Log_Dir/Futurize_Log_$save_as.txt"
 
     if [[ $futurize_ret -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
-        refactored_files=$(echo "$OUTPUT" | grep 'Refactored ')
+        refactored_files=$(echo "$OUTPUT" | grep 'RefactoringTool: Refactored ')
         refactored_file_count=$(echo "$refactored_files" | wc -l)
 
         echo "There are $refactored_file_count files that need to be refactered"
@@ -129,10 +196,14 @@ process_branch () {
 }
 
 # Iterate throughout the git_branches array
-for git_branch in "${git_branches[@]}"
-do
-    process_branch "$git_branch"
-done
+if [ -n "$INPLACE" ]; then
+    process_branch LOCAL
+else
+    for git_branch in "${git_branches[@]}"
+    do
+        process_branch "$git_branch"
+    done
+fi
 
 # Finish off the end of the email
 mail_file="$mail_file
@@ -142,6 +213,10 @@ mail_file="$mail_file
 
 # Save the email to a file
 echo "$mail_file" > "$Log_Dir/email.txt"
+
+echo ""
+echo "Logs are in $Log_Dir"
+echo ""
 
 # All done
 echo "-----------------------"
