@@ -368,9 +368,9 @@ by the VO factory clients.</P>
         <td> <b>PREEMPT</b></td>
         <td> Expr (Bool) </td>
         <td> False </td>
-        <TD> 1 </TD>
+        <TD>
             Specifies whether preemption is allowed to occur on this glidein.
-        </td>
+        </TD>
     </tr>
     <tr>
         <td> <b>PREEMPT_GRACE_TIME</b></td>
@@ -411,17 +411,18 @@ by the VO factory clients.</P>
  	<TD> <p>Special purpose resources added in separate slots or the main slot of the glidein. The separate slots will never be available for the regular jobs.
         This string is a semicolon separated list of comma separated resource descriptions.
         Each resource description contains the <b>name</b> (case insensitive) and optionally the <b>number</b> of resource instances (default is 1 (*)), the
-        total <b>memory</b> reserved (default is 128MB time the number of resources),
+        total <b>memory</b> reserved (default is 128MB times the number of resources),
         a <b>type</b> to control how the resource is handled (see below for more), and the <b>disk</b> reserved
         (default is <tt>auto</tt>, where HTCondor splits evenly).
         Possible type values are:
+        </p>
         <ul>
           <li><b>main</b> - the resource is added to the main slot</li>
           <li><b>extra</b> - the resource is added to the main slot with virtual CPUs</li>
           <li><b>partitionable</b> - the resource has a new dedicated slot with virtual CPUs</li>
           <li><b>static</b> - the resource has many dedicated slots (one per instance) with a virtual CPU each</li>
         </ul>
-        The default type is partitionable, unless there is only one resource instance, then is static.
+        <p>The default type is partitionable, unless there is only one resource instance, then is static.
         When adding resources to the main slots (type is <tt>main</tt> or <tt>extra</tt>): the memory and disk parameters are ignored; HTCondor splits automatically resources
         depending on the number of CPUs and having a partitionable main slot or not;
         if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots for the Glideins
@@ -443,7 +444,7 @@ by the VO factory clients.</P>
             Check the <a href="http://research.cs.wisc.edu/htcondor/manual/v8.4/3_5Policy_Configuration.html#SECTION004511200000000000000">HTCondor manual</a> for more about resource splitting.</p>
         <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
             e.g. request_ioslot=1</p>
-        <p>Examples:<br>
+        <p>Examples:</p>
         <ul>
             <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
             <li><b>value="ioslot"</b> creates 1 ioslot resource with 128MB</li>
@@ -451,7 +452,6 @@ by the VO factory clients.</P>
                 (3) adds 3 GPUs to the main slot/slots</li>
             <li><b>value="GPUs,type=main"</b> discovers (*) how many GPUs are available and adds them to the main slot</li>
         </ul>
-        </p>
         <p>(*) GPUs is a special resource name. If no number is specified, the glidein will invoke
             <a href="https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus">HTCondor's GPU discovery mechanism</a>
             and get the number from there, which could be 0 if there are no GPUs. Your job will find in the HTCondor ClassAd also
@@ -791,7 +791,7 @@ They cannot be changed by an administrator in any other way.
             <TD> String </TD>
 
             <TD>
-                ...&lt;entries&gt;&lt;entry gatekeeper=&ldquo;<B>value</B>&rdquo;&gt;</P>
+                ...&lt;entries&gt;&lt;entry gatekeeper=&ldquo;<B>value</B>&rdquo;&gt;
             </TD>
             <TD>
                 <P>URI of the Grid gatekeeper (like
@@ -1092,8 +1092,7 @@ described below ar the most often used.</P>
         </TD>
     </TR>
 </TABLE>
-
-
+</div>
 
 
 <div class="section">
@@ -1269,11 +1268,11 @@ the working directory specified by</P>
                 Note, the syntax of this command is very sensitiv
                 This needs to be double-escaped in order to function correctly.
                 For the two examples listed above, you would need:
-                <ul>
+            </P>
+            <ul>
                 <li><tt>"\\\"\\\$@\\\""</tt></li>
                 <li><tt>"\\\"\\\$GLIDEIN_PARROT/parrot_run\\\" -t \\\"$parrot_tmp\\\" \\\"\\\$@\\\""</tt>
-                </ul>
-            </P>
+            </ul>
         </TD>
     </TR>
 </TABLE>
@@ -1525,12 +1524,12 @@ startup scripts.</P>
 <div class="section">
 <a name="lifetime" />
 <h2>Lifetime of a Glidein</h2>
-<img src="../images/retire_times.png" />
+<img src="../images/retire_times.png" alt="Retire time plot"/>
 <p>
 All the various variables in the glidein configuration can be confusing.
 The above diagram illustrates the lifetime of a glidein pilot that has a
 long-running job.  
-
+</p>
 <ul>
 <li><font color="499946"><i>Green</i></font>:
 For the first GLIDEIN_Retire_Time seconds (modified by
@@ -1559,12 +1558,11 @@ shutting down.  All of these periods are totalled and calculated to fit
 within GLIDEIN_MAX_WALLTIME if specified.
 </li>
 </ul>
-</p>
 <p>Note that if a job ends early in the green period, a new job will start.
 If a job ends after this period, then the glidein will shut down and end
 early.  This can be seen in the example below with two jobs below:
 </p>
-<img src="../images/idle_times.jpg" />
+<img src="../images/idle_times.jpg" alt="Idle time plot"/>
 <p>
 <ul>
 <li><font color="f8bb44"><i>Orange</i></font>:
@@ -1598,8 +1596,8 @@ where Glidein_Max_Tail counts the idle time after the previous job ends, as spec
 
     <p>
         In this section we describe the steps to follow to activate the feature that allows to drain glideins.
-
-        <ul>
+    </p>
+    <ul>
             <li>
                 On the execute hosts, create a directory in which MACHINEFEATURES attributes will be set, say its name is <tt>/path/to/dir</tt>.
             </li>
@@ -1609,8 +1607,7 @@ where Glidein_Max_Tail counts the idle time after the previous job ends, as spec
             <li>
                 When a machine is draining, create a file named "shutdowntime" in the MJF directory.  Put the draining deadline unix timestamp in the file.  Even a distant time in the future is sufficient to cause the glidein to set SiteWMS_WN_Draining=True and stop accepting new jobs (this is controled by the <tt>check_wn_drainstate.sh</tt> condor CROND script).
             </li>
-        </ul>
-    </p>
+    </ul>
 </div>
 
 <div class="footer">
