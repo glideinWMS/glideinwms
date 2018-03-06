@@ -222,13 +222,13 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     if not os.path.exists(lock_fname):
         # Create a lock file if needed
         try:
-            fd = open(lock_fname,"w")
+            fd = open(lock_fname, "w")
             fd.close()
         except:
             # could be a race condition
             pass
 
-    fd = open(lock_fname,"r+")
+    fd = open(lock_fname, "r+")
 
     try:
         fcntl.flock(fd, fcntl.LOCK_EX)
@@ -242,8 +242,8 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     data = status.fetchStored()
 
     reserved_names = ("ReqName", "ReqGlidein", "ClientName", "FrontendName",
-                      "GroupName","ReqPubKeyID","ReqEncKeyCode",
-                      "ReqEncIdentity","AuthenticatedIdentity")
+                      "GroupName", "ReqPubKeyID", "ReqEncKeyCode",
+                      "ReqEncIdentity", "AuthenticatedIdentity")
 
     # Output is now in the format of
     # out[entry_name][frontend]
@@ -256,10 +256,10 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
         el = {"requests":{}, "web":{}, "params":{},
               "params_decrypted":{}, "monitor":{}, "internals":{}}
 
-        for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
-                             ("web",factoryConfig.client_web_prefix),
-                             ("params",factoryConfig.glidein_param_prefix),
-                             ("monitor",factoryConfig.glidein_monitor_prefix)):
+        for (key, prefix) in (("requests", factoryConfig.client_req_prefix),
+                             ("web", factoryConfig.client_web_prefix),
+                             ("params", factoryConfig.glidein_param_prefix),
+                             ("monitor", factoryConfig.glidein_monitor_prefix)):
             plen = len(prefix)
             for attr in kel:
                 if attr in reserved_names:
@@ -397,22 +397,22 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
 
     # serialize access to the Collector accross all the processes
     # these is a single Collector anyhow
-    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_status.lock")
+    lock_fname=os.path.join(factoryConfig.lock_dir, "gfi_status.lock")
     if not os.path.exists(lock_fname): #create a lock file if needed
         try:
-            fd=open(lock_fname,"w")
+            fd=open(lock_fname, "w")
             fd.close()
         except:
             # could be a race condition
             pass
 
-    fd=open(lock_fname,"r+")
+    fd=open(lock_fname, "r+")
     try:
-        fcntl.flock(fd,fcntl.LOCK_EX)
+        fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             status.load(status_constraint)
         finally:
-            fcntl.flock(fd,fcntl.LOCK_UN)
+            fcntl.flock(fd, fcntl.LOCK_UN)
     finally:
         fd.close()
 
@@ -437,7 +437,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
                 if attr[:plen] == prefix:
                     el[key][attr[plen:]] = kel[attr]
         if pub_key_obj is not None:
-            if kel.has_key('ReqPubKeyID'):
+            if 'ReqPubKeyID' in kel:
                 try:
                     sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
                 except:
@@ -562,7 +562,7 @@ class EntryClassad(classadSupport.Classad):
                                (factoryConfig.glidein_config_prefix, glidein_config_limits)):
             for attr in data.keys():
                 el = data[attr]
-                if type(el) == type(1):
+                if isinstance(el, int):
                     # don't quote ints
                     self.adParams['%s%s' % (prefix, attr)] = el
                 else:
@@ -780,7 +780,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                 advertizeGlideinClientMonitoringFromFile(tmpnam,
                                                          remove_file=True,
                                                          factory_collector=self.factory_collector)
-            except condorExe.ExeError, e:
+            except condorExe.ExeError as e:
                 error_arr.append(e)
 
         if len(error_arr) > 0:
@@ -805,7 +805,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                                                          remove_file=True,
                                                          is_multi=True,
                                                          factory_collector=self.factory_collector)
-            except condorExe.ExeError, e:
+            except condorExe.ExeError as e:
                 error_arr.append(e)
 
             if len(error_arr) > 0:
@@ -885,7 +885,7 @@ def createGlideinClientMonitoringFile(fname,
                                    (factoryConfig.glidein_monitor_prefix, client_monitors)):
                 for attr in data.keys():
                     el = data[attr]
-                    if type(el) == type(1):
+                    if isinstance(el, int):
                         # don't quote ints
                         fd.write('%s%s = %s\n' % (prefix, attr, el))
                     else:
@@ -992,7 +992,7 @@ def exe_condor_advertise(fname, command,
     lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_advertize.lock")
     if not os.path.exists(lock_fname):  # create a lock file if needed
         try:
-            fd = open(lock_fname,"w")
+            fd = open(lock_fname, "w")
             fd.close()
         except:
             # could be a race condition

@@ -700,8 +700,9 @@ EOF
 # ---- start of resource slots part ($condor_config_resource_slots) ----
 NEW_RESOURCES_LIST =
 EXTRA_SLOTS_NUM = 0
+EXTRA_CPUS_NUM = 0
 EXTRA_SLOTS_START = True
-NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
+NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)+\$(EXTRA_CPUS_NUM)
 
 # Slot 1 definition done before (fixed/partitionable)
 #SLOT_TYPE_1_PARTITIONABLE = FALSE
@@ -743,6 +744,28 @@ EOF
                     # Will be ignored if res_opt=main
                     let res_ram=128*${res_num}
                 fi
+                if [ -n "$AUTO_GPU" ]; then
+                    cat >> "$CONDOR_CONFIG" <<EOF
+# Declare GPUs resource, auto-discovered: ${i}
+use feature : GPUs
+GPU_DISCOVERY_EXTRA = -extra
+# Protect against no GPUs found
+if defined MACHINE_RESOURCE_${res_name}
+else
+  MACHINE_RESOURCE_${res_name} = 0
+endif
+EOF
+                else
+                    cat >> "$CONDOR_CONFIG" <<EOF
+# Declare resource: ${i}
+MACHINE_RESOURCE_${res_name} = ${res_num}
+EOF
+                fi
+                if [ "x$res_opt" == "xextra" ]; then
+                    # Like main, but adds CPUs
+                    res_opt=main
+                    echo "EXTRA_CPUS_NUM = \$(EXTRA_CPUS_NUM)+\$(MACHINE_RESOURCE_${res_name})" >> "$CONDOR_CONFIG"
+                fi
                 if [ "x$res_opt" == "xmain" ]; then  # which is the default value? main or static?
                     res_opt=
                     # Resource allocated for only main slots (partitionable or static)
@@ -766,23 +789,6 @@ EOF
                     res_disk_specification=''
                 else
                     res_disk_specification=", disk=${res_disk}"
-                fi
-                if [ -n "$AUTO_GPU" ]; then
-                    cat >> "$CONDOR_CONFIG" <<EOF
-# Declare GPUs resource, auto-discovered: ${i}
-use feature : GPUs
-GPU_DISCOVERY_EXTRA = -extra
-# Protect against no GPUs found
-if defined MACHINE_RESOURCE_${res_name}
-else
-  MACHINE_RESOURCE_${res_name} = 0
-endif
-EOF
-                else
-                    cat >> "$CONDOR_CONFIG" <<EOF
-# Declare resource: ${i}
-MACHINE_RESOURCE_${res_name} = ${res_num}
-EOF
                 fi
                 if [ -n "$res_opt" ]; then
                     # no main, separate static or partitionable

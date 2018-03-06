@@ -3,8 +3,9 @@
 """
 Unit tests for the infosys_lib module.
 """
+from __future__ import absolute_import
 
-import unittest_utils
+from glideinwms.unittests import unittest_utils
 
 import os
 import sys
@@ -71,7 +72,7 @@ class TestInfosysLib(unittest.TestCase):
         # Condor path and config location
         # These will be set correctly as long as the test is run in the same environment
         # as what is needed to run the factory/wms collector
-        if not os.environ.has_key("CONDOR_CONFIG"):
+        if "CONDOR_CONFIG" not in os.environ:
             condor_config="/etc/condor/condor_config"
             
         condorExe.init()
@@ -573,7 +574,7 @@ class TestInfosysLib(unittest.TestCase):
                     "Infosys gatekeeper : node2.fnal.gov/jobmanager-condor\n" \
                     "Infosys rsl : (queue=default)\n" \
                     "Infosys gridtype : cream\n\n"
-        self.assertEqual(output,expected)
+        self.assertEqual(output, expected)
 
 
 def main():

@@ -51,11 +51,11 @@ class SymKey:
              key_iv_code=None):
         if key_str is not None:
             if key_iv_code is not None:
-                raise ValueError, "Illegal to define both key_str and key_iv_code"
+                raise ValueError("Illegal to define both key_str and key_iv_code")
 
             key_str = str(key_str) # just in case it was unicode"
             if len(key_str) != (self.key_len*2):
-                raise ValueError, "Key must be exactly %i long, got %i" % (self.key_len*2, len(key_str))
+                raise ValueError("Key must be exactly %i long, got %i" % (self.key_len*2, len(key_str)))
 
             if iv_str is None:
                 # if key_str defined, one needs the iv_str, too
@@ -63,19 +63,19 @@ class SymKey:
                 iv_str = '0'*(self.iv_len*2)
             else:
                 if len(iv_str) != (self.iv_len*2):
-                    raise ValueError, "Initialization vector must be exactly %i long, got %i" % (self.iv_len*2, len(iv_str))
+                    raise ValueError("Initialization vector must be exactly %i long, got %i" % (self.iv_len*2, len(iv_str)))
                 iv_str = str(iv_str) # just in case it was unicode"
         elif key_iv_code is not None:
             key_iv_code = str(key_iv_code) # just in case it was unicode
             ki_arr = key_iv_code.split(',')
             if len(ki_arr) != 3:
-                raise ValueError, "Invalid format, comas not found"
+                raise ValueError("Invalid format, comas not found")
             if ki_arr[0] != ('cypher:%s' % self.cypher_name):
-                raise ValueError, "Invalid format, not my cypher(%s)" % self.cypher_name
+                raise ValueError("Invalid format, not my cypher(%s)" % self.cypher_name)
             if ki_arr[1][:4] != 'key:':
-                raise ValueError, "Invalid format, key not found"
+                raise ValueError("Invalid format, key not found")
             if ki_arr[2][:3] != 'iv:':
-                raise ValueError, "Invalid format, iv not found"
+                raise ValueError("Invalid format, iv not found")
             # call itself, but with key and iv decoded
             return self.load(key_str=ki_arr[1][4:], iv_str=ki_arr[2][3:])
         #else keep None
@@ -109,7 +109,7 @@ class SymKey:
 
     def encrypt(self, data):
         if not self.is_valid():
-            raise KeyError, "No key"
+            raise KeyError("No key")
         
         b = M2Crypto.BIO.MemoryBuffer()
         c = M2Crypto.BIO.CipherStream(b)
@@ -133,7 +133,7 @@ class SymKey:
     # decrypt data inline
     def decrypt(self, data):
         if not self.is_valid():
-            raise KeyError, "No key"
+            raise KeyError("No key")
         
         b = M2Crypto.BIO.MemoryBuffer()
         c = M2Crypto.BIO.CipherStream(b)
@@ -200,7 +200,7 @@ class ParametryzedSymKey(SymKey):
                  key_str=None, iv_str=None,
                  key_iv_code=None):
         if not (cypher_name in cypher_dict.keys()):
-            raise KeyError, "Unsupported cypher %s" % cypher_name
+            raise KeyError("Unsupported cypher %s" % cypher_name)
         cypher_params = cypher_dict[cypher_name]
         SymKey.__init__(self, cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str, key_iv_code)
         
@@ -220,15 +220,15 @@ class AutoSymKey(MutableSymKey):
             key_iv_code = str(key_iv_code) # just in case it was unicode
             ki_arr = key_iv_code.split(',')
             if len(ki_arr) != 3:
-                raise ValueError, "Invalid format, comas not found"
+                raise ValueError("Invalid format, comas not found")
             if ki_arr[0][:7] != 'cypher:':
-                raise ValueError, "Invalid format, cypher not found"
+                raise ValueError("Invalid format, cypher not found")
             cypher_name = ki_arr[0][7:]
             if ki_arr[1][:4] != 'key:':
-                raise ValueError, "Invalid format, key not found"
+                raise ValueError("Invalid format, key not found")
             key_str = ki_arr[1][4:]
             if ki_arr[2][:3] != 'iv:':
-                raise ValueError, "Invalid format, iv not found"
+                raise ValueError("Invalid format, iv not found")
             iv_str = ki_arr[2][3:]
 
 

@@ -186,7 +186,7 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
         ("EnteredCurrentStatus", "i"), ("GlideinEntrySubmitFile", "s"),
         (factoryConfig.credential_id_schedd_attribute, "s"),
         ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
-        ("HoldReason","s"), ("NumSystemHolds","i"),
+        ("HoldReason", "s"), ("NumSystemHolds", "i"),
         (factoryConfig.frontend_name_attribute, "s"),
         (factoryConfig.client_schedd_attribute, "s"),
         (factoryConfig.credential_secclass_schedd_attribute, "s")
@@ -282,8 +282,8 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     entry_condorQ = condorMonitor.SubQuery(
         condorq,
         lambda d: (
-            d.has_key(csa_str) and (d[csa_str] == client_name) and
-            d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)
+            csa_str in d and (d[csa_str] == client_name) and
+            xsa_str in d and (d[xsa_str] == proxy_security_class)
         )
     )
     entry_condorQ.schedd_name = condorq.schedd_name
@@ -372,8 +372,8 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     dn=""
     voms=""
     try:
-        (f,tempfilename)=tempfile.mkstemp()
-        os.write(f,proxy_data)
+        (f, tempfilename)=tempfile.mkstemp()
+        os.write(f, proxy_data)
         os.close(f)
     except:
         logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
@@ -408,21 +408,21 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         # all args go through the environment, so they are protected
         update_proxy_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
         for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if os.environ.has_key(var):
+            if var in os.environ:
                 update_proxy_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
             condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
-        except condorPrivsep.ExeError, e:
-            raise RuntimeError, "Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
+        except condorPrivsep.ExeError as e:
+            raise RuntimeError("Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
         except:
-            raise RuntimeError, "Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+            raise RuntimeError("Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
         return fname
     else:
         # do it natively when you can
         if not os.path.isfile(fname):
             # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
+            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
             try:
                 os.write(fd, proxy_data)
             finally:
@@ -450,7 +450,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
             pass # just protect
 
         # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
+        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, proxy_data)
         finally:
@@ -481,7 +481,7 @@ class ClientWeb:
             factoryConfig = globals()['factoryConfig']
 
         if client_signtype not in factoryConfig.supported_signtypes:
-            raise ValueError, "Signtype '%s' not supported!" % client_signtype
+            raise ValueError("Signtype '%s' not supported!" % client_signtype)
 
         self.url = client_web_url
         self.signtype = client_signtype
@@ -565,14 +565,14 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
 
     # Held==JobStatus(5)
     q_held_glideins = 0
-    if qc_status.has_key(5):
+    if 5 in qc_status:
         q_held_glideins = qc_status[5]
     # Idle==Jobstatus(1)
     sum_idle_count(qc_status)
     q_idle_glideins = qc_status[1]
     # Running==Jobstatus(2)
     q_running_glideins = 0
-    if qc_status.has_key(2):
+    if 2 in qc_status:
         q_running_glideins = qc_status[2]
 
     # Determine how many more idle glideins we need in requested idle (we may already have some)
@@ -634,14 +634,14 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
                        frontend_name, submit_credentials, client_web, params, qc_status_sf,
                        log=log, factoryConfig=factoryConfig)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
-        return add_glideins # exit, some submitted
-    except RuntimeError, e:
+        return add_glideins  # exit, some submitted
+    except RuntimeError as e:
         log.warning("%s" % e)
-        return 0 # something is wrong... assume 0 and exit
+        return 0  # something is wrong... assume 0 and exit
     except:
         log.warning("Unexpected error submiting glideins")
         log.exception("Unexpected error submiting glideins")
-        return 0 # something is wrong... assume 0 and exit
+        return 0  # something is wrong... assume 0 and exit
 
     return 0
 
@@ -877,7 +877,7 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    if work_el['requests'].has_key('RemoveExcess'):
+    if 'RemoveExcess' in work_el['requests']:
         remove_excess = work_el['requests']['RemoveExcess']
     else:
         remove_excess = 'NO'
@@ -933,7 +933,7 @@ def hash_status(el):
     job_status = el["JobStatus"]
     if job_status == 1:
         # idle jobs, look of GridJobStatus
-        if el.has_key("GridJobStatus"):
+        if "GridJobStatus" in el:
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED", "REGISTERED", "INLRMS:Q"):
                 return 1002
@@ -945,7 +945,7 @@ def hash_status(el):
             return 1001
     elif job_status == 2:
         # count only real running, all others become Other
-        if el.has_key("GridJobStatus"):
+        if "GridJobStatus" in el:
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING", "INLRMS:R"):
                 return 2
@@ -973,7 +973,7 @@ def hash_statusStale(el):
     global factoryConfig
     age = el["ServerTime"] - el["EnteredCurrentStatus"]
     jstatus = el["JobStatus"]
-    if factoryConfig.stale_maxage.has_key(jstatus):
+    if jstatus in factoryConfig.stale_maxage:
         return [jstatus, age > factoryConfig.stale_maxage[jstatus]]
     else:
         return [jstatus, 0] # others are not stale
@@ -993,6 +993,7 @@ def diffList(base_list, subtract_list):
 
     return out_list
 
+
 #
 # Extract functions
 # Will compare with the status info to make sure it does not show good ones
@@ -1001,82 +1002,94 @@ def diffList(base_list, subtract_list):
 def extractStaleSimple(q, factoryConfig=None):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [1, 1]))
+    qstale = q.fetchStored(lambda el: (hash_statusStale(el) == [1, 1]))
     qstale_list = qstale.keys()
 
     return qstale_list
 
+
 def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable
-    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
+    # qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
+    qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
 
+
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 iterations
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
-                                     and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
+    qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
+                                      and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
     qheld_list = qheld.keys()
     return qheld_list
+
 
 def extractRecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
+    qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
+
 
 def extractRecoverableHeldSimpleWithinLimits(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
-    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig) and isGlideinWithinHeldLimits(el, factoryConfig=factoryConfig)))
+    qheld=q.fetchStored(lambda el: (el["JobStatus"]==5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig) and isGlideinWithinHeldLimits(el, factoryConfig=factoryConfig)))
     qheld_list=qheld.keys()
     return qheld_list
 
+
 def extractHeldSimple(q, factoryConfig=None):
     #  Held==5
-    qheld = q.fetchStored(lambda el:el["JobStatus"] == 5)
+    qheld = q.fetchStored(lambda el: el["JobStatus"] == 5)
     qheld_list = qheld.keys()
     return qheld_list
 
+
 def extractIdleSimple(q, factoryConfig=None):
     #  Idle==1
-    qidle = q.fetchStored(lambda el:el["JobStatus"] == 1)
+    qidle = q.fetchStored(lambda el: el["JobStatus"] == 1)
     qidle_list = qidle.keys()
     return qidle_list
+
 
 def extractIdleUnsubmitted(q, factoryConfig=None):
     #  1001 == Unsubmitted
-    qidle = q.fetchStored(lambda el:hash_status(el) == 1001)
+    qidle = q.fetchStored(lambda el: hash_status(el) == 1001)
     qidle_list = qidle.keys()
     return qidle_list
+
 
 def extractIdleQueued(q, factoryConfig=None):
     #  All 1xxx but 1001
-    qidle = q.fetchStored(lambda el:(hash_status(el) in (1002, 1010, 1100)))
+    qidle = q.fetchStored(lambda el: (hash_status(el) in (1002, 1010, 1100)))
     qidle_list = qidle.keys()
     return qidle_list
 
+
 def extractNonRunSimple(q, factoryConfig=None):
     #  Run==2
-    qnrun = q.fetchStored(lambda el:el["JobStatus"] != 2)
+    qnrun = q.fetchStored(lambda el: el["JobStatus"] != 2)
     qnrun_list = qnrun.keys()
     return qnrun_list
 
+
 def extractRunSimple(q, factoryConfig=None):
     #  Run==2
-    qrun = q.fetchStored(lambda el:el["JobStatus"] == 2)
+    qrun = q.fetchStored(lambda el: el["JobStatus"] == 2)
     qrun_list = qrun.keys()
     return qrun_list
+
 
 def extractRunStale(q, factoryConfig=None):
     # first find out the stale running jids
     #  hash: (Running==2, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 1]))
+    qstale = q.fetchStored(lambda el: (hash_statusStale(el) == [2, 1]))
     qstale_list = qstale.keys()
 
     # these glideins were running for too long, period!
     return qstale_list
+
 
 # helper function of extractStaleUnclaimed
 def group_unclaimed(el_list):
@@ -1108,8 +1121,8 @@ def extractJobId(submit_out):
     for line in submit_out:
         found = extractJobId_recmp.search(line.strip())
         if found:
-            return (long(found.group("cluster")),int(found.group("count")))
-    raise condorExe.ExeError, "Could not find cluster info!"
+            return (long(found.group("cluster")), int(found.group("count")))
+    raise condorExe.ExeError("Could not find cluster info!")
 
 escape_table = {'.':'.dot,',
                 ',':'.comma,',
@@ -1152,38 +1165,36 @@ def escapeParam(param_str):
 def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # check to see if the username for the proxy is
 # same as the factory username
-    if username != MY_USERNAME: # Use privsep
+    if username != MY_USERNAME:  # Use privsep
         try:
             args = ["condor_submit", "-name", schedd, submitFile]
-            submit_out = condorPrivsep.condor_execute(
-                username, factoryConfig.submit_dir,
-                "condor_submit", args, env=exe_env)
+            submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir,
+                                                      "condor_submit", args, env=exe_env)
             log.debug(str(submit_out))
         except condorPrivsep.ExeError as e:
             submit_out = []
-            msg = "condor_submit failed (user %s): %s" % (username,
-                str(e))
+            msg = "condor_submit failed (user %s): %s" % (username, str(e))
             log.error(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
         except:
             submit_out = []
             msg = "condor_submit failed (user %s): Unknown privsep error" % username
             log.error(msg)
-            raise RuntimeError, msg
-    else:
+            raise RuntimeError(msg)
+    else:  # Do not use privsep
         try:
             submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                child_env=env_list2dict(exe_env))
+                                            child_env=env_list2dict(exe_env))
         except condorExe.ExeError as e:
             submit_out = []
             msg = "condor_submit failed: %s" % str(e)
             log.error(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
         except Exception as e:
             submit_out = []
             msg = "condor_submit failed: Unknown error: %s" % str(e)
             log.error(msg)
-            raise RuntimeError, msg # Do not use privsep
+            raise RuntimeError(msg)
     return submit_out
 
 
@@ -1194,12 +1205,12 @@ def pickSubmitFile(submit_files, status_sf, nr_submitted_sf, log):
         Currently sum idle+running of each resource and send to the one with less
         jobs (counting jobs just submitted).
     """
-    minsf = None #submit file with minimun jobs
+    minsf = None  # submit file with minimun jobs
     minNJ = -1
     for sf in submit_files:
         curr = status_sf.get(sf, {})
         currNJ = curr.get(1, 0) + curr.get(2, 0) + nr_submitted_sf.get(sf, 0) #sum idle + running + just submitted
-        if minNJ == -1 or currNJ < minNJ: #if it's the first, or the number of jobs is less than the previous minumum
+        if minNJ == -1 or currNJ < minNJ:  # if it's the first, or the number of jobs is less than the previous minumum
             minsf = sf
             minNJ = currNJ
     return minsf
@@ -1235,7 +1246,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         msg = "Failed to setup execution environment."
         log.error(msg)
         log.exception(msg)
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
     if username != MY_USERNAME:
         # Use privsep
@@ -1271,7 +1282,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
 
             submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
 
-            cluster,count=extractJobId(submit_out)
+            cluster, count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster, j))
             nr_submitted += count
@@ -1316,10 +1327,10 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
                 try:
                     log.info("Forcing the removal of glideins in X state")
                     condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
-                except condorExe.ExeError, e:
+                except condorExe.ExeError as e:
                     log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
 
-        except condorExe.ExeError, e:
+        except condorExe.ExeError as e:
             # silently ignore errors, and try next one
             log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
@@ -1350,7 +1361,7 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
         try:
             condorManager.condorReleaseOne("%li.%li" % (jid[0], jid[1]), schedd_name)
             released_jids.append(jid)
-        except condorExe.ExeError, e:
+        except condorExe.ExeError as e:
             log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
     log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
@@ -1557,7 +1568,7 @@ email_logs = False
 
             # RSL is definitely not for cloud entries
             glidein_rsl = ""
-            if jobDescript.data.has_key('GlobusRSL'):
+            if 'GlobusRSL' in jobDescript.data:
                 glidein_rsl = jobDescript.data['GlobusRSL']
 
             if 'project_id' in jobDescript.data['AuthMethod']:
@@ -1568,7 +1579,7 @@ email_logs = False
             exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
         return exe_env
-    except Exception, e:
+    except Exception as e:
         msg = "Error setting up submission environment: %s" % str(e)
         log.debug(msg)
         log.exception(msg)
@@ -1592,7 +1603,7 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
         factoryConfig = globals()['factoryConfig']
 
     # some basic sanity checks to start
-    if not jobInfo.has_key('JobStatus'):
+    if 'JobStatus' not in jobInfo:
         return True
     if jobInfo['JobStatus']!=5:
         return True
@@ -1601,13 +1612,13 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
     within_limits=True
 
     num_holds=1
-    if jobInfo.has_key('NumSystemHolds'):
+    if 'NumSystemHolds' in jobInfo:
         num_holds=jobInfo['NumSystemHolds']
 
     if num_holds>factoryConfig.max_release_count:
         within_limits=False
 
-    if jobInfo.has_key('ServerTime') and jobInfo.has_key('EnteredCurrentStatus'):
+    if 'ServerTime' in jobInfo and 'EnteredCurrentStatus' in jobInfo:
         held_period=jobInfo['ServerTime']-jobInfo['EnteredCurrentStatus']
         if held_period<(num_holds*factoryConfig.min_release_time):
             # slower for repeat offenders
@@ -1752,12 +1763,12 @@ class GlideinTotals:
         self.entry_running = 0
         self.entry_held = 0
         self.entry_idle = 0
-        if qc_status.has_key(2):  # Running==Jobstatus(2)
+        if 2 in qc_status:  # Running==Jobstatus(2)
             self.entry_running = qc_status[2]
-        if qc_status.has_key(5):  # Held==JobStatus(5)
+        if 5 in qc_status:  # Held==JobStatus(5)
             self.entry_held = qc_status[5]
         sum_idle_count(qc_status)
-        if qc_status.has_key(1):  # Idle==Jobstatus(1)
+        if 1 in qc_status:  # Idle==Jobstatus(1)
             self.entry_idle = qc_status[1]
 
         all_frontends = frontendDescript.get_all_frontend_sec_classes()
@@ -1804,12 +1815,12 @@ class GlideinTotals:
             fe_running = 0
             fe_held = 0
             fe_idle = 0
-            if qc_status.has_key(2):  # Running==Jobstatus(2)
+            if 2 in qc_status:  # Running==Jobstatus(2)
                 fe_running = qc_status[2]
-            if qc_status.has_key(5):  # Held==JobStatus(5)
+            if 5 in qc_status:  # Held==JobStatus(5)
                 fe_held = qc_status[5]
             sum_idle_count(qc_status)
-            if qc_status.has_key(1):  # Idle==Jobstatus(1)
+            if 1 in qc_status:  # Idle==Jobstatus(1)
                 fe_idle = qc_status[1]
 
             self.frontend_limits[fe_sec_class]['running'] = fe_running

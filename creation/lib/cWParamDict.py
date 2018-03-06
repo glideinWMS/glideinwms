@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -14,8 +15,8 @@
 
 import os.path
 import string
-import cWConsts
-import cWDictFile
+from . import cWConsts
+from . import cWDictFile
 
 
 def is_true(s):
@@ -54,17 +55,17 @@ def add_file_unparsed(user_file, dicts, is_factory):
     if is_factory:
         # Factory (file_list, after_file_list)
         file_list_idx = 'file_list'
-        if user_file.has_key('after_entry'):
+        if 'after_entry' in user_file:
             if is_true(user_file.after_entry):  # eval(user_file.after_entry,{},{}):
                 file_list_idx = 'after_file_list'
     else:
         # Frontend (preentry_file_list, file_list, aftergroup_preentry_file_list, aftergroup_file_list)
         file_list_idx = 'preentry_file_list'
-        if user_file.has_key('after_entry'):
+        if 'after_entry' in user_file:
             if is_true(user_file.after_entry):
                 file_list_idx = 'file_list'
 
-        if user_file.has_key('after_group'):
+        if 'after_group' in user_file:
             if is_true(user_file.after_group):
                 file_list_idx = 'aftergroup_%s' % file_list_idx
 

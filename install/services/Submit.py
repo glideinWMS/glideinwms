@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import traceback
-import sys,os,os.path,string,time
+import sys, os, os.path, string, time
 import re
 import stat
 import optparse
 #-------------------------
-import common
-import UserCollector
-import VOFrontend
-from Condor import Condor
-from Configuration import ConfigurationError
+from . import common
+from . import UserCollector
+from . import VOFrontend
+from .Condor import Condor
+from .Configuration import ConfigurationError
 #-------------------------
 #os.environ["PYTHONPATH"] = ""
 
@@ -46,11 +48,11 @@ frontend_options = [ "hostname",
 wmscollector_options = [] 
 factory_options = [] 
 
-valid_options = { "Submit"        : submit_options,
-                  "UserCollector" : usercollector_options,
-                  "VOFrontend"    : frontend_options,
-                  "WMSCollector"  : wmscollector_options,
-                  "Factory"       : factory_options,
+valid_options = { "Submit": submit_options,
+                  "UserCollector": usercollector_options,
+                  "VOFrontend": frontend_options,
+                  "WMSCollector": wmscollector_options,
+                  "Factory": factory_options,
 }
 
 class Submit(Condor):
@@ -63,7 +65,7 @@ class Submit(Condor):
       return
     if optionsDict != None:
       valid_options = optionsDict
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    Condor.__init__(self, self.inifile, self.ini_section, valid_options[self.ini_section])
     self.userjob_classads_required = True
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "SCHEDD"
@@ -76,11 +78,11 @@ class Submit(Condor):
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
+      self.frontend = VOFrontend.VOFrontend(self.inifile, valid_options)
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
+      self.usercollector = UserCollector.UserCollector(self.inifile, valid_options)
  
   #--------------------------------
   def install(self):
@@ -92,7 +94,7 @@ class Submit(Condor):
     self.configure()
     common.logit ("======== %s install complete ==========" % self.ini_section)
     if "usercollector" not in self.colocated_services:
-      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+      common.start_service(self.glideinwms_location(), self.ini_section, self.inifile) 
     else:
       self.stop_condor()
       self.start_condor()
@@ -177,14 +179,14 @@ Do you want to continue.""" % { "services" : self.colocated_services,
   #-------------------------
   def create_template(self):
     global valid_options
-    print "; ------------------------------------------"
-    print "; Submit  minimal ini options template"
+    print("; ------------------------------------------")
+    print("; Submit  minimal ini options template")
     for section in valid_options.keys():
-      print "; ------------------------------------------"
-      print "[%s]" % section
+      print("; ------------------------------------------")
+      print("[%s]" % section)
       for option in valid_options[section]:
-        print "%-25s =" % option
-      print
+        print("%-25s =" % option)
+      print()
 
 ### END OF CLASS ###
 
@@ -192,7 +194,7 @@ Do you want to continue.""" % { "services" : self.colocated_services,
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):
@@ -201,7 +203,7 @@ def validate_args(args):
 This will install a Submit service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")

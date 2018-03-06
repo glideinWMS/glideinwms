@@ -9,6 +9,7 @@
 #   Entry class
 #
 
+from __future__ import print_function
 import signal
 import os
 import os.path
@@ -22,7 +23,7 @@ import copy
 import random
 import logging
 
-sys.path.append(os.path.join(sys.path[0],"../../"))
+sys.path.append(os.path.join(sys.path[0], "../../"))
 
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
@@ -118,9 +119,9 @@ class Entry:
         self.gfiFactoryConfig = gfi.FactoryConfig()
         #self.gfiFactoryConfig.warning_log = self.log.warning_log
         self.gfiFactoryConfig.advertise_use_tcp = (
-            self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
+            self.glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
         self.gfiFactoryConfig.advertise_use_multi = (
-            self.glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
+            self.glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
         # set factory_collector at a global level, since we do not expect it to change
         self.gfiFactoryConfig.factory_collector = self.glideinDescript.data['FactoryCollector']
 
@@ -178,7 +179,7 @@ class Entry:
                 "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
                 glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
                 glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
-                float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2,20))
+                float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2, 20))
             cleanupSupport.cleaners.add_cleaner(cleaner)
 
         self.glideinTotals = None
@@ -226,7 +227,7 @@ class Entry:
         self.securityList = {}
         if (self.frontendWhitelist == "On"):
             allowed_vos = ''
-            if self.jobDescript.has_key('AllowedVOs'):
+            if 'AllowedVOs' in self.jobDescript:
                 allowed_vos = self.jobDescript.data['AllowedVOs']
             frontend_allow_list = allowed_vos.split(',')
             for entry in frontend_allow_list:
@@ -380,11 +381,11 @@ class Entry:
             return glideFactoryLib.getCondorQData(
                        self.name, None, self.scheddName,
                        factoryConfig=self.gflFactoryConfig)
-        except Exception, e:
+        except Exception as e:
             self.log.info("Schedd %s not responding, skipping"%self.scheddName)
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb,''))
+            self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb, ''))
             raise e
 
     def glideinsWithinLimits(self, condorQ):
@@ -436,7 +437,7 @@ class Entry:
         for fe_sec_class in all_frontends:
             if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
                 fe_key = 'IdlePerClass_%s' % fe_sec_class
-                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (glideinTotals.frontend_limits[fe_sec_class]['idle'], glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
 
             total_sec_class_glideins = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
             if total_sec_class_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
@@ -533,7 +534,7 @@ class Entry:
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
-                glidein_monitors['Total%s%s'%(w,a)] = current_qc_total[w][a]
+                glidein_monitors['Total%s%s'%(w, a)] = current_qc_total[w][a]
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
@@ -616,7 +617,7 @@ class Entry:
             for w in client_qc_data:
                 for a in client_qc_data[w]:
                     # report only numbers
-                    if type(client_qc_data[w][a]) == type(1):
+                    if isinstance(client_qc_data[w][a], int):
                         client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
 
             try:
@@ -911,21 +912,21 @@ class Entry:
 
 def dump_obj(obj):
     import types
-    print obj.__dict__
-    print "======= START: %s ======" % obj
+    print(obj.__dict__)
+    print("======= START: %s ======" % obj)
     for key in obj.__dict__:
-        if type(obj.__dict__[key]) is not types.InstanceType:
-            print "%s = %s" % (key, obj.__dict__[key])
+        if not isinstance(obj.__dict__[key], types.InstanceType):
+            print("%s = %s" % (key, obj.__dict__[key]))
         else:
             dump_obj(obj.__dict__[key])
-    print "======= END: %s ======" % obj
+    print("======= END: %s ======" % obj)
 
 
 ###############################################################################
 
 class X509Proxies:
 
-    def __init__(self,frontendDescript,client_security_name):
+    def __init__(self, frontendDescript, client_security_name):
         self.frontendDescript=frontendDescript
         self.client_security_name=client_security_name
         self.usernames={}
@@ -935,17 +936,17 @@ class X509Proxies:
 
     # Return None, if cannot convert
     def get_username(self, x509_proxy_security_class):
-        if not self.usernames.has_key(x509_proxy_security_class):
+        if x509_proxy_security_class not in self.usernames:
             # lookup only the first time
-            x509_proxy_username=self.frontendDescript.get_username(self.client_security_name,x509_proxy_security_class)
+            x509_proxy_username=self.frontendDescript.get_username(self.client_security_name, x509_proxy_security_class)
             if x509_proxy_username is None:
                 # but don't cache misses
                 return None
             self.usernames[x509_proxy_security_class]=x509_proxy_username
         return self.usernames[x509_proxy_security_class][:]
 
-    def add_fname(self,x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname):
-        if not self.fnames.has_key(x509_proxy_security_class):
+    def add_fname(self, x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname):
+        if x509_proxy_security_class not in self.fnames:
             self.fnames[x509_proxy_security_class]={}
         self.fnames[x509_proxy_security_class][x509_proxy_identifier]=x509_proxy_fname
         self.count_fnames+=1
@@ -1034,7 +1035,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             continue
 
         if entry.isClientBlacklisted(client_security_name):
-            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
+            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name, client_int_name))
             in_downtime=True
 
         client_expected_identity = entry.frontendDescript.get_identity(client_security_name)
@@ -1046,7 +1047,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         if client_authenticated_identity != client_expected_identity:
             # silently drop... like if we never read it in the first place
             # this is compatible with what the frontend does
-            entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
+            entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name, client_security_name, client_authenticated_identity, client_expected_identity))
             continue
 
         entry.gflFactoryConfig.client_internals[client_int_name] = {
@@ -1092,7 +1093,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             #glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
             entry.gflFactoryConfig.rrd_stats.getData(
                 "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
-        except glideFactoryLib.condorExe.ExeError,e:
+        except glideFactoryLib.condorExe.ExeError as e:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with condor error: ")
         except:
@@ -1182,7 +1183,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
         # Check if project id is required
         if 'project_id' in auth_method:
-            if decrypted_params.has_key('ProjectId'):
+            if 'ProjectId' in decrypted_params:
                 submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
             else:
                 # ProjectId is required, cannot service request
@@ -1252,7 +1253,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                     return return_dict
             else:
                 # Validate factory provided vm id exists
-                if entry.jobDescript.data.has_key('EntryVMId'):
+                if 'EntryVMId' in entry.jobDescript.data:
                     vm_id = entry.jobDescript.data['EntryVMId']
                 else:
                     entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
@@ -1266,7 +1267,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                     return return_dict
             else:
                 # Validate factory provided vm type exists
-                if entry.jobDescript.data.has_key('EntryVMType'):
+                if 'EntryVMType' in entry.jobDescript.data:
                     vm_type = entry.jobDescript.data['EntryVMType']
                 else:
                     entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
@@ -1380,20 +1381,20 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     try:
         idle_glideins = int(work['requests']['IdleGlideins'])
-    except ValueError, e:
+    except ValueError as e:
         entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['IdleGlideins']))
         return return_dict
 
     if 'MaxGlideins' in work['requests']:
         try:
             max_glideins = int(work['requests']['MaxGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work['requests']['MaxGlideins']))
             return return_dict
     else:
         try:
             max_glideins = int(work['requests']['MaxRunningGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['MaxRunningGlideins']))
             return return_dict
 
@@ -1606,7 +1607,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
                                    "%s_%s" % (client_name, x509_proxy_identifier),
                                    x509_proxy,
                                    factoryConfig=entry.gflFactoryConfig)
-        except RuntimeError,e:
+        except RuntimeError as e:
             entry.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
             continue
         except:
@@ -1641,20 +1642,20 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
 
     try:
         idle_glideins = int(work['requests']['IdleGlideins'])
-    except ValueError, e:
+    except ValueError as e:
         entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['IdleGlideins']))
         return return_dict
 
     if 'MaxGlideins' in work['requests']:
         try:
             max_glideins = int(work['requests']['MaxGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work['requests']['MaxGlideins']))
             return return_dict
     else:
         try:
             max_glideins = int(work['requests']['MaxRunningGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['MaxRunningGlideins']))
             return return_dict
 
@@ -1689,9 +1690,8 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
         entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
         return return_dict
 
-    x509_proxy_security_classes = x509_proxies.fnames.keys()
+    x509_proxy_security_classes = sorted(x509_proxies.fnames.keys())
     # Sort to have consistent logging
-    x509_proxy_security_classes.sort()
     for x509_proxy_security_class in x509_proxy_security_classes:
         # split the request proportionally between them
 
@@ -1763,7 +1763,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     # should not need privsep for reading logs
     try: # the logParser class will throw an exception if the input file is bad
         log_stats[credential_username + ":" + client_int_name].load()
-    except Exception, e:
+    except Exception as e:
         entry.log.exception(e)
 
     glideFactoryLib.logStats(condorQ, client_int_name,
@@ -1912,7 +1912,7 @@ def perform_work_v2(entry, condorQ, client_name, client_int_name,
 ############################################################
 
 # added by C.W. Murphy for glideFactoryEntryDescript
-def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_dir):
+def write_descript(entry_name, entryDescript, entryAttributes, entryParams, monitor_dir):
     entry_data = {entry_name:{}}
     entry_data[entry_name]['descript'] = copy.deepcopy(entryDescript.data)
     entry_data[entry_name]['attributes'] = copy.deepcopy(entryAttributes.data)
@@ -1940,9 +1940,9 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
 #
 ############################################################
 
-def termsignal(signr,frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
+def termsignal(signr, frame):
+    raise KeyboardInterrupt("Received signal %s"%signr)
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM,termsignal)
-    signal.signal(signal.SIGQUIT,termsignal)
+    signal.signal(signal.SIGTERM, termsignal)
+    signal.signal(signal.SIGQUIT, termsignal)

@@ -35,7 +35,7 @@ import select
 import logging
 
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
@@ -111,7 +111,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
         except:
             logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
-    raise KeyboardInterrupt,"Parent died. Quiting."
+    raise KeyboardInterrupt("Parent died. Quiting.")
 
 
 ############################################################
@@ -456,7 +456,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
-    while 1:
+    while True:
 
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
@@ -468,7 +468,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
              (glideinDescript.data['OldPubKeyObj'] is not None) ):
             # Invalidate the use of factory's old key
             logSupport.log.info("Retiring use of old key.")
-            logSupport.log.info("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
+            logSupport.log.info("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime, oldkey_eoltime, oldkey_gracetime))
             glideinDescript.data['OldPubKeyType'] = None
             glideinDescript.data['OldPubKeyObj'] = None
 
@@ -509,7 +509,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 post_writestats_info = {}
 
                 for cpu in xrange(cpuCount):
-                    r,w = os.pipe()
+                    r, w = os.pipe()
                     unregister_sighandler()
                     pid = os.fork()
                     if pid:
@@ -667,7 +667,7 @@ def main(parent_pid, sleep_time, advertize_rate,
         if not (entry in string.split(glidein_entries, ',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
             logSupport.log.warning(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
 
         # Create entry objects
         my_entries[entry] = glideFactoryEntry.Entry(entry, startup_dir,

@@ -12,6 +12,7 @@
 #   Marco Mambelli (some functions are from other modules and hardened)
 #
 
+from __future__ import print_function
 import os
 import shutil
 import cPickle as pickle
@@ -182,7 +183,7 @@ def print_funct(*args, **kwargs):
         sep = kwargs['sep']
     except KeyError:
         pass
-    print sep.join([str(i) for i in args])
+    print(sep.join([str(i) for i in args]))
 
 
 def conditional_raise(mask_exceptions):

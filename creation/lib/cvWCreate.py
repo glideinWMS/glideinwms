@@ -24,7 +24,7 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
     template = get_template("frontend_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname,"w")
+    fd = open(startup_fname, "w")
     try:
         template = template % {"frontend_dir": frontend_dir, 
                                "glideinWMS_dir": glideinWMS_dir, 
@@ -41,19 +41,19 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
 #########################################
 # Create frontend-specific mapfile
 def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs,pilot_DNs=[]):
-    fd=open(mapfile_fname,"w")
+    fd=open(mapfile_fname, "w")
     try:
-        fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN),'me'))
-        for (uid,dns) in (('factory',factory_DNs),
-                          ('schedd',schedd_DNs),
-                          ('collector',collector_DNs),
-                          ('pilot',pilot_DNs)):
+        fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN), 'me'))
+        for (uid, dns) in (('factory', factory_DNs),
+                          ('schedd', schedd_DNs),
+                          ('collector', collector_DNs),
+                          ('pilot', pilot_DNs)):
             for i in range(len(dns)):
-                fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]),uid,i))
+                fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]), uid, i))
         fd.write("GSI (.*) anonymous\n")
         # Add FS and other mappings just for completeness
         # Should never get here
-        for t in ('FS','SSL','KERBEROS','PASSWORD','FS_REMOTE','NTSSPI','CLAIMTOBE','ANONYMOUS'):
+        for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
             fd.write("%s (.*) anonymous\n"%t)
     finally:
         fd.close()
@@ -63,10 +63,10 @@ def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_D
 #########################################
 # Create frontend-specific condor_config
 def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy):
-    attrs = condorExe.exe_cmd('condor_config_val','-dump')
+    attrs = condorExe.exe_cmd('condor_config_val', '-dump')
     def_attrs = filter_unwanted_config_attrs(attrs)
 
-    fd=open(config_fname,"w")
+    fd=open(config_fname, "w")
     try:
         fd.write("############################################\n")
         fd.write("#\n")
@@ -94,7 +94,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
-        fd.write("COLLECTOR_HOST = %s\n"%string.join(collector_nodes,","))
+        fd.write("COLLECTOR_HOST = %s\n"%string.join(collector_nodes, ","))
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")

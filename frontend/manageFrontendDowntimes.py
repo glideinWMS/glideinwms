@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os.path
 import os
-import time,string
+import time, string
 import sys
 import re
 
@@ -13,17 +14,17 @@ from glideinwms.frontend import glideinFrontendDowntimeLib
 from glideinwms.frontend import glideinFrontendConfig
 
 def usage():
-    print "Usage:"
-    print "  manageFrontendDowntimes.py -dir frontend_dir -cmd [command] [options]"
-    print "where command is one of:"
-    print "  add           - Add a scheduled downtime period"
-    print "  down          - Put the factory down now(+delay)"
-    print "  up            - Get the factory back up now(+delay)"
-    print "  check         - Report if the factory is in downtime now(+delay)"
-    print "Other options:"
-    print "  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)"
-    print "  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)"
-    print "  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)"
+    print("Usage:")
+    print("  manageFrontendDowntimes.py -dir frontend_dir -cmd [command] [options]")
+    print("where command is one of:")
+    print("  add           - Add a scheduled downtime period")
+    print("  down          - Put the factory down now(+delay)")
+    print("  up            - Get the factory back up now(+delay)")
+    print("  check         - Report if the factory is in downtime now(+delay)")
+    print("Other options:")
+    print("  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)")
+    print("  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)")
+    print("  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)")
 
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
@@ -57,10 +58,10 @@ def strtxt2time( timeStr ):
 # or
 # unix_time
 def str2time(timeStr):
-    if len( timeStr.split(':',1) )  >  1:
+    if len( timeStr.split(':', 1) )  >  1:
         return strtxt2time(timeStr) # has a :, so it must be a text representation
     else:
-        print timeStr
+        print(timeStr)
         return long(timeStr) # should be a simple number
 
 
@@ -71,13 +72,13 @@ def delay2time( delayStr ):
     seconds=0
 
 # getting hours
-    harr=delayStr.split('h',1)
+    harr=delayStr.split('h', 1)
     if len(harr)==2:
         hours=long(harr[0])
         delayStr=harr[1]
 
 # getting minutes
-    marr=delayStr.split('m',1)
+    marr=delayStr.split('m', 1)
     if len(marr)==2:
         minutes=long(marr[0])
         delayStr=marr[1]
@@ -129,7 +130,7 @@ def down( opt_dict ):
         # only add a new line if not in downtime at that time
         return down_fd.startDowntime( start_time=when, end_time=end_time) 
     else:
-        print "Frontend is already down. "
+        print("Frontend is already down. ")
 
     return 0
 
@@ -150,7 +151,7 @@ def up( opt_dict ):
     if (rtn>0):
         return 0
     else:
-        print "Frontend is not in downtime."
+        print("Frontend is not in downtime.")
         return 1
 
 
@@ -199,17 +200,17 @@ def main(argv):
     try:
         frontend_dir = opt_dict["dir"]
         cmd = opt_dict["cmd"]
-    except KeyError, e:
+    except KeyError as e:
         usage()
-        print "-cmd -dir argument is required."
+        print("-cmd -dir argument is required.")
         return 1
 
     try:
         os.chdir(frontend_dir)
-    except OSError, e:
+    except OSError as e:
         usage()
-        print "Failed to locate factory %s" % frontend_dir
-        print "%s"%e
+        print("Failed to locate factory %s" % frontend_dir)
+        print("%s"%e)
         return 1
 
     if   cmd=='add':
@@ -222,7 +223,7 @@ def main(argv):
         return printtimes( opt_dict )
     else:
         usage()
-        print "Invalid command %s" % cmd
+        print("Invalid command %s" % cmd)
         return 1
     
 if __name__ == '__main__':

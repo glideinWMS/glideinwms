@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 import os
 import stat
 import time
 import re
 import pwd
-import logSupport
-import condorPrivsep
-from pidSupport import register_sighandler, unregister_sighandler
+from . import logSupport
+from . import condorPrivsep
+from .pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -44,7 +45,7 @@ class Cleanup:
                 if return_pid:
                     logSupport.log.debug("Collected cleanup PID %s" % pid)
                     self.cleanup_pids.remove(pid)
-            except OSError, e:
+            except OSError as e:
                 self.cleanup_pids.remove(pid)
                 logSupport.log.warning("Received error %s while waiting for PID %s" %
                                        (e.strerror, pid))
@@ -136,7 +137,7 @@ class DirCleanupWSpace(DirCleanup):
 
     def cleanup(self):
         count_removes = 0
-        count_removes_bytes = 0L
+        count_removes_bytes = 0
 
         min_treshold_time = time.time() - self.minlife
         treshold_time = time.time() - self.maxlife
@@ -147,7 +148,7 @@ class DirCleanupWSpace(DirCleanup):
         fpaths.sort(lambda i, j:cmp(files_wstats[i][stat.ST_MTIME], files_wstats[j][stat.ST_MTIME]))
 
         # first calc the amount of space currently used
-        used_space = 0L
+        used_space = 0
         for fpath in fpaths:
             fstat = files_wstats[fpath]
             fsize = fstat[stat.ST_SIZE]
