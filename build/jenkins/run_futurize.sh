@@ -18,6 +18,8 @@ LOG_DIR       Directory including log files
   -2          runs futurize stage 2 tests (default is stage 1)
   -l          list files that need to be refactored
   -d          print diffs about the refactoring
+  -i          run in place without checking out a branch (see above)
+  -s          run sequequentially invoking futurize separately for each file
 EOF
 }
 
@@ -35,6 +37,7 @@ do
   i) INPLACE=yes;;
   1) FUTURIZE_STAGE='-1';;
   2) FUTURIZE_STAGE='-2';;
+  s) SEQUENTIAL=yes
   esac
 done
 
@@ -147,25 +150,48 @@ process_branch () {
     echo "Now running test"
     echo ""
 
-    OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
-    futurize_ret1=$?
+    if [ -n "$SEQUENTIAL" ]; then
+        shopt -s globstar
+        OUTPUT1=""
+        for i in **/*.py; do
+            OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
+            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
+            if [ $? -ne 0 ]; then
+                futurize_ret1=$?
+            fi
+        done
+    else
+        OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
+        futurize_ret1=$?
+    fi
 
     # get list of python scripts without .py extension
     scripts=`find . -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
-    OUTPUT2="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${scripts} 2>&1)"
-    futurize_ret2=$?
+    if [ -n "$SEQUENTIAL" ]; then
+        OUTPUT2=""
+        for i in ${scripts}; do
+            OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
+            OUTPUT2="$OUTPUT2"$'\n'"$OUTPUT_TMP"
+            if [ $? -ne 0 ]; then
+                futurize_ret2=$?
+            fi
+        done
+    else
+        OUTPUT2="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${scripts} 2>&1)"
+        futurize_ret2=$?
+    fi
 
 
-    refactoring_ret="$(echo "$OUTPUT1\n$OUTPUT2" | grep 'Refactored ')"
+    refactoring_ret="$(echo "$OUTPUT1"$'\n'"$OUTPUT2" | grep 'Refactored ')"
 
     # Save the output to a file
 
     save_as=$(echo "${1//\//_}")
 
-    echo "$OUTPUT1\n$OUTPUT2" > "$Log_Dir/Futurize_Log_$save_as.txt"
+    echo "$OUTPUT1"$'\n'"$OUTPUT2" > "$Log_Dir/Futurize_Log_$save_as.txt"
 
     if [[ $futurize_ret1 -ne 0 || $futurize_ret2 -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
-        refactored_files=$(echo "$OUTPUT1\n$OUTPUT2" | grep 'RefactoringTool: Refactored ')
+        refactored_files=$(echo "$OUTPUT1"$'\n'"$OUTPUT2" | grep 'RefactoringTool: Refactored ')
         refactored_file_count=$(echo "$refactored_files" | wc -l)
 
         echo "There are $refactored_file_count files that need to be refactered"
