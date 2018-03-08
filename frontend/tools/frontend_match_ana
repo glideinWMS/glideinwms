@@ -17,6 +17,7 @@
 #   Igor Sfiligoi 
 #
 
+from __future__ import print_function
 import signal
 import sys,os,os.path,copy
 import re
@@ -47,14 +48,14 @@ def print_match(job,glidein,match_ast,counts,level,countid):
     match_obj=exprParser.compile(match_ast)
     res=eval(match_obj)
     c="%s.%s"%(countid,res)
-    if not counts.has_key(c):
+    if c not in counts:
         counts[c]=[0,exprParser.unparse(match_ast)]
     counts[c][0]+=1
-    print "%s%-10s %s"%(prefix,res,exprParser.unparse(match_ast))
+    print("%s%-10s %s"%(prefix,res,exprParser.unparse(match_ast)))
 
     if isinstance(match_ast,exprParser.Or):
         #print 
-        print "  %s%-5s due to OR of"%(prefix,res)
+        print("  %s%-5s due to OR of"%(prefix,res))
         i=0
         for n in match_ast.nodes:
             r=print_match(job,glidein,n,counts,level+2,c+".OR%i"%i)
@@ -63,7 +64,7 @@ def print_match(job,glidein,match_ast,counts,level,countid):
                 break # partial eval, exit at first True
     elif isinstance(match_ast,exprParser.And):
         #print 
-        print "  %s%-5s due to AND of"%(prefix,res)
+        print("  %s%-5s due to AND of"%(prefix,res))
         i=0
         for n in match_ast.nodes:
             r=print_match(job,glidein,n,counts,level+2,c+".AND%i"%i)
@@ -72,7 +73,7 @@ def print_match(job,glidein,match_ast,counts,level,countid):
                 break # partial eval, exit at first False
     elif isinstance(match_ast,exprParser.Not):
         #print 
-        print "  %s%-5s due to NOT of"%(prefix,res)
+        print("  %s%-5s due to NOT of"%(prefix,res))
         print_match(job,glidein,match_ast.expr,counts,level+2,c+".NOT")
             
     return res
@@ -93,19 +94,19 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
         try:
             full_constraint='(%s) && ((PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False))' % factory_constraint
             factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,full_constraint)
-        except RuntimeError,e:
+        except RuntimeError as e:
             if factory_pool_node is not None:
-                print "Failed to talk to factory_pool %s: %s"%(factory_pool_node, e)
+                print("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
             else:
-                print "Failed to talk to factory_pool: %s"%e
+                print("Failed to talk to factory_pool: %s"%e)
             # failed to talk, like empty... maybe the next factory will have something
             factory_glidein_dict={}
 
         for glidename in factory_glidein_dict.keys():
-            if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
-                print "Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node)
-                if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                    print "Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity)
+            if ('AuthenticatedIdentity' not in factory_glidein_dict[glidename]['attrs']) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
+                print("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
+                if 'AuthenticatedIdentity' in factory_glidein_dict[glidename]['attrs']:
+                    print("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
             else:
                 glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
@@ -136,36 +137,36 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
             if job_filter_obj.search(t) is None:
                 continue #no matching
             
-            print
-            print "-=-=-=-=-=-=-=-=-=-"
-            print "Job %s"%t
+            print()
+            print("-=-=-=-=-=-=-=-=-=-")
+            print("Job %s"%t)
 
             match_counts={}
             for glidename in glidein_dict:
                 glidein=glidein_dict[glidename]
 
-                print "-------------"
-                print "%s vs %s"%(t, glidename[1])
-                print "job:     %s"%job
+                print("-------------")
+                print("%s vs %s"%(t, glidename[1]))
+                print("job:     %s"%job)
                 glideattr={}
                 for a in elementDescript.merged_data.get('FactoryMatchAttrs', []):
-                    if glidein["attrs"].has_key(a[0]):
+                    if a[0] in glidein["attrs"]:
                         glideattr[a[0]]=glidein["attrs"][a[0]]
-                print "glidein: %s"%glideattr
-                print "="
+                print("glidein: %s"%glideattr)
+                print("=")
 
                 print_match(job,glidein,match_ast,match_counts,1,t)
 
                 pass
 
-            print
-            print "======================"
-            print "Summary for %s"%t
-            print "job:     %s"%job
+            print()
+            print("======================")
+            print("Summary for %s"%t)
+            print("job:     %s"%job)
             ks=match_counts.keys()
             ks.sort(mycmp)
             for k in ks:
-                print "%-80s %10i %s"%(k, match_counts[k][0],match_counts[k][1])
+                print("%-80s %10i %s"%(k, match_counts[k][0],match_counts[k][1]))
             pass
         pass
 
@@ -190,11 +191,11 @@ def main(work_dir, group_name,job_filter):
     try:
         do_work(elementDescript,paramsDescript,signatureDescript,job_filter)
     except KeyboardInterrupt:
-        print "Received signal...exit"
+        print("Received signal...exit")
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        print "Exception occurred: %s" % tb
+        print("Exception occurred: %s" % tb)
         
 ############################################################
 #

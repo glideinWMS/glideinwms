@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import sys
 import os
 import xml.parsers.expat
@@ -23,14 +24,14 @@ def start_element(name, attrs):
         try:
             if long:
                 s=os.stat(logname)
-                print time.ctime(s[stat.ST_MTIME]), "%10i"%s[stat.ST_SIZE], "%6o"%s[stat.ST_MODE], logname
+                print(time.ctime(s[stat.ST_MTIME]), "%10i"%s[stat.ST_SIZE], "%6o"%s[stat.ST_MODE], logname)
             else:
-                print logname
+                print(logname)
         except OSError:
             sys.stderr.write("ERROR: The log %s does not exist.\n" % logname)
 
 def print_help():
-    print '''\
+    print('''\
 Usage: entry_ls [OPTIONS] ENTRY USER DATE
 where DATE is of the form YYYYMMDD
 
@@ -47,7 +48,7 @@ the following OPTIONS.
 
 Requires the env variable GLIDEIN_FACTORY_DIR to be set to the 
 gwms factory instance location (or to be run in that directory)
-''',
+''', end=' ')
 
 if __name__ == "__main__":
     try:
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     completed_fname=os.path.join(gfactory_entry_dir,"completed_jobs_%s.log" % (date))
     try:
         fin = open(completed_fname)
-    except IOError,e:
+    except IOError as e:
         sys.stderr.write("WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname)
         sys.exit(1)
 

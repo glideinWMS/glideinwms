@@ -6,6 +6,7 @@
 #  suitable to be used in the glideins
 #
 
+from __future__ import print_function
 import os
 import sys
 STARTUP_DIR=sys.path[0]
@@ -17,7 +18,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 from glideinwms.creation.lib import cgWCreate
 
 def usage():
-    print """
+    print("""
 Usage: create_condor_tarball output_filename input_tarfile_or_dir
 
    output_filename - file name of the output tarball created
@@ -36,7 +37,7 @@ Extracts the needed binaries and creates a smaller tarball.
 Refer to the glideinwms documentation:
    WMSfactory -> Configuration -> Multiple HTCondor Tarballs
 for additional information on configuring the factory to use the tarball.
-"""
+""")
 
 
 ################################################################################
@@ -73,14 +74,14 @@ def main(argv):
     elif os.path.isdir(in_dir):
         pass # good...it is a directory
     else:
-        print "%s does not exist!"%in_dir
+        print("%s does not exist!"%in_dir)
         sys.exit(2)
 
     try:
         try:
             tar_fd=cgWCreate.create_condor_tar_fd(in_dir)
-        except RuntimeError,e:
-            print "%s"%e
+        except RuntimeError as e:
+            print("%s"%e)
             sys.exit(2)
 
         try:
@@ -89,7 +90,7 @@ def main(argv):
             usage()
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print string.join(tb,'\n')
+            print(string.join(tb,'\n'))
             sys.exit(3)
 
         delete_at_end=True # cleanup by default
@@ -102,7 +103,7 @@ def main(argv):
             if delete_at_end:
                 try:
                     os.unlink(out_fname)
-                    print "Tarball %s deleted"% out_fname
+                    print("Tarball %s deleted"% out_fname)
                 except:
                     # never throw an error in the file deletion
                     pass 

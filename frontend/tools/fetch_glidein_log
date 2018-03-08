@@ -19,6 +19,7 @@
 #   Igor Sfiligoi
 #
 
+from __future__ import print_function
 import os
 import sys
 import string
@@ -44,7 +45,7 @@ def main(argv):
     (options, other_args) = argparser.parse_args(argv[1:])
 
     if len(other_args)<1:
-        raise ValueError, "Missing glidein_name"
+        raise ValueError("Missing glidein_name")
     glidein_name = other_args[0]
     if len(other_args)>=2:
         log_type=other_args[1]
@@ -56,8 +57,8 @@ def main(argv):
     
     try:
         out=condorExe.exe_cmd_sbin("condor_fetchlog","-startd %s %s"%(glidein_name,log_type))
-        print string.join(out,"\n")
-    except condorExe.ExeError, e:
+        print(string.join(out,"\n"))
+    except condorExe.ExeError as e:
         sys.stderr.write("%s\n"%e)
         return 1
     return 0
@@ -71,7 +72,7 @@ def main(argv):
 if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
         sys.exit(9)
 

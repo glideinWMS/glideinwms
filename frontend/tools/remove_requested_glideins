@@ -47,7 +47,7 @@ def parse_args(argv):
         raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
     
     if not os.path.isfile(os.path.join(options.work_dir,"frontend.descript")):
-        raise ValueError, "%s is not a valid FE work dir"%options.work_dir
+        raise ValueError("%s is not a valid FE work dir"%options.work_dir)
 
     if options.removal_type not in ('idle', 'wait', 'all'):
         raise ValueError("Unexpected removal type %s (valid ones are idle, wait or all)"%options.removal_type)
@@ -133,7 +133,7 @@ def main(argv):
     return 0
 
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
+    raise KeyboardInterrupt("Received signal %s" % signr)
 
 ############################################################
 #
@@ -144,7 +144,7 @@ def termsignal(signr, frame):
 if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
         sys.exit(9)
 

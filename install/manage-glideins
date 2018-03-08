@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import traceback
 import sys,os,os.path,string,time
 import socket
@@ -35,7 +36,7 @@ def run_command(service,user,node,command):
   global gAction
   global gSSH
   global gSSHuser
-  if user <> "root" and len(gSSHuser) > 0:
+  if user != "root" and len(gSSHuser) > 0:
     user = gSSHuser
   cmd = ""
   if gSSH:
@@ -50,7 +51,7 @@ def run_command(service,user,node,command):
   stdout=""
   try:
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
+  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
     common.logit(stdout)
     common.logerr("Requested action failed: " + str(e))
     #TODO: should re-rise the exceptopn? How should it be handled? exit?
@@ -155,7 +156,7 @@ def rpm(service,action,inifile):
 #  else:
 #    common.logerr("Invalid command line option for this service: %s" % action)
 #  run_command(service,obj.username(),obj.hostname(),cmd)
-  print "DONE"
+  print("DONE")
 
 #--------------------------------
 def factory(service,action,inifile):
@@ -452,7 +453,7 @@ def main(argv):
     if gAction == "show-ini":
       services = []  # skips the for loop for service actions
       ini = Configuration.Configuration(inifile)
-      print ini
+      print(ini)
 
     for service in services:        
       if len(services) > 1:
@@ -469,35 +470,35 @@ def main(argv):
   
     common.logit("... requested action completed")
 
-  except getopt.error, e:
+  except getopt.error as e:
     msg = e.__str__()
     common.logit("ERROR: Invalid command line argument: %s" % msg)
     usage(services)
     return 1
-  except KeyboardInterrupt, e:
-    print
-    print "Termminating at your request"
+  except KeyboardInterrupt as e:
+    print()
+    print("Termminating at your request")
     return 1
-  except EOFError, e:
-    print
-    print "Termminating at your request"
+  except EOFError as e:
+    print()
+    print("Termminating at your request")
     return 1
-  except ConfigurationError, e:
-    print
-    print "ConfigurationError ERROR(should not get this): %s"%e
-    print traceback.print_exc()
+  except ConfigurationError as e:
+    print()
+    print("ConfigurationError ERROR(should not get this): %s"%e)
+    print(traceback.print_exc())
     return 1
-  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
-    print
-    print "CalledProcessError ERROR(should not get this): %s"%e
+  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+    print()
+    print("CalledProcessError ERROR(should not get this): %s"%e)
     return 1
   except common.WMSerror:
 #    print "WMS ERROR: uncaught execption. Contact support"
 #    print traceback.print_exc()
     return 1
   except:
-    print "PROGRAM ERROR: uncaught execption. Contact support"
-    print traceback.print_exc()
+    print("PROGRAM ERROR: uncaught execption. Contact support")
+    print(traceback.print_exc())
     return 1
   return 0
 

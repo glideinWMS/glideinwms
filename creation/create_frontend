@@ -11,6 +11,7 @@
 #  based on a configuration file
 #
 
+from __future__ import print_function
 import os
 import copy
 import sys
@@ -56,14 +57,14 @@ def main(params):
         frontend_dicts_obj.delete_dirs()
         raise
 
-    print "Created frontend '%s'"%params.frontend_name
-    print "Active entries are:"
+    print("Created frontend '%s'"%params.frontend_name)
+    print("Active entries are:")
     for entry in frontend_dicts_obj.active_sub_list:
-        print "  %s"%entry
-    print "Work files can be found in %s"%frontend_dicts_obj.main_dicts.work_dir
-    print "Log files can be found in %s"%frontend_dicts_obj.main_dicts.log_dir
-    print "Support files are in %s"%frontend_dicts_obj.main_dicts.stage_dir
-    print "Monitoring files are in %s"%frontend_dicts_obj.main_dicts.monitor_dir
+        print("  %s"%entry)
+    print("Work files can be found in %s"%frontend_dicts_obj.main_dicts.work_dir)
+    print("Log files can be found in %s"%frontend_dicts_obj.main_dicts.log_dir)
+    print("Support files are in %s"%frontend_dicts_obj.main_dicts.stage_dir)
+    print("Monitoring files are in %s"%frontend_dicts_obj.main_dicts.monitor_dir)
 
 
 ############################################################
@@ -89,32 +90,32 @@ if __name__ == '__main__':
             
     try:
         params=cvWParams.VOFrontendParams(usage,os.path.join(STARTUP_DIR,"web_base"),argv)
-    except RuntimeError,e:
+    except RuntimeError as e:
         if debug:
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print string.join(tb,'\n')
-        print e
+            print(string.join(tb,'\n'))
+        print(e)
         sys.exit(1)
         
     if not (writeback in ('yes','no')):
-        print usage
-        print ""
-        print "-writeback must be yes or no, found '%s'"%writeback
+        print(usage)
+        print("")
+        print("-writeback must be yes or no, found '%s'"%writeback)
         sys.exit(1)
         
     try:
         main(params)
-    except RuntimeError, e:
+    except RuntimeError as e:
         if debug:
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print string.join(tb,'\n')
-        print usage
-        print ""
-        print e
+            print(string.join(tb,'\n'))
+        print(usage)
+        print("")
+        print(e)
         sys.exit(1)
 
     try:
@@ -125,7 +126,7 @@ if __name__ == '__main__':
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print string.join(tb,'\n')
-        print "Writing back config file failed"
+            print(string.join(tb,'\n'))
+        print("Writing back config file failed")
         sys.exit(1)
 

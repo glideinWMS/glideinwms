@@ -68,7 +68,7 @@ def main(argv):
 if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
         sys.exit(9)
 

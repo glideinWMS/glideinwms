@@ -7,6 +7,7 @@
 #   Generate the glidein_startup.sh command to be run manually for given entry 
 #
 
+from __future__ import print_function
 import sys
 import os
 import stat
@@ -244,12 +245,12 @@ def main(argv):
                 out.write(SCRIPT_TEMPLATE % command)
                 os.fchmod(out.fileno(),
                           stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
-        except Exception, e:
+        except Exception as e:
             logging.error('Unable to create cmd file %s' % options.cmd_out_file)
             logging.error(e)
     else:
         log_debug(glidein_startup_args, header='Arguments')
-        print command 
+        print(command) 
 ################################################################################
 # Main
 ################################################################################

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import os
 import string
@@ -11,26 +12,26 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.lib import condorPrivsep,condorExe
 
 def usage():
-   print "Usage:"
-   print "  proxy_info <user> <command>"
-   print "where:"
-   print "  user    - any supported frontend user"
-   print "  command - one of "
-   print "              ls [opt] <dir> - list of proxies"
-   print "              info [opt] <fname> - voms-proxy-info" 
-   print "              cat <fname> - allows for detailed inspection of a proxy"
+   print("Usage:")
+   print("  proxy_info <user> <command>")
+   print("where:")
+   print("  user    - any supported frontend user")
+   print("  command - one of ")
+   print("              ls [opt] <dir> - list of proxies")
+   print("              info [opt] <fname> - voms-proxy-info") 
+   print("              cat <fname> - allows for detailed inspection of a proxy")
 
 def exec_ls(user,args):
    fname=args[-1]
    dirname=os.path.dirname(fname)
    out = condorPrivsep.execute(user,dirname,'/bin/ls',('/bin/ls',)+tuple(args))
-   print string.join(out,"\n")
+   print(string.join(out,"\n"))
 
 def exec_info(user,args):
    try:
       voms_path=condorExe.iexe_cmd("which voms-proxy-info")[0].strip('\n')
    except:
-      print "ERROR: voms-proxy-info not found, but needed"
+      print("ERROR: voms-proxy-info not found, but needed")
       return 1
  
    # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -42,12 +43,12 @@ def exec_info(user,args):
    for k in os.environ.keys():
       env.append('%s=%s'%(k,os.environ[k]))
    out = condorPrivsep.execute(user,dirname,voms_path,(voms_path,'-dont-verify-ac','-file',fname)+tuple(args[:-1]),env,stderr_fname='/tmp/pi_vi_%li_%li.txt'%(short_time,os.getpid()))
-   print string.join(out,"\n")
+   print(string.join(out,"\n"))
 
 def exec_cat(user,fname):
    dirname=os.path.dirname(fname)
    out = condorPrivsep.execute(user,dirname,'/bin/cat',['/bin/cat',fname])
-   print string.join(out,"\n")
+   print(string.join(out,"\n"))
 
 def main(argv):
    if (len(argv)<4) or (argv[1] in ('-h','-help')):
@@ -65,8 +66,8 @@ def main(argv):
       return exec_cat(user,argv[3])
    else:
       usage()
-      print
-      print "Invalid command: '%s'"%command
+      print()
+      print("Invalid command: '%s'"%command)
       return 1
 
 sys.exit(main(sys.argv))
