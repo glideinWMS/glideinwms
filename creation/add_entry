@@ -18,6 +18,7 @@ from glideinwms.lib import ldapMonitor
 from glideinwms.lib import xmlParse
 from glideinwms.creation.lib import cgWParams
     
+
 ################################################################################
 
 def main(params,bdii_data,bdii_srv,
@@ -25,51 +26,50 @@ def main(params,bdii_data,bdii_srv,
          comment,
          new_xml):
 
-    bdii_name=bdii_data.keys()[0]
-    bdii_el=bdii_data[bdii_name]
+    bdii_name = bdii_data.keys()[0]
+    bdii_el = bdii_data[bdii_name]
 
-    params.data['entries'][newname]=copy.deepcopy(params.data['entries'][oldname])
+    params.data['entries'][newname] = copy.deepcopy(params.data['entries'][oldname])
 
     if 'GlueCEInfoGRAMVersion' in bdii_el and bdii_el['GlueCEInfoGRAMVersion'][0]=='2.0':
-        gridtype='gt2'
-        gatekeeper="%s:%s/jobmanager-%s"%(bdii_el['GlueCEHostingCluster'][0],bdii_el['GlueCEInfoGatekeeperPort'][0],bdii_el['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)(jobtype=single)"%bdii_el['GlueCEName'][0]
+        gridtype = 'gt2'
+        gatekeeper = "%s:%s/jobmanager-%s" % (bdii_el['GlueCEHostingCluster'][0], bdii_el['GlueCEInfoGatekeeperPort'][0], bdii_el['GlueCEInfoJobManager'][0])
+        rsl = "(queue=%s)(jobtype=single)" % bdii_el['GlueCEName'][0]
     elif 'GlueCEInfoGRAMVersion' in bdii_el and bdii_el['GlueCEInfoGRAMVersion'][0]=='5.0':
-        gridtype='gt5'
-        gatekeeper="%s:%s/jobmanager-%s"%(bdii_el['GlueCEHostingCluster'][0],bdii_el['GlueCEInfoGatekeeperPort'][0],bdii_el['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)(jobtype=single)"%bdii_el['GlueCEName'][0]
-    elif 'GlueCEImplementationName' in bdii_el and bdii_el['GlueCEImplementationName'][0]=='CREAM':
+        gridtype = 'gt5'
+        gatekeeper = "%s:%s/jobmanager-%s" % (bdii_el['GlueCEHostingCluster'][0], bdii_el['GlueCEInfoGatekeeperPort'][0], bdii_el['GlueCEInfoJobManager'][0])
+        rsl = "(queue=%s)(jobtype=single)" % bdii_el['GlueCEName'][0]
+    elif 'GlueCEImplementationName' in bdii_el and bdii_el['GlueCEImplementationName'][0] == 'CREAM':
         rsl = None
-        gridtype='cream'
-        gatekeeper="https://%s:%s/ce-cream/services/CREAM2 %s %s"%(bdii_el['GlueCEHostingCluster'][0],bdii_el['GlueCEInfoGatekeeperPort'][0],bdii_el['GlueCEInfoJobManager'][0],bdii_el['GlueCEName'][0])
+        gridtype = 'cream'
+        gatekeeper = "https://%s:%s/ce-cream/services/CREAM2 %s %s" % (bdii_el['GlueCEHostingCluster'][0], bdii_el['GlueCEInfoGatekeeperPort'][0], bdii_el['GlueCEInfoJobManager'][0], bdii_el['GlueCEName'][0])
     else:
         raise RuntimeError("Not a gt2 or cream site, aborting")
 
     # to be improved
     max_cputime = None
     if 'GlueCEPolicyMaxCPUTime' in bdii_el:
-        max_cputime=int(bdii_el['GlueCEPolicyMaxCPUTime'][0])*60-1800
-    max_walltime=int(bdii_el['GlueCEPolicyMaxWallClockTime'][0])*60-1800
+        max_cputime = int(bdii_el['GlueCEPolicyMaxCPUTime'][0])*60-1800
+    max_walltime = int(bdii_el['GlueCEPolicyMaxWallClockTime'][0])*60-1800
     if (max_cputime is not None) and (max_cputime < max_walltime):
         max_walltime = max_cputime
     
-    entry=params.data['entries'][newname]
-    entry['gridtype']=gridtype
-    entry['gatekeeper']=gatekeeper
+    entry = params.data['entries'][newname]
+    entry['gridtype'] = gridtype
+    entry['gatekeeper'] = gatekeeper
     if rsl is not None:
-        entry['rsl']=rsl
+        entry['rsl'] = rsl
     elif 'rsl' in entry:
         del entry['rsl']
-    entry['comment']=comment
-    entry['schedd_name']=None
-    entry['infosys_refs']= [xmlParse.OrderedDict({'comment': None, u'type': u'BDII', u'ref': bdii_name, u'server': bdii_srv})]
-    entry['attrs'][u'GLIDEIN_Max_Walltime']=xmlParse.OrderedDict({'comment': None, u'const': u'True', u'parameter': u'True', u'glidein_publish': u'False', u'value': u'%i'%max_walltime, u'publish': u'True', u'job_publish': u'False', u'type': u'int'})
+    entry['comment'] = comment
+    entry['schedd_name'] = None
+    entry['infosys_refs'] = [xmlParse.OrderedDict({'comment': None, u'type': u'BDII', u'ref': bdii_name, u'server': bdii_srv})]
+    entry['attrs'][u'GLIDEIN_Max_Walltime'] = xmlParse.OrderedDict({'comment': None, u'const': u'True', u'parameter': u'True', u'glidein_publish': u'False', u'value': u'%i'%max_walltime, u'publish': u'True', u'job_publish': u'False', u'type': u'int'})
 
-    print("Added %s"%newname)
+    print("Added %s" % newname)
     params.save_into_file(new_xml)
-    print("Saved into %s"%new_xml)
+    print("Saved into %s" % new_xml)
     return
-
 
 
 ############################################################
@@ -79,58 +79,57 @@ def main(params,bdii_data,bdii_srv,
 ############################################################
 
 if __name__ == '__main__':
-    usage_prefix="add_entry xml bdii_srv bdii_id oldname newname new_xml [comment]"
-    argv=sys.argv
-    if len(argv)<7:
+    usage_prefix = "add_entry xml bdii_srv bdii_id oldname newname new_xml [comment]"
+    argv = sys.argv
+    if len(argv) < 7:
         print(usage_prefix)
         sys.exit(1)
 
-    xml_fname=argv[1]
-    bdii_srv=argv[2]
-    bdii_id=argv[3]
-    oldname=argv[4]
-    newname=argv[5]
-    new_xml=argv[6]
-    if len(argv)>=8:
-        comment=argv[7]
+    xml_fname = argv[1]
+    bdii_srv = argv[2]
+    bdii_id = argv[3]
+    oldname = argv[4]
+    newname = argv[5]
+    new_xml = argv[6]
+    if len(argv) >= 8:
+        comment = argv[7]
     else:
-        comment=None
+        comment = None
             
     try:
-        params=cgWParams.GlideinParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+        params = cgWParams.GlideinParams(usage_prefix, os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:
-        print("Failed to load the file: %s"%xml_fname)
+        print("Failed to load the file: %s" % xml_fname)
         print(e)
         sys.exit(1)
 
     if oldname not in params.data['entries']:
-        print("Entry name '%s' not in XML"%oldname)
+        print("Entry name '%s' not in XML" % oldname)
         sys.exit(1)
     if newname in params.data['entries']:
-        print("Entry name '%s' already in XML"%newname)
+        print("Entry name '%s' already in XML" % newname)
         sys.exit(1)
         
     try:
-        bdii_obj=ldapMonitor.BDIICEQuery(bdii_url=bdii_srv,additional_filter_str="(%s)"%bdii_id)
-        bdii_data=bdii_obj.fetch()
+        bdii_obj = ldapMonitor.BDIICEQuery(bdii_url=bdii_srv, additional_filter_str="(%s)" % bdii_id)
+        bdii_data = bdii_obj.fetch()
     except Exception as e:
-        print("Failed to look up DBII str (%s,%s)"%(bdii_srv,bdii_id))
+        print("Failed to look up DBII str (%s,%s)" % (bdii_srv, bdii_id))
         print(e)
         sys.exit(1)
 
-    if len(bdii_data.keys())<1:
+    if len(bdii_data.keys()) < 1:
         print("BDII entry not found")
         sys.exit(1)
 
-    if len(bdii_data.keys())>1:
-        print("Found too many BDII entries, aborting: %s"%str(bdii_data.keys()))
+    if len(bdii_data.keys()) > 1:
+        print("Found too many BDII entries, aborting: %s" % str(bdii_data.keys()))
         sys.exit(1)
 
     try:
-        main(params,bdii_data,bdii_srv,oldname,newname,comment,new_xml)
+        main(params, bdii_data, bdii_srv, oldname, newname, comment, new_xml)
     except RuntimeError as e:
         print(params.usage())
         print("")
         print(e)
         sys.exit(1)
-

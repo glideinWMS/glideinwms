@@ -13,16 +13,16 @@
 
 from __future__ import print_function
 import os
-import copy
+# import copy
 import sys
-STARTUP_DIR=sys.path[0]
 import os.path
 import string
-import shutil
-import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+# import shutil
+# import traceback
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 from glideinwms.creation.lib import cvWParams
-from glideinwms.creation.lib import cvWDictFile
+# from glideinwms.creation.lib import cvWDictFile
 from glideinwms.creation.lib import cvWConsts,cWConsts
 from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
@@ -31,7 +31,7 @@ from glideinwms.creation.lib import cvWParamDict
 ################################################################################
 
 def main(params):
-    #print params.__dict__
+    # print params.__dict__
     frontend_dicts_obj=cvWParamDict.frontendDicts(params)
     frontend_dicts_obj.populate()
 
@@ -89,20 +89,20 @@ if __name__ == '__main__':
             break
             
     try:
-        params=cvWParams.VOFrontendParams(usage,os.path.join(STARTUP_DIR,"web_base"),argv)
+        params = cvWParams.VOFrontendParams(usage, os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:
         if debug:
             import traceback
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb,'\n'))
+            print(string.join(tb, '\n'))
         print(e)
         sys.exit(1)
         
-    if not (writeback in ('yes','no')):
+    if not (writeback in ('yes', 'no')):
         print(usage)
         print("")
-        print("-writeback must be yes or no, found '%s'"%writeback)
+        print("-writeback must be yes or no, found '%s'" % writeback)
         sys.exit(1)
         
     try:
@@ -110,23 +110,22 @@ if __name__ == '__main__':
     except RuntimeError as e:
         if debug:
             import traceback
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb,'\n'))
+            print(string.join(tb, '\n'))
         print(usage)
         print("")
         print(e)
         sys.exit(1)
 
     try:
-        if writeback=='yes':
+        if writeback == 'yes':
             params.save_into_file_wbackup(params.cfg_name)
     except:
         if debug:
             import traceback
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb,'\n'))
+            print(string.join(tb, '\n'))
         print("Writing back config file failed")
         sys.exit(1)
-

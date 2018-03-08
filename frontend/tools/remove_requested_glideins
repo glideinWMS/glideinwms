@@ -29,33 +29,35 @@ from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontend
 FRONTEND_DIR = os.path.dirname(glideinFrontend.__file__)
 
+
 def parse_args(argv):
-    argparser=optparse.OptionParser()
-    argparser.add_option("-d","--work-dir", dest="work_dir",
+    argparser = optparse.OptionParser()
+    argparser.add_option("-d", "--work-dir", dest="work_dir",
                          help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR",
                          default=os.environ.get("FE_WORK_DIR"))
-    argparser.add_option("-t","--removal-type", dest="removal_type",
+    argparser.add_option("-t", "--removal-type", dest="removal_type",
                          help="Removal type: idle, wait or all (default: idle)",
                          metavar="TYPE", default="idle")
-    argparser.add_option("-c","--exess-only", dest="excess_only", action="store_true",
+    argparser.add_option("-c", "--exess-only", dest="excess_only", action="store_true",
                          help="Remove only excess glideins (default: remove all of them)")
-    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
+    argparser.add_option("-q", "--quiet", dest="quiet", action="store_true",
                          help="Quiet mode")
     (options, other_args) = argparser.parse_args(argv[1:])
     
     if options.work_dir is None:
         raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
     
-    if not os.path.isfile(os.path.join(options.work_dir,"frontend.descript")):
-        raise ValueError("%s is not a valid FE work dir"%options.work_dir)
+    if not os.path.isfile(os.path.join(options.work_dir, "frontend.descript")):
+        raise ValueError("%s is not a valid FE work dir" % options.work_dir)
 
     if options.removal_type not in ('idle', 'wait', 'all'):
-        raise ValueError("Unexpected removal type %s (valid ones are idle, wait or all)"%options.removal_type)
+        raise ValueError("Unexpected removal type %s (valid ones are idle, wait or all)" % options.removal_type)
 
-    if len(other_args)!=0:
-        raise ValueError("Unexpected arguments found: %s"%str(other_args))
+    if len(other_args) != 0:
+        raise ValueError("Unexpected arguments found: %s" % str(other_args))
 
     return options
+
 
 ############################################################
 # Main function
@@ -69,10 +71,10 @@ def main(argv):
         running=False
 
     if running:
-        if (action_type is None) or (action_type=="run"):
+        if (action_type is None) or (action_type == "run"):
             raise RuntimeError("The Frontend is currently running.\nYou have to stop it before issuing this command")
         else:
-            raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later"%action_type)
+            raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later" % action_type)
     
 
     os.chdir(options.work_dir)
@@ -100,7 +102,7 @@ def main(argv):
 
     try:
         cnt=0
-        while child.poll() is None: # None means still alive
+        while child.poll() is None:  # None means still alive
             if cnt==0:
                 if not options.quiet:
                     sys.stderr.write(".")
@@ -116,13 +118,13 @@ def main(argv):
                 if not options.quiet:
                     sys.stdout.write(tempOut)
         except IOError:
-            pass # ignore
+            pass  # ignore
         try:
             tempErr = child.stderr.read()
             if len(tempErr)!=0:
                 sys.stderr.write(tempErr)
         except IOError:
-            pass # ignore
+            pass  # ignore
 
     except:
         if not options.quiet:
@@ -132,8 +134,10 @@ def main(argv):
 
     return 0
 
+
 def termsignal(signr, frame):
     raise KeyboardInterrupt("Received signal %s" % signr)
+
 
 ############################################################
 #
@@ -145,7 +149,5 @@ if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
     except Exception as e:
-        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.stderr.write("ERROR: Exception msg %s\n" % str(e))
         sys.exit(9)
-
-    

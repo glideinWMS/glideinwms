@@ -15,17 +15,19 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 
 from glideinwms.factory import glideFactoryConfig
 
-USAGE="Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]"
+USAGE = "Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]"
 
-def print_entries(entries,want_schedd):
+
+def print_entries(entries, want_schedd):
     print("Available entries:")
     for entry in entries.split(','):
         if not want_schedd:
-            print("  %s"%entry)
+            print("  %s" % entry)
         else:
             jobDescript=glideFactoryConfig.JobDescript(entry)
             schedd_name=jobDescript.data['Schedd']
-            print("  %-40s %-30s"%(entry,schedd_name))
+            print("  %-40s %-30s" % (entry,schedd_name))
+
 
 def main(argv):
     if len(argv)<2:
@@ -36,9 +38,9 @@ def main(argv):
 
     # Try GLIDEIN_FACTORY_DIR env var first
     if 'GLIDEIN_FACTORY_DIR' in os.environ:
-        gfactory_dir=os.environ['GLIDEIN_FACTORY_DIR']
+        gfactory_dir = os.environ['GLIDEIN_FACTORY_DIR']
     else:
-        gfactory_dir="."
+        gfactory_dir = "."
 
     want_schedd=False
     
@@ -77,34 +79,33 @@ def main(argv):
     jobDescript=glideFactoryConfig.JobDescript(entry)
     os.chdir(curdir)
 
-    factory_name=glideinDescript.data['FactoryName']
-    glidein_name=glideinDescript.data['GlideinName']
-    schedd_name=jobDescript.data['Schedd']
-    const_str='(GlideinFactory=?="%s")&&(GlideinName=?="%s")&&(GlideinEntryName=?="%s")'%(factory_name,glidein_name,entry)
+    factory_name = glideinDescript.data['FactoryName']
+    glidein_name = glideinDescript.data['GlideinName']
+    schedd_name = jobDescript.data['Schedd']
+    const_str = '(GlideinFactory=?="%s")&&(GlideinName=?="%s")&&(GlideinEntryName=?="%s")' % (factory_name, glidein_name, entry)
 
     cq_argv=argv[i:]
-    #print cq_argv
+    # print cq_argv
 
-    i=0
-    while (i<len(cq_argv)):
-        qel=cq_argv[i]
-        if qel[:3]=='-co':
-            const_str='(%s)&&(%s)'%(const_str,cq_argv[i+1])
+    i = 0
+    while (i < len(cq_argv)):
+        qel = cq_argv[i]
+        if qel[:3] == '-co':
+            const_str = '(%s)&&(%s)'%(const_str,cq_argv[i+1])
             del cq_argv[i]
             del cq_argv[i]
         else:
-            i=i+1 # not an interesting one
+            i = i + 1  # not an interesting one
 
     if want_schedd:
-        print("Schedd: %s"%schedd_name)
-        print("Constraint: '%s'"%const_str)
+        print("Schedd: %s" % schedd_name)
+        print("Constraint: '%s'" % const_str)
     
     # must flush out before forking, or any buffered content wil be lost
     sys.__stdout__.flush()
     sys.__stderr__.flush()
-    os.execvp('condor_q',['condor_q','-name',schedd_name,'-const',const_str]+cq_argv)
+    os.execvp('condor_q', ['condor_q', '-name', schedd_name, '-const', const_str]+cq_argv)
 
 
 if __name__ == '__main__':
     main(sys.argv)
- 

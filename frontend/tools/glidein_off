@@ -58,6 +58,7 @@ from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 
+
 ############################################################################
 # condor_off supports nonstandard arguments
 # we want to support that, but optparse does not
@@ -79,6 +80,7 @@ def convert_legacy_args(args):
         elif el == "-all":
             args[i]="--all"
         i+=1
+
 
 #################################################
 # Interpret the arguments and return the constraint to use
@@ -177,12 +179,12 @@ def lookup_addrs(constr):
                     addrs.append(data[master_name]['MyAddress'])
                 except:
                     # just protect
-                    sys.stderr.write("Classad for %s@%s is missing the MyAddress attribute!\n"%(master_name,collector_name_arr_str))
+                    sys.stderr.write("Classad for %s@%s is missing the MyAddress attribute!\n" % (master_name, collector_name_arr_str))
 
     if len(addrs)==0:
         raise ValueError("Could not find any glidein master!")
 
-    return (addrs,failures)
+    return (addrs, failures)
 
         
 #############################################################################
@@ -294,17 +296,18 @@ def main(argv):
         del started_threads[tk]
 
     if TP_FAIL:
-        if options.quiet!=True:
+        if options.quiet != True:
             sys.stderr.write("\nAt least one off command failed\n")
         return 1
 
     if failures:
-        if options.quiet!=True:
-            sys.stderr.write("\nCould not find the masters for all the requested glidein\n"+
+        if options.quiet != True:
+            sys.stderr.write("\nCould not find the masters for all the requested glidein\n" +
                              "You may need to issue the command again\n")
         return 1
 
     return 0
+
 
 ############################################################
 #
@@ -316,7 +319,5 @@ if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
     except Exception as e:
-        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.stderr.write("ERROR: Exception msg %s\n" % str(e))
         sys.exit(9)
-
-    

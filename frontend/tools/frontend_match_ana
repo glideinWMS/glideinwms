@@ -31,50 +31,52 @@ from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendLib
 from glideinwms.lib import exprParser
-from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
+# from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
+
 
 # shortest first
-def mycmp(a,b):
-    r=cmp(len(a),len(b))
-    if r==0:
-        r=cmp(a,b)
+def mycmp(a, b):
+    r = cmp(len(a), len(b))
+    if r == 0:
+        r = cmp(a, b)
     return r
 
-def print_match(job,glidein,match_ast,counts,level,countid):
-    prefix=""
-    for l in range(level):
-        prefix+="  "
-    
-    match_obj=exprParser.compile(match_ast)
-    res=eval(match_obj)
-    c="%s.%s"%(countid,res)
-    if c not in counts:
-        counts[c]=[0,exprParser.unparse(match_ast)]
-    counts[c][0]+=1
-    print("%s%-10s %s"%(prefix,res,exprParser.unparse(match_ast)))
 
-    if isinstance(match_ast,exprParser.Or):
-        #print 
-        print("  %s%-5s due to OR of"%(prefix,res))
+def print_match(job, glidein, match_ast, counts, level, countid):
+    prefix = ""
+    for l in range(level):
+        prefix += "  "
+    
+    match_obj = exprParser.compile(match_ast)
+    res = eval(match_obj)
+    c = "%s.%s" % (countid, res)
+    if c not in counts:
+        counts[c] = [0,exprParser.unparse(match_ast)]
+    counts[c][0] += 1
+    print("%s%-10s %s" % (prefix,res, exprParser.unparse(match_ast)))
+
+    if isinstance(match_ast, exprParser.Or):
+        # print
+        print("  %s%-5s due to OR of" % (prefix, res))
         i=0
         for n in match_ast.nodes:
-            r=print_match(job,glidein,n,counts,level+2,c+".OR%i"%i)
-            i+=1
-            if r==True:
-                break # partial eval, exit at first True
+            r = print_match(job, glidein, n, counts, level+2, c+".OR%i" % i)
+            i += 1
+            if r == True:
+                break  # partial eval, exit at first True
     elif isinstance(match_ast,exprParser.And):
-        #print 
-        print("  %s%-5s due to AND of"%(prefix,res))
-        i=0
+        # print
+        print("  %s%-5s due to AND of" % (prefix, res))
+        i = 0
         for n in match_ast.nodes:
-            r=print_match(job,glidein,n,counts,level+2,c+".AND%i"%i)
-            i+=1
-            if r==False:
-                break # partial eval, exit at first False
-    elif isinstance(match_ast,exprParser.Not):
-        #print 
-        print("  %s%-5s due to NOT of"%(prefix,res))
-        print_match(job,glidein,match_ast.expr,counts,level+2,c+".NOT")
+            r = print_match(job, glidein, n, counts, level+2, c+".AND%i" % i)
+            i += 1
+            if r == False:
+                break  # partial eval, exit at first False
+    elif isinstance(match_ast, exprParser.Not):
+        # print
+        print("  %s%-5s due to NOT of" % (prefix, res))
+        print_match(job, glidein, match_ast.expr, counts, level+2, c+".NOT")
             
     return res
 
@@ -170,7 +172,6 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
             pass
         pass
 
-    
     return
 
 
@@ -189,14 +190,15 @@ def main(work_dir, group_name,job_filter):
     os.environ['X509_USER_PROXY']=elementDescript.frontend_data['ClassAdProxy']
 
     try:
-        do_work(elementDescript,paramsDescript,signatureDescript,job_filter)
+        do_work(elementDescript, paramsDescript, signatureDescript, job_filter)
     except KeyboardInterrupt:
         print("Received signal...exit")
     except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
         
+
 ############################################################
 #
 # S T A R T U P
@@ -204,5 +206,4 @@ def main(work_dir, group_name,job_filter):
 ############################################################
 
 if __name__ == '__main__':
-    main(sys.argv[1],sys.argv[2],sys.argv[3])
- 
+    main(sys.argv[1], sys.argv[2], sys.argv[3])

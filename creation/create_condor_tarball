@@ -9,13 +9,16 @@
 from __future__ import print_function
 import os
 import sys
-STARTUP_DIR=sys.path[0]
-import tempfile,shutil,tarfile
+import tempfile
+import shutil
+import tarfile
 import os.path
 import string
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 from glideinwms.creation.lib import cgWCreate
+
 
 def usage():
     print("""
@@ -43,19 +46,19 @@ for additional information on configuring the factory to use the tarball.
 ################################################################################
 
 def main(argv):
-    if len(argv)!=3:
+    if len(argv) != 3:
         usage()
         sys.exit(1)
 
-    out_fname=argv[1]
-    in_dir=argv[2]
+    out_fname = argv[1]
+    in_dir = argv[2]
 
-    tmpdir=None
+    tmpdir = None
     if os.path.isfile(in_dir):
         # this should be a tarfile, not a dir
         # Untar in a tmpdir
-        fd=tarfile.open(in_dir,"r:gz")
-        tmpdir=tempfile.mkdtemp("_tmp","condor_",os.path.dirname(out_fname))
+        fd = tarfile.open(in_dir,"r:gz")
+        tmpdir = tempfile.mkdtemp("_tmp","condor_",os.path.dirname(out_fname))
         try:
             # first create the regular files
             for f in fd.getmembers():
@@ -64,46 +67,46 @@ def main(argv):
             # then create the links
             for f in fd.getmembers():
                 if f.islnk():
-                    os.link(os.path.join(tmpdir,f.linkname),os.path.join(tmpdir,f.name))
-            in_dir=os.path.join(tmpdir,os.listdir(tmpdir)[0]) # there is a condor* subdir there
+                    os.link(os.path.join(tmpdir, f.linkname), os.path.join(tmpdir, f.name))
+            in_dir = os.path.join(tmpdir, os.listdir(tmpdir)[0])  # there is a condor* subdir there
         except:
             fd.close()
             shutil.rmtree(tmpdir)
             raise
         fd.close()
     elif os.path.isdir(in_dir):
-        pass # good...it is a directory
+        pass  # good...it is a directory
     else:
-        print("%s does not exist!"%in_dir)
+        print("%s does not exist!" % in_dir)
         sys.exit(2)
 
     try:
         try:
-            tar_fd=cgWCreate.create_condor_tar_fd(in_dir)
+            tar_fd = cgWCreate.create_condor_tar_fd(in_dir)
         except RuntimeError as e:
-            print("%s"%e)
+            print("%s" % e)
             sys.exit(2)
 
         try:
-            out_fd=open(out_fname,"w")
+            out_fd = open(out_fname, "w")
         except:
             usage()
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb,'\n'))
+            print(string.join(tb, '\n'))
             sys.exit(3)
 
-        delete_at_end=True # cleanup by default
+        delete_at_end = True  # cleanup by default
         try:
             out_fd.write(tar_fd.read())
-            delete_at_end=False # successful, preserve
+            delete_at_end = False  # successful, preserve
         finally:
             out_fd.close()
 
             if delete_at_end:
                 try:
                     os.unlink(out_fname)
-                    print("Tarball %s deleted"% out_fname)
+                    print("Tarball %s deleted" % out_fname)
                 except:
                     # never throw an error in the file deletion
                     pass 
@@ -111,6 +114,7 @@ def main(argv):
         if tmpdir is not None:
             # always remove the tmpdir before exiting
             shutil.rmtree(tmpdir)
+
 
 ############################################################
 #

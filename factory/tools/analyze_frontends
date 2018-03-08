@@ -16,6 +16,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.factory.tools.lib import analyze
 from glideinwms.lib import xmlParse
 
+
 def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,div):
 
    to_be_printed = []
@@ -76,6 +77,7 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
       for a in to_be_printed:
          print(a[1])
       print()
+
 
 ##########################################################################
 
@@ -206,7 +208,6 @@ USAGE:
 #      (periods are integers and in seconds)
 ###############################################################################
 
-
    frontend_list = []
 
    for entry in rrd_data['entries']:
@@ -226,7 +227,7 @@ USAGE:
    for entry in rrd_data['entries']:
       for frontend in rrd_data['entries'][entry]['frontends']:
           
-         #if filtering, only choose selected frontend 
+         # if filtering, only choose selected frontend
          if filter_frontend != 0:
             if frontend != filter_frontend:
                continue
@@ -253,7 +254,6 @@ USAGE:
 #####################################################################
 # Organize totals/stats for each period, frontend, and entry independantly
 ######################################################################
-
 
    if filter_frontend == 0:
       print("""
@@ -385,11 +385,9 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % x)
 Frontend stats for the past %s hours, units = %s.\n""" % (x,units[frontend_mode-1])) 
       list_print("", zero_supp, frontend_data[period],sorting,attr_list,sort_attribute,divs[frontend_mode-1])
 
-
 ################################################################################
 #    Print Key
 ################################################################################
-
 
    print("""-----------------------------------
 LEGEND:
@@ -410,7 +408,6 @@ RunDiff - StatusRunning - ClientRegistered (ClientGlideTotal)
 -------------------------------------
         \n""")
 
+
 if __name__ == "__main__":
-   main()
-
-
+    main()

@@ -16,6 +16,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.factory.tools.lib import analyze
 from glideinwms.lib import xmlParse
 
+
 def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,div):
 
    to_be_printed = []
@@ -421,7 +422,6 @@ IdleDiff : StatusIdle - ReqIdle (Requested Idle)
 -------------------------------------
         \n""")
 
+
 if __name__ == "__main__":
-   main()
-
-
+    main()

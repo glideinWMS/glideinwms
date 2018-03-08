@@ -11,14 +11,14 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.lib import xmlParse
 from glideinwms.factory.tools.lib import analyze
 
-def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute):
 
+def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute):
 
-    fdiv=1
-    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste','badput']:
-        fdiv=float(div)
-    if fe_sort_attribute in [2,4,6,8,10]:#['u%','v%','i%','w%','b%']:
-        fdiv=float(div)*(float(d['total_time'])/float(div))
+    fdiv = 1
+    if fe_attr_list[fe_sort_attribute] in ['total_time', 'val', 'used', 'idle', 'waste', 'badput']:
+        fdiv = float(div)
+    if fe_sort_attribute in [2, 4, 6, 8, 10]:  #['u%','v%','i%','w%','b%']:
+        fdiv = float(div)*(float(d['total_time'])/float(div))
     elif fe_attr_list[fe_sort_attribute] in ['eff']:
         fdiv = float(d['waste']+d['used'])
 
@@ -264,23 +264,23 @@ USAGE:
     else: 
         file_dir = os.path.join(dir, "monitor")
         if not os.path.isdir(file_dir):
-            #Try RPM location
-            rpmdir="/var/lib/gwms-factory/work-dir"
+            # Try RPM location
+            rpmdir = "/var/lib/gwms-factory/work-dir"
             rpmfile_dir = os.path.join(rpmdir, "monitor")
             if not os.path.isdir(rpmfile_dir):
                 print("\nCannot open", file_dir)
                 print("Please set --source to the factory work dir and try again.")
                 sys.exit(1)
             if dir != os.getcwd():
-                #Directory explicitly set, print warning
+                # Directory explicitly set, print warning
                 print("\nWARNING: Cannot open", file_dir)
                 print("Using RPM default %s instead" % rpmfile_dir)
-            dir=rpmdir
-            file_dir=rpmfile_dir
+            dir = rpmdir
+            file_dir = rpmfile_dir
 
     for name, xml in rrd_list.iteritems():
         try: 
-            file_loc=os.path.join(file_dir,xml) 
+            file_loc = os.path.join(file_dir, xml)
             u = urllib.urlopen(file_loc)        
             data[name] = xmlParse.xmlfile2dict(u)
         except:
@@ -333,7 +333,7 @@ USAGE:
                 if entry not in data[int(period)][frontend]:
                     data[int(period)][frontend][entry] = {}
 
-                rrd_name_list = ["Log_Completed.xml","Log_Completed_Stats.xml","Log_Completed_Wastetime.xml"]
+                rrd_name_list = ["Log_Completed.xml", "Log_Completed_Stats.xml", "Log_Completed_Wastetime.xml"]
                 i = 0
                 for x_data in [c_data, j_data, w_data]:
                     try:
@@ -356,7 +356,6 @@ Glidein log analysis for All Entries - %s
 Glidein log analysis for frontend %s - %s
 """ % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
 
-
     period_data = {}
     frontend_data = {}
     entry_data = {}
@@ -368,18 +367,18 @@ Glidein log analysis for frontend %s - %s
         frontend_data[period] = {}
         entry_data[period] = {}
         entry_data_all_frontends[period] = {}
-        for a in attributes.keys(): period_data[period][a]=0
+        for a in attributes.keys(): period_data[period][a] = 0
 
         for frontend, entries in frontends.iteritems(): 
             frontend_data[period][frontend] = {}
             entry_data[period][frontend] = {}
-            for a in attributes.keys(): frontend_data[period][frontend][a]=0
+            for a in attributes.keys(): frontend_data[period][frontend][a] = 0
 
             for entry, elements in entries.iteritems():
                 entry_data[period][frontend][entry] = {}  
                 for a in attributes.keys(): entry_data[period][frontend][entry][a]=0
 
-                #may have gotten entry from another frontend
+                # may have gotten entry from another frontend
                 if entry not in entry_data_all_frontends[period]:
                     entry_data_all_frontends[period][entry] = {}
                     for a in attributes.keys(): entry_data_all_frontends[period][entry][a]=0
@@ -484,7 +483,7 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x)
         print(LINEPRINT_HEADER)
 
         to_be_printed = []  # dict of paired entry data with wastetime for sorting
-        totals={}
+        totals = {}
         totals_to_be_printed = []
 
         for entry_name, entry in entry_data_all_frontends[period].iteritems():
@@ -561,8 +560,8 @@ Frontend stats for the past %s hours.\n""" % (x))
                 if en['validation'] == 0:
                     en['validation'] = 1
 
-                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute,min_limit,totals) 
-            lineprint('Total/Average',totals['entry'],totals['g_entry'],1,totals_to_be_printed,attr_list,sort_attribute,{}) 
+                lineprint(entry, e, en, 1, to_be_printed, attr_list, sort_attribute, min_limit, totals)
+            lineprint('Total/Average', totals['entry'], totals['g_entry'], 1, totals_to_be_printed, attr_list, sort_attribute, {})
             print(totals_to_be_printed[0][1])
             print(LINEPRINT_HEADER_DIV)
             
@@ -577,9 +576,9 @@ Frontend stats for the past %s hours.\n""" % (x))
                     print(a[1])
 
          
-        else: # print frontend like entries, and omit entries
-            divs = [period,1.0,3600.0]
-            fe_to_be_printed = frontend_print(frontend, frontend_mode,d,divs[frontend_mode-1],fe_to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute)
+        else:  # print frontend like entries, and omit entries
+            divs = [period, 1.0, 3600.0]
+            fe_to_be_printed = frontend_print(frontend, frontend_mode, d, divs[frontend_mode-1], fe_to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute)
             
     if fe_sorting == 1:
         fe_to_be_printed.sort()
@@ -595,7 +594,7 @@ Frontend stats for the past %s hours.\n""" % (x))
 #    Print Key
 ################################################################################
 
-    if frontend_mode==0:
+    if frontend_mode == 0:
         print("""\n-----------------------------------
 LEGEND:
 
@@ -620,7 +619,7 @@ JobsLasted  - wallclock time used to run jobs
 JobsGoodput - wallclock time used by jobs terminatig with exit code 0 
 \n""")
 
-    else: #frontend_mode legend
+    else:  #frontend_mode legend
         print("""\n-----------------------------------
 LEGEND:
 
@@ -650,5 +649,3 @@ JobsGoodput - wallclock time used by jobs terminatig with exit code 0
 
 if __name__ == "__main__":
     main()
-
-

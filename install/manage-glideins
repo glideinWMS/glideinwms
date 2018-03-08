@@ -23,7 +23,7 @@ from glideinwms.install.services import Factory
 from glideinwms.install.services import RPM
 from glideinwms.install.services.Configuration import ConfigurationError
 import glideinwms.lib.subprocessSupport
-#-------------------------
+# -------------------------
 
 global gProgramName
 global gAction
@@ -31,208 +31,222 @@ global gSSH
 global gSSHuser
 global methods
 
-#--------------------------------
-def run_command(service,user,node,command):
-  global gAction
-  global gSSH
-  global gSSHuser
-  if user != "root" and len(gSSHuser) > 0:
-    user = gSSHuser
-  cmd = ""
-  if gSSH:
-    cmd = """ssh -l %s %s "%s" """ % (user,node,command)
-  else:
-    common.validate_hostname(node,"Either login there or use the --ssh option.")
-    cmd = """%s""" % (command)
-  hdr = "%s %s user(%s) node(%s)" %(gAction,service,user,node) 
-  common.logit("\n############################################################")
-  common.logit("## %s " % hdr)
-  common.logit("Commands: %s" % cmd)
-  stdout=""
-  try:
-    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+
+# --------------------------------
+def run_command(service, user, node, command):
+    global gAction
+    global gSSH
+    global gSSHuser
+    if user != "root" and len(gSSHuser) > 0:
+        user = gSSHuser
+    cmd = ""
+    if gSSH:
+        cmd = """ssh -l %s %s "%s" """ % (user, node, command)
+    else:
+        common.validate_hostname(node, "Either login there or use the --ssh option.")
+        cmd = """%s""" % (command)
+    hdr = "%s %s user(%s) node(%s)" % (gAction, service, user, node)
+    common.logit("\n############################################################")
+    common.logit("## %s " % hdr)
+    common.logit("Commands: %s" % cmd)
+    stdout = ""
+    try:
+        stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
+    except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+        common.logit(stdout)
+        common.logerr("Requested action failed: " + str(e))
+        # TODO: should re-rise the exceptopn? How should it be handled? exit?
     common.logit(stdout)
-    common.logerr("Requested action failed: " + str(e))
-    #TODO: should re-rise the exceptopn? How should it be handled? exit?
-  common.logit(stdout)
-  common.logit("## %s " % hdr)
-  common.logit("############################################################\n")
-  time.sleep(3)
+    common.logit("## %s " % hdr)
+    common.logit("############################################################\n")
+    time.sleep(3)
 
-#--------------------------------
+
+# --------------------------------
 def apache(action):
-  cmd1 = "/etc/init.d/httpd"
+    cmd1 = "/etc/init.d/httpd"
 
-#--------------------------------
+
+# --------------------------------
 def wmscollector(service,action,inifile):
-  obj = WMSCollector.WMSCollector(inifile)
-  if action in ["install","validate","configure","create-template"]:
-    process_action(obj,action)
-    return
-  cmd = ". %s/condor.sh" % obj.condor_location()
-  if action == "start":
-    cmd += "; %s %s" % (obj.initd_script(),action)
-  elif action == "stop":
-    cmd += "; %s %s" % (obj.initd_script(),action)
-  elif action == "status":
-    cmd += "; condor_status -any || (echo;echo 'Not running';echo) "
-    cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
-  else:
-    common.logerr("Invalid command line option for this service: %s" % action)
-  user = obj.username()
-  if obj.privilege_separation() == "y":
-    user = 'root'
-  run_command(service,user,obj.hostname(),cmd)
+    obj = WMSCollector.WMSCollector(inifile)
+    if action in ["install", "validate", "configure", "create-template"]:
+        process_action(obj, action)
+        return
+    cmd = ". %s/condor.sh" % obj.condor_location()
+    if action == "start":
+        cmd += "; %s %s" % (obj.initd_script(), action)
+    elif action == "stop":
+        cmd += "; %s %s" % (obj.initd_script(), action)
+    elif action == "status":
+        cmd += "; condor_status -any || (echo;echo 'Not running';echo) "
+        cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)"
+    else:
+        common.logerr("Invalid command line option for this service: %s" % action)
+    user = obj.username()
+    if obj.privilege_separation() == "y":
+        user = 'root'
+    run_command(service, user, obj.hostname(), cmd)
 
-#--------------------------------
-def usercollector(service,action,inifile):
-  obj = UserCollector.UserCollector(inifile)
-  if action in ["install","validate","configure","create-template"]:
-    process_action(obj,action)
-    return
-  cmd = ". %s/condor.sh" % obj.condor_location()
-  if action == "start":
-    cmd += "; %s %s" % (obj.initd_script(),action)
-  elif action == "stop":
-    cmd += "; %s %s" % (obj.initd_script(),action)
-  elif action == "status":
-    cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
-  else:
-    common.logerr("Invalid command line option for this service: %s" % action)
-  run_command(service,obj.username(),obj.hostname(),cmd)
 
-#--------------------------------
-def submit(service,action,inifile):
-  obj = Submit.Submit(inifile)
-  if action in ["install","validate","configure","create-template"]:
-    process_action(obj,action)
-    return
-  cmd = ". %s/condor.sh" % obj.condor_location()
-  if action == "start":
-    cmd += "; %s %s" % (obj.initd_script(),action)
-  elif action == "stop":
-    cmd += "; %s %s" % (obj.initd_script(),action)
-  elif action == "status":
-    cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
-    cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
-  else:
-    common.logerr("Invalid command line option for this service: %s" % action)
-  run_command(service,obj.username(),obj.hostname(),cmd)
+# --------------------------------
+def usercollector(service, action, inifile):
+    obj = UserCollector.UserCollector(inifile)
+    if action in ["install", "validate", "configure", "create-template"]:
+        process_action(obj, action)
+        return
+    cmd = ". %s/condor.sh" % obj.condor_location()
+    if action == "start":
+        cmd += "; %s %s" % (obj.initd_script(), action)
+    elif action == "stop":
+        cmd += "; %s %s" % (obj.initd_script(), action)
+    elif action == "status":
+        cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
+    else:
+        common.logerr("Invalid command line option for this service: %s" % action)
+    run_command(service, obj.username(), obj.hostname(), cmd)
 
-#--------------------------------
-def vofrontend(service,action,inifile):
-  obj = VOFrontend.VOFrontend(inifile)
-  if action in ["install","validate","configure","create-group","create-template"]:
-    process_action(obj,action)
-    return
-  cmd = "cd %s;. ./frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
-  if action == "create-group":
-     obj.get_new_config_group()
-     return
-  if action == "start":
-    cmd += "; ./frontend_startup %s"  % action
-  elif action == "stop":
-    cmd += "; ./frontend_startup %s"  % action
-  elif action == "status":
-    cmd += """; echo;./frontend_startup %s;echo"""  % (action)
-  else:
-    common.logerr("Invalid command line option for this service: %s" % action)
-  run_command(service,obj.username(),obj.hostname(),cmd)
 
-#--------------------------------
-def rpm(service,action,inifile):
-  obj = RPM.RPM(inifile)
-  if action in ["install","validate","configure","create-template"]:
-    process_action(obj,action)
-    return
-  cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
-#  if action == "start":
-#    cmd += "; ./frontend_startup %s"  % action
-#  elif action == "stop":
-#    cmd += "; ./frontend_startup %s"  % action
-#  elif action == "status":
-#    cmd += """; echo;./frontend_startup %s;echo"""  % (action)
-#  else:
-#    common.logerr("Invalid command line option for this service: %s" % action)
-#  run_command(service,obj.username(),obj.hostname(),cmd)
-  print("DONE")
+# --------------------------------
+def submit(service, action, inifile):
+    obj = Submit.Submit(inifile)
+    if action in ["install", "validate", "configure", "create-template"]:
+        process_action(obj, action)
+        return
+    cmd = ". %s/condor.sh" % obj.condor_location()
+    if action == "start":
+        cmd += "; %s %s" % (obj.initd_script(), action)
+    elif action == "stop":
+        cmd += "; %s %s" % (obj.initd_script(), action)
+    elif action == "status":
+        cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
+        cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)"
+    else:
+        common.logerr("Invalid command line option for this service: %s" % action)
+    run_command(service, obj.username(), obj.hostname(), cmd)
 
-#--------------------------------
-def factory(service,action,inifile):
-  obj = Factory.Factory(inifile)
-  if action in ["install","validate","configure","create-entries","create-template"]:
-    process_action(obj,action)
-    return
-  cmd = "cd %s;. ./factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
-  if action == "start":
-    cmd += "; ./factory_startup %s"  % action
-  elif action == "stop":
-    cmd += "; ./factory_startup %s"  % action
-  elif action == "status":
-    cmd += """; echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)"""  % (action, obj.glideinwms_location())
-  else:
-    common.logerr("Invalid command line option for this service: %s" % action)
-  run_command(service,obj.username(),obj.hostname(),cmd)
 
-#----------------
+# --------------------------------
+def vofrontend(service, action, inifile):
+    obj = VOFrontend.VOFrontend(inifile)
+    if action in ["install", "validate", "configure", "create-group", "create-template"]:
+        process_action(obj, action)
+        return
+    cmd = "cd %s;. ./frontend.sh;cd %s" % (obj.install_location(), obj.frontend_dir())
+    if action == "create-group":
+        obj.get_new_config_group()
+        return
+    if action == "start":
+        cmd += "; ./frontend_startup %s" % action
+    elif action == "stop":
+        cmd += "; ./frontend_startup %s" % action
+    elif action == "status":
+        cmd += """; echo;./frontend_startup %s;echo""" % (action)
+    else:
+        common.logerr("Invalid command line option for this service: %s" % action)
+    run_command(service, obj.username(), obj.hostname(), cmd)
+
+
+# --------------------------------
+def rpm(service, action, inifile):
+    obj = RPM.RPM(inifile)
+    if action in ["install", "validate", "configure", "create-template"]:
+        process_action(obj, action)
+        return
+    cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(), obj.frontend_dir())
+    #  if action == "start":
+    #    cmd += "; ./frontend_startup %s"  % action
+    #  elif action == "stop":
+    #    cmd += "; ./frontend_startup %s"  % action
+    #  elif action == "status":
+    #    cmd += """; echo;./frontend_startup %s;echo"""  % (action)
+    #  else:
+    #    common.logerr("Invalid command line option for this service: %s" % action)
+    #  run_command(service,obj.username(),obj.hostname(),cmd)
+    print("DONE")
+
+
+# --------------------------------
+def factory(service, action, inifile):
+    obj = Factory.Factory(inifile)
+    if action in ["install", "validate", "configure", "create-entries", "create-template"]:
+        process_action(obj, action)
+        return
+    cmd = "cd %s;. ./factory.sh;cd %s" % (obj.install_location(), obj.glidein_dir())
+    if action == "start":
+        cmd += "; ./factory_startup %s" % action
+    elif action == "stop":
+        cmd += "; ./factory_startup %s" % action
+    elif action == "status":
+        cmd += """; echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)""" % \
+               (action, obj.glideinwms_location())
+    else:
+        common.logerr("Invalid command line option for this service: %s" % action)
+    run_command(service, obj.username(), obj.hostname(), cmd)
+
+
+# ----------------
 def find_services(inifile):
-   """ Finds the services that can be installed on this unix node. """
-   services = []
-   cfg = Configuration.Configuration(inifile)
-   sections = [ "WMSCollector", "Factory", "UserCollector", "Submit", "VOFrontend", ]
-   for section in sections:
-     if cfg.has_option(section,"hostname"):
-       if cfg.option_value(section,"hostname") == os.uname()[1]:
-         services.append(section.lower())
-     else:
-       common.logerr("ini file section(%s) does not contain a hostname option(%s)" % (section,"hostname"))
+    """ Finds the services that can be installed on this unix node. """
+    services = []
+    cfg = Configuration.Configuration(inifile)
+    sections = ["WMSCollector", "Factory", "UserCollector", "Submit", "VOFrontend", ]
+    for section in sections:
+        if cfg.has_option(section, "hostname"):
+            if cfg.option_value(section, "hostname") == os.uname()[1]:
+                services.append(section.lower())
+        else:
+            common.logerr("ini file section(%s) does not contain a hostname option(%s)" % (section, "hostname"))
 
-   if len(services) == 0:
-       common.logerr("The ini file shows no services for this hostname: %s" % os.uname()[1])
+    if len(services) == 0:
+        common.logerr("The ini file shows no services for this hostname: %s" % os.uname()[1])
 
-   common.ask_continue("The following services will be processed on this node:\n   %s\n... do you want to continue" % services)
-   return services
-         
-#----------------
-def process_request(service,action,inifile):
-  if service == "wmscollector":
-    wmscollector(service,action,inifile)
-  elif service == "usercollector":
-    usercollector(service,action,inifile)
-  elif service == "submit":
-    submit(service,action,inifile)
-  elif service == "factory":
-    factory(service,action,inifile)
-  elif service == "vofrontend":
-    vofrontend(service,action,inifile)
-  elif service == "rpm":
-    rpm(service,action,inifile)
-  else:
-    common.logerr("Service(%s) not supported" % service)
-         
-#----------------
-def process_action(obj,action):
-  if action ==  "install": 
-    obj.install() 
-  elif action == "validate": 
-    obj.validate()
-  elif action ==  "configure": 
-    obj.configure()
-  elif action == "create-entries": 
-    obj.get_new_config_entries()
-  elif action == "create-group":
-     obj.get_new_config_group()
-  elif action == "create-template":
-     obj.create_template()
+    common.ask_continue(
+        "The following services will be processed on this node:\n   %s\n... do you want to continue" % services)
+    return services
 
-#----------------
+
+# ----------------
+def process_request(service, action, inifile):
+    if service == "wmscollector":
+        wmscollector(service, action, inifile)
+    elif service == "usercollector":
+        usercollector(service, action, inifile)
+    elif service == "submit":
+        submit(service, action, inifile)
+    elif service == "factory":
+        factory(service, action, inifile)
+    elif service == "vofrontend":
+        vofrontend(service, action, inifile)
+    elif service == "rpm":
+        rpm(service, action, inifile)
+    else:
+        common.logerr("Service(%s) not supported" % service)
+
+
+# ----------------
+def process_action(obj, action):
+    if action == "install":
+        obj.install()
+    elif action == "validate":
+        obj.validate()
+    elif action == "configure":
+        obj.configure()
+    elif action == "create-entries":
+        obj.get_new_config_entries()
+    elif action == "create-group":
+        obj.get_new_config_group()
+    elif action == "create-template":
+        obj.create_template()
+
+
+# ----------------
 def usage(services):
-  global gProgramName
-  valid_services = ""
-  for service in services:
-    valid_services = valid_services + " " + service 
-  msg = """
+    global gProgramName
+    valid_services = ""
+    for service in services:
+        valid_services = valid_services + " " + service
+    msg = """
 Usage: %(program)s --<action> <service>  --ini <ini_file> [--ssh [user]]
 
   action: validate, install, configure, start, stop, status
@@ -298,46 +312,45 @@ service.  It contains all the required attributes for that service.  It should
 be understood that many of the validations that would normally insure a
 working installation are bypassed since those validations are normally 
 performed on the node for those services.
-""" % \
-{ "program"  : os.path.basename(gProgramName),
-  "services" : valid_services,
-}
-  common.logit(msg)
+""" % {"program": os.path.basename(gProgramName),
+       "services": valid_services,
+       }
+    common.logit(msg)
 
-#------------------
+
+# ------------------
 def check_python_version():
-  min_python = "%s.%s.%s" % (2,3,4)
-  this_python= "%s.%s.%s" % (sys.version_info[0],sys.version_info[1],sys.version_info[2])
-  if this_python < min_python:
-    common.logerr("python version must be at least %s. Your python is %s" % \
-      (min_python,this_python)) 
+    min_python = "%s.%s.%s" % (2, 3, 4)
+    this_python = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+    if this_python < min_python:
+        common.logerr("python version must be at least %s. Your python is %s" % (min_python, this_python))
 
-#------------------
-def check_for_optional_arg_values(argv,optional_arg):
-  """ The getopt python functions do not support having a command line 
-      argument with an optional value.  This method attempts to do just that
-      for a specified argument.
-      If the next value on the command line (argv) has a "-" associated with it,      it assumes there is no value.
-      If the next value in the argv does not have a "-" associated with it,
-      it assumes there must be a value.
-      The result is to return the correct value for appending to the long 
-      options list in the getopt call.
-  """
-  opt =  "--" + optional_arg
-  try:
-    idx = argv.index(opt)
-    if idx == len(argv) - 1 or argv[idx + 1][0] == "-":
-      return optional_arg
-    else:
-      optional_arg += "="
-  except ValueError:
-    pass 
-  return optional_arg
+
+# ------------------
+def check_for_optional_arg_values(argv, optional_arg):
+    """ The getopt python functions do not support having a command line
+        argument with an optional value.  This method attempts to do just that
+        for a specified argument.
+        If the next value on the command line (argv) has a "-" associated with it,      it assumes there is no value.
+        If the next value in the argv does not have a "-" associated with it,
+        it assumes there must be a value.
+        The result is to return the correct value for appending to the long
+        options list in the getopt call.
+    """
+    opt = "--" + optional_arg
+    try:
+        idx = argv.index(opt)
+        if idx == len(argv) - 1 or argv[idx + 1][0] == "-":
+            return optional_arg
+        else:
+            optional_arg += "="
+    except ValueError:
+        pass
+    return optional_arg
 
 
 ##########################################
 def main(argv):
-  try:
     global gProgramName
     global gAction
     global gSSH
@@ -345,165 +358,167 @@ def main(argv):
 
     gProgramName = argv[0]
     check_python_version()
-    gAction  = None
-    gSSH     = False
+    gAction = None
+    gSSH = False
     gSSHuser = ""
-    inifile  = ""
+    inifile = ""
 
-    arglist = [ "help", "start=", "stop=", "status=", "install=","validate=","configure=","ini=","show-ini=","create-entries","create-group","create-template=","install-node",]
-    arglist.append(check_for_optional_arg_values(argv,"ssh"))
+    arglist = ["help", "start=", "stop=", "status=", "install=", "validate=", "configure=", "ini=", "show-ini=",
+               "create-entries", "create-group", "create-template=", "install-node", ]
+    arglist.append(check_for_optional_arg_values(argv, "ssh"))
 
-    services = ["wmscollector","usercollector","factory","submit","vofrontend","rpm"]
-    start_order = ["wmscollector","usercollector","factory","submit","vofrontend",]
-    stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
-    opts, args = getopt.getopt(argv[1:], "", arglist)
-    if len(opts) == 0:
-      usage(services)
-      common.logerr("No command line arguments specified")
+    services = ["wmscollector", "usercollector", "factory", "submit", "vofrontend", "rpm"]
+    start_order = ["wmscollector", "usercollector", "factory", "submit", "vofrontend", ]
+    stop_order = ["vofrontend", "submit", "factory", "usercollector", "wmscollector"]
 
-    for o, a in opts:
-      if o in ("--help"):
+    try:
+        opts, args = getopt.getopt(argv[1:], "", arglist)
+        if len(opts) == 0:
+            usage(services)
+            common.logerr("No command line arguments specified")
+
+        for o, a in opts:
+            if o in ("-h", "-?", "--help"):
+                usage(services)
+                return 1
+
+            if o == "--ini":
+                # join is intelligent and will not join if a is abspath
+                inifile = os.path.join(OLD_DIR, a)
+                if not os.path.isfile(inifile):
+                    common.logerr("ini file does not exist: %s" % inifile)
+                continue
+
+            if o == "--show-ini":
+                gAction = o[2:]
+                # join is intelligent and will not join if a is abspath
+                inifile = os.path.join(OLD_DIR, a)
+                if not os.path.isfile(inifile):
+                    common.logerr("ini file does not exist: %s" % inifile)
+                continue
+
+            if o == "--install-node":
+                gAction = o[2:]
+                continue
+
+            if o == "--ssh":
+                gSSH = True
+                if len(a) > 0:
+                    gSSHuser = a
+                continue
+
+            if o == "--create-entries":
+                gAction = o[2:]
+                continue
+
+            if o == "--create-group":
+                gAction = o[2:]
+                continue
+
+            if o == "--create-template":
+                gAction = o[2:]
+                inifile = "template"
+
+            if o in ("--start", "--stop", "--status", "--install", "--validate", "--configure", "--create-template",):
+                gAction = o[2:]
+                if a == "all":
+                    if o == "--stop":
+                        services = stop_order
+                    elif o == "--start":
+                        services = start_order
+                    elif o == "--status":
+                        services = start_order
+                    else:
+                        common.logerr("'all' can only be used with --stop,--start,--status")
+                    continue
+
+                if a in services:
+                    services = [a, ]
+                    continue
+                usage(services)
+                common.logerr("Invalid service: %s" % a)
+        # --- end of options --
+
+        if gAction is None and len(inifile) == 0:
+            usage(services)
+            common.logerr("Missing all command line  arguments")
+
+        if len(inifile) == 0:
+            usage(services)
+            common.logerr("--ini argument is required")
+
+        if gAction == None:
+            usage(services)
+            common.logerr("Missing the 'action' argument")
+
+        if gAction not in ["start", "stop", "status", ]:
+            if gSSH:
+                usage(services)
+                common.logerr("The --ssh argument can only be used with --start, --stop, --status arguments.")
+
+        if gAction == "install-node":
+            services = find_services(inifile)
+            gAction = "install"
+
+        if gAction == "create-entries":
+            services = ["factory", ]
+
+        if gAction == "create-group":
+            services = ["vofrontend", ]
+
+        if gAction == "show-ini":
+            services = []  # skips the for loop for service actions
+            ini = Configuration.Configuration(inifile)
+            print(ini)
+
+        for service in services:
+            if len(services) > 1:
+                yn = common.ask_yn("... %s %s" % (gAction, service))
+                if yn == "n":
+                    continue
+            try:
+                common.logit("----- %s ----" % (service))
+                process_request(service, gAction, inifile)
+            except common.WMSerror:
+                raise
+            except:
+                raise
+
+        common.logit("... requested action completed")
+
+    except getopt.error as e:
+        msg = e.__str__()
+        common.logit("ERROR: Invalid command line argument: %s" % msg)
         usage(services)
         return 1
-
-      if o in ("--ini"):
-        # join is intelligent and will not join if a is abspath
-        inifile = os.path.join(OLD_DIR, a)
-        if not os.path.isfile(inifile):
-          common.logerr("ini file does not exist: %s" % inifile)
-        continue
-
-      if o in ("--show-ini"):
-        gAction = o[2:]
-        # join is intelligent and will not join if a is abspath
-        inifile = os.path.join(OLD_DIR, a)
-        if not os.path.isfile(inifile):
-          common.logerr("ini file does not exist: %s" % inifile)
-        continue
-
-      if o == "--install-node":
-        gAction = o[2:]
-        continue
-
-      if o == "--ssh":
-        gSSH = True
-        if len(a) > 0:
-          gSSHuser = a
-        continue
-
-      if o == "--create-entries":
-        gAction = o[2:]
-        continue
-
-      if o == "--create-group":
-        gAction = o[2:]
-        continue
-
-      if o == "--create-template":
-        gAction = o[2:]
-        inifile = "template"
-
-      if o in ("--start","--stop","--status","--install","--validate","--configure","--create-template",):
-        gAction = o[2:]
-        if a == "all":
-          if o == "--stop":
-            services = stop_order
-          elif o == "--start":
-            services = start_order
-          elif o == "--status":
-            services = start_order
-          else:
-            common.logerr("'all' can only be used with --stop,--start,--status")
-          continue
-
-        if a in services:
-          services = [a,]
-          continue
-        usage(services)
-        common.logerr("Invalid service: %s" % a)
-    #--- end of options --
-
-    if gAction == None and len(inifile) == 0:
-      usage(services)
-      common.logerr("Missing all command line  arguments")
-
-    if len(inifile) == 0:
-      usage(services)
-      common.logerr("--ini argument is required")
-
-    if gAction == None:
-      usage(services)
-      common.logerr("Missing the 'action' argument")
-
-    if gAction not in ["start","stop","status",]:
-      if gSSH:
-        usage(services)
-        common.logerr("The --ssh argument can only be used with --start, --stop, --status arguments.")
-
-    if gAction == "install-node":
-      services = find_services(inifile)
-      gAction = "install"
-
-    if gAction == "create-entries":
-      services = ["factory",]
-
-    if gAction == "create-group":
-      services = ["vofrontend",]
-
-    if gAction == "show-ini":
-      services = []  # skips the for loop for service actions
-      ini = Configuration.Configuration(inifile)
-      print(ini)
-
-    for service in services:        
-      if len(services) > 1:
-        yn = common.ask_yn("... %s %s" % (gAction,service))
-        if yn == "n":
-          continue
-      try:
-        common.logit("----- %s ----" % (service))
-        process_request(service,gAction,inifile)
-      except common.WMSerror:
-        raise
-      except:
-        raise
-  
-    common.logit("... requested action completed")
-
-  except getopt.error as e:
-    msg = e.__str__()
-    common.logit("ERROR: Invalid command line argument: %s" % msg)
-    usage(services)
-    return 1
-  except KeyboardInterrupt as e:
-    print()
-    print("Termminating at your request")
-    return 1
-  except EOFError as e:
-    print()
-    print("Termminating at your request")
-    return 1
-  except ConfigurationError as e:
-    print()
-    print("ConfigurationError ERROR(should not get this): %s"%e)
-    print(traceback.print_exc())
-    return 1
-  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-    print()
-    print("CalledProcessError ERROR(should not get this): %s"%e)
-    return 1
-  except common.WMSerror:
-#    print "WMS ERROR: uncaught execption. Contact support"
-#    print traceback.print_exc()
-    return 1
-  except:
-    print("PROGRAM ERROR: uncaught execption. Contact support")
-    print(traceback.print_exc())
-    return 1
-  return 0
+    except KeyboardInterrupt as e:
+        print()
+        print("Termminating at your request")
+        return 1
+    except EOFError as e:
+        print()
+        print("Termminating at your request")
+        return 1
+    except ConfigurationError as e:
+        print()
+        print("ConfigurationError ERROR(should not get this): %s" % e)
+        print(traceback.print_exc())
+        return 1
+    except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+        print()
+        print("CalledProcessError ERROR(should not get this): %s" % e)
+        return 1
+    except common.WMSerror:
+        #    print "WMS ERROR: uncaught execption. Contact support"
+        #    print traceback.print_exc()
+        return 1
+    except:
+        print("PROGRAM ERROR: uncaught execption. Contact support")
+        print(traceback.print_exc())
+        return 1
+    return 0
 
 
-#--------------------------
+# --------------------------
 if __name__ == '__main__':
-  sys.exit(main(sys.argv))
-
+    sys.exit(main(sys.argv))

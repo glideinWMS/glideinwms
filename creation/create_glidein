@@ -20,17 +20,18 @@ import traceback
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-from glideinwms.creation.lib import cgWParams
-from glideinwms.creation.lib import cgWDictFile
-from glideinwms.creation.lib import cgWConsts,cWConsts
+# from glideinwms.creation.lib import cgWParams
+# from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts, cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
 from glideinwms.creation.lib import factoryXmlConfig
 
+
 ################################################################################
 
 def main(conf):
-    #print params.__dict__
+    # print params.__dict__
     glidein_dicts_obj = cgWParamDict.glideinDicts(conf)
 
     try:

@@ -14,19 +14,22 @@ STARTUP_DIR=sys.path[0]
 
 sys.path.append(os.path.join(STARTUP_DIR,"../../../"))
 
+
 from glideinwms.factory import glideFactoryConfig
 
-USAGE="Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]"
+USAGE = "Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]"
 
-def print_entries(entries,want_schedd):
+
+def print_entries(entries, want_schedd):
     print("Available entries:")
     for entry in entries.split(','):
         if not want_schedd:
-            print("  %s"%entry)
+            print("  %s" % entry)
         else:
             jobDescript=glideFactoryConfig.JobDescript(entry)
             schedd_name=jobDescript.data['Schedd']
-            print("  %-40s %-30s"%(entry,schedd_name))
+            print("  %-40s %-30s" % (entry, schedd_name))
+
 
 def main(argv):
     if len(argv)<2:
@@ -62,17 +65,17 @@ def main(argv):
     try:
         os.chdir(gfactory_dir) # factoryConfig assumes the right dir
     except OSError as e:
-        print("Dir '%s' not a valid factory dir: %s"%(gfactory_dir, e))
+        print("Dir '%s' not a valid factory dir: %s" % (gfactory_dir, e))
         sys.exit(1)
 
     try:
         glideinDescript=glideFactoryConfig.GlideinDescript()
     except IOError as e:
-        print("Dir '%s' not a valid factory dir: %s"%(gfactory_dir, e))
+        print("Dir '%s' not a valid factory dir: %s" % (gfactory_dir, e))
         sys.exit(1)
 
     if entry=="-l":
-        print_entries(glideinDescript.data['Entries'],want_schedd)
+        print_entries(glideinDescript.data['Entries'], want_schedd)
         sys.exit(0)
     
     jobDescript=glideFactoryConfig.JobDescript(entry)
@@ -97,8 +100,8 @@ def main(argv):
             i=i+1 # not an interesting one
 
     if want_schedd:
-        print("Schedd: %s"%schedd_name)
-        print("Constraint: '%s'"%const_str)
+        print("Schedd: %s" % schedd_name)
+        print("Constraint: '%s'" % const_str)
     
     # must flush out before forking, or any buffered content wil be lost
     sys.__stdout__.flush()
@@ -108,4 +111,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
- 

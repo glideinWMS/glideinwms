@@ -35,47 +35,47 @@ from glideinwms.frontend import glideinFrontendLib
 # from glideinFrontendLib explicitly
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
+
 ############################################################
-def do_work(elementDescript,paramsDescript,signatureDescript):
-    match_obj=elementDescript.merged_data['MatchExprCompiledObj']
+def do_work(elementDescript, paramsDescript, signatureDescript):
+    match_obj = elementDescript.merged_data['MatchExprCompiledObj']
 
     # query condor
 
-    glidein_dict={}
-    factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
-    factory_pools=elementDescript.merged_data['FactoryCollectors']
+    glidein_dict = {}
+    factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
+    factory_pools = elementDescript.merged_data['FactoryCollectors']
     for factory_pool in factory_pools:
-        factory_pool_node=factory_pool[0]
-        factory_identity=factory_pool[1]
-        my_identity_at_factory_pool=factory_pool[2]
+        factory_pool_node = factory_pool[0]
+        factory_identity = factory_pool[1]
+        my_identity_at_factory_pool = factory_pool[2]
         try:
             full_constraint='(%s) && ((PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False))' % factory_constraint
             factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,full_constraint)
         except RuntimeError as e:
             if factory_pool_node is not None:
-                print("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
+                print("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
             else:
-                print("Failed to talk to factory_pool: %s"%e)
+                print("Failed to talk to factory_pool: %s" % e)
             # failed to talk, like empty... maybe the next factory will have something
-            factory_glidein_dict={}
+            factory_glidein_dict = {}
 
         for glidename in factory_glidein_dict.keys():
-            if ('AuthenticatedIdentity' not in factory_glidein_dict[glidename]['attrs']) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
-                print("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
+            if ('AuthenticatedIdentity' not in factory_glidein_dict[glidename]['attrs']) or \
+                    (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
+                print("Found an untrusted factory %s at %s; ignoring." % (glidename,factory_pool_node))
                 if 'AuthenticatedIdentity' in factory_glidein_dict[glidename]['attrs']:
-                    print("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
+                    print("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" %
+                          (glidename, factory_pool_node,
+                           factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
             else:
                 glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
-    
-
-
-    ## schedd
+    # schedd
     condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
     condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                elementDescript.merged_data['JobQueryExpr'],
                                                condorq_format_list)
-
 
     # Match
     job_glideins_dict={}
@@ -124,7 +124,7 @@ def do_work(elementDescript,paramsDescript,signatureDescript):
 
 ############################################################
 def main(work_dir, group_name):
-    startup_time=time.time()
+    startup_time = time.time()
 
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
 
@@ -137,7 +137,7 @@ def main(work_dir, group_name):
     os.environ['X509_USER_PROXY']=elementDescript.frontend_data['ClassAdProxy']
 
     try:
-        do_work(elementDescript,paramsDescript,signatureDescript)
+        do_work(elementDescript, paramsDescript, signatureDescript)
     except KeyboardInterrupt:
         print("Received signal...exit")
     except:
@@ -145,6 +145,7 @@ def main(work_dir, group_name):
                                         sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
         
+
 ############################################################
 #
 # S T A R T U P
@@ -152,5 +153,4 @@ def main(work_dir, group_name):
 ############################################################
 
 if __name__ == '__main__':
-    main(sys.argv[1],sys.argv[2])
- 
+    main(sys.argv[1], sys.argv[2])

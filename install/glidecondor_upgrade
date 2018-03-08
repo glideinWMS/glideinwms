@@ -33,7 +33,7 @@ if condorExe.condor_bin_path==None:
 
 condor_base_dir=os.path.realpath("%s/.."%condorExe.condor_bin_path)
 print()
-print("Will update Condor in %s"%condor_base_dir)
+print("Will update Condor in %s" % condor_base_dir)
 print()
 
 condor_subdirs=('bin','include','libexec','sbin','examples','lib','man','src')
@@ -77,7 +77,7 @@ try:
   first_entry_obj=members[0]
   first_entry=first_entry_obj.name
   if not first_entry_obj.isdir():
-    print("File '%s' is not a condor tarball! (expected a subdirectory, found '%s'))"%(new_tarball,first_entry))
+    print("File '%s' is not a condor tarball! (expected a subdirectory, found '%s'))" % (new_tarball,first_entry))
     sys.exit(4)
   first_dir=first_entry.split('/')[0]+'/'
   if (first_dir[:7]=="condor-"):
@@ -85,7 +85,7 @@ try:
   elif (first_dir[:9]=="htcondor-"):
     condor_version=first_dir[9:-1]
   else:
-    print("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(new_tarball,first_dir))
+    print("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (new_tarball,first_dir))
     sys.exit(4)
   print("Seems condor version %s"%condor_version)
   condor_tar_subdir=first_dir
@@ -98,7 +98,7 @@ try:
   for f in members:
        if f.islnk():
         os.link(os.path.join(extract_dir,f.linkname),os.path.join(extract_dir,f.name))
-  if not os.path.exists(os.path.join(extract_dir,"%s/bin/condor_q"%condor_tar_subdir)):
+  if not os.path.exists(os.path.join(extract_dir, "%s/bin/condor_q" % condor_tar_subdir)):
     print("Not a valid Condor tarball... cannot find bin/condor_q")
     sys.exit(4)
 except:
@@ -106,7 +106,7 @@ except:
   try:
     shutil.rmtree(extract_dir)
   except:
-    print("Failed to clean up tmp dir %s"%extract_dir)
+    print("Failed to clean up tmp dir %s" % extract_dir)
   raise
 
 fd.close()
@@ -152,15 +152,15 @@ try:
     try:
       shutil.rmtree(backup_dir)
     except:
-      print("Failed to clen up tmp backup dir %s"%backup_dir)
+      print("Failed to clen up tmp backup dir %s" % backup_dir)
     raise
 finally:
   # always clean up the extract dir
   try:
     shutil.rmtree(extract_dir)
   except:
-    print("Failed to clean up tmp dir %s"%extract_dir)
+    print("Failed to clean up tmp dir %s" % extract_dir)
 
 print()
-print("Old binaries can be found in %s"%backup_dir)
+print("Old binaries can be found in %s" % backup_dir)
 print()
