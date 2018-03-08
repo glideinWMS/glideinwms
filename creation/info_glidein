@@ -11,6 +11,7 @@
 #  based on a configuration file
 #
 
+from __future__ import print_function
 import os
 import sys
 STARTUP_DIR=sys.path[0]
@@ -25,14 +26,14 @@ from glideinwms.creation.lib import cgWParamDict
 ################################################################################
 
 def main(params,flags):
-    print "Factory name: '%s'"%params.glidein_name
+    print("Factory name: '%s'"%params.glidein_name)
     if "dirs" in flags:
         glidein_dicts_obj=cgWParamDict.glideinDicts(params)
-        print "Submit dir    : %s"%glidein_dicts_obj.main_dicts.work_dir
-        print "Support dir   : %s"%glidein_dicts_obj.main_dicts.stage_dir
-        print "Monitoring dir: %s"%glidein_dicts_obj.main_dicts.monitor_dir
+        print("Submit dir    : %s"%glidein_dicts_obj.main_dicts.work_dir)
+        print("Support dir   : %s"%glidein_dicts_obj.main_dicts.stage_dir)
+        print("Monitoring dir: %s"%glidein_dicts_obj.main_dicts.monitor_dir)
     if "entries" in flags:
-        print "Entries:"
+        print("Entries:")
         for entry_name in  params.entries.data.keys():
             entry_el=params.entries.data[entry_name]
             if entry_el.data['enabled']!="True":
@@ -50,7 +51,7 @@ def main(params,flags):
                 if entry_el.data['rsl'] is not None:
                     outstr+=" rsl: '%s'"%entry_el.data['gridtype']
                 
-            print "\tEntry '%s'\t%s"%(entry_name,outstr)
+            print("\tEntry '%s'\t%s"%(entry_name,outstr))
 
 ############################################################
 #
@@ -71,8 +72,8 @@ def parse_args(argv):
             
     try:
         params=cgWParams.GlideinParams(usage,os.path.join(STARTUP_DIR,"web_base"),argv)
-    except RuntimeError,e:
-        print e
+    except RuntimeError as e:
+        print(e)
         sys.exit(1)
     return (params,flags)
 
@@ -81,7 +82,7 @@ if __name__ == '__main__':
 
     try:
         main(params,flags)
-    except RuntimeError, e:
-        print e
+    except RuntimeError as e:
+        print(e)
 
 ###########################################################

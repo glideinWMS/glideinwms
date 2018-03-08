@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import sys
 import stat
@@ -58,7 +59,7 @@ def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend,
                          '/var/lib/gwms-frontend/vofrontend',
                          '/etc/gwms-frontend/frontend.xml',
                          'True')
-    print "...Updated the frontend startup script"
+    print("...Updated the frontend startup script")
 
     # Factory
     create_initd_startup(gwms_src_root_dir, template_factory,
@@ -67,7 +68,7 @@ def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend,
                          '/var/lib/gwms-factory/work-dir',
                          '/etc/gwms-factory/glideinWMS.xml',
                          'True')
-    print "...Updated the factory startup script"
+    print("...Updated the factory startup script")
 
 
 
@@ -78,7 +79,7 @@ if __name__ == '__main__':
         if os.path.isdir(argv[0]):
             main(argv[0], argv[1], argv[2], argv[3], argv[4])
             sys.exit(0)
-    print usage
+    print(usage)
     sys.exit(1)
 
 
