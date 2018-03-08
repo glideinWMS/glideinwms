@@ -147,19 +147,25 @@ process_branch () {
     echo "Now running test"
     echo ""
 
-    OUTPUT="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
-    futurize_ret=$?
+    OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
+    futurize_ret1=$?
 
-    refactoring_ret="$(echo "$OUTPUT" | grep 'Refactored ')"
+    # get list of python scripts without .py extension
+    scripts=`find . -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
+    OUTPUT2="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${scripts} 2>&1)"
+    futurize_ret2=$?
+
+
+    refactoring_ret="$(echo "$OUTPUT1\n$OUTPUT2" | grep 'Refactored ')"
 
     # Save the output to a file
 
     save_as=$(echo "${1//\//_}")
 
-    echo "$OUTPUT" > "$Log_Dir/Futurize_Log_$save_as.txt"
+    echo "$OUTPUT1\n$OUTPUT2" > "$Log_Dir/Futurize_Log_$save_as.txt"
 
-    if [[ $futurize_ret -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
-        refactored_files=$(echo "$OUTPUT" | grep 'RefactoringTool: Refactored ')
+    if [[ $futurize_ret1 -ne 0 || $futurize_ret2 -ne 0 || $refactoring_ret = *[!\ ]* ]]; then
+        refactored_files=$(echo "$OUTPUT1\n$OUTPUT2" | grep 'RefactoringTool: Refactored ')
         refactored_file_count=$(echo "$refactored_files" | wc -l)
 
         echo "There are $refactored_file_count files that need to be refactered"
@@ -170,7 +176,7 @@ process_branch () {
         <th style=\"$HTML_TH\">$1</th>
         <td style=\"$HTML_TD_FAILED\">$refactored_file_count</td>
     </tr>"
-        if [ $futurize_ret -ne 0 ]; then
+        if [[ $futurize_ret1 -ne 0 || $futurize_ret2 -ne 0 ]]; then
             exit 1
         else
             fail=201
