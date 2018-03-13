@@ -25,7 +25,6 @@ event_end_repr = "{'timing_test': {'test_start': {'start_time': 1518767040, 'end
 t_tag='t_tag'
 tagged_event_repr = "{'timing_test': {'test_start': {'t_tag': 1518767040}}}"
 
-
 class TestPerfMetric(unittest.TestCase):
 
     def test___init__(self):
@@ -80,8 +79,10 @@ class TestGetPerfMetricEventLifetime(unittest.TestCase):
 class TestGetPerfMetric(unittest.TestCase):
 
     def test_get_perf_metric(self):
-        self.assertEqual(expected_repr, getPerfMetric(name).__repr__())
-
+        startPerfMetricEvent(name, event_name, event_begin)
+        endPerfMetricEvent(name, event_name, event_end)
+        self.assertEqual(event_end_repr, getPerfMetric(name).__repr__())
+        
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

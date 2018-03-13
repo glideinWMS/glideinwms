@@ -21,7 +21,6 @@ src_dir="fixtures/factory"
 usage_prefix="create_factory"
 expected=""
 
-
 class TestGlideinParams(unittest.TestCase):
 
     def setUp(self):
@@ -47,6 +46,7 @@ class TestGlideinParams(unittest.TestCase):
         self.assertTrue('dicts_params' in fmt_dict)
         self.assertTrue('lists_params' in fmt_dict)
 
+
     def test_get_xml(self):
         self.assertTrue(len(self.glidein_params.get_xml().__repr__())>0)
 
@@ -61,23 +61,20 @@ class TestGlideinParams(unittest.TestCase):
         new_param_obj.load_file(fn.name)
         os.remove(fn.name)
 
+
     def test_init_defaults(self):
         try:
             self.glidein_params.init_defaults()
         except RuntimeError as err:
             self.fail(err)
 
-    @unittest.skip('this test doesnt set up subparams so validate_names will fail')
-    def test_validate_names(self):
-        try:
-            self.glidein_params.validate_names()
-        except RuntimeError as err:
-            self.fail(err)
+
 
     def test__eq__(self):
         cpy = copy.deepcopy(self.glidein_params)
         self.assertTrue(cpy == self.glidein_params)
         self.assertFalse(cpy == None)
+
 
 
 if __name__ == '__main__':

@@ -81,7 +81,8 @@ class FakeLogger:
     Super simple logger for the unittests
     """
 
-    def __init__(self):
+    def __init__(self, afile=sys.stderr):
+        self.file = afile
         pass
 
     def debug(self, msg, *args):
@@ -93,7 +94,7 @@ class FakeLogger:
         @param msg: A message string.
         @param args: Arguments which should be evaluated into the message.
         """
-        print(str(msg) % args, file=sys.stderr)
+        print(str(msg) % args, file=self.file)
 
     def info(self, msg, *args):
         """
@@ -101,7 +102,7 @@ class FakeLogger:
         
         @see: debug
         """
-        print(str(msg) % args, file=sys.stderr)
+        print(str(msg) % args, file=self.file)
 
     def warning(self, msg, *args):
         """
@@ -109,7 +110,7 @@ class FakeLogger:
 
         @see: debug
         """
-        print(str(msg) % args, file=sys.stderr)
+        print(str(msg) % args, file=self.file)
 
     def error(self, msg, *args):
         """
@@ -117,7 +118,7 @@ class FakeLogger:
 
         @see: debug
         """
-        print(str(msg) % args, file=sys.stderr)
+        print(str(msg) % args, file=self.file)
 
     def exception(self, msg, *args):
         """
@@ -125,7 +126,7 @@ class FakeLogger:
 
         @see: debug
         """
-        print(str(msg) % args, file=sys.stderr)
+        print(str(msg) % args, file=self.file)
 
 def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
                      text_access=True, write_path_to_file=True):
