@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -17,8 +18,8 @@ import re
 
 class LDAPQuery:
     def __init__(self,
-                 ldap_url,ldap_port, # where to find LDAP server
-                 base,filter_str):   # what to read
+                 ldap_url, ldap_port, # where to find LDAP server
+                 base, filter_str):   # what to read
         self.ldap_url = ldap_url
         self.ldap_port = ldap_port
         self.base = base
@@ -46,15 +47,15 @@ class LDAPQuery:
         try:
             bdii_data = ldap_obj.search_s(self.base, ldap.SCOPE_SUBTREE,
                                           filter_str)
-        except ldap.FILTER_ERROR, e:
-            raise ValueError, "LDAP filter error for '%s': %s" % (filter_str, e)
+        except ldap.FILTER_ERROR as e:
+            raise ValueError("LDAP filter error for '%s': %s" % (filter_str, e))
         del ldap_obj
 
         out_data = {}
         for elarr in bdii_data:
             el1, el2 = elarr
-            if out_data.has_key(el1):
-                raise RuntimeError, "Dublicate element found: " + el1
+            if el1 in out_data:
+                raise RuntimeError("Dublicate element found: " + el1)
             out_data[el1] = el2
             
         del bdii_data
@@ -69,8 +70,8 @@ class BDIICEQuery(LDAPQuery):
             
         filter_str = "&(GlueCEInfoContactString=*)%s" % additional_filter_str
 
-        LDAPQuery.__init__(self,bdii_url,bdii_port,
-                           base_string,filter_str)
+        LDAPQuery.__init__(self, bdii_url, bdii_port,
+                           base_string, filter_str)
 
     def fetch(self, additional_filter_str=None):
         out_data = LDAPQuery.fetch(self, additional_filter_str)
@@ -83,7 +84,7 @@ class BDIICEQuery(LDAPQuery):
     def filterStatus(self, usable=True):
         old_data = self.stored_data
         if old_data is None:
-            raise RuntimeError, "No data loaded"
+            raise RuntimeError("No data loaded")
         new_data = {}
         for k in old_data.keys():
             if (old_data[k]['GlueCEStateStatus'][0] == 'Production') == usable:
@@ -127,9 +128,9 @@ class SearchBDII:
         if self.ldapSearchStr:
             selectionStr=selectionStr+self.ldapSearchStr
         if self.port:
-            bdii_obj=BDIICEQuery(self.bdiiUrl,bdii_port=int(self.port),additional_filter_str=selectionStr,base_string=baseStr)
+            bdii_obj=BDIICEQuery(self.bdiiUrl, bdii_port=int(self.port), additional_filter_str=selectionStr, base_string=baseStr)
         else:    
-            bdii_obj=BDIICEQuery(self.bdiiUrl,additional_filter_str=selectionStr,base_string=baseStr)
+            bdii_obj=BDIICEQuery(self.bdiiUrl, additional_filter_str=selectionStr, base_string=baseStr)
         bdii_obj.load()
         self.bdiiData=bdii_obj.fetchStored()
         del bdii_obj
@@ -148,7 +149,7 @@ class SearchBDII:
                     dict[key]=self.bdiiData[key]
                     found=True
             if found==False:
-                print "\n No entry found for search term \""+self.searchStr+"\" .\n"
+                print("\n No entry found for search term \""+self.searchStr+"\" .\n")
             self.bdiiData.clear()
             self.bdiiData=dict
         
@@ -165,18 +166,18 @@ class SearchBDII:
         """
         if file:
             try:
-                outFile=open(file,'w')
+                outFile=open(file, 'w')
                 for key in self.bdiiData.keys():
-                    outFile.write("\n%s\n%s\n\n"%(key,self.bdiiData[key]))
+                    outFile.write("\n%s\n%s\n\n"%(key, self.bdiiData[key]))
             except:
-                print "Error opening or closing specified file."
+                print("Error opening or closing specified file.")
         else:
             for key in self.bdiiData.keys():
-                print "\n"
-                print key
-                print "\n"
-                print self.bdiiData[key]
-                print "\n\n"
+                print("\n")
+                print(key)
+                print("\n")
+                print(self.bdiiData[key])
+                print("\n\n")
 
 class BdiiLdap:
    def __init__(self, bdii="uscmsbd2.fnal.gov"):
@@ -189,7 +190,7 @@ class BdiiLdap:
    def runldapquery(self, filter, attribute):
        bdii = self.bdii
        if self.DEBUG:
-           print "runldapquery ["+bdii+"]", filter, attribute
+           print("runldapquery ["+bdii+"]", filter, attribute)
        attribute = attribute.split(' ')
        filter = filter.strip()
        filter = filter.lstrip("'").rstrip("'")
@@ -208,7 +209,7 @@ class BdiiLdap:
 
        try:
            result_id = l.search(base, scope, filter, attribute)
-           while 1:
+           while True:
                result_type, result_data = l.result(result_id, timeout)
                if (result_data == []):
                    break
@@ -216,8 +217,8 @@ class BdiiLdap:
                    if result_type == ldap.RES_SEARCH_ENTRY:
                        result_set.append(result_data)
 
-       except ldap.LDAPError, error_message:
-           print error_message
+       except ldap.LDAPError as error_message:
+           print(error_message)
            raise
 
        return result_set
@@ -285,7 +286,7 @@ class BdiiLdap:
            self.map_source['ceList'] = 'ALL'
        self.map_source['bdii'] = self.bdii
 
-       if (self.DEBUG): print 40*'*', 'exit generateMaps', 40*'*'
+       if (self.DEBUG): print(40*'*', 'exit generateMaps', 40*'*')
 
    def buildOrQuery(self, gluekey, list):
        """

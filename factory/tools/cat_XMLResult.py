@@ -13,11 +13,12 @@
 #        If -forcemulti is present, make it a ResultSet even if only one file present
 #
 
+from __future__ import print_function
 import os.path
 import string
 import sys
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 from glideinwms.factory.tools.lib import gWftLogParser
 
 USAGE="Usage: cat_XMLResult.py -h|[-raw] [-forcemulti] <logname>+"
@@ -26,14 +27,14 @@ def main(args):
     raw_out=False
     force_multi=False
 
-    while 1:
+    while True:
         if (len(args)<1):
             sys.stderr.write("Missing logname.\n")
             sys.stderr.write("%s\n"%USAGE)
             sys.exit(1)        
 
         if (args[0]=="-h"):
-            print USAGE
+            print(USAGE)
             sys.exit(0)
         elif (args[0]=="-raw"):
             raw_out=True
@@ -49,7 +50,7 @@ def main(args):
         try:
             fname=args[0]
             out=gWftLogParser.get_XMLResult(fname)
-        except OSError,e:
+        except OSError as e:
             sys.stderr.write("Error reading file: %s\n"%e)
             sys.exit(1)
         except:
@@ -57,14 +58,14 @@ def main(args):
             sys.stderr.write("%s\n"%USAGE)
             sys.exit(1)
 
-        for l in string.split(out,"\n"):
+        for l in string.split(out, "\n"):
             if raw_out and (l[:2]=="<?"):
                 #skip comments for raw output
                 continue
             if l[:15]=="<OSGTestResult ":
                 # insert file name
                 l=l[:15]+('logname="%s" '%fname)+l[15:]
-            print l
+            print(l)
     else:
         # multiple files, combine in a set
         xmls=[]
@@ -78,7 +79,7 @@ def main(args):
                     continue
 
                 x=[]
-                for l in string.split(rawx,"\n"):
+                for l in string.split(rawx, "\n"):
                     if l[:2]=="<?":
                         #skip comments
                         continue
@@ -88,8 +89,8 @@ def main(args):
                     x.append("  "+l);
                 if x[-1]=="  ":
                     x=x[:-1]
-                xmls.append(string.join(x,"\n"))
-            except OSError,e:
+                xmls.append(string.join(x, "\n"))
+            except OSError as e:
                 # just warn
                 sys.stderr.write("Error reading file: %s\n"%e)
             except:

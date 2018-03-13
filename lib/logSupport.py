@@ -233,7 +233,7 @@ class GlideinHandler(BaseRotatingHandler):
                 f_out.write(dfn, os.path.basename(dfn), zipfile.ZIP_DEFLATED)
                 f_out.close()
                 os.remove(dfn)
-            except IOError, e:
+            except IOError as e:
                 alternate_log("Log file zip compression failed: %s" % e)
         elif self.compression == "gz":
             if os.path.exists(dfn + ".gz"):
@@ -245,7 +245,7 @@ class GlideinHandler(BaseRotatingHandler):
                 f_out.close()
                 f_in.close()
                 os.remove(dfn)
-            except IOError, e:
+            except IOError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)
 
     def _open_new_log(self):

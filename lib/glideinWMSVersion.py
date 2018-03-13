@@ -18,6 +18,7 @@
 ###############################################################################
 
 
+from __future__ import print_function
 import os
 import sys
 try:
@@ -90,7 +91,7 @@ class GlideinWMSDistro:
                     fd = None
                     try:
                         if (self.type != "RPM"):
-                            fd = open(os.path.join(dir,file), 'r')
+                            fd = open(os.path.join(dir, file), 'r')
                         else:
                             # In the RPM, all files are in site-packages
                             rpm_dir = os.path.dirname(
@@ -139,7 +140,7 @@ def version(dir, chksumFile=None):
 #   version
 
 def usage():
-    print "Usage: glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]"
+    print("Usage: glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]")
 
 ##############################################################################
 # MAIN
@@ -147,9 +148,9 @@ def usage():
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        print "%s " % (GlideinWMSDistro(sys.argv[1]).version())
+        print("%s " % (GlideinWMSDistro(sys.argv[1]).version()))
     elif len(sys.argv) == 3:
-        print "%s " % (GlideinWMSDistro(sys.argv[1], chksumFile=sys.argv[2]).version())
+        print("%s " % (GlideinWMSDistro(sys.argv[1], chksumFile=sys.argv[2]).version()))
     else:
         usage()
         sys.exit(1)

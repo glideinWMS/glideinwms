@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import os
 import sys
 import shutil
@@ -9,9 +10,9 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from unittest_utils import runTest
-from unittest_utils import create_temp_file
-from unittest_utils import create_random_string
+from glideinwms.unittests.unittest_utils import runTest
+from glideinwms.unittests.unittest_utils import create_temp_file
+from glideinwms.unittests.unittest_utils import create_random_string
 from glideinwms.lib.hashCrypto import extract_md5
 from glideinwms.lib.tarSupport import GlideinTar
 from glideinwms.lib.tarSupport import FileDoesNotExist

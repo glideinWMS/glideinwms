@@ -16,10 +16,11 @@
 #   Igor Sfiligoi (May 9th 2007)
 #
 
+from __future__ import print_function
 import string
 import os.path
 import sys
-sys.path.append(os.path.join(sys.path[0],"../.."))
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
 #import glideFactoryInterface
 from glideinwms.frontend import glideinFrontendInterface
@@ -41,14 +42,14 @@ while (i<alen):
     elif ael=='-factory':
         i=i+1
         factory_name=sys.argv[i]
-    elif ael in ('Entries','Sites','Gatekeepers'):
+    elif ael in ('Entries', 'Sites', 'Gatekeepers'):
         txt_type=ael
     elif ael=='-help':
-        print "Usage:"
-        print "wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]"
+        print("Usage:")
+        print("wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]")
         sys.exit(1)
     else:
-        raise RuntimeError,"Unknown option '%s', try -help"%ael
+        raise RuntimeError("Unknown option '%s', try -help"%ael)
     i=i+1
 
 # get data
@@ -59,13 +60,13 @@ if factory_name is not None:
         # just the generic factory name
         factory_constraints='FactoryName=?="%s"'%factory_name
     elif len(farr)==2:
-        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")'%(farr[1],farr[0])
+        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")'%(farr[1], farr[0])
     elif len(farr)==3:
-        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2],farr[1],farr[0])
+        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2], farr[1], farr[0])
     else:
-        raise RuntimeError, "Invalid factory name; more than 2 @'s found"
+        raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints)
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name, None, None, factory_constraints)
 
 # Get a dictionary of
 #  RequestedIdle
@@ -85,30 +86,29 @@ for glidein in glideins:
     elif txt_type=='Gatekeepers':
         key=glidein_el['attrs']['GLIDEIN_Gatekeeper']
     else:
-        raise RuntimeError, "Unknwon type '%s'"%txt_type
+        raise RuntimeError("Unknwon type '%s'"%txt_type)
     
         
-    if txt_data.has_key(key):
+    if key in txt_data:
         key_el=txt_data[key]
     else:
         key_el={'RequestedIdle':0,'Idle':0,'Running':0,'MaxGlideins':0}
         txt_data[key]=key_el
 
-    if glidein_el.has_key('monitor'):
-        if glidein_el['monitor'].has_key('TotalRequestedIdle'):
+    if 'monitor' in glidein_el:
+        if 'TotalRequestedIdle' in glidein_el['monitor']:
             key_el['RequestedIdle']+=glidein_el['monitor']['TotalRequestedIdle']
             key_el['Idle']+=glidein_el['monitor']['TotalStatusIdle']
             key_el['Running']+=glidein_el['monitor']['TotalStatusRunning']
             key_el['MaxGlideins']+=glidein_el['monitor']['TotalRequestedMaxGlideins']
 
 #print data
-txt_keys=txt_data.keys()
-txt_keys.sort()
+txt_keys=sorted(txt_data.keys())
 
-print '%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry',48)
-print '================================================-=======-=======-=======-======='
+print('%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry', 48))
+print('================================================-=======-=======-=======-=======')
 for key in txt_keys:
     key_el=txt_data[key]
-    print "%s %7i %7i %7i %7i"%(string.ljust(key,48),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'],key_el['MaxGlideins'])
+    print("%s %7i %7i %7i %7i"%(string.ljust(key, 48), key_el['RequestedIdle'], key_el['Idle'], key_el['Running'], key_el['MaxGlideins']))
 
 

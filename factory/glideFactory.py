@@ -31,7 +31,7 @@ import math
 # from datetime import datetime
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
@@ -93,8 +93,8 @@ def update_classads():
             qe.executeAll(joblist=joblist.keys(),
                           attributes=['MONITOR_INFO']*len(joblist),
                           values=map(json.dumps, joblist.values()))
-        except QueryError as qe:
-            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qe)
+        except QueryError as qerr:
+            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qerr)
 
 
 def save_stats(stats, fname):
@@ -173,7 +173,7 @@ def entry_grouper(size, entries):
         return list
 
     if len(entries) <= size:
-        list.insert(0,entries)
+        list.insert(0, entries)
     else:
         for group in range(len(entries)/size):
             list.insert(group, entries[group*size:(group+1)*size])
@@ -364,7 +364,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             if not soft_l:
                 soft_l=hard_l
             try:    
-                new_lim = [soft_l,hard_l]
+                new_lim = [soft_l, hard_l]
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
             except:
                 resource.setrlimit(resource.RLIMIT_NOFILE, lim)
@@ -387,7 +387,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                             startup_dir,
                             entry_names,
                             str(group)]
-
             childs[group] = subprocess.Popen(command_list, shell=False,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE,
@@ -432,7 +431,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 
         iteration_basetime = time.time()
-        while 1:
+        while True:
             # retrieves WebMonitoringURL from glideclient classAd
             iteration_timecheck  = time.time()
             iteration_timediff = iteration_timecheck - iteration_basetime
@@ -441,7 +440,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 iteration_basetime = time.time() # reset the start time
                 fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
                 fronmonconstraint = '(MyType=="glideclient")'
-                fronmonformat_list = [('WebMonitoringURL','s'), ('FrontendName','s')]
+                fronmonformat_list = [('WebMonitoringURL', 's'), ('FrontendName', 's')]
                 fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
                 fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
                 fronmon_list_names = fronmondata.keys()
@@ -453,7 +452,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         fronmonelement = fronmondata[frontend_entry]
                         fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
                         fronmonfrt = fronmonelement['FrontendName'].encode('utf-8')
-                        if (fronmonfrt,fronmonurl) not in urlset:
+                        if (fronmonfrt, fronmonurl) not in urlset:
                             urlset.add((fronmonfrt, fronmonurl))
                             with open(fronmonpath, 'w') as fronmonf:
                                 fronmonf.write("%s, %s"%(fronmonfrt, fronmonurl))
@@ -545,7 +544,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     if is_crashing_often(childs_uptime[group],
                                          restart_interval, restart_attempts):
                         del childs[group]
-                        raise RuntimeError, "EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s" % (group, tempOut, tempErr)
+                        raise RuntimeError("EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s" % (group, tempOut, tempErr))
                     else:
                         # Restart the entry setting its restart time
                         logSupport.log.warning("Restarting EntryGroup %s." % (group))
@@ -581,7 +580,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
-            if glideinDescript.data.get('AdvertisePilotAccounting', False):
+            if glideinDescript.data.get('AdvertisePilotAccounting', False) in ['True', '1']:   # data attributes are strings
                 logSupport.log.info("Starting updating job classads")
                 update_classads()
                 logSupport.log.info("Finishing updating job classads")
@@ -595,7 +594,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideFactoryLib.factoryConfig.supported_signtypes,
                     glideinDescript.data['PubKeyObj']
                     )
-            except Exception, e:
+            except Exception as e:
                 logSupport.log.exception("Error advertising global classads: %s" % e)
 
             cleanupSupport.cleaners.cleanup()
@@ -723,7 +722,7 @@ def main(startup_dir):
         logSupport.log.error(log_msg)
         sys.exit(1)
 
-    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
+    write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, 'monitor/'))
 
     try:
         os.chdir(startup_dir)
@@ -766,12 +765,12 @@ def main(startup_dir):
     except:
         logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
 
-    entries = glideinDescript.data['Entries'].split(',')
-    entries.sort()
+    entries = sorted(glideinDescript.data['Entries'].split(','))
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(
         os.path.join(startup_dir, "monitor"), entries,
-        log = logSupport.log)
+        log=logSupport.log
+    )
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
@@ -781,32 +780,34 @@ def main(startup_dir):
     # start
     try:
         pid_obj.register()
-    except glideFactoryPidLib.pidSupport.AlreadyRunning, err:
+    except glideFactoryPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
         logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" %
-                                 (pid_obj.mypid , err))
+                                 (pid_obj.mypid, err))
         raise
     try:
         try:
             spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                   frontendDescript, entries, restart_attempts, restart_interval)
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt as e:
             raise e
-        except HUPException, e:
+        except HUPException as e:
             # inside spawn(), outermost try will catch HUPException, 
             # then the code within the finally will run
             # which will terminate glideFactoryEntryGroup children processes
             # and then the following 3 lines will be executed.
-            logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid() )
+            logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid())
             # must empty the lock file so that when the thread returns from reconfig_glidein and 
             # begins from the beginning, it will not error out which will happen 
             # if the lock file is not empty
             pid_obj.relinquish()
-            os.execv( os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"), ['reconfig_glidein', '-update_scripts', 'no', '-sighupreload', '-xml', '/etc/gwms-factory/glideinWMS.xml'] )
+            os.execv(os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"),
+                     ['reconfig_glidein', '-update_scripts', 'no', '-sighupreload', '-xml', '/etc/gwms-factory/glideinWMS.xml'])
         except:
             logSupport.log.exception("Exception occurred spawning the factory: ")
     finally:
         pid_obj.relinquish()
+
 
 ############################################################
 #
@@ -816,11 +817,15 @@ def main(startup_dir):
 class HUPException(Exception):
     pass
 
+
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
+    raise KeyboardInterrupt("Received signal %s" % signr)
+
 
 def hupsignal(signr, frame):
-    raise HUPException, "Received signal %s" % signr
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    raise HUPException("Received signal %s" % signr)
+
 
 if __name__ == '__main__':
     if os.getsid(os.getpid()) != os.getpgrp():
@@ -831,5 +836,5 @@ if __name__ == '__main__':
 
     try:
         main(sys.argv[1])
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt as e:
         logSupport.log.info("Terminating: %s" % e)

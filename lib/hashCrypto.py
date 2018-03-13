@@ -61,7 +61,7 @@ class Hash:
         h = M2Crypto.EVP.MessageDigest(self.hash_algo)
         fd = open(fname, 'rb')
         try:
-            while 1:
+            while True:
                 data = fd.read(block_size)
                 if data == '':
                     break # no more data, stop reading

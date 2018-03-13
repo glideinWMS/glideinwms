@@ -31,16 +31,20 @@
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
-            <div id="cse-search-form" style="width: 100%;">Loading</div>
-            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-            <script src="../common/glidein.js" type="text/javascript"></script>
-            <script type="text/javascript">
-            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
-            google.setOnLoadCallback(onLoad);
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
             </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
         </div>
     </div>
-    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
     <img align="right" width="280px" border="0px"
@@ -61,7 +65,7 @@
          <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>Design</h3>
+        <h3>Frontend Design Overview</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
@@ -72,6 +76,7 @@
 <div class="related">
 Related Information:
 <ul>
+    <li><a href="design_frontend.html">Frontend internals</a></li>
     <li><a href="../factory/design.html">Factory design</a></li>
     <li> <a href="../factory/design_data_exchange.html">
            Factory/Frontend Data Exchange

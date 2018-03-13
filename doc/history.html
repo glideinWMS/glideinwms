@@ -30,16 +30,20 @@
 	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
-        <div id="cse-search-form" style="width: 100%;">Loading</div>
-        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-        <script src="./common/glidein.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
-            google.setOnLoadCallback(onLoad);
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
             </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
     </div>
-    </div>
-    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
     <img align="right" width="280px" border="0px"
@@ -85,8 +89,46 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_21</b> released on December 10, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_21/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_21/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Have frontend groups request the removal of unused glideins</li>
+	  <li>Support of unprivileged singularity and new singularity scripts</li>
+	  <li>Automatically renew gwms proxies</li>
+	  <li>Factory monitoring displaying correctly core counters</li>
+	  <li>Balancing glidein pressure to sites that are aliases or Meta-Sites</li>
+	  <li>Remove osg-version requirements</li>
+	  <li>Bug Fix: Fix fork.py behavior</li>
+	  <li>Bug Fix: Uninitialized variable caused skipping fix-rrd</li>
+	  <li>Bug Fix: Sanitize content of MJF attributes</li>
+	  <li>Bug Fix: Update Google custom search to new API</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_20</b> released on November 15, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_20/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_20/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_20.tgz">Tarball</a>)<br>
+        <ul>
+            <li>NOTE: during the first "upgrade" or "reconfig --fix-rrd" you will see some warning because of missing RRD attributes. This is OK, is caused by the schema change.</li>
+          <li>Verified that Factory can start 1500 entries at a time</li>
+          <li>Improved Factory monitoring by adding cores count for running and idle jobs and requests</li>
+          <li>Removed dependency from Globus clients</li>
+          <li>Support Singularity (future replacement for glexec)</li>
+          <li>Avoid race conditions with multiple reload quick invocations in SL7</li>
+          <li>Bug Fix: -fix_rrd is always in the upgrade command beside reconfig option</li>
+          <li>Bug Fix: Fixed some failing unit tests</li>
+          <li>Bug Fix: Fixed Factory job stats are empty</li>
+          <li>Bug Fix: Bad link to Frontend monitoring</li>
+          <li>Bug Fix: Custom Google search in the documentation pointing to the new site, not the old mirror on uscms.org</li>
+          <li>Bug Fix: Fix DC_DAEMON_LIST</li>
+          <li>Bug Fix: verifyRRD hard coded paths, missing some files during -fix_rr</li>
+          <li>Bug Fix: HTCondor QEdit triggered also when advertise_pilot_accounting is not set</li>
+          <li>Bug Fix: Downtime setting correctly distinguish daylight saving</li>
+            <li>Bug Fix: Added usercollector RPM dependency from ganglia</li>
+       </ul>
+      </li>
+      <li>
         <b>v3_2_19</b> released on May 30, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_19/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_19/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_19.tgz">Tarball</a>)<br>
         <ul>
+          <li>NOTE: If using HTCondor 8.6.x you have to disable the collector use of shared port. In /etc/condor/config.d/01_gwms_factory_collectors.config (factory) /etc/condor/config.d/01_gwms_collectors.config (frontend, wms user collector) and (after the line COLLECTOR_USES_SHARED_PORT=False) add the line:
+COLLECTOR.USE_SHARED_PORT=False
           <li>Added counters for Idle jobs older than X hours
           <li>Enabling GWMS_XSLT_PLUGIN_DIR by default for glideinwms-vofrontend-standalone rpm</li>
           <li>Linked Frontend monitoring from Factory monitoring</li>

@@ -18,6 +18,34 @@ v3_3    Includes all features and bug fixes released in v3_2_15
         Bug Fix: create_condor_tarball now also includes required globus libraries
 	  from lib/condor that HTCondor loads at runtime
 
+v3_2_21 Have frontend groups request the removal of unused glideins
+	Support of unprivileged singularity and new singularity scripts
+	Automatically renew gwms proxies
+	Factory monitoring displaying correctly core counters
+	Balancing glidein pressure to sites that are aliases or Meta-Sites
+	Remove osg-version requirements
+	Bug Fix: Fix fork.py behavior
+	Bug Fix: Uninitialized variable caused skipping fix-rrd
+	Bug Fix: Sanitize content of MJF attributes
+	Bug Fix: Update Google custom search to new API
+
+v3_2_20 Verified that Factory can start 1500 entries at a time
+        Improved Factory monitoring by adding cores count for running and idle jobs and requests
+        Removed dependency from Globus clients
+        Support Singularity (future replacement for glexec)
+        Avoid race conditions with multiple reload quick invocations in SL7 
+        Bug Fix: -fix_rrd is always in the upgrade command beside reconfig option
+        Bug Fix: Fixed some failing unit tests 
+        Bug Fix: Fixed Factory job stats are empty
+        Bug Fix: Bad link to Frontend monitoring
+        Bug Fix: Custom Google search in the documentation pointing to the new site,
+          not the old mirror on uscms.org
+        Bug Fix: Fix DC_DAEMON_LIST
+        Bug Fix: verifyRRD hard coded paths, missing some files during -fix_rr
+        Bug Fix: HTCondor QEdit triggered also when advertise_pilot_accounting is not set
+        Bug Fix: Downtime setting correctly distinguish daylight saving
+        Bug Fix: Added usercollector RPM dependency from ganglia
+
 v3_2_19 Added counters for Idle jobs older than X hours
         Enabling GWMS_XSLT_PLUGIN_DIR by default for
           glideinwms-vofrontend-standalone rpm

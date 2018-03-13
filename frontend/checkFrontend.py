@@ -21,15 +21,16 @@
 #   Igor Sfiligoi
 #
 
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"../.."))
+from __future__ import print_function
+import sys, os.path
+sys.path.append(os.path.join(sys.path[0], "../.."))
 from glideinwms.frontend import glideinFrontendPidLib
 
 try:
     work_dir=sys.argv[1]
     action_type=glideinFrontendPidLib.get_frontend_action_type(work_dir)
 except:
-    print "Not running"
+    print("Not running")
     sys.exit(1)
 
 if action_type is None:
@@ -43,8 +44,8 @@ else:
 
 
 if action_type!=req_action_type:
-    print 'Not running my type (note that conflicting "%s" type is running).' % action_type
+    print('Not running my type (note that conflicting "%s" type is running).' % action_type)
     sys.exit(2)
 
-print "Running"
+print("Running")
 sys.exit(0)

@@ -6,6 +6,8 @@
 # (just once): pip install mock unittest2 coverage
 #   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
 
+from __future__ import absolute_import
+from __future__ import print_function
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
@@ -13,7 +15,7 @@ import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
 import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
 
-from unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import FakeLogger
 
 import mock
 import unittest2 as unittest
@@ -51,13 +53,16 @@ def compareLambdas(func1, func2):
     strip_line_number(code2)
 
     if code1 != code2:
-        print ''.join(code1)
-        print ''.join(code2)
+        print(''.join(code1))
+        print(''.join(code2))
 #        pass
     return code1 == code2
 
 class FETestCaseBase(unittest.TestCase):
     def setUp(self):
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        # Only condor cliens are mocked, not the python bindings
+        condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
             f = open('cs.fixture')
             m_exe_cmd.return_value = f.readlines()
@@ -96,7 +101,6 @@ class FETestCaseCount(FETestCaseBase):
 
     def setUp(self):
         super(FETestCaseCount, self).setUp()
-        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
 
     def test_countMatch_missingKey(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
@@ -249,7 +253,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
 
     def test_getFactoryEntryList(self):
         entries = glideinFrontendLib.getFactoryEntryList(self.status_dict)
-        expected = [('Site_Name%s@v3_0@factory1' % (x), 'frontend%s.local' % x) for x in xrange(1,5)]
+        expected = [('Site_Name%s@v3_0@factory1' % (x), 'frontend%s.local' % x) for x in xrange(1, 5)]
         expected.append(('Site_Name2@v3_0@factory1', 'frontend1.local'))
         self.assertItemsEqual(
             entries,
@@ -262,7 +266,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             m_exe_cmd.return_value = f.readlines()
             condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
             self.assertItemsEqual(condorStatus['coll1'].stored_data.keys(),
-                                  ['schedd%s.local' % x for x in xrange(1,4)])
+                                  ['schedd%s.local' % x for x in xrange(1, 4)])
 
 class FETestCaseMisc(FETestCaseBase):
     def test_uniqueSets(self):
@@ -292,7 +296,7 @@ class FETestCaseMisc(FETestCaseBase):
     def test_appendRealRunning(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
-        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2,2,2]]
+        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1, 2, 2, 2, 2]]
         expected.append('UNKNOWN')
 
         self.assertItemsEqual(
@@ -340,7 +344,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         m_getCondorQConstrained.assert_called_with(schedd_names, '(JobStatus=?=5)', None, None)
 
         constraint = '(JobStatus=?=1)||(JobStatus=?=2)'
-        format_list = list((('x509UserProxyFirstFQAN','s'),))
+        format_list = list((('x509UserProxyFirstFQAN', 's'),))
         glideinFrontendLib.getCondorQ(schedd_names, 'True', format_list)
         m_getCondorQConstrained.assert_called_with(
             schedd_names,
@@ -356,7 +360,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         glideinFrontendLib.getOldCondorQ(condorq_dict, min_age)
         self.assertEqual(m_SubQuery.call_args[0][0], 42)
         self.assertTrue(compareLambdas(m_SubQuery.call_args[0][1],
-                                       lambda el:(el.has_key('ServerTime') and el.has_key('EnteredCurrentStatus') and ((el['ServerTime'] - el['EnteredCurrentStatus']) >= min_age))))
+                                       lambda el:('ServerTime' in el and 'EnteredCurrentStatus' in el and ((el['ServerTime'] - el['EnteredCurrentStatus']) >= min_age))))
 
         # this just checks that the lambda is evaluating the min_age variable, not dereferencing it!
 
@@ -371,7 +375,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         condor_ids = \
             glideinFrontendLib.getIdleCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345,2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
+        self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345, 2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
 
     def test_getIdleVomsCondorQ(self):
         condor_ids = \

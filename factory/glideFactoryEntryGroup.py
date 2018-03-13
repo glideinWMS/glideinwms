@@ -35,7 +35,7 @@ import select
 import logging
 
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
@@ -111,7 +111,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
         except:
             logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
-    raise KeyboardInterrupt,"Parent died. Quiting."
+    raise KeyboardInterrupt("Parent died. Quiting.")
 
 
 ############################################################
@@ -262,7 +262,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work = {}
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)
-
     # TODO: If we return here check if we need to do cleanup of held glideins?
     #       So far only de-advertising is confirmed to trigger not cleanup
     work_count = get_work_count(work)
@@ -298,20 +297,23 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # work todo, ie glideclient classads.
     for ent in work:
         entry = my_entries[ent]
+
         forkm_obj.add_fork(entry.name,
                            forked_check_and_perform_work,
                            factory_in_downtime, entry, work)
     try:
+        t_begin = time.time()
         post_work_info = forkm_obj.bounded_fork_and_collect(parallel_workers)
+        t_end = time.time() - t_begin
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
+        t_end = time.time() - t_begin
 
     logSupport.roll_all_logs()
-
     # Gather results from the forked children
-    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
-    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
+    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry." % t_end)
+    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated - took %s seconds. Loading post work state for the entry." % t_end)
 
     for entry in my_entries:
         # Update the entry object from the post_work_info
@@ -454,7 +456,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
-    while 1:
+    while True:
 
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
@@ -466,7 +468,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
              (glideinDescript.data['OldPubKeyObj'] is not None) ):
             # Invalidate the use of factory's old key
             logSupport.log.info("Retiring use of old key.")
-            logSupport.log.info("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
+            logSupport.log.info("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime, oldkey_eoltime, oldkey_gracetime))
             glideinDescript.data['OldPubKeyType'] = None
             glideinDescript.data['OldPubKeyObj'] = None
 
@@ -507,7 +509,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 post_writestats_info = {}
 
                 for cpu in xrange(cpuCount):
-                    r,w = os.pipe()
+                    r, w = os.pipe()
                     unregister_sighandler()
                     pid = os.fork()
                     if pid:
@@ -665,7 +667,7 @@ def main(parent_pid, sleep_time, advertize_rate,
         if not (entry in string.split(glidein_entries, ',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
             logSupport.log.warning(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
 
         # Create entry objects
         my_entries[entry] = glideFactoryEntry.Entry(entry, startup_dir,

@@ -29,17 +29,21 @@
         <li> <a href="./recipes/index.html">Recipes</a></li>
 	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
         </ul>
-    <div class="search">
-        <div id="cse-search-form" style="width: 100%;">Loading</div>
-        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-        <script src="./common/glidein.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
-            google.setOnLoadCallback(onLoad);
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
             </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
     </div>
-    </div>
-    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
     <img align="right" width="280px" border="0px"
@@ -101,22 +105,22 @@ Factory:
 
       <tr style="vertical-align:top;">
         <td>Stable Series</td>
-        <td>v3_2_18</td>
-        <td>February 28, 2017</td>
+        <td>v3_2_21</td>
+        <td>February 7, 2018</td>
         <td>
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_2_18_factory.tgz">GlideinWMS Factory</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_2_18_frontend.tgz">GlideinWMS Frontend</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_2_18.tgz">GlideinWMS full download</a>]
+          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21_factory.tgz">GlideinWMS Factory</a>]
+          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21_frontend.tgz">GlideinWMS Frontend</a>]
+          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21.tgz">GlideinWMS full download</a>]
         </td>
       </tr>
       <tr style="vertical-align:top;">
         <td>Development Series</td>
-        <td>v3_3_1</td>
-        <td>October 25, 2016</td>
+        <td>v3_3_2</td>
+        <td>March 24, 2017</td>
         <td>
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">GlideinWMS Factory</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">GlideinWMS Frontend</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">GlideinWMS full download</a>]
+          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_3_2.tgz">GlideinWMS Factory</a>]
+          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_3_2.tgz">GlideinWMS Frontend</a>]
+          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_3_2.tgz">GlideinWMS full download</a>]
         </td>
       </tr>
 
@@ -132,7 +136,7 @@ Factory:
 <h2>Downloading from the Code Repository </h2>
     The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
     <br><br>
-    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v3_2_18<br> # Development Series<br> git checkout v3_3_1</pre>
+    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v3_2_21<br> # Development Series<br> git checkout v3_3_2</pre>
 </div>
 
 <h2>v3.1+ Upgrade Specific Notes</h2>

@@ -56,42 +56,64 @@ var periodV;
 var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var dtChild; var ftFEChild; var totStatChild; var totReqChild; var totCMChild; 
 var trChildArry = new Array(); var trFEChildArry = new Array();
 
-var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
-							"Max glideins", "Idle", 
-							"Claimed", "User run here", "User running","Unmatched", "User idle", "Registered", "Info age");
+var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
+							"Max glideins", "Idle",
+							// "Claimed", "Unmatched", "Registered",
+							"Claimed cores", "User run here", "User running", "Unmatched cores", "User idle", "Registered cores", "Info age");
 
-var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
-							  "Max glideins", "Idle", 
-							  "Claimed", "User run here", "User running", "Unmatched", "User idle", "Registered", "Info age");		
+var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
+							  "Max glideins", "Idle",
+							  // "Claimed", "Unmatched", "Registered",
+							  "Claimed cores", "User run here", "User running", "Unmatched cores", "User idle", "Registered cores", "Info age");
 												
-var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
+var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 							  "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");	
 							  
-var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
+var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 							    "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 
 								 
-var columnArray = new Array("entryName", "downtimeStatus","statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", 
-						    "statusHeld", "requestMax", "requestIdle", "cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmGlideinIdle", 
-							"cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
+var columnArray = new Array("entryName", "downtimeStatus", 
+                            "statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld", "statusRunningCores",
+                            "requestMax", "requestIdle",
+						    // "cmGlideinRunning", "cmGlideinIdle", "cmGlideinTotal",
+						    "cmCoresRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmCoresIdle", "cmGlideinJobsIdle", "cmCoresTotal", "cmGlideinInfoAge");
+/* columnArrayStruct describes columnArray: total length (length) and length and offset of its component: DT, Status, Req, CM 
+   it is used to display the table w/ the values
+   DT offset is 1 (entryName), following offsets are offset+length of previous element
+   offset+length of CM should give the total length (columnArray.length, 25)
+   */
+var columnArrayDesc = { length: columnArray.length,
+                        DT: { length: 1, offset:1 },
+                        Status: { length: 9, offset:2 },
+                        Req: { length: 2, offset:11 },
+                        CM: { length: 7, offset:13 },
+                    }
+
+
 		
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
-						     "Status: Stage out", "Status: Unknown", "Status: Held", "Requested: Max glideins", "Requested : Idle", "Client Monitor: Claimed", 
-							 "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched", "Client Monitor: User idle",
-							 "Client Monitor: Registered", "Client Monitor: Info age");  
+						     "Status: Stage out", "Status: Unknown", "Status: Held", "Status: Running cores",
+						     "Requested: Max glideins", "Requested : Idle",
+						     // "Client Monitor: Claimed", "Client Monitor: Unmatched", "Client Monitor: Registered",
+						     "Client Monitor: Claimed cores", "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched cores", "Client Monitor: User idle",
+							 "Client Monitor: Registered cores", "Client Monitor: Info age");
 							 
-var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Running", "Client Monitor: Registered", "Diff(Status: Running, Client: Registered)", 
+var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client Monitor: Registered cores", "Diff(Status: Running cores, Client: Registered cores)",
 							   "Status: Idle", "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client Monitor: User Idle");
 							   
 							   
-var xmlAttPeriodArry = new Array("EntryName", "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", 
-								 "StatusHeld", "ReqMaxGlideins", "ReqIdle", "ClientGlideRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientGlideIdle", 
-								 "ClientJobsIdle", "ClientGlideTotal",  "ClientInfoAge"); /* ONE LESS ATT THAN DEFAULT */ 
+var xmlAttPeriodArry = new Array("EntryName",
+                                 "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", "StatusHeld", "StatusRunningCores",
+								 "ReqMaxGlideins", "ReqIdle",
+								 // "ClientGlideRunning", "ClientGlideIdle", "ClientGlideTotal",
+								 "ClientCoresRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientCoresIdle", "ClientJobsIdle", "ClientCoresTotal", "ClientInfoAge");  /* ONE LESS ATT THAN DEFAULT, no Downtime */
 								 
 var xmlAttDTArry = new Array("Status"); 						 					
-var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held");
-var xmlAttReqArry = new Array("MaxGlideins", "Idle"); 
-var xmlAttCMArry = new Array("GlideRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "JobsIdle", "GlideTotal", "InfoAge");
+var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held", "RunningCores");
+var xmlAttReqArry = new Array("MaxGlideins", "Idle");
+// var xmlAttCMArry = new Array("GlideRunning", "CoresRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "CoresIdle", "JobsIdle", "GlideTotal", "CoresTotal", "InfoAge");
+var xmlAttCMArry = new Array("CoresRunning", "JobsRunHere", "JobsRunning", "CoresIdle", "JobsIdle", "CoresTotal", "InfoAge");
 var xmlAttStatNumArry = new Array(); 
 var xmlAttReqNumArry = new Array(); 
 var xmlAttCMNumArry = new Array(); 
@@ -100,7 +122,7 @@ var FExmlAttStatNumArry = new Array();
 var FExmlAttReqNumArry = new Array(); 
 var FExmlAttCMNumArry = new Array();
 var xmlAttPeriodNumArry = new Array();
-var xmlAttTotalNumArry = new Array();            
+var xmlAttTotalNumArry = new Array();
 var preFrontEndName = "Total"; 
 var links = new Array(); 
 var sortColName; 
@@ -185,17 +207,21 @@ function showPopUp(hoveritem)
 		attTxtNode = document.createTextNode(exactColumns[column]);
 	
 	/* ADJUST COLUMN IF IN TR VIEW */
+	/* troubleshoot column numbers based on the column position in the non Troubleshoot table (starting w/ 2)
+	   att1/2 (in diff columns is instead based on attributes order in xml file (value in xmlAttTotalNumArry)
+	 */
 	if(troubleshoot)
 	{
-		if(column == 3) column = 17; 
-		else if(column == 5) column = 3; 
-		else if(column == 6) column = 11; 
-		else if(column == 8) column = 16; 
+		if(column == 2) column = 10;
+		else if(column == 3) column = 18;
+		else if(column == 5) column = 3;
+		else if(column == 6) column = 12;
+		else if(column == 8) column = 17;
 		else if(column == 4)
 		{
 			child1 = feStatChild;
 			child2 = feCMChild;
-			att1 = 4;
+			att1 = 5;
 			att2 = 2;
 		}
 		else if(column == 7)
@@ -275,13 +301,13 @@ function showPopUp(hoveritem)
 				txt2 = document.createTextNode(diff);
 			}
 			/* STATUS COLS */
-			else if(column > 1 && column < 10)
+			else if(column > 1 && column < columnArrayDesc.Req.offset)
 			{
 				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0);}
 			} 
 			/* REQ COLS */
-			else if(column == 10 || column == 11)
+			else if(column >= columnArrayDesc.Req.offset && column < columnArrayDesc.CM.offset)
 			{
 				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0); }
@@ -367,14 +393,14 @@ function showPopUpPeriod(hoveritem)
 	/* ADJUST COLS FOR PERIOD + TROUBLESHOOT VIEW */
 	if(prTr)
 	{
-		/* STAT RUNNING */ if(column == 2){ column = 1;}
-		/* CM REG */       else if(column == 3){ column = 16;}
+		/* STAT RUNNING */ if(column == 2){ column = 9;}
+		/* CM REG */       else if(column == 3){ column = 17;}
 		/* STAT IDLE */    else if(column == 5){ column = 2;}
-		/* REQ IDLE */     else if(column == 6){ column = 10;}
-		/* CM USER IDLE */ else if(column == 8){ column = 15; }
+		/* REQ IDLE */     else if(column == 6){ column = 11;}
+		/* CM USER IDLE */ else if(column == 8){ column = 16; }
 		
-		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 1; dCol2 = 16;}
-		/* DIFF COL 2 */ else if(column == 7){ diffCol = 2; dCol = 2; dCol2 = 10;}
+		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 9; dCol2 = 17;}
+		/* DIFF COL 2 */ else if(column == 7){ diffCol = 2; dCol = 2; dCol2 = 11;}
 	}
  	 
 	/* IF HOVER EXISTS REMOVE */
@@ -395,7 +421,7 @@ function showPopUpPeriod(hoveritem)
 		if(!diffCol)
 			attTxtNode = document.createTextNode(exactColumns[column + 1] + timeFrame);
 		else if(diffCol == 1)
-			attTxtNode = document.createTextNode("Diff(Status: Running, Client: Registered) " + timeFrame);
+			attTxtNode = document.createTextNode("Diff(Status: Running cores, Client: Registered cores) " + timeFrame);
 		else
 			attTxtNode = document.createTextNode("Diff(Status: Idle, Requested: Idle) " + timeFrame);
 			
@@ -437,7 +463,7 @@ function showPopUpPeriod(hoveritem)
 	if(!diffCol)
 		cont2 = document.createTextNode(exactColumns[column + 1] + timeFrame);
 	else if(diffCol == 1)
-		cont2 = document.createTextNode("Diff(Status: Running, Client: Registered) " + timeFrame);
+		cont2 = document.createTextNode("Diff(Status: Running cores, Client: Registered cores) " + timeFrame);
 	else
 		cont2 = document.createTextNode("Diff(Status: Idle, Requested: Idle) " + timeFrame);
 	
@@ -545,7 +571,7 @@ function showPopUpPeriod(hoveritem)
 					attributes[xmlAttPeriodNumArry[dCol2 - 1]].value) * 100)/100);}
 				}
 			/* STATUS */
-			else if(column < 9)
+			else if(column < columnArrayDesc.Req.offset-1)
 			{
 				if(sortedFE[i].childNodes.length >= 7)				 
 				{
@@ -557,7 +583,7 @@ function showPopUpPeriod(hoveritem)
 					txt2 = document.createTextNode(0);
 			} 
 			/* REQ */
-			else if(column == 9 || column == 10)
+			else if(column >= columnArrayDesc.Req.offset-1 && column < columnArrayDesc.CM.offset-1)
 			{
 				if(sortedFE[i].childNodes.length >= 5)
 				{
@@ -1381,7 +1407,7 @@ function fillIn()
 	}
 	
 	/* FILL IN 0's FOR EMPTY ENTRIES */
-	for(j = 2; j < 18; j++)
+	for(j = columnArrayDesc.Status.offset; j < columnArrayDesc.length; j++)
 	{	
 		for(i = 0; i< total.length - 1; i++)
 		{
@@ -1404,13 +1430,13 @@ function fillIn()
 		
 		if(item == "True"){ item = "&darr;"; table.rows[i].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; table.rows[i].cells[1].style.color = "#008B00";  }            /* UP ARROW */
-		table.rows[i].cells[1].innerHTML = item; 
+		table.rows[i].cells[columnArrayDesc.DT.offset].innerHTML = item; 
 	}
 	
 	/* 
 	 * FILL STATUS FIELDS  
 	 */
-	for(var counter = 2; counter<= 9; counter++)
+	for(var counter = 0; counter < columnArrayDesc.Status.length; counter++) 
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
@@ -1418,15 +1444,15 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 2]].value;
+					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter]].value;
 				}
 				else
-					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 2]].value;
-				table.rows[i].cells[counter].innerHTML = item; 
+					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter]].value;
+				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = item; 
 			}
 			else
 			{
-				table.rows[i].cells[counter].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0; 
 			}
 		}	
  	}
@@ -1434,7 +1460,7 @@ function fillIn()
 	/*
 	 * FILL REQUESTED FIELDS 
 	 */
-	for(var counter = 10; counter <= 11; counter++)
+	for(var counter = 0; counter < columnArrayDesc.Req.length; counter++) 
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
@@ -1442,15 +1468,15 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 10]].value; 
+					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value; 
 				}
 				else
-					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 10]].value; 
-				table.rows[i].cells[counter].innerHTML = item; 
+					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value; 
+				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = item; 
 			}
 			else
 			{
-				table.rows[i].cells[counter].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0; 
 			}
 		}
 	}
@@ -1458,7 +1484,7 @@ function fillIn()
 	/* 
      * FILL CM FIELDS  
  	 */
-	for(var counter = 12; counter <= 18; counter++)
+	for(var counter = 0; counter < columnArrayDesc.CM.length; counter++)
 	{
 		for(i = 0; i< totalEntries.length; i++)
 		{	
@@ -1466,15 +1492,15 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 12]].value;
+					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter]].value;
 				}
 				else
-					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 12]].value;
-				table.rows[i].cells[counter].innerHTML = item; 
+					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;
+				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = item; 
 			}
 			else
 			{
-				table.rows[i].cells[counter].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0; 
 			}
 		}
 	}
@@ -2053,10 +2079,11 @@ function makeTable()
 	table = document.createElement('table');
 	tBody=document.createElement('tbody');
 	table.setAttribute('id','table');
-	colSpanArry = new Array(1, 1, 8, 2, 7); 
+
+	colSpanArry = new Array(1, 1, columnArrayDesc.Status.length, columnArrayDesc.Req.length, columnArrayDesc.CM.length);
 	headTxt = new Array("" , "" ,"Status: ", "Requested: ", "Client Monitor: ");
 	headId = new Array('empty', 'downtime','status', 'requested', 'client');  
-	headClr = new Array('#DCDCDC', '#DCDCDC', '#FAF0E6', '#FFDAB9', '#CDAF95'); 
+	headClr = new Array('#DCDCDC', '#DCDCDC', '#FAF0E6', '#FFDAB9', '#CDAF95');
 	
 	/* HEADER */
 	for(x = 0; x < headTxt.length; x++)
@@ -2117,8 +2144,8 @@ function makeTable()
 				y = "sortTableDescending(" + k + ")"; 
 				cell[k].setAttribute("onclick", y);
 				if(k == 1) cell[k].setAttribute('bgColor', headClr[1]);
-				else if(k < 10 && k > 1) cell[k].setAttribute('bgColor', headClr[2]); 
-				else if(k > 9 && k < 12) cell[k].setAttribute('bgColor', headClr[3]); 
+				else if(k < columnArrayDesc.Req.offset && k > 1) cell[k].setAttribute('bgColor', headClr[2]);
+				else if(k >= columnArrayDesc.Req.offset && k < columnArrayDesc.CM.offset) cell[k].setAttribute('bgColor', headClr[3]);
 				else cell[k].setAttribute('bgColor', headClr[4]); 	 
 			}
 			/* PLACE 0 IN EACH CELL INITIALLY */
@@ -2175,13 +2202,14 @@ function sortSignal()
     if(sortColNum == -2) return; /* INCOMPATIBLE COL */ 	
 
 	/* COLOR SELECTED COLS */
+	/* TODO: use colSpanArry or	hArry3 or lenghs like (1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length) */
 	for(i = 0; i < totalEntries.length; i++)
 	{	
-		if(sortColNum > 0 && sortColNum <= 1 + xmlAttStatNumArry.length)
+		if(sortColNum > 0 && sortColNum < columnArrayDesc.Req.offset)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FAF0E6";
 		}
-		else if(sortColNum == 10 || sortColNum == 11)
+		else if(sortColNum >= columnArrayDesc.Req.offset && sortColNum < columnArrayDesc.CM.offset)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FFDAB9";
 		}
@@ -2220,7 +2248,7 @@ function sortSignal()
 		/* COLOR SELECTED COLS */
 		for(i = 0; i < totalEntries.length * 4; i++)
 		{
-			if((sortColNum + 1) >= 3 && (sortColNum + 1) < 11)
+			if((sortColNum + 1) >= 3 && sortColNum < columnArrayDesc.Req.offset)
 			{
 				if(i % 4 == 0)
 				{
@@ -2229,7 +2257,7 @@ function sortSignal()
 				else
 					tableP.rows[i].cells[sortColNum].bgColor = "#FAF0E6";
 			}
-			else if((sortColNum + 1) == 11 || (sortColNum + 1) == 12)
+			else if(sortColNum >= columnArrayDesc.Req.offset || sortColNum < columnArrayDesc.CM.offset)
 			{
 				if(i % 4 == 0)
 				{
@@ -2283,7 +2311,7 @@ function sortTableDescending(column)
 	column = columnArray[column];  
 	sortColName = column; 
 	
-	lengthArry =       new Array(0,7,7,7,7,7,7,7,7,5,5,3,3,3,3,3,3,3);       /* 1 DT + 8 STAT + 2 REQ + 7 CM  = 18 */
+	lengthArry =       new Array(0,7,7,7,7,7,7,7,7,7,5,5,5,5,3,3,3,3,3,3,3,3,3,3);       /* 1 DT + 9 STAT + 4 REQ + 10 CM  = 24 */
 	trSortColNumArry = new Array(0,0,2,5,0,0,0,0,0,0,0,6,0,0,0,0,8,3); 
 	feChildArry = new Array(feStatChild, feReqChild, feCMChild); 
 	totChildArry = new Array(totStatChild, totReqChild, totCMChild); 
@@ -2309,10 +2337,10 @@ function sortTableDescending(column)
 	length = lengthArry[sortColNum - 1]; att = xmlAttTotalNumArry[sortColNum - 1]; trSortColNum = trSortColNumArry[sortColNum]; ;
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 	{
-		if(sortColNum < 10){child = feChildArry[0];}else if(sortColNum < 12){child = feChildArry[1];}else{child = feChildArry[2];}
+		if(sortColNum < columnArrayDesc.Req.offset){child = feChildArry[0];}else if(sortColNum < columnArrayDesc.CM.offset){child = feChildArry[1];}else{child = feChildArry[2];}
 	}
 	else
-		if(sortColNum < 10){child = totChildArry[0];}else if(sortColNum < 12){child = totChildArry[1];}else{child = totChildArry[2];}
+		if(sortColNum < columnArrayDesc.Req.offset){child = totChildArry[0];}else if(sortColNum < columnArrayDesc.CM.offset){child = totChildArry[1];}else{child = totChildArry[2];}
 	
 			
 	/* GET EVERYTHING NOT 0 */
@@ -3084,7 +3112,7 @@ function troubleshooting()
 		troubleshoot = 1; 
 		document.getElementById("scroll").removeChild(table); 
 		document.getElementById('header').removeChild(thead);
-		columnText = new Array("Entry Name","", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", "Requested: Idle", 
+		columnText = new Array("Entry Name","", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle", "Requested: Idle",
 		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 
 		trColumnId = new Array("entryLinks","downtime", "status", "client","difference", "status", "requested", "difference","client"); 
 		colors = new Array("#DCDCDC","DCDCDC","#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
@@ -3096,7 +3124,11 @@ function troubleshooting()
 			child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
 			
 		count = 0; 
-		att = new Array(4, 2, 1, 0, 4); 
+        /* Picking the attributes in the arrays: StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
+        MM: These are positions in the XML file (e.g. schedd_status.xml) and is relying on them being the same across runs 
+        Don't know how reliable it is, maybe the code should be changed in comparing the name
+        */
+		att = new Array(5, 2, 1, 0, 7);
 		rows = new Array(); 
 		cols = new Array();
 		trTable = document.createElement('table'); 
@@ -3310,9 +3342,9 @@ function sortTrCol(col)
 	}
 
 	entryLog = new Array(); 
-	colMaster = new Array("Status: Running", "Client: Registered", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
+	colMaster = new Array("Status: Running cores", "Client: Registered cores", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
 	sortColNum = new Array("statusRunning", "cmGlideinTotal", "diff", "statusIdle", "requestIdle", "diff", "cmGlideinJobsIdle"); 
-	diffCol = new Array("Diff(Status: Running, Client: Registered)", "Diff(Status: Idle, Requested: Idle)");
+	diffCol = new Array("Diff(Status: Running cores, Client: Registered cores)", "Diff(Status: Idle, Requested: Idle)");
 	
 	if(!prTr) diffCell = new Array(4, 7);
 	else diffCell = new Array(5, 8);
@@ -3326,7 +3358,7 @@ function sortTrCol(col)
 	else	 
 		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild); 
 		
-	att = new Array(4, 2, 1, 0); 
+	att = new Array(5, 2, 1, 0);  // child and att are used only for the diff values
 	diffColSort = 0; 
 
 	/* REGULAR NONE DIFF SORT */
@@ -3477,7 +3509,7 @@ function sortTrCol(col)
 
 			diffColNum = (j + 1); 
 			
-			/* SORT ATUAL ENTRY CONTENTS */
+			/* SORT ACTUAL ENTRY CONTENTS */
 			for(l = 0; l < diffArry.length; l++)
 			{
 				for(k = 0; k < totalEntries.length; k++)
@@ -3679,11 +3711,12 @@ function trSortSignal(col)
 			}
 		}
 	}
-	
-	if(prTr && diffSorted){ col--; }
-	/* TR + PR TABLE */
-	try
+	else
 	{
+	  if(prTr && diffSorted){ col--; }
+	  /* TR + PR TABLE */
+	  try
+	  {
 		for(i = 2; i < headColArryTRPR.length; i++)
 		{
 			for(j = 0; j < trpr_Table.rows.length; j++)
@@ -3722,8 +3755,9 @@ function trSortSignal(col)
 				}
 			}
 		}
+  	  }
+	  catch(err){}
 	}
-	catch(err){}
 }
 
 /* PERIOD + TR VIEW */
@@ -3788,11 +3822,10 @@ function periodTrView()
 		tempTotalP = totalP; 
 	}
 	
-	headerText = new Array("Entry Name","", "Period", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
-	"Requested: Idle", 
-		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 	
+	headerText = new Array("Entry Name","", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
+	"Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 	colors = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
-	trColumnId = new Array("entryLinks", "downtime","period",  "status", "client","difference", "status", "requested", "difference","client"); 
+	trColumnId = new Array("entryLinks", "downtime", "period", "status", "client", "difference", "status", "requested", "difference", "client");
 
 	/* FRONTEND VIEW */
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
@@ -3802,23 +3835,29 @@ function periodTrView()
 		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
 	
 	/* ARRAYS FOR INFO ACCESSING */
-	trAttArry = new Array();         	   trChildArry = new Array();	  trFEChildArry = new Array();
-	trAttArry.push(xmlAttTotalNumArry[1]); trChildArry.push(totStatChild); trFEChildArry.push(feStatChild);
-	trAttArry.push(xmlAttTotalNumArry[16]); trChildArry.push(totCMChild);   trFEChildArry.push(feCMChild);
-	trAttArry.push(0);               	   trChildArry.push(0);			  trFEChildArry.push(0);
-	trAttArry.push(xmlAttTotalNumArry[2]); trChildArry.push(totStatChild); trFEChildArry.push(feStatChild);
-	trAttArry.push(xmlAttTotalNumArry[10]); trChildArry.push(totReqChild);  trFEChildArry.push(feReqChild);  
-	trAttArry.push(0); 					   trChildArry.push(0);            trFEChildArry.push(0);
-	trAttArry.push(xmlAttTotalNumArry[15]); trChildArry.push(totCMChild);   trFEChildArry.push(feCMChild);
+    // MM trChildArry, trFEChildArry and child seem redundant
+    trChildArry = new Array(totStatChild, totCMChild, 0, totStatChild, totReqChild, 0, totCMChild);
+    trFEChildArry = new Array(feStatChild, feCMChild, 0, feStatChild, feReqChild, 0, feCMChild);
+    // StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
+    // using columnArrayDesc, i starts w/ Entry_name, xmlAttTotalNumArry starts w/ DT (-1), xmlAttPeriodNumArry starts w/ Status (-columnArrayDesc.Status.offset)
+    // In elements offset: 8, 5, -, 1, 1, -, 4
+	trAttArry = new Array();         	   
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+8]);
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+5]);
+	trAttArry.push(0);               	   
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+1]); 
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset-1+1]); 
+	trAttArry.push(0); 					   
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+4]);
 
 	prAttArry = new Array(); 
-	prAttArry.push(xmlAttPeriodNumArry[0]);
-	prAttArry.push(xmlAttPeriodNumArry[15]);
+	prAttArry.push(xmlAttPeriodNumArry[8]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+8
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+5]);
 	prAttArry.push(0);
-	prAttArry.push(xmlAttPeriodNumArry[1]);
-	prAttArry.push(xmlAttPeriodNumArry[9]);
+	prAttArry.push(xmlAttPeriodNumArry[1]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+1
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.Req.offset-columnArrayDesc.Status.offset+1]);
 	prAttArry.push(0);
-	prAttArry.push(xmlAttPeriodNumArry[14]);
+	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+4]);
 	
 	rows = new Array(); 
 	cols = new Array();
@@ -3945,7 +3984,7 @@ function periodTrView()
 		trpr_Table.rows[DISPLACE].cells[1].innerHTML = item; 
 	}
 	
-	childArry = new Array(0, 3, 5, 1); 
+	childArry = new Array(0, 3, 5, 1);  // MMWIP
 	
 	/* PERIOD NAMES */
 	count = 0;
@@ -4206,8 +4245,9 @@ function period()
 	colorArry = new Array("#FAF0E6", "#FFDAB9", "#CDAF95"); 
 	hArry = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#FFDAB9", "#CDAF95");
 	hArry2 = new Array("", "", "Period:", "Status:", "Requested:", "Client Monitor:");
-	hArry3 = new Array(1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length);
-	
+	// hArry3 = new Array(1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length);
+	hArry3 = new Array(1, 1, 1, columnArrayDesc.Status.length, columnArrayDesc.Req.length, columnArrayDesc.CM.length);
+
 	/*
 	 * BEGIN BUILDING TABLE -------------------------------------------------------------------------------
 	 */ 
@@ -4228,7 +4268,7 @@ function period()
 	}
 	
 	thBodyP.appendChild(row2); 
-	friend = cell_num; 
+	friend = cell_num;
 
 	/* BODY (ROWS * 4) */
 	for(c = 0; c < row_num * 4 + 1; c++)
@@ -4307,12 +4347,12 @@ function period()
 				cont = document.createTextNode(headColArryPR[k - 2])
 				cell[k].appendChild(cont);
 				cell[k].setAttribute('id', 'k'); 
-			    cell[k].setAttribute("onclick", "sortTableDescending(this)"); 
-				if(k < 11)
+			    cell[k].setAttribute("onclick", "sortTableDescending(this)");
+				if(k < columnArrayDesc.Req.offset+1)
 				{
 					cell[k].setAttribute('bgColor', colorArry[0]); 
 				}
-				else if(k < 13)
+				else if(k < columnArrayDesc.CM.offset+1)
 				{
 					cell[k].setAttribute('bgColor', colorArry[1]); 
 				}
@@ -4496,56 +4536,58 @@ function fillInPeriod()
 			four++; 
 		}	
 	}
-	
-	/* 
+
+	/*
 	 * Fill in STATUS fields.  
 	 */
-	var attArry = new Array(13,10,16,12,14,15,11,9); 
-	var attArry2 = new Array(4,1,7,3,5,6,2,0); 
-	attCount = 0;
-	att2Count = 0; 
+    // Column offset is increased by 1 because of the period column
+	var attArry = new Array(13,10,16,12,14,15,11,9);  // MM not used
+	var attArry2 = new Array(4,1,7,3,5,6,2,0);  // MM not used 
+	attCount = 0; // MM not used - incremented but never accessed
+	att2Count = 0; // MM not used - incremented but never accessed - misspelled attCount2
 	child = 1; 
-	count = 0;
+	count = 0; 
 	for(i = 0; i < totalEntriesP.length; i++)
 	{
 		child = 1;
 		for(j = 0; j < 4; j++)
 		{ 
-			attCount = 0; 
-			attCount2 = 0;  
-			for(counter = 3; counter <= 10; counter++)
+			attCount = 0;  // MM not used - incremented but never accessed
+			attCount2 = 0;  // MM not used - incremented but never accessed
+			for(counter = 0; counter < columnArrayDesc.Status.length; counter++) 
 			{
 				if(j == 0)
 				{
-					/* Period elements have one extra att so when going back to totla noew field we move back att by one sortColNum. */
+					/* Period elements have one extra attr so we need to add 1 in table row for j==0 (now), not for the following lines
+                    that have period but no entry name */
 					if(total[i].childNodes.length != 0 && total[i].childNodes.length >= 7)
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 3]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 3]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter]].value;
 					}
 					else
 					{
-						tableP.rows[count].cells[counter].innerHTML = 0;
+						tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = 0;
 					}
-					attCount2++; 
+					attCount2++; // MM not used - incremented but never accessed
 					continue;
-				}
-				try
+				} 
+                try   // continue makes this like an else branch
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value; 
-					x = Math.round(x * 100)/100; 
-				   	tableP.rows[count].cells[counter - 1].innerHTML = x; 
-					attCount++; 
-				}
-				catch(err)
-				{
-				   	tableP.rows[count].cells[counter - 1].innerHTML = 0; 
-					attCount++;
-				}
+				    x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter]].value;  // xmlAttPeriodNumArry starts w/ status values
+                    x = Math.round(x * 100)/100; 
+                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = x; 
+                    attCount++; // MM not used - incremented but never accessed
+                }
+                catch(err)
+                {
+                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0; 
+                    attCount++; // MM not used - incremented but never accessed
+                }
 			}
 			count++; 	
 		}
@@ -4556,8 +4598,8 @@ function fillInPeriod()
 	 */
 	var attArry = new Array(8,7);
 	var attArry2 = new Array(1,0); 
-	attCount = 0;
-	attCount2 = 0; 
+	attCount = 0; // MM not used - incremented but never accessed
+	attCount2 = 0; // MM not used - incremented but never accessed
 	child = 1; 
 	count = 0; 
 	for(i = 0; i < totalEntries.length; i++)
@@ -4565,9 +4607,9 @@ function fillInPeriod()
 		child = 1;
 		for(j = 0; j < 4; j++)
 		{ 
-			attCount = 0; 
-			attCount2 = 0;  
-			for(counter = 11; counter <= 12; counter++)
+			attCount = 0; // MM not used - incremented but never accessed
+			attCount2 = 0;  // MM not used - incremented but never accessed
+			for(counter = 0; counter < columnArrayDesc.Req.length; counter++) 
 			{
 				if(j == 0)
 				{
@@ -4576,29 +4618,29 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 11]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 11]].value;					
+							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value;					
 					}
 					else
 					{
-						tableP.rows[count].cells[counter].innerHTML = 0;
+						tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = 0;
 					}
-					attCount2++; 
+					attCount2++; // MM not used - incremented but never accessed
 					continue;
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter+columnArrayDesc.Req.offset-columnArrayDesc.Status.offset]].value;
 					x = Math.round(x * 100)/100; 
-					tableP.rows[count].cells[counter - 1].innerHTML = x; 
-					attCount++; 
+					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = x; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 				catch(err)
 				{
-					tableP.rows[count].cells[counter - 1].innerHTML = 0; 
-					attCount++; 
+					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 				
 			}
@@ -4611,8 +4653,8 @@ function fillInPeriod()
  	 */
 	var attArry = new Array(2,6,1,5,3,4); 
 	var attArry2 = new Array(1,5,0,4,2,3); 
-	attCount = 0;
-	attCount2 = 0; 
+	attCount = 0; // MM not used - incremented but never accessed
+	attCount2 = 0;  // MM not used - incremented but never accessed
 	child = 1; 
 	count = 0; 
 	for(i = 0; i < totalEntriesP.length; i++)
@@ -4622,7 +4664,7 @@ function fillInPeriod()
 		{ 
 			attCount = 0; 
 			attCount2 = 0;  
-			for(counter = 13; counter < cell_num; counter++)
+			for(counter = 0; counter < columnArrayDesc.CM.length; counter++)
 			{
 				if(j == 0)
 				{
@@ -4631,29 +4673,29 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 13]].value;
+							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 13]].value;					
+							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;					
 					}
 					else
 					{
-						tableP.rows[count].cells[counter].innerHTML = 0;
+						tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = 0;
 					}
-					attCount2++; 
+					attCount2++; // MM not used - incremented but never accessed
 					continue;
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter+columnArrayDesc.Req.offset-columnArrayDesc.Status.offset]].value;
 					x = Math.round(x * 100)/100; 
-					tableP.rows[count].cells[counter - 1].innerHTML = x; 
-					attCount++;
+					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = x; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 				catch(err)
 				{
-					tableP.rows[count].cells[counter - 1].innerHTML = 0; 
-					attCount++;
+					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0; 
+					attCount++; // MM not used - incremented but never accessed
 				}
 			}
 			count++; 	

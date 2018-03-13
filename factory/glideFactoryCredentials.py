@@ -3,6 +3,7 @@ Created on Jun 21, 2011
 
 @author: tiradani
 """
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -13,8 +14,8 @@ import gzip
 import cStringIO
 import base64
 
-import glideFactoryLib
-import glideFactoryInterface
+from . import glideFactoryLib
+from . import glideFactoryInterface
 from glideinwms.lib import condorPrivsep
 from glideinwms.lib import condorMonitor
 
@@ -109,14 +110,14 @@ def update_credential_file(username, client_id, credential_data, request_clientn
                                  'FNAME=%s' % fname,
                                  'FNAME_COMPRESSED=%s' % fname_compressed]
         for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if os.environ.has_key(var):
+            if var in os.environ:
                 update_credential_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
             condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir,
                                   os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'),
                                   ['update_proxy.py'], update_credential_env)
-        except condorPrivsep.ExeError, e:
+        except condorPrivsep.ExeError as e:
             raise RuntimeError("Failed to update credential %s in %s (user %s): %s" %
                                (client_id, proxy_dir, username, e))
         except:
@@ -193,7 +194,7 @@ def get_key_obj(pub_key_obj, classad):
     @type classad: dictionary
     @param classad: a dictionary representation of the classad
     """
-    if classad.has_key('ReqEncKeyCode'):
+    if 'ReqEncKeyCode' in classad:
         try:
             sym_key_obj = pub_key_obj.extract_sym_key(classad['ReqEncKeyCode'])
             return sym_key_obj
@@ -301,12 +302,13 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     else:
         # Only v3+ protocol supports non grid entries
         # Verify that the glidein proxy was provided for non-proxy auth methods
-        if not ('GlideinProxy' in params):
+        if 'GlideinProxy' not in params:
             raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
 
         if 'cert_pair' in auth_method :
             # Validate both the public and private certs were passed
-            if not (('PublicCert' in params) and ('PrivateCert' in params)): 
+            if not (('PublicCert' in params) and ('PrivateCert' in params)):
+                # if not ('PublicCert' in params and 'PrivateCert' in params):
                 # cert pair is required, cannot service request
                 raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
             # Verify no other credentials were passed
@@ -317,9 +319,9 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
 
         elif 'key_pair' in auth_method:
             # Validate both the public and private keys were passed
-            if not (('PublicKey' in params) and ('PrivateKey' in params)):  
+            if not (('PublicKey' in params) and ('PrivateKey' in params)):
                 # key pair is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'PublicKey', 'PrivateKey', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
@@ -330,7 +332,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
             # Validate auth_file is passed
             if not ('AuthFile' in params):
                 # auth_file is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'AuthFile', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
@@ -341,7 +343,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
             # Validate username and password keys were passed
             if not (('Username' in params) and ('Password' in params)):
                 # username and password is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'Username', 'Password', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
@@ -367,7 +369,7 @@ def compress_credential(credential_data):
 def safe_update(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, credential_data)
         finally:
@@ -388,7 +390,7 @@ def safe_update(fname, credential_data):
                 os.remove(fname + ".old")
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
+            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
             try:
                 os.write(fd, credential_data)
             finally:

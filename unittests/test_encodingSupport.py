@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import os
 import sys
 import shutil
@@ -8,7 +9,7 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from unittest_utils import runTest
+from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.lib import encodingSupport
 

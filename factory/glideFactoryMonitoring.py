@@ -38,13 +38,13 @@ class MonitoringConfig:
     def __init__(self, log=logSupport.log):
         # set default values
         # user should modify if needed
-        self.rrd_step = 300       #default to 5 minutes
-        self.rrd_heartbeat = 1800 #default to 30 minutes, should be at least twice the loop time
+        self.rrd_step = 300        # default to 5 minutes
+        self.rrd_heartbeat = 1800  # default to 30 minutes, should be at least twice the loop time
         self.rrd_ds_name = "val"
-        self.rrd_archives = [('AVERAGE', 0.8, 1, 740), # max precision, keep 2.5 days
-                           ('AVERAGE', 0.92, 12, 740), # 1 h precision, keep for a month (30 days)
-                           ('AVERAGE', 0.98, 144, 740)        # 12 hour precision, keep for a year
-                           ]
+        self.rrd_archives = [('AVERAGE', 0.8, 1, 740),  # max precision, keep 2.5 days
+                             ('AVERAGE', 0.92, 12, 740),  # 1 h precision, keep for a month (30 days)
+                             ('AVERAGE', 0.98, 144, 740)  # 12 hour precision, keep for a year
+                             ]
 
         self.monitor_dir = "monitor/"
 
@@ -59,27 +59,29 @@ class MonitoringConfig:
     def config_log(self, log_dir, max_days, min_days, max_mbs):
         self.log_dir = log_dir
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-                      None , log_dir, "(completed_jobs_.*\.log)",
+                      None, log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
-    def logCompleted(self,client_name,entered_dict):
+    def logCompleted(self, client_name, entered_dict):
         """
         This function takes all newly completed glideins and
         logs them in logs/entry_Name/completed_jobs_date.log in an
         XML-like format.
+
+        It counts the jobs completed on a glidein but does not keep track of the cores received or used by the jobs
 
         @type client_name: String
         @param client_name: the name of the frontend client
         @type entered_dict: Dictionary of dictionaries
         @param entered_dict: This is the dictionary of all jobs that have "Entered" the "Completed" states.  It is indexed by job_id.  Each data is an info dictionary containing the keys: username, jobs_duration (subkeys:total,goodput,terminated), wastemill (subkeys:validation,idle,nosuccess,badput) , duration, condor_started, condor_duration, jobsnr
         """
-        now=time.time()
+        now = time.time()
 
         job_ids = entered_dict.keys()
         if len(job_ids) == 0:
-            return # nothing to do
+            return  # nothing to do
         job_ids.sort()
 
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
@@ -87,26 +89,26 @@ class MonitoringConfig:
         fd = open(fname, "a")
         try:
             for job_id in job_ids:
-                el=entered_dict[job_id]
-                username=el['username']
-                username=username.split(":")[0]
-                jobs_duration=el['jobs_duration']
-                waste_mill=el['wastemill']
-                fd.write(("<job %37s %34s %22s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                                 ('client="%s"'%client_name),
-                                                                 ('username="%s"'%username),
-                                                                 ('id="%s"'%job_id),
-                                                                 ('duration="%i"'%el['duration']),
-                                                                 ('condor_started="%s"'%(el['condor_started']==True)),
-                                                                 ('condor_duration="%i"'%el['condor_duration'])))+
-                         ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
-                                                         ('duration="%i"'%jobs_duration['total']),
-                                                         ('goodput="%i"'%jobs_duration['goodput']),
-                                                         ('terminated="%i"'%jobs_duration['terminated'])))+
-                         ("<wastemill %17s %11s %16s %13s/></job>\n"%(('validation="%i"'%waste_mill['validation']),
-                                                                      ('idle="%i"'%waste_mill['idle']),
-                                                                      ('nosuccess="%i"'%waste_mill['nosuccess']),
-                                                                      ('badput="%i"'%waste_mill['badput']))))
+                el = entered_dict[job_id]
+                username = el['username']
+                username = username.split(":")[0]
+                jobs_duration = el['jobs_duration']
+                waste_mill = el['wastemill']
+                fd.write(("<job %37s %34s %22s %17s %17s %22s %24s>"%(('terminated="%s"' % timeConversion.getISO8601_Local(now)),
+                                                                 ('client="%s"' % client_name),
+                                                                 ('username="%s"' % username),
+                                                                 ('id="%s"' % job_id),
+                                                                 ('duration="%i"' % el['duration']),
+                                                                 ('condor_started="%s"' % (el['condor_started']==True)),
+                                                                 ('condor_duration="%i"' % el['condor_duration']))) +
+                         ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"' % el['jobsnr']),
+                                                         ('duration="%i"' % jobs_duration['total']),
+                                                         ('goodput="%i"' % jobs_duration['goodput']),
+                                                         ('terminated="%i"' % jobs_duration['terminated']))) +
+                         ("<wastemill %17s %11s %16s %13s/></job>\n"%(('validation="%i"' % waste_mill['validation']),
+                                                                      ('idle="%i"' % waste_mill['idle']),
+                                                                      ('nosuccess="%i"' % waste_mill['nosuccess']),
+                                                                      ('badput="%i"' % waste_mill['badput']))))
         finally:
             fd.close()
 
@@ -114,10 +116,10 @@ class MonitoringConfig:
         """
         Writes out a string to a file
         @param relative_fname: The relative path name to write out
-        @param str: the string to write to the file
+        @param output_str: the string to write to the file
         """
-        fname=os.path.join(self.monitor_dir,relative_fname)
-        #print "Writing "+fname
+        fname = os.path.join(self.monitor_dir, relative_fname)
+        # print "Writing "+fname
         fd = open(fname + ".tmp", "w")
         try:
             fd.write(output_str + "\n")
@@ -138,21 +140,23 @@ class MonitoringConfig:
         Create a RRD file, using rrdtool.
         """
         if self.rrd_obj.isDummy():
-            return # nothing to do, no rrd bin no rrd creation
+            return  # nothing to do, no rrd bin no rrd creation
 
+        # MM don't understand the need for this loop, there is only one element in the tuple, why not:
+        # rrd_ext = ".rrd"
+        # rrd_archives = self.rrd_archives
         for tp in ((".rrd", self.rrd_archives),):
             rrd_ext, rrd_archives = tp
             fname = os.path.join(self.monitor_dir, relative_fname + rrd_ext)
-            #print "Writing RRD "+fname
+            # print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
-                #print "Create RRD "+fname
+                # print "Create RRD "+fname
                 if min_val is None:
                     min_val = 'U'
                 if max_val is None:
                     max_val = 'U'
-                ds_names = val_dict.keys()
-                ds_names.sort()
+                ds_names = sorted(val_dict.keys())
 
                 ds_arr = []
                 for ds_name in ds_names:
@@ -161,38 +165,38 @@ class MonitoringConfig:
                                               self.rrd_step, rrd_archives,
                                               ds_arr)
 
-            #print "Updating RRD "+fname
+            # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception, e: #@UnusedVariable
+            except Exception as e:  # @UnusedVariable
                 self.log.exception("Failed to update %s: " % fname)
         return
 
-    # like write_rrd_multi, but with each ds having each type
-    # each element of ds_desc_dict is a dictionary with any of
-    #  ds_type, min, max
-    # if not present, the defaults are ('GAUGE','U','U')
     def write_rrd_multi_hetero(self, relative_fname, ds_desc_dict, time, val_dict):
-        """
-        Create a RRD file, using rrdtool.
+        """Create a RRD file, using rrdtool.
+        Like write_rrd_multi, but with each ds having each a specified type
+        each element of ds_desc_dict is a dictionary with any of ds_type, min, max
+        if ds_desc_dict[name] is not present, the defaults are {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
         """
         if self.rrd_obj.isDummy():
-            return # nothing to do, no rrd bin no rrd creation
+            return  # nothing to do, no rrd bin no rrd creation
 
+        # MM don't understand the need for this loop, there is only one element in the tuple, why not:
+        # rrd_ext = ".rrd"
+        # rrd_archives = self.rrd_archives
         for tp in ((".rrd", self.rrd_archives),):
             rrd_ext, rrd_archives = tp
             fname = os.path.join(self.monitor_dir, relative_fname + rrd_ext)
-            #print "Writing RRD "+fname
+            # print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
-                #print "Create RRD "+fname
-                ds_names = val_dict.keys()
-                ds_names.sort()
+                # print "Create RRD "+fname
+                ds_names = sorted(val_dict.keys())
 
                 ds_arr = []
                 for ds_name in ds_names:
-                    ds_desc = {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
-                    if ds_desc_dict.has_key(ds_name):
+                    ds_desc = {'ds_type': 'GAUGE', 'min': 'U', 'max': 'U'}
+                    if ds_name in ds_desc_dict:
                         for k in ds_desc_dict[ds_name].keys():
                             ds_desc[k] = ds_desc_dict[ds_name][k]
 
@@ -201,59 +205,72 @@ class MonitoringConfig:
                                               self.rrd_step, rrd_archives,
                                               ds_arr)
 
-            #print "Updating RRD "+fname
+            # print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception, e: #@UnusedVariable
+            except Exception as e:  # @UnusedVariable
                 self.log.exception("Failed to update %s: " % fname)
         return
 
 
-
-#########################################################################################################################################
+#######################################################################################################################
 #
 #  condorQStats
 #
 #  This class handles the data obtained from condor_q
 #
-#########################################################################################################################################
+#######################################################################################################################
 
+# TODO: ['Downtime'] is added to the self.data[client_name] dictionary only if logRequest is called before logSchedd, logClientMonitor
+#       This is inconsistent and should be changed, Redmine [#17244]
 class condorQStats:
-    def __init__(self, log=logSupport.log):
+    def __init__(self, log=logSupport.log, cores=1):
         self.data = {}
         self.updated = time.time()
         self.log = log
 
         self.files_updated = None
-        self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
-                         'Requested':("Idle", "MaxGlideins"),
-                         'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
+        self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
+                           'Requested':("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
+                           'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
+        self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
 
     def logSchedd(self, client_name, qc_status):
         """
         qc_status is a dictionary of condor_status:nr_jobs
         """
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el = self.data[client_name]
         else:
             t_el = {}
             self.data[client_name] = t_el
 
-        if t_el.has_key('Status'):
+        if 'Status' in t_el:
             el = t_el['Status']
         else:
             el = {}
             t_el['Status'] = el
 
+        # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
         status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
             nr, status = p
-            if not el.has_key(status):
+            # TODO: rewrite w/ if in ... else (after m31)
+            if status not in el:
                 el[status] = 0
-            if qc_status.has_key(nr):
+            if nr in qc_status:
                 el[status] += qc_status[nr]
+        # Listing pairs counting the cores (expected_cores). Avoid duplicates with the list above
+        status_pairs = ((2, "RunningCores"),)
+        for p in status_pairs:
+            nr, status = p
+            # TODO: rewrite w/ if in ... else (after m31)
+            if status not in el:
+                el[status] = 0
+            if nr in qc_status:
+                el[status] += qc_status[nr] * self.expected_cores
 
         self.updated = time.time()
 
@@ -265,26 +282,35 @@ class condorQStats:
         At the moment, it looks only for
           'IdleGlideins'
           'MaxGlideins'
+
+        Request contains only that (no real cores info)
+        It is eveluated using GLIDEIN_CPUS
         """
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el = self.data[client_name]
         else:
             t_el = {}
             t_el['Downtime'] = {'status':self.downtime}
             self.data[client_name] = t_el
 
-        if t_el.has_key('Requested'):
+        if 'Requested' in t_el:
             el = t_el['Requested']
         else:
             el = {}
             t_el['Requested'] = el
 
-        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins')):
+        for reqpair in (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins')):
             org, new = reqpair
-            if not el.has_key(new):
+            if new not in el:
                 el[new] = 0
-            if requests.has_key(org):
+            if org in requests:
                 el[new] += requests[org]
+        for reqpair in (('IdleGlideins', 'IdleCores'), ('MaxGlideins', 'MaxCores')):
+            org, new = reqpair
+            if new not in el:
+                el[new] = 0
+            if org in requests:
+                el[new] += requests[org] * self.expected_cores
 
         # Had to get rid of this
         # Does not make sense when one aggregates
@@ -297,49 +323,52 @@ class condorQStats:
     def logClientMonitor(self, client_name, client_monitor, client_internals,
                          fraction=1.0):
         """
-        client_monitor is a dictinary of monitoring info
-        client_internals is a dictinary of internals
+        client_monitor is a dictinary of monitoring info (GlideinMonitor... from glideclient ClassAd)
+        client_internals is a dictinary of internals  (from glideclient ClassAd)
         If fraction is specified it will be used to extract partial info
 
         At the moment, it looks only for
           'Idle'
           'Running'
           'RunningHere'
-          'GlideinsIdle'
-          'GlideinsRunning'
-          'GlideinsTotal'
+          'GlideinsIdle', 'GlideinsIdleCores'
+          'GlideinsRunning', 'GlideinsRunningCores'
+          'GlideinsTotal', 'GlideinsTotalCores'
           'LastHeardFrom'
+
+        updates go in self.data (self.data[client_name]['ClientMonitor'])
         """
 
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el = self.data[client_name]
         else:
             t_el = {}
             self.data[client_name] = t_el
 
-        if t_el.has_key('ClientMonitor'):
+        if 'ClientMonitor' in t_el:
             el = t_el['ClientMonitor']
         else:
             el = {}
             t_el['ClientMonitor'] = el
 
-        for karr in (('Idle', 'JobsIdle'), ('Running', 'JobsRunning'), ('RunningHere', 'JobsRunHere'), ('GlideinsIdle', 'GlideIdle'), ('GlideinsRunning', 'GlideRunning'), ('GlideinsTotal', 'GlideTotal')):
+        for karr in (('Idle', 'JobsIdle'), ('Running', 'JobsRunning'), ('RunningHere', 'JobsRunHere'),
+                     ('GlideinsIdle', 'GlideIdle'), ('GlideinsRunning', 'GlideRunning'), ('GlideinsTotal', 'GlideTotal'),
+                     ('GlideinsIdleCores', 'CoresIdle'), ('GlideinsRunningCores', 'CoresRunning'), ('GlideinsTotalCores', 'CoresTotal')):
             ck, ek = karr
-            if not el.has_key(ek):
+            if ek not in el:
                 el[ek] = 0
-            if client_monitor.has_key(ck):
+            if ck in client_monitor:
                 el[ek] += (client_monitor[ck] * fraction)
             elif ck == 'RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
-                if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
+                if ('Running' in client_monitor and 'GlideinsRunning' in client_monitor):
                     el[ek] += (min(client_monitor['Running'], client_monitor['GlideinsRunning']) * fraction)
 
-        if not el.has_key('InfoAge'):
+        if 'InfoAge' not in el:
             el['InfoAge'] = 0
-            el['InfoAgeAvgCounter'] = 0 # used for totals since we need an avg in totals, not absnum
+            el['InfoAgeAvgCounter'] = 0  # used for totals since we need an avg in totals, not absnum
 
-
-        if client_internals.has_key('LastHeardFrom'):
+        if 'LastHeardFrom' in client_internals:
             el['InfoAge'] += (int(time.time() - long(client_internals['LastHeardFrom'])) * fraction)
             el['InfoAgeAvgCounter'] += fraction
 
@@ -351,7 +380,7 @@ class condorQStats:
         # convert all ClinetMonitor numbers in integers
         # needed due to fraction calculations
         for client_name in self.data.keys():
-            if self.data[client_name].has_key('ClientMonitor'):
+            if 'ClientMonitor' in self.data[client_name]:
                 el = self.data[client_name]['ClientMonitor']
                 for k in el.keys():
                     el[k] = int(round(el[k]))
@@ -364,7 +393,7 @@ class condorQStats:
             for w in fe.keys():
                 el = fe[w]
                 for a in el.keys():
-                    if a[-10:] == 'AvgCounter': # do not publish avgcounter fields... they are internals
+                    if a[-10:] == 'AvgCounter':  # do not publish avgcounter fields... they are internals
                         del el[a]
 
         return data1
@@ -382,7 +411,7 @@ class condorQStats:
         for f in self.data.keys():
             fe = self.data[f]
             for w in fe.keys():
-                if total.has_key(w): # ignore eventual not supported classes
+                if w in total: # ignore eventual not supported classes
                     el = fe[w]
                     tel = total[w]
 
@@ -391,20 +420,20 @@ class condorQStats:
                         total[w] = {}
                         tel = total[w]
                         for a in el.keys():
-                            if type(el[a]) == type(1): # copy only numbers
+                            if isinstance(el[a], int): # copy only numbers
                                 tel[a] = el[a]
                     else:
                         # successive, sum
                         for a in el.keys():
-                            if type(el[a]) == type(1): # consider only numbers
-                                if tel.has_key(a):
+                            if isinstance(el[a], int): # consider only numbers
+                                if a in tel:
                                     tel[a] += el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
-                            if not el.has_key(a):
+                            if a not in el:
                                 del tel[a]
-                            elif type(el[a]) != type(1):
+                            elif not isinstance(el[a], int):
                                 del tel[a]
 
         for w in total.keys():
@@ -450,24 +479,23 @@ class condorQStats:
             # files updated recently, no need to redo it
             return
 
-
-        # write snaphot file
+        # write snapshot file
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
-                 '<glideFactoryEntryQStats>\n' +
-                 self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                 self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                 self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                 self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                 "</glideFactoryEntryQStats>\n")
+                   '<glideFactoryEntryQStats>\n' +
+                   self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   "</glideFactoryEntryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml", xml_str)
 
         data = self.get_data()
         total_el = self.get_total()
 
         # update RRDs
-        type_strings = {'Status':'Status', 'Requested':'Req', 'ClientMonitor':'Client'}
+        type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
         for fe in [None] + data.keys():
-            if fe is None: # special key == Total
+            if fe is None:  # special key == Total
                 fe_dir = "total"
                 fe_el = total_el
             else:
@@ -496,7 +524,7 @@ class condorQStats:
                 for a in fe_el_tp.keys():
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
-                        if type(a_el) != type({}): # ignore subdictionaries
+                        if not isinstance(a_el, dict): # ignore subdictionaries
                             val_dict["%s%s" % (tp_str, a)] = a_el
 
             monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir,
@@ -505,13 +533,14 @@ class condorQStats:
         self.files_updated = self.updated
         return
 
-#########################################################################################################################################
+
+######################################################################################################################
 #
 #  condorLogSummary
 #
 #  This class handles the data obtained from parsing the glidein log files
 #
-#########################################################################################################################################
+######################################################################################################################
 
 class condorLogSummary:
     """
@@ -519,14 +548,14 @@ class condorLogSummary:
     """
 
     def __init__(self, log=logSupport.log):
-        self.data = {} # not used
+        self.data = {}  # not used
         self.updated = time.time()
         self.updated_year = time.localtime(self.updated)[0]
         self.current_stats_data = {}     # will contain dictionary client->username->dirSummarySimple
         self.old_stats_data = {}
         self.stats_diff = {}             # will contain the differences
-        self.job_statuses = ('Running', 'Idle', 'Wait', 'Held', 'Completed', 'Removed') #const
-        self.job_statuses_short = ('Running', 'Idle', 'Wait', 'Held') #const
+        self.job_statuses = ('Running', 'Idle', 'Wait', 'Held', 'Completed', 'Removed')  #const
+        self.job_statuses_short = ('Running', 'Idle', 'Wait', 'Held')  #const
 
         self.files_updated = None
         self.log = log
@@ -587,11 +616,11 @@ class condorLogSummary:
         @param stats: Dictionary keyed by "username:client_int_name"
         client_int_name is needed for frontends with multiple groups
         """
-        if not self.current_stats_data.has_key(client_name):
+        if client_name not in self.current_stats_data:
             self.current_stats_data[client_name] = {}
 
         for username in stats.keys():
-            if not self.current_stats_data[client_name].has_key(username):
+            if username not in self.current_stats_data[client_name]:
                 self.current_stats_data[client_name][username] = stats[username].get_simple()
             else:
                 self.current_stats_data[client_name][username].merge(stats[username])
@@ -612,10 +641,10 @@ class condorLogSummary:
         """
         for client_name in self.current_stats_data.keys():
             self.stats_diff[client_name]={}
-            if self.old_stats_data.has_key(client_name):
+            if client_name in self.old_stats_data:
                 stats=self.current_stats_data[client_name]
                 for username in stats.keys():
-                    if self.old_stats_data[client_name].has_key(username):
+                    if username in self.old_stats_data[client_name]:
                         self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
     def get_stats_data_summary(self):
@@ -667,9 +696,9 @@ class condorLogSummary:
             enle_glidein_duration = enle_difftime # best guess
             if enle_stats is not None:
                 enle_condor_started = enle_stats['condor_started']
-                if enle_stats.has_key('glidein_duration'):
+                if 'glidein_duration' in enle_stats:
                     enle_glidein_duration = enle_stats['glidein_duration']
-                if enle_stats.has_key('username'):
+                if 'username' in enle_stats:
                     username = enle_stats['username']
             if not enle_condor_started:
                 # 100% waste_mill
@@ -701,7 +730,7 @@ class condorLogSummary:
                                      'nosuccess':0, #no jobs run, no failures
                                      'badput':1000}
                 else:
-                    if enle_stats.has_key('validation_duration'):
+                    if 'validation_duration' in enle_stats:
                         enle_validation_duration = enle_stats['validation_duration']
                     else:
                         enle_validation_duration = enle_difftime - enle_condor_duration
@@ -812,7 +841,6 @@ class condorLogSummary:
 
                 time_waste_mill_w = time_waste_mill[w]
                 time_waste_mill_w[enle_waste_mill_w_range] += enle_glidein_duration
-
 
         return {'Lasted':count_entered_times, 'JobsNr':count_jobnrs, 'Sum':count_total, 'JobsDuration':count_jobs_duration, 'Waste':count_waste_mill, 'WasteTime':time_waste_mill}
 
@@ -942,7 +970,7 @@ class condorLogSummary:
         out_total = {'Current':{}, 'Entered':{}, 'Exited':{}}
         for k in diff_total.keys():
             out_total['Entered'][k] = len(diff_total[k]['Entered'])
-            if stats_total.has_key(k):
+            if k in stats_total:
                 out_total['Current'][k] = len(stats_total[k])
                 # if no current, also exited does not have sense (terminal state)
                 out_total['Exited'][k] = len(diff_total[k]['Exited'])
@@ -1098,9 +1126,9 @@ class condorLogSummary:
         :param collectorName: The collector name to update the job
         """
         jobinfo = {
-            'schedd_name' : scheddName,
-            'collector_name' : collectorName,
-            'joblist' : {},
+            'schedd_name': scheddName,
+            'collector_name': collectorName,
+            'joblist': {},
         }
         for _sec_name, sndata in self.stats_diff.iteritems():
             for _frname, frdata in sndata.iteritems():
@@ -1113,11 +1141,11 @@ class condorLogSummary:
                             jobinfo['joblist'][jobid] = {
                                 #activation_claims is a new key in 3.2.19. Using "get" For backward compatiobility,
                                 #but it can be removed in future versions
-                                'activation_claims' : jobstats.get('activations_claims', 'unknown'),
-                                'glidein_duration' : jobstats['glidein_duration'],
-                                'condor_duration' : jobstats['condor_duration'],
-                                'condor_started' : jobstats['condor_started'],
-                                'numjobs' : jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
+                                'activation_claims': jobstats.get('activations_claims', 'unknown'),
+                                'glidein_duration': jobstats['glidein_duration'],
+                                'condor_duration': jobstats['condor_duration'],
+                                'condor_started': jobstats['condor_started'],
+                                'numjobs': jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
                             }
 
         #cannot use monitorAggregatorConfig.jobsummary_relname, looks like a circular import
@@ -1135,7 +1163,7 @@ class condorLogSummary:
 ###############################################################################
 
 class FactoryStatusData:
-    """documentation"""
+    """this class handles the data obtained from the rrd files"""
     def __init__(self, log=logSupport.log, base_dir=None):
         self.data = {}
         for rrd in rrd_list:
@@ -1311,6 +1339,12 @@ class FactoryStatusData:
 #############################################################################
 
 class Descript2XML:
+    """
+    create an XML file out of glidein.descript, frontend.descript,
+    entry.descript, attributes.cfg, and params.cfg
+    TODO: The XML is used by ... "the monioring page"?
+    The file created is descript.xml, w/ glideFactoryDescript and glideFactoryEntryDescript elements
+    """
     def __init__(self, log=logSupport.log):
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
@@ -1400,7 +1434,7 @@ class Descript2XML:
 
 ##################################################
 def getAllJobTypes():
-        return ('validation','idle', 'badput', 'nosuccess')
+        return ('validation', 'idle', 'badput', 'nosuccess')
 
 def getLogCompletedDefaults():
         return {'Glideins':0, 'Lasted':0, 'FailedNr':0,

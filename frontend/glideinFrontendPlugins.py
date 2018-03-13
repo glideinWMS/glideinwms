@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -19,8 +20,8 @@ import math
 import collections
 from glideinwms.lib import logSupport
 from glideinwms.lib import util
-import glideinFrontendLib
-import glideinFrontendInterface
+from . import glideinFrontendLib
+from . import glideinFrontendInterface
 
 
 ################################################################################
@@ -51,13 +52,11 @@ import glideinFrontendInterface
 #                                                                              #
 ################################################################################
 
-############################################
-#
-# This plugin always returns the first proxy
-# Useful when there is only one proxy
-# or for testing
-#
+
 class ProxyFirst:
+    """ This plugin always returns the first proxy
+     Useful when there is only one proxy or for testing
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -76,21 +75,21 @@ class ProxyFirst:
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if (params_obj is not None):
-                cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
+                cred.add_usage_details(params_obj.min_nr_glideins, params_obj.max_run_glideins)
             return [cred]
         return []
 
-############################################
-#
-# This plugin returns all the proxies
-# This is can be a very useful default policy
-#
+
 class ProxyAll:
+    """This plugin returns all the proxies
+
+     This is can be a very useful default policy
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -112,25 +111,22 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist = []
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
-            rtnlist = fair_assign(rtnlist,params_obj)
+            rtnlist = fair_assign(rtnlist, params_obj)
         return rtnlist
 
-##########################################################
-#
-# This plugin uses the first N proxies
-# where N is the number of users currently in the system
-#
-# This is useful if the first proxies are higher priority
-# then the later ones
-# Also good for testing
-#
+
 class ProxyUserCardinality:
+    """This plugin uses the first N proxies where N is the number of users currently in the system
+
+     This is useful if the first proxies are higher priority then the later ones
+     Also good for testing
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
 
@@ -150,9 +146,9 @@ class ProxyUserCardinality:
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
-        rtnlist=self.get_proxies_from_cardinality(len(self.users_set),credential_type,trust_domain)
+        rtnlist=self.get_proxies_from_cardinality(len(self.users_set), credential_type, trust_domain)
         if (params_obj is not None):
-            rtnlist=fair_assign(rtnlist,params_obj)
+            rtnlist=fair_assign(rtnlist, params_obj)
 
         #Uncomment to print out assigned proxy allocations
         #print_list(rtnlist)
@@ -167,21 +163,18 @@ class ProxyUserCardinality:
     def get_proxies_from_cardinality(self, nr_requested_proxies,credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
         return rtnlist
 
-#####################################################################
-#
-# Given a 'normal' credential, create sub-credentials based on the ProjectName
-# attribute of jobs
-#
-class ProxyProjectName:
 
+class ProxyProjectName:
+    """Given a 'normal' credential, create sub-credentials based on the ProjectName attribute of jobs
+    """
     def __init__(self, config_dir, proxy_list):
         self.cred_list = proxy_list
         self.proxy_list = proxy_list
@@ -221,9 +214,9 @@ class ProxyProjectName:
         # Determine a base credential to use; we'll copy this and alter the project ID.
         base_cred = None
         for cred in self.proxy_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain != trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             base_cred = cred
             break
@@ -247,18 +240,12 @@ class ProxyProjectName:
         return creds
 
 
-
-
-
-######################################################################
-#
-# This plugin implements a user-based round-robin policy
-# The same proxies are used as long as the users don't change
-#  (we keep a disk-based memory for this purpose)
-# Once any user leaves, the most used credential is rotated to the back of the list
-# If more users enter, they will reach farther down the list to access
-#   less used credentials
 class ProxyUserRR:
+    """This plugin implements a user-based round-robin policy
+    The same proxies are used as long as the users don't change (we keep a disk-based memory for this purpose)
+    Once any user leaves, the most used credential is rotated to the back of the list
+    If more users enter, they will reach farther down the list to access less used credentials
+    """
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
         self.config_dir = config_dir
@@ -296,9 +283,9 @@ class ProxyUserRR:
         rtnlist=[]
         num_cred=0
         for cred in self.config_data['proxy_list']:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             rtnlist.append(cred)
             num_cred=num_cred+1
@@ -306,7 +293,7 @@ class ProxyUserRR:
                 break
                 
         if (params_obj is not None):
-            rtnlist=fair_assign(rtnlist,params_obj)
+            rtnlist=fair_assign(rtnlist, params_obj)
         return rtnlist
 
     #############################
@@ -345,17 +332,14 @@ class ProxyUserRR:
             list.append(list.pop(0))
         return
 
-######################################################################
-#
-# This plugin implements a user-based mapping policy
-#  with possibility of recycling of accounts:
-#  * when a user first enters the system, it gets mapped to a
-#    pilot proxy that was not used for the longest time
-#  * for existing users, just use the existing mapping
-#  * if an old user comes back, it may be mapped to the old account, if not
-#    yet recycled, else it is treated as a new user
-#
+
 class ProxyUserMapWRecycling:
+    """This plugin implements a user-based mapping policy with possibility of recycling of accounts:
+    * when a user first enters the system, it gets mapped to a pilot proxy that was not used for the longest time
+    * for existing users, just use the existing mapping
+    * if an old user comes back, it may be mapped to the old account, if not yet recycled,
+      else it is treated as a new user
+    """
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
         self.config_dir = config_dir
@@ -407,9 +391,9 @@ class ProxyUserMapWRecycling:
                         rtnlist.append(total_user_map[type][trust_domain][k]['proxy'])
             return rtnlist
         else:
-            if (not total_user_map.has_key(credential_type)):
+            if (credential_type not in total_user_map):
                 return []
-            if (not total_user_map[credential_type].has_key(trust_domain)):
+            if (trust_domain not in total_user_map[credential_type]):
                 return []
             user_map=total_user_map[credential_type][trust_domain]
 
@@ -418,15 +402,15 @@ class ProxyUserMapWRecycling:
             # find an appropriate credential
             # skip all that do not match auth method or trust_domain
                 
-            if not user_map.has_key(user):
+            if user not in user_map:
                 keys = user_map.keys()
                 found=False
                 new_key=""
                 for k in keys:
                     cred=user_map[k]['proxy']
-                    if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+                    if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                         continue
-                    if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+                    if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                         continue
                     #Someone is already using this credential
                     if (k in users):
@@ -460,7 +444,7 @@ class ProxyUserMapWRecycling:
                     this_max=1
                 if (this_idle<=0):
                     this_idle=1
-                cel['proxy'].add_usage_details(this_idle,this_max)
+                cel['proxy'].add_usage_details(this_idle, this_max)
             out_proxies.append(cel['proxy'])
             # save that you have indeed seen the user 
             cel['last_seen'] = time.time()
@@ -479,12 +463,12 @@ class ProxyUserMapWRecycling:
     #############################
     # INTERNAL
     #############################
-    def add_proxy(self,user_map,proxy):
+    def add_proxy(self, user_map, proxy):
         type=proxy.type
         trust=proxy.trust_domain
-        if (not user_map.has_key(type)):
+        if (type not in user_map):
             user_map[type]={}
-        if (not user_map[type].has_key(trust)):
+        if (trust not in user_map[type]):
             user_map[type][trust]={}
         idx=self.config_data['first_free_index']
         user_map[type][trust][idx] = {'proxy':proxy,
@@ -503,7 +487,7 @@ class ProxyUserMapWRecycling:
             nr_proxies = len(self.proxy_list)
             for i in range(nr_proxies):
                 # use numbers for keys, so we are sure will not match to any user string
-                self.add_proxy(user_map,self.proxy_list[i]) 
+                self.add_proxy(user_map, self.proxy_list[i]) 
             self.config_data['user_map'] = user_map
         else:
             # load cache
@@ -532,7 +516,7 @@ class ProxyUserMapWRecycling:
                             del user_map[type][trust_domain][k]
             for proxy in self.proxy_list:
                 if proxy.filename not in cached_proxies:
-                    self.add_proxy(user_map,proxy) 
+                    self.add_proxy(user_map, proxy) 
         return
 
     def save(self):
@@ -579,7 +563,7 @@ def fair_split(i, n, p):
     return int((n1*i1)/p1)-int((n1*(i1-1))/p1)
 
 
-def random_split(n,p):
+def random_split(n, p):
     random_arr = map(lambda i: fair_split(i, n, p), range(p))
     random.shuffle(random_arr)
     return random_arr
@@ -606,14 +590,14 @@ def fair_assign(cred_list, params_obj):
     total_idle=params_obj.min_nr_glideins
     total_max=params_obj.max_run_glideins
     num_cred=len(cred_list)
-    random_arr=random_split(total_idle,num_cred)
+    random_arr=random_split(total_idle, num_cred)
     for cred in cred_list:
         this_idle=random_arr[i-1]
-        this_max=fair_split(i,total_max,num_cred)
+        this_max=fair_split(i, total_max, num_cred)
         # Never send more idle than max running
         if this_idle>this_max:
             this_idle=this_max
-        cred.add_usage_details(this_idle,this_max)
+        cred.add_usage_details(this_idle, this_max)
         i=i+1
     return cred_list
 
