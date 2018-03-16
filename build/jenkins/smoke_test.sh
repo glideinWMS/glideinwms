@@ -17,7 +17,7 @@ usage(){
     echo "       $0 --help         print this message and exit"
     echo
     echo "to run all the tests, do the following:"
-    echo "for CFG in $(ls *.cfg); do echo $CFG; ./smoke_test.sh ./$CFG | tee $CFG.out ; done "
+    echo 'for CFG in $(ls *.cfg); do echo $CFG; ./smoke_test.sh ./$CFG | tee $CFG.out ; done '
     echo
     exit 0
 }
@@ -36,7 +36,10 @@ main() {
     if [ "$1" = "--help" ] ;then
         usage
     fi
-
+    if [ "$X509_USER_PROXY" = "" ]; then
+        kx509
+        export X509_USER_PROXY=/tmp/krb5cc_`id -u`
+    fi
     try source $1
     export PERFORM_UPGRADE=$(echo $PERFORM_UPGRADE | tr 'a-z' 'A-Z')
     echo DEPLOY_COMMAND is $DEPLOY_COMMAND
