@@ -1,5 +1,21 @@
 #!/bin/bash
 #
+# This script advertises:
+# HAS_SINGULARITY
+# SINGULARITY_PATH
+# GWMS_SINGULARITY_PATH
+# SINGULARITY_VERSION
+# GWMS_SINGULARITY_VERSION
+# GLIDEIN_REQUIRED_OS
+# GLIDEIN_DEBUG_OUTPUT
+#
+# Note that HTCondor has these native attribute names:
+# HasSingularity
+# SingularityVersion
+# Using the above names would interfere and modify HTCondor behavior
+# NOTE: HAS_SINGULARITY and HasSingularity are different because of '_'
+
+
 glidein_config="$1"
 
 error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
@@ -140,7 +156,7 @@ fi
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 
-export GLIDEIN_DEBUG_OUTPUT = `grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk '{print $2}'`
+export GLIDEIN_DEBUG_OUTPUT=`grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk '{print $2}'`
 
 #some hackery to deal with spaces in SINGULARITY_BIN
 temp_singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`

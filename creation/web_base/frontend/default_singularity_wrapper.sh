@@ -17,18 +17,30 @@ function getPropBool
 {
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
-    # echo "1" for true, "0" for false/unspecified
-    # return 0 for true, 1 for false/unspecified
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
-    # convert variations of true to 1
-    if (echo "x$val" | grep -i true) >/dev/null 2>&1; then
-        val="1"
+    # Consider True: true (case insensitive), any number != 0
+    #          Anything else is False (0, false, undefined, ...)
+    # echo "1" for true, "0" for false/undefined
+    # return 0 for true, 1 for false/undefined
+    if [ $# -ne 2 ] || [ "x$1" = "NONE" ]; then
+        val=0
+    else
+        val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
+        # Convert variations of true to 1
+        if (echo "x$val" | grep -i true) >/dev/null 2>&1; then
+            val=1
+        elif [[ "$val" =~ '^[0-9]+([.][0-9]+)?$' ]]; then
+            if [ $val -eq 0 ]; then
+                val=0
+            else
+                val=1
+            fi
+        else
+            val=0
+        fi
     fi
-    if [ "x$val" = "x" ]; then
-        val="0"
-    fi
+    # From here on val=0/1
     echo $val
-    # return value accordingly, but backwards (true=>0, false=>1)
+    # return value accordingly, but backwards (true -> 0, false -> 1)
     if [ "$val" = "1" ];  then
         return 0
     else
@@ -42,19 +54,42 @@ function getPropStr
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
     # echo the value
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
+    if [ $# -ne 2 ] || [ "x$1" = "NONE" ]; then
+        val=""
+    else
+        val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
+    fi
     echo $val
 }
 
 
+### This script could run when singularity is optional and not wanted
+### So should not fail but exec w/o running Singularity
 
-if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
+## from singularity_setup.sh executed earlier
+export HAS_SINGULARITY=$(getPropBool $_CONDOR_MACHINE_AD HAS_SINGULARITY)
+if [ $HAS_SINGULARITY -eq 0 ]; then
+    # Assume that singularity_setup.sh removed inconsistencies
+    # $HAS_SINGULARITY False means it was optional and is OK to run without
+    # Run the real job and check for exec failure
+    info_dbg "Singularity disabled, running directly the user job via exec: $@"
+    exec "$@"
+    error=$?
+    echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE
+    info "exec $@ failed: exit code $error"
+    exit $error
+fi
+
+
+### From here on the script assumes it has to run w/ Singularity
+
+if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     # set up environment so we can execute singularity
     
-    if [ "x$_CONDOR_JOB_AD" = "x" ]; then
+    if [ -z "$_CONDOR_JOB_AD" ]; then
         export _CONDOR_JOB_AD="NONE"
     fi
-    if [ "x$_CONDOR_MACHINE_AD" = "x" ]; then
+    if [ -z "$_CONDOR_MACHINE_AD" ]; then
         export _CONDOR_MACHINE_AD="NONE"
     fi
 
@@ -76,7 +111,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
         export GLIDEIN_DEBUG_OUTPUT=$(getPropStr $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
     fi
   
- 
+    info_dbg "Decided to use singularity ($HAS_SINGULARITY). Proceeding w/ tests and setup."
  
     #GWMS we do not allow users to set SingularityAutoLoad
     export GWMS_SINGULARITY_AUTOLOAD=1
