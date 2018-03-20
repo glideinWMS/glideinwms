@@ -63,28 +63,11 @@ function getPropStr
 }
 
 
-### This script could run when singularity is optional and not wanted
-### So should not fail but exec w/o running Singularity
-
-## from singularity_setup.sh executed earlier
-export HAS_SINGULARITY=$(getPropBool $_CONDOR_MACHINE_AD HAS_SINGULARITY)
-if [ $HAS_SINGULARITY -eq 0 ]; then
-    # Assume that singularity_setup.sh removed inconsistencies
-    # $HAS_SINGULARITY False means it was optional and is OK to run without
-    # Run the real job and check for exec failure
-    info_dbg "Singularity disabled, running directly the user job via exec: $@"
-    exec "$@"
-    error=$?
-    echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE
-    info "exec $@ failed: exit code $error"
-    exit $error
-fi
-
-
-### From here on the script assumes it has to run w/ Singularity
+# All code out here will run on the 1st invocation and also in the re-invocation within singularity
+# $GWMS_SINGULARITY_REEXEC is used to discriminate that (nothing outside, 1 inside)
 
 if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
-    # set up environment so we can execute singularity
+    # Set up environment to know if Singularity is enabled and so we can execute Singularity
     
     if [ -z "$_CONDOR_JOB_AD" ]; then
         export _CONDOR_JOB_AD="NONE"
@@ -110,7 +93,25 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     if [ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]; then
         export GLIDEIN_DEBUG_OUTPUT=$(getPropStr $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
     fi
+
+
+    # Check if singularity is disabled or enabled
+    # This script could run when singularity is optional and not wanted
+    # So should not fail but exec w/o running Singularity
+    if [ $HAS_SINGULARITY -eq 0 ]; then
+        # Assume that singularity_setup.sh removed inconsistencies
+        # $HAS_SINGULARITY False means it was optional and is OK to run without
+        # Run the real job and check for exec failure
+        info_dbg "Singularity disabled, running directly the user job via exec: $@"
+        exec "$@"
+        error=$?
+        echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE
+        info "exec $@ failed: exit code $error"
+        exit $error
+    fi
+
   
+    ### From here on the script assumes it has to run w/ Singularity
     info_dbg "Decided to use singularity ($HAS_SINGULARITY). Proceeding w/ tests and setup."
  
     #GWMS we do not allow users to set SingularityAutoLoad
