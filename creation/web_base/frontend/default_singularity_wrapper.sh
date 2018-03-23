@@ -17,18 +17,21 @@ function getPropBool
 {
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
-    # Consider True: true (case insensitive), any number != 0
+    # Consider True: true (case insensitive), any integer != 0
     #          Anything else is False (0, false, undefined, ...)
     # echo "1" for true, "0" for false/undefined
     # return 0 for true, 1 for false/undefined
+    # NOTE Spaces are trimmed, so strings like "T RUE" are true
     if [ $# -ne 2 ] || [ "x$1" = "NONE" ]; then
         val=0
     else
-        val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
+        # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
+        val=`(grep -i "^$2 " $1 | cut -d= -f2 | tr -d '\040\011\012\015') 2>/dev/null`
         # Convert variations of true to 1
+        re="^[0-9]+$"  # bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
         if (echo "x$val" | grep -i true) >/dev/null 2>&1; then
             val=1
-        elif [[ "$val" =~ '^[0-9]+([.][0-9]+)?$' ]]; then
+        elif [[ "$val" =~ $re ]]; then
             if [ $val -eq 0 ]; then
                 val=0
             else
