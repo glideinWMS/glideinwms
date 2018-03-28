@@ -45,6 +45,13 @@ setup_python_venv() {
     # 3. swig
     # pep8 has been replaced by pycodestyle
     pip_packages="astroid==1.2.1 pylint==1.3.1 pycodestyle unittest2 coverage rrdtool pyyaml mock xmlrunner future importlib argparse"
+
+    if Python -V 2>&1 | grep ' 2.6' >/dev/null; then
+        pip_packages="$pip_packages hypothesislegacysupport"
+    else
+        pip_packages="$pip_packages hypothesis"
+    fi
+
     for package in $pip_packages; do
         echo "Installing $package ..."
         status="DONE"

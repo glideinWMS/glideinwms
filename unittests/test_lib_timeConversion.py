@@ -95,6 +95,8 @@ class TestExtractISO8601Local(unittest.TestCase):
         self.assertEqual(now, extractISO8601_Local(iso_local))
         self.assertEqual(now_dst, extractISO8601_Local(iso_local_dst))
 
+    #use hypothesis to test hundreds of times between unix epoch and
+    #unix 4-byte time overflow that get and extract are symmetric
     @hypothesis.given(st.floats(min_value=0, max_value=2147483647.0))
     def test_ISO8601_Local__symmetric(self, flt_time):
         t = long(flt_time)
@@ -108,22 +110,21 @@ class TestGetRFC2822UTC(unittest.TestCase):
         self.assertEqual(rfc_2822_utc, getRFC2822_UTC(now))
 
 class TestExtractRFC2822UTC(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_extract_rf_c2822__ut_c(self):
         self.assertEqual(now, extractRFC2822_UTC(rfc_2822_utc))
 
 class TestGetRFC2822Local(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_get_rf_c2822__local(self):
         os.environ['TZ']=tz
         time.tzset()
         self.assertEqual(rfc_2822_local, getRFC2822_Local(now))
 
 class TestExtractRFC2822Local(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_extract_rf_c2822__local(self):
         self.assertEqual(now, extractRFC2822_Local(rfc_2822_local))
 
+    #use hypothesis to test hundreds of times between unix epoch and
+    #unix 4-byte time overflow that get and extract are symmetric
     @hypothesis.given(st.floats(min_value=0, max_value=2147483647.0))
     def test_rf_c2822_local_symmetric(self, flt_time):
         t = long(flt_time)
@@ -132,7 +133,6 @@ class TestExtractRFC2822Local(unittest.TestCase):
         self.assertEqual(tstr, getRFC2822_Local(extractRFC2822_Local(tstr)))
 
 class TestGetTimeInFormat(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_get_time_in_format(self):
         os.environ['TZ']=tz
         time.tzset()
@@ -140,7 +140,6 @@ class TestGetTimeInFormat(unittest.TestCase):
         self.assertEqual(rfc_2822_local, get_time_in_format(now, time_format))
 
 class TestGetTZval(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_get_t_zval(self):
         os.environ['TZ']=tz
         time.tzset()

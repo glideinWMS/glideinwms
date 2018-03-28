@@ -1,5 +1,5 @@
 <glidein>
-    <entries>
+    <entry_sets>
       <entry name="TEST_SITE_1" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
@@ -104,5 +104,5 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-   </entries>
+   </entry_sets>
 </glidein>
