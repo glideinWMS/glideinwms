@@ -361,11 +361,11 @@ class condorQStats:
             if not el.has_key(ek):
                 el[ek] = 0
             if client_monitor.has_key(ck):
-                el[ek] += (client_monitor[ck] * fraction)
+                el[ek] += (int(client_monitor[ck]) * fraction)
             elif ck == 'RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
                 if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
-                    el[ek] += (min(client_monitor['Running'], client_monitor['GlideinsRunning']) * fraction)
+                    el[ek] += (min(int(client_monitor['Running']), int(client_monitor['GlideinsRunning'])) * fraction)
 
         if not el.has_key('InfoAge'):
             el['InfoAge'] = 0
