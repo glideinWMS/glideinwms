@@ -1,5 +1,21 @@
 #!/bin/bash
 #
+# This script advertises:
+# HAS_SINGULARITY
+# SINGULARITY_PATH
+# GWMS_SINGULARITY_PATH
+# SINGULARITY_VERSION
+# GWMS_SINGULARITY_VERSION
+# GLIDEIN_REQUIRED_OS
+# GLIDEIN_DEBUG_OUTPUT
+#
+# Note that HTCondor has these native attribute names:
+# HasSingularity
+# SingularityVersion
+# Using the above names would interfere and modify HTCondor behavior
+# NOTE: HAS_SINGULARITY and HasSingularity are different because of '_'
+
+
 glidein_config="$1"
 
 error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
@@ -140,7 +156,7 @@ fi
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 
-export GLIDEIN_DEBUG_OUTPUT = `grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk '{print $2}'`
+export GLIDEIN_DEBUG_OUTPUT=`grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk '{print $2}'`
 
 #some hackery to deal with spaces in SINGULARITY_BIN
 temp_singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
@@ -152,9 +168,9 @@ fi
 # Does frontend want to use singularity?
 use_singularity=`grep '^GLIDEIN_Singularity_Use ' $glidein_config | awk '{print $2}'`
 if [ -z "$use_singularity" ]; then
-    echo "`date` GLIDEIN_Singularity_Use not configured. Defaulting it to NEVER"
-    # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to NEVER
-    use_singularity="NEVER"
+    echo "`date` GLIDEIN_Singularity_Use not configured. Defaulting it to DISABLE_GWMS"
+    # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to DISABLE_GWMS (2018-03-19 discussion)
+    use_singularity="DISABLE_GWMS"
 fi
 
 # Does entry require glidein to use singularity?
@@ -169,16 +185,20 @@ echo "`date` VO's desire to use singularity:              $use_singularity"
 echo "`date` Entry configured with singularity:           $singularity_bin"
 
 case "$use_singularity" in
+    DISABLE_GWMS)
+        "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "Undefined"
+        exit 0
+        ;;
     NEVER)
         echo "`date` VO does not want to use singularity"
         if [ "$require_singularity" = "True" ]; then
             STR="Factory requires glidein to use singularity."
             "$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Singularity_Use"
-            #If Group mistakenly use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use=NEVER
-            #we need to set    advertise HAS_SINGULARITY "False" "C"
-            no_use_singularity_config
             exit 1
         fi
+        # If Group mistakenly use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use=NEVER
+        # we need to set    advertise HAS_SINGULARITY "False" "C"
+        no_use_singularity_config
         ;;
     OPTIONAL) #GWMS Even in OPTIONAL case, FE will have to specify the wrapper script
         if [ "$require_singularity" = "True" ]; then
@@ -193,6 +213,7 @@ case "$use_singularity" in
                 no_use_singularity_config
             fi
         fi
+        # OK to continue w/ Singularity
         ;;
     REQUIRED)
         if [ "$singularity_bin" = "NONE" ]; then
@@ -200,6 +221,7 @@ case "$use_singularity" in
             "$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "SINGULARITY_BIN" "attribute" "GLIDEIN_Singularity_Use"
             exit 1
         fi
+        # OK to continue w/ Singularity
         ;;
     *)
         STR="GLIDEIN_Singularity_Use in VO Frontend configured to be $use_singularity.\nAccepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
@@ -224,6 +246,7 @@ export GWMS_SINGULARITY_IMAGE_DEFAULT6=`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $gli
 export GWMS_SINGULARITY_IMAGE_DEFAULT7=`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | awk '{print $2}'`
 export GWMS_SINGULARITY_IMAGE_DEFAULT=''
 
+# Look for singularity images and adapt if no valid one is found
 if [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" != "x" ] && [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
     GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT6
 elif [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" ] && [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" != "x" ]; then
@@ -232,13 +255,13 @@ elif [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" != "x" ] && [ "x$GWMS_SINGULARITY_IMA
     GWMS_SINGULARITY_IMAGE_DEFAULT=$GWMS_SINGULARITY_IMAGE_DEFAULT7
 elif [ "x$GWMS_SINGULARITY_IMAGE_DEFAULT6" = "x" ] && [  "x$GWMS_SINGULARITY_IMAGE_DEFAULT7" = "x" ]; then
     HAS_SINGULARITY="False"
-    if [ "$use_singularity" = "OPTIONAL" ]; then
-        warn "SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
-        no_use_singularity_config
-    elif [ "$use_singularity" = "REQUIRED" ]; then
+    if [ "$use_singularity" = "REQUIRED" ] || [ "$require_singularity" = "True" ] ; then
         STR="SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
         "$error_gen" -error "singularity_setup.sh"  "WN_Resource" "$STR"
         exit 1
+    elif [ "$use_singularity" = "OPTIONAL" ]; then
+        warn "SINGULARITY_IMAGE_DEFAULT was not set by vo_pre_singularity_setup.sh"
+        no_use_singularity_config
     fi
 fi
 
@@ -246,16 +269,17 @@ export GWMS_SINGULARITY_IMAGE_DEFAULT
 # for now, we will only advertise singularity on nodes which can access cvmfs
 if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
     HAS_SINGULARITY="False"
-    if [ "$use_singularity" = "OPTIONAL" ]; then
-        warn "$GWMS_SINGULARITY_IMAGE_DEFAULT does not exist."
-        no_use_singularity_config
-    elif [ "$use_singularity" = "REQUIRED" ]; then
+    if [ "$use_singularity" = "REQUIRED" ] || [ "$require_singularity" = "True" ] ; then
         STR="Default singularity image, $GWMS_SINGULARITY_IMAGE_DEFAULT, does not appear to exist"
         "$error_gen" -error "singularity_setup.sh"  "WN_Resource" "$STR"
         exit 1
+    elif [ "$use_singularity" = "OPTIONAL" ]; then
+        warn "$GWMS_SINGULARITY_IMAGE_DEFAULT does not exist."
+        no_use_singularity_config
     fi
 fi
 
+# Look for binary and adapt if missing
 if ! locate_singularity $singularity_bin ; then
    locate_singularity '/usr/bin'
 fi
@@ -263,25 +287,28 @@ fi
 if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
     info "Singularity binary appears present and claims to be version $GWMS_SINGULARITY_VERSION"
 else
-    if [ "$use_singularity" = "OPTIONAL" ]; then
-        warn "Singularity binary does not exist."
-        no_use_singularity_config
-    elif [ "$use_singularity" = "REQUIRED" ]; then
+    # Adapt to missing binary
+    if [ "$use_singularity" = "REQUIRED" ] || [ "$require_singularity" = "True" ] ; then
         STR="Unable to find singularity in PATH=$PATH"
         "$error_gen" -error "singularity_setup.sh" "WN_Resource" "$STR"
         exit 1
+    elif [ "$use_singularity" = "OPTIONAL" ]; then
+        warn "Singularity binary does not exist."
+        no_use_singularity_config
     fi
 fi
+
+# Test execution and adapt if failed
 if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
     if ! test_singularity_exec ; then
         HAS_SINGULARITY="False"
-        if [ "$use_singularity" = "OPTIONAL" ]; then
-            warn "Simple singularity exec inside $GWMS_SINGULARITY_IMAGE_DEFAULT failed."
-            no_use_singularity_config
-        elif [ "$use_singularity" = "REQUIRED" ]; then
+        if [ "$use_singularity" = "REQUIRED" ] || [ "$require_singularity" = "True" ] ; then
             STR="Simple singularity exec inside $GWMS_SINGULARITY_IMAGE_DEFAULT failed."
             "$error_gen" -error "singularity_setup.sh"  "WN_Resource" "$STR"
             exit 1
+        elif [ "$use_singularity" = "OPTIONAL" ]; then
+            warn "Simple singularity exec inside $GWMS_SINGULARITY_IMAGE_DEFAULT failed."
+            no_use_singularity_config
         fi
     fi
 fi
