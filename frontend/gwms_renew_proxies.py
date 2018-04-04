@@ -30,6 +30,12 @@ class Proxy(object):
         self.output = output
         self.lifetime = lifetime
 
+    def _voms_proxy_info(self, *opts):
+        """Run voms-proxy-info. Returns stdout, stderr, and return code of voms-proxy-info
+        """
+        cmd = ['voms-proxy-info', '-file', self.output] + list(opts)
+        return _run_command(cmd)
+
     def write(self):
         """Move output proxy from temp location to its final destination
         """
@@ -39,13 +45,14 @@ class Proxy(object):
         os.rename(self.tmp_output_fd.name, self.output)
 
     def timeleft(self):
-        """Returns the remaining lifetime of the proxy in seconds
+        """Safely return the remaining lifetime of the proxy, in seconds (returns 0 if unexpected stdout)
         """
-        stdout, _, _ = _run_command(['voms-proxy-info', '-file', self.output, '-timeleft'])
-        try:
-            return int(stdout)
-        except ValueError:
-            return 0
+        return _safe_int(self._voms_proxy_info('-timeleft')[0])
+
+    def actimeleft(self):
+        """Safely return the remaining lifetime of the proxy's VOMS AC, in seconds (returns 0 if unexpected stdout)
+        """
+        return _safe_int(self._voms_proxy_info('-actimeleft')[0])
 
 class VO(object):
     """Class for holding information related to VOMS attributes
@@ -65,6 +72,14 @@ class VO(object):
         self.voms = (':').join([vo, fqan])
         self.cert = cert
         self.key = key
+
+def _safe_int(string):
+    """Convert a string to an integer. If the string cannot be cast, return 0.
+    """
+    try:
+        return int(string)
+    except ValueError:
+        return 0
 
 def _run_command(command):
     """Runs the specified command, specified as a list. Returns stdout, stderr and return code
@@ -133,13 +148,23 @@ def main():
                       proxy_config['output'], proxy_config['lifetime'],
                       fe_user.pw_uid, fe_user.pw_gid)
 
-        if int(proxy.lifetime)*3600 - proxy.timeleft() < int(proxy_config['frequency'])*3600:
-            print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
-            continue
+        # Users used to be able to control the frequency of the renewal when they were instructed to write their own
+        # script and cronjob. Since the automatic proxy renewal cron/timer runs every hour, we allow the users to
+        # control this via the 'frequency' config option. If more than 'frequency' hours have elapsed in a proxy's
+        # lifetime, renew it. Otherwise, skip the renewal.
+        def has_time_left(time_remaining):
+            return int(proxy.lifetime)*3600 - time_remaining < int(proxy_config['frequency'])*3600
 
         if proxy_section == 'FRONTEND':
+            if has_time_left(proxy.timeleft()):
+                print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
+                continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
+            if has_time_left(proxy.timeleft()) and has_time_left(proxy.actimeleft()):
+                print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
+                continue
+
             voms_info = vomses[proxy_config['vo'].lower()]
             vo_attr = VO(voms_info['name'], proxy_config['fqan'])
 
