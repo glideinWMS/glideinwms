@@ -65,9 +65,10 @@ class VO(object):
         key - path to key associated with the cert argument
         """
         self.name = vo
-        self.fqan = fqan.lstrip('/%s' % vo, '')
-        if not fqan.startswith("/Role="):
+        fqan = re.sub(r'^(\/%s)?\/' % vo, '', fqan)
+        if not fqan.startswith('Role='):
             raise ValueError('Malformed FQAN does not begin with "/%s/Role=" or "/Role=". Verify %s.' % (vo, CONFIG))
+        self.fqan = "/%s/%s" % (vo, fqan)
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
         self.voms = (':').join([vo, fqan])
         self.cert = cert
