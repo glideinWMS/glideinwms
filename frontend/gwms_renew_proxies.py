@@ -19,6 +19,7 @@ DEFAULTS = {'use_voms_server': 'false',
             'lifetime': '24',
             'owner': 'frontend'}
 
+
 class Proxy(object):
     """Class for holding information related to the proxy
     """
@@ -54,6 +55,7 @@ class Proxy(object):
         """
         return _safe_int(self._voms_proxy_info('-actimeleft')[0])
 
+
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
@@ -70,17 +72,19 @@ class VO(object):
             raise ValueError('Malformed FQAN does not begin with "/%s/Role=" or "/Role=". Verify %s.' % (vo, CONFIG))
         self.fqan = "/%s/%s" % (vo, fqan)
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
-        self.voms = (':').join([vo, fqan])
+        self.voms = ':'.join([vo, fqan])
         self.cert = cert
         self.key = key
 
-def _safe_int(string):
+
+def _safe_int(string_var):
     """Convert a string to an integer. If the string cannot be cast, return 0.
     """
     try:
-        return int(string)
+        return int(string_var)
     except ValueError:
         return 0
+
 
 def _run_command(command):
     """Runs the specified command, specified as a list. Returns stdout, stderr and return code
@@ -88,6 +92,7 @@ def _run_command(command):
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
     return stdout, stderr, proc.returncode
+
 
 def voms_proxy_init(proxy, *args):
     """Create a proxy using voms-proxy-init. Without any additional args, it generates a proxy without VOMS attributes.
@@ -99,6 +104,7 @@ def voms_proxy_init(proxy, *args):
            '-out', proxy.tmp_output_fd.name,
            '-valid', '%s:00' % proxy.lifetime] + list(args)
     return _run_command(cmd)
+
 
 def voms_proxy_fake(proxy, vo_info, voms_uri):
     """ Create a valid proxy without contacting a VOMS Admin server. VOMS attributes are created from user config.
@@ -115,6 +121,7 @@ def voms_proxy_fake(proxy, vo_info, voms_uri):
            '-uri', voms_uri,
            '-fqan', vo_info.fqan]
     return _run_command(cmd)
+
 
 def main():
     """Main entrypoint
@@ -142,7 +149,7 @@ def main():
 
     retcode = 0
     # Proxy renewals
-    proxies.remove('COMMON') # no proxy renewal info in the COMMON section
+    proxies.remove('COMMON')  # no proxy renewal info in the COMMON section
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
@@ -179,6 +186,9 @@ def main():
         else:
             print "WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) + \
                 "Valid configuration sections: 'FRONTEND' or 'PILOT'."
+            client_rc = -1
+            stderr = "Unrecognized configuration section '%s', renewal not attempted." % proxy_section
+            stdout = ""
 
         if client_rc == 0:
             proxy.write()
@@ -189,6 +199,7 @@ def main():
             print "ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr)
 
     return retcode
+
 
 if __name__ == "__main__":
     try:
