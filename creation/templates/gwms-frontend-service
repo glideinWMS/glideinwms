@@ -1,0 +1,47 @@
+#!/bin/env bash
+
+function usage(){
+    echo ""
+    echo "usage: $0 start|stop|reload \$MAINPID"
+    echo ""
+    echo "see http://glideinwms.fnal.gov/doc.prd/frontend/index.html"
+    echo "for full documentation"
+    echo ""
+    exit 1
+}
+
+
+function check_and_reload(){
+
+    if ps $1 | grep glideinFrontend > /dev/null 2>&1 ; then
+       echo "performing a frontend reconfig"  
+       /bin/kill -HUP $1
+    elif ps $1 | grep reconfig_frontend > /dev/null 2>&1 ; then
+       echo "a previous systemctl reload gwms-frontend  has not yet completed, ignoring request"
+       echo "will not perform a frontend reconfig until previous one is finished"
+    else
+       echo "no defined action to take on process $1, doing nothing" 
+    fi
+
+}
+
+case $1 in 
+    start)
+        /usr/sbin/gwms-frontend start
+        ;;
+    stop)
+        /usr/sbin/gwms-frontend stop
+        ;;
+    reload)
+        if [ "$2" != "" ]; then
+            check_and_reload $2
+        else
+            echo "MUST SUPPLY A PID WITH THIS ARGUMENT"
+            usage
+        fi
+        ;;
+    *)
+        usage
+        ;;
+esac
+

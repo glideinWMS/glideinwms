@@ -2,12 +2,13 @@
 Description=GWMS Factory Service
 Requires=condor.service
 After=condor.service
+Documentation="http://glideinwms.fnal.gov/doc.prd/factory/index.html"
 
 [Service]
 Type=forking
-ExecStart=/usr/sbin/gwms-factory start
-ExecStop=/usr/sbin/gwms-factory stop
-ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/sbin/gwms-factory-service start
+ExecStop=/usr/sbin/gwms-factory-service stop
+ExecReload=/usr/sbin/gwms-factory-service reload $MAINPID
 
 [Install]
 WantedBy=multi-user.target
