@@ -43,8 +43,11 @@ FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 try: # necessary because systemd is not on rhel6
   from systemd import journal
   def print2( message ):
-    print message
-    journal.send( message )
+
+    message2 = str(message)
+
+    print message2
+    journal.send( message2 )
 
 except ImportError:
   def print2( message ):
