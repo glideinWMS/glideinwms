@@ -65,6 +65,10 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_idle_defaults["reserve"]=['5',"nr_jobs","How much to overcommit.",None]
         group_config_defaults['idle_glideins_per_entry']=group_config_idle_defaults
 
+        group_config_lifetime_defaults=cWParams.commentedOrderedDict()
+        group_config_lifetime_defaults["max"]=['0',"NR","How long idle glideins are kept in the factory queue (seconds)",None]
+        group_config_defaults['idle_glideins_lifetime']=group_config_lifetime_defaults
+
         group_config_vms_defaults=cWParams.commentedOrderedDict()
         group_config_vms_defaults["max"]=['100',"nr_vms","How many idle VMs should I tollerate, before stopping submitting glideins",None]
         group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
@@ -76,9 +80,16 @@ class VOFrontendParams(cWParams.CommonParams):
         common_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_total']=common_config_vms_total_defaults
 
-        group_config_proc_work_defaults=cWParams.commentedOrderedDict()
-        group_config_proc_work_defaults["matchmakers"]=['3',"NR","Max number of worker processes that will be doing the matchmaking",None]
-        group_config_defaults['processing_workers']=group_config_proc_work_defaults
+        group_config_proc_work_defaults = cWParams.commentedOrderedDict()
+        group_config_proc_work_defaults["matchmakers"] = ['3', "NR", "Max number of worker processes that will be doing the matchmaking", None]
+        group_config_defaults['processing_workers'] = group_config_proc_work_defaults
+
+        group_config_removal_defaults = cWParams.commentedOrderedDict()
+        group_config_removal_defaults["type"] = ['NO', "ALL|IDLE|WAIT|NO", "Trigger the removal of these glideins", None]
+        group_config_removal_defaults["wait"] = ['0', "NR", "Time without requests to wait before triggering the removal (cycles)", None]
+        group_config_removal_defaults["requests_tracking"] = ['False', "Bool", "Remove glideins as soon as the requests are less than the available glideins (instead of 0)", None]
+        group_config_removal_defaults["margin"] = ['0', "NR", "How closely to follow the number of requests", None]
+        group_config_defaults['glideins_removal'] = group_config_removal_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),

@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+  <head>
+    <title id="brtitle">Frontend Monitoring Link</title>
+  </head>
+
+  <body>
+    <ul id="myul">
+    </ul>
+
+    <script type="text/javascript">
+      var ullist = document.getElementById('myul');
+      var rawFile = new XMLHttpRequest();
+      rawFile.open("GET", "frontendmonitorlink.txt", true);
+      rawFile.onreadystatechange = function ()
+      {
+        if(rawFile.readyState === 4)
+        {
+           if(rawFile.status === 200 || rawFile.status == 0)
+            {
+                var allText = rawFile.responseText;
+                var lines = allText.split("\n");
+
+                for(var i = 0;i < lines.length;i++){
+                    var wordlist = lines[i].split(",");
+                    var linksource = wordlist[1];
+                    var linktext = wordlist[0];
+
+                    var a = document.createElement('a');
+                    var linkText = document.createTextNode(linktext);
+                    a.appendChild(linkText);
+                    a.title = "my test text";
+                    a.href = linksource;
+
+                    var entry = document.createElement('li')
+                    entry.appendChild( a );
+                    ullist.appendChild(entry);
+                 }
+            }
+        }
+      }
+      rawFile.send(null);
+    </script>
+  </body>
+</html>

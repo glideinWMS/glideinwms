@@ -30,16 +30,20 @@
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
-            <div id="cse-search-form" style="width: 100%;">Loading</div>
-            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-            <script src="../common/glidein.js" type="text/javascript"></script>
-            <script type="text/javascript">
-            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
-            google.setOnLoadCallback(onLoad);
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
             </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
         </div>
     </div>
-    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
     <img align="right" width="280px" border="0px"
@@ -71,6 +75,7 @@
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
     <LI><A HREF="#lifetime">Lifetime of a glidein</A>
+    <LI><A HREF="#draining">Draining glideins</A>
 </ol>
 </div>
 <div class="related">
@@ -126,9 +131,9 @@ specific meaning:</P>
 
     <LI>Attribute type
     <UL>
-        <LI>I &ndash; integer</li>
-        <LI>S &ndash; quoted string</li>
-        <LI>C &ndash; unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>I (int) &ndash; integer</li>
+        <LI>S (string) &ndash; quoted string</li>
+        <LI>C (expr) &ndash; unquoted string (i.e. Condor keyword or expression)</li>
     </UL>
     </li>
     <LI>Default value, use &ndash; if no default</li>
@@ -204,6 +209,9 @@ factory configuration XML using the following tags:</P>
 
 <B>type</B>=&ldquo;<I>type</I>&rdquo; ...<B>/&gt;</B>
 </BLOCKQUOTE>
+    <p>Attr tags can be in both the Factory and Frontend configuration, available types are <i>Int</i>
+        (I in HTCondor vars file), <i>String</i> (S) or <i>Expr</i> (C). String and Expr values are treated literally
+        (no need to escape them) and Strings are quoted when passed to HTCondor.</p>
 <P>More information on the XML format can be found in 
 <A HREF="configuration.html#args">Glidein Factory configuration</A> section.
 <BR/>
@@ -237,7 +245,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Hold</b> </td>
-        <TD> Exp (Bool)</td>
+        <TD> Expr (Bool)</td>
 
         <TD> True </TD>
         <TD>
@@ -249,7 +257,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Entry_PREEMPT</b> </td>
-        <TD> Exp (Bool)</td>
+        <TD> Expr (Bool)</td>
         <TD>True </TD>
         <TD ROWSPAN=2>
             <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
@@ -260,14 +268,14 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_PREEMPT</b> </td>
-        <TD> Exp (Bool)</td>
+        <TD> Expr (Bool)</td>
 
         <TD> True </TD>
     </TR>
 
     <TR>
         <td> <b>GLIDEIN_Rank</b> </td>
-        <td>Exp (Int)</td>
+        <td>Expr (Int)</td>
         <TD>1</TD>
         <TD ROWSPAN=2>
                 <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
@@ -278,7 +286,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Entry_Rank</b> </td>
-        <td> Exp (Int) </TD>
+        <td> Expr (Int) </TD>
         <TD> 1 </TD>
 
     </TR>
@@ -319,7 +327,8 @@ by the VO factory clients.</P>
             The random spread
             is used to improve the efficiencies, so the actual value used by
             Condor will be anywhere between GRT-GRTS and GRT.</P>
-
+            <p>NOTE: if GLIDEIN_Max_Walltime is specified, then this value is ignored and the retire time is calculated
+            (see GLIDEIN_Max_Walltime below)</p>
         </TD>
     </TR>
     <TR>
@@ -357,7 +366,7 @@ by the VO factory clients.</P>
 
     <tr>
         <td> <b>PREEMPT</b></td>
-        <td> Bool </td>
+        <td> Expr (Bool) </td>
         <td> False </td>
         <TD> 1 </TD>
             Specifies whether preemption is allowed to occur on this glidein.
@@ -390,7 +399,7 @@ by the VO factory clients.</P>
 
     <TR>
         <td> <b>GLIDEIN_Monitoring_Enabled</b> </td>
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
  	<TD> True </TD>
  	<TD> <P>Ability to control whether the pseduo-interactive monitoring slot is started on the worker node.  Set to False if you do not want the monitoring slot started.</P>
  	</TD>
@@ -465,7 +474,7 @@ by the VO factory clients.</P>
     <TR>
         <td><b> GLEXEC_JOB</b> </td>
 
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
             <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
@@ -479,7 +488,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Use_PGroups</b> </td>
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
         <TD> False </TD>
 
         <TD>
@@ -494,7 +503,7 @@ by the VO factory clients.</P>
     <TR>
 
         <td> <b>UPDATE_COLLECTOR_WITH_TCP</b> </td>
-        <td> Bool </td>
+        <td> Expr (Bool) </td>
         <td> True </TD>
         <TD>
             <P>If True, forces the glidein to use <A HREF="configuration.html#tcp">TCP updates</A>.<BR>The collector must be configured in the same way
@@ -506,7 +515,7 @@ by the VO factory clients.</P>
     <TR>
         <td> <b>WANT_UDP_COMMAND_SOCKET</b> </td>
 
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
             <P>If True, enable the startd UDP command socket (Condor
@@ -525,7 +534,7 @@ by the VO factory clients.</P>
     <TR>
         <td> <b>STARTD_SENDS_ALIVES</b> </td>
 
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
         <TD> True </TD>
         <TD>
             <P>If set to False, the schedd will be sending keepalives to the
@@ -539,7 +548,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>SEC_DEFAULT_INTEGRITY</b> </td>
-        <TD> Exp </TD>
+        <TD> Expr </TD>
         <TD> REQUIRED </TD>
 
         <TD ROWSPAN=2>
@@ -553,13 +562,13 @@ by the VO factory clients.</P>
 
     <TR>
         <td> <b>SEC_DEFAULT_ENCRYPTION</b> </td>
-        <TD> Exp </TD>
+        <TD> Expr </TD>
         <TD> OPTIONAL </TD>
     </TR>
 
     <TR>
         <td> <b>USE_MATCH_AUTH</b> </td>
-        <TD> Bool </td>
+        <TD> Expr (Bool) </td>
         <TD> False </TD>
         <TD>
 
@@ -595,9 +604,10 @@ by the VO factory clients.</P>
 
         <td> 10M </TD>
     </TR>
+    <!--
     <TR>
         <td> <b>GCB_LIST</b> </td>
-        <TD> List </TD>
+        <TD> Expr (List) </TD>
 
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
@@ -634,10 +644,11 @@ by the VO factory clients.</P>
             GCB, if network connectivity is lost.</P>
         </TD>
     </TR>
+    -->
     <TR>
         <td> <b>USE_CCB</b> </td>
 
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
             <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:CCB">HTCondor Connection Brokering (CCB)</A>,
@@ -648,7 +659,7 @@ by the VO factory clients.</P>
     <TR>
         <td> <b>USE_SHARED_PORT</b> </td>
 
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
             <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:shared-port-daemon">the shared port daemon</A>,
@@ -663,7 +674,7 @@ by the VO factory clients.</P>
 
         <TD> 1 </TD>
         <TD>
-            <P>Number of CPUs glidein should use. GLIDEIN_CPUS is used to set NUM_CPUS for the HTCondor started by the glidein. Use "auto" to let glidein determine this from the worker node, set a value to force a different number. In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
+            <P>Number of CPUs glidein should use. GLIDEIN_CPUS is used to set NUM_CPUS for the HTCondor started by the glidein. Use "<b>slot</b>" (or "<b>auto</b>") to let glidein determine this from the job slot assigned to the glidein, use "<b>node</b>" to let glidein determine this from the hardware of the worker node (e.g. if you are sure that only your job is running on the node), set a value to force a different number. In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
         </TD>
     </TR>
     <TR>
@@ -676,7 +687,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_MaxMemMBs_Estimate</b> </td>
-        <TD> Bool</td>
+        <TD> Expr (Bool) </td>
 
         <TD> False </TD>
         <TD>
@@ -862,7 +873,7 @@ described below ar the most often used.</P>
     <TR>
         <td> <b>GLIDEIN_Collector</b> </td>
 
-        <TD> List </TD>
+        <TD> Expr (List) </TD>
         <TD>
             <P>List of Collector URIs used by the VO Condor pool (like
                 &ldquo;cc.cms.edu:9620,cc.cms.edu:9621&rdquo;).</P>
@@ -873,7 +884,7 @@ described below ar the most often used.</P>
     </TR>
     <TR>
         <td> <b>GLIDECLIENT_Hold</b> </td>
-        <TD> Exp (Bool)</td>
+        <TD> Expr (Bool)</td>
 
         <TD ROWSPAN=2>
             <P>Condor expression to use to specify when a user job in the glideins should be held. 
@@ -884,12 +895,12 @@ described below ar the most often used.</P>
     </TR>
     <TR>
         <td> <b>GLIDECLIENT_Group_Hold</b> </td>
-        <TD> Exp (Bool)</td>
+        <TD> Expr (Bool)</td>
     </TR>
 
     <TR>
         <td> <b>GLIDECLIENT_PREEMPT</b> </td>
-        <TD> Exp (Bool)</td>
+        <TD> Expr (Bool)</td>
 
         <TD ROWSPAN=2>
             <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
@@ -911,7 +922,7 @@ described below ar the most often used.</P>
 
     <TR>
         <td> <b>GLIDECLIENT_Rank</b> </td>
-        <td>Exp (Int)</td>
+        <td>Expr (Int)</td>
         <TD ROWSPAN=2>
                 <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
                 are summed together, and the user job with the largest rank will run
@@ -921,7 +932,7 @@ described below ar the most often used.</P>
     </TR>
     <TR>
         <td> <b>GLIDECLIENT_Group_Rank</b> </td>
-        <td> Exp (Int) </TD>
+        <td> Expr (Int) </TD>
 
     </TR>
     <TR>
@@ -942,7 +953,7 @@ described below ar the most often used.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Expose_Grid_Env</b> </td>
-        <td> Exp (Bool) </TD>
+        <td> Expr (Bool) </TD>
 
         <TD>
             <P>If False, the user job environment will contain only glidein
@@ -955,7 +966,7 @@ described below ar the most often used.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Expose_X509</b> </td>
-        <td> Exp (Bool) </TD>
+        <td> Expr (Bool) </TD>
 
         <TD>
             <p>By default, the glidein will unset the variable 
@@ -1061,7 +1072,7 @@ described below ar the most often used.</P>
     </TR>
     <TR>
         <td> <b>VM_DISABLE_SHUTDOWN</b></td>
-        <td> Bool </td>
+        <td> Expr (Bool) </td>
         <td> False </td>
         <td>
             <P>Disables VM from automatically shutting down after
@@ -1263,8 +1274,9 @@ the working directory specified by</P>
 <div class="section">
 <H3><A NAME="glidein_vars"></A>Machine Job Features variables (dynamic)</H3>
 <P>This set of variables contains various variables generated by the glidein
-startup scripts that are related to the <A HREF="http://hepsoftwarefoundation.org/notes/HSF-TN-2016-02.pdf">Machine Job Features</A>. For convenience
-the description of those variable is replicated here in this page.</P>
+startup and periodic scripts, that are related to the <A HREF="http://hepsoftwarefoundation.org/notes/HSF-TN-2016-02.pdf">Machine Job Features</A>.
+The content of these variables can only be a number, or an a string that does not contain double quote or backslash characters. Otherwise, the variable
+content will be set to the string "WrongFormat". For convenience the description of those variable is replicated here in this page.</P>
 <TABLE class="attributes">
     <TR class="head">
         <td> <b>Name</b> </td>
@@ -1357,7 +1369,7 @@ job, not when the user payload started to run.</P>
         </TD>
     </TR>
     <TR>
-        <td> <b>MJF_JOB_JOB_ID</b> </td>
+        <td> <b>MJF_JOB_ID</b> </td>
         <TD> Int </TD>
         <TD>
             <P>A string of printable non-whitespace ASCII characters used by the resource provider
@@ -1432,7 +1444,7 @@ startup scripts.</P>
     </TR>
     <TR>
         <td> <b>X509_EXPIRE</b> </td>
-        <TD> time_t </TD>
+        <TD> Expr (time_t) </TD>
         <TD>
 
             <P>When is the proxy expected to expire.</P>
@@ -1440,9 +1452,9 @@ startup scripts.</P>
     </TR>
     <TR>
         <td> <b>GLEXEC_STARTER</b> </td>
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
 
-        <TD
+        <TD>
             <P>If gLExec is used and this is set to True, the condor_starter
             will be run sharing the <A HREF="configuration.html#glexec">same UID as
             the user job</A>.</P>
@@ -1461,14 +1473,14 @@ startup scripts.</P>
         <td> <b>GLEXEC_USER_DIR</b> </td>
         <TD> String </TD>
 
-        <TD
+        <TD>
             <P>If gLExec is used, this variable points to the working
             directory under which all user jobs will be started.</P>
         </TD>
     </TR>
     <TR>
         <td> <b>SiteWMS_WN_Draining</b> </td>
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
 
         <TD>
             <P>The variable controls wether or not the glidein should accept new jobs.
@@ -1482,12 +1494,12 @@ startup scripts.</P>
             (see <A HREF="https://twiki.cern.ch/twiki/bin/view/LCG/WMTEGEnvironmentVariables">
             here</A>).
             The <tt>SiteWMS_WN_Draining</tt> variable
-            is periodically updated by means of the STARTD_CRON condor feature.
+            is periodically updated by means of the STARTD_CRON condor feature. See <a href="#draining">Draining glideins</a> for details.</P>
         </TD>
     </TR>
     <TR>
         <td> <b>SiteWMS_WN_Preempt</b> </td>
-        <TD> Bool </TD>
+        <TD> Expr (Bool) </TD>
 
         <TD>
             <P>The variable controls wether or not the glidein should preempt jobs.
@@ -1498,7 +1510,7 @@ startup scripts.</P>
             less than 30 minutes in the future. If so <tt>PREEMPT_GRACE_TIME</tt> will be set to 20 minutes and
             the job will be preempted after that time if it does not exit.
             The <tt>SiteWMS_WN_Preempt</tt> variable
-            is periodically updated by means of the STARTD_CRON condor feature.
+            is periodically updated by means of the STARTD_CRON condor feature. See <a href="#draining">Draining glideins</a> for details.</P>
         </TD>
     </TR>
 </TABLE>
@@ -1572,6 +1584,28 @@ the total idle times in all the yellow zones above will be counted towards
 GLIDEIN_Max_Tail. Not so for GlideinWMS 3.2.7 and HTCondor 8.2 or later, 
 where Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 </div>
+
+<div class="section">
+    <a name="draining" />
+    <h2>Draining glideins</h2>
+
+    <p>
+        In this section we describe the steps to follow to activate the feature that allows to drain glideins.
+
+        <ul>
+            <li>
+                On the execute hosts, create a directory in which MACHINEFEATURES attributes will be set, say its name is <tt>/path/to/dir</tt>.
+            </li>
+            <li>
+                Set the MACHINEFEATURES job environment variable to point to the directory. For example, you can use the following condor configuration parameter: <tt>STARTER_JOB_ENVIRONMENT = "MACHINEFEATURES=/path/to/dir"</tt>
+            </li>
+            <li>
+                When a machine is draining, create a file named "shutdowntime" in the MJF directory.  Put the draining deadline unix timestamp in the file.  Even a distant time in the future is sufficient to cause the glidein to set SiteWMS_WN_Draining=True and stop accepting new jobs (this is controled by the <tt>check_wn_drainstate.sh</tt> condor CROND script).
+            </li>
+        </ul>
+    </p>
+</div>
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

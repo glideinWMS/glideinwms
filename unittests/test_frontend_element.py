@@ -23,6 +23,7 @@ import xmlrunner
 class FEElementTestCase(unittest.TestCase):
     def setUp(self):
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript('fixtures/frontend')
 
         with mock.patch.object(glideinFrontendConfig.ConfigFile, 'load') as m_load:
@@ -55,7 +56,10 @@ class FEElementTestCase(unittest.TestCase):
             'FracRunningPerEntry': '1.15', 'FactoryQueryExpr': 'True', 'MatchExpr': 'True', 'CurbIdleVMsTotal': '200',
             'GroupName': 'group1', 'MaxMatchmakers': '3',
             'MapFileWPilots': '/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile', 'CurbIdleVMsPerEntry': '5',
-            'MinRunningPerEntry': 0 }
+            'MinRunningPerEntry': '0',
+            'IdleLifetime': '0',
+            'RemovalType': 'NO', 'RemovalWait': '0', 'RemovalRequestsTracking': 'False', 'RemovalMargin': '0'
+        }
 
         with mock.patch.object(glideinFrontendConfig, 'SignatureDescript') as m_signatureDescript:
             m_signatureDescript.return_value = signatureDescript

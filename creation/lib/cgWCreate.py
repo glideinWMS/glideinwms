@@ -175,6 +175,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if conf['advertise_pilot_accounting'] == 'True':
             self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) < 12*60*60)")
 
+        self.add("periodic_remove", "JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME)")
+
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
         self.add("+Owner", "undefined")
@@ -269,6 +271,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinFactory', '"$ENV(FACTORY_NAME)"')
         self.add('+GlideinName', '"$ENV(GLIDEIN_NAME)"')
         self.add('+GlideinEntryName', '"$ENV(GLIDEIN_ENTRY_NAME)"')
+        self.add('+GlideinEntrySubmitFile', '"$ENV(GLIDEIN_ENTRY_SUBMIT_FILE)"')
         self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
         self.add('+GlideinCredentialIdentifier', '"$ENV(GLIDEIN_CREDENTIAL_ID)"')
