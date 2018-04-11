@@ -235,13 +235,13 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     #
     info_dbg  exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                --home $PWD:/srv \
-                               --pwd /srv  --scratch /var/tmp  --scratch /tmp  \
+                               --pwd /srv \
                                --contain --ipc --pid   \
                                "$GWMS_SINGULARITY_IMAGE"  $JOB_WRAPPER_SINGULARITY $CMD
 
     exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                --home $PWD:/srv \
-                               --pwd /srv --scratch /var/tmp --scratch /tmp \
+                               --pwd /srv \
                                --contain --ipc --pid  \
                                "$GWMS_SINGULARITY_IMAGE" $JOB_WRAPPER_SINGULARITY  $CMD
    
