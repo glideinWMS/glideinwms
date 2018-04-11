@@ -1,3 +1,5 @@
+v3_2_22_1 Changed singularity options to adapt to the new singularity release requirements
+
 v3_2_22 Bug Fix: Incorrect behavior of Singularity
         Bug Fix: proxy-renewal-script updates and bug fixes
         Bug Fix: Critical bug in 3.2.21 leads to leaking glideFactoryEntryGroup.py processes
