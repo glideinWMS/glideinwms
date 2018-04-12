@@ -70,15 +70,13 @@ function test_singularity_exec {
 
    #image="$GWMS_SINGULARITY_IMAGE_DEFAULT"
    info_dbg "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs \
-             --pwd /srv --scratch /var/tmp --scratch /tmp \
+             --pwd /srv \
              --contain --ipc --pid $image \
              echo Hello World | grep Hello World"
 
    if ("$GWMS_SINGULARITY_PATH" exec --home $PWD:/srv \
                                          --bind /cvmfs \
                                          --pwd /srv \
-                                         --scratch /var/tmp \
-                                         --scratch /tmp \
                                          --contain --ipc --pid \
                                          "$GWMS_SINGULARITY_IMAGE_DEFAULT" \
                                          printenv \
