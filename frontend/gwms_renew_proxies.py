@@ -67,10 +67,13 @@ class VO(object):
         key - path to key associated with the cert argument
         """
         self.name = vo
-        fqan = re.sub(r'^(\/%s)?\/' % vo, '', fqan)
-        if not fqan.startswith('Role='):
+        if fqan.startswith('/%s/Role=' % vo):
+            pass
+        elif fqan.startswith('/Role='):
+            fqan = '/%s%s' % (vo, fqan)
+        else:
             raise ValueError('Malformed FQAN does not begin with "/%s/Role=" or "/Role=". Verify %s.' % (vo, CONFIG))
-        self.fqan = "/%s/%s" % (vo, fqan)
+        self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
         self.voms = ':'.join([vo, fqan])
         self.cert = cert
@@ -178,7 +181,10 @@ def main():
 
             if proxy_config['use_voms_server'].lower() == 'true':
                 # we specify '-order' because some European CEs care about VOMS AC order
-                stdout, stderr, client_rc = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', vo_attr.fqan)
+                # The '-order' option chokes if a Capability is specified but we want to make sure we request it
+                # in '-voms' because we're not sure if anything is looking for it
+                fqan = re.sub(r'\/Capability=\w+$', '', vo_attr.fqan)
+                stdout, stderr, client_rc = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', fqan)
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']

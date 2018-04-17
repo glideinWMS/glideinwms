@@ -1,3 +1,5 @@
+v3_3_3  Includes all features and bug fixes released in v3_2_22_2
+
 v3_3_2  Allow multiple remote directories for BOSCO submissions
         Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM
         Documented vm_id_fname and vm_type_fname
@@ -17,6 +19,9 @@ v3_3    Includes all features and bug fixes released in v3_2_15
 	  correctly
         Bug Fix: create_condor_tarball now also includes required globus libraries
 	  from lib/condor that HTCondor loads at runtime
+
+v3_2_22_2 Changed singularity options also in singularity_setup.sh to adapt to the new singularity release requirements
+        Bug Fix: Fix bug due to malformed -order option (SOFTWARE-3163)
 
 v3_2_22_1 Changed singularity options to adapt to the new singularity release requirements
 

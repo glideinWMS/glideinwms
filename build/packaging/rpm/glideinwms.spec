@@ -214,14 +214,8 @@ install of wmscollector + wms factory
 %build
 cp %{SOURCE7} .
 chmod 700 chksum.sh
-<<<<<<< HEAD
-./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
-=======
-./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh 
-creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
->>>>>>> v3_2_21_post
+./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -298,13 +292,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
 # For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
 # under this directory
-<<<<<<< HEAD
-# Following 4 sl7 templates are only needed by create_rpm_startup above, 
-# after that, we dont package these, so deleting them here
-=======
 # Following 4 sl7 templates are only needed by create_rpm_startup above,
-# after that, we don't package these, so deleting them here
->>>>>>> v3_2_21_post
+# after that, we dont package these, so deleting them here
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-factory.service
@@ -319,11 +308,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/proxies.ini
 install -d $RPM_BUILD_ROOT/%{systemddir}
 install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
-<<<<<<< HEAD
-=======
 install -m 0644 creation/templates/gwms-renew-proxies.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 creation/templates/gwms-renew-proxies.timer $RPM_BUILD_ROOT/%{systemddir}/
->>>>>>> v3_2_21_post
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
@@ -846,10 +832,14 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Thu Apt 12 2018 Marco Mambelli <marcom@fnal.gov> - 3.3.3-0.1.rc1
+* Tue Apt 17 2018 Marco Mambelli <marcom@fnal.gov> - 3.3.3-0.1.rc1
 - Glideinwms v3.3.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_3_3/history.html
 - Release candidates: 3.3.3-0.1.rc1
+
+* Tue Apr 17 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.22.2-1
+- Glideinwms v3.2.22.2
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_22_2/history.html
 
 * Wed Apr 11 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.22.1-1
 - Glideinwms v3.2.22.1
