@@ -17,18 +17,33 @@ function getPropBool
 {
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
-    # echo "1" for true, "0" for false/unspecified
-    # return 0 for true, 1 for false/unspecified
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed "s/[\"' \t\n\r]//g") 2>/dev/null`
-    # convert variations of true to 1
-    if (echo "x$val" | grep -i true) >/dev/null 2>&1; then
-        val="1"
+    # Consider True: true (case insensitive), any integer != 0
+    #          Anything else is False (0, false, undefined, ...)
+    # echo "1" for true, "0" for false/undefined
+    # return 0 for true, 1 for false/undefined
+    # NOTE Spaces are trimmed, so strings like "T RUE" are true
+    if [ $# -ne 2 ] || [ "x$1" = "NONE" ]; then
+        val=0
+    else
+        # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
+        val=`(grep -i "^$2 " $1 | cut -d= -f2 | tr -d '\040\011\012\015') 2>/dev/null`
+        # Convert variations of true to 1
+        re="^[0-9]+$"  # bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
+        if (echo "x$val" | grep -i true) >/dev/null 2>&1; then
+            val=1
+        elif [[ "$val" =~ $re ]]; then
+            if [ $val -eq 0 ]; then
+                val=0
+            else
+                val=1
+            fi
+        else
+            val=0
+        fi
     fi
-    if [ "x$val" = "x" ]; then
-        val="0"
-    fi
+    # From here on val=0/1
     echo $val
-    # return value accordingly, but backwards (true=>0, false=>1)
+    # return value accordingly, but backwards (true -> 0, false -> 1)
     if [ "$val" = "1" ];  then
         return 0
     else
@@ -42,19 +57,25 @@ function getPropStr
     # $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     # $2 the key
     # echo the value
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
+    if [ $# -ne 2 ] || [ "x$1" = "NONE" ]; then
+        val=""
+    else
+        val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
+    fi
     echo $val
 }
 
 
+# All code out here will run on the 1st invocation and also in the re-invocation within singularity
+# $GWMS_SINGULARITY_REEXEC is used to discriminate that (nothing outside, 1 inside)
 
-if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
-    # set up environment so we can execute singularity
+if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
+    # Set up environment to know if Singularity is enabled and so we can execute Singularity
     
-    if [ "x$_CONDOR_JOB_AD" = "x" ]; then
+    if [ -z "$_CONDOR_JOB_AD" ]; then
         export _CONDOR_JOB_AD="NONE"
     fi
-    if [ "x$_CONDOR_MACHINE_AD" = "x" ]; then
+    if [ -z "$_CONDOR_MACHINE_AD" ]; then
         export _CONDOR_MACHINE_AD="NONE"
     fi
 
@@ -75,8 +96,26 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     if [ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]; then
         export GLIDEIN_DEBUG_OUTPUT=$(getPropStr $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
     fi
+
+
+    # Check if singularity is disabled or enabled
+    # This script could run when singularity is optional and not wanted
+    # So should not fail but exec w/o running Singularity
+    if [ $HAS_SINGULARITY -eq 0 ]; then
+        # Assume that singularity_setup.sh removed inconsistencies
+        # $HAS_SINGULARITY False means it was optional and is OK to run without
+        # Run the real job and check for exec failure
+        info_dbg "Singularity disabled, running directly the user job via exec: $@"
+        exec "$@"
+        error=$?
+        echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE
+        info "exec $@ failed: exit code $error"
+        exit $error
+    fi
+
   
- 
+    ### From here on the script assumes it has to run w/ Singularity
+    info_dbg "Decided to use singularity ($HAS_SINGULARITY). Proceeding w/ tests and setup."
  
     #GWMS we do not allow users to set SingularityAutoLoad
     export GWMS_SINGULARITY_AUTOLOAD=1
@@ -196,13 +235,13 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     #
     info_dbg  exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                --home $PWD:/srv \
-                               --pwd /srv  --scratch /var/tmp  --scratch /tmp  \
+                               --pwd /srv \
                                --contain --ipc --pid   \
                                "$GWMS_SINGULARITY_IMAGE"  $JOB_WRAPPER_SINGULARITY $CMD
 
     exec "$GWMS_SINGULARITY_PATH" exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                --home $PWD:/srv \
-                               --pwd /srv --scratch /var/tmp --scratch /tmp \
+                               --pwd /srv \
                                --contain --ipc --pid  \
                                "$GWMS_SINGULARITY_IMAGE" $JOB_WRAPPER_SINGULARITY  $CMD
    
