@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3_2
+# GLIDEINWMS_VERSION v3_3_3_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -14,7 +14,7 @@ f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-08e833ee242cc7a4960efc6b55d9890b  ./build/packaging/rpm/glideinwms.spec
+5bc0e32cee5e69e07d11961764332bd7  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -28,18 +28,18 @@ a715875e906307061b2e3d410b2c77a5  ./creation/create_rpm_startup
 ab310b31fe76ba8d37652577aaef7b20  ./creation/info_glidein
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
-a518884855d93962c01769f622792b7f  ./creation/lib/cWDictFile.py
+d9a98c3ef21e615c8cdf670f1aee7eb3  ./creation/lib/cWDictFile.py
 5e9d00c20ab8dc460fa0164122019983  ./creation/lib/cWParamDict.py
 02146a37700f804ed5b909c817697680  ./creation/lib/cWParams.py
-4d6d2095fe03701886a325b60a3ed99a  ./creation/lib/cgWConsts.py
-df51c1c95aaf58f48da825dd5e4b25a1  ./creation/lib/cgWCreate.py
-3ebdfc3288f824541d253f6ae8caa8b8  ./creation/lib/cgWDictFile.py
-b4a5ecac2205c8d2044d6e83766de9ce  ./creation/lib/cgWParamDict.py
-1a67275f40722c90e15418e72c37927b  ./creation/lib/cgWParams.py
-082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
-454ae55336d7e59dea9c31c32d852ff6  ./creation/lib/factory_defaults.xml
+50744e06749c5920c2793f346f126f44  ./creation/lib/cgWConsts.py
+4a286fee62b085a69425908516ee245b  ./creation/lib/cgWCreate.py
+bca96f61bdccbc9bcabff2867bd48a6b  ./creation/lib/cgWDictFile.py
+10c93dbfc874818a32fb7b54ed5463ae  ./creation/lib/cgWParamDict.py
+6b0162ac968271b136c9015a4dbca7e9  ./creation/lib/cgWParams.py
+2d73c892004455281ab66111c3facfe4  ./creation/lib/factoryXmlConfig.py
+d52bc9388bd280cf94d0bff9c53d9c0b  ./creation/lib/factory_defaults.xml
 1cf06bb1ccb5e9bcafad8d4f4c02a0ce  ./creation/lib/matchPolicy.py
-bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
+4931a92aff6abd052766417cf5a13590  ./creation/lib/xmlConfig.py
 4b519007ebf0fe956a19758213950679  ./creation/lib/xslt.py
 1abfcb31179b55b59bb02bd0ab515ca9  ./creation/reconfig_glidein
 a75191d15612c481b0bf9d46dffce893  ./creation/templates/factory_initd_startup_template
@@ -102,7 +102,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 bff4caa021014ea19e202317ef7e506d  ./creation/web_base/setup_network.sh
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 2249356e161db435e4f40414181201a6  ./creation/web_base/setup_x509.sh
-d8be608b801f54003d21b74c20a21147  ./creation/web_base/singularity_setup.sh
+03fdf479a6499d9488255bce58529468  ./creation/web_base/singularity_setup.sh
 d2fc559e444aa1bf126cdc14a2b1a7e4  ./creation/web_base/smart_partitionable.sh
 3ff094bf936de1b58bef731bf257b5d1  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
@@ -112,13 +112,13 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 0b99f70c3b88fe34de1b55e8f347ede6  ./factory/glideFactoryConfig.py
 e85086fcc1ab3f9399b20735c6342a12  ./factory/glideFactoryCredentials.py
 69e452b5de93d13902745dec8b83c57f  ./factory/glideFactoryDowntimeLib.py
-8a64ed625e30422317b78e870accfb9e  ./factory/glideFactoryEntry.py
+504d83ab055cb0ba0962104e30529960  ./factory/glideFactoryEntry.py
 a469f50effff86f62ea54085aa1a5e73  ./factory/glideFactoryEntryGroup.py
 d285f5063bedd5e52319bee24ad0cb75  ./factory/glideFactoryInterface.py
-0a78f337538f6afef0d58dc3fd5f65ff  ./factory/glideFactoryLib.py
+dd3458f880f124feb55665edf3dfc4ef  ./factory/glideFactoryLib.py
 2f15852a02709edbf5524e1c38d3184c  ./factory/glideFactoryLogParser.py
 1bd91ffcedc225470d1748a5e9b8476f  ./factory/glideFactoryMonitorAggregator.py
-61792460e975871390e24b6ed8ff4511  ./factory/glideFactoryMonitoring.py
+7ce75e321d29340965998345329b9321  ./factory/glideFactoryMonitoring.py
 c5358cc494d4999e0158be1a40181239  ./factory/glideFactoryPidLib.py
 2ba5ec6291cb49a79a5e4ec9b32838c4  ./factory/manageFactoryDowntimes.py
 3983823350ba257c1be32a432fbf8084  ./factory/stopFactory.py
@@ -188,7 +188,7 @@ f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
 d52be01219762a0e0cffc3348f960f38  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
-157c31d4dcaf47b81ec50d31ab6ff3b9  ./lib/fork.py
+79738d90cb9d2439f4bb86570a278803  ./lib/fork.py
 0556256ef54259b8afd3388b77dc3f32  ./lib/glideinWMSVersion.py
 4954ab878c7cba513b61a79a7dadf795  ./lib/glideinwms_tarfile.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py

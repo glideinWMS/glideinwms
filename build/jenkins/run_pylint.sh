@@ -1,4 +1,5 @@
 #!/bin/sh
+# pep8 is now called pycodestyle. pep8 is still used in variable names and logging
 
 process_branch() {
     local pylint_log=$1
@@ -61,23 +62,34 @@ process_branch() {
     # get list of python scripts without .py extension
     scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
     pylint $PYLINT_OPTIONS -e F0401 ${scripts}  >> $pylint_log || log_nonzero_rc "pylint" $?
-    pep8 $PEP8_OPTIONS ${scripts} >> $pep8_log || log_nonzero_rc "pep8" $?
+    pycodestyle $PEP8_OPTIONS ${scripts} >> $pep8_log || log_nonzero_rc "pep8" $?
 
     currdir=`pwd`
     files_checked=`echo $scripts`
 
-    for dir in lib creation/lib factory frontend tools tools/lib
+    # Instead of checking specific directories we want to run on all .py files in the source tree
+#    for dir in lib creation/lib factory frontend tools tools/lib
+#    do
+#        cd ${GLIDEINWMS_SRC}/$dir
+#
+#        for file in *.py
+#        do
+#          files_checked="$files_checked $file"
+#          pylint $PYLINT_OPTIONS $file >> $pylint_log || log_nonzero_rc "pylint" $?
+#          pycodestyle $PEP8_OPTIONS $file >> $pep8_log || log_nonzero_rc "pep8" $?
+#        done
+#        cd $currdir
+#    done
+    cd "${GLIDEINWMS_SRC}"
+    shopt -s globstar
+    for file in **/*.py
     do
-        cd ${GLIDEINWMS_SRC}/$dir
-
-        for file in *.py
-        do
-          files_checked="$files_checked $file"
-          pylint $PYLINT_OPTIONS $file >> $pylint_log || log_nonzero_rc "pylint" $?
-          pep8 $PEP8_OPTIONS $file >> $pep8_log || log_nonzero_rc "pep8" $?
-        done
-        cd $currdir
+      files_checked="$files_checked $file"
+      pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
+      pycodestyle $PEP8_OPTIONS $file >> "$pep8_log" || log_nonzero_rc "pep8" $?
     done
+    cd $currdir
+
     echo "FILES_CHECKED=\"$files_checked\"" >> $results
     echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $results
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l | tr -d " "`" >> $results

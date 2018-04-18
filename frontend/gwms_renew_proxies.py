@@ -32,6 +32,12 @@ class Proxy(object):
         self.output = output
         self.lifetime = lifetime
 
+    def _voms_proxy_info(self, *opts):
+        """Run voms-proxy-info. Returns stdout, stderr, and return code of voms-proxy-info
+        """
+        cmd = ['voms-proxy-info', '-file', self.output] + list(opts)
+        return _run_command(cmd)
+
     def write(self):
         """Move output proxy from temp location to its final destination
         """
@@ -41,13 +47,14 @@ class Proxy(object):
         os.rename(self.tmp_output_fd.name, self.output)
 
     def timeleft(self):
-        """Returns the remaining lifetime of the proxy in seconds
+        """Safely return the remaining lifetime of the proxy, in seconds (returns 0 if unexpected stdout)
         """
-        stdout, _, _ = _run_command(['voms-proxy-info', '-file', self.output, '-timeleft'])
-        try:
-            return int(stdout)
-        except ValueError:
-            return 0
+        return _safe_int(self._voms_proxy_info('-timeleft')[0])
+
+    def actimeleft(self):
+        """Safely return the remaining lifetime of the proxy's VOMS AC, in seconds (returns 0 if unexpected stdout)
+        """
+        return _safe_int(self._voms_proxy_info('-actimeleft')[0])
 
 
 class VO(object):
@@ -55,18 +62,32 @@ class VO(object):
     """
     def __init__(self, vo, fqan, cert=None, key=None):
         """vo - name of the Virtual Organization. Case should match folder names in /etc/grid-security/vomsdir/
-        fqan - VOMS attribute FQAN with format "/vo/command", e.g. /osg/Role=NULL/Capability=NULL
+        fqan - VOMS attribute FQAN with format "/vo/command" (/osg/Role=NULL/Capability=NULL) or
+               "command" (Role=NULL/Capability=NULL)
         cert - path to VOMS server certificate used to sign VOMS attributes (for use with voms_proxy_fake)
         key - path to key associated with the cert argument
         """
-        if not fqan.startswith('/%s/' % vo):
-            raise ValueError('FQAN (%s) does not begin with specified VO (%s). Verify %s.' % (fqan, vo, CONFIG))
         self.name = vo
+        if fqan.startswith('/%s/Role=' % vo):
+            pass
+        elif fqan.startswith('/Role='):
+            fqan = '/%s%s' % (vo, fqan)
+        else:
+            raise ValueError('Malformed FQAN does not begin with "/%s/Role=" or "/Role=". Verify %s.' % (vo, CONFIG))
         self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
-        self.voms = fqan.replace('/%s' % vo, vo + ':', 1)
+        self.voms = ':'.join([vo, fqan])
         self.cert = cert
         self.key = key
+
+
+def _safe_int(string_var):
+    """Convert a string to an integer. If the string cannot be cast, return 0.
+    """
+    try:
+        return int(string_var)
+    except ValueError:
+        return 0
 
 
 def _run_command(command):
@@ -132,26 +153,39 @@ def main():
 
     retcode = 0
     # Proxy renewals
-    proxies.remove('COMMON') # no proxy renewal info in the COMMON section
+    proxies.remove('COMMON')  # no proxy renewal info in the COMMON section
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
                       proxy_config['output'], proxy_config['lifetime'],
                       fe_user.pw_uid, fe_user.pw_gid)
 
-        if int(proxy.lifetime)*3600 - proxy.timeleft() < int(proxy_config['frequency'])*3600:
-            print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
-            continue
+        # Users used to be able to control the frequency of the renewal when they were instructed to write their own
+        # script and cronjob. Since the automatic proxy renewal cron/timer runs every hour, we allow the users to
+        # control this via the 'frequency' config option. If more than 'frequency' hours have elapsed in a proxy's
+        # lifetime, renew it. Otherwise, skip the renewal.
+        def has_time_left(time_remaining):
+            return int(proxy.lifetime)*3600 - time_remaining < int(proxy_config['frequency'])*3600
 
         if proxy_section == 'FRONTEND':
+            if has_time_left(proxy.timeleft()):
+                print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
+                continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
+            if has_time_left(proxy.timeleft()) and has_time_left(proxy.actimeleft()):
+                print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
+                continue
+
             voms_info = vomses[proxy_config['vo'].lower()]
             vo_attr = VO(voms_info['name'], proxy_config['fqan'])
 
             if proxy_config['use_voms_server'].lower() == 'true':
                 # we specify '-order' because some European CEs care about VOMS AC order
-                stdout, stderr, client_rc = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', vo_attr.fqan)
+                # The '-order' option chokes if a Capability is specified but we want to make sure we request it
+                # in '-voms' because we're not sure if anything is looking for it
+                fqan = re.sub(r'\/Capability=\w+$', '', vo_attr.fqan)
+                stdout, stderr, client_rc = voms_proxy_init(proxy, '-voms', vo_attr.voms, '-order', fqan)
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']
@@ -159,6 +193,9 @@ def main():
         else:
             print("WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) +
                   "Valid configuration sections: 'FRONTEND' or 'PILOT'.")
+            client_rc = -1
+            stderr = "Unrecognized configuration section '%s', renewal not attempted." % proxy_section
+            stdout = ""
 
         if client_rc == 0:
             proxy.write()
