@@ -94,7 +94,20 @@ Install documents:
 
 <div class="section">
 <a name="process" />
-	<h3>Installation Process</h3>
+	<h3>Read this first!</h3>
+	<p><b>It is recommended to install the GlideinWMS system using RPMs</b>. GlideinWMS RPMs are distributed via Open Science Grid (OSG)
+		and documented in the following pages:</p>
+	<ul>
+		<li><a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">Instructions to install via RPM the Frontend and the related components (User Collector, Submit host, ...)</a></li>
+		<li><a href="https://opensciencegrid.github.io/docs/other/install-gwms-factory">Instructions to install via RPM the Factory and related components (Factory collector)</a></li>
+	</ul>
+	<p>If you are installing GlideinWMS via RPM, you can ignore the reminder of this document. Check the
+		<a href="factory/configuration.html">Factory configuration</a> and <a href="frontend/configuration.html">Frontend configuration</a>
+		for a more detailed reference about the configuration.
+		</p>
+	<p> If your platform or your requirements do not allow for a RPM installation, read the remaining of this document to
+	install GlideinWMS using the TAR Files distribution.</p>
+	<h3>TAR Files Distribution Installation Process</h3>
     <p>Installation of GlideinWMS is a multi-step process and depending on your intended use, will require you installing 
     several services.
     This document and all the linked install documents describe how to install and setup the GlideinWMS components using the TAR files 
@@ -208,7 +221,7 @@ Install documents:
         </p>
         <p>
             OSG provides also an RPM to install the Glidein Frontend, the User Pool and scheduler. See the 
-            <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG GlideinWMS VO Frontend RPM installation guide</a>
+            <a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">OSG GlideinWMS VO Frontend RPM installation guide</a>
             for the RPM installation and configuration to use the OSG factory. 
             Note that the RPM installation by default installs all three these components.
 </p>
@@ -220,10 +233,10 @@ but with the option to manually edit settings for more
 complicated configurations.  Instructions can be found here:
 <ul>
 <li>
-<a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG GlideinWMS VO Frontend RPM Installation guide</a>
+<a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">OSG GlideinWMS VO Frontend RPM Installation guide</a>
 </li>
 <li>
-<a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG GlideinWMS Factory RPM Installation guide</a>
+<a href="https://opensciencegrid.github.io/docs/other/install-gwms-factory/">OSG GlideinWMS Factory RPM Installation guide</a>
 </li>
 </ul>
 </p>

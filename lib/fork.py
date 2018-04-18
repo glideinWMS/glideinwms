@@ -150,6 +150,19 @@ def fetch_ready_fork_result_list(pipe_ids):
     # Select timeout (in seconds) = POLL_TIMEOUT/1000.0
     # Waiting at most POLL_TIMEOUT for one event to be triggered.
     # If there are no ready fd by the timeout and empty list is returned (no exception triggered)
+    #
+    # From the linux kernel (v4.10) and man (http://man7.org/linux/man-pages/man2/select.2.html)
+    # these are the 3 sets of poll events that correspond to select read, write, error:
+    # define POLLIN_SET (POLLRDNORM | POLLRDBAND | POLLIN | POLLHUP | POLLERR)
+    # define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
+    # define POLLEX_SET (POLLPRI)
+    # To maintain a similar behavior to check readable fd in select we should check for. Anyway Python documentation
+    # lists different events for poll (no POLLRDBAND, ... ), but looking at the library they are there... dir(select),
+    # but should not be triggered or different, so the complete enough and safe option seems:
+    #  poll_obj.register(read_fd, select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR | select.EPOLLRDBAND | select.EPOLLRDNORM)
+    #  poll_obj.register(read_fd, select.POLLIN | select.POLLHUP | select.POLLERR )
+    # TODO: this may be revised to use select that seems more performant and able to support >1024: https://aivarsk.github.io/2017/04/06/select/
+
     POLL_TIMEOUT = 100
     work_info = {}
     failures = 0
@@ -167,7 +180,7 @@ def fetch_ready_fork_result_list(pipe_ids):
         poll_type = "epoll"
         for read_fd in fds_to_entry.keys():
             try:
-                poll_obj.register(read_fd, select.EPOLLIN | select.EPOLLPRI)
+                poll_obj.register(read_fd, select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR | select.EPOLLRDBAND | select.EPOLLRDNORM)
             except IOError as err:
                 # Epoll (contrary to poll) complains about duplicate registrations:  IOError: [Errno 17] File exists
                 # All other errors are re-risen
@@ -190,7 +203,7 @@ def fetch_ready_fork_result_list(pipe_ids):
             poll_obj = select.poll()
             poll_type = "poll"
             for read_fd in fds_to_entry.keys():
-                poll_obj.register(read_fd, select.POLLIN | select.POLLPRI)
+                poll_obj.register(read_fd, select.POLLIN | select.POLLHUP | select.POLLERR)
             readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
         except (AttributeError, IOError) as err:
             logSupport.log.warning("Failed to load select.poll() '%s'" % str(err))

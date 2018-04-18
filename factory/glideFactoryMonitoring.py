@@ -358,11 +358,11 @@ class condorQStats:
             if ek not in el:
                 el[ek] = 0
             if ck in client_monitor:
-                el[ek] += (client_monitor[ck] * fraction)
+                el[ek] += (int(client_monitor[ck]) * fraction)
             elif ck == 'RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
                 if ('Running' in client_monitor and 'GlideinsRunning' in client_monitor):
-                    el[ek] += (min(client_monitor['Running'], client_monitor['GlideinsRunning']) * fraction)
+                    el[ek] += (min(int(client_monitor['Running']), int(client_monitor['GlideinsRunning'])) * fraction)
 
         if 'InfoAge' not in el:
             el['InfoAge'] = 0

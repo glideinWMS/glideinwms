@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_21
+# GLIDEINWMS_VERSION v3_2_22_2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -14,7 +14,7 @@ f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-08e833ee242cc7a4960efc6b55d9890b  ./build/packaging/rpm/glideinwms.spec
+2c697d98374a4ba8678213f2e2798b39  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -101,7 +101,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 bff4caa021014ea19e202317ef7e506d  ./creation/web_base/setup_network.sh
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 2249356e161db435e4f40414181201a6  ./creation/web_base/setup_x509.sh
-d8be608b801f54003d21b74c20a21147  ./creation/web_base/singularity_setup.sh
+03fdf479a6499d9488255bce58529468  ./creation/web_base/singularity_setup.sh
 d2fc559e444aa1bf126cdc14a2b1a7e4  ./creation/web_base/smart_partitionable.sh
 f2f93a9318d4e0645b9dd6e7597dfefd  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
@@ -117,7 +117,7 @@ d285f5063bedd5e52319bee24ad0cb75  ./factory/glideFactoryInterface.py
 0a78f337538f6afef0d58dc3fd5f65ff  ./factory/glideFactoryLib.py
 2f15852a02709edbf5524e1c38d3184c  ./factory/glideFactoryLogParser.py
 1bd91ffcedc225470d1748a5e9b8476f  ./factory/glideFactoryMonitorAggregator.py
-61792460e975871390e24b6ed8ff4511  ./factory/glideFactoryMonitoring.py
+7ce75e321d29340965998345329b9321  ./factory/glideFactoryMonitoring.py
 c5358cc494d4999e0158be1a40181239  ./factory/glideFactoryPidLib.py
 2ba5ec6291cb49a79a5e4ec9b32838c4  ./factory/manageFactoryDowntimes.py
 3983823350ba257c1be32a432fbf8084  ./factory/stopFactory.py
@@ -187,7 +187,7 @@ f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
 d52be01219762a0e0cffc3348f960f38  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
-157c31d4dcaf47b81ec50d31ab6ff3b9  ./lib/fork.py
+79738d90cb9d2439f4bb86570a278803  ./lib/fork.py
 0556256ef54259b8afd3388b77dc3f32  ./lib/glideinWMSVersion.py
 4954ab878c7cba513b61a79a7dadf795  ./lib/glideinwms_tarfile.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
