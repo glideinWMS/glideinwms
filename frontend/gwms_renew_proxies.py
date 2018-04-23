@@ -27,7 +27,6 @@ class Proxy(object):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
-        os.chown(self.tmp_output_fd.name, uid, gid)
         self.output = output
         self.lifetime = lifetime
 
@@ -43,6 +42,7 @@ class Proxy(object):
         self.tmp_output_fd.flush()
         os.fsync(self.tmp_output_fd)
         self.tmp_output_fd.close()
+        os.chown(self.tmp_output_fd.name, self.uid, self.gid)
         os.rename(self.tmp_output_fd.name, self.output)
 
     def timeleft(self):
