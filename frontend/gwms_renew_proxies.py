@@ -169,6 +169,7 @@ def main():
         if proxy_section == 'FRONTEND':
             if has_time_left(proxy.timeleft()):
                 print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
+                os.remove(proxy.tmp_output_fd.name)
                 continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
@@ -203,6 +204,7 @@ def main():
             retcode = 1
             # don't raise an exception here to continue renewing other proxies
             print "ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr)
+            os.remove(proxy.tmp_output_fd.name)
 
     return retcode
 
