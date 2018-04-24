@@ -37,9 +37,7 @@ FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 try: # necessary because systemd is not on rhel6
   from systemd import journal
   def print2( message ):
-
     message2 = str(message)
-
     print message2
     journal.send( message2 )
 
