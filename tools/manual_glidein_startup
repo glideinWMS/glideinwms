@@ -7,6 +7,7 @@
 #   Generate the glidein_startup.sh command to be run manually for given entry 
 #
 
+from __future__ import print_function
 import sys
 import os
 import stat
@@ -24,34 +25,35 @@ SCRIPT_TEMPLATE = """#!/bin/sh
 """
 
 # Following is duplicated from glideFactoryLib to keep this script standalone
-escape_table = {'.':'.dot,',
-                ',':'.comma,',
-                '&':'.amp,',
-                '\\':'.backslash,',
-                '|':'.pipe,',
-                "`":'.fork,',
-                '"':'.quot,',
-                "'":'.singquot,',
-                '=':'.eq,',
-                '+':'.plus,',
-                '-':'.minus,',
-                '<':'.lt,',
-                '>':'.gt,',
-                '(':'.open,',
-                ')':'.close,',
-                '{':'.gopen,',
-                '}':'.gclose,',
-                '[':'.sopen,',
-                ']':'.sclose,',
-                '#':'.comment,',
-                '$':'.dollar,',
-                '*':'.star,',
-                '?':'.question,',
-                '!':'.not,',
-                '~':'.tilde,',
-                ':':'.colon,',
-                ';':'.semicolon,',
-                ' ':'.nbsp,'}
+escape_table = {'.': '.dot,',
+                ',': '.comma,',
+                '&': '.amp,',
+                '\\': '.backslash,',
+                '|': '.pipe,',
+                "`": '.fork,',
+                '"': '.quot,',
+                "'": '.singquot,',
+                '=': '.eq,',
+                '+': '.plus,',
+                '-': '.minus,',
+                '<': '.lt,',
+                '>': '.gt,',
+                '(': '.open,',
+                ')': '.close,',
+                '{': '.gopen,',
+                '}': '.gclose,',
+                '[': '.sopen,',
+                ']': '.sclose,',
+                '#': '.comment,',
+                '$': '.dollar,',
+                '*': '.star,',
+                '?': '.question,',
+                '!': '.not,',
+                '~': '.tilde,',
+                ':': '.colon,',
+                ';': '.semicolon,',
+                ' ': '.nbsp,'}
+
 
 # Following is duplicated from glideFactoryLib to keep this script standalone
 def escape_param(param_str):
@@ -157,8 +159,8 @@ def main(argv):
             ad_gc = ads_gc[0]
             log_debug(ad_gc, header='glideclient classad')
 
-            #entry_info = options.req_name.split('@')
-            #if len(entry_info) != 3:
+            # entry_info = options.req_name.split('@')
+            # if len(entry_info) != 3:
             #    raise InvalidValueError(
             #        '--req-name', options.req_name,
             #        '<entry_name>@gfactory_instance@<factory_name>')
@@ -243,13 +245,15 @@ def main(argv):
             with open(options.cmd_out_file, 'w') as out:
                 out.write(SCRIPT_TEMPLATE % command)
                 os.fchmod(out.fileno(),
-                          stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
-        except Exception, e:
+                          stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH)
+        except Exception as e:
             logging.error('Unable to create cmd file %s' % options.cmd_out_file)
             logging.error(e)
     else:
         log_debug(glidein_startup_args, header='Arguments')
-        print command 
+        print(command) 
+
+
 ################################################################################
 # Main
 ################################################################################

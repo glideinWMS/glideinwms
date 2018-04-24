@@ -2,6 +2,7 @@
 # analyze_frontends
 # Focuses mostly on Client Info
 
+from __future__ import print_function
 import os
 import sys
 import getopt
@@ -14,6 +15,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 
 from glideinwms.factory.tools.lib import analyze
 from glideinwms.lib import xmlParse
+
 
 def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,div):
 
@@ -66,15 +68,16 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
       to_be_printed.reverse()
       to_be_printed.insert(0,(0,columns)) 
       for a in to_be_printed:
-         print a[1]
-      print
+         print(a[1])
+      print()
    else: 
       if zero_supp==1 and sum2==0:
          return 
       to_be_printed.insert(0,(0,columns)) 
       for a in to_be_printed:
-         print a[1]
-      print
+         print(a[1])
+      print()
+
 
 ##########################################################################
 
@@ -119,7 +122,7 @@ USAGE:
        elif o == "--source":
            dir = a
        elif o in ("-h", "-help"):
-           print usage
+           print(usage)
            return
        elif o == "-s":
            if a=='%UM' or a=='UM': a='%unmatched'
@@ -158,8 +161,8 @@ USAGE:
       if sort_attribute not in sort_attributes:
          print("%s not in list of attributes. Choices are:\n" % sort_attribute)
          for a in sort_attributes:
-            print a
-         print
+            print(a)
+         print()
          return   
       sort_attribute = sort_attributes.index(sort_attribute)
 
@@ -177,13 +180,13 @@ USAGE:
            rpmdir="/var/lib/gwms-factory/work-dir"
            rpmfile_dir = os.path.join(rpmdir, "monitor",rrd)
            if not os.path.exists(rpmfile_dir):
-               print "\nCannot open", file_dir
-               print "Please set --source to the factory work dir and try again."
+               print("\nCannot open", file_dir)
+               print("Please set --source to the factory work dir and try again.")
                sys.exit(1)
            if dir != os.getcwd():
                #Directory explicitly set, print warning
-               print "\nWARNING: Cannot open", file_dir
-               print "Using RPM default %s instead" % rpmfile_dir
+               print("\nWARNING: Cannot open", file_dir)
+               print("Using RPM default %s instead" % rpmfile_dir)
            dir=rpmdir
            file_dir=rpmfile_dir
    
@@ -191,8 +194,8 @@ USAGE:
        u = urllib.urlopen(file_dir)        
        rrd_data = xmlParse.xmlfile2dict(u)
    except:
-       print "\nCannot open", file_dir,"\n\tor",rrd,"was not found there.\n"
-       print "Please set --source to the factory work dir and try again."
+       print("\nCannot open", file_dir,"\n\tor",rrd,"was not found there.\n")
+       print("Please set --source to the factory work dir and try again.")
        sys.exit(1)
    u.close()
 
@@ -205,7 +208,6 @@ USAGE:
 #      (periods are integers and in seconds)
 ###############################################################################
 
-
    frontend_list = []
 
    for entry in rrd_data['entries']:
@@ -215,17 +217,17 @@ USAGE:
 
    if filter_frontend != 0:
       if filter_frontend not in frontend_list:
-         print "\nFrontend", filter_frontend, "not found at source.\n"
-         print "Choices are:\n "
+         print("\nFrontend", filter_frontend, "not found at source.\n")
+         print("Choices are:\n ")
          for frontend in frontend_list:
-            print frontend
-         print
+            print(frontend)
+         print()
          sys.exit(1)
     
    for entry in rrd_data['entries']:
       for frontend in rrd_data['entries'][entry]['frontends']:
           
-         #if filtering, only choose selected frontend 
+         # if filtering, only choose selected frontend
          if filter_frontend != 0:
             if frontend != filter_frontend:
                continue
@@ -252,7 +254,6 @@ USAGE:
 #####################################################################
 # Organize totals/stats for each period, frontend, and entry independantly
 ######################################################################
-
 
    if filter_frontend == 0:
       print("""
@@ -309,10 +310,10 @@ Status Attributes (Clients) analysis for %s - %s
 
     # if filtering by period, make sure it's in the data
    if period not in period_list:
-      print "Interval",x,"does not exist in data.\n Choices are:"
+      print("Interval",x,"does not exist in data.\n Choices are:")
       for a in period_list:
-         print a/3600
-      print
+         print(a/3600)
+      print()
       return
 
    if show_all_periods==0:
@@ -359,17 +360,17 @@ RunDiff (Running-ClientRegistered): %s
    period = int(x)*3600
 
    if filter_frontend == 0 and frontend_mode == 0:
-      print """
+      print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (all frontends) stats for the past %s hours.\n""" % x 
+Per Entry (all frontends) stats for the past %s hours.\n""" % x) 
       list_print("",zero_supp, entry_data_all_frontends[period],sorting, attr_list, sort_attribute,1)
 
    if frontend_mode == 0:
-      print """
+      print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (per frontend) stats for the past %s hours.\n""" % x 
+Per Entry (per frontend) stats for the past %s hours.\n""" % x) 
 
    if frontend_mode==0:
       for frontend, entries in data[period].iteritems():
@@ -378,17 +379,15 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % x
    else: # print frontend like entries, and omit entries
       units = ["Slots","Seconds","Hours"]
       divs = [period,1.0,3600.0]
-      print """
+      print("""
 ---------------------------------------
 ---------------------------------------
-Frontend stats for the past %s hours, units = %s.\n""" % (x,units[frontend_mode-1]) 
+Frontend stats for the past %s hours, units = %s.\n""" % (x,units[frontend_mode-1])) 
       list_print("", zero_supp, frontend_data[period],sorting,attr_list,sort_attribute,divs[frontend_mode-1])
-
 
 ################################################################################
 #    Print Key
 ################################################################################
-
 
    print("""-----------------------------------
 LEGEND:
@@ -409,7 +408,6 @@ RunDiff - StatusRunning - ClientRegistered (ClientGlideTotal)
 -------------------------------------
         \n""")
 
+
 if __name__ == "__main__":
-   main()
-
-
+    main()

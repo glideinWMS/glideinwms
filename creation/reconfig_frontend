@@ -10,11 +10,17 @@
 #  This program updates a frontend directory structure
 #  based on a configuration file
 #
+from __future__ import print_function
 import os
-import copy
-import subprocess
+# import copy
+# import subprocess
 import sys
 import tempfile
+import signal
+import os.path
+# import string
+# import shutil
+# import traceback
 
 STARTUP_DIR=sys.path[0]
 
@@ -23,11 +29,7 @@ STARTUP_DIR=sys.path[0]
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 fix_rrd = False
 
-import signal
-import os.path
-import string
-import shutil
-import traceback
+
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 from glideinwms.creation.lib import cvWParams
 from glideinwms.creation.lib import cvWDictFile
@@ -40,15 +42,19 @@ from glideinwms.frontend import glideinFrontendLib
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
 
-try: # necessary because systemd is not on rhel6
-  from systemd import journal
-  def print2( message ):
-    print message
-    journal.send( message )
+
+# necessary because systemd is not on rhel6
+try:
+    from systemd import journal
+
+    def print2(message):
+        print(message)
+        journal.send(message)
 
 except ImportError:
-  def print2( message ):
-    print message
+    def print2(message):
+        print(message)
+
 
 def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
@@ -75,7 +81,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
         # recreate the init.d startup file
         # This will never happen in RPM installations (because of the init.d file)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
-        startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
+        startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.INITD_STARTUP_FILE)
         
         # Remove startup file if already exists
         if os.path.exists(os.path.join(frontend_dir, startup_fname)):
@@ -83,26 +89,26 @@ def main(params, old_params, update_scripts, update_def_cfg):
        
         cvWCreate.create_initd_startup(startup_fname,
                                        frontend_dir,
-                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')),
+                                       os.path.realpath(os.path.join(STARTUP_DIR, '..')),
                                        params.cfg_name)
         print2("...Updated the frontend_startup script")
         if update_def_cfg == 'yes':
             print2("...Updated default config file location to: %s" % params.cfg_name)
 
-    cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
+    cfgfile = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE)
     
     # save config into file (with backup, since the old one already exists)
     # This is the current working version of the frontend in the frontend instance dir
-    params.save_into_file_wbackup(cfgfile,set_ro=True)
+    params.save_into_file_wbackup(cfgfile, set_ro=True)
     print2("...Saved the current config file into the working dir")
 
     # make backup copy that does not get overwritten on further reconfig
     # This file is has a hash on the extension and is located in the frontend instance dir
-    cfgfile=cWConsts.insert_timestr(cfgfile)
-    params.save_into_file(cfgfile,set_ro=True)
+    cfgfile = cWConsts.insert_timestr(cfgfile)
+    params.save_into_file(cfgfile, set_ro=True)
     print2("...Saved the backup config file into the working dir")
 
-    print2("...Reconfigured frontend '%s'"%params.frontend_name)
+    print2("...Reconfigured frontend '%s'" % params.frontend_name)
     print2("...Active groups are:")
     for entry in frontend_dicts_obj.active_sub_list:
         print2("     %s"%entry)
@@ -113,7 +119,8 @@ def main(params, old_params, update_scripts, update_def_cfg):
             print2("Run with -fix_rrd option to update errors")
             print2("WARNING: back up your existing rrds before auto-fixing rrds")
         sys.exit(1)
-    print2("...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir)
+    print2("...Work files are in %s" % frontend_dicts_obj.main_dicts.work_dir)
+
 
 ############################################################
 #
@@ -178,59 +185,59 @@ if __name__ == '__main__':
 
         args = [argv[0], transformed_xmlfile.name]
 
-        params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
+        params = cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
         # We have read the transformed xml now. Overwrite the params.cfg_name
         # with xml
         params.cfg_name = xml
 
-    except RuntimeError,e:
+    except RuntimeError as e:
         print2(e)
         sys.exit(1)
 
     if force_name is not None:
-        if params.frontend_name!=force_name:
+        if params.frontend_name != force_name:
             print2(usage)
-            print ""
-            print2("This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name))
+            print("")
+            print2("This is not a '%s' config file ('%s' found)" % (force_name, params.frontend_name))
             sys.exit(1)
         
-    if not (writeback in ('yes','no')):
+    if not (writeback in ('yes', 'no')):
         print2(usage)
-        print ""
-        print2("-writeback must be yes or no, found '%s'"%writeback)
+        print("")
+        print2("-writeback must be yes or no, found '%s'" % writeback)
         sys.exit(1)
 
     if not (update_def_cfg in ('yes', 'no')):
         print2(usage)
-        print ""
+        print("")
         print2("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
         sys.exit(1)  
                    
     try:
         # This is the current running version, saved in the frontend work dir
-        old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
-        #print old_config_file
+        old_config_file = os.path.join(params.work_dir, cvWConsts.XML_CONFIG_FILE)
+        # print old_config_file
         if os.path.exists(old_config_file):
             try:
-                old_params=cvWParams.VOFrontendParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
-            except RuntimeError, e:
-                raise RuntimeError,"Failed to load %s"%old_config_file
+                old_params = cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, [argv[0], old_config_file])
+            except RuntimeError as e:
+                raise RuntimeError("Failed to load %s" % old_config_file)
         else:
-            print2("Warning: Cannot find %s"%old_config_file)
+            print2("Warning: Cannot find %s" % old_config_file)
             print2("If this is the first reconfig, you can ignore this message.")
 
-            old_params=None
+            old_params = None
             
         main(params, old_params, update_scripts, update_def_cfg)
         
-    except RuntimeError, e:
+    except RuntimeError as e:
         print2(usage)
-        print ""
+        print("")
         print2(e)
         sys.exit(1)
 
     try:
-        if writeback=='yes':
+        if writeback == 'yes':
             # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
             print2("...Overriding the frontend config file in %s to the current configuration " % params.cfg_name)
@@ -240,4 +247,4 @@ if __name__ == '__main__':
 
     if sighupreload:
         print2("switching back to the main glideinFrontend process")
-        os.execv( os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'] )
+        os.execv(os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'])
