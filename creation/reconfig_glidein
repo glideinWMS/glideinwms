@@ -41,7 +41,8 @@ try:
 
     def print2(message):
         print(message)
-        journal.send(message)
+        journal.send(str(message))
+
 except ImportError:
     def print2(message):
         print(message)
