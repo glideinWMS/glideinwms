@@ -58,6 +58,7 @@ from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 
+
 ############################################################################
 # condor_off supports nonstandard arguments
 # we want to support that, but optparse does not
@@ -80,6 +81,7 @@ def convert_legacy_args(args):
             args[i]="--all"
         i+=1
 
+
 #################################################
 # Interpret the arguments and return the constraint to use
 def build_glidein_constraint(options, other_args):
@@ -96,7 +98,7 @@ def build_glidein_constraint(options, other_args):
         constraint_list.append('True')
 
     if len(constraint_list)==0:
-        raise ValueError, "No selection arguments/options given, aborting"
+        raise ValueError("No selection arguments/options given, aborting")
         
     constraint=string.join(constraint_list,'||')
     return constraint
@@ -122,7 +124,7 @@ def lookup_addrs(constr):
     del sts
         
     if len(data)==0:
-        raise ValueError, "No glideins matched your selection"
+        raise ValueError("No glideins matched your selection")
 
     # find the master names
     master_collectors={}
@@ -163,7 +165,7 @@ def lookup_addrs(constr):
                     data = sts.fetch(master_constr,[('MyAddress','s')])
                     coll_error=None
                     break
-                except condorExe.ExeError, e:
+                except condorExe.ExeError as e:
                     # still continue, partial success is better than nothing
                     coll_error=str(e)
             del sts
@@ -177,12 +179,12 @@ def lookup_addrs(constr):
                     addrs.append(data[master_name]['MyAddress'])
                 except:
                     # just protect
-                    sys.stderr.write("Classad for %s@%s is missing the MyAddress attribute!\n"%(master_name,collector_name_arr_str))
+                    sys.stderr.write("Classad for %s@%s is missing the MyAddress attribute!\n" % (master_name, collector_name_arr_str))
 
     if len(addrs)==0:
-        raise ValueError, "Could not find any glidein master!"
+        raise ValueError("Could not find any glidein master!")
 
-    return (addrs,failures)
+    return (addrs, failures)
 
         
 #############################################################################
@@ -193,7 +195,7 @@ def run_off(addr, off_type):
     global TP_FAIL
     try:
         out=condorExe.exe_cmd_sbin("condor_off","-master -%s -addr %s"%(off_type,addr))
-    except condorExe.ExeError, e:
+    except condorExe.ExeError as e:
         sys.stderr.write("%s\n"%e)
         TP_FAIL=True # setting the value should be thread safe
     
@@ -257,7 +259,7 @@ def main(argv):
 
     off_type=options.off_type
     if off_type not in ('graceful','fast','peaceful','force-graceful'):
-        raise ValueError, "Unknown off type '%s'"%off_type
+        raise ValueError("Unknown off type '%s'"%off_type)
         
     feconf = feconfig.load_frontend_config(options)
     feconfig.set_environment(wpilots=True)
@@ -294,17 +296,18 @@ def main(argv):
         del started_threads[tk]
 
     if TP_FAIL:
-        if options.quiet!=True:
+        if options.quiet != True:
             sys.stderr.write("\nAt least one off command failed\n")
         return 1
 
     if failures:
-        if options.quiet!=True:
-            sys.stderr.write("\nCould not find the masters for all the requested glidein\n"+
+        if options.quiet != True:
+            sys.stderr.write("\nCould not find the masters for all the requested glidein\n" +
                              "You may need to issue the command again\n")
         return 1
 
     return 0
+
 
 ############################################################
 #
@@ -315,8 +318,6 @@ def main(argv):
 if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
-    except Exception, e:
-        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+    except Exception as e:
+        sys.stderr.write("ERROR: Exception msg %s\n" % str(e))
         sys.exit(9)
-
-    
