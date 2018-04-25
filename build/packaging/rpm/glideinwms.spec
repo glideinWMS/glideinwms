@@ -321,7 +321,7 @@ install -d $RPM_BUILD_ROOT%{_sysconfdir}/cron.d
 install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT%{_initrddir}/gwms-frontend
 install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT%{_initrddir}/gwms-factory
 install -m 0755 creation/templates/gwms-renew-proxies.init $RPM_BUILD_ROOT%{_initrddir}/gwms-renew-proxies
-install -m 0755 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/gwms-renew-proxies
+install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
 
 # Install the web directory
@@ -779,7 +779,7 @@ rm -rf $RPM_BUILD_ROOT
 %else
 %{_initrddir}/gwms-frontend
 %{_initrddir}/gwms-renew-proxies
-%{_sysconfdir}/cron.d/gwms-renew-proxies
+%attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
