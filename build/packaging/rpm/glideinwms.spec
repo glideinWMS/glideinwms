@@ -773,9 +773,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-frontend
-%{systemddir}/gwms-frontend.service
-%{systemddir}/gwms-renew-proxies.service
-%{systemddir}/gwms-renew-proxies.timer
+%attr(0644, root, root) %{systemddir}/gwms-frontend.service
+%attr(0644, root, root) %{systemddir}/gwms-renew-proxies.service
+%attr(0644, root, root) %{systemddir}/gwms-renew-proxies.timer
 %else
 %{_initrddir}/gwms-frontend
 %{_initrddir}/gwms-renew-proxies
