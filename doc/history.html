@@ -708,6 +708,12 @@ COLLECTOR.USE_SHARED_PORT=False
     But it is a good place to look for what is going on.<br>
     <ul>
       <li>
+        <b>v3_3_3</b> released on April 17, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_3_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_3.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Includes all features and bug fixes released in v3_2_22_2
+        </ul>
+      </li>
+      <li>
         <b>v3_3_2</b> released on March 24, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_3_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Allow multiple remote directories for BOSCO submissions
@@ -1215,7 +1221,7 @@ ml">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS
           <li>BUG FIX: Allow the use of the same DN for both the security and the collector
           <li>BUG FIX: Returning invalid variable during proxy creation
           <li><b>KNOWN ISSUE:</b> Running glideinWMS v2_4_1 with Condor 7.5.3 has not been tested. Altough, most of the things may work, security changes in Condor may affect your installation.
-      <li><b>KNOWN ISSUE</b>: Installer is not always able to get the correct DN from the certificates/proxies. It does not correctly strip the CN=<blah> bit of the DN in certain cases. If the DN guessed is not correct, make the required changes in the configurations and/or condor_mapfile.
+      <li><b>KNOWN ISSUE</b>: Installer is not always able to get the correct DN from the certificates/proxies. It does not correctly strip the CN=&gt;blah&lt; bit of the DN in certain cases. If the DN guessed is not correct, make the required changes in the configurations and/or condor_mapfile.
         </ul>
 
       </li>
@@ -1238,7 +1244,7 @@ ml">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS
       <li>Introduced monitoringgroups to group sites together for monitoring purposes in factory.
       <li><b>KNOWN ISSUES</b>: Installer is not always able to get the correct 
       DN from the certificates/proxies. It does not correctly strip the
-      CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+      CN=&gt;blah&lt; bit of the DN in certain cases. If the DN guessed is not
       correct, make the required changes in the configurations and/or
       condor_mapfile.
 

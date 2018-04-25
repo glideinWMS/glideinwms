@@ -293,7 +293,7 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
 # For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
 # under this directory
 # Following 4 sl7 templates are only needed by create_rpm_startup above,
-# after that, we don't package these, so deleting them here
+# after that, we dont package these, so deleting them here
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-factory.service
@@ -832,6 +832,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Wed Apr 25 2018 Marco Mambelli <marcom@fnal.gov> - 3.3.3-1
+- Glideinwms v3.3.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_3_3/history.html
+- Release candidates: 3.3.3-0.1.rc1
+
 * Tue Apr 17 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.22.2-1
 - Glideinwms v3.2.22.2
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_22_2/history.html
