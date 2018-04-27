@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os, sys, getopt, re 
 import datetime
 import urllib
@@ -10,14 +11,14 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.lib import xmlParse
 from glideinwms.factory.tools.lib import analyze
 
-def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute):
 
+def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute):
 
-    fdiv=1
-    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste','badput']:
-        fdiv=float(div)
-    if fe_sort_attribute in [2,4,6,8,10]:#['u%','v%','i%','w%','b%']:
-        fdiv=float(div)*(float(d['total_time'])/float(div))
+    fdiv = 1
+    if fe_attr_list[fe_sort_attribute] in ['total_time', 'val', 'used', 'idle', 'waste', 'badput']:
+        fdiv = float(div)
+    if fe_sort_attribute in [2, 4, 6, 8, 10]:  #['u%','v%','i%','w%','b%']:
+        fdiv = float(div)*(float(d['total_time'])/float(div))
     elif fe_attr_list[fe_sort_attribute] in ['eff']:
         fdiv = float(d['waste']+d['used'])
 
@@ -140,7 +141,7 @@ def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attrib
       pass_limits=True # no limits, so go ahead
     else:
       for k in p.keys():
-       if min_limit.has_key(k):
+       if k in min_limit:
          if p[k]>=min_limit[k]:
            pass_limits=True
            break
@@ -199,7 +200,7 @@ USAGE:
         elif o == "--source":
             dir = a
         elif o in ("-h", "-help"):
-            print usage
+            print(usage)
             return
         elif o == "-s":
             sorting = 1
@@ -236,8 +237,8 @@ USAGE:
         if sort_attribute not in sort_attributes:
             print("%s not in list of attributes. Choices are:\n" % sort_attribute)
             for a in sort_attributes:
-                print a
-            print
+                print(a)
+            print()
             return
         sort_attribute = sort_attributes.index(sort_attribute)
 
@@ -248,8 +249,8 @@ USAGE:
         if fe_sort_attribute not in fe_sort_attributes:
             print("%s not in list of attributes. Choices are:\n" % fe_sort_attribute)
             for a in fe_sort_attributes:
-                print a
-            print
+                print(a)
+            print()
             return
         fe_sort_attribute = fe_sort_attributes.index(fe_sort_attribute)
 
@@ -263,28 +264,28 @@ USAGE:
     else: 
         file_dir = os.path.join(dir, "monitor")
         if not os.path.isdir(file_dir):
-            #Try RPM location
-            rpmdir="/var/lib/gwms-factory/work-dir"
+            # Try RPM location
+            rpmdir = "/var/lib/gwms-factory/work-dir"
             rpmfile_dir = os.path.join(rpmdir, "monitor")
             if not os.path.isdir(rpmfile_dir):
-                print "\nCannot open", file_dir
-                print "Please set --source to the factory work dir and try again."
+                print("\nCannot open", file_dir)
+                print("Please set --source to the factory work dir and try again.")
                 sys.exit(1)
             if dir != os.getcwd():
-                #Directory explicitly set, print warning
-                print "\nWARNING: Cannot open", file_dir
-                print "Using RPM default %s instead" % rpmfile_dir
-            dir=rpmdir
-            file_dir=rpmfile_dir
+                # Directory explicitly set, print warning
+                print("\nWARNING: Cannot open", file_dir)
+                print("Using RPM default %s instead" % rpmfile_dir)
+            dir = rpmdir
+            file_dir = rpmfile_dir
 
     for name, xml in rrd_list.iteritems():
         try: 
-            file_loc=os.path.join(file_dir,xml) 
+            file_loc = os.path.join(file_dir, xml)
             u = urllib.urlopen(file_loc)        
             data[name] = xmlParse.xmlfile2dict(u)
         except:
-            print "\nCannot open", file_loc
-            print "Please set --source to the factory work dir and try again."
+            print("\nCannot open", file_loc)
+            print("Please set --source to the factory work dir and try again.")
             sys.exit(1)
         u.close()
 
@@ -308,11 +309,11 @@ USAGE:
 
     if filter_frontend != 0:
         if filter_frontend not in frontend_list:
-            print "\nFrontend", filter_frontend, "not found at source.\n"
-            print "Choices are:\n "
+            print("\nFrontend", filter_frontend, "not found at source.\n")
+            print("Choices are:\n ")
             for frontend in frontend_list:
-                print frontend
-            print
+                print(frontend)
+            print()
             sys.exit(1)
       
     for entry in c_data['entries']:
@@ -332,14 +333,14 @@ USAGE:
                 if entry not in data[int(period)][frontend]:
                     data[int(period)][frontend][entry] = {}
 
-                rrd_name_list = ["Log_Completed.xml","Log_Completed_Stats.xml","Log_Completed_Wastetime.xml"]
+                rrd_name_list = ["Log_Completed.xml", "Log_Completed_Stats.xml", "Log_Completed_Wastetime.xml"]
                 i = 0
                 for x_data in [c_data, j_data, w_data]:
                     try:
                        for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
                             data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
                     except:
-                        print "\nEntry %s in %s is missing %s; continuing\n" % (entry, rrd_name_list[i], frontend)
+                        print("\nEntry %s in %s is missing %s; continuing\n" % (entry, rrd_name_list[i], frontend))
                     i=i+1 
     
 
@@ -355,7 +356,6 @@ Glidein log analysis for All Entries - %s
 Glidein log analysis for frontend %s - %s
 """ % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
 
-
     period_data = {}
     frontend_data = {}
     entry_data = {}
@@ -367,18 +367,18 @@ Glidein log analysis for frontend %s - %s
         frontend_data[period] = {}
         entry_data[period] = {}
         entry_data_all_frontends[period] = {}
-        for a in attributes.keys(): period_data[period][a]=0
+        for a in attributes.keys(): period_data[period][a] = 0
 
         for frontend, entries in frontends.iteritems(): 
             frontend_data[period][frontend] = {}
             entry_data[period][frontend] = {}
-            for a in attributes.keys(): frontend_data[period][frontend][a]=0
+            for a in attributes.keys(): frontend_data[period][frontend][a] = 0
 
             for entry, elements in entries.iteritems():
                 entry_data[period][frontend][entry] = {}  
                 for a in attributes.keys(): entry_data[period][frontend][entry][a]=0
 
-                #may have gotten entry from another frontend
+                # may have gotten entry from another frontend
                 if entry not in entry_data_all_frontends[period]:
                     entry_data_all_frontends[period][entry] = {}
                     for a in attributes.keys(): entry_data_all_frontends[period][entry][a]=0
@@ -443,10 +443,10 @@ Glidein log analysis for frontend %s - %s
 
     # if filtering by period, make sure it's in the data
     if period not in period_list:
-        print "Interval",x,"does not exist in data.\n Choices are:"
+        print("Interval",x,"does not exist in data.\n Choices are:")
         for a in period_list:
-           print a/3600
-        print
+           print(a/3600)
+        print()
         return
 
     # default - show only one period, either user-chosen or default(24)
@@ -464,7 +464,7 @@ Glidein log analysis for frontend %s - %s
             period_data[p]['waste'] = 1
 
         if show_block:
-          print "----------------------------------------\n%s:\n"%title
+          print("----------------------------------------\n%s:\n"%title)
           blockprint(title, period_data[p], p, 0)
 
 ################################################################################
@@ -475,15 +475,15 @@ Glidein log analysis for frontend %s - %s
     if filter_frontend==0 and frontend_mode==0:
 
 
-        print """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (all frontends) stats for the past %s hours.\n""" % x
+Per Entry (all frontends) stats for the past %s hours.\n""" % x)
 
-        print LINEPRINT_HEADER
+        print(LINEPRINT_HEADER)
 
         to_be_printed = []  # dict of paired entry data with wastetime for sorting
-        totals={}
+        totals = {}
         totals_to_be_printed = []
 
         for entry_name, entry in entry_data_all_frontends[period].iteritems():
@@ -495,18 +495,18 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
             
             lineprint(entry_name,entry,entry,0,to_be_printed,attr_list,sort_attribute,min_limit,totals) 
         lineprint('Total/Average',totals['entry'],totals['g_entry'],0,totals_to_be_printed,attr_list,sort_attribute,{}) 
-        print totals_to_be_printed[0][1]
-        print LINEPRINT_HEADER_DIV
+        print(totals_to_be_printed[0][1])
+        print(LINEPRINT_HEADER_DIV)
         
         if sorting == 1:
             to_be_printed.sort()
             to_be_printed.reverse()
             for a in to_be_printed:
-                print a[1]
+                print(a[1])
             print("----------------------------------")
         else: 
             for a in to_be_printed:
-                print a[1]
+                print(a[1])
 
 
 ################################################################################
@@ -516,16 +516,16 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
 
 
     if frontend_mode==0:
-        print """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
+Per Entry (per frontend) stats for the past %s hours.\n""" % (x))
     else:
         units = ["Slots","Seconds","Hours"]
-        print """
+        print("""
 ---------------------------------------
 ---------------------------------------
-Frontend stats for the past %s hours.\n""" % (x)
+Frontend stats for the past %s hours.\n""" % (x))
         print("%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %7s %3s %4s\n" % (
               "Units: "+units[frontend_mode-1], "total","used","u%","val","v%","idle","i%","waste","w%","badput","b%","eff"))
 
@@ -541,12 +541,12 @@ Frontend stats for the past %s hours.\n""" % (x)
             d['waste'] = 1
 
         if frontend_mode == 0:
-            print "----------------------------------------\n%s:\n"%frontend
+            print("----------------------------------------\n%s:\n"%frontend)
 
             if show_block:
               blockprint(frontend,d,period,period_data[period])
             
-            print LINEPRINT_HEADER
+            print(LINEPRINT_HEADER)
 
             to_be_printed = []  # dict of paired entry data with wastetime for sorting
             totals={}
@@ -560,41 +560,41 @@ Frontend stats for the past %s hours.\n""" % (x)
                 if en['validation'] == 0:
                     en['validation'] = 1
 
-                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute,min_limit,totals) 
-            lineprint('Total/Average',totals['entry'],totals['g_entry'],1,totals_to_be_printed,attr_list,sort_attribute,{}) 
-            print totals_to_be_printed[0][1]
-            print LINEPRINT_HEADER_DIV
+                lineprint(entry, e, en, 1, to_be_printed, attr_list, sort_attribute, min_limit, totals)
+            lineprint('Total/Average', totals['entry'], totals['g_entry'], 1, totals_to_be_printed, attr_list, sort_attribute, {})
+            print(totals_to_be_printed[0][1])
+            print(LINEPRINT_HEADER_DIV)
             
             if sorting == 1:
                 to_be_printed.sort()
                 to_be_printed.reverse()
                 for a in to_be_printed:
-                    print a[1]
+                    print(a[1])
                 print("----------------------------------")
             else: 
                 for a in to_be_printed:
-                    print a[1]
+                    print(a[1])
 
          
-        else: # print frontend like entries, and omit entries
-            divs = [period,1.0,3600.0]
-            fe_to_be_printed = frontend_print(frontend, frontend_mode,d,divs[frontend_mode-1],fe_to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute)
+        else:  # print frontend like entries, and omit entries
+            divs = [period, 1.0, 3600.0]
+            fe_to_be_printed = frontend_print(frontend, frontend_mode, d, divs[frontend_mode-1], fe_to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute)
             
     if fe_sorting == 1:
         fe_to_be_printed.sort()
         fe_to_be_printed.reverse()
         for a in fe_to_be_printed:
-            print a[1]
+            print(a[1])
         print("----------------------------------")
     else: 
         for a in fe_to_be_printed:
-            print a[1] 
+            print(a[1]) 
 
 ################################################################################
 #    Print Key
 ################################################################################
 
-    if frontend_mode==0:
+    if frontend_mode == 0:
         print("""\n-----------------------------------
 LEGEND:
 
@@ -619,7 +619,7 @@ JobsLasted  - wallclock time used to run jobs
 JobsGoodput - wallclock time used by jobs terminatig with exit code 0 
 \n""")
 
-    else: #frontend_mode legend
+    else:  #frontend_mode legend
         print("""\n-----------------------------------
 LEGEND:
 
@@ -649,5 +649,3 @@ JobsGoodput - wallclock time used by jobs terminatig with exit code 0
 
 if __name__ == "__main__":
     main()
-
-

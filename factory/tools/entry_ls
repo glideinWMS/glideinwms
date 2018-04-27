@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import sys
 import os
 import xml.parsers.expat
@@ -7,6 +8,7 @@ import tempfile
 import getopt
 import stat
 import time
+
 
 # assumes the following globals are defined:
 # match_exp
@@ -16,21 +18,23 @@ import time
 # suffix
 # long
 def start_element(name, attrs):
+    # if name == 'job' and attrs['username'] == user:
     if eval(match_exp):
-    #if name == 'job' and attrs['username'] == user:
-        cluster,proc = attrs['id'].split(".")
-        logname=os.path.join(gfactory_dir,"client_log/user_%s/entry_%s/job.%i.%i.%s" % (user,entry,int(cluster),int(proc),suffix))
+        cluster, proc = attrs['id'].split(".")
+        logname = os.path.join(gfactory_dir, "client_log/user_%s/entry_%s/job.%i.%i.%s" %
+                               (user, entry, int(cluster), int(proc), suffix))
         try:
             if long:
-                s=os.stat(logname)
-                print time.ctime(s[stat.ST_MTIME]), "%10i"%s[stat.ST_SIZE], "%6o"%s[stat.ST_MODE], logname
+                s = os.stat(logname)
+                print(time.ctime(s[stat.ST_MTIME]), "%10i" % s[stat.ST_SIZE], "%6o" % s[stat.ST_MODE], logname)
             else:
-                print logname
+                print(logname)
         except OSError:
             sys.stderr.write("ERROR: The log %s does not exist.\n" % logname)
 
+
 def print_help():
-    print '''\
+    print("""\
 Usage: entry_ls [OPTIONS] ENTRY USER DATE
 where DATE is of the form YYYYMMDD
 
@@ -47,11 +51,12 @@ the following OPTIONS.
 
 Requires the env variable GLIDEIN_FACTORY_DIR to be set to the 
 gwms factory instance location (or to be run in that directory)
-''',
+""")
+
 
 if __name__ == "__main__":
     try:
-        opts,args = getopt.getopt(sys.argv[1:],'holtfe:E:d:D:')
+        opts,args = getopt.getopt(sys.argv[1:], 'holtfe:E:d:D:')
     except:
         print_help()
         sys.exit(1)
@@ -129,13 +134,12 @@ if __name__ == "__main__":
         sys.stderr.write("Please set GLIDEIN_FACTORY_DIR to the factory instance directory and re-try.\n")
         sys.exit(1)
     
-    completed_fname=os.path.join(gfactory_entry_dir,"completed_jobs_%s.log" % (date))
+    completed_fname = os.path.join(gfactory_entry_dir,"completed_jobs_%s.log" % (date))
     try:
         fin = open(completed_fname)
-    except IOError,e:
+    except IOError as e:
         sys.stderr.write("WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname)
         sys.exit(1)
-
 
     # write into a temporary xml file and add root tags to make expat happy
     tmp = tempfile.TemporaryFile()

@@ -28,9 +28,10 @@ class Proxy(object):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
-        os.chown(self.tmp_output_fd.name, uid, gid)
         self.output = output
         self.lifetime = lifetime
+        self.uid = uid
+        self.gid = gid
 
     def _voms_proxy_info(self, *opts):
         """Run voms-proxy-info. Returns stdout, stderr, and return code of voms-proxy-info
@@ -44,6 +45,7 @@ class Proxy(object):
         self.tmp_output_fd.flush()
         os.fsync(self.tmp_output_fd)
         self.tmp_output_fd.close()
+        os.chown(self.tmp_output_fd.name, self.uid, self.gid)
         os.rename(self.tmp_output_fd.name, self.output)
 
     def timeleft(self):
@@ -55,7 +57,6 @@ class Proxy(object):
         """Safely return the remaining lifetime of the proxy's VOMS AC, in seconds (returns 0 if unexpected stdout)
         """
         return _safe_int(self._voms_proxy_info('-actimeleft')[0])
-
 
 
 class VO(object):
@@ -171,6 +172,7 @@ def main():
         if proxy_section == 'FRONTEND':
             if has_time_left(proxy.timeleft()):
                 print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
+                os.remove(proxy.tmp_output_fd.name)
                 continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
@@ -205,6 +207,7 @@ def main():
             retcode = 1
             # don't raise an exception here to continue renewing other proxies
             print("ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr))
+            os.remove(proxy.tmp_output_fd.name)
 
     return retcode
 

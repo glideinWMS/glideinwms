@@ -25,68 +25,63 @@ event_end_repr = "{'timing_test': {'test_start': {'start_time': 1518767040, 'end
 t_tag='t_tag'
 tagged_event_repr = "{'timing_test': {'test_start': {'t_tag': 1518767040}}}"
 
+
 class TestPerfMetric(unittest.TestCase):
-    #@unittest.skip('for now')
+
     def test___init__(self):
         perf_metric = PerfMetric(name)
         self.assertNotEqual(perf_metric,None)
 
-    #@unittest.skip('for now')
     def test___repr__(self):
         perf_metric = PerfMetric(name)
         self.assertEqual(expected_repr, perf_metric.__repr__())
 
-    #@unittest.skip('for now')
     def test___str__(self):
         perf_metric = PerfMetric(name)
         self.assertEqual(expected_repr, perf_metric.__str__())
 
-    #@unittest.skip('for now')
     def test_deregister_event(self):
         perf_metric = PerfMetric(name)
         perf_metric.register_event_time(event_name, t_tag, event_begin)
         perf_metric.deregister_event(event_name)
         self.assertEqual(expected_repr, perf_metric.__repr__())
 
-    #@unittest.skip('for now')
     def test_event_end(self):
         perf_metric = PerfMetric(name)
         perf_metric.event_start(event_name, event_begin)
         perf_metric.event_end(event_name, event_end)
         self.assertEqual(event_end_repr, perf_metric.__repr__())
 
-    #@unittest.skip('for now')
     def test_event_lifetime(self):
         perf_metric = PerfMetric(name)
         perf_metric.event_start(event_name, event_begin)
         perf_metric.event_end(event_name, event_end)
         self.assertEqual(1000, perf_metric.event_lifetime(event_name, check_active_event=True))
 
-    #@unittest.skip('for now')
     def test_event_start(self):
         perf_metric = PerfMetric(name)
         perf_metric.event_start(event_name, event_begin)
         self.assertEqual(event_begin_repr, perf_metric.__repr__())
 
-    #@unittest.skip('for now')
     def test_register_event_time(self):
         perf_metric = PerfMetric(name)
         perf_metric.register_event_time(event_name, t_tag, event_begin)
         self.assertEqual(tagged_event_repr, perf_metric.__repr__())
 
 
-
 class TestGetPerfMetricEventLifetime(unittest.TestCase):
-    #@unittest.skip('for now')
+
     def test_get_perf_metric_event_lifetime(self):
         startPerfMetricEvent(name, event_name, event_begin)
         endPerfMetricEvent(name, event_name, event_end)
         self.assertEqual(1000, getPerfMetricEventLifetime(name, event_name))
 
+
 class TestGetPerfMetric(unittest.TestCase):
-    #@unittest.skip('for now')
+
     def test_get_perf_metric(self):
         self.assertEqual(expected_repr, getPerfMetric(name).__repr__())
+
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

@@ -9,6 +9,7 @@
 # Description:
 #   Helper script for upgrading Condor binaries
 
+from __future__ import print_function
 import sys,os,time
 import tarfile,shutil,stat
 STARTUP_DIR=sys.path[0]
@@ -17,23 +18,23 @@ from glideinwms.lib import condorExe
 
 # Validate parameters
 if (len(sys.argv)<2) or (sys.argv[-1]=="-help"):
-  print "This script will upgrade the condor binaries in place"
-  print
-  print "Usage: glidecondor_upgrade new_tarball"
+  print("This script will upgrade the condor binaries in place")
+  print()
+  print("Usage: glidecondor_upgrade new_tarball")
   sys.exit(1)
 
 new_tarball=sys.argv[1]
 
 # make sure there is already condor installed
 if condorExe.condor_bin_path==None:
- print "No Condor installation found!"
- print "Aborting"
+ print("No Condor installation found!")
+ print("Aborting")
  sys.exit(1)
 
 condor_base_dir=os.path.realpath("%s/.."%condorExe.condor_bin_path)
-print
-print "Will update Condor in %s"%condor_base_dir
-print
+print()
+print("Will update Condor in %s" % condor_base_dir)
+print()
 
 condor_subdirs=('bin','include','libexec','sbin','examples','lib','man','src')
 
@@ -47,19 +48,19 @@ if os.path.exists(switchboard_fname): # no need to do anything, if it does not
       setuid_switchboard=True
 
 if setuid_switchboard and os.getuid()!=0:
-  print "Switchboard has setuid bit set, but you are not root"
-  print "Aborting"
+  print("Switchboard has setuid bit set, but you are not root")
+  print("Aborting")
   sys.exit(1)
 
 # validate and extract tarball
 
 if not os.path.isfile(new_tarball):
-  print "Usage: glidecondor_upgrade new_tarball"
-  print
-  print "File not found: %s"%new_tarball
+  print("Usage: glidecondor_upgrade new_tarball")
+  print()
+  print("File not found: %s"%new_tarball)
   sys.exit(2)
 
-print "Extracting %s"%new_tarball
+print("Extracting %s"%new_tarball)
 
 extract_dir=os.path.join(condor_base_dir,time.strftime("new.%y%m%d_%H"))
 
@@ -67,7 +68,7 @@ extract_dir=os.path.join(condor_base_dir,time.strftime("new.%y%m%d_%H"))
 try:
   fd=tarfile.open(new_tarball,"r:gz")
 except:
-  print "File '%s' not a valid tar.gz file!"%new_tarball
+  print("File '%s' not a valid tar.gz file!"%new_tarball)
   sys.exit(3)
 
 os.mkdir(extract_dir)
@@ -76,7 +77,7 @@ try:
   first_entry_obj=members[0]
   first_entry=first_entry_obj.name
   if not first_entry_obj.isdir():
-    print "File '%s' is not a condor tarball! (expected a subdirectory, found '%s'))"%(new_tarball,first_entry)
+    print("File '%s' is not a condor tarball! (expected a subdirectory, found '%s'))" % (new_tarball,first_entry))
     sys.exit(4)
   first_dir=first_entry.split('/')[0]+'/'
   if (first_dir[:7]=="condor-"):
@@ -84,9 +85,9 @@ try:
   elif (first_dir[:9]=="htcondor-"):
     condor_version=first_dir[9:-1]
   else:
-    print "File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(new_tarball,first_dir)
+    print("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (new_tarball,first_dir))
     sys.exit(4)
-  print "Seems condor version %s"%condor_version
+  print("Seems condor version %s"%condor_version)
   condor_tar_subdir=first_dir
 
   # first create the regular files
@@ -97,15 +98,15 @@ try:
   for f in members:
        if f.islnk():
         os.link(os.path.join(extract_dir,f.linkname),os.path.join(extract_dir,f.name))
-  if not os.path.exists(os.path.join(extract_dir,"%s/bin/condor_q"%condor_tar_subdir)):
-    print "Not a valid Condor tarball... cannot find bin/condor_q"
+  if not os.path.exists(os.path.join(extract_dir, "%s/bin/condor_q" % condor_tar_subdir)):
+    print("Not a valid Condor tarball... cannot find bin/condor_q")
     sys.exit(4)
 except:
-  print "Cleaning up"
+  print("Cleaning up")
   try:
     shutil.rmtree(extract_dir)
   except:
-    print "Failed to clean up tmp dir %s"%extract_dir
+    print("Failed to clean up tmp dir %s" % extract_dir)
   raise
 
 fd.close()
@@ -113,7 +114,7 @@ fd.close()
 try:
   # move the old dir to another dir and replace it with the new one
   backup_dir=os.path.join(condor_base_dir,time.strftime("old.%y%m%d_%H"))
-  print "Creating backup dir"
+  print("Creating backup dir")
   os.mkdir(backup_dir)
   try:
     # move all old file in the backup dir
@@ -123,7 +124,7 @@ try:
       os.rename(os.path.join(condor_base_dir,subdir),os.path.join(backup_dir,subdir))
 
     # putting new files in place
-    print "Putting new binaries in place"
+    print("Putting new binaries in place")
     extract_condor_dir=os.path.join(extract_dir,condor_tar_subdir)
     for subdir in condor_subdirs:
       if not os.path.isdir(os.path.join(extract_condor_dir,subdir)):
@@ -131,12 +132,12 @@ try:
       os.rename(os.path.join(extract_condor_dir,subdir),os.path.join(condor_base_dir,subdir))
 
     if setuid_switchboard:
-      os.chmod(switchboard_fname,04755)
-      print "Switchboard is again setuid"
+      os.chmod(switchboard_fname,0o4755)
+      print("Switchboard is again setuid")
 
-    print "Finished successfuly"
+    print("Finished successfuly")
   except:
-    print "Reverting and cleaning up"
+    print("Reverting and cleaning up")
     #something went wrong... put things back and delete the backup dir
     for subdir in condor_subdirs:
       if not os.path.isdir(os.path.join(backup_dir,subdir)):
@@ -145,21 +146,21 @@ try:
         shutil.rmtree(os.path.join(condor_base_dir,subdir))
         os.rename(os.path.join(backup_dir,subdir),os.path.join(condor_base_dir,subdir))
       except:
-        print "Failed to restore %s"%subdir
+        print("Failed to restore %s"%subdir)
         pass # we are already in a exception handling situation... cannot do better than this
 
     try:
       shutil.rmtree(backup_dir)
     except:
-      print "Failed to clen up tmp backup dir %s"%backup_dir
+      print("Failed to clen up tmp backup dir %s" % backup_dir)
     raise
 finally:
   # always clean up the extract dir
   try:
     shutil.rmtree(extract_dir)
   except:
-    print "Failed to clean up tmp dir %s"%extract_dir
+    print("Failed to clean up tmp dir %s" % extract_dir)
 
-print
-print "Old binaries can be found in %s"%backup_dir
-print
+print()
+print("Old binaries can be found in %s" % backup_dir)
+print()

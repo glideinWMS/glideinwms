@@ -7,7 +7,6 @@ import xmlrunner
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
 from glideinwms.unittests.unittest_utils import runTest
-
 from glideinwms.lib.encodingSupport import encode_data 
 from glideinwms.lib.encodingSupport import decode_data 
 
@@ -20,7 +19,7 @@ enc_64="VGhpcyBpcyBteSBkYXRhLiBUaGVyZSBhcmUgbWFueSBsaWtlIGl0IGJ1dCB0aGlzIGlzIG1p
 
 
 class TestEncodeData(unittest.TestCase):
-    #@unittest.skip('for now')
+
     def test_encode_data(self):
         self.assertEqual(enc_16, encode_data(data, encoding[0], url_safe=False))
         self.assertEqual(enc_32, encode_data(data, encoding[1], url_safe=False))
@@ -28,9 +27,10 @@ class TestEncodeData(unittest.TestCase):
         self.assertEqual(enc_16, encode_data(data, encoding[0], url_safe=True))
         self.assertEqual(enc_32, encode_data(data, encoding[1], url_safe=True))
         self.assertEqual(enc_64, encode_data(data, encoding[2], url_safe=True))
+ 
 
 class TestDecodeData(unittest.TestCase):
-    #@unittest.skip('for now')
+
     def test_decode_data(self):
         self.assertEqual(data, decode_data(enc_16, encoding[0], url_safe=False))
         self.assertEqual(data, decode_data(enc_32, encoding[1], url_safe=False))
@@ -38,6 +38,7 @@ class TestDecodeData(unittest.TestCase):
         self.assertEqual(data, decode_data(enc_16, encoding[0], url_safe=True))
         self.assertEqual(data, decode_data(enc_32, encoding[1], url_safe=True))
         self.assertEqual(data, decode_data(enc_64, encoding[2], url_safe=True))
+
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
