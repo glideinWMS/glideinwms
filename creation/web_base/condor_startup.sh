@@ -497,11 +497,20 @@ fi
 
 # make sure the glidein goes away before the proxy expires
 if [ "$die_time" -gt "$x509_duration" ]; then
-    # Subtract both die time and retire time by the difference
-    let "reduce_time=$die_time-$x509_duration"
-    let "die_time=$x509_duration"
-    let "retire_time=$retire_time - $reduce_time"
-    echo "Proxy not long lived enough ($x509_duration s left), shortened retire time to $retire_time" 1>&2
+    ignore_x509=`grep -i "^GLIDEIN_Ignore_X509_Duration " $config_file | awk '{print $2}' | tr '[:upper:]' '[:lower:]'`
+    if [ "$x509_duration" -lt 900 ]; then
+        echo "Remaining proxy duration is less than 15min. Shortening the Glidein lifetime."
+        x509_duration=false
+    fi
+    if [ "x$ignore_x509" == "xfalse" ]; then
+        # Subtract both die time and retire time by the difference
+        let "reduce_time=$die_time-$x509_duration"
+        let "die_time=$x509_duration"
+        let "retire_time=$retire_time - $reduce_time"
+        echo "Proxy not long lived enough ($x509_duration s left), shortened retire time to $retire_time" 1>&2
+    else
+        echo "GLIDEIN_Ignore_X509_Duration is true (default). Ignoring glidein die time ($retire_time s) longer than remaining proxy duration ($x509_duration s)" 1>&2
+    fi
 fi
 
 

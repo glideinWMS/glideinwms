@@ -943,6 +943,18 @@ described below ar the most often used.</P>
 
     </TR>
     <TR>
+        <td> <b>GLIDEIN_Ignore_X509_Duration</b> </td>
+        <td> Expr (Bool) </TD>
+
+        <TD>
+            <p> True by default.
+                Setting this to false will shorten the Glidein lifetime to be shorter than the Proxy lifetime.
+                Use it if you expect the resource will not extend reliably the proxy lifetime.
+                The Glidein lifetime will always be shorten if the Proxy lifetime is less than 900 s.
+            </p>
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_Job_Max_Time</b> </td>
         <TD> Int </TD>
         <TD>
