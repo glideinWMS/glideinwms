@@ -12,16 +12,16 @@
 #
 
 import os
-import copy
+# import copy
 import re
-import imp
+# import imp
 import os.path
 import imp
-import string
-import socket
+# import string
+# import socket
 from glideinwms.lib import xmlParse
-import cWParams
-import pprint
+# from . import cWParams
+# import pprint
 
 
 class MatchPolicyLoadError(Exception):
@@ -47,7 +47,6 @@ class MatchPolicyContentError(Exception):
         self.attrExpectedType = expected_type
         self.attrType = actual_type
 
-
     def __str__(self):
         return '%s in policy file %s should be of type %s and not %s' %\
             (self.attr, self.file, self.attrExpectedType, self.attrType)
@@ -62,8 +61,8 @@ class MatchPolicy:
         @param file: Path to the python file
         @type file: string
 
-        @param sys_path: Search path to the python module to load
-        @type sys_path: array
+        @param search_path: Search path to the python module to load
+        @type search_path: list
 
         @rtype: MatchPolicy Object
         """
@@ -101,45 +100,36 @@ class MatchPolicy:
         if 'start_expr' in dir(self.pyObject):
             self.startExpr = self.pyObject.start_expr
 
-
     def policyFileToPyModuleName(self):
         policy_fname = os.path.basename(self.file)
         policy_module_name = re.sub('.py$', '', policy_fname) 
         return policy_module_name
 
-
     def loadMatchAttrs(self):
         """
         If given match_attr i.e. factory_match_attr or job_match_attr exits
         load it from the pyObject
-
-        @param ma_name: factory_match_attr or job_match_attr
-        @type ma_name: string
         """
 
-        #match_attrs = {}
-        match_attrs = {'factory_match_attrs':{} , 'job_match_attrs': {}}
+        # match_attrs = {}
+        match_attrs = {'factory_match_attrs': {}, 'job_match_attrs': {}}
         for ma_name in ('factory_match_attrs', 'job_match_attrs'):
-            if (ma_name in dir(self.pyObject)) :
+            if (ma_name in dir(self.pyObject)):
                 ma_attr = getattr(self.pyObject, ma_name)
                 # Check if the match_attr is of dict type
                 # TODO: Also need to check that match_attr is of string/int/bool
-                if (type(ma_attr) == type({})):
+                if isinstance(ma_attr, dict):
                     data = xmlParse.OrderedDict()
-                    for k,v in ma_attr.iteritems():
+                    for k, v in ma_attr.iteritems():
                         data[k] = xmlParse.OrderedDict(v)
                     match_attrs[ma_name] = data
                 else:
                     # Raise error if match_attr is not of type dict
-                    raise  MatchPolicyContentError(self.file, ma_name,
-                                                   type(ma_attr).__name__,
-                                                   'dict')
+                    raise MatchPolicyContentError(self.file, ma_name, type(ma_attr).__name__, 'dict')
         return match_attrs
-
 
     def __repr__(self):
         return self.__str__()
-
 
     def __str__(self):
         contents = {

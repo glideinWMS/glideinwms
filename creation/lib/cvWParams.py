@@ -282,13 +282,12 @@ class VOFrontendParams(cWParams.CommonParams):
         return "frontend"
 
     def buildDir(self, frontendVersioning, basedir):
-    # return either basedir or basedir/frontend_fename
+        # return either basedir or basedir/frontend_fename
         subdir = "frontend_%s" % self.frontend_name
         if frontendVersioning:
             return os.path.join(basedir, subdir)
         else:
             return basedir
-
 
     # validate data and add additional attributes if needed
     def derive(self):
@@ -378,7 +377,6 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError('Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.')
 
-
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
 
@@ -406,24 +404,24 @@ class VOFrontendParams(cWParams.CommonParams):
             pmodules = list(policy_modules)
             if self.match_policy_modules['groups'].get(group_name):
                 pmodules.append(self.match_policy_modules['groups'][group_name])
-            #if self.match_policy_modules['frontend']:
+            # if self.match_policy_modules['frontend']:
             #    policy_modules.append(self.match_policy_modules['frontend'])
-            #if self.match_policy_modules['groups'].get(group_name):
+            # if self.match_policy_modules['groups'].get(group_name):
             #    policy_modules.append(self.match_policy_modules['groups'][group_name])
             # Construct group specific dict of attrs in <attrs>
-            attrs_dict={}
+            attrs_dict = {}
             for attr_name in self.attrs.keys():
-                attrs_dict[attr_name]=self.attrs[attr_name]
+                attrs_dict[attr_name] = self.attrs[attr_name]
             for attr_name in self.groups[group_name].attrs.keys():
-                attrs_dict[attr_name]=self.groups[group_name].attrs[attr_name]
+                attrs_dict[attr_name] = self.groups[group_name].attrs[attr_name]
 
             # Construct group specific dict of factory_attrs in <match_attrs>
             # and those from the policy_modules
-            factory_attrs={}
+            factory_attrs = {}
             for attr_name in self.match.factory.match_attrs.keys():
-                factory_attrs[attr_name]=self.match.factory.match_attrs[attr_name]
+                factory_attrs[attr_name] = self.match.factory.match_attrs[attr_name]
             for attr_name in self.groups[group_name].match.factory.match_attrs.keys():
-                factory_attrs[attr_name]=self.groups[group_name].match.factory.match_attrs[attr_name]
+                factory_attrs[attr_name] = self.groups[group_name].match.factory.match_attrs[attr_name]
             for pmodule in pmodules:
                 if pmodule.factoryMatchAttrs:
                     for attr_name in pmodule.factoryMatchAttrs.keys():
@@ -431,11 +429,11 @@ class VOFrontendParams(cWParams.CommonParams):
 
             # Construct group specific dict of job_attrs in <match_attrs>
             # and those from the policy_modules
-            job_attrs={}
+            job_attrs = {}
             for attr_name in self.match.job.match_attrs.keys():
-                job_attrs[attr_name]=self.match.job.match_attrs[attr_name]
+                job_attrs[attr_name] = self.match.job.match_attrs[attr_name]
             for attr_name in self.groups[group_name].match.job.match_attrs.keys():
-                job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
+                job_attrs[attr_name] = self.groups[group_name].match.job.match_attrs[attr_name]
             for pmodule in pmodules:
                 if pmodule.jobMatchAttrs:
                     for attr_name in pmodule.jobMatchAttrs.keys():
@@ -448,26 +446,22 @@ class VOFrontendParams(cWParams.CommonParams):
             self.validate_match('group %s'%group_name, match_expr,
                                 factory_attrs, job_attrs, attrs_dict,
                                 pmodules)
-
         return
-
 
     def get_xml_format(self):
         """
         Return xml formatting for the config
         """
-
-        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
-                                'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
-                                'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
-                                'ccbs':{'el_name':'ccb','subtypes_params':{'class':{}}},
-                                'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
-                                'ha_frontends':{'el_name':'ha_frontend','subtypes_params':{'class':{}}},
-                                'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
-                'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
-                                'groups':{'el_name':'group','subtypes_params':{'class':{}}},
-                                'match_attrs':{'el_name':'match_attr','subtypes_params':{'class':{}}}}}
-
+        return {'lists_params': {'files': {'el_name': 'file', 'subtypes_params': {'class': {}}},
+                                 'process_logs': {'el_name': 'process_log', 'subtypes_params': {'class': {}}},
+                                 'collectors': {'el_name': 'collector', 'subtypes_params': {'class': {}}},
+                                 'ccbs': {'el_name': 'ccb', 'subtypes_params': {'class': {}}},
+                                 'schedds': {'el_name': 'schedd', 'subtypes_params': {'class': {}}},
+                                 'ha_frontends': {'el_name': 'ha_frontend', 'subtypes_params': {'class': {}}},
+                                 'credentials': {'el_name': 'credential', 'subtypes_params': {'class': {}}}},
+                'dicts_params': {'attrs': {'el_name': 'attr', 'subtypes_params': {'class': {}}},
+                                 'groups': {'el_name': 'group', 'subtypes_params': {'class': {}}},
+                                 'match_attrs': {'el_name': 'match_attr', 'subtypes_params': {'class': {}}}}}
 
     def validate_names(self):
         """
@@ -477,33 +471,33 @@ class VOFrontendParams(cWParams.CommonParams):
         # glidein name does not have a reasonable default
         if self.frontend_name is None:
             raise RuntimeError("Missing frontend name")
-        if self.frontend_name.find(' ')!=-1:
-            raise RuntimeError("Invalid frontend name '%s', contains a space."%self.frontend_name)
+        if self.frontend_name.find(' ') != -1:
+            raise RuntimeError("Invalid frontend name '%s', contains a space." % self.frontend_name)
         if not cWParams.is_valid_name(self.frontend_name):
-            raise RuntimeError("Invalid frontend name '%s', contains invalid characters."%self.frontend_name)
-        if self.frontend_name.find('.')!=-1:
-            raise RuntimeError("Invalid frontend name '%s', contains a point."%self.frontend_name)
+            raise RuntimeError("Invalid frontend name '%s', contains invalid characters." % self.frontend_name)
+        if self.frontend_name.find('.') != -1:
+            raise RuntimeError("Invalid frontend name '%s', contains a point." % self.frontend_name)
 
-        group_names=self.groups.keys()
+        group_names = self.groups.keys()
         for group_name in group_names:
-            if group_name.find(' ')!=-1:
-                raise RuntimeError("Invalid group name '%s', contains a space."%group_name)
+            if group_name.find(' ') != -1:
+                raise RuntimeError("Invalid group name '%s', contains a space." % group_name)
             if not cWParams.is_valid_name(group_name):
-                raise RuntimeError("Invalid group name '%s', contains invalid characters."%group_name)
-            if group_name[:4]=='XPVO':
-                raise RuntimeError("Invalid group name '%s', starts with reserved sequence 'XPVO'."%group_name)
-            if group_name.find('.')!=-1:
+                raise RuntimeError("Invalid group name '%s', contains invalid characters." % group_name)
+            if group_name[:4] == 'XPVO':
+                raise RuntimeError("Invalid group name '%s', starts with reserved sequence 'XPVO'." % group_name)
+            if group_name.find('.') != -1:
                 raise RuntimeError("Invalid group name '%s', contains a point." % group_name)
 
-        attr_names=self.attrs.keys()
+        attr_names = self.attrs.keys()
         for attr_name in attr_names:
             if not cWParams.is_valid_name(attr_name):
-                raise RuntimeError("Invalid global attribute name '%s'."%attr_name)
+                raise RuntimeError("Invalid global attribute name '%s'." % attr_name)
         for group_name in group_names:
-            attr_names=self.groups[group_name].attrs.keys()
+            attr_names = self.groups[group_name].attrs.keys()
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
-                    raise RuntimeError("Invalid group '%s' attribute name '%s'."%(group_name, attr_name))
+                    raise RuntimeError("Invalid group '%s' attribute name '%s'." % (group_name, attr_name))
         return
 
     def translate_match_attrs(self, loc_str, match_attrs_name, match_attrs):
@@ -512,16 +506,15 @@ class VOFrontendParams(cWParams.CommonParams):
         for match validation step
         """
 
-        translations = { 'string': 'a', 'int': 1, 'bool': True, 'real': 1.0 }
+        translations = {'string': 'a', 'int': 1, 'bool': True, 'real': 1.0}
         translated_attrs = {}
 
         for attr_name in match_attrs.keys():
             attr_type = match_attrs[attr_name]['type']
             try:
-                translated_attrs[attr_name] =  translations[attr_type]
-            except KeyError, e:
-                raise RuntimeError, "Invalid %s %s attr type '%s'" % (
-                    loc_str, match_attrs_name, attr_type)
+                translated_attrs[attr_name] = translations[attr_type]
+            except KeyError as e:
+                raise RuntimeError("Invalid %s %s attr type '%s'" % (loc_str, match_attrs_name, attr_type))
 
         return translated_attrs
 
@@ -546,6 +539,9 @@ class VOFrontendParams(cWParams.CommonParams):
 
         @param attr_dict: attrs for this section
         @type job_attrs: dict
+
+        @param policy_modules: policy modules
+        @type job_attrs: list
         """
 
         # Globals/Locals that will be passed to the eval so that we
