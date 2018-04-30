@@ -177,6 +177,7 @@ def main():
         elif proxy_section.startswith('PILOT'):
             if has_time_left(proxy.timeleft()) and has_time_left(proxy.actimeleft()):
                 print 'Skipping renewal of %s: time remaining within the specified frequency' % proxy.output
+                os.remove(proxy.tmp_output_fd.name)
                 continue
 
             voms_info = vomses[proxy_config['vo'].lower()]
