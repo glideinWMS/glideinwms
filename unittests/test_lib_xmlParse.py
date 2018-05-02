@@ -161,13 +161,17 @@ class TestIsSingularOf(unittest.TestCase):
 
     @unittest.skip('private method, not sure how to test')
     def test_is_singular_of(self):
-        self.assertEqual(expected, is_singular_of(mysin, myplu, always_singular_list))
-
+        self.assertEqual(True, is_singular_of(mysin=None,
+                                              myplu=None,
+                                              always_singular_list=None))
+ 
 class TestDomel2dict(unittest.TestCase):
 
     @unittest.skip('private method, not sure how to test')
     def test_domel2dict(self):
-        self.assertEqual(expected, domel2dict(doc, use_ord_dict, always_singular_list))
+        self.assertEqual(expected, domel2dict(doc=None,
+                                              use_ord_dict=None,
+                                              always_singular_list=None))
 
 
 if __name__ == '__main__':

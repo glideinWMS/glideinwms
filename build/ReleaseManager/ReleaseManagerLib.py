@@ -7,7 +7,6 @@ import traceback
 import string
 import shutil
 import platform
-#from pylint import lint
 
 
 
@@ -179,6 +178,11 @@ class TaskPylint(TaskRelease):
                     stack.append(fullname)
 
     def pylint(self):
+        #not currently called by packageManager, import was commented out above.
+        #As pylint didnt like that, move it here to make it easier to either
+        #delete whole thing or re-enable as desired
+        #
+        from pylint import lint
         lint.Run(self.pylintArgs + self.fileList)
 
     def pylint1(self):
