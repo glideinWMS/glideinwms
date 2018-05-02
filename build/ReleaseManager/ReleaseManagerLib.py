@@ -187,6 +187,7 @@ class TaskPylint(TaskRelease):
 
     def pylint1(self):
         #print self.fileList
+        from pylint import lint
         for file in self.fileList:
             print("Running pylint on %s" % file)
             print(self.pylintArgs + [file])
