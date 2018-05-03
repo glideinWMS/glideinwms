@@ -159,19 +159,29 @@ class TestGetXMLAttributes(unittest.TestCase):
 
 class TestIsSingularOf(unittest.TestCase):
 
-    @unittest.skip('private method, not sure how to test')
     def test_is_singular_of(self):
-        self.assertEqual(True, is_singular_of(mysin=None,
-                                              myplu=None,
-                                              always_singular_list=None))
+
+        self.assertEqual(True, is_singular_of(mysin='dog',
+                                              myplu='dogs',
+                                              always_singular_list=[]))
+        self.assertEqual(True, is_singular_of(mysin='goose',
+                                              myplu='geese',
+                                              always_singular_list=['goose','dog']))
+        self.assertEqual(False, is_singular_of(mysin='moose',
+                                              myplu='meese',
+                                              always_singular_list=['goose','dog']))
+        self.assertEqual(True, is_singular_of(mysin='miss',
+                                              myplu='misses',
+                                              always_singular_list=['goose','dog']))
+        self.assertEqual(True, is_singular_of(mysin='army',
+                                              myplu='armies',
+                                              always_singular_list=['goose','dog']))
  
 class TestDomel2dict(unittest.TestCase):
 
-    @unittest.skip('private method, not sure how to test')
     def test_domel2dict(self):
-        self.assertEqual(expected, domel2dict(doc=None,
-                                              use_ord_dict=None,
-                                              always_singular_list=None))
+        doc = xml.dom.minidom.parseString(xmlstr)
+        self.assertTrue(isinstance(domel2dict(doc.documentElement), dict))
 
 
 if __name__ == '__main__':

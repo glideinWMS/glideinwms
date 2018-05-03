@@ -12,7 +12,7 @@
 # Author:
 #   Robert Chen @UCSD
 #
-
+#pylint: skip-file
 #import wxWidgets
 from __future__ import print_function
 import wx
