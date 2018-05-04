@@ -2,12 +2,12 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-import unittest2 as unittest
 import xmlrunner
 import time
 import mock
 import select
 import os
+import unittest2 as unittest
 from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.unittests.unittest_utils import FakeLogger
 from glideinwms.unittests.unittest_utils import create_temp_file
@@ -23,7 +23,7 @@ import glideinwms.lib.logSupport
 LOG_FILE = create_temp_file()
 
 def global_log_setup():
-    fd = open(LOG_FILE,'w',0)
+    fd = open(LOG_FILE,'w', 0)
     glideinwms.lib.logSupport.log = FakeLogger(fd)
 
 def global_log_cleanup():
@@ -120,7 +120,7 @@ class TestWaitForPids(unittest.TestCase):
 class TestForkManager(unittest.TestCase):
 
     def setUp(self):
-        import select
+        #import select
         global_log_setup()
         self.fork_manager = ForkManager()
         self.default_forks = 100
@@ -170,7 +170,7 @@ class TestForkManager(unittest.TestCase):
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE,'r')
+        fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
         self.assertTrue("Active forks =" in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
@@ -185,7 +185,7 @@ class TestForkManager(unittest.TestCase):
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE,'r')
+        fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
         self.assertTrue("Active forks =" in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
@@ -201,7 +201,7 @@ class TestForkManager(unittest.TestCase):
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE,'r')
+        fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
         self.assertTrue("Active forks = " in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
