@@ -519,6 +519,8 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     @param req_min_idle: min number of idle glideins needed from the frontend request
     @type req_max_glideins: int
     @param req_max_glideins: max number of running glideins allowed in the frontend request
+    @type  idle_lifetime: int
+    @param idle_lifetime:
     @type submit_credentials: SubmitCredentials
     @param submit_credentials: all the information needed to submit the glideins
     @type glidein_totals: GlideinTotals
@@ -1222,7 +1224,28 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                    factoryConfig=None):
 
     """
-    client_web = None means client did not pass one, backwards compatibility
+    @type entry_name: string
+    @param entry_name:
+    @type client_name: string
+    @param client_name:
+    @type nr_glideins: int
+    @param nr_glideins:
+    @type idle_lifetime: int
+    @param idle_lifetime:
+    @type frontend_name: string
+    @param frontend_name:
+    @type submit_credentials: dictionary
+    @param submit_credentials:
+    @type client_web: string
+    @param client_web client_web = None means client did not pass one, backwards compatibility
+    @type params: dictionary
+    @param params: 
+    @type  status_sf: dictionary
+    @param status_sf: keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
+    @type log: python logfile
+    @param log:
+    @type factoryConfig:factoryConfig
+    @param factoryConfig:factoryConfig
     """
 
     if factoryConfig is None:
