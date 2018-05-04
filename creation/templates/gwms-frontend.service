@@ -6,9 +6,9 @@ Documentation="http://glideinwms.fnal.gov/doc.prd/frontend/index.html"
 
 [Service]
 Type=forking
-ExecStart=/usr/sbin/gwms-frontend-service start
-ExecStop=/usr/sbin/gwms-frontend-service stop
-ExecReload=/usr/sbin/gwms-frontend-service reload  $MAINPID
+ExecStart=/usr/sbin/gwms-frontend start
+ExecStop=/usr/sbin/gwms-frontend stop
+ExecReload=/usr/sbin/gwms-frontend reload  $MAINPID
 
 [Install]
 WantedBy=multi-user.target

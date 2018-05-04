@@ -313,9 +313,7 @@ install -m 0644 creation/templates/gwms-renew-proxies.service $RPM_BUILD_ROOT/%{
 install -m 0644 creation/templates/gwms-renew-proxies.timer $RPM_BUILD_ROOT/%{systemddir}/
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
-install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend-service
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
-install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory-service
 %else
 # Install the init.d
 install -d $RPM_BUILD_ROOT%{_initrddir}
@@ -724,7 +722,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/factory
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-factory
-%{_sbindir}/gwms-factory-service
 %{systemddir}/gwms-factory.service
 %else
 %{_initrddir}/gwms-factory
@@ -776,7 +773,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-frontend
-%{_sbindir}/gwms-frontend-service
 %{systemddir}/gwms-frontend.service
 %{systemddir}/gwms-renew-proxies.service
 %{systemddir}/gwms-renew-proxies.timer
