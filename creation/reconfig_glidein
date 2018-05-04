@@ -10,11 +10,12 @@
 #  This program updates a glidein factory directory structure
 #  based on a configuration file
 #
+from __future__ import print_function
 import os
 import sys
 import logging
 import os.path
-import subprocess
+# import subprocess
 import tempfile
 import signal
 STARTUP_DIR = sys.path[0]
@@ -34,24 +35,29 @@ from glideinwms.lib import logSupport
 from glideinwms.factory import glideFactoryLib
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
-try: # necessary because systemd is not on rhel6
-  from systemd import journal
-  def print2( message ):
-    print message
-    journal.send( message )
+# necessary because systemd is not on rhel6
+try:
+    from systemd import journal
+
+    def print2(message):
+        print(message)
+        journal.send(str(message))
 
 except ImportError:
-  def print2( message ):
-    print message
+    def print2(message):
+        print(message)
 
-force_delete=False
+
+force_delete = False
 fix_rrd = False
+
 
 class UsageError(Exception): pass
 class ReconfigError(Exception): pass
 
+
 def logReconfig(msg):
-    glideinDescript=glideFactoryConfig.GlideinDescript()
+    glideinDescript = glideFactoryConfig.GlideinDescript()
     # Set the Log directory 
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
     # Configure factory process logging
@@ -88,7 +94,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 
     try:
         glidein_dicts_obj.populate(old_glidein_dicts_obj)
-    except cgWParamDict.UnconfiguredScheddError, e:
+    except cgWParamDict.UnconfiguredScheddError as e:
         print2(e.err_str)
         sys.exit(1)
 
@@ -149,16 +155,17 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
     print2("...Reconfigured glidein '%s' is complete" % conf[u'glidein_name'])
     print2("...Active entries are:")
     for entry in glidein_dicts_obj.active_sub_list:
-        print2("     %s"%entry)
+        print2("     %s" % entry)
     print2("...Verifying rrd schema")
     if not glideFactoryMonitorAggregator.verifyRRD(fix_rrd):
         if not fix_rrd:
             print2("Run with -fix_rrd option to update errors")
             print2("WARNING: back up your existing rrds before auto-fixing rrds")
         sys.exit(1)
-    print2("...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir)
+    print2("...Submit files are in %s" % glidein_dicts_obj.main_dicts.work_dir)
     if comment:
         logReconfig("Reconfig successful with options update_def_cfg='%s' update_scripts='%s' comment='%s'" % (update_def_cfg, update_scripts, comment))
+
 
 ############################################################
 #
@@ -176,14 +183,14 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if os.geteuid() == 0:
-        print "NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'service gwms-factory <start|stop|reconfig|...>' command to perform gwms-factory operations"
+        print("NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'service gwms-factory <start|stop|reconfig|...>' command to perform gwms-factory operations")
 
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     sighupreload = False
     xml = ''
-    comment=''
+    comment = ''
     update_def_cfg = 'no'
 
     xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
@@ -214,7 +221,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     if sighupreload:
-        signal.signal( signal.SIGHUP,  signal.SIG_IGN )
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
     # conf is of type factoryXmlConfig.Config
     # pylint: disable=maybe-no-member
     conf = factoryXmlConfig.parse(xml)
@@ -244,27 +251,25 @@ if __name__ == '__main__':
             
             main(conf, update_scripts, update_def_cfg, comment=comment)
     
-        except RuntimeError, e:
+        except RuntimeError as e:
             raise ReconfigError(str(e))
 
-    except ReconfigError, re:
+    except ReconfigError as re:
         print2(re)
         exit_code = 1
 
-    except UsageError, ue:
+    except UsageError as ue:
         print2(usage)
-        print ""
+        print("")
         print2(ue)
         exit_code = 1
 
-    except RuntimeError, e:
+    except RuntimeError as e:
         print2(e)
         exit_code = 1
 
     if sighupreload:
         print2("switching back to the main glideFactory process")
-        os.execv( os.path.join(FACTORY_DIR, "glideFactory.py"), ['glideFactory.py', '/var/lib/gwms-factory/work-dir'] )
+        os.execv(os.path.join(FACTORY_DIR, "glideFactory.py"), ['glideFactory.py', '/var/lib/gwms-factory/work-dir'])
 
     sys.exit(exit_code)
-
-

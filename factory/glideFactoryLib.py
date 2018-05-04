@@ -519,6 +519,8 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     @param req_min_idle: min number of idle glideins needed from the frontend request
     @type req_max_glideins: int
     @param req_max_glideins: max number of running glideins allowed in the frontend request
+    @type  idle_lifetime: int
+    @param idle_lifetime:
     @type submit_credentials: SubmitCredentials
     @param submit_credentials: all the information needed to submit the glideins
     @type glidein_totals: GlideinTotals
@@ -889,7 +891,8 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     log.info("Client %s (secid: %s) requesting %i glideins, max running %i, idle lifetime %s, remove excess '%s'" %
              (client_int_name, client_log_name, req_idle, req_max_run, idle_lifetime, remove_excess))
     log.info("  Params: %s" % work_el['params'])
-    # cannot log decrypted ones... they are most likely sensitive
+    # Do not log decrypted values ... they are most likely sensitive
+    # Just log the keys for debugging purposes
     log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
     # requests use GLIDEIN_CPUS to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
@@ -1221,7 +1224,28 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                    factoryConfig=None):
 
     """
-    client_web = None means client did not pass one, backwards compatibility
+    @type entry_name: string
+    @param entry_name:
+    @type client_name: string
+    @param client_name:
+    @type nr_glideins: int
+    @param nr_glideins:
+    @type idle_lifetime: int
+    @param idle_lifetime:
+    @type frontend_name: string
+    @param frontend_name:
+    @type submit_credentials: dictionary
+    @param submit_credentials:
+    @type client_web: string
+    @param client_web client_web = None means client did not pass one, backwards compatibility
+    @type params: dictionary
+    @param params: 
+    @type  status_sf: dictionary
+    @param status_sf: keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
+    @type log: python logfile
+    @param log:
+    @type factoryConfig:factoryConfig
+    @param factoryConfig:factoryConfig
     """
 
     if factoryConfig is None:
@@ -1432,7 +1456,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
         exe_env.append('FACTORY_NAME=%s' % factory_name)
-        exe_env.append('WEB_URL=%s' % web_url)
+        exe_env.append('GLIDEIN_WEB_URL=%s' % web_url)
         exe_env.append('GLIDEIN_IDLE_LIFETIME=%s' % idle_lifetime)
 
         # Security Params (signatures.sha1)
@@ -1467,7 +1491,6 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-
         if grid_type.startswith('batch '):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             # TODO: username, should this be only for batch or all key pair + username/password?
@@ -1490,7 +1513,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             # condor_submit will include ' as a literal in the arguments string, causing breakage
             # Hence, use " for now.
             exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
-        elif grid_type == "ec2":
+        elif grid_type in ("ec2", "gce"):
             log.debug("params: %s" % str(params))
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
@@ -1498,11 +1521,16 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             try:
                 exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
 
-                exe_env.append('AMI_ID=%s' % submit_credentials.identity_credentials["VMId"])
+                exe_env.append('IMAGE_ID=%s' % submit_credentials.identity_credentials["VMId"])
                 exe_env.append('INSTANCE_TYPE=%s' % submit_credentials.identity_credentials["VMType"])
-                exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
-                exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
-                exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["PublicKey"]))
+                if grid_type == "ec2":
+                    exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
+                    exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
+                    exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["PublicKey"]))
+                elif grid_type == "gce":
+                    exe_env.append('GCE_AUTH_FILE=%s' % submit_credentials.security_credentials["AuthFile"])
+                    exe_env.append('GRID_RESOURCE_OPTIONS=%s' % '$(gce_project_name) $(gce_availability_zone)')
+                    exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["AuthFile"]))
 
                 try:
                     vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
@@ -1527,13 +1555,15 @@ webbase= %s
 
 [vm_properties]
 max_lifetime = %s
-contextualization_type = EC2
+contextualization_type = %s
 disable_shutdown = %s
 admin_email = UNSUPPORTED
 email_logs = False
 """
 
-                ini = ini_template % (glidein_arguments, web_url, vm_max_lifetime, vm_disable_shutdown)
+                ini = ini_template % (glidein_arguments, web_url,
+                                      vm_max_lifetime, grid_type.upper(),
+                                      vm_disable_shutdown)
                 log.debug("Userdata ini file:\n%s" % ini)
                 ini = base64.b64encode(ini)
                 log.debug("Userdata ini file has been base64 encoded")
@@ -1548,7 +1578,7 @@ email_logs = False
                 log.debug(msg)
                 log.exception(msg)
             except Exception:
-                msg = "Error setting up submission environment (in ec2 section)"
+                msg = "Error setting up submission environment (in %s section)" % grid_type
                 log.debug(msg)
                 log.exception(msg)
                 raise

@@ -16,6 +16,7 @@
 # Part of the glideinWMS package
 #
 
+from __future__ import print_function
 import sys
 import os
 import subprocess
@@ -24,32 +25,32 @@ import copy
 
 
 def usage():
-    print "This tool creates the 11_gwms_secondary_schedds.config file"
-    print "in the HTCondor's config.d directory"
-    print
-    print "Usage:"
-    print " glidecondor_createSecSched [-commonlog] [-nocreatedirs] <scheddlist>"
-    print "where:"
-    print "  -commonlog    - If present, all the schedds will share a common log (default: one log per process)"
-    print "  -nocreatedirs - If present, do not (re-)create the needed directories (default: do create the directories)"
-    print "  scheddlist    - List of secondary schedds to put in the config file (required)"
-    print "Example:"
-    print "  glidecondor_createSecSched schedd_glideins1,schedd_glideins2"
+    print("This tool creates the 11_gwms_secondary_schedds.config file")
+    print("in the HTCondor's config.d directory")
+    print()
+    print("Usage:")
+    print(" glidecondor_createSecSched [-commonlog] [-nocreatedirs] <scheddlist>")
+    print("where:")
+    print("  -commonlog    - If present, all the schedds will share a common log (default: one log per process)")
+    print("  -nocreatedirs - If present, do not (re-)create the needed directories (default: do create the directories)")
+    print("  scheddlist    - List of secondary schedds to put in the config file (required)")
+    print("Example:")
+    print("  glidecondor_createSecSched schedd_glideins1,schedd_glideins2")
     return
 
 
 def get_config_val(attr, fail_if_missing=True):
     try:
         p = subprocess.Popen(['condor_config_val', attr], stdout=subprocess.PIPE)
-    except OSError, e:
-        print "Count not find condor_config_val!"
-        print "%s\n" % e
+    except OSError as e:
+        print("Count not find condor_config_val!")
+        print("%s\n" % e)
         sys.exit(2)
 
     rc = p.wait()
     if rc != 0:
         if fail_if_missing:
-            print "Attribute '%s' not found" % attr
+            print("Attribute '%s' not found" % attr)
             sys.exit(2)
         else:
             return None
@@ -136,26 +137,26 @@ def add_schedd(schedd, config_fd):
 
         try:
             p = subprocess.Popen(['condor_init'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=sp_env_dict)
-        except OSError, e:
-            print "Count not find condor_init!"
-            print "%s" % e
+        except OSError as e:
+            print("Count not find condor_init!")
+            print("%s" % e)
             sys.exit(2)
 
         rc = p.wait()
         res = p.communicate()
         if rc != 0:
-            print "condor_init failed for %s: %s" % (schedd, res)
+            print("condor_init failed for %s: %s" % (schedd, res))
             sys.exit(2)
-        print "Schedd %s configured and initialized" % schedd
+        print("Schedd %s configured and initialized" % schedd)
     else:
-        print "Schedd %s put in config, but not initialized" % schedd
+        print("Schedd %s put in config, but not initialized" % schedd)
 
 
 def create_config(fname, schedds):
     try:
         fd = open(fname, "w")
-    except IOError, e:
-        print "%s" % e
+    except IOError as e:
+        print("%s" % e)
         sys.exit(2)
 
     fd.write("###########################################\n" +
@@ -196,7 +197,7 @@ def parse_args(args):
         elif args[0] == '-nocreatedirs':
             create_dirs = False
         else:
-            print "Unknown option %s" % args[0]
+            print("Unknown option %s" % args[0])
             usage()
             sys.exit(1)
         args = args[1:]

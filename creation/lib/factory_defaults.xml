@@ -29,7 +29,7 @@
       <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
    </attrs>
    <entries>
-      <!-- required: name, gatekeeper; optional: vm_id, vm_type, rsl, proxy_url, remote_username -->
+      <!-- required: name, gatekeeper; optional: vm_id, vm_type, rsl, bosco_dir, proxy_url, (remote_username moved to frontend) -->
       <entry auth_method="grid_proxy" enabled="True" gridtype="condor" trust_domain="grid" work_dir="." verbosity="std">
          <config>
             <max_jobs>

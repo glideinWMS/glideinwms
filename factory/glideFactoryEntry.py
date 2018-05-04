@@ -1219,7 +1219,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         proxy_id = decrypted_params.get('GlideinProxy')
 
         if proxy_id:
-            if grid_type == 'ec2':
+            if grid_type in ('ec2', 'gce'):
                 # the GlideinProxy must be compressed for usage within user data
                 # so we specify the compressed version of the credential
                 credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
@@ -1233,17 +1233,14 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
             return return_dict
 
-
-
-
         # VM id and type are required for cloud sites.
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
         remote_username = None
 
-        if grid_type == 'ec2':
-            # vm_id and vm_type are only applicable to EC2/Clouds
+        if grid_type in ('ec2', 'gce'):
+            # vm_id and vm_type are only applicable to Clouds
 
             if 'vm_id' in auth_method:
                 # First check if the Frontend supplied it
@@ -1276,7 +1273,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         submit_credentials.add_identity_credential('VMId', vm_id)
         submit_credentials.add_identity_credential('VMType', vm_type)
 
-        if 'cert_pair' in auth_method :
+        if 'cert_pair' in auth_method:
             public_cert_id = decrypted_params.get('PublicCert')
             submit_credentials.id = public_cert_id
             if ((public_cert_id) and
@@ -1335,6 +1332,16 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                           'PrivateKey',
                           '%s_%s' % (client_int_name, private_key_id))) ):
                 entry.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
+                return return_dict
+
+        elif 'auth_file' in auth_method:
+            auth_file_id = decrypted_params.get('AuthFile')
+            submit_credentials.id = auth_file_id
+            if ( (auth_file_id) and
+                 (not submit_credentials.add_security_credential(
+                          'AuthFile',
+                          '%s_%s' % (client_int_name, auth_file_id))) ):
+                entry.log.warning("Credential %s for the auth file is not safe for client %s, skipping request" % (auth_file_id, client_int_name))
                 return return_dict
 
         elif 'username_password' in auth_method:

@@ -33,6 +33,9 @@ class OrderedDict(UserDict):
         if key not in self._keys:
             self._keys.append(key)
 
+    def __contains__(self, key):
+        return key in self._keys
+
     def clear(self):
         UserDict.clear(self)
         self._keys = []

@@ -119,6 +119,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["vm_id"] = (None, 'vm_id', 'VM id this entry supports', None)
         self.entry_defaults["vm_type"] = (None, 'vm_type', 'VM type this entry supports', None)
         self.entry_defaults["rsl"] = (None, 'RSL', 'Globus gt2 RSL option', None)
+        self.entry_defaults["bosco_dir"] = (None, 'bosco_dir', 'BOSCO directory on the (remote) resource submit host', None)
         self.entry_defaults['schedd_name'] = (None, "ScheddName", "Which schedd to use (Overrides the global one if specified)", None)
         self.entry_defaults["work_dir"] = (".", ".|Condor|OSG|TMPDIR", "Where to start glidein", None)
         self.entry_defaults['proxy_url'] = (None, 'proxy_url', "Squid cache to use", None)

@@ -16,6 +16,7 @@
 # Part of the glideinWMS package
 #
 
+from __future__ import print_function
 import sys
 import os
 import subprocess
@@ -23,32 +24,32 @@ import subprocess
 
 
 def usage():
-    print "This tool creates the 11_gwms_secondary_collectors.config file"
-    print "in the HTCondor's config.d directory"
-    print
-    print "Usage:"
-    print " glidecondor_createSecCol [-useportasname] [-commonlog] <portrange>"
-    print "where:"
-    print "  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)"
-    print "  -commonlog      - If specified, all secondary collectors will share the log file"
-    print "  portrange       - Range of ports used by the secondary collectors to put in the config file (required)"
-    print "Example:"
-    print "  glidecondor_createSecCol 9620-9639"
+    print("This tool creates the 11_gwms_secondary_collectors.config file")
+    print("in the HTCondor's config.d directory")
+    print()
+    print("Usage:")
+    print(" glidecondor_createSecCol [-useportasname] [-commonlog] <portrange>")
+    print("where:")
+    print("  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)")
+    print("  -commonlog      - If specified, all secondary collectors will share the log file")
+    print("  portrange       - Range of ports used by the secondary collectors to put in the config file (required)")
+    print("Example:")
+    print("  glidecondor_createSecCol 9620-9639")
     return
 
 
 def get_config_val(attr, fail_if_missing=True):
     try:
         p = subprocess.Popen(['condor_config_val', attr], stdout=subprocess.PIPE)
-    except OSError, e:
-        print "Count not find condor_config_val!"
-        print "%s\n" % e
+    except OSError as e:
+        print("Count not find condor_config_val!")
+        print("%s\n" % e)
         sys.exit(2)
 
     rc = p.wait()
     if rc != 0:
         if fail_if_missing:
-            print "Attribute '%s' not found" % attr
+            print("Attribute '%s' not found" % attr)
             sys.exit(2)
         else:
             return None
@@ -82,8 +83,8 @@ def create_config(fname):
     global collector_ports, use_port_as_name
     try:
         fd = open(fname, "w")
-    except IOError, e:
-        print "%s" % e
+    except IOError as e:
+        print("%s" % e)
         sys.exit(2)
 
     fd.write("#################################################\n" +
@@ -126,7 +127,7 @@ def parse_args(args):
         elif args[0] == '-useportasname':
             use_port_as_name = True
         else:
-            print "Unknown option %s" % args[0]
+            print("Unknown option %s" % args[0])
             usage()
             sys.exit(1)
         args = args[1:]
@@ -134,19 +135,19 @@ def parse_args(args):
     port_range_str = args[0]
     port_range_arr = port_range_str.split('-')
     if len(port_range_arr) != 2:
-        print "Invalid port range '%s', not a range" % port_range_str
+        print("Invalid port range '%s', not a range" % port_range_str)
         usage()
         sys.exit(1)
     try:
         port_min = int(port_range_arr[0])
         port_max = int(port_range_arr[1])
     except:
-        print "Invalid port range '%s', not numbers" % port_range_str
+        print("Invalid port range '%s', not numbers" % port_range_str)
         usage()
         sys.exit(1)
 
     if port_min > port_max:
-        print "Invalid port range '%s', min>max" % port_range_str
+        print("Invalid port range '%s', min>max" % port_range_str)
         usage()
         sys.exit(1)
         

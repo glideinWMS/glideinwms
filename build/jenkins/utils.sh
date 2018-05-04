@@ -26,7 +26,7 @@ setup_python_venv() {
         rm $WORKSPACE/$VIRTUALENV_TARBALL
     fi
     # Get latest virtualenv package that works with python 2.6
-    curl -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
+    curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
     tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
     if [ ! -d $VENV ] ; then
        #virtualenv --python=python2.6 --always-copy $VENV
@@ -46,11 +46,8 @@ setup_python_venv() {
     # pep8 has been replaced by pycodestyle
     pip_packages="astroid==1.2.1 pylint==1.3.1 pycodestyle unittest2 coverage rrdtool pyyaml mock xmlrunner future importlib argparse"
 
-    if Python -V 2>&1 | grep ' 2.6' >/dev/null; then
         pip_packages="$pip_packages hypothesislegacysupport"
-    else
         pip_packages="$pip_packages hypothesis"
-    fi
 
     for package in $pip_packages; do
         echo "Installing $package ..."

@@ -40,7 +40,6 @@ expected=""
 
 class TestOrderedDict(unittest.TestCase):
 
-    #@unittest.skip('for now')
     def test___delitem__(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -50,14 +49,12 @@ class TestOrderedDict(unittest.TestCase):
         self.assertTrue('temperature' in od2)
         self.assertFalse('temperature' in ordered_dict)
 
-    #@unittest.skip('for now')
     def test___init__(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
         self.assertNotEqual(ordered_dict, None)
 
-    #@unittest.skip('for now')
     def test___setitem__(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -65,7 +62,6 @@ class TestOrderedDict(unittest.TestCase):
         ordered_dict.__setitem__("foo", "bar")
         self.assertTrue('foo' in ordered_dict)
 
-    #@unittest.skip('for now')
     def test_clear(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -73,7 +69,6 @@ class TestOrderedDict(unittest.TestCase):
         ordered_dict.clear()
         self.assertEqual('{}', ordered_dict.__repr__())
 
-    #@unittest.skip('for now')
     def test_copy(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -81,7 +76,6 @@ class TestOrderedDict(unittest.TestCase):
         od2 = ordered_dict.copy()
         self.assertEqual(od2.__repr__(), ordered_dict.__repr__())
 
-    #@unittest.skip('for now')
     def test_items(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -89,7 +83,6 @@ class TestOrderedDict(unittest.TestCase):
         self.assertEqual(ordered_dict_items_repr,
                          ordered_dict.items().__repr__())
 
-    #@unittest.skip('for now')
     def test_keys(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -97,7 +90,6 @@ class TestOrderedDict(unittest.TestCase):
         self.assertEqual("[u'date', u'files', u'params', u'temperature']",
                          ordered_dict.keys().__repr__())
 
-    #@unittest.skip('for now')
     def test_popitem(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -105,7 +97,6 @@ class TestOrderedDict(unittest.TestCase):
         self.assertEqual("(u'temperature', {u'C': u'40', u'F': u'100'})",
                          ordered_dict.popitem().__repr__())
 
-    #@unittest.skip('for now')
     def test_setdefault(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -117,7 +108,6 @@ class TestOrderedDict(unittest.TestCase):
         self.assertNotEqual(ordered_dict.get('Dave'),failobj)
         self.assertEqual(ordered_dict.get('Dave'),'here')
 
-    #@unittest.skip('for now')
     def test_update(self):
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
@@ -126,7 +116,6 @@ class TestOrderedDict(unittest.TestCase):
         ordered_dict.update(upd)
         self.assertTrue("foo" in ordered_dict)
 
-    #@unittest.skip('for now')
     def test_values(self):
         
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
@@ -137,7 +126,6 @@ class TestOrderedDict(unittest.TestCase):
 
 class TestXmlfile2dict(unittest.TestCase):
 
-    #@unittest.skip('for now')
     def test_xmlfile2dict(self):
         infile="fixtures/test_lib_parse.xml"
         dict1 = xmlfile2dict(infile, use_ord_dict=True, always_singular_list=[])
@@ -145,7 +133,6 @@ class TestXmlfile2dict(unittest.TestCase):
 
 class TestXmlstring2dict(unittest.TestCase):
 
-    #@unittest.skip('for now')
     def test_xmlstring2dict(self):
         self.assertEqual(xmlstr_dict_repr,
                          xmlstring2dict(xmlstr,
@@ -155,26 +142,38 @@ class TestXmlstring2dict(unittest.TestCase):
 #These are all private 
 #
 class TestGetXMLElements(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_get_xml_elements(self):
         doc = xml.dom.minidom.parseString("<xml><foo></foo></xml>")
         self.assertTrue('DOM Element: foo' in  getXMLElements(doc.documentElement).__repr__())
 
 class TestGetXMLAttributes(unittest.TestCase):
-    #@unittest.skip('for now')
     def test_get_xml_attributes(self):
         doc = xml.dom.minidom.parseString("""<xml><foo><param name="x" value="12"/></foo></xml>""")
         self.assertEqual('{}' , getXMLAttributes(doc.documentElement, use_ord_dict=True).__repr__())
 
 class TestIsSingularOf(unittest.TestCase):
-    @unittest.skip('for now')
     def test_is_singular_of(self):
-        self.assertEqual(expected, is_singular_of(mysin, myplu, always_singular_list))
 
+        self.assertEqual(True, is_singular_of(mysin='dog',
+                                              myplu='dogs',
+                                              always_singular_list=[]))
+        self.assertEqual(True, is_singular_of(mysin='goose',
+                                              myplu='geese',
+                                              always_singular_list=['goose','dog']))
+        self.assertEqual(False, is_singular_of(mysin='moose',
+                                              myplu='meese',
+                                              always_singular_list=['goose','dog']))
+        self.assertEqual(True, is_singular_of(mysin='miss',
+                                              myplu='misses',
+                                              always_singular_list=['goose','dog']))
+        self.assertEqual(True, is_singular_of(mysin='army',
+                                              myplu='armies',
+                                              always_singular_list=['goose','dog']))
+ 
 class TestDomel2dict(unittest.TestCase):
-    @unittest.skip('for now')
     def test_domel2dict(self):
-        self.assertEqual(expected, domel2dict(doc, use_ord_dict, always_singular_list))
+        doc = xml.dom.minidom.parseString(xmlstr)
+        self.assertTrue(isinstance(domel2dict(doc.documentElement), dict))
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

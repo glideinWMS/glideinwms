@@ -1,13 +1,44 @@
+v3_3_3  Includes all features and bug fixes released in v3_2_22_2
+
+v3_3_2  Allow multiple remote directories for BOSCO submissions
+        Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM
+        Documented vm_id_fname and vm_type_fname
+        Includes all features and bug fixes released in v3_2_18
+        Includes some important features and bug fixes planned for v3_2_19
+          (fix of AWS submission)
+
+v3_3_1  Includes all features and bug fixes released in v3_2_16
+
+v3_3    Includes all features and bug fixes released in v3_2_15
+        Support Google Compute Engine CE. Requires glidein cloud vm rpms v2+
+        Support native configuration of EC2 spot prices and AZ in the entry
+        Support frontend policies specified in external python file
+        Support changes to VM ID and VM Type without need to reconfig/upgrade
+          frontend service
+        Bug Fix: Multiple credential (eg: vm_id+vm_type) definitions now work
+	  correctly
+        Bug Fix: create_condor_tarball now also includes required globus libraries
+	  from lib/condor that HTCondor loads at runtime
+
+v3_2_22_2 Changed singularity options also in singularity_setup.sh to adapt to the new singularity release requirements
+        Bug Fix: Fix bug due to malformed -order option (SOFTWARE-3163)
+
+v3_2_22_1 Changed singularity options to adapt to the new singularity release requirements
+
+v3_2_22 Bug Fix: Incorrect behavior of Singularity
+        Bug Fix: proxy-renewal-script updates and bug fixes
+        Bug Fix: Critical bug in 3.2.21 leads to leaking glideFactoryEntryGroup.py processes
+
 v3_2_21 Have frontend groups request the removal of unused glideins
-	Support of unprivileged singularity and new singularity scripts
-	Automatically renew gwms proxies
-	Factory monitoring displaying correctly core counters
-	Balancing glidein pressure to sites that are aliases or Meta-Sites
-	Remove osg-version requirements
-	Bug Fix: Fix fork.py behavior
-	Bug Fix: Uninitialized variable caused skipping fix-rrd
-	Bug Fix: Sanitize content of MJF attributes
-	Bug Fix: Update Google custom search to new API
+        Support of unprivileged singularity and new singularity scripts
+        Automatically renew gwms proxies
+        Factory monitoring displaying correctly core counters
+        Balancing glidein pressure to sites that are aliases or Meta-Sites
+        Remove osg-version requirements
+        Bug Fix: Fix fork.py behavior
+        Bug Fix: Uninitialized variable caused skipping fix-rrd
+        Bug Fix: Sanitize content of MJF attributes
+        Bug Fix: Update Google custom search to new API
 
 v3_2_20 Verified that Factory can start 1500 entries at a time
         Improved Factory monitoring by adding cores count for running and idle jobs and requests
@@ -53,7 +84,6 @@ v3_2_18 Bug Fix: ProjectId is missing double quotes
         Bug Fix: Use of daemon function to start process does not play well 
           with non empty pid files
 
-
 v3_2_17 Glideins fallback to curl if transferring files from the 
 	  factory/frontend staging area fails using wget
 	Bug Fix: Factory not correctly consider the cluster size when
@@ -75,7 +105,6 @@ v3_2_17 Glideins fallback to curl if transferring files from the
 	  rather than trying to auto detect available cores
 	Bug Fix: Glideins will not use UTMP be default
 	
-
 v3_2_16	Information about job and machine features are now available in glidein
 	  startd's classad
 	New tool manual_glidein_startup now lets you manually start a glidein
