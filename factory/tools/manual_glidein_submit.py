@@ -79,7 +79,18 @@ def main():
             credentials.add_identity_credential(option, cp_get(cp, "identity_credentials", option, "", throw_exception=True))
 
         # call the submit
-        submitGlideins(entry_name, client_name, nr_glideins, frontend_name, credentials, client_web, params)
+        # pylint caught that submitGlideins signature has changed since manual_glidein_submit
+        # def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend_name,
+        #                    submit_credentials, client_web, params, status_sf, log=logSupport.log,
+        #                    factoryConfig=None):
+        # missing idle_lifetime after nr_glideins,
+        #         status_sf after params
+
+        idle_lifetime = 0
+        status_sf = {}
+        submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime,
+                       frontend_name, credentials, client_web, params,
+                       status_sf)
 
     except IniError as ie:
         print(sys.stderr, "ini file error make this message better")

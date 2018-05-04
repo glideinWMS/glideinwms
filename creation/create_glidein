@@ -11,6 +11,7 @@
 #  based on a configuration file
 #
 
+from __future__ import print_function
 import os
 import sys
 import string
@@ -19,23 +20,24 @@ import traceback
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-from glideinwms.creation.lib import cgWParams
-from glideinwms.creation.lib import cgWDictFile
-from glideinwms.creation.lib import cgWConsts,cWConsts
+# from glideinwms.creation.lib import cgWParams
+# from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts, cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
 from glideinwms.creation.lib import factoryXmlConfig
 
+
 ################################################################################
 
 def main(conf):
-    #print params.__dict__
+    # print params.__dict__
     glidein_dicts_obj = cgWParamDict.glideinDicts(conf)
 
     try:
         glidein_dicts_obj.populate()
-    except cgWParamDict.UnconfiguredScheddError, e:
-        print e.err_str
+    except cgWParamDict.UnconfiguredScheddError as e:
+        print(e.err_str)
         sys.exit(1)
 
     glidein_dicts_obj.create_dirs()
@@ -63,14 +65,14 @@ def main(conf):
         glidein_dicts_obj.delete_dirs()
         raise
 
-    print "Created glidein '%s'" % conf[u'glidein_name']
-    print "Active entries are:"
+    print("Created glidein '%s'" % conf[u'glidein_name'])
+    print("Active entries are:")
     for entry in glidein_dicts_obj.active_sub_list:
-        print "  %s" % entry
-    print "Submit files can be found in %s" % glidein_dicts_obj.main_dicts.work_dir
-    print "Log files can be found in %s" % glidein_dicts_obj.main_dicts.log_dir
-    print "Support files are in %s" % glidein_dicts_obj.main_dicts.stage_dir
-    print "Monitoring files are in %s" % glidein_dicts_obj.main_dicts.monitor_dir
+        print("  %s" % entry)
+    print("Submit files can be found in %s" % glidein_dicts_obj.main_dicts.work_dir)
+    print("Log files can be found in %s" % glidein_dicts_obj.main_dicts.log_dir)
+    print("Support files are in %s" % glidein_dicts_obj.main_dicts.stage_dir)
+    print("Monitoring files are in %s" % glidein_dicts_obj.main_dicts.monitor_dir)
 
 
 ############################################################
@@ -98,18 +100,18 @@ if __name__ == '__main__':
     conf = factoryXmlConfig.parse(xml)
 
     if not (writeback in ('yes', 'no')):
-        print usage
-        print ""
-        print "-writeback must be yes or no, found '%s'" % writeback
+        print(usage)
+        print("")
+        print("-writeback must be yes or no, found '%s'" % writeback)
         sys.exit(1)
 
     try:
         main(conf)
-    except RuntimeError, e:
+    except RuntimeError as e:
         if debug:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            print string.join(tb, '\n')
-        print usage
-        print ""
-        print e
+            print(string.join(tb, '\n'))
+        print(usage)
+        print("")
+        print(e)
         sys.exit(1)

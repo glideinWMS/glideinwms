@@ -110,7 +110,8 @@ def main():
         update_credential(fname, credential_data)
         if fname_compressed:
             compressed_credential = compress_credential(credential_data)
-            update_credential(fname_compressed, compressed_credential)
+            update_credential(fname_compressed, 'glidein_credentials=%s'%compressed_credential)
+            # in branch_v3_2 after migration_3_1 WAS: update_credential(fname_compressed, compressed_credential)
     except ProxyEnvironmentError as ex:
         sys.stderr.write(str(ex))
         update_code = 2
@@ -119,6 +120,7 @@ def main():
         update_code = 4
 
     return update_code
+
 
 if __name__ == "__main__":
     sys.exit(main())

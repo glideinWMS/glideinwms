@@ -23,7 +23,7 @@ from glideinwms.factory import glideFactoryLogParser
 def get_glideins(log_dir_name, date_arr, time_arr):
     glidein_list=[]
 
-    cldata=glideFactoryLogParser.dirSummaryTimingsOutFull(log_dir_name)
+    cldata=glideFactoryLogParser.dirSummaryTimingsOutFull(log_dir_name, cache_dir=None)
     cldata.load(active_only=False)
     glidein_data=cldata.data['Completed'] # I am interested only in the completed ones
 

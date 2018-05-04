@@ -358,11 +358,11 @@ class condorQStats:
             if ek not in el:
                 el[ek] = 0
             if ck in client_monitor:
-                el[ek] += (client_monitor[ck] * fraction)
+                el[ek] += (int(client_monitor[ck]) * fraction)
             elif ck == 'RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
-                if ('Running' in client_monitor and 'GlideinsRunning' in client_monitor):
-                    el[ek] += (min(client_monitor['Running'], client_monitor['GlideinsRunning']) * fraction)
+                if 'Running' in client_monitor and 'GlideinsRunning' in client_monitor:
+                    el[ek] += (min(int(client_monitor['Running']), int(client_monitor['GlideinsRunning'])) * fraction)
 
         if 'InfoAge' not in el:
             el['InfoAge'] = 0
@@ -373,7 +373,6 @@ class condorQStats:
             el['InfoAgeAvgCounter'] += fraction
 
         self.updated = time.time()
-
 
     # call this after the last logClientMonitor
     def finalizeClientMonitor(self):
@@ -402,7 +401,7 @@ class condorQStats:
         data = self.get_data()
         return xmlFormat.dict2string(data,
                                      dict_name="frontends", el_name="frontend",
-                                     subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
+                                     subtypes_params={"class": {'subclass_params': {'Requested': {'dicts_params': {'Parameters': {'el_name': 'Parameter'}}}}}},
                                      indent_tab=indent_tab, leading_tab=leading_tab)
 
     def get_total(self):
@@ -438,7 +437,7 @@ class condorQStats:
 
         for w in total.keys():
             if total[w] is None:
-                del total[w] # remove entry if not defined
+                del total[w]  # remove entry if not defined
             else:
                 tel = total[w]
                 for a in tel.keys():

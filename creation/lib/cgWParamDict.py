@@ -495,6 +495,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry[u'auth_method'], allow_overwrite=True)
             if u'rsl' in entry:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL', entry[u'rsl'], allow_overwrite=True)
+            if u'bosco_dir' in entry:
+                self.dicts[dtype].add('GLIDEIN_BoscoDir', entry[u'bosco_dir'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit[u'slots_layout'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_WorkDir", entry[u'work_dir'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_Verbosity", entry[u'verbosity'], allow_overwrite=True)
@@ -902,6 +904,8 @@ def populate_job_descript(work_dir, job_descript_dict,
         job_descript_dict.add('EntryVMType', entry[u'vm_type'])
     if u'rsl' in entry:
         job_descript_dict.add('GlobusRSL', entry[u'rsl'])
+    if u'bosco_dir' in entry:
+        job_descript_dict.add('BoscoDir', entry[u'bosco_dir'])
     job_descript_dict.add('Schedd', schedd)
     job_descript_dict.add('StartupDir', entry[u'work_dir'])
     if u'proxy_url' in entry:

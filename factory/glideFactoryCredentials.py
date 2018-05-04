@@ -23,21 +23,24 @@ from glideinwms.lib import logSupport
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
+
 # defining new exception so that we can catch only the credential errors here
 # and let the "real" errors propagate up
-class CredentialError(Exception): pass
+class CredentialError(Exception):
+    pass
+
 
 class SubmitCredentials:
     """
     Data class containing all information needed to submit a glidein.
     """
     def __init__(self, username, security_class):
-        self.username = username # are we using privsep or not
-        self.security_class = security_class # is this needed?  why are we passing this?
-        self.id = None # id used for tracking the credentials used for submitting in the schedd
+        self.username = username  # are we using privsep or not
+        self.security_class = security_class  # Seems redundant info
+        self.id = None  # id used for tracking the submit credentials
         self.cred_dir = ''  # location of credentials
-        self.security_credentials = {} # dict of credentials
-        self.identity_credentials = {} # identity information passed by frontend
+        self.security_credentials = {}  # dict of credentials
+        self.identity_credentials = {}  # identity information passed by frontend
 
     def add_security_credential(self, cred_type, filename):
         """
@@ -73,16 +76,17 @@ class SubmitCredentials:
     def __repr__(self):
         output = "SubmitCredentials"
         output += "username = %s; " % self.username
-        output += "security class = %s; " % self.security_class
+        output += "security class = %s; " % str(self.security_class)
         output += "id = %s; " % self.id
         output += "cedential dir = %s; " % self.cred_dir
         output += "security credentials: "
-        for sc in self.security_credentials.keys():
-            output += "    %s : %s; " % (sc, self.security_credentials[sc])
+        for sck, scv in self.security_credentials.iteritems():
+            output += "    %s : %s; " % (sck, scv)
         output += "identity credentials: "
-        for ic in self.identity_credentials.keys():
-            output += "    %s : %s; " % (ic, self.identity_credentials[ic])
+        for ick, icv in self.identity_credentials.iteritems():
+            output += "    %s : %s; " % (ick, icv)
         return output
+
 
 def update_credential_file(username, client_id, credential_data, request_clientname):
     """
@@ -110,11 +114,15 @@ def update_credential_file(username, client_id, credential_data, request_clientn
                 update_credential_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
-            condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir, os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
+            condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir,
+                                  os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'),
+                                  ['update_proxy.py'], update_credential_env)
         except condorPrivsep.ExeError as e:
-            raise RuntimeError("Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
+            raise RuntimeError("Failed to update credential %s in %s (user %s): %s" %
+                               (client_id, proxy_dir, username, e))
         except:
-            raise RuntimeError("Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
+            raise RuntimeError("Failed to update credential %s in %s (user %s): Unknown privsep error" %
+                               (client_id, proxy_dir, username))
     else:
         msg = "no privsep, updating directly"
         logSupport.log.debug(msg)
@@ -125,7 +133,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 
     return fname, fname_compressed
 
-#
+
 # Comment by Igor:
 # This functionality should really be in glideFactoryInterface module
 # Making a minimal patch now to get the desired functionality
@@ -176,6 +184,7 @@ def process_global(classad, glidein_descript, frontend_descript):
         error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
         raise CredentialError(error_str)
 
+
 def get_key_obj(pub_key_obj, classad):
     """
     Gets the symmetric key object from the request classad
@@ -196,6 +205,7 @@ def get_key_obj(pub_key_obj, classad):
     else:
         error_str = "Classad does not contain a key.  We cannot decrypt."
         raise CredentialError(error_str)
+
 
 def validate_frontend(classad, frontend_descript, pub_key_obj):
     """
@@ -253,7 +263,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
 def check_security_credentials(auth_method, params, client_int_name, entry_name):
     """
-    Verify only the credentials for the given authentication method are in the params.
+    Verify taht only credentials for the given auth method are in the params
     
     @type auth_method: string
     @param auth_method: authentication method of an entry, defined in the config
@@ -266,75 +276,78 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
 
     @raise CredentialError: if the credentials in params don't match what is defined for the auth method
     """
-    
+
+    params_keys = set(params.keys())
+    relevant_keys = set(['SubmitProxy', 'GlideinProxy', 'Username', 'Password',
+                         'PublicCert', 'PrivateCert', 'PublicKey', 'PrivateKey',
+                         'VMId', 'VMType', 'x509_proxy_0', 'AuthFile'])
+
     if 'grid_proxy' in auth_method.split('+'):
         if 'x509_proxy_0' in params:
             # v2+ protocol
-            if 'SubmitProxy' in params or 'GlideinProxy' in params or \
-                            'PublicCert' in params or 'PrivateCert' in params or \
-                            'PublicKey' in params and 'PrivateKey' in params or \
-                            'Username' in params or 'Password' in params or \
-                            'VMId' in params or 'VMType' in params:
+            valid_keys = set(['x509_proxy_0'])
+            invalid_keys = relevant_keys.difference(valid_keys)
+            if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from client %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                
         elif 'SubmitProxy' in params:
             # v3+ protocol
-            if 'GlideinProxy' in params or \
-                            'PublicCert' in params or 'PrivateCert' in params or \
-                            'PublicKey' in params and 'PrivateKey' in params or \
-                            'Username' in params or 'Password' in params or \
-                            'VMId' in params or 'VMType' in params or \
-                            'x509_proxy_0' in params:
+            valid_keys = set(['SubmitProxy'])
+            invalid_keys = relevant_keys.difference(valid_keys)
+            if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                           
         else:
             # No proxy sent
             raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" % (client_int_name, entry_name))
-                 
+
     else:
         # Only v3+ protocol supports non grid entries
-        
-        # Verify that the glidein proxy was provided for the non-proxy auth methods
+        # Verify that the glidein proxy was provided for non-proxy auth methods
         if 'GlideinProxy' not in params:
             raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
-        
+
         if 'cert_pair' in auth_method :
             # Validate both the public and private certs were passed
-            if not ('PublicCert' in params and 'PrivateCert' in params): 
+            if not (('PublicCert' in params) and ('PrivateCert' in params)):
+                # if not ('PublicCert' in params and 'PrivateCert' in params):
                 # cert pair is required, cannot service request
                 raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
-            
             # Verify no other credentials were passed
-            if 'SubmitProxy' in params or \
-                    'PublicKey' in params or 'PrivateKey' in params or \
-                    'Username' in params or 'Password' in params or \
-                    'x509_proxy_0' in params: # x509_proxy_0 is v2+ protocol
+            valid_keys = set(['GlideinProxy', 'PublicCert', 'PrivateCert', 'VMId', 'VMType'])
+            invalid_keys = relevant_keys.difference(valid_keys)
+            if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                        
+
         elif 'key_pair' in auth_method:
             # Validate both the public and private keys were passed
-            if not ('PublicKey' in params and 'PrivateKey' in params):  
+            if not (('PublicKey' in params) and ('PrivateKey' in params)):
                 # key pair is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
-            
+                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
             # Verify no other credentials were passed
-            if 'SubmitProxy' in params or \
-                    'PublicCert' in params or 'PrivateCert' in params or \
-                    'Username' in params or 'Password' in params or \
-                    'x509_proxy_0' in params: # x509_proxy_0 is v2+ protocol
+            valid_keys = set(['GlideinProxy', 'PublicKey', 'PrivateKey', 'VMId', 'VMType'])
+            invalid_keys = relevant_keys.difference(valid_keys)
+            if params_keys.intersection(invalid_keys):
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+
+        elif 'auth_file' in auth_method:
+            # Validate auth_file is passed
+            if not ('AuthFile' in params):
+                # auth_file is required, cannot service request
+                raise CredentialError("Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
+            # Verify no other credentials were passed
+            valid_keys = set(['GlideinProxy', 'AuthFile', 'VMId', 'VMType'])
+            invalid_keys = relevant_keys.difference(valid_keys)
+            if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
                     
         elif 'username_password' in auth_method:
-            # Validate both the public and private keys were passed
-            if not ('Username' in params and 'Password' in params):                        
+            # Validate username and password keys were passed
+            if not (('Username' in params) and ('Password' in params)):
                 # username and password is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
-                        
+                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
             # Verify no other credentials were passed
-            if 'SubmitProxy' in params or \
-                    'PublicCert' in params or 'PrivateCert' in params or \
-                    'PublicKey' in params or 'PrivateKey' in params or \
-                    'x509_proxy_0' in params: # x509_proxy_0 is v2+ protocol
+            valid_keys = set(['GlideinProxy', 'Username', 'Password', 'VMId', 'VMType'])
+            invalid_keys = relevant_keys.difference(valid_keys)
+            if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))  
     
         else:
@@ -344,6 +357,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     # No invalid credentials found
     return 
 
+
 def compress_credential(credential_data):
     cfile = cStringIO.StringIO()
     f = gzip.GzipFile(fileobj=cfile, mode='wb')
@@ -351,10 +365,11 @@ def compress_credential(credential_data):
     f.close()
     return base64.b64encode(cfile.getvalue())
 
+
 def safe_update(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0o600)
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, credential_data)
         finally:
@@ -371,10 +386,11 @@ def safe_update(fname, credential_data):
         if not (credential_data == old_data):
             # proxy changed, neeed to update
             # remove any previous backup file, if it exists
-            if os.path.isfile(fname + ".old"): os.remove(fname + ".old")
+            if os.path.isfile(fname + ".old"):
+                os.remove(fname + ".old")
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0o600)
+            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
             try:
                 os.write(fd, credential_data)
             finally:
@@ -384,7 +400,6 @@ def safe_update(fname, credential_data):
             try:
                 os.rename(fname, fname + ".old")
             except:
-                pass # just protect
+                pass  # just protect
 
             os.rename(fname + ".new", fname)
-

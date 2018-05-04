@@ -85,7 +85,8 @@ class FEElementTestCase(unittest.TestCase):
             self.gfe = glideinFrontendElement.glideinFrontendElement(1, '', 'group1', '')
             self.gfe.elementDescript = self.elementDescript
 
-        create_glideinFrontendElement()
+        # @mock.patch defines these so disable pylint complaint
+        create_glideinFrontendElement() # pylint: disable=no-value-for-parameter
 
     def test_get_condor_q(self):
         with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv'):

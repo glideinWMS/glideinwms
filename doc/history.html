@@ -89,7 +89,28 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_2_21</b> released on February 7, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_21/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_21/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21.tgz">Tarball</a>)<br>
+        <b>v3_2_22_2</b> released on April 17, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_2_22_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_22_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_22_2.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Changed singularity options also in singularity_setup.sh to adapt to the new singularity release requirements</li>
+            <li>Bug Fix: Fix bug due to malformed -order option (SOFTWARE-3163)</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_22_1</b> released on April 11, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_2_22_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_22_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_22_1.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Changed singularity options to adapt to the new singularity release requirements</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_22</b> released on April 10, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_2_22/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_22/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_22.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Bug Fix: Incorrect behavior of Singularity</li>
+            <li>Bug Fix: proxy-renewal-script updates and bug fixes</li>
+            <li>Bug Fix: Critical bug in 3.2.21 leads to leaking glideFactoryEntryGroup.py processes</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_21</b> released on February 7, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_2_21/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_21/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_21.tgz">Tarball</a>)<br>
         <ul>
           <li>Have frontend groups request the removal of unused glideins</li>
 	  <li>Support of unprivileged singularity and new singularity scripts</li>
@@ -325,13 +346,13 @@ COLLECTOR.USE_SHARED_PORT=False
           node This can be used to advertise resources like GPUs. GPUs can also 
           be auto discovered and advertised
           <li>Several improvements to rpm packaging. Useful frontend tools are
-          now available in the user path
-          <li>Support of version control for the factory configuration and
-          splitting of entries configuration form the main factory
-          configuration (entries.d)
+          now available in the user path.
+          <li>Support splitting of factory configuration into factory's
+          deployment specific configuration and entry specific configuration.
+          <li>Support of version control for the factory configuration and splitting 
+          of entries configuration form the main factory configuration (entries.d)
           <li>Unique idle jobs matched by the frontend is now available in
           glideresource classads
-          deloyment specific configuration and entry specific configuration.
           <li>Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
           glidein was not created correclty under certain conditions
           <li>Bug Fix: create_frontend script now correctly populates images
@@ -687,6 +708,12 @@ COLLECTOR.USE_SHARED_PORT=False
     But it is a good place to look for what is going on.<br>
     <ul>
       <li>
+        <b>v3_3_3</b> released on April 17, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_3_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_3.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Includes all features and bug fixes released in v3_2_22_2
+        </ul>
+      </li>
+      <li>
         <b>v3_3_2</b> released on March 24, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_3_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Allow multiple remote directories for BOSCO submissions
@@ -970,8 +997,7 @@ COLLECTOR.USE_SHARED_PORT=False
       </li>
       <li>
         <b>v2_5_7</b> released on April 5, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_5_7/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_7/install.ht
-ml">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputin
-g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
+ml">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         <ul>
           <li>Patch of the clean_glidein_queue to return 1 only when something was really done
           <li>Fix handling of held jobs when hitting the held limit
@@ -1195,7 +1221,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           <li>BUG FIX: Allow the use of the same DN for both the security and the collector
           <li>BUG FIX: Returning invalid variable during proxy creation
           <li><b>KNOWN ISSUE:</b> Running glideinWMS v2_4_1 with Condor 7.5.3 has not been tested. Altough, most of the things may work, security changes in Condor may affect your installation.
-      <li><b>KNOWN ISSUE</b>: Installer is not always able to get the correct DN from the certificates/proxies. It does not correctly strip the CN=<blah> bit of the DN in certain cases. If the DN guessed is not correct, make the required changes in the configurations and/or condor_mapfile.
+      <li><b>KNOWN ISSUE</b>: Installer is not always able to get the correct DN from the certificates/proxies. It does not correctly strip the CN=&gt;blah&lt; bit of the DN in certain cases. If the DN guessed is not correct, make the required changes in the configurations and/or condor_mapfile.
         </ul>
 
       </li>
@@ -1218,7 +1244,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
       <li>Introduced monitoringgroups to group sites together for monitoring purposes in factory.
       <li><b>KNOWN ISSUES</b>: Installer is not always able to get the correct 
       DN from the certificates/proxies. It does not correctly strip the
-      CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+      CN=&gt;blah&lt; bit of the DN in certain cases. If the DN guessed is not
       correct, make the required changes in the configurations and/or
       condor_mapfile.
 
