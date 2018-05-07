@@ -19,6 +19,7 @@ from glideinwms.creation.lib.factoryXmlConfig import parse
 
 XML = 'fixtures/factory/glideinWMS.xml'
 XML_ENTRY = 'fixtures/factory/config.d/Dev_Sites.xml'
+XML_ENTRY2 = 'fixtures/factory/config.d/Dev_Sites2.xml'
 
 
 class TestFactAttrElement(unittest.TestCase):
@@ -102,10 +103,15 @@ class TestEntrySetElement(unittest.TestCase):
     def setUp(self):
         self.conf = parse(XML)
         self.esl = self.conf.get_child_list('entry_sets')
+        self.el = self.conf.get_child_list('entries')
         self.assertTrue(len(self.esl) > 0)
 
-    def test_validate(self):
+    def test_validate_entry_sets(self):
         for entry_set_element in self.esl:
+            entry_set_element.validate()
+
+    def test_validate_entries(self):
+        for entry_set_element in self.el:
             entry_set_element.validate()
 
 class TestConfig(unittest.TestCase):
