@@ -11,24 +11,24 @@ import tempfile
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import runTest
+#from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.creation.lib.cvWParams import VOFrontendSubParams 
-from glideinwms.creation.lib.cvWParams import VOFrontendParams 
-from glideinwms.creation.lib.cvWParams import extract_attr_val 
+from glideinwms.creation.lib.cvWParams import VOFrontendSubParams
+from glideinwms.creation.lib.cvWParams import VOFrontendParams
+from glideinwms.creation.lib.cvWParams import extract_attr_val
 from glideinwms.creation.lib.cWParams import Params
 from glideinwms.creation.lib.cWParams import SubParams
 
-argv=["fixtures/frontend.xml", "fixtures/frontend.xml"]
-frontendVersioning=""
-src_dir="fixtures/frontend"
-usage_prefix="create_frontend"
+argv = ["fixtures/frontend.xml", "fixtures/frontend.xml"]
+frontendVersioning = ""
+src_dir = "fixtures/frontend"
+usage_prefix = "create_frontend"
 
 
 class TestVOFrontendSubParams(unittest.TestCase):
 
     def setUp(self):
-        v_o_frontend_params = VOFrontendParams(usage_prefix,src_dir,argv)
+        v_o_frontend_params = VOFrontendParams(usage_prefix, src_dir,argv)
         self.sub_params = VOFrontendSubParams(v_o_frontend_params.data)
 
     def test_init(self):
@@ -115,15 +115,15 @@ class TestVOFrontendParams(unittest.TestCase):
             self.fail(err)
 
     def test_file_read_and_write(self):
-        fn = tempfile.NamedTemporaryFile(prefix='/tmp/',delete=False)
+        fn = tempfile.NamedTemporaryFile(prefix='/tmp/', delete=False)
         fn.close()
         self.v_o_frontend_params.save_into_file(fn.name)
-        new_param_obj = VOFrontendParams("","",[fn.name,fn.name])
+        new_param_obj = VOFrontendParams("", "", [fn.name, fn.name])
         new_param_obj.load_file(fn.name)
 
     def test__eq__(self):
         cpy = copy.deepcopy(self.v_o_frontend_params)
-        self.assertTrue( cpy == self.v_o_frontend_params)
+        self.assertTrue(cpy == self.v_o_frontend_params)
 
 
 class TestExtractAttrVal(unittest.TestCase):
