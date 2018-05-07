@@ -481,6 +481,19 @@ downtime() {
     echo
 }
 
+systemd_reload(){
+
+    if ps $1 | grep glideinFrontend > /dev/null 2>&1 ; then
+       echo "Reload of GWMS Frontend Service triggers frontend reconfig, PID is $1"
+       /bin/kill -HUP $1
+    elif ps $1 | grep reconfig_frontend > /dev/null 2>&1 ; then
+       echo "a previous Reload of GWMS Frontend Service has not completed. No frontend reconfig will be performed"
+    else
+       echo "Cannot detect a running frontend. Will not reload or reconfig"
+    fi
+
+}
+
 case $1 in
         start)
             start
@@ -513,10 +526,17 @@ case $1 in
          up)
             downtime up   "$@"
             ;;
-    statusdown)
-        "$FRONTEND_DOWNTIMES" -cmd check -dir "$frontend_dir" "$@"
-        RETVAL=$?
-        ;;
+        statusdown)
+            "$FRONTEND_DOWNTIMES" -cmd check -dir "$frontend_dir" "$@"
+            RETVAL=$?
+            ;;
+        reload)
+            if [ "$2" != "" ]; then
+              systemd_reload $2
+            else
+              echo "MUST SUPPLY A PID WITH THIS ARGUMENT"
+            fi
+            ;;
         *)
             help_usage
             exit $RET_NOT_IMPLEMENTED
