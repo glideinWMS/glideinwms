@@ -1,6 +1,6 @@
 <glidein>
-    <entry_sets>
-      <entry name="TEST_SITE_1" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+    <entries>
+      <entry name="TEST_SITE_3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -34,7 +34,7 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+      <entry name="TEST_SITE_4" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -69,7 +69,7 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_HTCCE_2" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9619" gridtype="condor" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+      <entry name="TEST_SITE_HTCCE_5" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov fermicloud121.fnal.gov:9619" gridtype="condor" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -104,5 +104,5 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-   </entry_sets>
+   </entries>
 </glidein>
