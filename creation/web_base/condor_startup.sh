@@ -500,7 +500,7 @@ if [ "$die_time" -gt "$x509_duration" ]; then
     ignore_x509=`grep -i "^GLIDEIN_Ignore_X509_Duration " $config_file | awk '{print $2}' | tr '[:upper:]' '[:lower:]'`
     if [ "$x509_duration" -lt 900 ]; then
         echo "Remaining proxy duration is less than 15min. Shortening the Glidein lifetime."
-        x509_duration=false
+        ignore_x509=false
     fi
     if [ "x$ignore_x509" == "xfalse" ]; then
         # Subtract both die time and retire time by the difference
