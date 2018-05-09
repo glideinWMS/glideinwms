@@ -11,49 +11,50 @@ var browser_title = "Glidein Factory Status";
 var page_title = "Glidein Factory Status";
 set_title_and_footer(browser_title, page_title);
 
-var trColumnId; 
-var prTr;        
-var hover; 
-var loading; 
-var frontEndTable; 
-var linkShown = 0; 
-var loading = 1; 
-var updating = 0; 
-var col; 
-var feArryMaster = new Array(); 
-var thead; 
-var updated; 
-var numberRows = 0; 
-var totalEntries; var totalEntriesMaster; var totalEntriesP; var totalEntriesPMaster;
+var trColumnId;
+var prTr;
+var hover;
+var hoverse;
+var loading;
+var frontEndTable;
+var linkShown = 0;
+var loading = 1;
+var updating = 0;
+var col;
+var feArryMaster = new Array();
+var thead;
+var updated;
+var numberRows = 0;
+var totalEntries; var statusEntries; var totalEntriesMaster; var totalEntriesP; var totalEntriesPMaster;
 var total; var totalP; var totalMaster; var totalPMaster;
-var feEntries; var feEntriesP; var feTotal; var feTotalP;  
+var feEntries; var feEntriesP; var feTotal; var feTotalP;
 var sorted = 0;
 var previousSort;
-var currentSort; 
-var frontEnds; 
-var listMade = 0; 
+var currentSort;
+var frontEnds;
+var listMade = 0;
 var frontEnd = 0;
-var table; var trTable; var tableP; 
+var table; var tablese; var trTable; var tableP;
 var select;
 var nameLast;
-var txt2 = new Array(1000); 
-var count = 0; 
-var tableMade = 0;  
-var sortColNum = 0; 
-var active = 0; 
-var entryName; 
-var troubleshoot = 0; 
+var txt2 = new Array(1000);
+var count = 0;
+var tableMade = 0;
+var sortColNum = 0;
+var active = 0;
+var entryName;
+var troubleshoot = 0;
 var childView;
-var frontEndName;  
-var trTable; 
+var frontEndName;
+var trTable;
 var diffSorted; var diffSortedPrTr; var diffColName;
 var tempTotal = new Array(); var tempTotalP = new Array();
-var tempTotalEntries = new Array();; var tempTotalEntriesP = new Array(); 
-var diffColNum; var diffColSort; 
-var trSortColNum;  
+var tempTotalEntries = new Array();; var tempTotalEntriesP = new Array();
+var diffColNum; var diffColSort;
+var trSortColNum;
 var trSortAsc;
-var periodV; 
-var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var dtChild; var ftFEChild; var totStatChild; var totReqChild; var totCMChild; 
+var periodV;
+var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var dtChild; var ftFEChild; var totStatChild; var totReqChild; var totCMChild;
 var trChildArry = new Array(); var trFEChildArry = new Array();
 
 var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held", "Running cores",
@@ -65,20 +66,20 @@ var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pendi
 							  "Max glideins", "Idle",
 							  // "Claimed", "Unmatched", "Registered",
 							  "Claimed cores", "User run here", "User running", "Unmatched cores", "User idle", "Registered cores", "Info age");
-												
+
 var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
-							  "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");	
-							  
+							  "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
+
 var headColArryTRPR = new Array("Entry Name", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 							    "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
 
-								 
-var columnArray = new Array("entryName", "downtimeStatus", 
+
+var columnArray = new Array("entryName", "downtimeStatus",
                             "statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld", "statusRunningCores",
                             "requestMax", "requestIdle",
 						    // "cmGlideinRunning", "cmGlideinIdle", "cmGlideinTotal",
 						    "cmCoresRunning", "cmGlideinJobsRunning", "cmGlideinJobsRunHere", "cmCoresIdle", "cmGlideinJobsIdle", "cmCoresTotal", "cmGlideinInfoAge");
-/* columnArrayStruct describes columnArray: total length (length) and length and offset of its component: DT, Status, Req, CM 
+/* columnArrayStruct describes columnArray: total length (length) and length and offset of its component: DT, Status, Req, CM
    it is used to display the table w/ the values
    DT offset is 1 (entryName), following offsets are offset+length of previous element
    offset+length of CM should give the total length (columnArray.length, 25)
@@ -91,76 +92,132 @@ var columnArrayDesc = { length: columnArray.length,
                     }
 
 
-		
+
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
 						     "Status: Stage out", "Status: Unknown", "Status: Held", "Status: Running cores",
 						     "Requested: Max glideins", "Requested : Idle",
 						     // "Client Monitor: Claimed", "Client Monitor: Unmatched", "Client Monitor: Registered",
 						     "Client Monitor: Claimed cores", "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched cores", "Client Monitor: User idle",
 							 "Client Monitor: Registered cores", "Client Monitor: Info age");
-							 
+
 var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Running cores", "Client Monitor: Registered cores", "Diff(Status: Running cores, Client: Registered cores)",
 							   "Status: Idle", "Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client Monitor: User Idle");
-							   
-							   
+
+
 var xmlAttPeriodArry = new Array("EntryName",
                                  "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", "StatusHeld", "StatusRunningCores",
 								 "ReqMaxGlideins", "ReqIdle",
 								 // "ClientGlideRunning", "ClientGlideIdle", "ClientGlideTotal",
 								 "ClientCoresRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientCoresIdle", "ClientJobsIdle", "ClientCoresTotal", "ClientInfoAge");  /* ONE LESS ATT THAN DEFAULT, no Downtime */
-								 
-var xmlAttDTArry = new Array("Status"); 						 					
+
+var xmlAttDTArry = new Array("Status");
 var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held", "RunningCores");
 var xmlAttReqArry = new Array("MaxGlideins", "Idle");
 // var xmlAttCMArry = new Array("GlideRunning", "CoresRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "CoresIdle", "JobsIdle", "GlideTotal", "CoresTotal", "InfoAge");
 var xmlAttCMArry = new Array("CoresRunning", "JobsRunHere", "JobsRunning", "CoresIdle", "JobsIdle", "CoresTotal", "InfoAge");
-var xmlAttStatNumArry = new Array(); 
-var xmlAttReqNumArry = new Array(); 
-var xmlAttCMNumArry = new Array(); 
-var xmlAttDTNumArry = new Array(); 
-var FExmlAttStatNumArry = new Array(); 
-var FExmlAttReqNumArry = new Array(); 
+var xmlAttStatNumArry = new Array();
+var xmlAttReqNumArry = new Array();
+var xmlAttCMNumArry = new Array();
+var xmlAttDTNumArry = new Array();
+var FExmlAttStatNumArry = new Array();
+var FExmlAttReqNumArry = new Array();
 var FExmlAttCMNumArry = new Array();
 var xmlAttPeriodNumArry = new Array();
 var xmlAttTotalNumArry = new Array();
-var preFrontEndName = "Total"; 
-var links = new Array(); 
-var sortColName; 
+var preFrontEndName = "Total";
+var links = new Array();
+var sortColName;
 
 /* AutoUpdateInterval reference */
 var auInt;
 
+function showPopUpSubEntries(hoveritem, entryName)
+{
+    /* FIND THE HOVERED ENTRY INDEX IN statusEntries */
+    for (row = 0; row < statusEntries.length; row++) {
+        if (statusEntries[row].parentNode.parentNode.parentNode.attributes["name"].nodeValue == entryName) {
+            break;
+        }
+    }
+    if (row == statusEntries.length)
+        return;
+    entry = statusEntries[row]; /* RETREIVE CURR ENTRY */
+    /* CLEAN UP THE PREVIOUS POP UP TABLE*/
+    hoverse = document.getElementById("hoverpopupsubentries");
+    while (hoverse.firstChild) {
+        hoverse.removeChild(hoverse.firstChild);
+    }
+    /* CREATE THE TABLE */
+    tablese = document.createElement('table');
+    tr = document.createElement('tr'); /* HEADERS FIRST */
+    tr.appendChild(document.createElement('td'));
+    for(c = 0; c < xmlAttStatusArry.length; c++) {
+        td = document.createElement('td');
+        headerName = document.createTextNode(xmlAttStatusArry[c]);
+        td.appendChild(headerName);
+        tr.appendChild(td);
+    }
+    tablese.appendChild(tr);
+    for(r = 0; r < entry.children.length; r++) {
+        tr = document.createElement('tr');
+        currse = entry.children[r]; //Current sub entry
+        sname = currse.localName;
+        myname = document.createTextNode(sname);
+        td = document.createElement('td');
+        td.appendChild(myname);
+        tr.appendChild(td);
+        for(c = 0; c < xmlAttStatusArry.length; c++) {
+            st = xmlAttStatusArry[c];
+            td = document.createElement('td');
+            numpilots = currse.attributes[st];
+            td.appendChild(document.createTextNode(numpilots.nodeValue));
+            tr.appendChild(td);
+        }
+        tablese.appendChild(tr);
+    }
+    hoverse.appendChild(tablese);
+    hoverse.style.top = document.getElementById("header").offsetTop + hoveritem.parentElement.offsetTop + 40 + "px";
+    hoverse.style.left = 50 + "px";
+    hoverse.style.visibility = "Visible";
+}
+
+function hidePopUpSubEntries()
+{
+    hoverse.style.visibility = "Hidden";
+}
+
+
 /* HOVER POP UPS : TOTAL/ANY OF DEFAULT OR TROUBLESHOOT VIEW */
 function showPopUp(hoveritem)
-{	
+{
 	/* RETURN IF IN INCOMPTBLE VIEW */
-	if(preFrontEndName != "Total" && preFrontEndName != "Any"){return;} 
-	
+	if(preFrontEndName != "Total" && preFrontEndName != "Any"){return;}
+
 	column = hoveritem.cellIndex; /* GET COL NUM */
 	row = hoveritem.id;           /* GET ROW NUM */
-		
+
 	/* IF OLD HOVER POP UP EXISTS GET RID OF IT */
 	if(frontEndTable){document.getElementById('hoverpopup').removeChild(frontEndTable);}
-	
+
 	/* ADJUST ENTRY ARRAY FOR DIFFSORTED TR VIEW */
 	if(diffSorted && troubleshoot)
 	{
-		friend = totalEntries; 
-		totalEntries = tempTotalEntries; 
+		friend = totalEntries;
+		totalEntries = tempTotalEntries;
 	}
-	
+
 	entry = totalEntries[row - 1]; /* RETREIVE CURR ENTRY */
-	
+
 	/* SET UP POP UP BODY */
-	frontEndTable = document.createElement('table'); 
+	frontEndTable = document.createElement('table');
 	hover = document.getElementById("hoverpopup");
 	head = document.getElementById("header");
-    scrollDiv = document.getElementById("scroll"); 
+    scrollDiv = document.getElementById("scroll");
 
 	/* IF NO FE's EXIST */
 	if(entry.childNodes[totChild].childNodes.length == 0)
 	{
-		
+
 		/* POP UP TEXT CONTENTS */
 		nameTxtNode = document.createTextNode(totalEntries[row - 1].getAttribute("name"));
 		if(troubleshoot)
@@ -174,15 +231,15 @@ function showPopUp(hoveritem)
 		{
 			tr = document.createElement('tr');
 			td = document.createElement('td');
-			if(i == 0)  td.appendChild(nameTxtNode); 
+			if(i == 0)  td.appendChild(nameTxtNode);
 			else if(i == 1) td.appendChild(attTxtNode);
-		    else td.appendChild(NFE); 
+		    else td.appendChild(NFE);
 			tr.appendChild(td);
 			frontEndTable.appendChild(tr);
 		}
 
-		hover.appendChild(frontEndTable); 
-		
+		hover.appendChild(frontEndTable);
+
 		/* ADJUST POP UP POSITION */
 		if(troubleshoot)
 			hover.style.top = head.offsetTop + hoveritem.offsetTop - 45 - scrollDiv.scrollTop + "px";
@@ -193,11 +250,11 @@ function showPopUp(hoveritem)
 		else
 			hover.style.left = hoveritem.offsetLeft - 70 + "px";
 		hover.style.visibility = "Visible";
-		return; 
+		return;
 	}
 
 	/* SET UP POP UP BODY */
-	tr1 = document.createElement('tr'); tr2 = document.createElement('tr'); 
+	tr1 = document.createElement('tr'); tr2 = document.createElement('tr');
 	td1 = document.createElement('td'); td2 = document.createElement('td');
 	td3 = document.createElement('td'); td4 = document.createElement('td');
 	nameTxtNode = document.createTextNode(totalEntries[row - 1].getAttribute("name"));
@@ -205,7 +262,7 @@ function showPopUp(hoveritem)
 		attTxtNode = document.createTextNode(exactColumnsTR[column]);
 	else
 		attTxtNode = document.createTextNode(exactColumns[column]);
-	
+
 	/* ADJUST COLUMN IF IN TR VIEW */
 	/* troubleshoot column numbers based on the column position in the non Troubleshoot table (starting w/ 2)
 	   att1/2 (in diff columns is instead based on attributes order in xml file (value in xmlAttTotalNumArry)
@@ -227,12 +284,12 @@ function showPopUp(hoveritem)
 		else if(column == 7)
 		{
 			child1 = feStatChild;
-			child2 = feReqChild; 
-			att1 = 1; 
-			att2 = 0; 
+			child2 = feReqChild;
+			att1 = 1;
+			att2 = 0;
 		}
 	}
-	
+
 	/* SET UP POP UP (CONTINUED)*/
 	td1.appendChild(nameTxtNode); td2.appendChild(attTxtNode);
 	tr1.appendChild(td1); tr2.appendChild(td2);
@@ -241,30 +298,30 @@ function showPopUp(hoveritem)
 	frontEndTable.appendChild(tr2);
 
 	/* # OF FE's FOR CURR ENTRY (EACH ENTRY HAS DIFF # OF FE's) */
-	numFE = totalEntries[row -1].childNodes[feChild].childNodes.length; 
+	numFE = totalEntries[row -1].childNodes[feChild].childNodes.length;
 	/* ARRAY OF FE's FOR CURR ENTRY */
-	ends = totalEntries[row -1].childNodes[feChild];                    
-	
-	unsortedFE = new Array(); 
+	ends = totalEntries[row -1].childNodes[feChild];
+
+	unsortedFE = new Array();
 	sortedFE = new Array();
-	
+
 	 /* FILL ARRY WITH ENTRIES FE's */
 	for(i = 1; i < numFE; i+=2) unsortedFE.push(ends.childNodes[i]);
-	 
+
 	/* SORT ENTRIES FE ORDER TO BE CONSISTENT (DROP DOWN LIST ORDER) */
 	for(i = 0; i< feArryMaster.length; i++)
 	{
 		for(j = 0; j < unsortedFE.length; j++)
 		{
 			if(feArryMaster[i].attributes[0].value == unsortedFE[j].attributes[0].value)
-				sortedFE.push(unsortedFE[j]); 	
+				sortedFE.push(unsortedFE[j]);
 		}
-	} 
+	}
 	/* IF ENTRY HAS NO FE's */
 	if(numFE == 0)
 	{
 		tr3 = document.createElement('tr');
-		td3 = document.createElement('td'); 
+		td3 = document.createElement('td');
 		cont3 = document.createTextNode("No Frontends Exist");
 		td3.appendChild(cont3);
 		tr3.appendChild(td3);
@@ -276,16 +333,16 @@ function showPopUp(hoveritem)
 		x = 0;
 		/* FOR EVERY FE THAT THE ENTRY HAS */
 		while(i < sortedFE.length)
-		{ 
-			tr = document.createElement('tr'); 
-			td = document.createElement('td'); 
+		{
+			tr = document.createElement('tr');
+			td = document.createElement('td');
 			txt = document.createTextNode(sortedFE[i].attributes[0].value + ":");
 			td2 = document.createElement('td');
-			
+
 			/* DOWNTIME FIELD */
 			if(column == 1)
 			{
-				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column - 1]].value; 
+				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column - 1]].value;
 				if(y == "True"){ y = "&darr;"; table.rows[i].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 				else {y = "&uarr;"; table.rows[i].cells[1].style.color = "#008B00";  }          /* UP ARROW */
 				txt2 = document.createTextNode("");
@@ -294,10 +351,10 @@ function showPopUp(hoveritem)
 			/* DIFF COLS (TROUBLESHOOT) */
 			else if((column == 4 || column == 7) && troubleshoot)
 			{
-				val1 = 0; val2 = 0; diff = 0; 
+				val1 = 0; val2 = 0; diff = 0;
 				try{ val1 = parseInt(sortedFE[i].childNodes[child1].attributes[att1].value); } catch(err){}
 				try{ val2 = parseInt(sortedFE[i].childNodes[child2].attributes[att2].value); } catch(err){}
-				diff = val1 - val2; 
+				diff = val1 - val2;
 				txt2 = document.createTextNode(diff);
 			}
 			/* STATUS COLS */
@@ -305,7 +362,7 @@ function showPopUp(hoveritem)
 			{
 				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0);}
-			} 
+			}
 			/* REQ COLS */
 			else if(column >= columnArrayDesc.Req.offset && column < columnArrayDesc.CM.offset)
 			{
@@ -313,24 +370,24 @@ function showPopUp(hoveritem)
 				catch(err){ txt2 = document.createTextNode(0); }
 			}
 			/* CM COLS */
-			else	
+			else
 			{
 				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0);}
 			}
- 	
-			td.appendChild(txt); 
+
+			td.appendChild(txt);
 			tr.appendChild(td);
 			td2.appendChild(txt2);
-			td2.setAttribute('align', 'right');  
-			tr.appendChild(td2); 
-			frontEndTable.appendChild(tr); 
-			i++; 
+			td2.setAttribute('align', 'right');
+			tr.appendChild(td2);
+			frontEndTable.appendChild(tr);
+			i++;
 			if(i > 1)
 			{
 				x++; /* INCREMENT COUNTER TO ADJUST FE HOVER UP BELOW */
 			}
-		}	
+		}
 	}
 	/* ADJUST POP UP POSITION AND VISIBILITY */
 	hover.appendChild(frontEndTable);
@@ -339,40 +396,40 @@ function showPopUp(hoveritem)
 	else if(totalEntries[row-1].getAttribute("name").length > 21 && column == 16){hover.style.left = hoveritem.offsetLeft - 130 + "px";}
 	else hover.style.left = hoveritem.offsetLeft - 110 + "px";
 	if(troubleshoot){hover.style.top = head.offsetTop + hoveritem.offsetTop - 45 - (30 * x) - scrollDiv.scrollTop + "px";}
-	else hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";	
-	hover.style.visibility = "Visible";	
+	else hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";
+	hover.style.visibility = "Visible";
 	if(diffSorted && troubleshoot){totalEntries = friend;}
 }
 
 /* POP UPS FOR PERIOD TABLES (PR || PR + TR) */
 function showPopUpPeriod(hoveritem)
 {
-	diffCol = 0; dCol = 0; dCol2 = 0; 
-    prFEChild = 0; child1 = 0; 
-	child2 = 0; att1 = 0; 
+	diffCol = 0; dCol = 0; dCol2 = 0;
+    prFEChild = 0; child1 = 0;
+	child2 = 0; att1 = 0;
 	att2 = 0; pr = 0;
-	timeFrame = " (Now)"; 
-	
+	timeFrame = " (Now)";
+
 	/* IF NOT IN TOTAL VIEW ESCAPE */
 	if(preFrontEndName != "Total" && preFrontEndName != "Any"){return;}
-	
+
 	/* RETRIEVE SELECTED SPECS */
-	row = hoveritem.id; row--; 
+	row = hoveritem.id; row--;
 	if(prTr){row++;}
-	column = hoveritem.cellIndex; 
-	column--; /* ADJUST BECAUSE DOWNTIME */ 
+	column = hoveritem.cellIndex;
+	column--; /* ADJUST BECAUSE DOWNTIME */
 	if(row % 4 != 0) column++;
 	row2 = Math.floor(row/4);
 	if(periodV && (column == 0 || column == 1) && row % 4 != 0){ return; }   /* GET OUT DOWNTIME + PERIOD */
 	else if(prTr && ((column == 1 && row % 4 != 0) || (column == 1 && row % 4 == 0))){ return; }                     /* GET OUT DOWNTIME + PERIOD + TR */
 	else if(column == 0 && periodV){ column++; }                                        /* ADJUST FOR DOWNTIME */
-			
+
 	/* ASSIGN CHILD NODES ACCORDING TO TIME SPANS */
 	if(row/4 != row2)
-	{ 
+	{
 		if((row - 1)/4 - row2 == 0)
 		{
-			timeFrame = " (2 Hours)"; pr = 3;  
+			timeFrame = " (2 Hours)"; pr = 3;
 		}
 		else if((row - 1)/4 - row2 == 0.25)
 		{
@@ -383,13 +440,13 @@ function showPopUpPeriod(hoveritem)
 			timeFrame = " (7 Days)"; pr = 1;
 		}
 	}
-	
+
 	/* CALCULATE ROW */
-	row = Math.floor(row/4); 
-	
+	row = Math.floor(row/4);
+
 	/* ADJUST COL IF IN PERIOD VIEW */
-	if(periodV){ column--; } 
-	
+	if(periodV){ column--; }
+
 	/* ADJUST COLS FOR PERIOD + TROUBLESHOOT VIEW */
 	if(prTr)
 	{
@@ -398,11 +455,11 @@ function showPopUpPeriod(hoveritem)
 		/* STAT IDLE */    else if(column == 5){ column = 2;}
 		/* REQ IDLE */     else if(column == 6){ column = 11;}
 		/* CM USER IDLE */ else if(column == 8){ column = 16; }
-		
+
 		/* DIFF COL 1 */ else if(column == 4){ diffCol = 1; dCol = 9; dCol2 = 17;}
 		/* DIFF COL 2 */ else if(column == 7){ diffCol = 2; dCol = 2; dCol2 = 11;}
 	}
- 	 
+
 	/* IF HOVER EXISTS REMOVE */
 	if(frontEndTable){ document.getElementById('hoverpopup').removeChild(frontEndTable);}
 
@@ -410,21 +467,21 @@ function showPopUpPeriod(hoveritem)
 	frontEndTable = document.createElement('table');
 	hover = document.getElementById("hoverpopup");
 	head = document.getElementById("header");
-    scrollDiv = document.getElementById("scroll"); 
-	
+    scrollDiv = document.getElementById("scroll");
+
 	/* IF NO FE's EXIST */
 	if(entry.childNodes[totChild].childNodes.length == 0)
 	{
 		/* POP UP TEXT CONTENTS */
 		nameTxtNode = document.createTextNode(tempTotalEntries[row].getAttribute("name"));
-		
+
 		if(!diffCol)
 			attTxtNode = document.createTextNode(exactColumns[column + 1] + timeFrame);
 		else if(diffCol == 1)
 			attTxtNode = document.createTextNode("Diff(Status: Running cores, Client: Registered cores) " + timeFrame);
 		else
 			attTxtNode = document.createTextNode("Diff(Status: Idle, Requested: Idle) " + timeFrame);
-			
+
 		NFE = document.createTextNode("No Frontends Exist");
 
 		/* BUILD POP UP TABLE */
@@ -432,15 +489,15 @@ function showPopUpPeriod(hoveritem)
 		{
 			tr = document.createElement('tr');
 			td = document.createElement('td');
-			if(i == 0)  td.appendChild(nameTxtNode); 
+			if(i == 0)  td.appendChild(nameTxtNode);
 			else if(i == 1) td.appendChild(attTxtNode);
-		    else td.appendChild(NFE); 
+		    else td.appendChild(NFE);
 			tr.appendChild(td);
 			frontEndTable.appendChild(tr);
 		}
 
 		hover.appendChild(frontEndTable);
-		
+
 		/* ADJUST POSITION AND VISIBILITY */
 		if(!prTr)
 			hover.style.top = head.offsetTop + hoveritem.offsetTop - 15 - scrollDiv.scrollTop + "px";
@@ -451,23 +508,23 @@ function showPopUpPeriod(hoveritem)
 		else
 			hover.style.left = hoveritem.offsetLeft - 70 + "px";
 		hover.style.visibility = "Visible";
-		return; 
+		return;
 	}
 
-	hover.appendChild(frontEndTable); 
-	tr1 = document.createElement('tr'); tr2 = document.createElement('tr'); 
+	hover.appendChild(frontEndTable);
+	tr1 = document.createElement('tr'); tr2 = document.createElement('tr');
 	td1 = document.createElement('td'); td2 = document.createElement('td');
 	td3 = document.createElement('td'); td4 = document.createElement('td');
 	cont = document.createTextNode(tempTotalEntries[row].getAttribute("name"));
-	
+
 	if(!diffCol)
 		cont2 = document.createTextNode(exactColumns[column + 1] + timeFrame);
 	else if(diffCol == 1)
 		cont2 = document.createTextNode("Diff(Status: Running cores, Client: Registered cores) " + timeFrame);
 	else
 		cont2 = document.createTextNode("Diff(Status: Idle, Requested: Idle) " + timeFrame);
-	
-	td1.appendChild(cont); 
+
+	td1.appendChild(cont);
 	td2.appendChild(cont2);
 	tr1.appendChild(td1);
 	tr2.appendChild(td2);
@@ -478,12 +535,12 @@ function showPopUpPeriod(hoveritem)
 
 	numFE = tempTotalEntries[row].childNodes[feChild].childNodes.length; /* How many front ends the specified entry has. */
 	ends = tempTotalEntries[row].childNodes[feChild];                    /* The front ends the specifed entry has. */
-	unsortedFE = new Array(); 
+	unsortedFE = new Array();
 	sortedFE = new Array();
 
 	/* FILL ARRAY WITH ENTRIES FE's */
-	for(i = 1; i < numFE; i+=2) unsortedFE.push(ends.childNodes[i]); 
-	
+	for(i = 1; i < numFE; i+=2) unsortedFE.push(ends.childNodes[i]);
+
 	/* SORT ENTRIES FE ORDER TO BE CONSISTENT */
 	for(i = 0; i< feArryMaster.length; i++)
 	{
@@ -491,7 +548,7 @@ function showPopUpPeriod(hoveritem)
 		{
 			if(feArryMaster[i].attributes[0].value == unsortedFE[j].attributes[0].value)
 			{
-				sortedFE.push(unsortedFE[j]); 	
+				sortedFE.push(unsortedFE[j]);
 			}
 		}
 	}
@@ -499,7 +556,7 @@ function showPopUpPeriod(hoveritem)
 	if(numFE == 0)
 	{
 		tr3 = document.createElement('tr');
-		td3 = document.createElement('td'); 
+		td3 = document.createElement('td');
 		cont3 = document.createTextNode("No Frontends Exist");
 		td3.appendChild(cont3);
 		tr3.appendChild(td3);
@@ -508,40 +565,40 @@ function showPopUpPeriod(hoveritem)
 	/* FE's EXIST */
 	else
 	{   i = 0;
-		x = 0; 
+		x = 0;
 		while(i < sortedFE.length)
-		{ 
+		{
 			if(pr)
 			{
 				for(j = 1; i < tempTotalEntriesP[row].childNodes[3].childNodes.length; j+=2)
 				{
 					if(tempTotalEntriesP[row].childNodes[3].childNodes[j].attributes[0].value == ("frontend_" + sortedFE[i].attributes[0].value))
 					{
-						prFEChild = j; break;  
+						prFEChild = j; break;
 					}
 				}
 			}
-			tr = document.createElement('tr'); 
-			td = document.createElement('td'); 
+			tr = document.createElement('tr');
+			td = document.createElement('td');
 			txt = document.createTextNode(sortedFE[i].attributes[0].value + ":");
 			td2 = document.createElement('td');
 
 			/* DOWNTIME */
 			if(column == 0)
 			{
-				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column]].value; 
+				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column]].value;
 				/* DOWN ARROW*/
 				if(y == "True")
 				{
 					if(periodV){ y = "&darr;"; tableP.rows[i].cells[1].style.color = "#B0171F";}
 					else if(prTr){ y = "&darr;"; trpr_Table.rows[i].cells[1].style.color = "#B0171F";}
-				} 
+				}
 				/* UP ARROW */
 				else
 				{
 					if(periodV){ y = "&uarr;"; tableP.rows[i].cells[1].style.color = "#008B00";}
 					else if(prTr){  y = "&uarr;"; trpr_Table.rows[i].cells[1].style.color = "#008B00";}
-				}          
+				}
 				txt2 = document.createTextNode("");
 				td2.innerHTML = y;
 			}
@@ -552,15 +609,15 @@ function showPopUpPeriod(hoveritem)
 				{
 					/* FIRST DIFF COL */
 					if(diffCol == 1)
-					{						
-						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[0]].attributes[xmlAttTotalNumArry[dCol]].value - 
+					{
+						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[0]].attributes[xmlAttTotalNumArry[dCol]].value -
 						sortedFE[i].childNodes[trFEChildArry[1]].attributes[xmlAttTotalNumArry[dCol2]].value);
-					
+
 					}
 					/* 2ND DIFF COL */
 					else
 					{
-						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[3]].attributes[xmlAttTotalNumArry[dCol]].value - 
+						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[3]].attributes[xmlAttTotalNumArry[dCol]].value -
 						sortedFE[i].childNodes[trFEChildArry[4]].attributes[xmlAttTotalNumArry[dCol2]].value);
 					}
 				}
@@ -573,7 +630,7 @@ function showPopUpPeriod(hoveritem)
 			/* STATUS */
 			else if(column < columnArrayDesc.Req.offset-1)
 			{
-				if(sortedFE[i].childNodes.length >= 7)				 
+				if(sortedFE[i].childNodes.length >= 7)
 				{
 					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column]].value);}
 					else{txt2 = document.createTextNode(Math.round(tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
@@ -581,7 +638,7 @@ function showPopUpPeriod(hoveritem)
 				}
 				else
 					txt2 = document.createTextNode(0);
-			} 
+			}
 			/* REQ */
 			else if(column >= columnArrayDesc.Req.offset-1 && column < columnArrayDesc.CM.offset-1)
 			{
@@ -595,7 +652,7 @@ function showPopUpPeriod(hoveritem)
 					txt2 = document.createTextNode(0);
 			}
 			/* CM */
-			else	
+			else
 			{
 				if(sortedFE[i].childNodes.length >= 3)
 				{
@@ -606,17 +663,17 @@ function showPopUpPeriod(hoveritem)
 				else
 					txt2 = document.createTextNode(0);
 			}
-			td.appendChild(txt); 
+			td.appendChild(txt);
 			tr.appendChild(td);
 			td2.appendChild(txt2);
-			td2.setAttribute('align', 'right');  
-			tr.appendChild(td2); 
-			frontEndTable.appendChild(tr); 
-			i++; 
-			if(i > 1) x++; 
-		}	
+			td2.setAttribute('align', 'right');
+			tr.appendChild(td2);
+			frontEndTable.appendChild(tr);
+			i++;
+			if(i > 1) x++;
+		}
 	}
-	
+
 	/* ADJUST POSITION & VISIBILITY OF POP UP */
 	hover.appendChild(frontEndTable);
 	if(tempTotalEntries[row].getAttribute("name").length > 26 && column == 15){hover.style.left = hoveritem.offsetLeft - 150 + "px";}
@@ -627,13 +684,13 @@ function showPopUpPeriod(hoveritem)
 		hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";
 	else
 		hover.style.top = head.offsetTop + hoveritem.offsetTop - 25 - (30 * x) - scrollDiv.scrollTop + "px";
-	hover.style.visibility = "Visible";	
+	hover.style.visibility = "Visible";
 }
 
 /* ONMOUSE OUT REMOVE POP UP */
 function hidePopUp()
 {
-	if(preFrontEndName != "Total" && preFrontEndName != "Any") return; 
+	if(preFrontEndName != "Total" && preFrontEndName != "Any") return;
 	hover = document.getElementById("hoverpopup");
 	hover.style.visibility = "Hidden";
 }
@@ -641,94 +698,94 @@ function hidePopUp()
 /* SHOW TIME DURING FILL IN TIME */
 function showTime()
 {
-	updated = updated[0].childNodes[1].attributes[3].value;	
-	document.getElementById("update").innerHTML= "XML last update:   " + updated; 	
+	updated = updated[0].childNodes[1].attributes[3].value;
+	document.getElementById("update").innerHTML= "XML last update:   " + updated;
 }
 
 /* RESTORE TO DEFAULT SORT */
 function sortAlphabetical()
-{	
+{
 	if(!sorted && !diffSorted){ return; } /* IF NOT SORTED RETURN */
-	trSortAsc = 0; diffSorted = 0; 
-	sorted = 0; currentSort; sortColNum = -2; 
-	sortSignal(); /* REMOVE COLORED COL */ 
-	
+	trSortAsc = 0; diffSorted = 0;
+	sorted = 0; currentSort; sortColNum = -2;
+	sortSignal(); /* REMOVE COLORED COL */
+
 	/* REMOVE TROUBLESHOOT TABLE */
 	if(troubleshoot){troubleshooting(); troubleshoot = 1;}
-	
+
 	/* REMOVE TR + PERIOD TABLE */
 	if(prTr){periodTrView(); prTr = 1;}
 
 	/* REMOVE PERIOD */
 	if(periodV){period(); periodV = 1;}
-	
+
 	/* TOTAL VIEW? */
 	if(frontEnd == 0)
 	{
 		/* Reset everything for regular table. */
 		totalEntries = totalEntriesMaster;
-		total = totalMaster; 
+		total = totalMaster;
 		totalEntriesP = totalEntriesPMaster;
-		totalP = totalPMaster; 
+		totalP = totalPMaster;
 		numberRows = totalEntries.length;
-		
+
 		/* ACIVE? */
 		if(active)
-		{	
-			active = 0; 
-			friend = troubleshoot; troubleshoot = 0; 
-			friend2 = periodV; periodV = 0; 
+		{
+			active = 0;
+			friend = troubleshoot; troubleshoot = 0;
+			friend2 = periodV; periodV = 0;
 			friend3 = prTr; prTr = 0;
-			selectActive(); 
-			troubleshoot = friend; 
-			periodV = friend2; 
-			prTr = friend3; 
-		} 
-		
+			selectActive();
+			troubleshoot = friend;
+			periodV = friend2;
+			prTr = friend3;
+		}
+
 		/* RESTORE DEFAULT TABLE */
 		fillIn();
-		
-		/* RESTORE PERIOD VIEW */ 
+
+		/* RESTORE PERIOD VIEW */
 		if(periodV){periodV = 0; period(); fillInPeriod();}
-		
+
 		/* RESTORE TR + PERIOD TABLE */
 		if(prTr){prTr = 0; periodTrView(); }
-		
+
 		/* RESTORE TROUBLESHOOT VIEW */
 		if(troubleshoot){ troubleshoot = 0; troubleshooting(); }
 	}
-	/* FE OR ANY VIEW */ 
-	else 
+	/* FE OR ANY VIEW */
+	else
 	{
-		friend = troubleshoot; troubleshoot = 0; 
+		friend = troubleshoot; troubleshoot = 0;
 		friend2= prTr; prTr = 0;
-		friend3 = periodV; periodV = 0; 
-		friend4 = active; active = 0; 
+		friend3 = periodV; periodV = 0;
+		friend4 = active; active = 0;
 		loadFrontEnd(nameLast);        /* LOAD CORRESPONDING FE (OR ANY) */
 		troubleshoot = friend;
-		prTr = friend2; 
-		periodV = friend3; 
-		active = friend4; 
-		
+		prTr = friend2;
+		periodV = friend3;
+		active = friend4;
+
 		/* LOAD ACTIVE ENTRIES */
 		if(active)
-		{	
-			active = 0; 
-			friend = troubleshoot; troubleshoot = 0; 
-			friend2 = periodV; periodV = 0; 
+		{
+			active = 0;
+			friend = troubleshoot; troubleshoot = 0;
+			friend2 = periodV; periodV = 0;
 			friend3 = prTr; prTr = 0;
-			selectActive(); 
-			troubleshoot = friend; 
+			selectActive();
+			troubleshoot = friend;
 			periodV = friend2;
-			prTr = friend3;  
-		} 
-		
-		/* RESTORE PERIOD VIEW */ 
+			prTr = friend3;
+		}
+
+		/* RESTORE PERIOD VIEW */
 		if(periodV){periodV = 0; period(); fillInPeriod();}
-		
+
 		/* RESTORE TR + PERIOD TABLE */
 		if(prTr){prTr = 0; periodTrView(); }
-		
+
 		/* RESTORE TROUBLESHOOT VIEW */
 		if(troubleshoot){ troubleshoot = 0; troubleshooting(); }
 	}
@@ -737,54 +794,54 @@ function sortAlphabetical()
 /* BUILD (FE's + ANY) DROP DOWN LIST */
 function makeList()
 {
-	feArry = new Array(); 
-    feArryMaster = feArry; 
-	
+	feArry = new Array();
+    feArryMaster = feArry;
+
 	/* REMOVE ALREADY MADE DROP DOWN LIST */
 	if(select) document.getElementById('tempList').removeChild(select);
 
 	select = document.createElement("select");
 	select.setAttribute('id','choose');
-	select.setAttribute("onchange", "loadFrontEnd(document.getElementById('choose').value)"); 
-	def = document.createElement("option"); 
+	select.setAttribute("onchange", "loadFrontEnd(document.getElementById('choose').value)");
+	def = document.createElement("option");
 	defTxt = document.createTextNode("Total (Default)");
-	any = document.createElement("option"); 
+	any = document.createElement("option");
 	anyTxt = document.createTextNode("Any");
-	def.appendChild(defTxt); 
-	select.appendChild(def); 
-	any.appendChild(anyTxt); 
-	select.appendChild(any); 
-	
+	def.appendChild(defTxt);
+	select.appendChild(def);
+	any.appendChild(anyTxt);
+	select.appendChild(any);
+
 	/* GO THROUGH ALL POSSIBLE FE's & GET ALL DIFFERENT FE's */
 	for(i = 0; i < frontEnds.length; i++)
 	{
 		if(i == 0)
 		{
-			feArry.push(frontEnds[i]); 
-			fe = document.createElement("option"); 
+			feArry.push(frontEnds[i]);
+			fe = document.createElement("option");
 			txt1 = frontEnds[i].getAttribute("name");
 			feTxt = document.createTextNode(txt1);
-			fe.appendChild(feTxt); 
-			select.appendChild(fe); 
-			continue; 	
+			fe.appendChild(feTxt);
+			select.appendChild(fe);
+			continue;
 		}
 		/* CHECK IF CURR FE ALREADY EXISTS */
 		for(j = 0; j < feArry.length; j++)
 		{
 			if(feArry[j].getAttribute("name") == frontEnds[i].getAttribute("name"))
 			{
-				break; 	
+				break;
 			}
 			if(j == (feArry.length - 1) && feArry[j].getAttribute("name") != frontEnds[i].getAttribute("name"))
 			{
-				feArry.push(frontEnds[i]); 
-				fe = document.createElement("option"); 
+				feArry.push(frontEnds[i]);
+				fe = document.createElement("option");
 				txt2[count] = frontEnds[i].getAttribute("name");
 				feTxt = document.createTextNode(txt2[count]);
-				fe.appendChild(feTxt);		
-				select.appendChild(fe); 
-				count++; 	
-				break; 
+				fe.appendChild(feTxt);
+				select.appendChild(fe);
+				count++;
+				break;
 			}
 		}
 	}
@@ -792,20 +849,20 @@ function makeList()
 	document.getElementById('tempList').appendChild(select);
 }
 
-/* CHECK FOR URL ARGUMENTS */ 
+/* CHECK FOR URL ARGUMENTS */
 function checkUrl()
 {
 	url = window.location.search;
 	contents = new Array();
-	ARGS = 0; 
-	pairsEqSplit = new Array(); 
-	 
+	ARGS = 0;
+	pairsEqSplit = new Array();
+
 	/* ARGUMENTS EXIST */
-	if(url) 
+	if(url)
 	{
-		url = url.substring(1); 
+		url = url.substring(1);
 		pairsAndSplit = url.split("&");
-	 
+
 	    for (i = 0; i < pairsAndSplit.length; i++)
 		{
         	pairsEqSplit[i] = pairsAndSplit[i].split("=");
@@ -824,11 +881,11 @@ function checkUrl()
 					/* FE VIEW */
 					for(z = 0; z < feArryMaster.length; z++)
 					{
-						if(ARGS[a+1].search(feArryMaster[z].getAttribute("name")) >= 0)	
+						if(ARGS[a+1].search(feArryMaster[z].getAttribute("name")) >= 0)
 						{
 							loadFrontEnd(feArryMaster[z].getAttribute("name"));
 							select.selectedIndex = z + 2;
-							troubleshoot = 0; 
+							troubleshoot = 0;
 						}
 					}
 					/* ANY VIEW */
@@ -840,16 +897,16 @@ function checkUrl()
 					/* ACTIVE */
 					if(ARGS[a+1].search(/active/i) >= 0)
 					{
-						active = 0; 
+						active = 0;
 						selectActive();
 						document.getElementById("active").checked = true;
 					}
 					/* PERIOD + TROUBLESHOOT */
 					if(ARGS[a+1].search(/period/i) >= 0 && ARGS[a+1].search(/troubleshoot/i) >= 0)
 					{
-						periodTrView(); 
+						periodTrView();
 						document.getElementById("period").checked = true;
-						document.getElementById("troubleshoot").checked = true; 
+						document.getElementById("troubleshoot").checked = true;
 					}
 					/* PERIOD */
 					else if(ARGS[a+1].search(/period/i) >= 0)
@@ -863,7 +920,7 @@ function checkUrl()
 						troubleshooting();
 						document.getElementById("troubleshoot").checked = true;
 					}
-					break; 
+					break;
 				}
 				/*
 				 * COLUMN SORT CONDITIONALS------------------------------------------------------------------------------
@@ -872,8 +929,8 @@ function checkUrl()
 				{
 					for(l = 0; l < columnArray.length; l++)
 					{
-						ARGS[a+1] = ARGS[a+1].toLowerCase(); 
-						
+						ARGS[a+1] = ARGS[a+1].toLowerCase();
+
 						/* NORMAL COLUMN SORT */
 						if(ARGS[a+1].search(columnArray[l].toLowerCase()) >= 0)
 						{
@@ -882,202 +939,202 @@ function checkUrl()
 							if(troubleshoot)
 							{
 								troubleshooting();
-								troubleshoot = 1;  
+								troubleshoot = 1;
 							}
 							/* REMOVE PERIOD + TROUBLESHOOT VIEW */
 							if(prTr){periodTrView(); prTr = 1;}
 							friend = periodV; periodV = 0;
 							sortTableDescending(l);
-							periodV = friend; 
+							periodV = friend;
 							if(troubleshoot)
 							{
-								troubleshoot = 0; 
-								troubleshooting(); 
+								troubleshoot = 0;
+								troubleshooting();
 								trSortSignal(trSortColNum);
 							}
 							if(prTr)
 							{
-								prTr = 0; 
-								periodTrView(); 
+								prTr = 0;
+								periodTrView();
 								trSortSignal(trSortColNum);
 							}
 							if(periodV){periodV = 0; period(); fillInPeriod();} /* Put period table back. */
-							return;   
+							return;
 						}
 						/* DIFFERENCE COLUMN SORT */
 						else
 						{
 							if(troubleshoot || prTr)
-							{				
+							{
 								if(ARGS[a + 1] == "diff(status:running,client:registered)")
 								{
 									sortTrCol("Diff(Status: Running, Client: Registered)");
 									trSortSignal(4 + prTr); /* +1 FOR EXTRA PERIOD COL */
-									return; 	
+									return;
 								}
 								else if(ARGS[a + 1] == "diff(status:idle,requested:idle)")
 								{
 									sortTrCol("Diff(Status: Idle, Requested: Idle)");
 									trSortSignal(7 + prTr); /* +1 FOR EXTRA PERIOD COL */
-									return; 	
+									return;
 								}
 							}
 						}
 					}
 				}
-			}			
+			}
 		}
 	}
-} 
+}
 
 /* CHANGE TO A FRONT END OR ANY VIEW */
 function loadFrontEnd(name)
 {
-	frontEndName = name; 
+	frontEndName = name;
 	preFrontEndName = name;
-	currChild = 1; 
-	diffHold = diffSorted; 
+	currChild = 1;
+	diffHold = diffSorted;
 
 	/* REMOVE PERIOD VIEW */
 	if(periodV){temp = sorted; sorted = 0; period(); periodV = 1; sorted = temp;}
-	
-	/* REMOVE TROUBLESHOOT VIEW */ 
+
+	/* REMOVE TROUBLESHOOT VIEW */
 	if(troubleshoot){temp = sorted; sorted = 0; troubleshooting(); troubleshoot = 1; sorted = temp;}
-	
-	/* REMOVE TROUBLESHOOT + PERIOD VIEW */ 
+
+	/* REMOVE TROUBLESHOOT + PERIOD VIEW */
 	if(prTr){temp = sorted; sorted = 0; periodTrView(); prTr = 1; sorted = temp;}
-	
-	diffSorted = diffHold; 
-	
+
+	diffSorted = diffHold;
+
 	/* HARD CODE FOR DESCENDING SORT PURPOSES */
 	if(diffSorted)
 	{
-		diffSorted = 1; 	
+		diffSorted = 1;
 	}
-	
+
 	/* CHANGE BACK TO TOTAL VIEW  */
 	if(name == "Total (Default)")
 	{
 		/* RESET */
-		childView = null;  
-		preFrontEndName = "Total"; 
-		totalEntries = totalEntriesMaster; 
+		childView = null;
+		preFrontEndName = "Total";
+		totalEntries = totalEntriesMaster;
 		total = totalMaster;
-		totalEntriesP = totalEntriesPMaster; 
+		totalEntriesP = totalEntriesPMaster;
 		totalP = totalPMaster;
 		numberRows = totalEntries.length;
- 		makeTable(); 
+ 		makeTable();
 		frontEnd = 0;
-		
+
 		/* ASCENDING SORT */
 		if(sorted == 1 && currentSort == "ascending")
 		{
 			tableMade = 0;
-			sorted = 0; 
+			sorted = 0;
 			if(active)
-			{	
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
-				friend2 = periodV; periodV = 0; 
-				friend3 = prTr; prTr = 0; 
-				selectActive(); 
-				troubleshoot = friend; 
-				periodV = friend2; 
-				prTr = friend3; 
-			} 
-			friend = periodV; 
-			periodV = 0; 
-			sortTableDescending(sortColNum); 
+			{
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
+				friend2 = periodV; periodV = 0;
+				friend3 = prTr; prTr = 0;
+				selectActive();
+				troubleshoot = friend;
+				periodV = friend2;
+				prTr = friend3;
+			}
+			friend = periodV;
+			periodV = 0;
+			sortTableDescending(sortColNum);
 			sortTableAscending(sortColNum);
-			periodV = friend; 
+			periodV = friend;
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(troubleshoot)
 			{
-				troubleshoot = 0; 	
-				troubleshooting(); 
+				troubleshoot = 0;
+				troubleshooting();
 			}
 			/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 			if(prTr)
 			{
-				prTr = 0; 	
-				periodTrView(); 
+				prTr = 0;
+				periodTrView();
 			}
 			/* RESTORE PERIOD VIEW */
 			if(periodV){periodV = 0; period();}
 			sortSignal();
-			return; 
+			return;
 		}
 		/* DESCENDING SORT */
 		else if(sorted == 1 && currentSort == "descending")
 		{
 			if(active)
-			{	
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
-				friend2 = periodV; periodV = 0; 
-				friend3 = prTr; prTr = 0; 
-				selectActive(); 
-				troubleshoot = friend; 
+			{
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
+				friend2 = periodV; periodV = 0;
+				friend3 = prTr; prTr = 0;
+				selectActive();
+				troubleshoot = friend;
 				periodV = friend2;
-				prTr = friend3; 
+				prTr = friend3;
 			}
 			tableMade = 0;
 			sorted = 0;
 			friend = periodV;
-			periodV = 0; 
-			sortTableDescending(sortColNum); 
-			periodV = friend; 
+			periodV = 0;
+			sortTableDescending(sortColNum);
+			periodV = friend;
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(troubleshoot)
 			{
-				troubleshoot = 0; 	
-				troubleshooting(); 
-			} 
+				troubleshoot = 0;
+				troubleshooting();
+			}
 			/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 			if(prTr)
 			{
-				prTr = 0; 	
-				periodTrView(); 
+				prTr = 0;
+				periodTrView();
 			}
 			/* RESTORE PERIOD VIEW */
 			if(periodV){periodV = 0; period();}
 			sortSignal();
-			return; 
+			return;
 		}
-		else 
-		{	
+		else
+		{
 			/* SET UP ACCORDING TO ACTIVE VIEW */
-			if(active) 
-			{	
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
-				friend2 = periodV; periodV = 0; 
+			if(active)
+			{
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
+				friend2 = periodV; periodV = 0;
 				friend3 = prTr; prTr = 0;
-				diffHolder = diffSorted; diffSorted = 0;   
-				selectActive(); 
-				troubleshoot = friend; 
+				diffHolder = diffSorted; diffSorted = 0;
+				selectActive();
+				troubleshoot = friend;
 				periodV = friend2;
 				prTr = friend3;
-				
+
 				/* RESTORE TROUBLESHOOT VIEW */
 				if(troubleshoot)
 				{
-					troubleshoot = 0;	
-					troubleshooting(); 
+					troubleshoot = 0;
+					troubleshooting();
 				}
 				/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 				if(prTr)
 				{
 					prTr = 0;
-					periodTrView(); 
-				}  
-				
-				diffSorted = diffHolder; 
-				
+					periodTrView();
+				}
+
+				diffSorted = diffHolder;
+
 				/* SORT DIFF COLUMNS */
 				if(diffSorted)
 				{
-					diffSorted--; 
+					diffSorted--;
 					if(diffColNum == 1)
 					{
 						sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -1087,32 +1144,32 @@ function loadFrontEnd(name)
 						sortTrCol("Diff(Status: Idle, Requested: Idle)");
 					}
 				}
-				
+
 			}
-			else 
+			else
 			{
-				fillIn(); 
-				diffHold = diffSorted; diffSorted = 0;   
-				
+				fillIn();
+				diffHold = diffSorted; diffSorted = 0;
+
 				/* RESTORE TROUBLESHOOT VIEW */
 				if(troubleshoot)
 				{
-					troubleshoot = 0;	
-					troubleshooting(); 
+					troubleshoot = 0;
+					troubleshooting();
 				}
 				/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 				if(prTr)
 				{
 					prTr = 0;
-					periodTrView(); 
-				}  
-				
-				diffSorted = diffHold; 
-				
+					periodTrView();
+				}
+
+				diffSorted = diffHold;
+
 				/* SORT DIFF COLUMNS */
 				if(diffSorted)
 				{
-					diffSorted--; 
+					diffSorted--;
 					if(diffColNum == 1)
 					{
 						sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -1127,37 +1184,37 @@ function loadFrontEnd(name)
 	}
 	else /* FRONTEND OR ANY */
 	{
-   		nameLast = name; 
+   		nameLast = name;
 		feEntries = new Array();
 		feTotal = new Array();
 		feEntriesP = new Array();
 		feTotalP = new Array();
-		
+
 		/* RESET EVERYTHING  */
-		totalEntries = totalEntriesMaster; 
-		total = totalMaster; 
-		totalEntriesP = totalEntriesPMaster; 
-		totalP = totalPMaster; 
-		tableMade = 0; 
-				
-		/* CREATE ANY VIEW */  
+		totalEntries = totalEntriesMaster;
+		total = totalMaster;
+		totalEntriesP = totalEntriesPMaster;
+		totalP = totalPMaster;
+		tableMade = 0;
+
+		/* CREATE ANY VIEW */
 		if(name == "Any")
 		{
-			childView = null; 
+			childView = null;
 			for(i = 0; i< totalEntries.length; i++)
 			{
 				if(totalEntries[i].childNodes[feChild].childNodes.length > 1)
 				{
 					if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes.length > 0)
 					{
-						feEntries.push(totalEntries[i]); 
+						feEntries.push(totalEntries[i]);
 						feTotal.push(total[i]);
-						feEntriesP.push(totalEntriesP[i]); 
-						feTotalP.push(totalP[i]); 
+						feEntriesP.push(totalEntriesP[i]);
+						feTotalP.push(totalP[i]);
 					}
 				}
-			}			
-		}	
+			}
+		}
 		else /* VIEW SPECIFIED FRONTEND */
 		{
 			for(i = 0; i< totalEntries.length; i++)
@@ -1167,16 +1224,16 @@ function loadFrontEnd(name)
 					for(j = 1; j< totalEntries[i].childNodes[feChild].childNodes.length; j+=2)
 					{
 						if(totalEntries[i].childNodes[feChild].childNodes[j].getAttribute("name") == name)
-						{	
-							childView = j; 
-							feEntries.push(totalEntries[i]); 
-							feTotal.push(totalEntries[i].childNodes[feChild].childNodes[j]); 
+						{
+							childView = j;
+							feEntries.push(totalEntries[i]);
+							feTotal.push(totalEntries[i].childNodes[feChild].childNodes[j]);
 							feEntriesP.push(totalEntriesP[i]);
 							feTotalP.push(totalEntriesP[i].childNodes[3].childNodes[j]);
 						}
 					}
 				}
-			}			
+			}
 		}
 
 		frontEnd = 1;
@@ -1186,128 +1243,128 @@ function loadFrontEnd(name)
 		total = feTotal;
 		feTotalP.push(1);
 		totalP = feTotalP;
-		numberRows = totalEntries.length; 
+		numberRows = totalEntries.length;
 		count = 0;
-		
+
 		/* ASCENDING SORT */
 		if(sorted == 1 && currentSort == "ascending")
 		{
-			sorted = 0; 
+			sorted = 0;
 			currentSort;
-			makeTable(); 
-			/* ACTIVE VIEW */ 
+			makeTable();
+			/* ACTIVE VIEW */
 			if(active)
-			{	
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
+			{
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
 				friend2 = periodV; periodV = 0;
-				friend3 = prTr; prTr = 0; 
-				selectActive(); 
-				troubleshoot = friend; 
-				periodV = friend2; 
-				prTr = friend3; 
+				friend3 = prTr; prTr = 0;
+				selectActive();
+				troubleshoot = friend;
+				periodV = friend2;
+				prTr = friend3;
 			}
-			friend = periodV; 
+			friend = periodV;
 			periodV = 0;
-			sortTableDescending(sortColNum); 
+			sortTableDescending(sortColNum);
 			sortTableAscending(sortColNum);
-			periodV = friend; 
-			
+			periodV = friend;
+
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(troubleshoot)
 			{
-				troubleshoot = 0; 	
-				troubleshooting(); 
+				troubleshoot = 0;
+				troubleshooting();
 			}
 			/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 			if(prTr)
 			{
-				prTr = 0; 	
-				periodTrView(); 
+				prTr = 0;
+				periodTrView();
 			}
 			/* Restore period table. */
 			if(periodV){periodV = 0; period();}
 			sortSignal();
-			return;   	
+			return;
 		}
 		/* DESCENDING SORT */
 		else if(sorted == 1 && currentSort == "descending")
 		{
-			sorted = 0; 
+			sorted = 0;
 			currentSort;
 			makeTable();
 
 			/* ACTIVE VIEW */
 			if(active)
-			{	
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
-				friend2 = periodV; periodV = 0; 
-				friend3 = prTr; prTr = 0; 
-				selectActive(); 
-				troubleshoot = friend; 
-				periodV = friend2; 
-				prTr = friend3; 
+			{
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
+				friend2 = periodV; periodV = 0;
+				friend3 = prTr; prTr = 0;
+				selectActive();
+				troubleshoot = friend;
+				periodV = friend2;
+				prTr = friend3;
 			}
 
-			friend = periodV; 
-			periodV = 0; 
-			sortTableDescending(sortColNum); 
-			periodV = friend; 
-			
+			friend = periodV;
+			periodV = 0;
+			sortTableDescending(sortColNum);
+			periodV = friend;
+
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(troubleshoot)
-			{	
-				troubleshoot = 0; 	
-				troubleshooting(); 
-			} 	
-			
+			{
+				troubleshoot = 0;
+				troubleshooting();
+			}
+
 			/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 			if(prTr)
 			{
-				prTr = 0; 	
-				periodTrView(); 
-			}		
+				prTr = 0;
+				periodTrView();
+			}
 			/* RESTORE PERIOD VIEW */
 			if(periodV){periodV = 0; period();}
 			sortSignal();
-			return; 
+			return;
 		}
-		else 
+		else
 		{
 			/* SETUP ACCORDING TO ACTIVE ENTRIES */
 			if(active)
 			{
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
-				friend2 = periodV; periodV = 0; 
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
+				friend2 = periodV; periodV = 0;
 				friend3 = prTr; prTr = 0;
-				diffHolder = diffSorted; diffSorted = 0; 
-				selectActive(); 
-				troubleshoot = friend; 
-				periodV = friend2; 
-				prTr = friend3; 
-				
+				diffHolder = diffSorted; diffSorted = 0;
+				selectActive();
+				troubleshoot = friend;
+				periodV = friend2;
+				prTr = friend3;
+
 				/* RESTORE TROUBLESHOOT VIEW */
 				if(troubleshoot)
 				{
-					troubleshoot = 0;	
-					troubleshooting(); 
+					troubleshoot = 0;
+					troubleshooting();
 				}
-			
+
 				/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 				if(prTr)
 				{
 					prTr = 0;
-					periodTrView(); 
-				}  
-				
-				diffSorted = diffHolder; 
-				
+					periodTrView();
+				}
+
+				diffSorted = diffHolder;
+
 				/* SORT DIFF COLUMNS */
 				if(diffSorted)
 				{
-					diffSorted--; 
+					diffSorted--;
 					if(diffColNum == 1)
 					{
 						sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -1317,34 +1374,34 @@ function loadFrontEnd(name)
 						sortTrCol("Diff(Status: Idle, Requested: Idle)");
 					}
 				}
-				
+
 				/* RESTORE PERIOD VIEW */
 				if(periodV){periodV = 0; period(); }
-				return; 	
+				return;
 			}
 			fillIn();
 		}
-		diffHold = diffSorted; diffSorted = 0;   
-				
+		diffHold = diffSorted; diffSorted = 0;
+
 		/* RESTORE TROUBLESHOOT VIEW */
 		if(troubleshoot)
 		{
-			troubleshoot = 0;	
-			troubleshooting(); 
+			troubleshoot = 0;
+			troubleshooting();
 		}
 		/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 		if(prTr)
 		{
 			prTr = 0;
-			periodTrView(); 
-		}  
-		
-		diffSorted = diffHold; 
-		
+			periodTrView();
+		}
+
+		diffSorted = diffHold;
+
 		/* SORT DIFF COLUMNS */
 		if(diffSorted)
 		{
-			diffSorted--; 
+			diffSorted--;
 			if(diffColNum == 1)
 			{
 				sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -1361,32 +1418,32 @@ function loadFrontEnd(name)
 
 /* UPDATE XML's */
 function updateTable()
-{ 
-	updating = 1; 
-	loadXMLRRD(); 
+{
+	updating = 1;
+	loadXMLRRD();
 }
 
 /* NAVIGATE TO PAGE FOR SPECiFIC ENTRY */
 function entryClick(entry)
 {
 	entryName = entry;
-	entryName = entryName.childNodes[0].wholeText; 
-	document.location.href = "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryEntryStatusNow.html?view=" + entryName; 
+	entryName = entryName.childNodes[0].wholeText;
+	document.location.href = "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryEntryStatusNow.html?view=" + entryName;
 }
 
-/* FILL IN DEFAULT TABLE */ 
+/* FILL IN DEFAULT TABLE */
 function fillIn()
 {
 	problem = 0;
 	linkCount = 0;
-	currChild = 1; 
-	  
+	currChild = 1;
+
 	if(!tableMade) makeTable(); /* MAKE TABLE IF NOT ALREADY MADE */
-	
+
 	if(!listMade) makeList(); 	/* MAKE LIST IF NOT ALREADY MADE */
 
-	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")"; 
-	var table = document.getElementById("table"); 
+	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")";
+	var table = document.getElementById("table");
 
 	/* FILL IN ENTRY NAMES */
 	for( i = 0; i< numberRows; i++)
@@ -1394,30 +1451,32 @@ function fillIn()
 		y = totalEntries[i].getAttribute("name");
 		display_y = y;
 		/* IF NAME DOESNT FIT */
-		if(y.length >= 32){display_y = y.substring(0, 27); display_y = display_y + "...";} 
+		if(y.length >= 32){display_y = y.substring(0, 27); display_y = display_y + "...";}
 		table.rows[i].cells[0].innerHTML = "";
 		links[i] = document.createElement('a');
-		links[i].setAttribute("id", "entryLinks"); 
+		links[i].setAttribute("id", "entryLinks");
 		links[i].innerHTML = display_y;
-		links[i].setAttribute("onbrowseover", "showEntryName()"); 
-		links[i].setAttribute("onbrowseover", "hideEntryName()"); 
+		links[i].setAttribute("onbrowseover", "showEntryName()");
+		links[i].setAttribute("onbrowseover", "hideEntryName()");
+		links[i].setAttribute("onmouseover", "showPopUpSubEntries(this, '" + y +"')");
+		links[i].setAttribute("onmouseout", "hidePopUpSubEntries()");
 		links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
 		links[i].setAttribute("onclick", "entryClick(this)");
-		table.rows[i].cells[0].appendChild(links[i]); 
+		table.rows[i].cells[0].appendChild(links[i]);
 	}
-	
+
 	/* FILL IN 0's FOR EMPTY ENTRIES */
 	for(j = columnArrayDesc.Status.offset; j < columnArrayDesc.length; j++)
-	{	
+	{
 		for(i = 0; i< total.length - 1; i++)
 		{
 			if(total[i].childNodes.length == 0)
 			{
-				table.rows[i].cells[j].innerHTML = "0";					
-			}	
+				table.rows[i].cells[j].innerHTML = "0";
+			}
 		}
 	}
-		
+
 	/* FILL DOWNTIME FIELDS */
 	for(var i = 0; i< totalEntries.length; i++)
 	{
@@ -1427,16 +1486,16 @@ function fillIn()
 		}
 		else
 			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
-		
+
 		if(item == "True"){ item = "&darr;"; table.rows[i].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; table.rows[i].cells[1].style.color = "#008B00";  }            /* UP ARROW */
-		table.rows[i].cells[columnArrayDesc.DT.offset].innerHTML = item; 
+		table.rows[i].cells[columnArrayDesc.DT.offset].innerHTML = item;
 	}
-	
-	/* 
-	 * FILL STATUS FIELDS  
+
+	/*
+	 * FILL STATUS FIELDS
 	 */
-	for(var counter = 0; counter < columnArrayDesc.Status.length; counter++) 
+	for(var counter = 0; counter < columnArrayDesc.Status.length; counter++)
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
@@ -1448,19 +1507,19 @@ function fillIn()
 				}
 				else
 					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter]].value;
-				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = item; 
+				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = item;
 			}
 			else
 			{
-				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0;
 			}
-		}	
+		}
  	}
-	
+
 	/*
-	 * FILL REQUESTED FIELDS 
+	 * FILL REQUESTED FIELDS
 	 */
-	for(var counter = 0; counter < columnArrayDesc.Req.length; counter++) 
+	for(var counter = 0; counter < columnArrayDesc.Req.length; counter++)
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
@@ -1468,26 +1527,26 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value; 
+					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value;
 				}
 				else
-					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value; 
-				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = item; 
+					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value;
+				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = item;
 			}
 			else
 			{
-				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0;
 			}
 		}
 	}
-	
-	/* 
-     * FILL CM FIELDS  
+
+	/*
+     * FILL CM FIELDS
  	 */
 	for(var counter = 0; counter < columnArrayDesc.CM.length; counter++)
 	{
 		for(i = 0; i< totalEntries.length; i++)
-		{	
+		{
 			if(total[i].childNodes.length >= 3 && total[i].childNodes.length != 0)
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
@@ -1496,11 +1555,11 @@ function fillIn()
 				}
 				else
 					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;
-				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = item; 
+				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = item;
 			}
 			else
 			{
-				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0; 
+				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0;
 			}
 		}
 	}
@@ -1517,33 +1576,33 @@ function loadXMLRRD()
 	{
 		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 	}
-		
+
 	xmlhttp.onreadystatechange=function()
 	{
-		if(xmlhttp.readyState==4) 
+		if(xmlhttp.readyState==4)
     	{
 			/* RESET */
-			xmlAttStatNumArry = new Array(); 
-			xmlAttReqNumArry = new Array(); 
-			xmlAttCMNumArry = new Array(); 
-			xmlAttDTNumArry = new Array(); 
-			FExmlAttStatNumArry = new Array(); 
-			FExmlAttReqNumArry = new Array(); 
+			xmlAttStatNumArry = new Array();
+			xmlAttReqNumArry = new Array();
+			xmlAttCMNumArry = new Array();
+			xmlAttDTNumArry = new Array();
+			FExmlAttStatNumArry = new Array();
+			FExmlAttReqNumArry = new Array();
 			FExmlAttCMNumArry = new Array();
 			xmlAttPeriodNumArry = new Array();
 			xmlAttTotalNumArry = new Array();
-			
+
 			/* GET ALL NECESSARY INFO FROM RRD XML */
 			totalEntriesPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
-			totalPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
-			frontEndsP = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
+			totalPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");
+			frontEndsP = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend");
 			totalEntriesP = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
-			totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total"); 
-			loadXMLDoc(); 
-			
+			totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total");
+			loadXMLDoc();
+
 			/* FIND ALL CORRESPONDING ATTRIBUTES LOCATIONS */
 			for(i = 0; i < totalEntriesP.length; i++)
-			{	
+			{
 				/* IF ENTRY IS NOT EMPTY */
 				if(totalP[i].childNodes[1].childNodes[1].attributes.length > 1)
 				{
@@ -1554,11 +1613,11 @@ function loadXMLRRD()
 						{
 							if(xmlAttPeriodArry[j] == totalP[i].childNodes[1].childNodes[1].attributes[z].name)
 							{
-								xmlAttPeriodNumArry.push(z); break;  	
+								xmlAttPeriodNumArry.push(z); break;
 							}
-						}	
+						}
 					}
-					break; 
+					break;
 				}
 			}
 		}
@@ -1567,9 +1626,9 @@ function loadXMLRRD()
 	xmlhttp.send(null);
 }
 
-/* LOAD SCHEDD_STATUS */ 
+/* LOAD SCHEDD_STATUS */
 function loadXMLDoc()
-{	
+{
 	if(window.XMLHttpRequest)
 	{
 		xmlhttp=new XMLHttpRequest();
@@ -1578,34 +1637,35 @@ function loadXMLDoc()
 	{
 		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 	}
-	  
+
 	xmlhttp.onreadystatechange=function()
-	{	
+	{
 		if(!active) document.getElementById("active").checked = false; /* Reset active check box. */
 		if(!updating && !period && !prTr) document.getElementById("period").checked = false; /* Reset troubleshoot box. */
 		if(!updating && !troubleshoot && !prTr) document.getElementById("troubleshoot").checked = false; /* Reset troubleshoot box. */
 		if(!periodV && !prTr) document.getElementById("period").checked = false; /* Reset active check box. */
-		
-		if(xmlhttp.readyState==4)  
+
+		if(xmlhttp.readyState==4)
     	{
 			/* RESET PERIOD */
 			if(periodV){ period(); periodV = 1;}
-			 
-			/* GET ALL NECESSARY INFO FROM THE XML */ 
-			updated = xmlhttp.responseXML.documentElement.getElementsByTagName("updated"); 
-			showTime(); 
+
+			/* GET ALL NECESSARY INFO FROM THE XML */
+			updated = xmlhttp.responseXML.documentElement.getElementsByTagName("updated");
+			showTime();
 			totalEntriesMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
-			totalMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
-			frontEnds = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
+			totalMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");
+			frontEnds = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend");
 			totalEntries = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
-			total = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
-			totalEntriesHold = totalEntries; 
+			statusEntries = xmlhttp.responseXML.documentElement.getElementsByTagName("StatusEntries");
+			total = xmlhttp.responseXML.documentElement.getElementsByTagName("total");
+			totalEntriesHold = totalEntries;
 			numberRows = totalEntries.length;
 			totalHold = total;
-			
+
 			/*
-			 * FIND CHILD NODE # FOR TOTAL, FE, DOWNTIME 
-			 */ 
+			 * FIND CHILD NODE # FOR TOTAL, FE, DOWNTIME
+			 */
 			for(i = 0; i < totalEntries.length; i++)
 			{
 				if(total[i].childNodes.length != 7){continue;} /* ALL THREE ATT's MUST BE PRESENT */
@@ -1613,25 +1673,25 @@ function loadXMLDoc()
 				{
 					if(totalEntries[i].childNodes[m].tagName == "total")
 					{
-						totChild = m; 
-						continue; 
+						totChild = m;
+						continue;
 					}
 					else if(totalEntries[i].childNodes[m].tagName == "frontends")
 					{
 						feChild = m;
-						continue;  
+						continue;
 					}
 					else if(totalEntries[i].childNodes[m].tagName == "downtime")
 					{
 						dtChild = m;
-						continue;  
+						continue;
 					}
 				}
 				if(totChild && feChild && dtChild)
 				{
-					break; 	
+					break;
 				}
-			} 
+			}
 
 			/* TOTAL */
 			for(i = 0; i < totalEntries.length; i++)
@@ -1643,21 +1703,21 @@ function loadXMLDoc()
 					{
 						if(totalEntries[i].childNodes[totChild].childNodes[k].tagName == "Status")
 						{
-							totStatChild = k; 
+							totStatChild = k;
 						}
 						else if(totalEntries[i].childNodes[totChild].childNodes[k].tagName == "ClientMonitor")
 						{
-							totCMChild = k; 	
+							totCMChild = k;
 						}
 						else if(totalEntries[i].childNodes[totChild].childNodes[k].tagName == "Requested")
 						{
-							totReqChild = k; 	
+							totReqChild = k;
 						}
 					}
-					break; 
-				}	
+					break;
+				}
 			}
-		 
+
 		 	/* FRONTEND */
 			for(i = 0; i < totalEntries.length; i++)
 			{
@@ -1668,183 +1728,183 @@ function loadXMLDoc()
 					{
 						if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "Status")
 						{
-							feStatChild = k; 
+							feStatChild = k;
 						}
 						else if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "ClientMonitor")
 						{
-							feCMChild = k; 	
+							feCMChild = k;
 						}
 						else if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "Requested")
 						{
-							feReqChild = k; 	
+							feReqChild = k;
 						}
 						else if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "Downtime")
 						{
-							feDTChild = k; 	
+							feDTChild = k;
 						}
 					}
-					break; 
-				}	
+					break;
+				}
 			}
-			
+
 			/* DOWNTIME ATTRIBUTES*/
 			for(i = 0; i < totalEntries.length; i++)
 			{
 				for(j = 0; j < xmlAttDTArry.length; j++)
-				{     
+				{
 					//alert(totalEntries[i].childNodes.item(dtChild).wholeText)
 					for(z = 0; z < totalEntries[i].childNodes.item(dtChild).attributes.length; z++)
 					{
 						if(xmlAttDTArry[j].toLowerCase() == totalEntries[i].childNodes.item(dtChild).attributes[z].name.toLowerCase())
 						{
-							xmlAttDTNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+							xmlAttDTNumArry.push(z); xmlAttTotalNumArry.push(z); break;
 						}
-					}	
+					}
 				}
-				break; 
+				break;
 			}
-			
+
 			/* TOTAL ATTRIBUTES (FE ATTS ARE SAME) */
 			for(i = 0; i < totalEntries.length; i++)
-			{	
+			{
 				if(total[i].childNodes.length != 7){continue;} /* If entry does not have all three attributes. */
 				if(total[i].childNodes.length != 0)
 				{
 					for(j = 0; j < xmlAttStatusArry.length; j++)
 					{
 						/*
-						 * Find corresponding STATUS attributes. 
+						 * Find corresponding STATUS attributes.
 						 */
 						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
 						{
 							if(xmlAttStatusArry[j] == total[i].childNodes[totStatChild].attributes[z].name)
 							{
-								xmlAttStatNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+								xmlAttStatNumArry.push(z); xmlAttTotalNumArry.push(z); break;
 							}
-						}	
+						}
 					}
 					for(j = 0; j < xmlAttReqArry.length; j++)
 					{
 						/*
-						 * Find corresponding REQ attributes. 
+						 * Find corresponding REQ attributes.
 						 */
 						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
 						{
 							if(xmlAttReqArry[j] == total[i].childNodes[totReqChild].attributes[z].name)
 							{
-								xmlAttReqNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+								xmlAttReqNumArry.push(z); xmlAttTotalNumArry.push(z); break;
 							}
 						}
 					}
 					for(j = 0; j < xmlAttCMArry.length; j++)
 					{
 						/*
-						 * Find corresponding CM attributes. 
+						 * Find corresponding CM attributes.
 						 */
 						for(z = 0; z < total[i].childNodes[totCMChild].attributes.length; z++)
 						{
 							if(xmlAttCMArry[j] == total[i].childNodes[totCMChild].attributes[z].name)
 							{
-								xmlAttCMNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+								xmlAttCMNumArry.push(z); xmlAttTotalNumArry.push(z); break;
 							}
 						}
 					}
-					break; 
+					break;
 				}
 			}
-			
+
 			/* UPDATE BUTTON */
 			if(updating == 1)
 			{
-				diffH = diffSorted; diffSorted = 0; 
-				
+				diffH = diffSorted; diffSorted = 0;
+
 				/* REMOVE TROUBLESHOOT VIEW */
 				if(troubleshoot)
 				{
-					troubleshooting(); 
-					troubleshoot = 1; 
+					troubleshooting();
+					troubleshoot = 1;
 				}
-				
+
 				/* REMOVE PERIOD + TROUBLESHOOT */
 				if(prTr){periodTrView(); prTr = 1;}
-				
-				diffSorted = diffH; 
-				
+
+				diffSorted = diffH;
+
 				/* DESCENDING SORT */
 				if(sorted != 0 && currentSort == 'descending' && frontEnd == 0)
-				{ 
+				{
 					currentSort;
 					sorted = 0;
 					updating = 0;
 					if(active)
-					{	
-						active = 0; 
-						friend = troubleshoot; troubleshoot = 0; 
+					{
+						active = 0;
+						friend = troubleshoot; troubleshoot = 0;
 						friend2 = periodV; periodV = 0;
-						friend3 = prTr; prTr = 0;  
-						selectActive(); 
-						troubleshoot = friend; 
-						periodV = friend2; 
-						prTr = friend3; 
-						document.getElementById("active").checked = true; 
-					} 
+						friend3 = prTr; prTr = 0;
+						selectActive();
+						troubleshoot = friend;
+						periodV = friend2;
+						prTr = friend3;
+						document.getElementById("active").checked = true;
+					}
 					else
 					{
 						makeTable();
 					}
-					tableMade = 0;  
-					friend = periodV; periodV = 0; 
-					friend2 = prTr; prTr = 0; 
+					tableMade = 0;
+					friend = periodV; periodV = 0;
+					friend2 = prTr; prTr = 0;
 					sortTableDescending(sortColNum);
-					prTr = friend2; 
-					periodV = friend;  
+					prTr = friend2;
+					periodV = friend;
 					;
 					if(troubleshoot)
 					{
-						troubleshoot = 0; 
+						troubleshoot = 0;
 						troubleshooting();
 					}
 					if(prTr){ prTr = 0; periodTrView(); }
 					if(periodV){periodV = 0; period();} /* Return to period view. */
-					return; 
+					return;
 				}
 				/* ASCENDING SORT */
 				else if(sorted != 0 && currentSort == 'ascending' && frontEnd == 0)
 				{
 					currentSort;
 					sorted = 0;
-					updating = 0; 
+					updating = 0;
 					if(active)
-					{	
-						active = 0; 
-						friend = troubleshoot; troubleshoot = 0; 
+					{
+						active = 0;
+						friend = troubleshoot; troubleshoot = 0;
 						friend2 = periodV; periodV = 0;
-						friend3 = prTr; prTr = 0;  
-						selectActive(); 
-						troubleshoot = friend; 
-						periodV = friend2; 
-						prTr = friend3; 
-						document.getElementById("active").checked = true; 
+						friend3 = prTr; prTr = 0;
+						selectActive();
+						troubleshoot = friend;
+						periodV = friend2;
+						prTr = friend3;
+						document.getElementById("active").checked = true;
 					}
 					else
 					{
 						makeTable();
 					}
-					tableMade = 0; 
+					tableMade = 0;
 					friend = periodV; periodV = 0;
-					friend2 = prTr; prTr = 0; 
+					friend2 = prTr; prTr = 0;
 					sortTableDescending(sortColNum);
 					sortTableAscending(sortColNum);
-					periodV = friend; 
-					prTr = friend2; 
+					periodV = friend;
+					prTr = friend2;
 					if(troubleshoot)
 					{
-						troubleshoot = 0; 
+						troubleshoot = 0;
 						troubleshooting();
 					}
 					if(prTr){ prTr = 0; periodTrView(); }
 					if(periodV){periodV = 0; period();} /* Return to period view. */
-					return; 
+					return;
 				}
 				/* FRONTEND VIEW */
 				else if(sorted == 0 && frontEnd != 0)
@@ -1852,301 +1912,301 @@ function loadXMLDoc()
 					frontEnd = 0;
 					updating = 0;
 					makeTable();
-					diffH = diffSorted; diffSorted = 0; 
+					diffH = diffSorted; diffSorted = 0;
 					friend = troubleshoot; troubleshoot = 0;
 					friend2 = periodV; periodV = 0;
-					friend3 = active; active = 0; 
-					friend4 = prTr;  prTr = 0;   
+					friend3 = active; active = 0;
+					friend4 = prTr;  prTr = 0;
 					loadFrontEnd(preFrontEndName);
-					periodV = friend2; 
-					troubleshoot = friend; 
+					periodV = friend2;
+					troubleshoot = friend;
 					active = friend3;
-					prTr = friend4; 
+					prTr = friend4;
 
-					/* RESTORE ACTIVE */ 
+					/* RESTORE ACTIVE */
 					if(active)
-					{	
-						active = 0; 
-						friend = troubleshoot; troubleshoot = 0; 
-						friend2 = periodV; periodV = 0; 
-						friend3 = prTr; prTr = 0; 
-						selectActive(); 
-						troubleshoot = friend; 
-						periodV = friend2; 
-						prTr = friend3; 
-						document.getElementById("active").checked = true; 
-					} 
-										
+					{
+						active = 0;
+						friend = troubleshoot; troubleshoot = 0;
+						friend2 = periodV; periodV = 0;
+						friend3 = prTr; prTr = 0;
+						selectActive();
+						troubleshoot = friend;
+						periodV = friend2;
+						prTr = friend3;
+						document.getElementById("active").checked = true;
+					}
+
 					/* RESTORE TROUBLESHOOT */
 					if(troubleshoot)
 					{
-						troubleshoot = 0; 
+						troubleshoot = 0;
 						troubleshooting();
 					}
 					/* RESTORE PERIOD + TROUBLESHOOT */
 					if(prTr){prTr = 0; periodTrView(); }
-					
-					diffSorted = diffH; 
-										
+
+					diffSorted = diffH;
+
 					/* SORT DIFF COL */
 					if(diffSorted)
 					{
-						diffSorted--; 
+						diffSorted--;
 						if(diffColNum == 1)
 						{
-							sortTrCol("Diff(Status: Running, Client: Registered)"); 
+							sortTrCol("Diff(Status: Running, Client: Registered)");
 						}
 						else if(diffColNum == 2)
 						{
-							sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+							sortTrCol("Diff(Status: Idle, Requested: Idle)");
 						}
 					}
-					
+
 					/* RESTORE PERIOD */
 					if(periodV){periodV = 0; period();}
-					return; 
+					return;
 				}
 				/* FRONTEND + ASCENDING SORT */
 				else if(sorted != 0 && currentSort == 'ascending' && frontEnd != 0)
 				{
 					currentSort;
-					sorted = 0; 
-					frontEnd = 0; 
+					sorted = 0;
+					frontEnd = 0;
 					updating = 0;
-					friend = troubleshoot; troubleshoot = 0; 
-					friend2 = periodV; periodV = 0; 
+					friend = troubleshoot; troubleshoot = 0;
+					friend2 = periodV; periodV = 0;
 					friend3 = active; active = 0;
-					friend4 = prTr; prTr = 0;  
+					friend4 = prTr; prTr = 0;
 					loadFrontEnd(preFrontEndName);
-					active = friend3; 
+					active = friend3;
 					periodV = friend2;
-					prTr = friend4;  
+					prTr = friend4;
 					troubleshoot = friend;
 					if(active)
-					{	
-						active = 0; 
-						friend = troubleshoot; troubleshoot = 0; 
-						friend2 = periodV; periodV = 0; 
-						friend3 = prTr; prTr = 0; 
-						selectActive(); 
-						troubleshoot = friend; 
-						periodV = friend2; 
-						prTr= friend3; 
-						document.getElementById("active").checked = true; 
-					} 
-					tableMade = 0; 
-					friend = periodV; periodV = 0; 
-					sortTableDescending(sortColNum); 
+					{
+						active = 0;
+						friend = troubleshoot; troubleshoot = 0;
+						friend2 = periodV; periodV = 0;
+						friend3 = prTr; prTr = 0;
+						selectActive();
+						troubleshoot = friend;
+						periodV = friend2;
+						prTr= friend3;
+						document.getElementById("active").checked = true;
+					}
+					tableMade = 0;
+					friend = periodV; periodV = 0;
+					sortTableDescending(sortColNum);
 					sortTableAscending(sortColNum);
-					periodV = friend; 
+					periodV = friend;
 					if(troubleshoot)
 					{
-						troubleshoot = 0; 
+						troubleshoot = 0;
 						troubleshooting();
 					}
 					if(prTr){ prTr = 0; periodTrView(); }
 					if(periodV){periodV = 0; period(); }
-					return; 
+					return;
 				}
 				/* FRONTEND + DESCENDING SORT */
 				else if(sorted != 0 && currentSort == 'descending' && frontEnd != 0)
 				{
 					currentSort;
-					sorted = 0; 
+					sorted = 0;
 					frontEnd = 0;
-					updating = 0; 
-					friend = troubleshoot; troubleshoot = 0; 
+					updating = 0;
+					friend = troubleshoot; troubleshoot = 0;
 					friend2 = periodV; periodV = 0;
 					friend3 = active; active = 0;
-					friend4 = prTr; prTr = 0;  
+					friend4 = prTr; prTr = 0;
 					loadFrontEnd(preFrontEndName);
-					periodV = friend2; 
+					periodV = friend2;
 					active = friend3;
-					prTr = friend4;  
+					prTr = friend4;
 					troubleshoot = friend;
 					if(active)
-					{	
-						active = 0; 
-						friend = troubleshoot; troubleshoot = 0; 
-						friend2 = periodV; periodV = 0; 
-						friend3 = prTr; prTr = 0; 
-						selectActive(); 
-						troubleshoot = friend; 
+					{
+						active = 0;
+						friend = troubleshoot; troubleshoot = 0;
+						friend2 = periodV; periodV = 0;
+						friend3 = prTr; prTr = 0;
+						selectActive();
+						troubleshoot = friend;
 						periodV = friend2;
-						prTr= friend3; 
-						document.getElementById("active").checked = true; 
+						prTr= friend3;
+						document.getElementById("active").checked = true;
 					}
-					tableMade = 0; 
-					friend = periodV; periodV = 0; 
+					tableMade = 0;
+					friend = periodV; periodV = 0;
 					sortTableDescending(sortColNum);
-					periodV = friend; 
+					periodV = friend;
 					;
 					if(troubleshoot)
 					{
-						troubleshoot = 0; 
+						troubleshoot = 0;
 						troubleshooting();
 					}
 					if(prTr){ prTr = 0; periodTrView(); }
 					if(periodV){periodV = 0; period(); }
-					return; 
+					return;
 				}
 			}
-			
-			diffH = diffSorted; diffSorted = 0; 
+
+			diffH = diffSorted; diffSorted = 0;
 
 			/* ACTIVE */
 			if(active)
-			{	
-				active = 0; 
-				friend = troubleshoot; troubleshoot = 0; 
-				friend2 = periodV; periodV = 0; friend3 = prTr; prTr = 0;  
-				selectActive(); 
-				troubleshoot = friend; 
-				periodV = friend2; 
-				prTr = friend3; 
-				document.getElementById("active").checked = true; 
+			{
+				active = 0;
+				friend = troubleshoot; troubleshoot = 0;
+				friend2 = periodV; periodV = 0; friend3 = prTr; prTr = 0;
+				selectActive();
+				troubleshoot = friend;
+				periodV = friend2;
+				prTr = friend3;
+				document.getElementById("active").checked = true;
 			}
-			
-			preFrontEndName = "Total"; 
-			tableMade = 0; 
-    		frontEnd = 0; 
+
+			preFrontEndName = "Total";
+			tableMade = 0;
+    		frontEnd = 0;
 			sorted = 0;
-			listMade = 0; 
+			listMade = 0;
 			currentSort;
-			document.getElementById("destination").selectedIndex = 0; 
+			document.getElementById("destination").selectedIndex = 0;
 			fillIn(); /* FILL IN TABLE */
-			
+
 			/* RESTORE TROUBLESHOOT */
 			if(troubleshoot)
 			{
-				troubleshoot = 0; 
+				troubleshoot = 0;
 				troubleshooting();
-				document.getElementById("troubleshoot").checked = true; 
+				document.getElementById("troubleshoot").checked = true;
 			}
-	
+
 			/* RESTORE PERIOD + TROUBLESHOOT */
 			if(prTr){prTr = 0; periodTrView(); 	document.getElementById("period").checked = true;}
-			
+
 			/* RESTORE PERIOD */
-			if(periodV){periodV = 0; period();}  
+			if(periodV){periodV = 0; period();}
 
 			diffSorted = diffH;
-			
+
 			if(diffSorted)
 			{
-				diffSorted--; 
+				diffSorted--;
 				if(diffColNum == 1)
 				{
-					sortTrCol("Diff(Status: Running, Client: Registered)"); 
+					sortTrCol("Diff(Status: Running, Client: Registered)");
 				}
 				else if(diffColNum == 2)
 				{
-					sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+					sortTrCol("Diff(Status: Idle, Requested: Idle)");
 				}
 			}
-			
+
 			if(!updating){checkUrl();}
-			updating = 0; 
-		} 
-			 
+			updating = 0;
+		}
+
 	}
 	xmlhttp.open("GET", "schedd_status.xml",true);
 	xmlhttp.send(null);
-} 
+}
 
 /* BUILD MAIN TABLE */
-function makeTable() 
+function makeTable()
 {
 	/* IF TABLE EXISTS REMOVE IT*/
 	if(table)
-	{ 
+	{
 		document.getElementById('scroll').removeChild(table);
-		document.getElementById('header').removeChild(thead); 
+		document.getElementById('header').removeChild(thead);
 	}
-	
+
 	row = new Array();
 	cell = new Array();
 	cell2 = new Array();
-	row2 = document.createElement('tr'); 
-	
+	row2 = document.createElement('tr');
+
 	row_num = numberRows + 1;
-	cell_num = exactColumns.length; 
-	
+	cell_num = exactColumns.length;
+
 	thead = document.createElement('table');
 	thBody = document.createElement('tbody');
 	thead.setAttribute('id', 'thead');
-	
+
 	table = document.createElement('table');
 	tBody=document.createElement('tbody');
 	table.setAttribute('id','table');
 
 	colSpanArry = new Array(1, 1, columnArrayDesc.Status.length, columnArrayDesc.Req.length, columnArrayDesc.CM.length);
 	headTxt = new Array("" , "" ,"Status: ", "Requested: ", "Client Monitor: ");
-	headId = new Array('empty', 'downtime','status', 'requested', 'client');  
+	headId = new Array('empty', 'downtime','status', 'requested', 'client');
 	headClr = new Array('#DCDCDC', '#DCDCDC', '#FAF0E6', '#FFDAB9', '#CDAF95');
-	
+
 	/* HEADER */
 	for(x = 0; x < headTxt.length; x++)
 	{
 		cell2[x] = document.createElement('td');
-		cell2[x].appendChild(document.createTextNode(headTxt[x])); 
+		cell2[x].appendChild(document.createTextNode(headTxt[x]));
 		cell2[x].setAttribute('bgColor', headClr[x]);
 		cell2[x].setAttribute('id', headId[x]);
 		cell2[x].setAttribute("colspan", colSpanArry[x]);
-		if(x == 0) cell2[x].setAttribute("width", "18%");	
-		if(x == 1) cell2[x].setAttribute("width", "2%");		
-		row2.appendChild(cell2[x]); 
+		if(x == 0) cell2[x].setAttribute("width", "18%");
+		if(x == 1) cell2[x].setAttribute("width", "2%");
+		row2.appendChild(cell2[x]);
 	}
-	thBody.appendChild(row2); 
-	
+	thBody.appendChild(row2);
+
 	/* TABLE BODY + HEADER 2 */
 	for(c = 0; c < row_num; c++)
 	{
 		row[c] = document.createElement('tr');
-		
+
 		row[c].setAttribute('id', 'entries');
-		/* HIGHLIGHT ON MOUSEOVER */ 
+		/* HIGHLIGHT ON MOUSEOVER */
 		if(c > 0)
 		{
 			row[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
-			row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+			row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'");
 		}
-		for(k = 0; k < cell_num; k++) 
+		for(k = 0; k < cell_num; k++)
 		{
 			cell[k] = document.createElement('td');
-		
+
 			/* ATTACH POP UP EVENT ON ALL VALUES */
 			if(c > 0 && k > 0)
 			{
 				cell[k].setAttribute('onmouseover', 'showPopUp(this)');
 				cell[k].setAttribute('onmouseout', 'hidePopUp()');
-				cell[k].setAttribute('id', c);  				
+				cell[k].setAttribute('id', c);
 			}
-			if(c > 0 && k == 0) cell[k].setAttribute('width', '18%');  				
-			if(c > 0 && k == 1) cell[k].setAttribute('width', '2%');  
-			/* ENTRY NAME COL */				
+			if(c > 0 && k == 0) cell[k].setAttribute('width', '18%');
+			if(c > 0 && k == 1) cell[k].setAttribute('width', '2%');
+			/* ENTRY NAME COL */
 			if(c == 0 && k == 0)
 			{
 				cont = document.createTextNode("Entry Name")
 				cell[k].appendChild(cont);
-				cell[k].setAttribute('id', 'entryName'); 
+				cell[k].setAttribute('id', 'entryName');
 				cell[k].setAttribute("onclick", "sortAlphabetical()");
-				cell[k].setAttribute('bgColor', '#DCDCDC');  	 
+				cell[k].setAttribute('bgColor', '#DCDCDC');
 			}
 			/* SECOND ROW (HEADER #2) */
 			else if(c == 0)
 			{
 				cont = document.createTextNode(headColArry[k])
-				if(k == 1) cont = document.createTextNode(""); 
+				if(k == 1) cont = document.createTextNode("");
 				cell[k].appendChild(cont);
 				cell[k].setAttribute('id', columnArray[k]);
 				cell[k].style.textAlign = "center";
-				y = "sortTableDescending(" + k + ")"; 
+				y = "sortTableDescending(" + k + ")";
 				cell[k].setAttribute("onclick", y);
 				if(k == 1) cell[k].setAttribute('bgColor', headClr[1]);
 				else if(k < columnArrayDesc.Req.offset && k > 1) cell[k].setAttribute('bgColor', headClr[2]);
 				else if(k >= columnArrayDesc.Req.offset && k < columnArrayDesc.CM.offset) cell[k].setAttribute('bgColor', headClr[3]);
-				else cell[k].setAttribute('bgColor', headClr[4]); 	 
+				else cell[k].setAttribute('bgColor', headClr[4]);
 			}
 			/* PLACE 0 IN EACH CELL INITIALLY */
 			if(c > 0)
@@ -2156,14 +2216,14 @@ function makeTable()
 			}
 			if(c > 0 && k == 1)
 			{
-				cell[k].innerHTML ="&darr;"; 
-				cell[k].style.textAlign = "center"; 
+				cell[k].innerHTML ="&darr;";
+				cell[k].style.textAlign = "center";
 			}
 			row[c].appendChild(cell[k]);
 		}
 		if(c == 0)
 		{
-			thBody.appendChild(row[c]); 
+			thBody.appendChild(row[c]);
 		}
 		else
 		{
@@ -2171,23 +2231,23 @@ function makeTable()
 		}
 		tableMade = 1;
 	}
-	
-	thead.appendChild(thBody); 
-	table.appendChild(tBody); 
-	document.getElementById('header').appendChild(thead); 
+
+	thead.appendChild(thBody);
+	table.appendChild(tBody);
+	document.getElementById('header').appendChild(thead);
 	document.getElementById('scroll').appendChild(table);
-	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 
-} 
+	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px";
+}
 
 /* ADJUST HEIGHT OF TABLE */
 function setHeight()
 {
-	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 
+	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px";
 }
 
 /* CHANGE BG COLOR OF SORTED COLS (TOAL + PERIOD VIEW)  */
 function sortSignal()
-{	
+{
 	/* RESTORE (INCLUDE DOWNTIME) */
 	for(i = 0; i < columnArray.length; i++)
 	{
@@ -2195,16 +2255,16 @@ function sortSignal()
 		{
 			if(i != sortColNum)
 			{
-				table.rows[j].cells[i].bgColor = "#F2F2F2";  
+				table.rows[j].cells[i].bgColor = "#F2F2F2";
 			}
 		}
 	}
-    if(sortColNum == -2) return; /* INCOMPATIBLE COL */ 	
+    if(sortColNum == -2) return; /* INCOMPATIBLE COL */
 
 	/* COLOR SELECTED COLS */
 	/* TODO: use colSpanArry or	hArry3 or lenghs like (1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length) */
 	for(i = 0; i < totalEntries.length; i++)
-	{	
+	{
 		if(sortColNum > 0 && sortColNum < columnArrayDesc.Req.offset)
 		{
 			table.rows[i].cells[sortColNum].bgColor =  "#FAF0E6";
@@ -2214,9 +2274,9 @@ function sortSignal()
 			table.rows[i].cells[sortColNum].bgColor =  "#FFDAB9";
 		}
 		else
-			table.rows[i].cells[sortColNum].bgColor =  "#CDAF95"; 
+			table.rows[i].cells[sortColNum].bgColor =  "#CDAF95";
 	}
-	
+
 	/* COLOR COLS IF IN PERIOD VIEW ALSO */
 	if(periodV)
 	{
@@ -2227,23 +2287,23 @@ function sortSignal()
 			{
 				if(j % 4 == 0)
 				{
-					tableP.rows[j].cells[1].bgColor = "#F2F2F2"; 
+					tableP.rows[j].cells[1].bgColor = "#F2F2F2";
 				}
 				else
-					tableP.rows[j].cells[0].bgColor = "#F2F2F2"; 
-					
+					tableP.rows[j].cells[0].bgColor = "#F2F2F2";
+
 				if(i != (sortColNum + 1))
 				{
 					if(j % 4 == 0)
 					{
-						tableP.rows[j].cells[i].bgColor = "#F2F2F2"; 
+						tableP.rows[j].cells[i].bgColor = "#F2F2F2";
 					}
 					else
-						tableP.rows[j].cells[i - 1].bgColor = "#F2F2F2";  
+						tableP.rows[j].cells[i - 1].bgColor = "#F2F2F2";
 				}
 			}
 		}
-		if(sortColNum == -2) return; /* INCOMPATIBLE COL */  	
+		if(sortColNum == -2) return; /* INCOMPATIBLE COL */
 
 		/* COLOR SELECTED COLS */
 		for(i = 0; i < totalEntries.length * 4; i++)
@@ -2252,7 +2312,7 @@ function sortSignal()
 			{
 				if(i % 4 == 0)
 				{
-					tableP.rows[i].cells[(sortColNum + 1)].bgColor = "#FAF0E6"; 
+					tableP.rows[i].cells[(sortColNum + 1)].bgColor = "#FAF0E6";
 				}
 				else
 					tableP.rows[i].cells[sortColNum].bgColor = "#FAF0E6";
@@ -2261,7 +2321,7 @@ function sortSignal()
 			{
 				if(i % 4 == 0)
 				{
-					tableP.rows[i].cells[(sortColNum + 1)].bgColor = "#FFDAB9"; 
+					tableP.rows[i].cells[(sortColNum + 1)].bgColor = "#FFDAB9";
 				}
 				else
 					tableP.rows[i].cells[sortColNum].bgColor = "#FFDAB9";
@@ -2270,12 +2330,12 @@ function sortSignal()
 			{
 				if(i % 4 == 0)
 				{
-					tableP.rows[i].cells[(sortColNum + 1)].bgColor = "#CDAF95"; 
+					tableP.rows[i].cells[(sortColNum + 1)].bgColor = "#CDAF95";
 				}
 				else
 					tableP.rows[i].cells[sortColNum].bgColor = "#CDAF95";
 			}
-		}	
+		}
 	}
 }
 
@@ -2284,17 +2344,17 @@ function sortTableAscending(column)
 {
 	total.splice(total.length - 1, 1);
 	totalP.splice(totalP.length - 1, 1);
-	total.reverse(); 
-	totalEntries.reverse(); 
-	totalP.reverse();  
+	total.reverse();
+	totalEntries.reverse();
+	totalP.reverse();
 	totalEntriesP.reverse();
-	total.push(0); 
+	total.push(0);
 	totalP.push(0);
 
-	currentSort = "ascending"; 
+	currentSort = "ascending";
 	previousSort = column;
 	sorted = 1;
-	if(periodV){fillInPeriod();} 
+	if(periodV){fillInPeriod();}
 	else fillIn();
 }
 
@@ -2303,36 +2363,36 @@ function sortTableDescending(column)
 {
 	/* PERIOD VIEW ACCESS NAME OF COL */
 	if(periodV){column = column.cellIndex; column--; /* ADJUST BECAUSE OF DOWNTIME */}
-	
+
 	/* DONT SORT DOWNTIME STATUS COL */
-	if(column == 1){ return; } 
-	
-	sortColNum = column; 
-	column = columnArray[column];  
-	sortColName = column; 
-	
+	if(column == 1){ return; }
+
+	sortColNum = column;
+	column = columnArray[column];
+	sortColName = column;
+
 	lengthArry =       new Array(0,7,7,7,7,7,7,7,7,7,5,5,5,5,3,3,3,3,3,3,3,3,3,3);       /* 1 DT + 9 STAT + 4 REQ + 10 CM  = 24 */
-	trSortColNumArry = new Array(0,0,2,5,0,0,0,0,0,0,0,6,0,0,0,0,8,3); 
-	feChildArry = new Array(feStatChild, feReqChild, feCMChild); 
-	totChildArry = new Array(totStatChild, totReqChild, totCMChild); 
-	newTotal = new Array(); 
+	trSortColNumArry = new Array(0,0,2,5,0,0,0,0,0,0,0,6,0,0,0,0,8,3);
+	feChildArry = new Array(feStatChild, feReqChild, feCMChild);
+	totChildArry = new Array(totStatChild, totReqChild, totCMChild);
+	newTotal = new Array();
 	newEntries = new Array();
-	newTotalP = new Array(); 
+	newTotalP = new Array();
 	newEntriesP = new Array();
 
 	/* IF THERE IS CURR SORT */
 	if(previousSort != column)
 	{
-		sorted = 0; 
+		sorted = 0;
 	}
 	/* IF SECOND CLICK SORT ASCENDING */
 	if(sorted == 1 && currentSort != "ascending")
 	{
-		sorted = 0; 
+		sorted = 0;
  		sortTableAscending(column);
-   		return; 
+   		return;
 	}
-	
+
 	/* SET INFO ACCORDINGLY */
 	length = lengthArry[sortColNum - 1]; att = xmlAttTotalNumArry[sortColNum - 1]; trSortColNum = trSortColNumArry[sortColNum]; ;
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
@@ -2341,8 +2401,8 @@ function sortTableDescending(column)
 	}
 	else
 		if(sortColNum < columnArrayDesc.Req.offset){child = totChildArry[0];}else if(sortColNum < columnArrayDesc.CM.offset){child = totChildArry[1];}else{child = totChildArry[2];}
-	
-			
+
+
 	/* GET EVERYTHING NOT 0 */
 	for(var i = 0; i < totalEntries.length; i++)
 	{
@@ -2350,21 +2410,21 @@ function sortTableDescending(column)
 		{
 		   if(total[i].childNodes[child].attributes[att].value > 0)
 		   {
-			   newTotal.push(total[i]); 
-			   newEntries.push(totalEntries[i]); 
-			  
-			   newTotalP.push(totalP[i]); 
-			   newEntriesP.push(totalEntriesP[i]); 
-		   }	
+			   newTotal.push(total[i]);
+			   newEntries.push(totalEntries[i]);
+
+			   newTotalP.push(totalP[i]);
+			   newEntriesP.push(totalEntriesP[i]);
+		   }
 		}
 	}
 
-	/* SORT ALL NONE ZERO ELEMENTS */	
+	/* SORT ALL NONE ZERO ELEMENTS */
 	for(var i = 0; i < newTotal.length - 1; i++)    // element to be compared
 	{
    		for(var j = i + 1; j < newTotal.length; j++)   // rest of the elements
    	 	{
-			if(parseInt(newTotal[i].childNodes[child].attributes[att].value) <= parseInt(newTotal[j].childNodes[child].attributes[att].value))          
+			if(parseInt(newTotal[i].childNodes[child].attributes[att].value) <= parseInt(newTotal[j].childNodes[child].attributes[att].value))
        		 {
        	    	temp = newTotal[i];              // swap
 				newTotal[i] = newTotal[j];
@@ -2372,7 +2432,7 @@ function sortTableDescending(column)
 				temp = newEntries[i];            // swap
 				newEntries[i] = newEntries[j];
     	       	newEntries[j] = temp;
-				
+
 				temp = newTotalP[i];              // swap
 				newTotalP[i] = newTotalP[j];
         	    newTotalP[j] = temp;
@@ -2385,38 +2445,38 @@ function sortTableDescending(column)
 
 	/* GET 0 ENTRIES */
 	for(var i = totalEntries.length - 1; i >= 0; i--)
-	{	
+	{
 		if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 		{
 			if(parseInt(total[i].childNodes[child].attributes[att].value) == 0)
 			{
-				newTotal.push(total[i]); 
-				newEntries.push(totalEntries[i]); 
-				
-				newTotalP.push(totalP[i]); 
+				newTotal.push(total[i]);
+				newEntries.push(totalEntries[i]);
+
+				newTotalP.push(totalP[i]);
 				newEntriesP.push(totalEntriesP[i]);
 			}
 		}
 	}
-	
+
 	/* EMPTY ENTRIES */
 	for(var i = totalEntries.length -1; i >= 0; i--)
 	{
 		if(total[i].childNodes.length == 0 || total[i].childNodes.length < length)
-		{		
-			newTotal.push(total[i]); 
-			newEntries.push(totalEntries[i]); 
-			
-			newTotalP.push(totalP[i]); 
-			newEntriesP.push(totalEntriesP[i]); 		
+		{
+			newTotal.push(total[i]);
+			newEntries.push(totalEntries[i]);
+
+			newTotalP.push(totalP[i]);
+			newEntriesP.push(totalEntriesP[i]);
 		}
 	}
-	
+
 	/* MAKE SURE ENTRIE COL IS NOT ALL 0's */
 	for(i = 0 ; i < newTotal.length; i++)
 	{
 		if(newTotal[i].childNodes.length != 0 && newTotal[i].childNodes.length >= length)
-		{ 
+		{
 			if(newTotal[i].childNodes[child].attributes[att].value != 0)
 			{
 				break;
@@ -2424,27 +2484,27 @@ function sortTableDescending(column)
 		}
 	}
 
-	/* 
-	 * UPDATE ALL INFO FOR NEWLY SORTED ENTRIES 
+	/*
+	 * UPDATE ALL INFO FOR NEWLY SORTED ENTRIES
 	 */
 	currentSort = "descending";
 	newTotal.push(1);
 	newTotalP.push(1);
-	previousSort = column; 
-	total = newTotal; 
+	previousSort = column;
+	total = newTotal;
 	totalEntries = newEntries;
-	totalP = newTotalP; 
+	totalP = newTotalP;
 	totalEntriesP = newEntriesP;
-	tempTotalEntries = newEntries; 
+	tempTotalEntries = newEntries;
 	tempTotalEntriesP = newEntriesP;
-	tempTotal = newTotal; 
-	tempTotalP = newTotalP; 
+	tempTotal = newTotal;
+	tempTotalP = newTotalP;
 	sorted = 1;
- 
+
  	/* FILL IN INFO DEPENDING ON VIEW */
 	if(periodV){fillInPeriod();}
 	else fillIn();
-	
+
 	sortSignal(); /* COLOR SORTED COL */
 }
 
@@ -2453,7 +2513,7 @@ function goToLink()
 {
 	var constructed;
 	var holder = document.URL.split('?');
-	
+
 	/* FRONTEND + SORTED VIEWS */
 	if(frontEnd && (sorted || diffSorted))
 	{
@@ -2467,11 +2527,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot+period" + "&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot+period" + "&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot+period" + "&sort=" + sortColName;
 		}
 		/* TROUBLESHOOT + PERIOD */
@@ -2484,11 +2544,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot+period" + "&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot+period" + "&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot+period" + "&sort=" + sortColName;
 		}
 		/* ACTIVE + TROUBLESHOOT */
@@ -2501,11 +2561,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot" + "&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot" + "&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot" + "&sort=" + sortColName;
 		}
 		/* ACTIVE */
@@ -2537,14 +2597,14 @@ function goToLink()
 					constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot" + "&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else  
+			else
 				constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot" + "&sort=" + sortColName;
 		}
-		else 
+		else
 		{
 			constructed = holder[0] + "?view=" + preFrontEndName + "&sort=" + sortColName;
 		}
-		
+
 	}
 	/* FRONTEND VIEW  */
 	else if(frontEnd && !sorted)
@@ -2602,11 +2662,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=total+active+troubleshoot+period&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=total+active+troubleshoot+period&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=total+active+troubleshoot+period&sort=" + sortColName;
 		}
 		/* TROUBLESHOOT + PERIOD */
@@ -2619,11 +2679,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=total+troubleshoot+period&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=total+troubleshoot+period&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=total+troubleshoot+period&sort=" + sortColName;
 		}
 		/* ACTIVE + TROUBLESHOOT */
@@ -2636,11 +2696,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=total+active+troubleshoot&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=total+active+troubleshoot&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=total+active+troubleshoot&sort=" + sortColName;
 		}
 		/* ACTIVE */
@@ -2668,11 +2728,11 @@ function goToLink()
 				{
 					constructed = holder[0] + "?view=total+troubleshoot&sort=diff(Status:Running,Client:Registered)";
 				}
-				else 
+				else
 					constructed = holder[0] + "?view=total+troubleshoot&sort=diff(Status:Idle,Requested:Idle)";
 			}
 			/*  REGULAR COLUMN SORT */
-			else 
+			else
 				constructed = holder[0] + "?view=total+troubleshoot&sort=" + sortColName;
 		}
 		else
@@ -2681,7 +2741,7 @@ function goToLink()
 		}
 	}
 	/* TOTAL */
-	else 
+	else
 	{
 		/* ACTIVE + TROUBLESHOOT + PERIOD*/
 		if(active && prTr)
@@ -2724,30 +2784,30 @@ function goToLink()
 		}
 	}
 	document.location.href = constructed; /* NAVIGATE TO NEW ADDRESS */
-			
+
 }
 
 /* SELECT ONLY ACTIVE ENTRIES */
 function selectActive()
 {
-	found = 0; activeEntries = new Array(); activeTotal = new Array(); activeEntriesP = new Array(); activeTotalP = new Array(); currChild = 0; 
-	diffHold = diffSorted; diffSorted = 0; 
-	
+	found = 0; activeEntries = new Array(); activeTotal = new Array(); activeEntriesP = new Array(); activeTotalP = new Array(); currChild = 0;
+	diffHold = diffSorted; diffSorted = 0;
+
 	/* REMOVE TROUBLESHOOT VIEW */
 	if(troubleshoot)
 	{
-		troubleshooting(); 
+		troubleshooting();
 		troubleshoot = 1;
 	}
 	/* REMOVE TROUBLESHOOT + PERIOD VIEW */
 	if(prTr)
-	{	
-		periodTrView(); 
+	{
+		periodTrView();
 		prTr = 1;
-	} 
-	
-	diffSorted = diffHold; 
-	
+	}
+
+	diffSorted = diffHold;
+
 	/* IF ALREADY IN ACTIVE VIEW */
 	if(active)
 	{
@@ -2755,58 +2815,58 @@ function selectActive()
 		{
 			/* REMOVE PERIOD VIEW */
 			if(periodV){period(); periodV = 1; }
-			
+
 			totalEntries = feEntries;
 			totalEntriesP = feEntriesP;
 			total = feTotal;
 			totalP = feTotalP;
-			tableMade = 0; 
-			numberRows = totalEntries.length;		
-			fillIn(); 
-			active = 0; 
+			tableMade = 0;
+			numberRows = totalEntries.length;
+			fillIn();
+			active = 0;
 			/* RESTORE DESCENDING SORT */
 			if(sorted != 0 && currentSort == 'descending')
 			{
 				currentSort;
-				sorted = 0; 
-				tableMade = 0; 
-				friend = periodV; periodV = 0; 
+				sorted = 0;
+				tableMade = 0;
+				friend = periodV; periodV = 0;
 				sortTableDescending(sortColNum);
-				;	
-				periodV = friend; 
+				;
+				periodV = friend;
 			}
 			/* RESTORE ASCENDING SORT */
 			else if(sorted != 0 && currentSort == 'ascending')
 			{
 				currentSort;
 				sorted = 0;
-				tableMade = 0; 
-				friend = periodV; periodV = 0; 
+				tableMade = 0;
+				friend = periodV; periodV = 0;
 				sortTableDescending(sortColNum);
 				sortTableAscending(sortColNum);
-				periodV = friend; 
+				periodV = friend;
 			}
-			diffHold = diffSorted; diffSorted = 0; 
-			
+			diffHold = diffSorted; diffSorted = 0;
+
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(troubleshoot)
 			{
-				troubleshoot = 0;	
-				troubleshooting(); 
+				troubleshoot = 0;
+				troubleshooting();
 			}
 			/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 			if(prTr)
 			{
 				prTr = 0;
-				periodTrView(); 
-			}  
-			
-			diffSorted = diffHold; 
-			
+				periodTrView();
+			}
+
+			diffSorted = diffHold;
+
 			/* SORT DIFF COLUMNS */
 			if(diffSorted)
 			{
-				diffSorted--; 
+				diffSorted--;
 				if(diffColNum == 1)
 				{
 					sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -2816,10 +2876,10 @@ function selectActive()
 					sortTrCol("Diff(Status: Idle, Requested: Idle)");
 				}
 			}
-	
+
 			/* RESTORE PERIOD VIEW */
 			if(periodV){periodV = 0; period(); }
-			return;	
+			return;
 		}
 		else
 		{
@@ -2828,72 +2888,72 @@ function selectActive()
 			totalEntriesP = totalEntriesPMaster;
 			total = totalMaster;
 			totalP = totalPMaster;
-			tableMade = 0; 
+			tableMade = 0;
 			numberRows = totalEntries.length;
 
 			/* REMOVE PERIOD VIEW */
 			if(periodV){period(); periodV = 1;}
 
-			fillIn(); 
+			fillIn();
 			active = 0;
 			/* RESTORE DESCENDING SORT */
 			if(sorted != 0 && currentSort == 'descending')
 			{
 				currentSort;
-				sorted = 0; 
-				tableMade = 0; 
-				friend = periodV; periodV = 0; 
+				sorted = 0;
+				tableMade = 0;
+				friend = periodV; periodV = 0;
 				sortTableDescending(sortColNum);
 				;
-				periodV = friend; 
+				periodV = friend;
 				if(troubleshoot == 1) /* Restore table if needed. */
 				{
-					troubleshoot = 0; 
-					troubleshooting(); 	
+					troubleshoot = 0;
+					troubleshooting();
 				}
-				if(periodV){periodV = 0; period();} 
-				return; 
+				if(periodV){periodV = 0; period();}
+				return;
 			}
 			/* RESTORE ASCENDING SORT */
 			if(sorted != 0 && currentSort == 'ascending')
 			{
 				currentSort;
 				sorted = 0;
-				tableMade = 0;  
-				friend = periodV; periodV = 0; 
+				tableMade = 0;
+				friend = periodV; periodV = 0;
 				sortTableDescending(sortColNum);
 				sortTableAscending(sortColNum);
-				periodV = friend; 
+				periodV = friend;
 				if(troubleshoot == 1) /* Restore table if needed. */
 				{
-					troubleshoot = 0; 
-					troubleshooting(); 	
-				} 
-				if(periodV){periodV = 0; period(); 	} 
-				return; 
-			} 
-			
-			diffHold = diffSorted; diffSorted = 0; 
-			
+					troubleshoot = 0;
+					troubleshooting();
+				}
+				if(periodV){periodV = 0; period(); 	}
+				return;
+			}
+
+			diffHold = diffSorted; diffSorted = 0;
+
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(troubleshoot)
 			{
-				troubleshoot = 0;	
-				troubleshooting(); 
+				troubleshoot = 0;
+				troubleshooting();
 			}
 			/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 			if(prTr)
 			{
 				prTr = 0;
-				periodTrView(); 
-			}  
-			
-			diffSorted = diffHold; 
-			
+				periodTrView();
+			}
+
+			diffSorted = diffHold;
+
 			/* SORT DIFF COLUMNS */
 			if(diffSorted)
 			{
-				diffSorted--; 
+				diffSorted--;
 				if(diffColNum == 1)
 				{
 					sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -2903,37 +2963,37 @@ function selectActive()
 					sortTrCol("Diff(Status: Idle, Requested: Idle)");
 				}
 			}
-			
+
 			/* RESTORE PERIOD VIEW */
 			if(periodV)
 			{
-				periodV = 0; 
-				period(); 	
+				periodV = 0;
+				period();
 			}
 			return;
 		}
 	}
-	
-	
-	/* 
+
+
+	/*
 	 * CREATE THE ACTIVE VIEW
 	 */
 	for(i = 0; i < totalEntries.length; i++)
 	{
-		found = 0; 
+		found = 0;
 		if(total[i].childNodes.length != 0)
 		{
 			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 			{
-				currChild = feCMChild; 
+				currChild = feCMChild;
 			}
 			else
-				currChild = totCMChild; 
+				currChild = totCMChild;
 			for(j = 0; j < total[i].childNodes[currChild].attributes.length; j++)
 			{
 				if(total[i].childNodes[currChild].attributes[j].name == "InfoAge")
 				{
-					continue; 	
+					continue;
 				}
 				if(parseInt(total[i].childNodes[currChild].attributes[j].value) != 0)
 				{
@@ -2941,17 +3001,17 @@ function selectActive()
 					activeTotal.push(total[i]);
 					activeEntriesP.push(totalEntriesP[i]);
 					activeTotalP.push(totalP[i]);
-					found = 1; 
+					found = 1;
 					break;
 				}
-			}	
+			}
 			if(found)
 			{
-				continue; 	
+				continue;
 			}
 			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 			{
-				currChild = feReqChild; 
+				currChild = feReqChild;
 			}
 			else
 				currChild = totReqChild;
@@ -2959,7 +3019,7 @@ function selectActive()
 			{
 				if(total[i].childNodes[currChild].attributes[k].name == "MaxGlideins")
 				{
-					continue; 	
+					continue;
 				}
 				if(parseInt(total[i].childNodes[currChild].attributes[k].value) != 0)
 				{
@@ -2967,21 +3027,21 @@ function selectActive()
 					activeTotal.push(total[i]);
 					activeEntriesP.push(totalEntriesP[i]);
 					activeTotalP.push(totalP[i]);
-					found = 1; 
+					found = 1;
 					break;
 				}
 			}
 			if(found)
 			{
-				continue; 	
+				continue;
 			}
 			if(total[i].childNodes.length != 7)
 			{
-				continue; 	
+				continue;
 			}
 			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 			{
-				currChild = feStatChild; 
+				currChild = feStatChild;
 			}
 			else
 				currChild = totStatChild;
@@ -2998,65 +3058,65 @@ function selectActive()
 			}
 		}
 	}
-	
+
 	active = 1;
 	activeTotal.push(1);
 	activeTotalP.push(1);
-	total = activeTotal; 
+	total = activeTotal;
 	totalEntries = activeEntries;
-	totalP = activeTotalP; 
+	totalP = activeTotalP;
 	totalEntriesP = activeEntriesP;
-	numberRows = totalEntries.length;	
-	
+	numberRows = totalEntries.length;
+
 	/* REMOVE PERIOD VIEW */
 	if(periodV){period(); periodV = 1;}
-	
-	tableMade = 0; 
+
+	tableMade = 0;
 	fillIn();  /* FILL IN DEFAULT TABLE WITH NEWLY ACTIVE FILTER */
-	
+
 	/* RESTORE DESCENDING SORT WITH ACTIVE */
 	if(sorted != 0 && currentSort == 'descending')
 	{
 		currentSort;
-		sorted = 0; 
-		tableMade = 0; 
-		friend = periodV; periodV = 0; 
+		sorted = 0;
+		tableMade = 0;
+		friend = periodV; periodV = 0;
 		sortTableDescending(sortColNum);
-		periodV = friend; 
+		periodV = friend;
 	}
 	/* RESTORE ASCENDING SORT WITH ACTIVE */
 	else if(sorted != 0 && currentSort == 'ascending')
 	{
 		currentSort;
 		sorted = 0;
-		tableMade = 0; 
-		friend = periodV; periodV = 0; 
+		tableMade = 0;
+		friend = periodV; periodV = 0;
 		sortTableDescending(sortColNum);
 		sortTableAscending(sortColNum);
-		periodV = friend; 
+		periodV = friend;
 	}
-	
-	diffHold = diffSorted; diffSorted = 0; 
-			
+
+	diffHold = diffSorted; diffSorted = 0;
+
 	/* RESTORE TROUBLESHOOT VIEW */
 	if(troubleshoot)
 	{
-		troubleshoot = 0;	
-		troubleshooting(); 
+		troubleshoot = 0;
+		troubleshooting();
 	}
 	/* RESTORE TROUBLESHOOT + PERIOD VIEW */
 	if(prTr)
 	{
 		prTr = 0;
-		periodTrView(); 
-	}  
-	
-	diffSorted = diffHold; 
-	
+		periodTrView();
+	}
+
+	diffSorted = diffHold;
+
 	/* SORT DIFF COLUMNS */
 	if(diffSorted)
 	{
-		diffSorted--; 
+		diffSorted--;
 		if(diffColNum == 1)
 		{
 			sortTrCol("Diff(Status: Running, Client: Registered)");
@@ -3066,78 +3126,78 @@ function selectActive()
 			sortTrCol("Diff(Status: Idle, Requested: Idle)");
 		}
 	}
-	
+
 	/*  RESTORE PERIOD VIEW */
 	if(periodV)
 	{
-		periodV = 0;   
-		period(); 	
+		periodV = 0;
+		period();
 	}
 }
 
 /* GO TO SPECIFIC ENTRY PAGE */
 function goToDestination(option)
 {
-	document.location.href = option.value; 
+	document.location.href = option.value;
 	document.getElementById("destination").selectedIndex = 0;
 }
 
 /* BUILD TR TABLE */
 function troubleshooting()
-{	 
+{
 	/* RESTORE PERIOD + TR VIEW */
 	if(prTr){ troubleshoot = 0; periodV = 1; periodTrView();  return;}
-	
+
 	/* RESTORE PERID VIEW */
 	if(periodV){ periodTrView(); return;}
-	
-	currChild = 1; 
-	hrefs = new Array(); 
-	
+
+	currChild = 1;
+	hrefs = new Array();
+
 	/* TROUBLESHOOT VIEW CHECKED*/
 	if(!troubleshoot)
 	{
 		/* IF EXISTING SORT NOT COMPATIBLE WITH TR VIEW RESTORE ENTRY ARRAY TO DEFAULT */
-		if(!diffSorted && sorted && sortColName != "statusRunning" && sortColName != "cmGlideinTotal" && sortColName != "statusIdle" && sortColName != "requestIdle" && 
+		if(!diffSorted && sorted && sortColName != "statusRunning" && sortColName != "cmGlideinTotal" && sortColName != "statusIdle" && sortColName != "requestIdle" &&
 		sortColName != "cmGlideinJobsIdle")
 		{
-			tempTotalEntries = totalEntriesMaster; 
+			tempTotalEntries = totalEntriesMaster;
 		}
 		/* IF SORTED BUT NOT DIFF SORTED SET ARRAY TO SORTED ARRAY */
 		else if(!diffSorted)
 		{
-			tempTotalEntries = totalEntries; 
+			tempTotalEntries = totalEntries;
 		}
-		
-		troubleshoot = 1; 
-		document.getElementById("scroll").removeChild(table); 
+
+		troubleshoot = 1;
+		document.getElementById("scroll").removeChild(table);
 		document.getElementById('header').removeChild(thead);
 		columnText = new Array("Entry Name","", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle", "Requested: Idle",
-		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 
-		trColumnId = new Array("entryLinks","downtime", "status", "client","difference", "status", "requested", "difference","client"); 
-		colors = new Array("#DCDCDC","DCDCDC","#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
-		
+		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
+		trColumnId = new Array("entryLinks","downtime", "status", "client","difference", "status", "requested", "difference","client");
+		colors = new Array("#DCDCDC","DCDCDC","#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95");
+
 		/* SET CHILD ARRAY */
 		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
-			child = new Array(feStatChild, feCMChild, feStatChild, feReqChild, feCMChild); 
-		else	 
-			child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
-			
-		count = 0; 
+			child = new Array(feStatChild, feCMChild, feStatChild, feReqChild, feCMChild);
+		else
+			child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild);
+
+		count = 0;
         /* Picking the attributes in the arrays: StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
-        MM: These are positions in the XML file (e.g. schedd_status.xml) and is relying on them being the same across runs 
+        MM: These are positions in the XML file (e.g. schedd_status.xml) and is relying on them being the same across runs
         Don't know how reliable it is, maybe the code should be changed in comparing the name
         */
 		att = new Array(5, 2, 1, 0, 7);
-		rows = new Array(); 
+		rows = new Array();
 		cols = new Array();
-		trTable = document.createElement('table'); 
-		trTable.setAttribute('id', 'trTable'); 
-		trHeader = document.createElement('table'); 
-		trHeader.setAttribute('id', 'trHeader'); 
-		
+		trTable = document.createElement('table');
+		trTable.setAttribute('id', 'trTable');
+		trHeader = document.createElement('table');
+		trHeader.setAttribute('id', 'trHeader');
+
 		/* BUILD TR TABLE */
-		for(i = 0; i < tempTotalEntries.length + 1; i++) 
+		for(i = 0; i < tempTotalEntries.length + 1; i++)
 		{
 			if(childView && i > 0)
 			{
@@ -3145,68 +3205,68 @@ function troubleshooting()
 				{
 					if(tempTotalEntries[i - 1].childNodes[feChild].childNodes[n].attributes[0].value == frontEndName)
 					{
-						childView = n; 
-						break; 	
+						childView = n;
+						break;
 					}
 				}
 			}
-			count = 0; 
+			count = 0;
 			rows[i] = document.createElement('tr');
-			rows[i].setAttribute('id', 'entries'); 
+			rows[i].setAttribute('id', 'entries');
 			if(i != 0)
 			{
 				rows[i].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
-				rows[i].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+				rows[i].setAttribute('onmouseout', "this.bgColor='#F2F2F2'");
 			}
-			for(j = 0; j < columnText.length; j++) 
+			for(j = 0; j < columnText.length; j++)
 			{
-				cols[j] = document.createElement('td'); 
+				cols[j] = document.createElement('td');
 				if(i > 0 && j > 0)
 				{
 					cols[j].setAttribute('onmouseover', 'showPopUp(this)');
 					cols[j].setAttribute('onmouseout', 'hidePopUp()');
-					cols[j].setAttribute('id', i); 
+					cols[j].setAttribute('id', i);
 				}
 				if(i == 0)
 				{
 					cols[j].appendChild(document.createTextNode(columnText[j]));
-					cols[j].setAttribute('id', trColumnId[j]); 
+					cols[j].setAttribute('id', trColumnId[j]);
 					cols[j].setAttribute('bgColor', colors[j]);
-					if(j == 0) cols[j].setAttribute('onclick', 'sortAlphabetical()'); 
-					if(j == 1) cols[j].setAttribute('width', '2%'); 
-					if(j > 1) cols[j].setAttribute('onclick', 'sortTrCol(this)'); 
+					if(j == 0) cols[j].setAttribute('onclick', 'sortAlphabetical()');
+					if(j == 1) cols[j].setAttribute('width', '2%');
+					if(j > 1) cols[j].setAttribute('onclick', 'sortTrCol(this)');
 				}
 				else
 				{
 					if(j == 0)
-					{						
-						y = tempTotalEntries[i - 1].getAttribute("name"); 
+					{
+						y = tempTotalEntries[i - 1].getAttribute("name");
 						hrefs[i - 1] = document.createElement('a');
-						hrefs[i - 1].setAttribute("id", "entryLinks"); 
-						hrefs[i - 1].innerHTML = y; 
+						hrefs[i - 1].setAttribute("id", "entryLinks");
+						hrefs[i - 1].innerHTML = y;
 						hrefs[i - 1].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
 						hrefs[i - 1].setAttribute("onclick", "entryClick(this)");
-						cols[j].appendChild(hrefs[i - 1]); 
+						cols[j].appendChild(hrefs[i - 1]);
 					}
 					else if(j == 1)
 					{
-						val = document.createTextNode("ARROW"); 
-						cols[j].setAttribute('width', '2%'); 
+						val = document.createTextNode("ARROW");
+						cols[j].setAttribute('width', '2%');
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 							item = tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].value;
 						else
 							item = tempTotalEntries[i - 1].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
-						
+
 						if(item == "True"){ item = "&darr;"; cols[j].style.color = "#B0171F";} /* DOWN ARROW*/
 						else { item = "&uarr;"; cols[j].style.color = "#008B00";  }            /* UP ARROW */
-						cols[j].appendChild(document.createTextNode("")); 
-						cols[j].innerHTML = item; 
+						cols[j].appendChild(document.createTextNode(""));
+						cols[j].innerHTML = item;
 					}
 					else
 					{
-						val1 = 0; 
+						val1 = 0;
 						val2 = 0;
-						diff = 0;  
+						diff = 0;
 
 						/* IF DIFF COL */
 						if(j == 4 || j == 7)
@@ -3225,10 +3285,10 @@ function troubleshooting()
 								catch(err){ val1 = 0; }
 								try{ val2 = parseInt(tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1
 								]].value);}
-								catch(err){ val2 = 0; }	
+								catch(err){ val2 = 0; }
 							}
-						
-							diff = val1 - val2; 
+
+							diff = val1 - val2;
 							cols[j].appendChild(document.createTextNode(diff));
 						}
 						else
@@ -3236,76 +3296,76 @@ function troubleshooting()
 							if(!childView)
 							{
 								if((tempTotalEntries[i - 1].childNodes[totChild].childNodes.length < 7 && child[count] == totStatChild) || tempTotalEntries[i - 1].
-								childNodes[totChild].childNodes.length == 0)	
+								childNodes[totChild].childNodes.length == 0)
 								{
 									cols[j].appendChild(document.createTextNode("0"));
 								}
 								else
 								{
-									val = tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count]].attributes[att[count]].value; 
+									val = tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count]].attributes[att[count]].value;
 									cols[j].appendChild(document.createTextNode(val));
-								}	
+								}
 							}
 							else
 							{
-								if((tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length < 7 && child[count] == feStatChild) || 
-								tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length == 0)	
+								if((tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length < 7 && child[count] == feStatChild) ||
+								tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length == 0)
 								{
 									cols[j].appendChild(document.createTextNode("0"));
 								}
 								else
 								{
-									val = tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count]].attributes[att[count]].value; 
+									val = tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count]].attributes[att[count]].value;
 									cols[j].appendChild(document.createTextNode(val));
-								}	
+								}
 							}
-							count++; 
+							count++;
 						}
 					}
 				}
 				if(j == 0)
 				{
-					cols[j].setAttribute('width', '25%'); 	
+					cols[j].setAttribute('width', '25%');
 				}
-				rows[i].appendChild(cols[j]); 
+				rows[i].appendChild(cols[j]);
 			}
 			if(i == 0)
 			{
-				trHeader.appendChild(rows[i]); 	
+				trHeader.appendChild(rows[i]);
 			}
 			else
 			{
-				trTable.appendChild(rows[i]); 
-			}	
+				trTable.appendChild(rows[i]);
+			}
 		}
-		
-		document.getElementById("scroll").appendChild(trTable); 
+
+		document.getElementById("scroll").appendChild(trTable);
 		document.getElementById('header').appendChild(trHeader);
-		
+
 		/* SORT NORMAL COLUMN NONE DIFFERENCE COLUMN */
-		if(sorted && (sortColName == "statusRunning" || sortColName == "cmGlideinTotal" || sortColName == "statusIdle" || sortColName == "requestIdle" || sortColName 
+		if(sorted && (sortColName == "statusRunning" || sortColName == "cmGlideinTotal" || sortColName == "statusIdle" || sortColName == "requestIdle" || sortColName
 		== "cmGlideinJobsIdle"))
 		{
-			trSortSignal(trSortColNum);   	
+			trSortSignal(trSortColNum);
 		}
 		/* DIFFERENCE COLUMN SORT */
 		if(diffSorted)
 		{
-			trSortSignal(diffColSort); 	
+			trSortSignal(diffColSort);
 		}
 	}
 	/* TROUBLESHOOT UNCHECKED HERE */
 	else
 	{
 		/* RESET EVERYTHING */
-		troubleshoot = 0; 
-		diffSorted = 0; 
-		trSortAsc = 0; 
-		document.getElementById("scroll").removeChild(trTable); 
+		troubleshoot = 0;
+		diffSorted = 0;
+		trSortAsc = 0;
+		document.getElementById("scroll").removeChild(trTable);
 		document.getElementById('header').removeChild(trHeader);
-		document.getElementById("scroll").appendChild(table); 
+		document.getElementById("scroll").appendChild(table);
 		document.getElementById('header').appendChild(thead);
-		if(!diffSorted && sorted && sortColName != "statusRunning" && sortColName != "cmGlideinTotal" && sortColName != "statusIdle" && sortColName != "requestIdle" && 
+		if(!diffSorted && sorted && sortColName != "statusRunning" && sortColName != "cmGlideinTotal" && sortColName != "statusIdle" && sortColName != "requestIdle" &&
 		sortColName != "cmGlideinJobsIdle")
 		{
 			sortAlphabetical();
@@ -3317,49 +3377,49 @@ function troubleshooting()
 function sortTrCol(col)
 {
 	diffArry = new Array;
-	exists = 0;  
-	holder = diffSorted; diffSorted = 0; 
-	
+	exists = 0;
+	holder = diffSorted; diffSorted = 0;
+
 	/* REMOVE TROUBELSHOOT VIEW */
 	if(!prTr)
 	{
-		troubleshoot = 1; 
-		troubleshooting();	
+		troubleshoot = 1;
+		troubleshooting();
 	}
 	/* REMOVE PERIOD + TROUBELSHOOT VIEW */
 	else
 	{
-		periodTrView();	
-		prTr = 1; 
+		periodTrView();
+		prTr = 1;
 	}
-	
-	diffSorted = holder; 
-	
-	/* GET NAME OF SORTED COL */ 
+
+	diffSorted = holder;
+
+	/* GET NAME OF SORTED COL */
 	if(col.innerHTML)
 	{
 		col = col.innerHTML;
 	}
 
-	entryLog = new Array(); 
+	entryLog = new Array();
 	colMaster = new Array("Status: Running cores", "Client: Registered cores", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
-	sortColNum = new Array("statusRunning", "cmGlideinTotal", "diff", "statusIdle", "requestIdle", "diff", "cmGlideinJobsIdle"); 
+	sortColNum = new Array("statusRunning", "cmGlideinTotal", "diff", "statusIdle", "requestIdle", "diff", "cmGlideinJobsIdle");
 	diffCol = new Array("Diff(Status: Running cores, Client: Registered cores)", "Diff(Status: Idle, Requested: Idle)");
-	
+
 	if(!prTr) diffCell = new Array(4, 7);
 	else diffCell = new Array(5, 8);
-	
+
 	/* FRONTEND VIEW */
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 	{
-		child = new Array(feStatChild, feCMChild, feStatChild, feReqChild); 
-	} 
+		child = new Array(feStatChild, feCMChild, feStatChild, feReqChild);
+	}
 	/* TOTAL VIEW */
-	else	 
-		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild); 
-		
+	else
+		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild);
+
 	att = new Array(5, 2, 1, 0);  // child and att are used only for the diff values
-	diffColSort = 0; 
+	diffColSort = 0;
 
 	/* REGULAR NONE DIFF SORT */
 	for(i = 0; i < colMaster.length; i++)
@@ -3371,33 +3431,33 @@ function sortTrCol(col)
 
 			/* FIND INDEX OF SORTED COL */
 			for(j = 0; j < columnArray.length; j++)
-			{ 
+			{
 				if(col == columnArray[j])
-				{ 
+				{
 					col = j; break;
-				} 
+				}
 			}
 			sortTableDescending(col);
  			diffSorted = 0;
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(!prTr)
 			{
-				hold = sorted; sorted = 0; 
+				hold = sorted; sorted = 0;
 				troubleshooting();
-				sorted = hold; 
+				sorted = hold;
 			}
 			/* RESTORE TR + PEIROD VIEW */
 			else
 			{
-				prTr = 0; temp = sorted; sorted = 0; 
+				prTr = 0; temp = sorted; sorted = 0;
 				periodTrView();
-				sorted = temp; 
+				sorted = temp;
 			}
 			trSortSignal(tempHold + 2); /* ENTRY NAME COL + DOWNTIME STATUS COL = 2 */
-			return; 
+			return;
 		}
 	}
-				
+
 	/* DIFF SORT ALGORITHM */
 	for(j = 0; j < diffCol.length; j++)
 	{
@@ -3407,16 +3467,16 @@ function sortTrCol(col)
 			diffColSort = diffCell[j];
 			diffColName = diffCol[j];
 			if(diffColNum != (j + 1))
-			{			
-				diffSorted = 0; 
-				diffColNum = (j + 1); 	
+			{
+				diffSorted = 0;
+				diffColNum = (j + 1);
 			}
 			if(!diffSorted)
 			{
-				tempTotalEntries = new Array(); 
-				tempTotalEntriesP = new Array(); 
-				tempTotalP = new Array(); 
-				tempTotal = new Array(); 
+				tempTotalEntries = new Array();
+				tempTotalEntriesP = new Array();
+				tempTotalP = new Array();
+				tempTotal = new Array();
 			}
 			/* FIRST GET ALL OF THE DIFF VALUES */
 			if(!prTr)
@@ -3436,79 +3496,79 @@ function sortTrCol(col)
 					}
 				}
 			}
-			diffArry.sort(sortNumber); /* SORT THE DIFF VALUES */ 
-			
+			diffArry.sort(sortNumber); /* SORT THE DIFF VALUES */
+
 			if(diffSorted != 1 && diffSorted != 2)
 			{
-				diffSorted = 1; 	
+				diffSorted = 1;
 			}
 			else if(diffSorted == 1)
 			{
 				tempTotalEntries.reverse();
 				tempTotalEntriesP.reverse();
-				
-				tempTotalP.reverse(); 
-				tempTotal.reverse(); 
-				tempTotalP.splice(0,1); 
-				tempTotal.splice(0,1); 
+
+				tempTotalP.reverse();
+				tempTotal.reverse();
+				tempTotalP.splice(0,1);
+				tempTotal.splice(0,1);
 
 				tempTotal.push(1);
 				tempTotalP.push(1);
-				
+
 				/* RESTORE TROUBLESHOOT VIEW */
 				if(!prTr)
 				{
-					friend = sorted; sorted = 0; 
+					friend = sorted; sorted = 0;
 					troubleshooting();
-					sorted = friend; 
+					sorted = friend;
 				}
 				/* RESTORE TR + PEIROD VIEW */
 				else
 				{
-					prTr = 0; friend = sorted; sorted = 0; 
+					prTr = 0; friend = sorted; sorted = 0;
 					periodTrView();
-					sorted = friend; 
+					sorted = friend;
 				}
-				sorted = 0; 
+				sorted = 0;
 				trSortSignal(diffColSort);
-				diffSorted = 2; 
-				return; 
+				diffSorted = 2;
+				return;
 			}
 			else if(diffSorted == 2)
 			{
-				tempTotalEntries.reverse(); 
+				tempTotalEntries.reverse();
 				tempTotalEntriesP.reverse();
-				tempTotalP.reverse(); 
+				tempTotalP.reverse();
 				tempTotal.reverse();
-				
-				tempTotalP.splice(0,1); 
-				tempTotal.splice(0,1); 
+
+				tempTotalP.splice(0,1);
+				tempTotal.splice(0,1);
 
 				tempTotal.push(1);
 				tempTotalP.push(1);
-				
+
 				/* RESTORE TROUBLESHOOT VIEW */
 				if(!prTr)
 				{
-					friend = sorted; sorted = 0; 
+					friend = sorted; sorted = 0;
 					troubleshooting();
-					sorted = friend; 
+					sorted = friend;
 				}
 				/* RESTORE TR + PEIROD VIEW */
 				else
 				{
-					prTr = 0; friend = sorted; sorted = 0; 
+					prTr = 0; friend = sorted; sorted = 0;
 					periodTrView();
-					sorted = friend; 
+					sorted = friend;
 				}
-				sorted = 0; 
+				sorted = 0;
 				trSortSignal(diffColSort);
 				diffSorted = 1;
-				return;  
-			} 
+				return;
+			}
 
-			diffColNum = (j + 1); 
-			
+			diffColNum = (j + 1);
+
 			/* SORT ACTUAL ENTRY CONTENTS */
 			for(l = 0; l < diffArry.length; l++)
 			{
@@ -3520,78 +3580,30 @@ function sortTrCol(col)
 						{
 							if(totalEntries[k].childNodes[feChild].childNodes[n].attributes[0].value == frontEndName)
 							{
-								childView = n; 
-								break; 	
+								childView = n;
+								break;
 							}
 						}
 					}
 					if(childView)
-					{ 
-						val1 = 0; val2 = 0; helper = j; 
-						if(helper == 1) helper++; 	
+					{
+						val1 = 0; val2 = 0; helper = j;
+						if(helper == 1) helper++;
 						try
 						{
-							val1 = parseInt(totalEntries[k].childNodes[feChild].childNodes[childView].childNodes[child[helper]].attributes[att[helper]].value); 
+							val1 = parseInt(totalEntries[k].childNodes[feChild].childNodes[childView].childNodes[child[helper]].attributes[att[helper]].value);
 						}
 						catch(err){}
 						try
 						{
 							val2 = 	parseInt(totalEntries[k].childNodes[feChild].childNodes[childView].childNodes[child[helper + 1]].attributes[att[helper + 1]].
-							value); 
-						}
-						catch(err){}
-						diff =  val1 - val2; 
-						if(val1 == 0 && val2 == 0)
-						{
-							diff = 0; 	
-						}
-						if(diff == diffArry[l])
-						{
-							for(p = 0; p < entryLog.length; p++)
-							{
-								if(k == entryLog[p])
-								{
-									exists = 1; 
-									break; 	
-								}	
-							}
-							if(exists == 1)
-							{
-								exists = 0; 
-								continue; 	
-							}
-							entryLog.push(k);
-							tempTotalEntries.push(totalEntries[k]);
-							tempTotal.push(total[k]);
-							
-							tempTotalEntriesP.push(totalEntriesP[k]);
-							tempTotalP.push(totalP[k]);
-							break;  
-						}	
-					}	
-					else	
-					{
-						val1 = 0; 
-						val2 = 0;
-						helper = j; 
-						if(helper == 1)
-						{
-							helper++; 	
-						} 
-						try
-						{
-							val1 = parseInt(totalEntries[k].childNodes[totChild].childNodes[child[helper]].attributes[att[helper]].value); 
-						}
-						catch(err){}
-						try
-						{
-							val2 = 	parseInt(totalEntries[k].childNodes[totChild].childNodes[child[helper + 1]].attributes[att[helper + 1]].value); 
+							value);
 						}
 						catch(err){}
 						diff =  val1 - val2;
 						if(val1 == 0 && val2 == 0)
 						{
-							diff = 0; 	
+							diff = 0;
 						}
 						if(diff == diffArry[l])
 						{
@@ -3599,22 +3611,70 @@ function sortTrCol(col)
 							{
 								if(k == entryLog[p])
 								{
-									exists = 1; 
-									break; 	
-								}	
+									exists = 1;
+									break;
+								}
 							}
 							if(exists == 1)
 							{
-								exists = 0; 
-								continue; 	
+								exists = 0;
+								continue;
 							}
 							entryLog.push(k);
 							tempTotalEntries.push(totalEntries[k]);
 							tempTotal.push(total[k]);
-							
+
 							tempTotalEntriesP.push(totalEntriesP[k]);
 							tempTotalP.push(totalP[k]);
-							break;  
+							break;
+						}
+					}
+					else
+					{
+						val1 = 0;
+						val2 = 0;
+						helper = j;
+						if(helper == 1)
+						{
+							helper++;
+						}
+						try
+						{
+							val1 = parseInt(totalEntries[k].childNodes[totChild].childNodes[child[helper]].attributes[att[helper]].value);
+						}
+						catch(err){}
+						try
+						{
+							val2 = 	parseInt(totalEntries[k].childNodes[totChild].childNodes[child[helper + 1]].attributes[att[helper + 1]].value);
+						}
+						catch(err){}
+						diff =  val1 - val2;
+						if(val1 == 0 && val2 == 0)
+						{
+							diff = 0;
+						}
+						if(diff == diffArry[l])
+						{
+							for(p = 0; p < entryLog.length; p++)
+							{
+								if(k == entryLog[p])
+								{
+									exists = 1;
+									break;
+								}
+							}
+							if(exists == 1)
+							{
+								exists = 0;
+								continue;
+							}
+							entryLog.push(k);
+							tempTotalEntries.push(totalEntries[k]);
+							tempTotal.push(total[k]);
+
+							tempTotalEntriesP.push(totalEntriesP[k]);
+							tempTotalP.push(totalP[k]);
+							break;
 						}
 					}
 				}
@@ -3625,20 +3685,20 @@ function sortTrCol(col)
 			/* RESTORE TROUBLESHOOT VIEW */
 			if(!prTr)
 			{
-				friend = sorted; sorted = 0; 
+				friend = sorted; sorted = 0;
 				troubleshooting();
-				sorted = friend; 
+				sorted = friend;
 			}
 			/* RESTORE TR + PEIROD VIEW */
 			else
 			{
-				prTr = 0; friend = sorted; sorted = 0; 
+				prTr = 0; friend = sorted; sorted = 0;
 				periodTrView();
-				sorted = friend; 
+				sorted = friend;
 			}
-			sorted = 0; 
+			sorted = 0;
 			trSortSignal(diffColSort);
-			return;  
+			return;
 		}
 	}
 }
@@ -3646,22 +3706,22 @@ function sortTrCol(col)
 /* SORTING ARRAY CONTENT  FUNCTION */
 function sortNumber(a, b)
 {
-	return b - a; 
+	return b - a;
 }
 
 /* COLOR SORTED COL OF TR TABLE */
 function trSortSignal(col)
 {
-	/* 
+	/*
 	 * FIND CORRECT DIFF COL INDEX TO COLOR
 	 */
 	if(prTr && diffSorted)
 	{
 		for(i = 0; i < trpr_THeader.rows[0].cells.length; i++)
 		{
-			if(trpr_THeader.rows[0].cells[i].innerHTML == diffColName){ col = i; break;} 
+			if(trpr_THeader.rows[0].cells[i].innerHTML == diffColName){ col = i; break;}
 		}
-		
+
 	}
 	else if(troubleshoot && diffSorted)
 	{
@@ -3670,17 +3730,17 @@ function trSortSignal(col)
 			if(trHeader.rows[0].cells[i].innerHTML == diffColName){ col = i; break;}
 		}
 	}
-	
+
 	/* NONE COMPATIBLE SORT */
-	if(col > headColArryTR.length) return; 
-	
+	if(col > headColArryTR.length) return;
+
 	/*
 	 * COLOR SORTED COLUMN ACCORDING TO VIEW-------------------------------------------------------
 	 */
-	
+
 	/* TR TABLE */
 	if(!prTr)
-	{	 
+	{
 		for(i = 0; i < headColArryTR.length; i++)
 		{
 			for(j = 0; j < trTable.rows.length; j++)
@@ -3724,11 +3784,11 @@ function trSortSignal(col)
 				temp = i;
 				if(j % 4 == 0)
 				{
-					trpr_Table.rows[j].cells[1].bgColor = "#F2F2F2"; 
+					trpr_Table.rows[j].cells[1].bgColor = "#F2F2F2";
 				}
 				else
 					trpr_Table.rows[j].cells[0].bgColor = "#F2F2F2";
-					 
+
 				if(j % 4 == 0){ temp++; }
 				if(i == col)
 				{
@@ -3767,30 +3827,30 @@ function periodTrView()
 	if(prTr)
 	{
 		/* RESET && RESTORE DEF TABLE */
-		prTr = 0; 
+		prTr = 0;
 		if(!troubleshoot){diffSorted = 0; }
 		document.getElementById('header').removeChild(trpr_THeader);
 		document.getElementById('scroll').removeChild(trpr_Table);
 		document.getElementById('scroll').appendChild(table);
 		document.getElementById('header').appendChild(thead);
-		
+
 		/* RESTORE TROUBESHOOTING VIEW */
 		if(troubleshoot){troubleshoot = 0; troubleshooting(); document.getElementById("note").style.visibility = "Hidden";}
-		
+
 		/* RESTORE PERIOD VIEW */
 		if(periodV){periodV = 0; period(); document.getElementById("note").style.visibility = "Visible";}
 
-		return; 			
+		return;
 	}
 	/* GET OUT OF THE PREVIOUS VIEW */
-	if(periodV) 
+	if(periodV)
 	{
-		document.getElementById('header').removeChild(theadP); 
+		document.getElementById('header').removeChild(theadP);
 		document.getElementById('scroll').removeChild(tableP);
 	}
 	else if(troubleshoot)
 	{
-		document.getElementById("scroll").removeChild(trTable); 
+		document.getElementById("scroll").removeChild(trTable);
 		document.getElementById('header').removeChild(trHeader);
 	}
 	else
@@ -3798,42 +3858,42 @@ function periodTrView()
 		document.getElementById('scroll').removeChild(table);
 		document.getElementById('header').removeChild(thead);
 	}
-	
-	troubleshoot = 0; periodV = 0; 
-	prTr = 1; 
-	currChild = 1; 
+
+	troubleshoot = 0; periodV = 0;
+	prTr = 1;
+	currChild = 1;
 	hrefs = new Array();
 
 	/* NO COMPATIBLE SORT SO RESTORE TO ENTRY MASTER ARRAY */
-	if(!diffSorted && sorted && sortColName != "statusRunning" && sortColName != "cmGlideinTotal" && sortColName != "statusIdle" && sortColName != "requestIdle" 
+	if(!diffSorted && sorted && sortColName != "statusRunning" && sortColName != "cmGlideinTotal" && sortColName != "statusIdle" && sortColName != "requestIdle"
 	&& sortColName != "cmGlideinJobsIdle")
 	{
 		tempTotalEntries = totalEntriesMaster;
-		tempTotalEntriesP = totalEntriesPMaster; 
-		tempTotal = totalMaster; 
-		tempTotal = totalPMaster; 
+		tempTotalEntriesP = totalEntriesPMaster;
+		tempTotal = totalMaster;
+		tempTotal = totalPMaster;
 	}
 	/* EITHER NO SORT OR NO DIFF SORT */
-	else if(!diffSorted) 
+	else if(!diffSorted)
 	{
-		tempTotalEntries = totalEntries; 
+		tempTotalEntries = totalEntries;
 		tempTotalEntriesP = totalEntriesP;
-		tempTotal = total; 
-		tempTotalP = totalP; 
+		tempTotal = total;
+		tempTotalP = totalP;
 	}
-	
+
 	headerText = new Array("Entry Name","", "Period", "Status: Running cores", "Client: Registered cores", "Diff(Status: Running cores, Client: Registered cores)", "Status: Idle",
 	"Requested: Idle", "Diff(Status: Idle, Requested: Idle)", "Client: User Idle");
-	colors = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
+	colors = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95");
 	trColumnId = new Array("entryLinks", "downtime", "period", "status", "client", "difference", "status", "requested", "difference", "client");
 
 	/* FRONTEND VIEW */
 	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 		child = new Array(feStatChild, feCMChild, feStatChild, feReqChild, feCMChild);
-	/* TOTAL VIEW */ 
-	else	 
-		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
-	
+	/* TOTAL VIEW */
+	else
+		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild);
+
 	/* ARRAYS FOR INFO ACCESSING */
     // MM trChildArry, trFEChildArry and child seem redundant
     trChildArry = new Array(totStatChild, totCMChild, 0, totStatChild, totReqChild, 0, totCMChild);
@@ -3841,16 +3901,16 @@ function periodTrView()
     // StatusRunningCores(Running cores) , ClientCoresTotal(Registered cores), StatusIdle(Idle), ReqIdle(Idle), ClientJobsIdle(User idle)
     // using columnArrayDesc, i starts w/ Entry_name, xmlAttTotalNumArry starts w/ DT (-1), xmlAttPeriodNumArry starts w/ Status (-columnArrayDesc.Status.offset)
     // In elements offset: 8, 5, -, 1, 1, -, 4
-	trAttArry = new Array();         	   
+	trAttArry = new Array();
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+8]);
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+5]);
-	trAttArry.push(0);               	   
-	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+1]); 
-	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset-1+1]); 
-	trAttArry.push(0); 					   
+	trAttArry.push(0);
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Status.offset-1+1]);
+	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.Req.offset-1+1]);
+	trAttArry.push(0);
 	trAttArry.push(xmlAttTotalNumArry[columnArrayDesc.CM.offset-1+4]);
 
-	prAttArry = new Array(); 
+	prAttArry = new Array();
 	prAttArry.push(xmlAttPeriodNumArry[8]);  // columnArrayDesc.Status.offset-columnArrayDesc.Status.offset+8
 	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+5]);
 	prAttArry.push(0);
@@ -3858,20 +3918,20 @@ function periodTrView()
 	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.Req.offset-columnArrayDesc.Status.offset+1]);
 	prAttArry.push(0);
 	prAttArry.push(xmlAttPeriodNumArry[columnArrayDesc.CM.offset-columnArrayDesc.Status.offset+4]);
-	
-	rows = new Array(); 
+
+	rows = new Array();
 	cols = new Array();
-	headerCols = new Array();  
-	rowHeader = document.createElement('tr');  
-	
-	/* SET UP TABLE */	
-	trpr_Table = document.createElement('table'); 
-	trpr_TBody = document.createElement('tbody'); 
-	trpr_Table.setAttribute('id', 'trTable'); 
-	trpr_THeader = document.createElement('table'); 
-	trpr_THBody = document.createElement('tbody'); 
+	headerCols = new Array();
+	rowHeader = document.createElement('tr');
+
+	/* SET UP TABLE */
+	trpr_Table = document.createElement('table');
+	trpr_TBody = document.createElement('tbody');
+	trpr_Table.setAttribute('id', 'trTable');
+	trpr_THeader = document.createElement('table');
+	trpr_THBody = document.createElement('tbody');
 	trpr_THeader.setAttribute('id', 'trHeader');
-	
+
 	/* HEADER */
 	for(x = 0; x < 10; x++)
 	{
@@ -3881,94 +3941,94 @@ function periodTrView()
 		headerCols[x].appendChild(td1Txt);
 		if(x == 0) headerCols[x].setAttribute("width", "23%");
 		if(x == 1) headerCols[x].setAttribute("width", "2%");
-		rowHeader.appendChild(headerCols[x]); 
+		rowHeader.appendChild(headerCols[x]);
 		headerCols[x].style.fontWeight = "bold";
 		if(x != 0) headerCols[x].setAttribute("align", "center");
-		if(x == 0 && x != 1) headerCols[x].setAttribute('onclick', 'sortAlphabetical()'); 
-		if(x > 2 && x != 1) headerCols[x].setAttribute('onclick', 'sortTrCol(this)'); 
+		if(x == 0 && x != 1) headerCols[x].setAttribute('onclick', 'sortAlphabetical()');
+		if(x > 2 && x != 1) headerCols[x].setAttribute('onclick', 'sortTrCol(this)');
 	}
-	trpr_THBody.appendChild(rowHeader); 
-	trpr_THeader.appendChild(trpr_THBody); 
+	trpr_THBody.appendChild(rowHeader);
+	trpr_THeader.appendChild(trpr_THBody);
 	document.getElementById('header').appendChild(trpr_THeader);
-	
-	friend = headerText.length; 
+
+	friend = headerText.length;
 
 	/* BODY */
 	for(c = 0; c < tempTotalEntriesP.length * 4; c++)
 	{
-		rows[c] = document.createElement('tr');	
-		rows[c].setAttribute('id', 'entries'); 
+		rows[c] = document.createElement('tr');
+		rows[c].setAttribute('id', 'entries');
 		rows[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
-		rows[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+		rows[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'");
 
 		/* COLS */
-		for(k = 0; k < friend; k++) 
+		for(k = 0; k < friend; k++)
 		{
-			friend = headerText.length; 
+			friend = headerText.length;
 			cols[k] = document.createElement('td');
 			if(c % 4 == 0 && k == 0)
 			{
 				cols[k].setAttribute("bgColor", "#F2F2F2");
-				cols[k].setAttribute('rowspan', '4'); 	
+				cols[k].setAttribute('rowspan', '4');
 			}
 			if(c % 4 != 0 && c != 0)
 			{
-				friend--;  
+				friend--;
 			}
-			
+
 			/* POP UPS */
 			if(k > 1)
 			{
 				if(c > 0 && (k > 2 || k == 1))
 				{
 					cols[k].setAttribute('onmouseover', 'showPopUpPeriod(this)');
-					cols[k].setAttribute('id', c); 
+					cols[k].setAttribute('id', c);
 					cols[k].setAttribute('onmouseout', 'hidePopUp()');
 				}
 				else
 				{
 					cols[k].setAttribute('onmouseover', 'showPopUpPeriod(this)');
-					cols[k].setAttribute('id', c); 
+					cols[k].setAttribute('id', c);
 					cols[k].setAttribute('onmouseout', 'hidePopUp()');
 					cols[k - 1].setAttribute('onmouseover', 'showPopUpPeriod(this)');
-					cols[k - 1].setAttribute('id', c);  				
+					cols[k - 1].setAttribute('id', c);
 					cols[k - 1].setAttribute('onmouseout', 'hidePopUp()');
 				}
 			}
-			
-			if(k == 0) cols[k].setAttribute('width', '23%'); 
+
+			if(k == 0) cols[k].setAttribute('width', '23%');
 			if(k == 1){ cols[k].setAttribute("width", "2%"); if(c % 4 != 0) cols[k - 1].innerHTML = ""; }
 			cont = document.createTextNode(0 + "");
-			cols[k].appendChild(cont);		
+			cols[k].appendChild(cont);
 			rows[c].appendChild(cols[k]);
 		}
 		trpr_TBody.appendChild(rows[c]);
 		tableMade = 1;
 	}
-	trpr_Table.appendChild(trpr_TBody); 
+	trpr_Table.appendChild(trpr_TBody);
 	document.getElementById('scroll').appendChild(trpr_Table);
-	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 	
-	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")"; 
+	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px";
+	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")";
 
-	/* ENTRY NAMES */ 
-	count = 0; 
+	/* ENTRY NAMES */
+	count = 0;
 	for(i = 0; i < tempTotalEntriesP.length * 4; i++)
 	{
 		if(i % 4 == 0)
 		{
-			y = tempTotalEntriesP[count].getAttribute("name"); 
+			y = tempTotalEntriesP[count].getAttribute("name");
 			trpr_Table.rows[i].cells[0].innerHTML = "";
 			links[i] = document.createElement('a');
-			links[i].setAttribute("id", "entryLinks"); 
-			links[i].innerHTML = y; 
+			links[i].setAttribute("id", "entryLinks");
+			links[i].innerHTML = y;
 			links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
 			links[i].setAttribute("onclick", "entryClick(this)");
 			trpr_Table.rows[i].cells[0].appendChild(links[i]);
-			count++;  
+			count++;
 		}
 	}
-	
-	/* FILL IN DOWNTIME FIELDS */ 
+
+	/* FILL IN DOWNTIME FIELDS */
 	for(i = 0; i < totalEntries.length; i++)
 	{
 		DISPLACE = 4*i;
@@ -3978,122 +4038,122 @@ function periodTrView()
 		}
 		else
 			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
-		
+
 		if(item == "True"){ item = "&darr;"; trpr_Table.rows[DISPLACE].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; trpr_Table.rows[DISPLACE].cells[1].style.color = "#008B00";  }            /* UP ARROW */
-		trpr_Table.rows[DISPLACE].cells[1].innerHTML = item; 
+		trpr_Table.rows[DISPLACE].cells[1].innerHTML = item;
 	}
-	
+
 	childArry = new Array(0, 3, 5, 1);  // MMWIP
-	
+
 	/* PERIOD NAMES */
 	count = 0;
 	child = 7;
-	four = 0; 
-	valFinal = 0;   
+	four = 0;
+	valFinal = 0;
 	for(i = 0; i < trpr_Table.rows.length; i++)
 	{
 		if(i % 4 != 0)
 		{
-			valFinal = 0; 
-			val = tempTotalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value; 
+			valFinal = 0;
+			val = tempTotalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value;
 			val2 = val % 60; /* Remaining seconds */
 
 			/* Minutes */ val3 = val / 60;
-			valFinal = val3 + " mins"; 
-			
+			valFinal = val3 + " mins";
+
 			/* If more than 60 minutes converto hours. */
 			if(val3 > 60)
 			{
-				/* Hours */ val4 = val3 / 60; 
-				valFinal = val4 + " hours"; 
+				/* Hours */ val4 = val3 / 60;
+				valFinal = val4 + " hours";
 
-				/* If hours more than 24 convert to days. */	
+				/* If hours more than 24 convert to days. */
 				if(val4 > 24)
 				{
 					/* Days */ val5 = val4 / 24;
-					valFinal = val5 + " days"; 
-					
+					valFinal = val5 + " days";
+
 					/* If more than 365 days convert to years. */
 					if(val5 > 365)
 					{
-						/* Years */ val6 = val5/ 365; 
-						valFinal = val6 + " years"; 
+						/* Years */ val6 = val5/ 365;
+						valFinal = val6 + " years";
 					}
 				}
 			}
-			
+
 			trpr_Table.rows[i].cells[1].innerHTML = valFinal;
 			if(childArry[four] == 3)
 			{
-				trpr_Table.rows[i].cells[1].setAttribute("bgColor", "#6495ED"); 
+				trpr_Table.rows[i].cells[1].setAttribute("bgColor", "#6495ED");
 			}
 			else if(childArry[four] == 5)
 			{
-				trpr_Table.rows[i].cells[1].setAttribute("bgColor", "#388E8E"); 
+				trpr_Table.rows[i].cells[1].setAttribute("bgColor", "#388E8E");
 			}
 			else if(childArry[four] == 1)
 			{
-				trpr_Table.rows[i].cells[1].setAttribute("bgColor", "#8E388E"); 
+				trpr_Table.rows[i].cells[1].setAttribute("bgColor", "#8E388E");
 			}
-			four++; 
+			four++;
 			if(four == 4)
 			{
-				four = 0; 
-				count++; 
+				four = 0;
+				count++;
 			}
 		}
 		else
 		{
 			if(childArry[four] == 0)
 			{
-				four++; 
+				four++;
 				trpr_Table.rows[i].cells[2].innerHTML = "Now";
-				trpr_Table.rows[i].cells[2].setAttribute("bgColor", "#515151"); 
-				continue; 
+				trpr_Table.rows[i].cells[2].setAttribute("bgColor", "#515151");
+				continue;
 			}
-			valFinal = 0; 
-			val = tempTotalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value; 
+			valFinal = 0;
+			val = tempTotalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value;
 			val2 = val % 60; /* Remaining seconds */
 
 			/* Minutes */ val3 = val / 60;
-			valFinal = val3 + " mins"; 
-			
+			valFinal = val3 + " mins";
+
 			/* If more than 60 minutes converto hours. */
 			if(val3 > 60)
 			{
-				/* Hours */ val4 = val3 / 60; 
-				valFinal = val4 + " hours"; 
+				/* Hours */ val4 = val3 / 60;
+				valFinal = val4 + " hours";
 
-				/* If hours more than 24 convert to days. */	
+				/* If hours more than 24 convert to days. */
 				if(val4 > 24)
 				{
 					/* Days */ val5 = val4 / 24;
-					valFinal = val5 + " days"; 
-					
+					valFinal = val5 + " days";
+
 					/* If more than 365 days convert to years. */
 					if(val5 > 365)
 					{
-						/* Years */ val6 = val5/ 365; 
-						valFinal = val6 + " years"; 
+						/* Years */ val6 = val5/ 365;
+						valFinal = val6 + " years";
 					}
 				}
 			}
 			trpr_Table.rows[i].cells[2].innerHTML = valFinal;
-			four++; 
-		}	
+			four++;
+		}
 	}
-	
+
 	/* FILL IN REST */
 	attCount = 0;
-	att2Count = 0; 
-	child = 1; 
+	att2Count = 0;
+	child = 1;
 	count = 0;
 	for(i = 0; i < tempTotalEntriesP.length; i++)
 	{
 		child = 1;
 		for(j = 0; j < 4; j++)
-		{ 
+		{
 			for(counter = 3; counter <= 9; counter++)
 			{
 				if(j == 0)
@@ -4105,11 +4165,11 @@ function periodTrView()
 						if(tempTotal[i].childNodes.length != 0)
 						{
 							if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
-							{	
+							{
 								try
 								{
 									trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trFEChildArry[counter - 5]].
-									attributes[trAttArry[counter - 5]].value - 
+									attributes[trAttArry[counter - 5]].value -
 									tempTotal[i].childNodes[trFEChildArry[counter - 4]].attributes[trAttArry[counter - 4]].value;
 								}
 								catch(err)
@@ -4126,13 +4186,13 @@ function periodTrView()
 								}
 								catch(err)
 								{
-									trpr_Table.rows[count].cells[counter].innerHTML = 0;	
+									trpr_Table.rows[count].cells[counter].innerHTML = 0;
 								}
 							}
 						}
 						else
 							trpr_Table.rows[count].cells[counter].innerHTML = 0;
-						continue;			
+						continue;
 					}
 					/* Period elements have one extra att so when going back to totla noew field we move back att by one sortColNum. */
 					if(tempTotal[i].childNodes.length != 0 && tempTotal[i].childNodes.length >= 7 && counter != 5 && counter != 8)
@@ -4140,13 +4200,13 @@ function periodTrView()
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 							trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trFEChildArry[counter - 3]].attributes[trAttArry[counter - 3]].
 							value;
-						else 
+						else
 							trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trChildArry[counter - 3]].
 							attributes[trAttArry[counter - 3]].value;
 					}
 					else
 					{
-						trpr_Table.rows[count].cells[counter].innerHTML = 0; 
+						trpr_Table.rows[count].cells[counter].innerHTML = 0;
 					}
 					continue;
 				}
@@ -4155,35 +4215,35 @@ function periodTrView()
 					/* DIFFERENCES */
 					if(counter == 5 || counter == 8)
 					{
-						x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 5]].value - 
+						x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 5]].value -
 						tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 4]].value;
-						x = Math.round(x * 100)/100; 
-				   		trpr_Table.rows[count].cells[counter - 1].innerHTML = x; 
-						continue; 
+						x = Math.round(x * 100)/100;
+				   		trpr_Table.rows[count].cells[counter - 1].innerHTML = x;
+						continue;
 					}
-					x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 3]].value; 
-					x = Math.round(x * 100)/100; 
-				   	trpr_Table.rows[count].cells[counter - 1].innerHTML = x; 
+					x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 3]].value;
+					x = Math.round(x * 100)/100;
+				   	trpr_Table.rows[count].cells[counter - 1].innerHTML = x;
 				}
 				catch(err)
 				{
-				   	trpr_Table.rows[count].cells[counter - 1].innerHTML = 0; 
+				   	trpr_Table.rows[count].cells[counter - 1].innerHTML = 0;
 				}
 			}
-			count++; 	
+			count++;
 		}
  	}
 	document.getElementById("note").style.visibility = "Visible";
 	/* REGULAR SORT */
-	if(sorted && (sortColName == "statusRunning" || sortColName == "cmGlideinTotal" || sortColName == "statusIdle" || sortColName == "requestIdle" || sortColName 
+	if(sorted && (sortColName == "statusRunning" || sortColName == "cmGlideinTotal" || sortColName == "statusIdle" || sortColName == "requestIdle" || sortColName
 		== "cmGlideinJobsIdle"))
 	{
-		trSortSignal(trSortColNum); 	
+		trSortSignal(trSortColNum);
 	}
 	/* A DIFF COLUMN SORT */
 	if(diffSorted)
 	{
-		trSortSignal(diffColSort + prTr); 	
+		trSortSignal(diffColSort + prTr);
 	}
 }
 
@@ -4192,15 +4252,15 @@ function period()
 {
 	/* RESTORE TROUBELSHOOT VIEW */
 	if(prTr){troubleshoot = 1; periodV = 0; periodTrView();  return;}
-	
-	/*  
+
+	/*
 	 * REMOVE PRIOR VIEW'S!-------------------------------------------------------------------------------
 	 */
 	if(table && !periodV)
 	{
 		if(troubleshoot){ periodTrView(); return;}
 		document.getElementById('scroll').removeChild(table);
-		document.getElementById('header').removeChild(thead); 
+		document.getElementById('header').removeChild(thead);
 	}
 	else
 	{
@@ -4212,26 +4272,26 @@ function period()
 		document.getElementById("note").style.visibility = "Hidden";
 		/* IF SORTED REFILL TABLE */
 		if(sorted && !updating){fillIn();}
-		return;  
+		return;
 	}
-	
+
 	/*
 	 *  SET UP EVERYTHING TO BUIILD PERIOD VIEW-------------------------------------------------------------
 	 */
-	
+
 	periodV = 1;
-	tempTotalEntries = totalEntries; 
+	tempTotalEntries = totalEntries;
 	tempTotalEntriesP = totalEntriesP;
-	tempTotal = total; 
+	tempTotal = total;
 	tempTotalP = totalP;
-	document.getElementById("note").style.visibility = "Visible"; 
-							
+	document.getElementById("note").style.visibility = "Visible";
+
 	row=new Array();
 	cell=new Array();
 	cell2 = new Array();
-	row2 = document.createElement('tr'); 
+	row2 = document.createElement('tr');
 
-	row_num = totalEntriesP.length; 
+	row_num = totalEntriesP.length;
 	cell_num = columnArray.length + 1; /* THE EXTRA 1 IS FOR PERIOD COL */
 	x = 0;
 
@@ -4239,10 +4299,10 @@ function period()
 	thBodyP = document.createElement('tbody');
 	theadP.setAttribute('id', 'thead');
 
-	tableP = document.createElement('table');	
+	tableP = document.createElement('table');
 	tBodyP =document.createElement('tbody');
 	tableP.setAttribute('id','table');
-	colorArry = new Array("#FAF0E6", "#FFDAB9", "#CDAF95"); 
+	colorArry = new Array("#FAF0E6", "#FFDAB9", "#CDAF95");
 	hArry = new Array("#DCDCDC", "#F2F2F2", "#FFFAF0", "#FAF0E6", "#FFDAB9", "#CDAF95");
 	hArry2 = new Array("", "", "Period:", "Status:", "Requested:", "Client Monitor:");
 	// hArry3 = new Array(1, 1, 1,xmlAttStatNumArry.length, xmlAttReqNumArry.length, xmlAttCMNumArry.length);
@@ -4250,7 +4310,7 @@ function period()
 
 	/*
 	 * BEGIN BUILDING TABLE -------------------------------------------------------------------------------
-	 */ 
+	 */
 
 	/* HEADER */
 	for(x = 0; x < 6; x++)
@@ -4261,41 +4321,41 @@ function period()
 		cell2[x].setAttribute('bgColor', hArry[x]);
 		txt = document.createTextNode(hArry2[x]);
 		if(x == 0) cell2[x].setAttribute("width", "23%");
-		if(x == 1) cell2[x].setAttribute("width", "2%");	
+		if(x == 1) cell2[x].setAttribute("width", "2%");
 		cell2[x].setAttribute('colspan', hArry3[x]);
 		cell2[x].appendChild(txt);
-		row2.appendChild(cell2[x]); 
+		row2.appendChild(cell2[x]);
 	}
-	
-	thBodyP.appendChild(row2); 
+
+	thBodyP.appendChild(row2);
 	friend = cell_num;
 
 	/* BODY (ROWS * 4) */
 	for(c = 0; c < row_num * 4 + 1; c++)
 	{
-		row[c] = document.createElement('tr');	
-		row[c].setAttribute('id', 'entries'); 
+		row[c] = document.createElement('tr');
+		row[c].setAttribute('id', 'entries');
 		if(c > 0)
 		{
 			row[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
-			row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+			row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'");
 		}
 		/* COLUMNS */
-		for(k = 0; k < friend; k++) 
+		for(k = 0; k < friend; k++)
 		{
-			friend = cell_num; 
+			friend = cell_num;
 			cell[k] = document.createElement('td');
 			if((c + 3) % 4 == 0 && k == 0)
 			{
-				cell[k].setAttribute("bgColor", "#F2F2F2"); 	
+				cell[k].setAttribute("bgColor", "#F2F2F2");
 			}
 			if((c + 3) % 4 != 0 && c != 0)
 			{
-				friend--;  
+				friend--;
 			}
 			if(((c + 3) % 4 == 0) && k == 0)
 			{
-				cell[k].setAttribute('rowspan', '4'); 	
+				cell[k].setAttribute('rowspan', '4');
 			}
 			/* MOUSE OVER ADJUSTMENTS */
 			if(c > 0 && (k > 2 || k == 1))
@@ -4303,61 +4363,61 @@ function period()
 				if((c - 1) % 4 == 0)
 				{
 					cell[k].setAttribute('onmouseover', 'showPopUpPeriod(this)');
-					cell[k].setAttribute('id', c); 
+					cell[k].setAttribute('id', c);
 					cell[k].setAttribute('onmouseout', 'hidePopUp()');
 				}
 				else
 				{
 					cell[k].setAttribute('onmouseover', 'showPopUpPeriod(this)');
-					cell[k].setAttribute('id', c); 
+					cell[k].setAttribute('id', c);
 					cell[k].setAttribute('onmouseout', 'hidePopUp()');
 					cell[k - 1].setAttribute('onmouseover', 'showPopUpPeriod(this)');
-					cell[k - 1].setAttribute('id', c);  				
+					cell[k - 1].setAttribute('id', c);
 					cell[k - 1].setAttribute('onmouseout', 'hidePopUp()');
 				}
 			}
 			if(c > 0 && k == 0)
 			{
-				cell[k].setAttribute('width', '23%');  				
+				cell[k].setAttribute('width', '23%');
 			}
 			if(c > 0 && k == 1)
 			{
 				cell[k].setAttribute('width', '2%');
-				if((c-1) % 4 != 0) cell[k - 1].innerHTML = "";  
+				if((c-1) % 4 != 0) cell[k - 1].innerHTML = "";
 			}
 			if(c == 0 && k == 0)
 			{
 				cont = document.createTextNode("Entry Name")
 				cell[k].appendChild(cont);
-				cell[k].setAttribute('id', 'entryName'); 
+				cell[k].setAttribute('id', 'entryName');
 	    		cell[k].setAttribute("onclick", "sortAlphabetical()");
-				cell[k].setAttribute('bgColor', '#DCDCDC');  	 
+				cell[k].setAttribute('bgColor', '#DCDCDC');
 			}
-			if(c == 0 && k == 1) cell[k].setAttribute('bgColor', '#F2F2F2');  	 
+			if(c == 0 && k == 1) cell[k].setAttribute('bgColor', '#F2F2F2');
 			if(c == 0 && k == 2)
 			{
 				cont = document.createTextNode("Name")
 				cell[k].appendChild(cont);
-				cell[k].setAttribute('id', ''); 
-			    cell[k].setAttribute("onclick", ""); 
-				cell[k].setAttribute('bgColor', '#FFFAF0'); 	 
+				cell[k].setAttribute('id', '');
+			    cell[k].setAttribute("onclick", "");
+				cell[k].setAttribute('bgColor', '#FFFAF0');
 			}
 			if(c == 0 && k >= 3)
 			{
 				cont = document.createTextNode(headColArryPR[k - 2])
 				cell[k].appendChild(cont);
-				cell[k].setAttribute('id', 'k'); 
+				cell[k].setAttribute('id', 'k');
 			    cell[k].setAttribute("onclick", "sortTableDescending(this)");
 				if(k < columnArrayDesc.Req.offset+1)
 				{
-					cell[k].setAttribute('bgColor', colorArry[0]); 
+					cell[k].setAttribute('bgColor', colorArry[0]);
 				}
 				else if(k < columnArrayDesc.CM.offset+1)
 				{
-					cell[k].setAttribute('bgColor', colorArry[1]); 
+					cell[k].setAttribute('bgColor', colorArry[1]);
 				}
 				else
-					cell[k].setAttribute('bgColor', colorArry[2]); 
+					cell[k].setAttribute('bgColor', colorArry[2]);
 			}
 			if(c > 0)
 			{
@@ -4368,7 +4428,7 @@ function period()
 		}
 		if(c == 0)
 		{
-			thBodyP.appendChild(row[c]); 
+			thBodyP.appendChild(row[c]);
 		}
 		else
 		{
@@ -4376,15 +4436,15 @@ function period()
 		}
 		tableMade = 1;
 	}
-	
+
 	/*
-	 *  APPEND AND FILL TABLE. ALSO COLOR COLS IF SORT VIEW--------------------------------- 
+	 *  APPEND AND FILL TABLE. ALSO COLOR COLS IF SORT VIEW---------------------------------
 	 */
-	theadP.appendChild(thBodyP); 
-	tableP.appendChild(tBodyP); 
-	document.getElementById('header').appendChild(theadP); 
+	theadP.appendChild(thBodyP);
+	tableP.appendChild(tBodyP);
+	document.getElementById('header').appendChild(theadP);
 	document.getElementById('scroll').appendChild(tableP);
-	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 	
+	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px";
 	fillInPeriod();            /* FILL PERIOD TABLE */
 	if(sorted){ sortSignal();} /* COLOR SORTED COLS IF SORTED */
 }
@@ -4394,34 +4454,34 @@ function fillInPeriod()
 {
 	problem = 0;
 	linkCount = 0;
-	 
+
 	/* IF TABLE IS NOT MADE BUILD IT!!! */
 	if(tableMade == 0) makeTable();
 	/* IF DROP DOWN LIST IS NOT MADE BUILD IT!!! */
-	if(listMade == 0) makeList(); 	
+	if(listMade == 0) makeList();
 
-	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")"; 
-	
+	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")";
+
 	/* FILL IN ENTRY NAMES */
-	count = 0; 
+	count = 0;
 	for(i = 0; i < row_num * 4; i++)
 	{
 		if(i % 4 == 0)
 		{
-			y = totalEntriesP[count].getAttribute("name"); 
+			y = totalEntriesP[count].getAttribute("name");
 			tableP.rows[i].cells[0].innerHTML = "";
 			links[i] = document.createElement('a');
-			links[i].setAttribute("id", "entryLinks"); 
-			links[i].innerHTML = y; 
+			links[i].setAttribute("id", "entryLinks");
+			links[i].innerHTML = y;
 			links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
 			links[i].setAttribute("onclick", "entryClick(this)");
 			tableP.rows[i].cells[0].appendChild(links[i]);
-			count++;  
+			count++;
 		}
 	}
-	childArry = new Array(0, 3, 5, 1); DISPLACE = 0; 
-	
-	/* FILL IN DOWNTIME FIELDS */ 
+	childArry = new Array(0, 3, 5, 1); DISPLACE = 0;
+
+	/* FILL IN DOWNTIME FIELDS */
 	for(i = 0; i < totalEntries.length; i++)
 	{
 		DISPLACE = 4*i;
@@ -4431,130 +4491,130 @@ function fillInPeriod()
 		}
 		else
 			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
-		
+
 		if(item == "True"){ item = "&darr;"; tableP.rows[DISPLACE].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; tableP.rows[DISPLACE].cells[1].style.color = "#008B00";  }            /* UP ARROW */
-		tableP.rows[DISPLACE].cells[1].innerHTML = item; 
+		tableP.rows[DISPLACE].cells[1].innerHTML = item;
 	}
-	
-	/* 
+
+	/*
 	 * FILL IN PERIOD NAMES
 	 */
 	count = 0;
 	child = 7;
-	four = 0; 
-	valFinal = 0;   
+	four = 0;
+	valFinal = 0;
 	for(i = 0; i < tableP.rows.length; i++)
 	{
 		if(i % 4 != 0)
 		{
-			valFinal = 0; 
-			val = totalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value; 
+			valFinal = 0;
+			val = totalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value;
 			val2 = val % 60; /* Remaining seconds */
 
 			/* Minutes */ val3 = val / 60;
-			valFinal = val3 + " mins"; 
-			
+			valFinal = val3 + " mins";
+
 			/* If more than 60 minutes converto hours. */
 			if(val3 > 60)
 			{
-				/* Hours */ val4 = val3 / 60; 
-				valFinal = val4 + " hours"; 
+				/* Hours */ val4 = val3 / 60;
+				valFinal = val4 + " hours";
 
-				/* If hours more than 24 convert to days. */	
+				/* If hours more than 24 convert to days. */
 				if(val4 > 24)
 				{
 					/* Days */ val5 = val4 / 24;
-					valFinal = val5 + " days"; 
-					
+					valFinal = val5 + " days";
+
 					/* If more than 365 days convert to years. */
 					if(val5 > 365)
 					{
-						/* Years */ val6 = val5/ 365; 
-						valFinal = val6 + " years"; 
+						/* Years */ val6 = val5/ 365;
+						valFinal = val6 + " years";
 					}
 				}
 			}
-			
+
 			tableP.rows[i].cells[1].innerHTML = valFinal;
 			if(childArry[four] == 3)
 			{
-				tableP.rows[i].cells[1].setAttribute("bgColor", "#6495ED"); 
+				tableP.rows[i].cells[1].setAttribute("bgColor", "#6495ED");
 			}
 			else if(childArry[four] == 5)
 			{
-				tableP.rows[i].cells[1].setAttribute("bgColor", "#388E8E"); 
+				tableP.rows[i].cells[1].setAttribute("bgColor", "#388E8E");
 			}
 			else if(childArry[four] == 1)
 			{
-				tableP.rows[i].cells[1].setAttribute("bgColor", "#8E388E"); 
+				tableP.rows[i].cells[1].setAttribute("bgColor", "#8E388E");
 			}
-			four++; 
+			four++;
 			if(four == 4)
 			{
-				four = 0; 
-				count++; 
+				four = 0;
+				count++;
 			}
 		}
 		else
 		{
 			if(childArry[four] == 0)
 			{
-				four++; 
+				four++;
 				tableP.rows[i].cells[2].innerHTML = "Now";
-				tableP.rows[i].cells[2].setAttribute("bgColor", "#515151"); 
-				continue; 
+				tableP.rows[i].cells[2].setAttribute("bgColor", "#515151");
+				continue;
 			}
-			valFinal = 0; 
-			val = totalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value; 
+			valFinal = 0;
+			val = totalEntriesP[count].childNodes[1].childNodes[1].childNodes[childArry[four]].attributes[0].value;
 			val2 = val % 60; /* Remaining seconds */
 
 			/* Minutes */ val3 = val / 60;
-			valFinal = val3 + " mins"; 
-			
+			valFinal = val3 + " mins";
+
 			/* If more than 60 minutes converto hours. */
 			if(val3 > 60)
 			{
-				/* Hours */ val4 = val3 / 60; 
-				valFinal = val4 + " hours"; 
+				/* Hours */ val4 = val3 / 60;
+				valFinal = val4 + " hours";
 
-				/* If hours more than 24 convert to days. */	
+				/* If hours more than 24 convert to days. */
 				if(val4 > 24)
 				{
 					/* Days */ val5 = val4 / 24;
-					valFinal = val5 + " days"; 
-					
+					valFinal = val5 + " days";
+
 					/* If more than 365 days convert to years. */
 					if(val5 > 365)
 					{
-						/* Years */ val6 = val5/ 365; 
-						valFinal = val6 + " years"; 
+						/* Years */ val6 = val5/ 365;
+						valFinal = val6 + " years";
 					}
 				}
 			}
 			tableP.rows[i].cells[2].innerHTML = valFinal;
-			four++; 
-		}	
+			four++;
+		}
 	}
 
 	/*
-	 * Fill in STATUS fields.  
+	 * Fill in STATUS fields.
 	 */
     // Column offset is increased by 1 because of the period column
 	var attArry = new Array(13,10,16,12,14,15,11,9);  // MM not used
-	var attArry2 = new Array(4,1,7,3,5,6,2,0);  // MM not used 
+	var attArry2 = new Array(4,1,7,3,5,6,2,0);  // MM not used
 	attCount = 0; // MM not used - incremented but never accessed
 	att2Count = 0; // MM not used - incremented but never accessed - misspelled attCount2
-	child = 1; 
-	count = 0; 
+	child = 1;
+	count = 0;
 	for(i = 0; i < totalEntriesP.length; i++)
 	{
 		child = 1;
 		for(j = 0; j < 4; j++)
-		{ 
+		{
 			attCount = 0;  // MM not used - incremented but never accessed
 			attCount2 = 0;  // MM not used - incremented but never accessed
-			for(counter = 0; counter < columnArrayDesc.Status.length; counter++) 
+			for(counter = 0; counter < columnArrayDesc.Status.length; counter++)
 			{
 				if(j == 0)
 				{
@@ -4563,7 +4623,7 @@ function fillInPeriod()
 					if(total[i].childNodes.length != 0 && total[i].childNodes.length >= 7)
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
-						{	
+						{
 							tableP.rows[count].cells[counter+columnArrayDesc.Status.offset+1].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter]].value;
 						}
 						else
@@ -4575,41 +4635,41 @@ function fillInPeriod()
 					}
 					attCount2++; // MM not used - incremented but never accessed
 					continue;
-				} 
+				}
                 try   // continue makes this like an else branch
 				{
 				    x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter]].value;  // xmlAttPeriodNumArry starts w/ status values
-                    x = Math.round(x * 100)/100; 
-                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = x; 
+                    x = Math.round(x * 100)/100;
+                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = x;
                     attCount++; // MM not used - incremented but never accessed
                 }
                 catch(err)
                 {
-                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0; 
+                    tableP.rows[count].cells[counter+columnArrayDesc.Status.offset].innerHTML = 0;
                     attCount++; // MM not used - incremented but never accessed
                 }
 			}
-			count++; 	
+			count++;
 		}
  	}
-	
+
 	/*
-	 * Fill in REQ fields. 
+	 * Fill in REQ fields.
 	 */
 	var attArry = new Array(8,7);
-	var attArry2 = new Array(1,0); 
+	var attArry2 = new Array(1,0);
 	attCount = 0; // MM not used - incremented but never accessed
 	attCount2 = 0; // MM not used - incremented but never accessed
-	child = 1; 
-	count = 0; 
+	child = 1;
+	count = 0;
 	for(i = 0; i < totalEntries.length; i++)
 	{
 		child = 1;
 		for(j = 0; j < 4; j++)
-		{ 
+		{
 			attCount = 0; // MM not used - incremented but never accessed
 			attCount2 = 0;  // MM not used - incremented but never accessed
-			for(counter = 0; counter < columnArrayDesc.Req.length; counter++) 
+			for(counter = 0; counter < columnArrayDesc.Req.length; counter++)
 			{
 				if(j == 0)
 				{
@@ -4617,11 +4677,11 @@ function fillInPeriod()
 					if(total[i].childNodes.length != 0)
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
-						{	
+						{
 							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value;					
+							tableP.rows[count].cells[counter+columnArrayDesc.Req.offset+1].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter]].value;
 					}
 					else
 					{
@@ -4633,37 +4693,37 @@ function fillInPeriod()
 				try
 				{
 					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter+columnArrayDesc.Req.offset-columnArrayDesc.Status.offset]].value;
-					x = Math.round(x * 100)/100; 
-					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = x; 
+					x = Math.round(x * 100)/100;
+					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = x;
 					attCount++; // MM not used - incremented but never accessed
 				}
 				catch(err)
 				{
-					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0; 
+					tableP.rows[count].cells[counter+columnArrayDesc.Req.offset].innerHTML = 0;
 					attCount++; // MM not used - incremented but never accessed
 				}
-				
+
 			}
-			count++; 	
-		}	
+			count++;
+		}
  	}
-	
-	/* 
-     * Fill in CM fields 
+
+	/*
+     * Fill in CM fields
  	 */
-	var attArry = new Array(2,6,1,5,3,4); 
-	var attArry2 = new Array(1,5,0,4,2,3); 
+	var attArry = new Array(2,6,1,5,3,4);
+	var attArry2 = new Array(1,5,0,4,2,3);
 	attCount = 0; // MM not used - incremented but never accessed
 	attCount2 = 0;  // MM not used - incremented but never accessed
-	child = 1; 
-	count = 0; 
+	child = 1;
+	count = 0;
 	for(i = 0; i < totalEntriesP.length; i++)
 	{
 		child = 1;
 		for(j = 0; j < 4; j++)
-		{ 
-			attCount = 0; 
-			attCount2 = 0;  
+		{
+			attCount = 0;
+			attCount2 = 0;
 			for(counter = 0; counter < columnArrayDesc.CM.length; counter++)
 			{
 				if(j == 0)
@@ -4672,11 +4732,11 @@ function fillInPeriod()
 					if(total[i].childNodes.length != 0)
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
-						{	
+						{
 							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter]].value;
 						}
 						else
-							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;					
+							tableP.rows[count].cells[counter+columnArrayDesc.CM.offset+1].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;
 					}
 					else
 					{
@@ -4688,18 +4748,18 @@ function fillInPeriod()
 				try
 				{
 					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter+columnArrayDesc.Req.offset-columnArrayDesc.Status.offset]].value;
-					x = Math.round(x * 100)/100; 
-					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = x; 
+					x = Math.round(x * 100)/100;
+					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = x;
 					attCount++; // MM not used - incremented but never accessed
 				}
 				catch(err)
 				{
-					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0; 
+					tableP.rows[count].cells[counter+columnArrayDesc.CM.offset].innerHTML = 0;
 					attCount++; // MM not used - incremented but never accessed
 				}
 			}
-			count++; 	
-		}	
+			count++;
+		}
  	}
 }
 
@@ -4733,15 +4793,15 @@ td
 }
 #pgtitle
 {
-	color: #000; 	
+	color: #000;
 	font: bold 330%/100% "Times New Roman";
 	text-decoration:none;
-	left:50%; 
+	left:50%;
 }
 #table, #trTable
 {
-	table-layout: fixed; 
-	width: 100%; 
+	table-layout: fixed;
+	width: 100%;
 	background-color:#F2F2F2;
 }
 #total
@@ -4755,10 +4815,10 @@ td
 #thead, #trHeader
 {
 	table-layout: fixed;
- 	width: 99%; 
+ 	width: 99%;
 	text-align:left;
 }
-#choose 
+#choose
 {
 	margin-left:auto;
 	margin-right:auto;
@@ -4776,7 +4836,7 @@ td
 {
 	color: #303;
 	font-size:13px;
-	text-align: left;  
+	text-align: left;
 }
 #note
 {
@@ -4791,12 +4851,19 @@ td
 {
 	overflow: scroll;
 	width: auto;
-	min-height:90%; 
+	min-height:90%;
 }
 #hoverpopup
 {
 	visibility:hidden;
-	position:absolute; 
+	position:absolute;
+	top:0; left:0;
+	background-color: #999;
+}
+#hoverpopupsubentries
+{
+	visibility:hidden;
+	position:absolute;
 	top:0; left:0;
 	background-color: #999;
 }
@@ -4826,7 +4893,7 @@ td
 
 </head>
 
-<!-- RESIZE TABLE WHEN WINDOW IS RESIZED --> 
+<!-- RESIZE TABLE WHEN WINDOW IS RESIZED -->
 <body onResize = "setHeight()">
 
 <!-- BEGIN SCRIPTING BY LOADING RRD XML -->
@@ -4849,13 +4916,13 @@ td
 <!-- SELECT A VIEW CHECK BOXES -->
 <div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" > Active only
 <input type="checkbox" id = "troubleshoot" name="option2" value="troubleshoot" onclick= "troubleshooting()" > Troubleshoot
-<input type="checkbox" id = "period" name="option3" value="troubleshoot" onclick= "period()" > Period <br /> </div> 
+<input type="checkbox" id = "period" name="option3" value="troubleshoot" onclick= "period()" > Period <br /> </div>
 
-<!-- FE + ANY DROP DOWN LIST --> 
-<div id = "tempList"></div>                  
+<!-- FE + ANY DROP DOWN LIST -->
+<div id = "tempList"></div>
 <br /><br /><br /><br />
 
-<!-- UPDATE TABLE + GOTO LINK BUTTONS--> 
+<!-- UPDATE TABLE + GOTO LINK BUTTONS-->
 <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)<br />
 <form  > <input id = "button" type="button" value="Update Table"  onclick="updateTable()"/><form >  <input type="button" id = "reset" name="option3" value="Reset All Selections" onclick= "restoreDefault()" > </form>
 <form  > <input id = "link" type="button" value="Link" onclick="goToLink()" /> </form>
@@ -4865,8 +4932,9 @@ td
 
 <!-- APPEND TABLES HERE -->
 <div id = "header" > </div>
-<div id = "scroll"></div> 
+<div id = "scroll"></div>
 <div id = "hoverpopup"></div>
+<div id = "hoverpopupsubentries"></div>
 <div id = "monitor_footer"></div>
 
 </body>
