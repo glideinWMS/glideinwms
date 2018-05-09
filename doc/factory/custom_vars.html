@@ -677,11 +677,23 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_CPUS</b> </td>
-        <TD> Int</td>
+        <TD> String (Int)</td>
 
         <TD> 1 </TD>
         <TD>
             <P>Number of CPUs glidein should use. GLIDEIN_CPUS is used to set NUM_CPUS for the HTCondor started by the glidein. Use "<b>slot</b>" (or "<b>auto</b>") to let glidein determine this from the job slot assigned to the glidein, use "<b>node</b>" to let glidein determine this from the hardware of the worker node (e.g. if you are sure that only your job is running on the node), set a value to force a different number. In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_ESTIMATED_CPUS</b> </td>
+        <TD> Int</td>
+
+        <TD> 1 </TD>
+        <TD>
+            <P>Number of CPUs glidein is expected to receive. GLIDEIN_ESTIMATED_CPUS is used only when GLIDEIN_CPUS is set to some auto-discovery value (auto, slot, node, 0, -1).
+                With cores auto-discovery the Frontend assumes GLIDEIN_ESTIMATED_CPUS cores, 1 by default, will be provided by the entry (i.e. It will work even if the estimate is not correct but it will trigger requests only if the CPUs requested by the jobs are no more than GLIDEIN_ESTIMATED_CPUS and
+                the Frontend will adjust the requests expecting GLIDEIN_ESTIMATED_CPUS cores from each Glidein.
+               GLIDEIN_ESTIMATED_CPUS is not used by the Glidein. It is a configuration error to set GLIDEIN_CPUS to a number>0 and set GLIDEIN_ESTIMATED_CPUS.</P>
         </TD>
     </TR>
     <TR>

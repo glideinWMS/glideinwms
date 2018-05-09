@@ -894,7 +894,7 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     # Do not log decrypted values ... they are most likely sensitive
     # Just log the keys for debugging purposes
     log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
-    # requests use GLIDEIN_CPUS to estimate cores
+    # requests use GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS at the Frontend to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
     reqs = {'IdleGlideins': req_idle, 'MaxGlideins': req_max_run}
     factoryConfig.client_stats.logRequest(client_int_name, reqs)

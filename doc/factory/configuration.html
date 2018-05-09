@@ -839,7 +839,8 @@ sleep, self.jobDescript.data['SubmitSleep'], self.gflFactoryConfig.submit_sleep 
                <li>slots_layout tells what kind of glideins the entry supports: 
            "fixed" number of slots; or "partitionable" slots, which  enables HTCondor's
            partionable/dynamic slots. The number of cores claimed by the glidein
-           can be controlled by the GLIDEIN_CPUS variable.</li>
+           can be controlled by the GLIDEIN_CPUS variable. GLIDEIN_ESTIMATED_CPUS can provide an estimate used for matching when the
+               number of cores is discovered automatically.</li>
                <li>
                &lt;submit_attr ... &gt; specifies additional HTCondor attributes to
                add to the HTCondor submit file that the Factory uses to submit pilots

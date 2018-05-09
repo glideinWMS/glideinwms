@@ -197,7 +197,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         Third tuple  : Elements that can only run on this site
         Forth tuple  : The entry proportion glideins to be requested based
                        on unique subsets after considering multicore
-                       jobs and GLIDEIN_CPUS
+                       jobs and GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS
         A special 'glidein name' of (None, None, None) is used for jobs
         that don't match any 'real glidein name' in all 4 tuples above
     """
@@ -1243,9 +1243,10 @@ def hashJob(condorq_el, condorq_match_list=None):
 
 def getGlideinCpusNum(glidein, estimate_cpus=True):
     """
-    Given the glidein data structure, get the GLIDEIN_CPUS configured.
+    Given the glidein data structure, get the GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS configured.
     If estimate_cpus is false translate keywords to numerical equivalent, otherwise estimate CPUs
-    If GLIDEIN_CPUS is not configured or is set to auto/slot/-1 or node/0, ASSUME it to be 1
+    If GLIDEIN_CPUS is not configured ASSUME it to be 1, if it is set to auto/slot/-1 or node/0,
+    use GLIDEIN_ESTIMATED_CPUS if provided, otherwise ASSUME it to be 1
     In the future there should be better guesses
     """
     # TODO: better estimation of cpus available on resources (e.g. average of obtained ones)
@@ -1253,10 +1254,15 @@ def getGlideinCpusNum(glidein, estimate_cpus=True):
     cpus = str(glidein['attrs'].get('GLIDEIN_CPUS', 1))
     try:
         glidein_cpus = int(cpus)
-        return max(glidein_cpus, 1)
+        if estimate_cpus and glidein_cpus <= 0:
+            cpus = str(glidein['attrs'].get('GLIDEIN_ESTIMATED_CPUS', 1))
+            return int(cpus)
+        else:
+            return glidein_cpus
     except ValueError:
         if estimate_cpus:
-            return 1
+            cpus = str(glidein['attrs'].get('GLIDEIN_ESTIMATED_CPUS', 1))
+            return int(cpus)
         else:
             cpus_upper = cpus.upper()
             if cpus_upper == 'AUTO' or cpus_upper == 'SLOT':
