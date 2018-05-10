@@ -72,6 +72,7 @@
 <ol>
         <LI><A HREF="#example_configuration">Example Configuration</A>
         <LI><A HREF="#args">Configuration File</A>
+        <LI><A HREF="#metasites">Grouping entries into metasites</A>
         <li><a href="#glexec">glExec</a> </li>
         <li><a href="#private_net">Private Networks</a> </li>
         <li><a href="#security">Security</a> </li>
@@ -211,10 +212,7 @@ for a more detailed description.
 <a href="#glidein">&lt;/glidein&gt;</a><br/>
 </div>
 
-
 <div class="section">
- 
-
 <H2 CLASS="western">
 <A NAME="args"></A>The configuration file</H2>
 
@@ -1004,6 +1002,156 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     downtime information from RESS/BDII.
     </li>
 </UL>
+</div>
+
+<div class="section">
+<a name="metasites"></a><h2>Grouping entries into metasites</h2>
+<p>
+Starting in v3.2.20, entries with similar configuration can be grouped in &lt;entry_sets&gt; to form what we call a metasite. &lt;entry_sets&gt; starts right after the &lt;entries&gt; tag is closed. A metasite is defined by starting an &lt;entry_set&gt;, which then contains the common configuration for the different entries, and then an &lt;entries&lt; tag containing the different entries for the metasite.
+</p>
+<p>
+The following is an example of two different entry set containing two separate entries.
+</p>
+<p>
+The attributes auth_method, gridtype, and trust_domain must be the same in all entry elements (they are used for credential generation in the frontend).
+</p>
+<p>
+Only the metasite will be advertized as a glideresource classad, so the frontend will only see one element (entry).
+The Frontend will apply limits transparently as before, and the Factory as well. Right before glidein submission the factory
+will detect there are multiple CE where the work can be send (multiple submission files) and
+it will count the running+idle glideins for each CE and send jobs to the one with less.
+The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile classad).
+</p>
+
+<div class="config">
+<a>
+    ...<br>
+    &lt;/entries&gt;<br>
+    &lt;entry_sets&gt;<br>
+        <blockquote>
+        &lt;entry_set alias="ITB_FC_CE3" enabled="True"&gt;<br>
+            <blockquote>
+            &lt;config&gt;<br>
+              <blockquote>
+              &lt;max_jobs&gt;<br>
+                 <blockquote>
+                 &lt;default_per_frontend glideins="5000" held="100" idle="400"/&gt;<br>
+                 &lt;per_entry glideins="10000" held="1000" idle="4000"/&gt;<br>
+                 &lt;per_frontends&gt;<br>
+                 &lt;/per_frontends&gt;<br>
+                 </blockquote>
+              &lt;/max_jobs&gt;<br>
+              &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
+              &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
+              &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
+              &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br>
+                 <blockquote>
+                 &lt;submit_attrs&gt;<br>
+                 &lt;/submit_attrs&gt;<br>
+                 </blockquote>
+              &lt;/submit&gt;<br>
+              </blockquote>
+           &lt;/config&gt;<br>
+           &lt;allow_frontends&gt;<br>
+           &lt;/allow_frontends&gt;<br>
+           &lt;attrs&gt;<br>
+              <blockquote>
+              &lt;attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
+publish="True" type="string" value="default"/&gt;<br>
+              &lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
+publish="True" type="string" value="default"/&gt;<br>
+              &lt;attr name="GLEXEC_BIN" const="True" iglidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
+              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_GRATIA_TEST"/&gt;<br>
+              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS"/&gt;<br>
+              &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
+              </blockquote>
+           &lt;/attrs&gt;<br>
+           &lt;files&gt;<br>
+           &lt;/files&gt;<br>
+           &lt;infosys_refs&gt;<br>
+           &lt;/infosys_refs&gt;<br>
+           &lt;monitorgroups&gt;<br>
+           &lt;/monitorgroups&gt;<br>
+           &lt;entries&gt;<br>
+                  <blockquote>
+                  &lt;entry name="ITB_FC_CE3_121" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2"
+rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins4@fermicloud092.fnal.gov" trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;/entry&gt;<br>
+                  &lt;entry name="ITB_FC_CE3_025" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2"<br>
+rsl="(queue=default)(jobtype=single)"<br>
+schedd_name="schedd_glideins4@fermicloud092.fnal.gov"<br>
+trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;/entry&gt;<br>
+                  </blockquote>
+          &lt;/entries&gt;<br>
+          </blockquote>
+      &lt;/entry_set&gt;<br>
+      </blockquote>
+      <blockquote>
+      &lt;entry_set alias="T2_CH_CERN" enabled="True"&gt;<br>
+         <blockquote>
+         &lt;config&gt;<br>
+            <blockquote>
+            &lt;max_jobs&gt;<br>
+               <blockquote>
+               &lt;default_per_frontend glideins="5000" held="50" idle="100"/&gt;<br>
+               &lt;per_entry glideins="10000" held="1000" idle="4000"/&gt;<br>
+               &lt;per_frontends&gt;<br>
+               &lt;/per_frontends&gt;<br>
+               </blockquote>
+            &lt;/max_jobs&gt;<br>
+            &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
+            &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
+            &lt;restrictions require_glidein_glexec_use="False"<br>
+require_voms_proxy="False"/&gt;<br>
+            &lt;submit cluster_size="10" max_per_cycle="10" sleep="2"<br>
+slots_layout="fixed"&gt;<br>
+               <blockquote>
+               &lt;submit_attrs&gt;<br>
+               &lt;/submit_attrs&gt;<br>
+               </blockquote>
+            &lt;/submit&gt;<br>
+            </blockquote>
+         &lt;/config&gt;<br>
+         &lt;allow_frontends&gt;<br>
+         &lt;/allow_frontends&gt;<br>
+         &lt;attrs&gt;<br>
+            <blockquote>
+            &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True"<br>
+            &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="glite"/&gt;<br>
+            &lt;attr name="GLIDEIN_CMSSite" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T2_CH_CERN"/&gt;<br>
+            &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
+            &lt;attr name="GLIDEIN_Country" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CH"/&gt;<br>
+            &lt;attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="int" value="22000"/&gt;<br>
+            &lt;attr name="GLIDEIN_Max_Walltime" const="True" iglidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="257400"/&gt;<br>
+            &lt;attr name="GLIDEIN_ResourceName" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CERN-PROD"/&gt;<br>
+            &lt;attr name="GLIDEIN_Retire_Time" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="108000"/&gt;<br>
+            &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CERN"/&gt;<br>
+            &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="CMS"/&gt;<br>
+            </blockquote>
+      &lt;/attrs&gt;<br>
+      &lt;files&gt;<br>
+      &lt;/files&gt;<br>
+      &lt;infosys_refs&gt;<br>
+      &lt;/infosys_refs&gt;<br>
+      &lt;monitorgroups&gt;<br>
+      &lt;/monitorgroups&gt;<br>
+      &lt;entries&gt;<br>
+          <blockquote>
+          &lt;entry name="CMSHTPC_T2_CH_CERN_ce301" auth_method="grid_proxy" comment="Converted to multicore 2016-03-29-Vassil" enabled="True"
+gatekeeper="ce301.cern.ch:8443/cream-lsf-grid_cms" gridtype="cream" rsl="WholeNodes = False; HostNumber = 1; CPUNumber = 8" trust_domain="grid" verbosity="std" work_dir="."&gt;<br>
+          &lt;/entry&gt;<br>
+          &lt;entry name="CMSHTPC_T2_CH_CERN_ce302" auth_method="grid_proxy" comment="Converted to multicore 2016-03-31-Vassil" enabled="True"
+gatekeeper="ce302.cern.ch:8443/cream-lsf-grid_cms" gridtype="cream" rsl="WholeNodes = False; HostNumber = 1; CPUNumber = 8" trust_domain="grid" verbosity="std" work_dir="."&gt;<br>
+         &lt;/entry&gt;<br>
+         </blockquote>
+      &lt;/entries&gt;<br>
+      </blockquote>
+      &lt;/entry_set&gt;<br>
+      </blockquote>
+   &lt;/entry_sets&gt;<br>
+   ...
+</a>
 </div>
 
 <div class="section">
