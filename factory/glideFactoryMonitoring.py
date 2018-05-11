@@ -239,8 +239,8 @@ class condorQStats:
         self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
 
     def logSchedd(self, client_name, qc_status, qc_status_sf):
-        """
-        qc_status is a dictionary of condor_status:nr_jobs
+        """ qc_status is a dictionary of condor_status:nr_jobs
+            qc_status_sf is a dictionary of submit_file:qc_status
         """
         if client_name in self.data:
             t_el = self.data[client_name]
@@ -278,8 +278,14 @@ class condorQStats:
         return m.group(1) if m else ""
 
     def aggregateStates(self, qc_status, el):
+        """ For each status in the condor_q count status dictionary (qc_status)
+            add the count to the el dictionary (whose keys are state like 'Idle'
+            instead of its number: 1)
+        """
         # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
-        status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
+        status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"),
+                        (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"),
+                        (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
