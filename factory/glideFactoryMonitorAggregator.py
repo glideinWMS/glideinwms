@@ -277,6 +277,8 @@ def aggregateStatus(in_downtime):
             completed_data=json.load(completed_data_fp)
         except IOError:
             continue # file not found, ignore
+	finally:
+	    completed_data_fp.close()
 
         # update entry
         status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}

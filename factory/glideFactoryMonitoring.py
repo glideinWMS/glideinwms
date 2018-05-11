@@ -139,23 +139,19 @@ class MonitoringConfig:
         """
 
         fname = os.path.join(self.monitor_dir, relative_fname + ".json")
-
-        try:
-                f = open(fname, 'w')
-                self.log.info("Writing %s to %s" % (relative_fname, str(fname)))
-        except IOError as e:
-                self.log.err("unable to open file %s in write_completed_json: %s" % (str(fname), str(e)))
-                return
-
         data = {}
         data["time"] = time
         data["stats"] = val_dict
 
         try:
-                f.write(json.dumps(data, indent=4))
-                f.close()
+                self.log.info("Writing %s to %s" % (relative_fname, str(fname)))
+                f = open(fname, 'w')
+		json.dump(data, f)
+                #f.write(json.dumps(data, indent=4))
         except IOError as e:
-                self.log.err("unable to write to file %s in write_completed_json: %s" % (str(fname), str(e)))
+                self.log.err("unable to open and write to file %s in write_completed_json: %s" % (str(fname), str(e)))
+	finally:
+		f.close()
 
         return
 
@@ -1162,18 +1158,21 @@ class condorLogSummary:
                 completed_stats_fp = open(completed_stats_filename)
                 completed_wastetime_fp = open(completed_wastetime_filename)
 
+            	completed_data = json.load(completed_fp)
+            	completed_stats_data = json.load(completed_stats_fp)
+            	completed_wastetime_data = json.load(completed_wastetime_fp)
+
+            	entry_data['frontends'][frontend] = {'completed':completed_data,
+                                                 'completed_stats':completed_stats_data,
+                                                 'completed_wastetime':completed_wastetime_data}
             except IOError as e:
                 self.log.info("Could not find files to aggregate in frontend %s" % fe_dir)
                 self.log.info(str(e))
                 continue
-
-            completed_data = json.load(completed_fp)
-            completed_stats_data = json.load(completed_stats_fp)
-            completed_wastetime_data = json.load(completed_wastetime_fp)
-
-            entry_data['frontends'][frontend] = {'completed':completed_data,
-                                                 'completed_stats':completed_stats_data,
-                                                 'completed_wastetime':completed_wastetime_data}
+	    finally:
+		completed_fp.close()
+		completed_stats_fp.close()
+		completed_wastetime_fp.close()
 
         monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
