@@ -272,13 +272,15 @@ def aggregateStatus(in_downtime):
         completed_data_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
                                   monitorAggregatorConfig.completed_data_relname)
         try:
+            completed_data_fp=None
             entry_data=xmlParse.xmlfile2dict(status_fname)
             completed_data_fp=open(completed_data_fname)
             completed_data=json.load(completed_data_fp)
         except IOError:
             continue # file not found, ignore
-	finally:
-	    completed_data_fp.close()
+        finally:
+            if completed_data_fp:
+                completed_data_fp.close()
 
         # update entry
         status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}
