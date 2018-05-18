@@ -186,6 +186,7 @@ def print_funct(*args, **kwargs):
     print(sep.join([str(i) for i in args]))
 
 
+#pylint: disable=misplaced-bare-raise
 def conditional_raise(mask_exceptions):
     """Auxiliary function to handle conditional raising
 
@@ -201,6 +202,7 @@ def conditional_raise(mask_exceptions):
         return
     raise
 
+#pylint: enable=misplaced-bare-raise
 
 def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
     """Serialize and save content
