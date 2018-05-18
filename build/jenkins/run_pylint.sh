@@ -33,9 +33,27 @@ process_branch() {
 
     # pylint related variables
     PYLINT_RCFILE=/dev/null
-    #PYLINT_RCFILE=$WORKSPACE/pylint.cfg
-    #PYLINT_OPTIONS="--errors-only --msg-template=\"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}\" --rcfile=$PYLINT_RCFILE"
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
+
+
+    if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
+        # PYLINT_IGNORE_LIST files for python 2.6 here
+        # white-space seperated list of files to be skipped by pylint 
+        # --ignore-module/--ignore  is supposed to do this but doesn't 
+        # seem to work.  After coding this I found that it is
+        # not needed with careful use of --disable: directive but its
+        # here if needed in future 
+        PYLINT_IGNORE_LIST=""
+        # pylint directives added since v1.3.1 throw bad-option-value
+        # errors unless disabled at command line
+        PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable bad-option-value"
+    else
+        #PYLINT_IGNORE_LIST files for python 2.7+ here
+        PYLINT_IGNORE_LIST=""
+        # unsubscriptable-object considered to be buggy in recent
+        # pylint relases
+        PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
+    fi
 
     # pep8 related variables
     # default: E121,E123,E126,E226,E24,E704
@@ -55,37 +73,43 @@ process_branch() {
 
     PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
 
-    # Generate pylint config file
-    #pylint --generate-rcfile > $PYLINT_RCFILE
-    #cat $PYLINT_RCFILE
 
     # get list of python scripts without .py extension
-    scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
-    pylint $PYLINT_OPTIONS -e F0401 ${scripts}  >> $pylint_log || log_nonzero_rc "pylint" $?
-    pycodestyle $PEP8_OPTIONS ${scripts} >> $pep8_log || log_nonzero_rc "pep8" $?
+    scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    cd "${GLIDEINWMS_SRC}"
+    for script in $scripts; do
+      #can't seem to get --ignore or --ignore-modules to work, so do it this way
+      PYLINT_SKIP="False"
+      for ignore in $PYLINT_IGNORE_LIST; do
+          if [ "$ignore" = "$script" ] ; then
+             echo "pylint skipping $script" >>  "$pylint_log" 
+             PYLINT_SKIP="True"  
+          fi
+      done
+      if [ "$PYLINT_SKIP" != "True" ]; then
+          pylint $PYLINT_OPTIONS -e F0401 ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
+      fi
+      pycodestyle $PEP8_OPTIONS ${script} >> $pep8_log || log_nonzero_rc "pep8" $?
+    done
 
     currdir=`pwd`
     files_checked=`echo $scripts`
 
-    # Instead of checking specific directories we want to run on all .py files in the source tree
-#    for dir in lib creation/lib factory frontend tools tools/lib
-#    do
-#        cd ${GLIDEINWMS_SRC}/$dir
-#
-#        for file in *.py
-#        do
-#          files_checked="$files_checked $file"
-#          pylint $PYLINT_OPTIONS $file >> $pylint_log || log_nonzero_rc "pylint" $?
-#          pycodestyle $PEP8_OPTIONS $file >> $pep8_log || log_nonzero_rc "pep8" $?
-#        done
-#        cd $currdir
-#    done
-    cd "${GLIDEINWMS_SRC}"
+    #now do all the .py files
     shopt -s globstar
     for file in **/*.py
     do
       files_checked="$files_checked $file"
-      pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
+      PYLINT_SKIP="False"
+      for ignore in $PYLINT_IGNORE_LIST; do
+          if [ "$ignore" = "$file" ] ; then
+             echo "pylint skipping $file" >>  "$pylint_log" 
+             PYLINT_SKIP="True"  
+          fi
+      done
+      if [ "$PYLINT_SKIP" != "True" ]; then
+          pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
+      fi
       pycodestyle $PEP8_OPTIONS $file >> "$pep8_log" || log_nonzero_rc "pep8" $?
     done
     cd $currdir
@@ -94,6 +118,7 @@ process_branch() {
     echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $results
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l | tr -d " "`" >> $results
     echo "PYLINT_ERROR_COUNT=`grep '^E:' $pylint_log | wc -l | tr -d " "`" >> $results
+    echo "PYLINT_SKIPPED_COUNT=`grep 'skipping' $pylint_log | wc -l | tr -d " "`" >> $results
     echo "PEP8_ERROR_COUNT=`cat $pep8_log | wc -l | tr -d " "`" >> $results
     echo "----------------"
     cat $results
@@ -138,6 +163,7 @@ log_branch_results() {
     unset FILES_CHECKED_COUNT
     unset PYLINT_ERROR_FILES_COUNT
     unset PYLINT_ERROR_COUNT
+    unset PYLINT_SKIPPED_COUNT
     unset PEP8_ERROR_COUNT
     source $branch_results
 
@@ -152,6 +178,7 @@ log_branch_results() {
     <td style="$HTML_TD_PASSED">${FILES_CHECKED_COUNT:-NA}</td>
     <td style="$HTML_TD_PASSED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
     <td style="$HTML_TD_PASSED">${PYLINT_ERROR_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PYLINT_SKIPPED_COUNT:-NA}</td>
     <td style="$HTML_TD_PASSED">${PEP8_ERROR_COUNT:-NA}</td>
 </tr>
 TABLE_ROW_PASSED
@@ -162,6 +189,7 @@ TABLE_ROW_PASSED
     <td style="$HTML_TD_FAILED">${FILES_CHECKED_COUNT:-NA}</td>
     <td style="$HTML_TD_FAILED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
     <td style="$HTML_TD_FAILED">${PYLINT_ERROR_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PYLINT_SKIPPED_COUNT:-NA}</td>
     <td style="$HTML_TD_FAILED">${PEP8_ERROR_COUNT:-NA}</td>
 </tr>
 TABLE_ROW_FAILED
