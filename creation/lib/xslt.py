@@ -1,9 +1,9 @@
 from __future__ import print_function
 import os
 import subprocess
-# pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module,import-error
 from distutils.spawn import find_executable
-# pylint: enable=no-name-in-module
+# pylint: enable=no-name-in-module,import-error
 
 def xslt_xml(old_xmlfile, xslt_plugin_dir):
     ''' Take an XML file, transform it via any XSLT in the
