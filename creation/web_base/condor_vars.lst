@@ -15,7 +15,7 @@ GLIDEIN_Max_Walltime	I	-		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	-		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	-	+				N	N	-
 GLEXEC_JOB		C	True		+				N	Y	-
-GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
+GLIDEIN_Use_PGroups	C	HAS_SINGULARITY=?=True		USE_PROCESS_GROUPS		N	N	-
 UPDATE_COLLECTOR_WITH_TCP	C	True	+				N	N	-
 WANT_UDP_COMMAND_SOCKET	C	False		+				N	N	-
 STARTD_SENDS_ALIVES	C	True		+				N	N	-
