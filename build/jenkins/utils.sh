@@ -22,7 +22,7 @@ setup_python_venv() {
     else
         # use something more up-to-date
         PY_VER="2.7"
-        VIRTUALENV_VER=virtualenv-16.0.0
+        VIRTUALENV_VER=virtualenv-15.1.0
         PYLINT=pylint
         ASTROID=astroid
         HYPOTHESIS="hypothesis"
