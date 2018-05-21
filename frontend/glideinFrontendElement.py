@@ -295,7 +295,7 @@ class glideinFrontendElement:
 
             # do it just before the sleep
             cleanupSupport.cleaners.cleanup()
-        elif self.action=="deadvertise":
+        elif self.action == "deadvertise":
             logSupport.log.info("Deadvertize my ads")
             self.deadvertiseAllClassads()
         elif self.action in ('removeWait', 'removeIdle', 'removeAll', 'removeWaitExcess', 'removeIdleExcess', 'removeAllExcess'):
@@ -303,16 +303,16 @@ class glideinFrontendElement:
             if self.action.endswith("Excess"):
                 self.request_removal_wtype = self.action[6:-6].upper()
                 self.request_removal_excess_only = True
-                logSupport.log.info("Requesting removal of %s excess glideins"%self.request_removal_wtype)
+                logSupport.log.info("Requesting removal of %s excess glideins" % self.request_removal_wtype)
             else:
                 self.request_removal_wtype = self.action[6:].upper()
                 self.request_removal_excess_only = False
-                logSupport.log.info("Requesting removal of %s glideins"%self.request_removal_wtype)
+                logSupport.log.info("Requesting removal of %s glideins" % self.request_removal_wtype)
             done_something = self.iterate_one()
             logSupport.log.info("iterate_one status: %s" % str(done_something))
             # no saving or disk cleanup... be quick
         else:
-            logSupport.log.warning("Unknown action: %s"%self.action)
+            logSupport.log.warning("Unknown action: %s" % self.action)
             return 1
 
         return 0
@@ -630,9 +630,7 @@ class glideinFrontendElement:
                     self.count_real_glideins[glideid],
                     count_status['Idle'])
 
-            remove_excess_str = self.choose_remove_excess_type(
-                                    count_jobs, count_status, glideid)
-            remove_excess_str = self.check_removal_type(glideid, remove_excess_str)
+            remove_excess_str, remove_excess_margin = self.decide_removal_type(count_jobs, count_status, glideid)
 
             this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'],
                               effective_idle, prop_jobs['OldIdle'],
@@ -757,6 +755,7 @@ class glideinFrontendElement:
                                glidein_monitors=glidein_monitors,
                                glidein_monitors_per_cred=glidein_monitors_per_cred,
                                remove_excess_str=remove_excess_str,
+                               remove_excess_margin=remove_excess_margin,
                                key_obj=key_obj, glidein_params_to_encrypt=None,
                                security_name=self.security_name,
                                trust_domain=trust_domain,
@@ -779,12 +778,12 @@ class glideinFrontendElement:
         self.log_and_print_total_stats(total_up_stats_arr, total_down_stats_arr)
         self.log_and_print_unmatched(total_down_stats_arr)
 
-        pids=[]
+        pids = []
         # Advertise glideclient and glideclient global classads
-        ad_file_id_cache=glideinFrontendInterface.CredentialCache()
+        ad_file_id_cache = glideinFrontendInterface.CredentialCache()
         advertizer.renew_and_load_credentials()
 
-        ad_factnames=advertizer.get_advertize_factory_list()
+        ad_factnames = advertizer.get_advertize_factory_list()
         servicePerformance.startPerfMetricEvent(
             self.group_name, 'advertize_classads')
 
@@ -1234,28 +1233,67 @@ class glideinFrontendElement:
         )
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
-    def check_removal_type(self, glideid, remove_excess_str):
-        """ Decides what kind of excess glideins to remove:
-            "ALL", "IDLE", "WAIT", or "NO"
+    def decide_removal_type(self, count_jobs, count_status, glideid):
+        """Picks the max removal type
+        - if it was requested explicitly, send that one
+        - otherwise check automatic triggers and configured removal and send the max of the 2
+
+        If configured removal is selected, take into account also the margin
         """
-        #TODO: tracking will be handled in a future iteration, for now remove all glideins if there are no requests
+        if self.request_removal_wtype is not None:
+            # we are requesting the removal of glideins, and we have the explicit code to use
+            return self.request_removal_wtype, 0
+
+        remove_levels = {'NO': 0,
+                         'WAIT': 1,
+                         'IDLE': 2,
+                         'ALL': 3,
+                         'UNREG': 4  # Mentioned in glideinFrontendIntrface.py - not documented
+                         }
+        remove_excess_str_auto = self.choose_remove_excess_type(count_jobs, count_status, glideid)
+        remove_excess_str_config = self.check_removal_type_config(glideid)
+        remove_excess_str_auto_nr = remove_levels[remove_excess_str_auto]
+        remove_excess_str_config_nr = remove_levels[remove_excess_str_config]
+        if remove_excess_str_auto_nr > remove_excess_str_config_nr:
+            return remove_excess_str_auto, 0
+        # Config request >= automatic removal
+        if remove_excess_str_config_nr >= 0:
+            if self.removal_requests_tracking and self.removal_margin > 0:
+                return remove_excess_str_config, self.removal_margin
+            return remove_excess_str_config, 0
+        return 'NO', 0
+
+    def check_removal_type_config(self, glideid):
+        """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
+            "ALL", "IDLE", "WAIT", or "NO"
+
+        @param glideid: ID of the glidein
+        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+        """
+        # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == 'NO':
             # No special semoval requested, leave things unchanged
-            return remove_excess_str
+            return 'NO'
+        # Cannot compare the current requests w/ the available glideins (factory status not provided to the FE)
+        # If tracking is enabled, always request removal and send the margin. The factory will decide
+        if self.removal_requests_tracking:
+            return self.removal_type
+        # No tracking, remove glideins if there are no requests
         # History counters have been just updated in self.choose_remove_excess_type
         history_idle0 = CounterWrapper(self.history_obj['idle0'])
         if history_idle0[glideid] > self.removal_wait:
-            # keep the "max" between self.removal_type and  remove_excess_str (ALL>IDLE>WAIT>NO)
-            if remove_excess_str == 'ALL' or self.removal_type == 'ALL':
-                return 'ALL'
-            if remove_excess_str == 'IDLE' or self.removal_type == 'IDLE':
-                return 'IDLE'
-            # self.removal_type is at least WAIT
-            return 'WAIT'
+            return self.removal_type
+        return 'NO'
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
-        """ Decides what kind of excess glideins to remove:
+        """ Decides what kind of excess glideins to remove: control for request and automatic trigger:
             "ALL", "IDLE", "WAIT", or "NO"
+
+        @param count_jobs: dict with job stats
+        @param count_status: dict with glidein stats
+        @param glideid: ID of the glidein
+        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+
         """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, and we have the explicit code to use
@@ -1263,6 +1301,7 @@ class glideinFrontendElement:
 
         # do not remove excessive glideins by default
         remove_excess_wait = False
+
         # keep track of how often idle was 0
         history_idle0 = CounterWrapper(self.history_obj['idle0'])
         if count_jobs['Idle'] == 0:
@@ -1715,7 +1754,7 @@ class glideinFrontendElement:
 
         try:
             t_begin = time.time()
-            pipe_out=forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
+            pipe_out = forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
             t_end = time.time() - t_begin
         except RuntimeError:
             # expect all errors logged already
@@ -1725,7 +1764,7 @@ class glideinFrontendElement:
 
         for dt, el in self.condorq_dict_types.iteritems():
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)
-            (el['count'], el['prop'], el['hereonly'], el['prop_mc'], el['total'])=pipe_out[dt]
+            (el['count'], el['prop'], el['hereonly'], el['prop_mc'], el['total']) = pipe_out[dt]
 
         (self.count_real_jobs, self.count_real_glideins) = pipe_out['Real']
         self.count_status_multi = {}
@@ -1746,7 +1785,7 @@ class glideinFrontendElement:
     def subprocess_count_dt(self, dt):
         """
         # will make calculations in parallel,using multiple processes
-        @return: Tuple of 6 elements
+        @return: Tuple of 5 elements
 
         """
         out = ()

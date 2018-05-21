@@ -744,11 +744,13 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          for each entry associated to the group (even if there are no jobs idle).</li>
         <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
         Glidein can expire () and die when not used, anyway you can trigger early removal.
-        The current implementation ignores <b>margin</b> and <b>requests_tracking</b>.
-        It removes glideins when there are no pending job requests for this group.
+        When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
+            then the Glideins in excess are removed.
+        If <b>requests_tracking</b> is off but <b>type</b> is different from NO, then it removes glideins when there are
+            no pending job requests for this group.
         <b>type</b> selects what to remove: NO (default) no removal, IDLE only Idle glideins -not submitted-,
         WAIT also glideins waiting in the remote queues, ALL also running glideins.
-        <b>wait</b> waits for N cycles without requests before triggering the removal.</li>
+        <b>wait</b> waits for N cycles without requests (or below the margin) before triggering the removal.</li>
       </ul>
     </P></li>
 
