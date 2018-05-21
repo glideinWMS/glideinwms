@@ -22,9 +22,9 @@ setup_python_venv() {
     else
         # use something more up-to-date
         PY_VER="2.7"
-        VIRTUALENV_VER=virtualenv-16.0.0
-        PYLINT=pylint
-        ASTROID=astroid
+        VIRTUALENV_VER=virtualenv-15.1.0
+        PYLINT='pylint==1.6.5'
+        ASTROID='astroid==1.4.9'
         HYPOTHESIS="hypothesis"
     fi
 
@@ -104,6 +104,7 @@ print_python_info() {
     echo "${bo}PYTHON:${bc} `which python`$br"
     echo "${bo}PYLINT:${bc} `pylint --version`$br"
     echo "${bo}PEP8:${bc} `pycodestyle --version`$br"
+    echo "${bo}PYTHONPATH:${bc} `echo $PYTHONPATH`$br"
 }
 
 
