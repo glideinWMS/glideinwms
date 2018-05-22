@@ -87,6 +87,8 @@ process_branch() {
     grep canonical_filename $cv/files.py
     echo 'cat /proc/self/cgroup'
     cat /proc/self/cgroup 
+    cat /etc/hostname
+    docker inspect $(hostname) 
 
     # get list of python scripts without .py extension
     scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
