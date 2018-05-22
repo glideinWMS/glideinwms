@@ -44,9 +44,10 @@ setup_python_venv() {
     fi
     curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
     tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
-    if [ ! -d $VENV ] ; then
-       $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --system-site-packages $VENV
-    fi
+    #if [ ! -d $VENV ] ; then
+    rm -rf $VENV
+    $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --system-site-packages $VENV
+    #fi
 
     source $VENV/bin/activate
 
