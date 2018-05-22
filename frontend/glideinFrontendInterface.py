@@ -1196,7 +1196,7 @@ class MultiAdvertizeWork:
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
                 fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
-                fd.write('ReqRemoveExcessMargin = "%s"\n'%params_obj.remove_excess_margin)
+                fd.write('ReqRemoveExcessMargin = %i\n'%params_obj.remove_excess_margin)
                 fd.write('ReqIdleLifetime = "%s"\n'%params_obj.idle_lifetime)
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
