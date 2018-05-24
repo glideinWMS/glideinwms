@@ -17,7 +17,7 @@ from __future__ import print_function
 import string
 import time
 try:
-    import rrdtool #@UnresolvedImport
+    import rrdtool # pylint: disable=import-error
 except:
     pass
 import subprocess
