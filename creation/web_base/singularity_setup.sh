@@ -134,6 +134,8 @@ function locate_singularity {
                     HAS_SINGULARITY="True"
                     GWMS_SINGULARITY_PATH=$(module load singularity >/dev/null 2>&1; which singularity)
                     singularity_in="module"
+                elif [[ "x$LMOD_CMD" == x/cvmfs/* ]]; then
+                    warn "Singularity not found in module. OSG OASIS module from module-init.sh used. May override a system module."
                 fi
             fi
         fi
@@ -142,7 +144,7 @@ function locate_singularity {
     if [ "$HAS_SINGULARITY" = "True" ]; then
         # one last check - make sure we could determine the path to singularity
         if [ "x$GWMS_SINGULARITY_PATH" = "x" ]; then
-            my_warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
+            warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
         else
             export HAS_SINGULARITY=$HAS_SINGULARITY
             export GWMS_SINGULARITY_PATH="$GWMS_SINGULARITY_PATH"
