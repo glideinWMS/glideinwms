@@ -73,22 +73,6 @@ process_branch() {
 
     PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
 
-    echo python:
-    which python
-    python --version
-    echo 'coverage directory:'
-    find  $(dirname $(dirname $(which python))) -name coverage -type d
-    cv=$(find  $(dirname $(dirname $(which python))) -name coverage -type d)
-    echo all venv directories
-    find $(dirname $(dirname $(which python))) -type d
-    echo '$(find  $(dirname $(dirname $(which python))) -name coverage -type d) = ' $cv
-    ls -la $cv
-    echo "grepping $cv/files.py for canonical_filename:"
-    grep canonical_filename $cv/files.py
-    echo 'cat /proc/self/cgroup'
-    cat /proc/self/cgroup 
-    cat /etc/hostname
-    docker inspect $(hostname) 
 
     # get list of python scripts without .py extension
     scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
