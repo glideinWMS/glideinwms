@@ -141,7 +141,7 @@ function locate_singularity {
     # Execution test '&& test_singularity_exec' left to later
     if [ "$HAS_SINGULARITY" = "True" ]; then
         # one last check - make sure we could determine the path to singularity
-        if [ "xGWMS_SINGULARITY_PATH" = "x" ]; then
+        if [ "x$GWMS_SINGULARITY_PATH" = "x" ]; then
             my_warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
         else
             export HAS_SINGULARITY=$HAS_SINGULARITY
