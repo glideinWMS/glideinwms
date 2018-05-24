@@ -22,9 +22,9 @@ setup_python_venv() {
     else
         # use something more up-to-date
         PY_VER="2.7"
-        VIRTUALENV_VER=virtualenv-15.1.0
-        PYLINT='pylint==1.6.5'
-        ASTROID='astroid==1.4.9'
+        VIRTUALENV_VER=virtualenv-16.0.0
+        PYLINT='pylint==1.8.4'
+        ASTROID='astroid==1.6.0'
         HYPOTHESIS="hypothesis"
     fi
 
@@ -44,9 +44,11 @@ setup_python_venv() {
     fi
     curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
     tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
-    if [ ! -d $VENV ] ; then
-       $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --system-site-packages $VENV
-    fi
+
+    #if we download the venv tarball everytime we should remake the venv
+    #every time
+    rm -rf $VENV
+    $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --system-site-packages $VENV
 
     source $VENV/bin/activate
 
@@ -101,10 +103,10 @@ print_python_info() {
     fi
     echo "${bo}HOSTNAME:${bc} `hostname -f`$br"
     echo "${bo}LINUX DISTRO:${bc} `lsb_release -d`$br"
-    echo "${bo}PYTHON:${bc} `which python`$br"
+    echo "${bo}PYTHON LOCATION:${bc} `which python`$br"
+    echo "${bo}PYTHON VERSION:${bc} `python --version`$br"
     echo "${bo}PYLINT:${bc} `pylint --version`$br"
     echo "${bo}PEP8:${bc} `pycodestyle --version`$br"
-    echo "${bo}PYTHONPATH:${bc} `echo $PYTHONPATH`$br"
 }
 
 
