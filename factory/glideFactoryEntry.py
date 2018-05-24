@@ -202,19 +202,19 @@ class Entry:
         gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
-    # This function should return the same number as getGlideinCpusNum(glidein) in glideinFrontendLib
+    # TODO: This function should return the same number as getGlideinCpusNum(glidein) in glideinFrontendLib
     # TODO: consider moving getGlideinCpusNum to shared lib (and wrap it to avoid ValueError)
     def getGlideinExpectedCores(self):
         """
         Return the number of cores expected for each glidein.
-         This is the GLIDEIN_CPU attribute when >= 0,
+         This is the GLIDEIN_CPU attribute when > 0,
          GLIDEIN_ESTIMATED_CPUS when GLIDEIN_CPU <= 0 or auto/node/slot,
          or 1 if not set
          The actual cores received will depend on the RSL or HTCondor attributes and the Entry
          and could also vary over time.
         """
-        cpus = str(self.jobAttributes.data.get('GLIDEIN_CPUS', 1))
         try:
+            cpus = str(self.jobAttributes.data['GLIDEIN_CPUS'])
             try:
                 glidein_cpus = int(cpus)
             except ValueError:
