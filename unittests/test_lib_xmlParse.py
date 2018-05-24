@@ -38,7 +38,6 @@ ordered_dict_items_repr="""[(u'date', u'1/2/07'), (u'files', [{u'absname': u'/tm
 
 expected=""
 
-
 class TestOrderedDict(unittest.TestCase):
 
     def test___delitem__(self):
@@ -118,12 +117,12 @@ class TestOrderedDict(unittest.TestCase):
         self.assertTrue("foo" in ordered_dict)
 
     def test_values(self):
+        
         dict1 =  xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
         self.assertEqual(ordered_dict_values_repr,
                          ordered_dict.values().__repr__())
-
 
 class TestXmlfile2dict(unittest.TestCase):
 
@@ -132,7 +131,6 @@ class TestXmlfile2dict(unittest.TestCase):
         dict1 = xmlfile2dict(infile, use_ord_dict=True, always_singular_list=[])
         self.assertEqual(xmlstr_dict_repr, dict1.__repr__())
 
-
 class TestXmlstring2dict(unittest.TestCase):
 
     def test_xmlstring2dict(self):
@@ -140,25 +138,20 @@ class TestXmlstring2dict(unittest.TestCase):
                          xmlstring2dict(xmlstr,
                                         use_ord_dict=True,
                                         always_singular_list=[]).__repr__())
-
-
+#
+#These are all private 
+#
 class TestGetXMLElements(unittest.TestCase):
-
     def test_get_xml_elements(self):
         doc = xml.dom.minidom.parseString("<xml><foo></foo></xml>")
         self.assertTrue('DOM Element: foo' in  getXMLElements(doc.documentElement).__repr__())
 
-
 class TestGetXMLAttributes(unittest.TestCase):
-
     def test_get_xml_attributes(self):
         doc = xml.dom.minidom.parseString("""<xml><foo><param name="x" value="12"/></foo></xml>""")
         self.assertEqual('{}' , getXMLAttributes(doc.documentElement, use_ord_dict=True).__repr__())
 
-
-
 class TestIsSingularOf(unittest.TestCase):
-
     def test_is_singular_of(self):
 
         self.assertEqual(True, is_singular_of(mysin='dog',
@@ -178,11 +171,9 @@ class TestIsSingularOf(unittest.TestCase):
                                               always_singular_list=['goose','dog']))
  
 class TestDomel2dict(unittest.TestCase):
-
     def test_domel2dict(self):
         doc = xml.dom.minidom.parseString(xmlstr)
         self.assertTrue(isinstance(domel2dict(doc.documentElement), dict))
-
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

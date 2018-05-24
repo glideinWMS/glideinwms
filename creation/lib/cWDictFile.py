@@ -1236,11 +1236,10 @@ class monitorWLinkDirSupport(monitorDirSupport):
 #
 ################################################
 
-
 # helper class, used below
 class fileCommonDicts:
     def __init__(self):
-        self.dicts=None
+        self.dicts = {}
 
     def keys(self):
         return self.dicts.keys()

@@ -521,6 +521,20 @@ downtime() {
     echo
 }
 
+
+systemd_reload(){
+
+    if ps $1 | grep glideFactory > /dev/null 2>&1 ; then
+       echo "Reload of GWMS Factory Service triggers factory reconfig, PID is $1"  
+       /bin/kill -HUP $1
+    elif ps $1 | grep reconfig_glidein > /dev/null 2>&1 ; then
+       echo "a previous Reload of GWMS Factory Service has not completed. No factory reconfig will be performed"
+    else
+       echo "Cannot detect a running factory. Will not reload or reconfig" 
+    fi
+
+}
+
 case $1 in
     start)
         start
@@ -569,6 +583,13 @@ case $1 in
         fi
         "$FACTORY_DOWNTIMES" -cmd check -dir "$factory_dir" "$@"
         RETVAL=$?
+        ;;
+    reload)
+        if [ "$2" != "" ]; then
+            systemd_reload $2
+        else
+           echo "MUST SUPPLY A PID WITH THIS ARGUMENT"
+        fi
         ;;
     *)
         help_usage

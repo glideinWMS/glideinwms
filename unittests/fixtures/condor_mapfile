@@ -1,0 +1,3 @@
+"/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud308.fnal.gov" factory
+"/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" condor
+"/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" vofrontend_service

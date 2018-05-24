@@ -71,7 +71,7 @@ def aggregate_stats(in_downtime):
         # protect and report
         logSupport.log.exception("aggregateLogStatus failed: ")
     try:
-        _ = glideFactoryMonitorAggregator.aggregateRRDStats(log=logSupport.log)
+        glideFactoryMonitorAggregator.aggregateRRDStats(log=logSupport.log)
     except:
         # protect and report
         logSupport.log.exception("aggregateRRDStats failed: ")
