@@ -64,7 +64,8 @@ setup_python_venv() {
     # pep8 has been replaced by pycodestyle
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
     pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
-    pip_packages="$pip_packages ${HYPOTHESIS} ${CONDOR} ldap"
+    #pip_packages="$pip_packages ${HYPOTHESIS} ${CONDOR} ldap"
+    pip_packages="$pip_packages ${HYPOTHESIS} "
 
 
     for package in $pip_packages; do
