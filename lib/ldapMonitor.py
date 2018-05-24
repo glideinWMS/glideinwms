@@ -13,7 +13,7 @@ from __future__ import print_function
 #   Igor Sfiligoi (Jul 22nd 2008)
 #
 
-import ldap #@UnresolvedImport
+import ldap  # pylint: disable=import-error
 import re
 
 class LDAPQuery:

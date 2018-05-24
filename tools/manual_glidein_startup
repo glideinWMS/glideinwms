@@ -15,7 +15,7 @@ import argparse
 import logging
 import itertools
 import pprint
-import htcondor
+import htcondor # pylint: disable=import-error
 
 GLIDEIN_PARAM_PREFIX = 'GlideinParam'
 SCRIPT_TEMPLATE = """#!/bin/sh
