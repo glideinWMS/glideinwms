@@ -118,7 +118,6 @@ process_branch() {
     echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $results
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l | tr -d " "`" >> $results
     echo "PYLINT_ERROR_COUNT=`grep '^E:' $pylint_log | wc -l | tr -d " "`" >> $results
-    echo "PYLINT_SKIPPED_COUNT=`grep 'skipping' $pylint_log | wc -l | tr -d " "`" >> $results
     echo "PEP8_ERROR_COUNT=`cat $pep8_log | wc -l | tr -d " "`" >> $results
     echo "----------------"
     cat $results
@@ -163,7 +162,6 @@ log_branch_results() {
     unset FILES_CHECKED_COUNT
     unset PYLINT_ERROR_FILES_COUNT
     unset PYLINT_ERROR_COUNT
-    unset PYLINT_SKIPPED_COUNT
     unset PEP8_ERROR_COUNT
     source $branch_results
 
@@ -178,7 +176,6 @@ log_branch_results() {
     <td style="$HTML_TD_PASSED">${FILES_CHECKED_COUNT:-NA}</td>
     <td style="$HTML_TD_PASSED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
     <td style="$HTML_TD_PASSED">${PYLINT_ERROR_COUNT:-NA}</td>
-    <td style="$HTML_TD_PASSED">${PYLINT_SKIPPED_COUNT:-NA}</td>
     <td style="$HTML_TD_PASSED">${PEP8_ERROR_COUNT:-NA}</td>
 </tr>
 TABLE_ROW_PASSED
@@ -189,7 +186,6 @@ TABLE_ROW_PASSED
     <td style="$HTML_TD_FAILED">${FILES_CHECKED_COUNT:-NA}</td>
     <td style="$HTML_TD_FAILED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
     <td style="$HTML_TD_FAILED">${PYLINT_ERROR_COUNT:-NA}</td>
-    <td style="$HTML_TD_FAILED">${PYLINT_SKIPPED_COUNT:-NA}</td>
     <td style="$HTML_TD_FAILED">${PEP8_ERROR_COUNT:-NA}</td>
 </tr>
 TABLE_ROW_FAILED
