@@ -35,8 +35,8 @@ try:
     # happens before frontend can do anything, htcondor module is initialized
     # without the knowledge of CONDOR_CONFIG. This mandates that we do a
     # htcondor.reload_config() everytime to use the bindings.
-    import htcondor
-    import classad
+    import htcondor # pylint: disable=import-error
+    import classad   # pylint: disable=import-error
     USE_HTCONDOR_PYTHON_BINDINGS = True
 except:
     # TODO Maybe we should print a message here? Even though I don't know if

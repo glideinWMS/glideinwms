@@ -11,10 +11,27 @@ setup_python_venv() {
         exit 1
     fi
     WORKSPACE=${1:-`pwd`}
-    VIRTUALENV_TARBALL=virtualenv-12.0.7.tar.gz
+
+    if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
+        # Get latest packages that work with python 2.6
+        PY_VER="2.6"
+        VIRTUALENV_VER=virtualenv-12.0.7
+        PYLINT='pylint==1.3.1'
+        ASTROID='astroid==1.2.1'
+        HYPOTHESIS="hypothesislegacysupport"
+    else
+        # use something more up-to-date
+        PY_VER="2.7"
+        VIRTUALENV_VER=virtualenv-16.0.0
+        PYLINT='pylint==1.8.4'
+        ASTROID='astroid==1.6.0'
+        HYPOTHESIS="hypothesis"
+    fi
+
+    VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
-    VIRTUALENV_EXE=$WORKSPACE/virtualenv-12.0.7/virtualenv.py
-    VENV=$WORKSPACE/venv
+    VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
+    VENV=$WORKSPACE/venv-$PY_VER
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
@@ -25,14 +42,13 @@ setup_python_venv() {
     if [ -f $WORKSPACE/$VIRTUALENV_TARBALL ]; then
         rm $WORKSPACE/$VIRTUALENV_TARBALL
     fi
-    # Get latest virtualenv package that works with python 2.6
     curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
     tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
-    if [ ! -d $VENV ] ; then
-       #virtualenv --python=python2.6 --always-copy $VENV
-       $WORKSPACE/virtualenv-12.0.7/virtualenv.py --system-site-packages $VENV
-       #$WORKSPACE/virtualenv-12.0.7/virtualenv.py $VENV
-    fi
+
+    #if we download the venv tarball everytime we should remake the venv
+    #every time
+    rm -rf $VENV
+    $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --system-site-packages $VENV
 
     source $VENV/bin/activate
 
@@ -44,10 +60,10 @@ setup_python_venv() {
     # 2. openssl-devel
     # 3. swig
     # pep8 has been replaced by pycodestyle
-    pip_packages="astroid==1.2.1 pylint==1.3.1 pycodestyle unittest2 coverage rrdtool pyyaml mock xmlrunner future importlib argparse"
+    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
+    pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
+    pip_packages="$pip_packages ${HYPOTHESIS} "
 
-        pip_packages="$pip_packages hypothesislegacysupport"
-        pip_packages="$pip_packages hypothesis"
 
     for package in $pip_packages; do
         echo "Installing $package ..."
@@ -65,6 +81,12 @@ setup_python_venv() {
 
     ## PYTHONPATH for glideinwms source code
     # pythonpath for pre-packaged only
+    if [ -n "$PYTHONPATH" ]; then
+        export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}
+    else
+        export PYTHONPATH=${GLIDEINWMS_SRC}
+    fi
+
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/lib
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/creation/lib
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/factory
@@ -82,7 +104,7 @@ print_python_info() {
     fi
     echo "${bo}HOSTNAME:${bc} `hostname -f`$br"
     echo "${bo}LINUX DISTRO:${bc} `lsb_release -d`$br"
-    echo "${bo}PYTHON:${bc} `which python`$br"
+    echo "${bo}PYTHON LOCATION:${bc} `which python`$br"
     echo "${bo}PYLINT:${bc} `pylint --version`$br"
     echo "${bo}PEP8:${bc} `pycodestyle --version`$br"
 }

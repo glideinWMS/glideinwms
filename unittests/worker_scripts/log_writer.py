@@ -5,14 +5,17 @@ import os
 import sys
 import yaml
 
-# set the python path to the parent directory so that we can import unittest_utils
+
+#pylint: disable=import-error
+# unittest sets python path such that we can import logSupport
+import logSupport  
+from unittest_utils import create_random_string  
+#pylint: enable=import-error
+
 module_globals = globals()
 this_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
 sys.path.append(os.path.join(this_dir, "../"))
-from unittest_utils import create_random_string  # @UnresolvedImport
 
-# unittest sets python path such that we can import logSupport
-import logSupport  # @UnresolvedImport
 
 def main():
     try:

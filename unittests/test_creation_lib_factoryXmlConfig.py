@@ -114,6 +114,7 @@ class TestEntrySetElement(unittest.TestCase):
         for entry_set_element in self.el:
             entry_set_element.validate()
 
+# pylint: disable=maybe-no-member
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
@@ -178,6 +179,7 @@ class TestConfig(unittest.TestCase):
     def test_validate(self):
         self.config.validate()
 
+# pylint: enable=maybe-no-member
 class TestParse(unittest.TestCase):
     def test_parse(self):
         parse(XML)
