@@ -638,6 +638,7 @@ class Key4AdvertizeBuilder:
             if delete_entry:
                 del self.keys_cache[cache_id]
 
+
 #######################################
 # INTERNAL, do not use directly
 
@@ -650,7 +651,8 @@ class AdvertizeParams:
                  glidein_monitors_per_cred={},
                  glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
                  security_name=None,  # needs key_obj
-                 remove_excess_str=None):
+                 remove_excess_str=None,
+                 remove_excess_margin=0):
         self.request_name = request_name
         self.glidein_name = glidein_name
         self.min_nr_glideins = min_nr_glideins
@@ -661,6 +663,7 @@ class AdvertizeParams:
         elif not (remove_excess_str in ("NO", "WAIT", "IDLE", "ALL", "UNREG")):
             raise RuntimeError('Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"' % remove_excess_str)
         self.remove_excess_str = remove_excess_str
+        self.remove_excess_margin = remove_excess_margin
         self.glidein_params = glidein_params
         self.glidein_monitors = glidein_monitors
         self.glidein_monitors_per_cred = glidein_monitors_per_cred
@@ -675,6 +678,7 @@ class AdvertizeParams:
         output += "max_run_glideins = %s\n" % self.max_run_glideins
         output += "idle_lifetime = %s\n" % self.idle_lifetime
         output += "remove_excess_str = %s\n" % self.remove_excess_str
+        output += "remove_excess_margin = %s\n" % self.remove_excess_margin
         output += "glidein_params = %s\n" % self.glidein_params
         output += "glidein_monitors = %s\n" % self.glidein_monitors
         output += "glidein_monitors_per_cred = %s\n" % self.glidein_monitors_per_cred
@@ -682,6 +686,7 @@ class AdvertizeParams:
         output += "security_name = %s\n" % self.security_name
         
         return output
+
 
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
@@ -694,7 +699,6 @@ def advertizeWorkFromFile(factory_pool,
     finally:
         if remove_file:
             os.remove(fname)
-
 
 
 # END INTERNAL
@@ -730,6 +734,7 @@ class MultiAdvertizeWork:
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
             security_name=None,               # needs key_obj
             remove_excess_str=None,
+            remove_excess_margin=0,
             trust_domain="Any",
             auth_method="Any",
             ha_mode='master'):
@@ -740,7 +745,7 @@ class MultiAdvertizeWork:
                                    glidein_params, glidein_monitors,
                                    glidein_monitors_per_cred,
                                    glidein_params_to_encrypt, security_name,
-                                   remove_excess_str)
+                                   remove_excess_str, remove_excess_margin)
 
         if factory_pool not in self.factory_queue:
             self.factory_queue[factory_pool] = []
@@ -754,7 +759,6 @@ class MultiAdvertizeWork:
         self.global_key[factory_pool]=key_obj
         self.global_params[factory_pool]=(request_name, security_name)
 
-
     # return the queue depth
     def get_queue_len(self):
         count = 0
@@ -762,7 +766,6 @@ class MultiAdvertizeWork:
         for factory_pool in self.factory_queue.keys():
             count += len(self.factory_queue[factory_pool])
         return count
-
 
     def renew_and_load_credentials(self):
             """
@@ -1193,6 +1196,7 @@ class MultiAdvertizeWork:
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
                 fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+                fd.write('ReqRemoveExcessMargin = %i\n'%params_obj.remove_excess_margin)
                 fd.write('ReqIdleLifetime = "%s"\n'%params_obj.idle_lifetime)
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
@@ -1246,13 +1250,11 @@ class MultiAdvertizeWork:
                 raise
         return cred_filename_arr
 
-
     def set_glidein_config_limits(self, limits_data):
         """
         Set various limits and curbs configured in the frontend config
         into the glideresource classad
         """
-
         self.glidein_config_limits = limits_data
        
 
@@ -1289,6 +1291,7 @@ def deadvertizeAllWork(factory_pool, my_name, ha_mode='master'):
     finally:
         os.remove(tmpnam)
 
+
 def deadvertizeAllGlobals(factory_pool, my_name, ha_mode='master'):
     """
     Removes all globals classads for the client in the factory.
@@ -1308,6 +1311,7 @@ def deadvertizeAllGlobals(factory_pool, my_name, ha_mode='master'):
         exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_pool)
     finally:
         os.remove(tmpnam)
+
 
 ###############################################################################
 # Code to advertise glideresource classads to the User Pool
@@ -1517,7 +1521,6 @@ class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
     Class to handle the advertisement of resource classads to the user pool
     """
 
-
     def __init__(self, pool=None, multi_support=False):
         """
         Constructor
@@ -1617,7 +1620,6 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
     to the user pool
     """
 
-
     def __init__(self, pool=None, multi_support=False):
         """
         Constructor
@@ -1650,6 +1652,7 @@ def exe_condor_advertise(fname,command, pool, is_multi=False):
     return condorManager.condorAdvertise(fname, command, 
                                          frontendConfig.advertise_use_tcp,
                                          is_multi, pool)
+
 
 class NoCredentialException(Exception):
     pass

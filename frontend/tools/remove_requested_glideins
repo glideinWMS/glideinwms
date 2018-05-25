@@ -23,7 +23,7 @@ import subprocess
 import time
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 from glideinwms.frontend import glideinFrontendPidLib
 
 from glideinwms.frontend import glideinFrontend
@@ -62,26 +62,26 @@ def parse_args(argv):
 ############################################################
 # Main function
 def main(argv):
-    options=parse_args(argv)
+    options = parse_args(argv)
 
-    running=True
+    running = True
+    action_type = None
     try:
-        action_type=glideinFrontendPidLib.get_frontend_action_type(options.work_dir)
+        action_type = glideinFrontendPidLib.get_frontend_action_type(options.work_dir)
     except:
-        running=False
+        running = False
 
     if running:
         if (action_type is None) or (action_type == "run"):
             raise RuntimeError("The Frontend is currently running.\nYou have to stop it before issuing this command")
         else:
             raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later" % action_type)
-    
 
     os.chdir(options.work_dir)
     
-    action="remove%s%s"%(options.removal_type[:1].upper(),options.removal_type[1:])
+    action = "remove%s%s" % (options.removal_type[:1].upper(), options.removal_type[1:])
     if options.excess_only:
-        action+="Excess"
+        action += "Excess"
     command_list = [sys.executable,
                     os.path.join(FRONTEND_DIR, "glideinFrontend.py"),
                     options.work_dir,
@@ -101,27 +101,27 @@ def main(argv):
     signal.signal(signal.SIGQUIT, termsignal)
 
     try:
-        cnt=0
+        cnt = 0
         while child.poll() is None:  # None means still alive
-            if cnt==0:
+            if cnt == 0:
                 if not options.quiet:
                     sys.stderr.write(".")
                     sys.stderr.flush()
-            cnt=(cnt+1)%25
+            cnt = (cnt+1) % 25
             time.sleep(0.2)
         if not options.quiet:
             sys.stderr.write("\nDone\n")
 
         try:
             tempOut = child.stdout.read()
-            if len(tempOut)!=0:
+            if len(tempOut) != 0:
                 if not options.quiet:
                     sys.stdout.write(tempOut)
         except IOError:
             pass  # ignore
         try:
             tempErr = child.stderr.read()
-            if len(tempErr)!=0:
+            if len(tempErr) != 0:
                 sys.stderr.write(tempErr)
         except IOError:
             pass  # ignore

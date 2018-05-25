@@ -1012,7 +1012,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
         if not glideFactoryLib.is_str_safe(client_int_name):
             # may be used to write files... make sure it is reasonable
-            entry.log.warning("Client name '%s' not safe. Skipping request"%client_int_name)
+            entry.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
             continue
 
         #
@@ -1035,19 +1035,23 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             continue
 
         if entry.isClientBlacklisted(client_security_name):
-            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name, client_int_name))
-            in_downtime=True
+            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " % (client_security_name,
+                                                                                                   client_int_name))
+            in_downtime = True
 
         client_expected_identity = entry.frontendDescript.get_identity(client_security_name)
         if client_expected_identity is None:
-            entry.log.warning("Client %s (secid: %s) not in white list. Skipping request" % (client_int_name, client_security_name))
+            entry.log.warning("Client %s (secid: %s) not in white list. Skipping request" % (client_int_name,
+                                                                                             client_security_name))
             continue
 
         client_authenticated_identity = work[work_key]['internals']["AuthenticatedIdentity"]
         if client_authenticated_identity != client_expected_identity:
             # silently drop... like if we never read it in the first place
             # this is compatible with what the frontend does
-            entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name, client_security_name, client_authenticated_identity, client_expected_identity))
+            entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. "
+                              "Skipping for security reasons." % (client_int_name, client_security_name,
+                                                                  client_authenticated_identity, client_expected_identity))
             continue
 
         entry.gflFactoryConfig.client_internals[client_int_name] = {
@@ -1056,22 +1060,20 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             'ReqName': client_int_req
         }
 
-        #
-        # STEP: Actually process the unit work using either v2 or v3 protocol
-        #
-
+        # Skipping requests using v2 protocol
         if ('x509_proxy_0' in decrypted_params):
-            work_performed = unit_work_v2(entry, work[work_key], work_key,
-                                          client_int_name, client_int_req,
-                                          client_expected_identity,
-                                          decrypted_params,
-                                          params, in_downtime, condorQ)
-        else:
-            work_performed = unit_work_v3(entry, work[work_key], work_key,
-                                          client_int_name, client_int_req,
-                                          client_expected_identity,
-                                          decrypted_params,
-                                          params, in_downtime, condorQ)
+            entry.log.warning("Request from client %s (secid: %s) using unsupported protocol v2 (x509_proxy_0 in message). "
+                              "Skipping." % (client_int_name, client_security_name))
+            continue
+
+        #
+        # STEP: Actually process the unit work using v3 protocol
+        #
+        work_performed = unit_work_v3(entry, work[work_key], work_key,
+                                      client_int_name, client_int_req,
+                                      client_expected_identity,
+                                      decrypted_params,
+                                      params, in_downtime, condorQ)
 
         if not work_performed['success']:
             # There was error processing this unit work request.
@@ -1086,11 +1088,11 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log,
                                          factoryConfig=entry.gflFactoryConfig)
 
-    #entry.log.info("all_security_names = %s" % all_security_names)
+    # entry.log.info("all_security_names = %s" % all_security_names)
 
     for sec_el in all_security_names:
         try:
-            #glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
+            # glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
             entry.gflFactoryConfig.rrd_stats.getData(
                 "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
         except glideFactoryLib.condorExe.ExeError as e:
@@ -1378,7 +1380,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
     #
 
-    remove_excess = work['requests'].get('RemoveExcess', 'NO')
+    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0))
     idle_lifetime = work['requests'].get('IdleLifetime', 0)
 
     if 'IdleGlideins' not in work['requests']:
@@ -1443,12 +1445,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     glideFactoryLib.logWorkRequest(
         client_int_name, client_security_name,
         submit_credentials.security_class, idle_glideins,
-        max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig
+        max_glideins, remove_excess, work, log=entry.log, factoryConfig=entry.gflFactoryConfig
     )
 
     all_security_names.add((client_security_name, credential_security_class))
 
-    #entry_condorQ = glideFactoryLib.getQProxSecClass(
+    # entry_condorQ = glideFactoryLib.getQProxSecClass(
     #                    condorQ, client_int_name,
     #                    submit_credentials.security_class,
     #                    client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
@@ -1486,271 +1488,11 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
 ###############################################################################
 
-def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
-                 client_expected_identity, decrypted_params, params,
-                 in_downtime, condorQ):
-    """
-    Perform a single work unit using the v2 protocol. When we stop supporting
-    v2 protocol, this function can be removed along with the places it is
-    called from.
-    """
+# removed
+# def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
+#             client_expected_identity, decrypted_params, params,
+#             in_downtime, condorQ):
 
-    # Only populate information to be passed at the end just before returning
-    # If any errors are identified in the work unit, just throw away the
-    # processing done so far by returning with success = False
-    return_dict = {
-        'success': False,
-        'work_done': 0,
-        'security_names': None,
-    }
-
-    #
-    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
-    #
-    can_submit_glideins = entry.glideinsWithinLimits(condorQ)
-
-    auth_method = entry.jobDescript.data['AuthMethod']
-    client_security_name = decrypted_params.get('SecurityName')
-    x509_proxies = X509Proxies(entry.frontendDescript, client_security_name)
-    all_security_names = set()
-    identity_credentials = {}
-
-    # METHOD: grid_proxy
-    if not ('grid_proxy' in auth_method):
-        entry.log.warning("Client %s provided proxy, but a client supplied proxy is not allowed. Skipping bad request" % client_int_name)
-        return return_dict
-
-    # METHOD: Corral/Teragrid project_id
-    if 'project_id' in auth_method:
-        # Validate project id exists
-        if 'ProjectId' in decrypted_params:
-            identity_credentials['ProjectId'] = decrypted_params['ProjectId']
-        else:
-            # project id is required, cannot service request
-            logSupport.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, entry.name))
-            return return_dict
-
-    # METHOD: voms_attr
-    if 'voms_attr' in auth_method:
-        # TODO: PM: determine how to verify voms attribute on a proxy
-        pass
-
-    nr_x509_proxies = 0
-    if ('nr_x509_proxies' not in decrypted_params):
-        logSupport.log.warning("Could not determine number of proxies for %s, skipping request" % client_int_name)
-        return return_dict
-    try:
-        nr_x509_proxies = int(decrypted_params['nr_x509_proxies'])
-    except:
-        logSupport.log.warning("Invalid number of proxies for %s, skipping request" % client_int_name)
-        return return_dict
-
-    # If the whitelist mode is on, then set downtime to true
-    # We will set it to false in the loop if a security class passes the test
-    if entry.frontendWhitelist == "On":
-        prev_downtime = in_downtime
-        in_downtime = True
-
-    # Set security class downtime flag
-    # TODO: PM: Why we need this? Its not used anywhere apart from being set
-    security_class_downtime_found = False
-
-    for i in range(nr_x509_proxies):
-        # Validate each proxy
-        x509_proxy = decrypted_params.get('x509_proxy_%i'%i)
-        x509_proxy_identifier = decrypted_params.get(
-                                    'x509_proxy_%i_identifier'%i)
-
-        if x509_proxy is None:
-            entry.log.warning("Could not decrypt x509_proxy_%i for %s, ignoring this proxy and trying the others" % (i, client_int_name))
-            continue
-
-        if x509_proxy_identifier is None:
-            logSupport.log.warning("No identifier for x509_proxy_%i for %s, ignoring this proxy and trying the others" % (i, client_int_name))
-            continue
-
-        # Make sure proxy id is safe to write files.
-        if not glideFactoryLib.is_str_safe(x509_proxy_identifier):
-            entry.log.warning("Identifier for x509_proxy_%i for %s is not safe ('%s), skipping and trying the others" % (i, client_int_name, x509_proxy_identifier))
-            continue
-
-        # Check security class for downtime (in downtimes file)
-        x509_proxy_security_class = decrypted_params.get(
-                                        'x509_proxy_%i_security_class'%i,
-                                        x509_proxy_identifier)
-
-
-        entry.log.info("Checking downtime for frontend %s security class: %s (entry %s)." % (client_security_name, x509_proxy_security_class, entry.name))
-
-        if entry.isSecurityClassInDowntime(client_security_name,
-                                           x509_proxy_security_class):
-            # Cannot use proxy for submission but entry is not in downtime
-            # since other proxies may map to valid security classes
-            entry.log.warning("Security Class %s is currently in a downtime window for Entry: %s. Ignoring request." % (x509_proxy_security_class, entry.name))
-            security_class_downtime_found = True
-            continue
-
-        # Deny Frontend from requesting glideins if the whitelist
-        # does not have its security class (or "All" for everyone)
-        if entry.isClientWhitelisted(client_security_name):
-            if entry.isSecurityClassAllowed(client_security_name,
-                                            x509_proxy_security_class):
-                in_downtime = prev_downtime
-                entry.log.info("Security test passed for : %s %s " % (entry.name, x509_proxy_security_class))
-            else:
-                entry.log.warning("Security class not in whitelist, skipping request (%s %s) " % (client_security_name, x509_proxy_security_class))
-                continue
-
-        # Check that security class maps to a username for submission
-        x509_proxy_username = x509_proxies.get_username(x509_proxy_security_class)
-        if x509_proxy_username is None:
-            entry.log.warning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others" % (x509_proxy_security_class, i, client_int_name, client_security_name))
-            continue
-
-        # Format proxy filename
-        try:
-            x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
-                                   entry.name, x509_proxy_username,
-                                   "%s_%s" % (client_name, x509_proxy_identifier),
-                                   x509_proxy,
-                                   factoryConfig=entry.gflFactoryConfig)
-        except RuntimeError as e:
-            entry.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
-            continue
-        except:
-            entry.log.exception("Failed to update x509_proxy_%i using usename %s for client %s, skipping request: " % (i, x509_proxy_username, client_int_name))
-            continue
-
-        x509_proxies.add_fname(x509_proxy_security_class,
-                               x509_proxy_identifier,
-                               x509_proxy_fname)
-
-    if x509_proxies.count_fnames<1:
-        entry.log.warning("No good proxies for %s, skipping request"%client_int_name)
-        return return_dict
-
-    # Set the downtime status so the frontend-specific
-    # downtime is advertised in glidefactoryclient ads
-    entry.setDowntime(in_downtime)
-    entry.gflFactoryConfig.qc_stats.set_downtime(in_downtime)
-
-    #
-    # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
-    #
-
-    remove_excess = work['requests'].get('RemoveExcess', 'NO')
-    idle_lifetime = work['requests'].get('IdleLifetime', 0)
-
-
-    if 'IdleGlideins' not in work['requests']:
-        # Malformed, if no IdleGlideins
-        entry.log.warning("Skipping malformed classad for client %s" % client_name)
-        return return_dict
-
-    try:
-        idle_glideins = int(work['requests']['IdleGlideins'])
-    except ValueError as e:
-        entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['IdleGlideins']))
-        return return_dict
-
-    if 'MaxGlideins' in work['requests']:
-        try:
-            max_glideins = int(work['requests']['MaxGlideins'])
-        except ValueError as e:
-            entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work['requests']['MaxGlideins']))
-            return return_dict
-    else:
-        try:
-            max_glideins = int(work['requests']['MaxRunningGlideins'])
-        except ValueError as e:
-            entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['MaxRunningGlideins']))
-            return return_dict
-
-    # If we got this far, it was because we were able to
-    # successfully update all the credentials in the request
-    # If we already have hit our limits checked at beginning of this
-    # method and logged there, we can't submit.
-    # We still need to check/update all the other request credentials
-    # and do cleanup.
-
-    # We'll set idle glideins to zero if hit max or in downtime.
-    if in_downtime or not can_submit_glideins:
-        idle_glideins=0
-
-    try:
-        client_web_url = work['web']['URL']
-        client_signtype = work['web']['SignType']
-        client_descript = work['web']['DescriptFile']
-        client_sign = work['web']['DescriptSign']
-        client_group = work['internals']['GroupName']
-        client_group_web_url = work['web']['GroupURL']
-        client_group_descript = work['web']['GroupDescriptFile']
-        client_group_sign = work['web']['GroupDescriptSign']
-
-        client_web = glideFactoryLib.ClientWeb(
-                         client_web_url, client_signtype, client_descript,
-                         client_sign, client_group, client_group_web_url,
-                         client_group_descript, client_group_sign,
-                         factoryConfig=entry.gflFactoryConfig)
-    except:
-        # malformed classad, skip
-        entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
-        return return_dict
-
-    x509_proxy_security_classes = sorted(x509_proxies.fnames.keys())
-    # Sort to have consistent logging
-    for x509_proxy_security_class in x509_proxy_security_classes:
-        # split the request proportionally between them
-
-        x509_proxy_frac = 1.0 * len(x509_proxies.fnames[x509_proxy_security_class]) / x509_proxies.count_fnames
-
-        # Round up if a client requests a non splittable number, worse for him.
-        # Expect no issues in real world as the most reasonable
-        # use case has a single proxy_class per client name
-        idle_glideins_pc = int(math.ceil(idle_glideins * x509_proxy_frac))
-        max_glideins_pc = int(math.ceil(max_glideins * x509_proxy_frac))
-
-        # Should log here or in perform_work
-        glideFactoryLib.logWorkRequest(
-            client_int_name, client_security_name, x509_proxy_security_class,
-            idle_glideins, max_glideins, work, fraction=x509_proxy_frac,
-            log=entry.log, factoryConfig=entry.gflFactoryConfig)
-
-        all_security_names.add((client_security_name,
-                                x509_proxy_security_class))
-
-        entry_condorQ = glideFactoryLib.getQProxSecClass(
-                            condorQ, client_int_name,
-                            x509_proxy_security_class,
-                            client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
-                            credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
-                            factoryConfig=entry.gflFactoryConfig)
-
-
-        # Map the identity to a frontend:sec_class for tracking totals
-        frontend_name = "%s:%s" % \
-            (entry.frontendDescript.get_frontend_name(client_expected_identity),
-             x509_proxy_security_class)
-
-        ## Do a iteration for the credential set (maps to a 1 security class)
-        #entry.gflFactoryConfig.client_internals[client_int_name] = \
-        #    {"CompleteName":client_name, "ReqName":client_int_req}
-
-        done_something = perform_work_v2(
-                             entry, entry_condorQ, client_name, client_int_name,
-                             client_security_name, x509_proxy_security_class,
-                             remove_excess, idle_glideins_pc, max_glideins_pc,
-                             idle_lifetime, x509_proxies.fnames[x509_proxy_security_class],
-                             x509_proxies.get_username(x509_proxy_security_class),
-                             identity_credentials, entry.glideinTotals,
-                             frontend_name, client_web, params)
-
-    # Gather the information to be returned back
-    return_dict['success'] = True
-    return_dict['work_done'] = done_something
-    return_dict['security_names'] = all_security_names
-
-    return return_dict
 
 ###############################################################################
 
@@ -1758,6 +1500,53 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
                     client_security_name, submit_credentials, remove_excess,
                     idle_glideins, max_glideins, idle_lifetime, credential_username,
                     glidein_totals, frontend_name, client_web, params):
+    """    Perform the work (Submit or remove glideins)
+
+    @type entry: glideFactoryEntry.Entry
+    @param entry: Entry object
+
+    @type condorQ: condorMonitor.CondorQ
+    @param condorQ: Information about the jobs in condor_schedd
+
+    @type client_int_name: string
+    @param client_in_name: Internal name of the client
+
+    @type client_securty_name: string
+    @param client_security_name: Security name of the client
+
+    @type submit_credentials:
+    @param submit_credentials: credentials used
+
+    @type remove_excess: tuple
+    @param remove_excess: remove_excess_str, remove_excess_margin; if frontend wants us to remove excess glideins
+
+    @type idle_glideins: int
+    @param idle_glideins: Number of idle glideins
+
+    @type max_glideins: int
+    @param max_glideins: Maximum number of running glideins
+
+    @type idle_lifetime:
+    @param idle_lifetime:
+
+    @type credential_username: string
+    @param credential_username: Credential username
+
+    @type glidein_totals: object
+    @param glidein_totals: glidein_totals object
+
+    @type frontend_name: string
+    @param frontend_name: Name of the frontend
+
+    @type client_web: string
+    @param client_web: Client's web location
+
+    @type params: object
+    @param params: Params object
+
+    @return: 1 if something was submitted, 0 otherwise
+
+    """
 
     # find out the users it is using
     log_stats = {}
@@ -1799,121 +1588,13 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
 
 
 ###############################################################################
-
-
-def perform_work_v2(entry, condorQ, client_name, client_int_name,
-                    client_security_name, credential_security_class,
-                    remove_excess, idle_glideins, max_running, idle_lifetime,
-                    credential_fnames, credential_username,
-                    identity_credentials, glidein_totals, frontend_name,
-                    client_web, params):
-    """
-    Perform the work (Submit glideins)
-
-    @type entry: glideFactoryEntry.Entry
-    @param entry: Entry object
-
-    @type condorQ: condorMonitor.CondorQ
-    @param condorQ: Information about the jobs in condor_schedd
-
-    @type client_int_name: string
-    @param client_in_name: Internal name of the client
-
-    @type client_securty_name: string
-    @param client_security_name: Security name of the client
-
-    @type credential_security_class: string
-    @param credential_security_class: x509 proxy's security class
-
-    @type client_int_req: string
-    @param client_int_req: client_int_req
-
-    @type remove_excess: boolean
-    @param remove_excess: Flag if frontend wants us to remove excess glideins
-
-    @type idle_glideins: int
-    @param idle_glideins: Number of idle glideins
-
-    @type max_running: int
-    @param max_running: Maximum number of running glideins
-
-    @type credential_fnames: string
-    @param credential_fnames: Credential file
-
-    @type credential_username: string
-    @param credential_username: Credential username
-
-    @type glidein_totals: object
-    @param glidein_totals: glidein_totals object
-
-    @type frontend_name: string
-    @param frontend_name: Name of the frontend
-
-    @type client_web: string
-    @param client_web: Client's web location
-
-    @type params: object
-    @param params: Params object
-    """
-
-    entry.loadContext()
-
-    condor_pool = params.get('GLIDEIN_Collector', None)
-
-    credential_keys = credential_fnames.keys()
-    # Randomize so I don't favour any proxy over another
-    random.shuffle(credential_keys)
-
-    # find out the users it is using
-    log_stats = {}
-    log_stats[credential_username+":"+client_int_name] = \
-        glideFactoryLogParser.dirSummaryTimingsOut(
-            entry.gflFactoryConfig.get_client_log_dir(entry.name,
-                                                      credential_username),
-            entry.logDir, client_int_name, credential_username)
-    # should not need privsep for reading logs
-    log_stats[credential_username+":"+client_int_name].load()
-
-    glideFactoryLib.logStats(condorQ, client_int_name, client_security_name,                                 credential_security_class, log=entry.log,
-                             factoryConfig=entry.gflFactoryConfig)
-    client_log_name = glideFactoryLib.secClass2Name(client_security_name,
-                                                    credential_security_class)
-    entry.gflFactoryConfig.log_stats.logSummary(client_log_name, log_stats)
-
-    # use the extended params for submission
-    proxy_fraction = 1.0/len(credential_keys)
-
-    # I will shuffle proxies around, so I may as well round up all of them
-    idle_glideins_pproxy = int(math.ceil(idle_glideins*proxy_fraction))
-    max_glideins_pproxy = int(math.ceil(max_running*proxy_fraction))
-
-    # not reducing the held, as that is effectively per proxy, not per request
-    nr_submitted=0
-    for credential_id in credential_keys:
-        security_credentials = {}
-        security_credentials['SubmitProxy'] = credential_fnames[credential_id]
-        submit_credentials = glideFactoryCredentials.SubmitCredentials(
-                                 credential_username,
-                                 credential_security_class)
-        submit_credentials.id = credential_id
-        submit_credentials.security_credentials = security_credentials
-        submit_credentials.identity_credentials = identity_credentials
-
-        entry.log.info("Using v2+ protocol and credential %s" % submit_credentials.id)
-        nr_submitted += glideFactoryLib.keepIdleGlideins(
-                            condorQ, client_int_name,
-                            idle_glideins_pproxy, max_glideins_pproxy, idle_lifetime,
-                            remove_excess, submit_credentials,
-                            glidein_totals, frontend_name,
-                            client_web, params, log=entry.log,
-                            factoryConfig=entry.gflFactoryConfig)
-
-    if nr_submitted>0:
-        entry.log.info("Submitted %s glideins" % nr_submitted)
-        # We submitted something
-        return 1
-
-    return 0
+# removed
+# def perform_work_v2(entry, condorQ, client_name, client_int_name,
+#                    client_security_name, credential_security_class,
+#                    remove_excess, idle_glideins, max_running, idle_lifetime,
+#                    credential_fnames, credential_username,
+#                    identity_credentials, glidein_totals, frontend_name,
+#                    client_web, params):
 
 
 ############################################################
