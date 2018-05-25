@@ -108,6 +108,7 @@ print_python_info() {
     echo "${bo}HOSTNAME:${bc} `hostname -f`$br"
     echo "${bo}LINUX DISTRO:${bc} `lsb_release -d`$br"
     echo "${bo}PYTHON LOCATION:${bc} `which python`$br"
+    echo "${bo}PYTHON VERSION:${bc} `python --version`$br"
     echo "${bo}PYLINT:${bc} `pylint --version`$br"
     echo "${bo}PEP8:${bc} `pycodestyle --version`$br"
 }
