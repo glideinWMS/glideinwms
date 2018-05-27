@@ -23,6 +23,8 @@ xmlConfig.register_list_elements({
 })
 
 
+# TODO: add a way to check for multi-attr constraints:
+# TODO: e.g. GLIDEIN_ESTIMATED_CPUS should not be set if GLIDEIN_CPUS is not set or GLIDEIN_CPUS > 0
 class FactAttrElement(xmlConfig.AttrElement):
     def validate(self):
         super(FactAttrElement, self).validate()

@@ -236,7 +236,7 @@ class condorQStats:
                            'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
-        self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
+        self.expected_cores = cores  # This comes from GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS, actual cores received may differ
 
     def logSchedd(self, client_name, qc_status, qc_status_sf):
         """ qc_status is a dictionary of condor_status:nr_jobs
