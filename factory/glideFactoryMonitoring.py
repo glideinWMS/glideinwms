@@ -12,6 +12,7 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
+import json
 import os
 import re
 import time
@@ -128,6 +129,33 @@ class MonitoringConfig:
             fd.close()
 
         util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
+        return
+
+    def write_completed_json(self, relative_fname, time, val_dict):
+        """
+        Write val_dict to a json file, creating if needed
+        relative_fname: location of json relative to self.monitor_dir
+        time: typically self.updated
+        val_dict: dictionary object to be dumped to file
+        """
+
+        fname = os.path.join(self.monitor_dir, relative_fname + ".json")
+        data = {}
+        data["time"] = time
+        data["stats"] = val_dict
+
+        try:
+                f = None
+                self.log.info("Writing %s to %s" % (relative_fname, str(fname)))
+                f = open(fname, 'w')
+                json.dump(data, f)
+                #f.write(json.dumps(data, indent=4))
+        except IOError as e:
+                self.log.err("unable to open and write to file %s in write_completed_json: %s" % (str(fname), str(e)))
+        finally:
+            if f:
+                f.close()
+
         return
 
     def establish_dir(self, relative_dname):
@@ -1123,18 +1151,61 @@ class condorLogSummary:
                                                     val_dict_counts_desc, self.updated, val_dict_counts)
             monitoringConfig.write_rrd_multi("%s/Log_Completed" % fe_dir,
                                              "ABSOLUTE", self.updated, val_dict_completed)
+            monitoringConfig.write_completed_json("%s/Log_Completed" % fe_dir, self.updated, val_dict_completed)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats" % fe_dir,
                                              "ABSOLUTE", self.updated, val_dict_stats)
+            monitoringConfig.write_completed_json("%s/Log_Completed_Stats" % fe_dir, self.updated, val_dict_stats)
             # Disable Waste RRDs... WasteTime much more useful
             #monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
             #                                 "ABSOLUTE",self.updated,val_dict_waste)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime" % fe_dir,
                                              "ABSOLUTE", self.updated, val_dict_wastetime)
+            monitoringConfig.write_completed_json("%s/Log_Completed_WasteTime" % fe_dir, self.updated, val_dict_wastetime)
 
+
+        self.aggregate_frontend_data(self.updated, diff_summary)
 
         self.files_updated = self.updated
         return
 
+    def aggregate_frontend_data(self, updated, diff_summary):
+        """
+        This goes into each frontend in the current entry and aggregates
+        the completed/stats/wastetime data into completed_data.json
+        at the entry level
+        """
+
+        entry_data = {'frontends':{}}
+
+        for frontend in diff_summary.keys():
+            fe_dir = "frontend_" + frontend
+
+            completed_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed.json"
+            completed_stats_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_Stats.json"
+            completed_wastetime_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_WasteTime.json"
+
+            try:
+                completed_fp = open(completed_filename)
+                completed_stats_fp = open(completed_stats_filename)
+                completed_wastetime_fp = open(completed_wastetime_filename)
+
+                completed_data = json.load(completed_fp)
+                completed_stats_data = json.load(completed_stats_fp)
+                completed_wastetime_data = json.load(completed_wastetime_fp)
+
+                entry_data['frontends'][frontend] = {'completed':completed_data,
+                                                 'completed_stats':completed_stats_data,
+                                                 'completed_wastetime':completed_wastetime_data}
+            except IOError as e:
+                self.log.info("Could not find files to aggregate in frontend %s" % fe_dir)
+                self.log.info(str(e))
+                continue
+            finally:
+                completed_fp.close()
+                completed_stats_fp.close()
+                completed_wastetime_fp.close()
+
+        monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
     def write_job_info(self, scheddName, collectorName):
         """ The method itereates over the stats_diff dictionary looking for
