@@ -89,6 +89,28 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_4</b> released on May 31, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4.tgz">Tarball</a>)<br>
+        <ul>
+            <li>GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3</li>
+            <li>Inform the admin in case multiple service reload is done in rapid succession</li>
+            <li>Released glideinwms-switchdoard RPM to provide condor_root_switchboard</li>
+            <li>Singularity wrapper using PATH and module when SINGULARITY_BIN does not contain the correct path</li>
+            <li>Update of the software license</li>
+            <li>Have frontend groups glidein requests track the job requests</li>
+            <li>Add a resource_slot that adds CPUs to the system but is in the main slot</li>
+            <li>singularity jobs each use a separate linux session to support restricted-access CVMFS</li>
+            <li>Do not set GLIDEIN_ToDie based on X509 user proxy expiration</li>
+            <li>Estimate the cores provided to glideins running on an entry</li>
+            <li>Write LogCompletedStats jsons for monitoring purposes</li>
+            <li>Add entry monitoring breakdown for metasites</li>
+            <li>Code modernization to Python 2.6/2.7 stansards (futurize stage 1 compliant)</li>
+            <li>Increased testing (more than doubled unit tests coverage and testing more files w/ pylint)</li>
+            <li>Bug Fix: TypeError: under special conditions in Factory reconfig</li>
+            <li>Bug Fix: Entries in downtime slow down the ramp-up for the frontend</li>
+            <li>NOTE: If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install also glideinwms-switchboard, to have condor_root_switchboard, that was removed from HTCondor</li>
+        </ul>
+      </li>
+      <li>
         <b>v3_2_22_2</b> released on April 17, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_2_22_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_22_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_22_2.tgz">Tarball</a>)<br>
         <ul>
             <li>Changed singularity options also in singularity_setup.sh to adapt to the new singularity release requirements</li>
