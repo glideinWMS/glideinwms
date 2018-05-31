@@ -107,6 +107,7 @@ Related Pages:
             <li>Increased testing (more than doubled unit tests coverage and testing more files w/ pylint)</li>
             <li>Bug Fix: TypeError: under special conditions in Factory reconfig</li>
             <li>Bug Fix: Entries in downtime slow down the ramp-up for the frontend</li>
+	    <li>NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.</li>
             <li>NOTE: If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install also glideinwms-switchboard, to have condor_root_switchboard, that was removed from HTCondor</li>
         </ul>
       </li>

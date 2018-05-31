@@ -677,7 +677,7 @@ by the VO factory clients.</P>
     </TR>
     <TR>
         <td> <b>GLIDEIN_CPUS</b> </td>
-        <TD> String (Int)</td>
+        <TD> String </td>
 
         <TD> 1 </TD>
         <TD>
@@ -685,6 +685,7 @@ by the VO factory clients.</P>
                 Use "<b>slot</b>" (or "<b>auto</b>") to let glidein determine this from the job slot assigned to the glidein,
                 use "<b>node</b>" to let glidein determine this from the hardware of the worker node (e.g. if you are sure that only your job is running on the node),
                 use a positive integer to set GLIDEIN_CPUS (and NUM_CPUS) to assume that value.
+		Most of the time it is an integer, but the type is string to allow also the keywords.
                 In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots.
                 In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available.
                 Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
