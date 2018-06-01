@@ -84,7 +84,15 @@ function patch_privsep_config() {
 }
 
 function install_rpms() {
-    try yum install -y \$*
+   OK=1
+   while [ \$OK -ne 0 ]; do
+       yum install -y \$*
+       OK=\$?
+      if [ \$OK -ne 0 ]; then
+         echo rpm install failed, retrying in 60 seconds
+         sleep 60
+      fi
+  done
 }
 
 
@@ -480,29 +488,29 @@ while [[ $# -gt 0 ]] ; do
     esac
     shift
 done
-enable_repo="--enablerepo=$osg_repo"
+enable_repo="--enablerepo=${osg_repo}"
 
 #yum_rpm=yum_priorities
-#[ "$el" = "7" ] && yum_rpm=yum-plugin-priorities
+#[ "${el}" = "7" ] && yum_rpm=yum-plugin-priorities
 yum_rpm=yum-plugin-priorities
 
-[ "$el" = "7" ] &&  [ "$vm_template" = "" ] && vm_template="SLF${el}V_DynIP_Home"
-[ "$el" = "6" ] &&  [ "$vm_template" = "" ] && vm_template="CLI_DynamicIP_SLF6_HOME"
+[ "${el}" = "7" ] &&  [ "$vm_template" = "" ] && vm_template="SLF${el}V_DynIP_Home"
+[ "${el}" = "6" ] &&  [ "$vm_template" = "" ] && vm_template="CLI_DynamicIP_SLF6_HOME"
 
 [ "$gwms_release" != "" ] && [ "$(echo "$gwms_release" | grep '^-')" = "" ]  && gwms_release="-${gwms_release}"
 #echo gwms_release=$gwms_release
 #exit
 
-osg_release_rpm="http://repo.grid.iu.edu/osg/$osg_version/osg-$osg_version-el$el-release-latest.rpm"
-epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.noarch.rpm"
+osg_release_rpm="http://repo.opensciencegrid.org/osg/${osg_version}/osg-${osg_version}-el${el}-release-latest.rpm"
+epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-${el}.noarch.rpm"
 
 condor_version="default"
 condor_os="default"
 condor_arch="default"
 
 # Some constants
-fact_vm_name="fact-el$el-$tag-test"
-vofe_vm_name="vofe-el$el-$tag-test"
+fact_vm_name="fact-el${el}-${tag}-test"
+vofe_vm_name="vofe-el${el}-${tag}-test"
 test -n "$condor_tarball"  && base_condor_tarball=`basename $condor_tarball` && base_condor_dir=`echo $base_condor_tarball | sed s/.tar.gz//`
 test -n "$condor_tarball" && condor_version=$(echo $base_condor_tarball | sed s/condor-// | sed s/-.*//)
 test -n "$condor_tarball" && condor_os=$(echo $base_condor_tarball | sed s/.*_// | sed s/-.*//)
@@ -584,9 +592,9 @@ echo "==========================================================================
 echo "Deployment Options"
 echo "------------------"
 echo "prog        : $prog"
-echo "tag         : $tag"
-echo "el          : $el"
-echo "osg_version : $osg_version"
+echo "tag         : ${tag}"
+echo "el          : ${el}"
+echo "osg_version : ${osg_version}"
 echo "osg_repo    : $osg_repo"
 echo "monitor     : $launch_monitor"
 echo
