@@ -89,7 +89,7 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_4</b> released on May 31, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4.tgz">Tarball</a>)<br>
+        <b>v3_4</b> released on June 4, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4.tgz">Tarball</a>)<br>
         <ul>
             <li>GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3</li>
             <li>Inform the admin in case multiple service reload is done in rapid succession</li>
@@ -107,8 +107,9 @@ Related Pages:
             <li>Increased testing (more than doubled unit tests coverage and testing more files w/ pylint)</li>
             <li>Bug Fix: TypeError: under special conditions in Factory reconfig</li>
             <li>Bug Fix: Entries in downtime slow down the ramp-up for the frontend</li>
-	    <li>NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.</li>
+            <li>NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.</li>
             <li>NOTE: If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install also glideinwms-switchboard, to have condor_root_switchboard, that was removed from HTCondor</li>
+            <li>NOTE: 'entry_sets' should be considered an experimental feature: the imlpementation is changing and there may be errors when upgrading across versions</li>
         </ul>
       </li>
       <li>
