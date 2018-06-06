@@ -30,6 +30,7 @@ class TestDescriptionDictFile(unittest.TestCase):
         line = """dohicky     doohicky.i2cmtV.sha1"""
         self.description_dict_file.parse_val(line)
         self.assertTrue("doohicky.i2cmtV.sha1" in self.description_dict_file)
+        self.description_dict_file.parse_val("")
 
 
 class TestGridMapDict(unittest.TestCase):
@@ -51,6 +52,7 @@ class TestGridMapDict(unittest.TestCase):
         line = """"%s" osg""" % key
         self.grid_map_dict.parse_val(line)
         self.assertTrue(key in  self.grid_map_dict)
+        self.grid_map_dict.parse_val("")
 
 if __name__ == '__main__':
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

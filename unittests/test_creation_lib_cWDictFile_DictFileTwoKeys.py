@@ -151,10 +151,21 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
 
     def test_parse_val(self):
-
+        
         line = """foo    'bar'"""
         self.dict_file.parse_val(line)
+        cpy = copy.deepcopy(self.dict_file)
         self.assertEqual("'bar'", self.dict_file["foo"])
+        self.assertEqual(cpy.keys, self.dict_file.keys)
+        #should not throw exception
+        self.dict_file.parse_val("")
+        self.assertEqual(cpy.keys, self.dict_file.keys)
+        line = """#comment value"""
+        self.dict_file.parse_val(line)
+        self.assertFalse("comment" in self.dict_file)
+        self.assertFalse("#comment" in self.dict_file)
+        self.assertEqual(cpy.keys, self.dict_file.keys)
+
 
 
     def test_remove(self):
