@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory Design</h2>
@@ -106,8 +104,7 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 			Users can affect <i>where</i> they are submitted when the Frontend configures 
 			match expressions and the user provides supported requirements but this 
 			all takes place in the Frontend.  User requirements are not put into the 
-			Frontend request for the Factory to interpret. The only exception is the 
-			Project ID passed by Corral Frontends.
+			Frontend request for the Factory to interpret.
 				<ul>
 					<li>GlideinEncParamProjectId = &quot;abcx123&quot;</li>
 				</ul>
@@ -221,7 +218,7 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 	<li><a name="ident_cred"></a><b>Identity Credentials.  </b>The Factory may also require the Frontend to 
 	pass identity information in addition to the authenication methods for glidein submission.
 		<ol type="a">
-			<li>Authentication method contains &quot;+project_id&quot;.  This is only applicable for Corral Frontends and for TeraGrid sites.
+			<li>Authentication method contains &quot;+project_id&quot;.  This is only applied for TeraGrid sites.
 				<ul>
 					<li>GlideinEncParamProjectId = encrypted project id</li>
 				</ul>

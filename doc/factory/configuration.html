@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" alt="Frontend" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" alt="Collector" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" alt="Factory" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" alt="Corral" />
     </map>
 
     <h2>WMS Factory</h2>
@@ -651,8 +649,7 @@ override the global arguments if present.
     submission.  Valid values: grid_proxy, voms_proxy, key_pair, cert_pair, username_password, vm_type, vm_id, project_id<br/>
     Multiple authentication methods may be needed and there may be reqirements on the authentication method depending on the type of entry. 
     E.g. ec2 requires a credential pair (key_pair, cert_pair, username_password) and the VM id and type. BOSCO requires a key_pair and a grid_proxy.
-    A TeraGrid site requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
-    method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;. <br/>
+    The authentication method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;. <br/>
     When multiple methods are needed these can be additional entry values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
     OR <br/>
     can be added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
@@ -685,9 +682,6 @@ override the global arguments if present.
     Please check the Grid site documentation and/or ask the Grid
     site administrator for the proper rsl and queue name for the site.<br/>
     (example: '<tt>(condorsubmit=(universe vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>'). <br/>
-    NOTE:  If the auth_method contains "+project_id" for a TeraGrid entry, the string "(project=TG_PROJECT_ID)" 
-    will be added by the Factory and populated with the project id passed in the Corral request.  Only Corral Frontends can use
-    these entries since we currently do not support a VO Frontend passing the project id.
     </li>
     <li>
         <div class="xml">

@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory Design</h2>
@@ -92,11 +90,9 @@ Factory Design Topics: <br/>
 <p>This document describes the v3+ protocol between the GlideinWMS Factory and the supported Frontend services.  
 <br><br>
 The protocol defines how the Frontend describes &quot;what&quot; needs to be done and the Factory knows &quot;how&quot; to do it.  
-The VO Frontend, Corral Frontend, OSG, TeraGrid, and the Cloud all have special requirements where the frontends and users 
+The VO Frontend, OSG, TeraGrid, and the Cloud all have special requirements where the frontends and users 
 have some information on the &quot;how&quot; that is needed by the Factory.  This means that the Frontend cannot pass information 
-that will affect glidein submission; instead, they pick entry configurations that best suits their needs.  The only exception is 
-the ability of the Corral Frontend to pass a TeraGrid Project Id and either the VO Frotnend or Corral Frontend to pass VM Id and 
-Type for cloud entries.  The Frontends maintain the ability to affect glidein behavior with glidein attributes.  
+that will affect glidein submission; instead, they pick entry configurations that best suits their needs. The Frontends maintain the ability to affect glidein behavior with glidein attributes.  
 </p>
 
 <h2><a name="communication"></a>Communication between the Factory and Frontend</h2>

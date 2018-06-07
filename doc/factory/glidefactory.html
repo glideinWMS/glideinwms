@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory Design</h2>
@@ -134,8 +132,7 @@ entry point and it includes the following:</p>
 					<li>GlideinRequireGlideinProxy = False</li>
 				</ul>
 			</li>
-			<li>Additional requirements may need to be supplied by the Frontend.  An entry may require the Frontend to pass the project 
-			id (Corral only) or the VM Id and Type (both frontend types).  Only v3+ Frontends interpret this value.
+			<li>Additional requirements may need to be supplied by the Frontend.  An entry may require the Frontend to pass the VM Id and Type.  Only v3+ Frontends interpret this value.
 				<ul>
 					<li>add +project_id to the authentication method above, &quot;grid_proxy+project_id&quot;</li>
 					<li>add +vm_id and/or +vm_type to the authentication method above, &quot;key_pair+vm_id+vm_type&quot;</li>
