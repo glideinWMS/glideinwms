@@ -83,27 +83,27 @@ Related Information:
 </div>
 <div class="section">
 
-    <p>This document refers to the Glidein Frontend insalled via tarball. If you used the RPM installation
-    (<a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG documentation</a>) 
+    <p>This document refers to the Glidein Frontend installed via tarball. If you used the RPM installation
+    (<a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG documentation</a>) 
     the commands will be the same but most paths will be different.
     </p>
     <p>There are several ways to monitor the VO Frontend:</p>
 
     <h3><a name="monitoring_web">VO Frontend entry Web monitoring</a></h3>
     <p>
-        You can either monitor the frontend as a whole, or just a single entry point.<br><br>
-        The frontend monitoring is located at a URL like the one below
+        You can either monitor the Frontend as a whole, or just a single entry point.<br><br>
+        The Frontend monitoring is located at a URL like the one below
     </p>
 
     <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/</blockquote>
 
     <p>
-        Moreover, each frontend group has its own history on the Web.<br><br>
+        Moreover, each Frontend group has its own history on the Web.<br><br>
         Assuming you have a main group, it can be monitored at
     </p>
     <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/group_main/</blockquote>
 
-    <h3><a name="monitoring_tools">VO frontend monitoring via WMS tools</a></h3>
+    <h3><a name="monitoring_tools">VO Frontend monitoring via WMS tools</a></h3>
 
     <p>You can get the equivalent of the Web page snaphot by using</p>
     <blockquote>
@@ -122,14 +122,14 @@ Related Information:
     <p>
 
         All errors are reported in the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log</b> contains entries 
-        about what the VO frontend is doing.
+        about what the VO Frontend is doing.
         You can change the log files and their level of detail by editing the 
         <a href="configuration.html#process_logs">process logs section</a> of the configuration.
     </p>
 
     <h3><a name="monitoring_condor">VO Frontend ClassAds in the WMS Collector</a></h3>
     <p>
-        The VO Frontned also advertises summary information in the WMS collector.<br><br>
+        The VO Frontend also advertises summary information in the WMS collector.<br><br>
 
         Use <b>condor_status</b>:
     </p>
@@ -140,7 +140,7 @@ Related Information:
 </div>
 <div class="section">
 <h2><a name="pseudo_interactive"></a>Pseudo Interactive Monitoring</h2>
-<p>The glideinWMS also provides pseudo interactive monitoring
+<p>The GlideinWMS also provides pseudo interactive monitoring
 functionalities; a user can run short lived commands alongide any
 already running job in the queue. 
 </p>
