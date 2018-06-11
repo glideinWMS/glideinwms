@@ -277,11 +277,9 @@ class DictFile:
         return "%s \t%s" % (key, self.vals[key])
 
     def parse_val(self, line):
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
-        if len(arr) == 0:
-            return  # empty line
         if len(arr[0]) == 0:
             return  # empty key
 
@@ -420,7 +418,7 @@ class DescriptionDictFile(DictFileTwoKeys):
         return "%s \t%s" % (self.vals[key], key)
 
     def parse_val(self, line):
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr) == 0:
@@ -440,7 +438,7 @@ class GridMapDict(DictFileTwoKeys):
         return '"%s" %s' % (key, self.vals[key])
 
     def parse_val(self, line):
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr=line.split()
         if len(arr) == 0:
@@ -474,11 +472,9 @@ class SHA1DictFile(DictFile):
         return "%s  %s"%(self.vals[key], key)
 
     def parse_val(self, line):
-        if line[0]=='#':
+        if not line or line[0]=='#':
             return # ignore comments
         arr=line.split(None, 1)
-        if len(arr)==0:
-            return # empty line
         if len(arr)!=2:
             raise RuntimeError("Not a valid SHA1 line: '%s'"%line)
 
@@ -510,11 +506,9 @@ class SummarySHA1DictFile(DictFile):
         return "%s  %s  %s"%(self.vals[key][0], self.vals[key][1], key)
 
     def parse_val(self, line):
-        if line[0]=='#':
+        if not line or line[0]=='#':
             return # ignore comments
         arr=line.split(None, 2)
-        if len(arr)==0:
-            return # empty line
         if len(arr)!=3:
             raise RuntimeError("Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line))
 
@@ -610,11 +604,9 @@ class SimpleFileDictFile(DictFile):
         :param line: line to be parsed
         :return: None
         """
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
-        if len(arr) == 0:
-            return  # empty line
         if len(arr[0]) == 0:
             return  # empty key - this can never happen
 
@@ -841,11 +833,9 @@ class ReprDictFileInterface:
         return "%s \t%s"%(key, repr(self.vals[key]))
 
     def parse_val(self, line):
-        if line[0]=='#':
+        if not line or line[0]=='#':
             return # ignore comments
         arr=line.split(None, 1)
-        if len(arr)==0:
-            return # empty line
         if len(arr[0])==0:
             return # empty key
 
@@ -973,9 +963,7 @@ class VarsDictFile(DictFile):
                                                        self.vals[key][3], self.vals[key][4], self.vals[key][5])
 
     def parse_val(self, line):
-        if len(line) == 0:
-            return  #ignore emoty lines
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr=line.split(None, 6)
         if len(arr) == 0:

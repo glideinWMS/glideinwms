@@ -832,6 +832,21 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Thu May 31 2018 Marco Mambelli <marcom@fnal.gov> - 3.4-1
+- Glideinwms v3.4
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_4/history.html
+- Release candidates: 3.4-0.1.rc1
+
+* Mon Apr 30 2018 Brian Lin <blin@cs.wisc.edu> - 3.2.22.2-4
+- Fix proxy renewal cron format
+
+* Thu Apr 26 2018 Brian Lin <blin@cs.wisc.edu> - 3.2.22.2-3
+- Fix bug in proxy ownership code
+
+* Wed Apr 25 2018 Brian Lin <blin@cs.wisc.edu> - 3.2.22.2-2
+- Fix automatically renewed proxy ownership
+- Set the proper permissions and owners for service, timer, and cron files
+
 * Wed Apr 25 2018 Marco Mambelli <marcom@fnal.gov> - 3.3.3-1
 - Glideinwms v3.3.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_3_3/history.html

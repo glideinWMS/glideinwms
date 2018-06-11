@@ -76,7 +76,7 @@ SCRIPT_NAME="`basename $0`"
 if [ "$RPM_INSTALL" = "True" ]; then
     . /etc/rc.d/init.d/functions
     # RPM installation (defaults and binaries)
-    LOG_FILE_STARTUP=/dev/null
+    LOG_FILE_STARTUP=/var/log/gwms-factory/server/factory/startup.log
     DEFAULT_WRITEBACK=no
     BIN_DIR=/usr/sbin/
     CREATION_DIR=
@@ -254,7 +254,7 @@ start() {
 
     if [ "$RPM_INSTALL" = "True" ]; then
         # forcing daemon to continue, the factory will check the pidfile
-        daemon --user $FACTORY_USER --force --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>/dev/null 1>&2 </dev/null &"
+        daemon --user $FACTORY_USER --force --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
     else
         invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
     fi

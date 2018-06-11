@@ -95,42 +95,71 @@ function locate_singularity {
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
-    LOCATION=$1
+    LOCATION="$1"
     if [  -d "$LOCATION" ] && [ -x "$LOCATION/singularity" ]; then
-        PATH="$LOCATION:$PATH"
+        export PATH="$LOCATION:$PATH"
     else
-        warn "SINGULARITY_BIN = $1  in factory xml configuration is not a directory or does not contain singularity!"
-        warn "will try to proceed with default value '/usr/bin' but this misconfiguration may cause errors later!"
+        if [ "x$LOCATION" = "xNONE" ]; then
+            warn "SINGULARITY_BIN = NONE means that singularity is not supported!"
+        else
+            warn "SINGULARITY_BIN = $1  in factory xml configuration is not a directory or does not contain singularity!"
+            warn "will try to proceed with auto-discover but this misconfiguration may cause errors later!"
+        fi
     fi
 
     HAS_SINGULARITY="False"
-    GWMS_SINGULARITY_VERSION=$("$LOCATION"/singularity --version 2>/dev/null)
-    if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
-        HAS_SINGULARITY="True"
-        export GWMS_SINGULARITY_PATH="$LOCATION/singularity"
-    else
-        # some sites requires us to do a module load first - not sure if we always want to do that
-        PATH="$LOCATION:$PATH"
-        GWMS_SINGULARITY_VERSION=`module load singularity >/dev/null 2>&1; singularity --version 2>/dev/null`
+    if [ "x$LOCATION" != "xNONE" ]; then
+        # should never end up here if NONE, locate_singularity should not have been invoked
+        # 1. Look first in the path suggested
+        GWMS_SINGULARITY_VERSION=$("$LOCATION"/singularity --version 2>/dev/null)
         if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
             HAS_SINGULARITY="True"
-            GWMS_SINGULARITY_PATH=`module load singularity >/dev/null 2>&1; which singularity`
+            GWMS_SINGULARITY_PATH="$LOCATION/singularity"
+            # Add $LOCATION to $PATH
+            # info " ... prepending $LOCATION to PATH"
+            # export PATH="$LOCATION:$PATH"
+            singularity_in="SINGULARITY_BIN"
+        else
+            # 2. Look in $PATH
+            GWMS_SINGULARITY_VERSION=$(singularity --version 2>/dev/null)
+            if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
+                HAS_SINGULARITY="True"
+                GWMS_SINGULARITY_PATH="$(which singularity 2>/dev/null)"
+                singularity_in="PATH"
+            else
+                # 3. Invoke module
+                # some sites requires us to do a module load first - not sure if we always want to do that
+                GWMS_SINGULARITY_VERSION=$(module load singularity >/dev/null 2>&1; singularity --version 2>/dev/null)
+                if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
+                    HAS_SINGULARITY="True"
+                    GWMS_SINGULARITY_PATH=$(module load singularity >/dev/null 2>&1; which singularity)
+                    singularity_in="module"
+                elif [[ "x$LMOD_CMD" == x/cvmfs/* ]]; then
+                    warn "Singularity not found in module. OSG OASIS module from module-init.sh used. May override a system module."
+                fi
+            fi
         fi
     fi
-    if [ "$HAS_SINGULARITY" = "True" ] && test_singularity_exec; then
-        info " ... prepending $LOCATION to PATH"
-        export PATH=$LOCATION:$PATH
-        export HAS_SINGULARITY=$HAS_SINGULARITY
-        export GWMS_SINGULARITY_PATH="$LOCATION/singularity"
-        export GWMS_SINGULARITY_VERSION=$GWMS_SINGULARITY_VERSION
-        true
-     else
-        export HAS_SINGULARITY=$HAS_SINGULARITY
-        export GWMS_SINGULARITY_PATH=""
-        export GWMS_SINGULARITY_VERSION=""
-        warn "Singularity not found at $LOCATION"
-        false
-     fi
+    # Execution test '&& test_singularity_exec' left to later
+    if [ "$HAS_SINGULARITY" = "True" ]; then
+        # one last check - make sure we could determine the path to singularity
+        if [ "x$GWMS_SINGULARITY_PATH" = "x" ]; then
+            warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
+        else
+            export HAS_SINGULARITY=$HAS_SINGULARITY
+            export GWMS_SINGULARITY_PATH="$GWMS_SINGULARITY_PATH"
+            export GWMS_SINGULARITY_VERSION=$GWMS_SINGULARITY_VERSION
+            info "Singularity found at \"${GWMS_SINGULARITY_PATH}\" (using $singularity_in)"
+            true
+            return
+        fi
+    fi
+    # No valid singularity found
+    export HAS_SINGULARITY="False"
+    export GWMS_SINGULARITY_PATH=""
+    export GWMS_SINGULARITY_VERSION=""
+    warn "Singularity not found at $LOCATION, in PATH, and module"
+    false
 }
 
 
@@ -278,9 +307,7 @@ if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
 fi
 
 # Look for binary and adapt if missing
-if ! locate_singularity $singularity_bin ; then
-   locate_singularity '/usr/bin'
-fi
+locate_singularity "$singularity_bin"
 
 if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
     info "Singularity binary appears present and claims to be version $GWMS_SINGULARITY_VERSION"

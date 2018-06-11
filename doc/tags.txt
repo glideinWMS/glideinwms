@@ -1,3 +1,22 @@
+v3_4    GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3
+        Inform the admin in case multiple service reload is done in rapid succession
+        Released glideinwms-switchdoard RPM to provide condor_root_switchboard
+        Singularity wrapper using PATH and module when SINGULARITY_BIN does not contain the correct path
+        Update of the software license
+        Have frontend groups glidein requests track the job requests
+        Add a resource_slot that adds CPUs to the system but is in the main slot
+        singularity jobs each use a separate linux session to support restricted-access CVMFS
+        Do not set GLIDEIN_ToDie based on X509 user proxy expiration
+        Estimate the cores provided to glideins running on an entry
+        Write LogCompletedStats jsons for monitoring purposes
+        Add entry monitoring breakdown for metasites
+        Code modernization to Python 2.6/2.7 stansards (futurize stage 1 compliant)
+        Increased testing (more than doubled unit tests coverage and testing more files w/ pylint)
+        Bug Fix: TypeError: under special conditions in Factory reconfig
+        Bug Fix: Entries in downtime slow down the ramp-up for the frontend
+	NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.
+        NOTE: If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install also glideinwms-switchboard, to have condor_root_switchboard, that was removed from HTCondor
+
 v3_3_3  Includes all features and bug fixes released in v3_2_22_2
 
 v3_3_2  Allow multiple remote directories for BOSCO submissions

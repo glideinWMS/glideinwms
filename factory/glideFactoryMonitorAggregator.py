@@ -13,6 +13,7 @@ from __future__ import print_function
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
+import json
 import copy
 import time
 import string
@@ -47,6 +48,7 @@ class MonitorAggregatorConfig:
         self.status_relname="schedd_status.xml"
         self.logsummary_relname="log_summary.xml"
         self.jobsummary_relname="job_summary.pkl"
+        self.completed_data_relname="completed_data.json"
 
     def config_factory(self, monitor_dir, entries, log):
         self.monitor_dir=monitor_dir
@@ -245,6 +247,7 @@ def aggregateStatus(in_downtime):
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
     status_fe={'frontends':{}} #analogous to above but for frontend totals
+    completed_data_tot={'entries':{}}
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
@@ -265,13 +268,25 @@ def aggregateStatus(in_downtime):
         # load entry status file
         status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
                                   monitorAggregatorConfig.status_relname)
+        # load entry completed data file
+        completed_data_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
+                                  monitorAggregatorConfig.completed_data_relname)
         try:
+            completed_data_fp=None
             entry_data=xmlParse.xmlfile2dict(status_fname)
+            completed_data_fp=open(completed_data_fname)
+            completed_data=json.load(completed_data_fp)
         except IOError:
             continue # file not found, ignore
+        finally:
+            if completed_data_fp:
+                completed_data_fp.close()
 
         # update entry
         status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}
+
+        # update completed data
+        completed_data_tot['entries'][entry]=completed_data['stats']
 
         # update total
         if 'total' in entry_data:
@@ -383,6 +398,9 @@ def aggregateStatus(in_downtime):
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</glideFactoryQStats>\n")
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
+
+    # write json
+    glideFactoryMonitoring.monitoringConfig.write_completed_json(monitorAggregatorConfig.completed_data_relname.split('.')[0],updated,completed_data_tot)
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")

@@ -12,7 +12,9 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
+import json
 import os
+import re
 import time
 import copy
 import math
@@ -129,6 +131,33 @@ class MonitoringConfig:
         util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
         return
 
+    def write_completed_json(self, relative_fname, time, val_dict):
+        """
+        Write val_dict to a json file, creating if needed
+        relative_fname: location of json relative to self.monitor_dir
+        time: typically self.updated
+        val_dict: dictionary object to be dumped to file
+        """
+
+        fname = os.path.join(self.monitor_dir, relative_fname + ".json")
+        data = {}
+        data["time"] = time
+        data["stats"] = val_dict
+
+        try:
+                f = None
+                self.log.info("Writing %s to %s" % (relative_fname, str(fname)))
+                f = open(fname, 'w')
+                json.dump(data, f)
+                #f.write(json.dumps(data, indent=4))
+        except IOError as e:
+                self.log.err("unable to open and write to file %s in write_completed_json: %s" % (str(fname), str(e)))
+        finally:
+            if f:
+                f.close()
+
+        return
+
     def establish_dir(self, relative_dname):
         dname = os.path.join(self.monitor_dir, relative_dname)
         if not os.path.isdir(dname):
@@ -235,11 +264,11 @@ class condorQStats:
                            'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
-        self.expected_cores = cores  # This comes from GLIDEIN_CPUS, actual cores received may differ
+        self.expected_cores = cores  # This comes from GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS, actual cores received may differ
 
-    def logSchedd(self, client_name, qc_status):
-        """
-        qc_status is a dictionary of condor_status:nr_jobs
+    def logSchedd(self, client_name, qc_status, qc_status_sf):
+        """ qc_status is a dictionary of condor_status:nr_jobs
+            qc_status_sf is a dictionary of submit_file:qc_status
         """
         if client_name in self.data:
             t_el = self.data[client_name]
@@ -252,9 +281,39 @@ class condorQStats:
         else:
             el = {}
             t_el['Status'] = el
+        self.aggregateStates(qc_status, el)
 
+        # And now aggregate states by submit file
+        if 'StatusEntries' in t_el:
+            dsf = t_el['StatusEntries']
+        else:
+            dsf = {}
+            t_el['StatusEntries'] = dsf
+        for sf in qc_status_sf:
+            ksf = self.getEntryFromSubmitFile(sf)
+            if ksf:
+                elsf = dsf.setdefault(ksf, {})
+                self.aggregateStates(qc_status_sf[sf], elsf)
+        self.updated = time.time()
+
+    def getEntryFromSubmitFile(self, submitFile):
+        """ Extract the entry name from submit files that look like:
+            'entry_T2_CH_CERN/job.CMSHTPC_T2_CH_CERN_ce301.condor'
+        """
+        #Matches: anything that is not a dot, a dot, anything that is not a dot (captured),
+        #another dot, and finally anything that is not a dot
+        m = re.match(r'^[^\.]+\.([^\.]+)\.[^\.]+$', submitFile)
+        return m.group(1) if m else ""
+
+    def aggregateStates(self, qc_status, el):
+        """ For each status in the condor_q count status dictionary (qc_status)
+            add the count to the el dictionary (whose keys are state like 'Idle'
+            instead of its number: 1)
+        """
         # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
-        status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
+        status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"),
+                        (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"),
+                        (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
@@ -262,6 +321,7 @@ class condorQStats:
                 el[status] = 0
             if nr in qc_status:
                 el[status] += qc_status[nr]
+
         # Listing pairs counting the cores (expected_cores). Avoid duplicates with the list above
         status_pairs = ((2, "RunningCores"),)
         for p in status_pairs:
@@ -271,8 +331,6 @@ class condorQStats:
                 el[status] = 0
             if nr in qc_status:
                 el[status] += qc_status[nr] * self.expected_cores
-
-        self.updated = time.time()
 
     def logRequest(self, client_name, requests):
         """
@@ -1093,18 +1151,61 @@ class condorLogSummary:
                                                     val_dict_counts_desc, self.updated, val_dict_counts)
             monitoringConfig.write_rrd_multi("%s/Log_Completed" % fe_dir,
                                              "ABSOLUTE", self.updated, val_dict_completed)
+            monitoringConfig.write_completed_json("%s/Log_Completed" % fe_dir, self.updated, val_dict_completed)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats" % fe_dir,
                                              "ABSOLUTE", self.updated, val_dict_stats)
+            monitoringConfig.write_completed_json("%s/Log_Completed_Stats" % fe_dir, self.updated, val_dict_stats)
             # Disable Waste RRDs... WasteTime much more useful
             #monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
             #                                 "ABSOLUTE",self.updated,val_dict_waste)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime" % fe_dir,
                                              "ABSOLUTE", self.updated, val_dict_wastetime)
+            monitoringConfig.write_completed_json("%s/Log_Completed_WasteTime" % fe_dir, self.updated, val_dict_wastetime)
 
+
+        self.aggregate_frontend_data(self.updated, diff_summary)
 
         self.files_updated = self.updated
         return
 
+    def aggregate_frontend_data(self, updated, diff_summary):
+        """
+        This goes into each frontend in the current entry and aggregates
+        the completed/stats/wastetime data into completed_data.json
+        at the entry level
+        """
+
+        entry_data = {'frontends':{}}
+
+        for frontend in diff_summary.keys():
+            fe_dir = "frontend_" + frontend
+
+            completed_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed.json"
+            completed_stats_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_Stats.json"
+            completed_wastetime_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_WasteTime.json"
+
+            try:
+                completed_fp = open(completed_filename)
+                completed_stats_fp = open(completed_stats_filename)
+                completed_wastetime_fp = open(completed_wastetime_filename)
+
+                completed_data = json.load(completed_fp)
+                completed_stats_data = json.load(completed_stats_fp)
+                completed_wastetime_data = json.load(completed_wastetime_fp)
+
+                entry_data['frontends'][frontend] = {'completed':completed_data,
+                                                 'completed_stats':completed_stats_data,
+                                                 'completed_wastetime':completed_wastetime_data}
+            except IOError as e:
+                self.log.info("Could not find files to aggregate in frontend %s" % fe_dir)
+                self.log.info(str(e))
+                continue
+            finally:
+                completed_fp.close()
+                completed_stats_fp.close()
+                completed_wastetime_fp.close()
+
+        monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
     def write_job_info(self, scheddName, collectorName):
         """ The method itereates over the stats_diff dictionary looking for
