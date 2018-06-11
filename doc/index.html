@@ -22,7 +22,6 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
         <li> <a href="./recipes/index.html">Recipes</a></li>
@@ -67,7 +66,6 @@
         <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="./corral.html" />
     </map>
     <h2>GlideinWMS</h2>
 	<ul class="subcomponents">
@@ -110,7 +108,7 @@ Factory:
     GlideinWMS is a Glidein Based WMS (Workload Management System) 
     that works on top of 
     <a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor</a>.
-    Glideins are like placeholders, are a mechanism by which one or more remote 
+    Glideins are like placeholders, a mechanism by which one or more remote 
     resources temporarily join a local HTCondor pool. 
     The HTCondor system is used for scheduling and job control.
     </p>
@@ -119,7 +117,7 @@ Factory:
 
     The GlideinWMS is made of several services (In animation to the right, you 
     can see this process with green circles representing jobs, 
-    black circles as glideins, gray as resources in Condor  ).  
+    black circles as glideins and gray as resources in Condor).  
     <ul>
         <li>Users submit jobs to the <b>User Pool</b> 
         HTCondor schedd process.</li>
@@ -127,8 +125,6 @@ Factory:
         sure that there are enough glideins (workers) to satisfy user
         jobs.  It submits requests to the glidein factory to submit glideins.
         </li>
-        <li>Alternatively, users can control their workflow with the
-        <b>CorralWMS</b> frontend.</li>
         <li>The <b>Glidein Factory and WMS Pool</b> receives requests 
         from the frontend(s) and submits a HTCondor startd wrapper (glidein) to 
         entry points (grid sites).</li>
@@ -142,7 +138,7 @@ Factory:
     to the local queue and the Glidein Factory will provide the 
     computing resources behind the scenes. From the final 
     user point of view, the HTCondor pool (User Pool) just magically grows 
-    and shrinks as needed.  The user need not worry about grid entry
+    and shrinks as needed.  The user needs not worry about grid entry
     points, managing queues, or provisioning worker nodes.  
     </p>
 
@@ -161,7 +157,7 @@ Factory:
           The GlideinWMS can be used to shield regular users from the Grid.<br>
           A user will submit a vanilla or standard job to a local HTCondor
           schedd and the GlideinWMS will make sure the job runs somewhere.<br>
-          A user need not worry about site selection 
+          A user needs not worry about site selection 
           or other grid technicalities.</li>
       <li><b>If the GlideinWMS is HTCondor based, does this mean it can only
              be used on Grid sites that use HTCondor as the
@@ -178,14 +174,13 @@ Factory:
             the user pool, the glidein will continue servicing the user pool.
             <br/>
             GlideinWMS also solves many problems with the grid.  If a site
-            is <a href="images/animation_broken_site.gif">malfunctioning</a>
-            , this will only affect the glidein factory (see 
+            is malfunctioning, this will only affect the glidein factory (see 
             <a href="images/animation_broken_site.gif">animation</a>).
             User jobs will not be lost to the broken site.  
             Other similar problems will be shielded from users.
         </li>
       <li><b>How do I submit jobs?</b><br>
-          See our <a href="./tutorials.html">user tutorials</a> with example job submissions for both VO and Corral Frontends.  These examples
+          See our <a href="./tutorials.html">user tutorials</a> with example of job submissions for VO Frontend.  This example
           assume you have a working GlideinWMS installation.
       </li>
       <li><b>Which are the components of the Glidein Workflow Management System?</b><br>
