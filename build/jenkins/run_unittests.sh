@@ -50,7 +50,7 @@ files="test_frontend_element.py"
 files="test_frontend.py test_frontend_element.py"
 
 if [ -n "$LIST_FILES" ]; then
-    files_list="$(ls test_*)"
+    files_list="$(ls test_*py)"
 else
     files_list=$@
 fi
