@@ -42,7 +42,7 @@ class TestDictFile(unittest.TestCase):
                               sort_keys=True,
                               order_matters=True,
                               fname_idx=None)
-            self.assertFail("DictFile init succeeded with " +
+            self.assertTrue(False, "DictFile init succeeded with " +
                             "sort_keys=True and order_matters=True")
         except RuntimeError:
             self.assertTrue(True,
