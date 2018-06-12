@@ -10,7 +10,7 @@ from glideinwms.unittests.unittest_utils import runTest
 
 import glideinwms.lib.exprParser as ep
 
-TEST_LIST = ['a or b', 'a or b', '3',  'None', 'False', 'a + b',
+TEST_LIST = ['a or b', 'a and b', '3',  'None', 'False', 'a + b',
              'a*b', 'a/b', 'not a', 'x[:1]', 'str(a)', 'a<<3',
              '(a,b,x)', '[a,b,x]', 'a<3', 'a+b>4', 'a**b', 
              'a>>3', 'a/b', 'a/3', 'lambda a,b:hash((a,b))',
