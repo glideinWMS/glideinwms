@@ -2,7 +2,7 @@
 
 import re
 import unittest
-from frontend import gwms_renew_proxies as proxy
+from glideinwms.frontend import gwms_renew_proxies as proxy
 
 class TestVo(unittest.TestCase):
 
