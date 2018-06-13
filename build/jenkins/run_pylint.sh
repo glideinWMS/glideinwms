@@ -72,14 +72,18 @@ process_branch() {
     # E265 block comment should start with '# '
 
     #PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
+    
+    #uncomment or add lines to taste
+    #see tail of pep8.log for counts of
+    #various pep8 errors
 
     PEP8_OPTIONS="--ignore="
     # E225 missing whitespace around operator
     PEP8_OPTIONS="$PEP8_OPTIONS,E225"
     # E226 missing whitespace around arithmetic operator
-    PEP8_OPTIONS="$PEP8_OPTIONS,E226"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E226"
     # E228 missing whitespace around modulo operator
-    PEP8_OPTIONS="$PEP8_OPTIONS,E228"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E228"
     # E231 missing whitespace after ','
     PEP8_OPTIONS="$PEP8_OPTIONS,E231"
     # E261 at least two spaces before inline comment
@@ -87,17 +91,17 @@ process_branch() {
     # E265 block comment should start with '# '
     PEP8_OPTIONS="$PEP8_OPTIONS,E265"
     # E302 expected 2 blank lines, found 1
-    PEP8_OPTIONS="$PEP8_OPTIONS,E302"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E302"
     # E402 module level import not at top of file
-    PEP8_OPTIONS="$PEP8_OPTIONS,E402"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E402"
     # E501 line too long
     PEP8_OPTIONS="$PEP8_OPTIONS,E501"
     # W291 trailing whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W291"
     # W293 blank line contains whitespace
-    PEP8_OPTIONS="$PEP8_OPTIONS,W293"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W293"
     # W504 line break after binary operator
-    PEP8_OPTIONS="$PEP8_OPTIONS,W504"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W504"
 
 
     
@@ -141,6 +145,11 @@ process_branch() {
       fi
       pycodestyle $PEP8_OPTIONS $file >> "${pep8_log}" || log_nonzero_rc "pep8" $?
     done
+    awk '{$1=""; print $0}' ${pep8_log} | sort | uniq -c | sort -n > ${pep8_log}.sorted
+    echo "-------------------" >> ${pep8_log}
+    echo "error count summary" >> ${pep8_log}
+    echo "-------------------" >> ${pep8_log}
+    cat ${pep8_log}.sorted     >> ${pep8_log}
     cd $currdir
 
     echo "FILES_CHECKED=\"$files_checked\"" >> $results
@@ -152,7 +161,6 @@ process_branch() {
     cat $results
     echo "----------------"
 
-    awk '{$1=""; print $0}' ${pep8_log} | sort | uniq -c | sort -n > ${pep8_log}.sorted
 }
 
 
