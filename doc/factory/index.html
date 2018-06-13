@@ -86,18 +86,18 @@ Related Links: <br/>
 
 <H2><A NAME="overview"></A>Overview</H2>
 <P><A NAME="glidein_entry_point"></A>The main task of the Glidein
-Factory (or WMS Factory) is to advertise itself, listen for requests from <A HREF="../frontend/index.html">frontend
+Factory (or WMS Factory) is to advertise itself, listen for requests from <A HREF="../frontend/index.html">Frontend
 clients</A> and submit <A HREF="../index.html#glideins">glideins</A>.
 Look at the picture below for a schematic view.
 </p>
 <p>
 <IMG SRC="../images/factory_overview.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=80% BORDER=0></p><p>
 
-A single glidein factory can handle multiple kinds of glideins, also
+A single glidein Factory can handle multiple kinds of glideins, also
 called <B>glidein entry points</B> (as they usually point to
 different Grid resources). For each entry point, it will advertise a
-different class-ad. <BR>Similarly, each request from a frontend
-client will affect a single entry point; a frontend will need to
+different class-ad. <BR>Similarly, each request from a Frontend
+client will affect a single entry point; a Frontend will need to
 advertise several requests in order to have glideins submitted to all
 the desirable resources.</P>
 
@@ -108,34 +108,33 @@ the desirable resources.</P>
 <div class="section">
 <H2><A NAME="philosophy"></A>The Glidein Factory philosophy</H2>
 <P>The main idea behind a Glidein Factory is to make the life of a 
-frontend as easy as possible. And to do that, the factory needs to
+Frontend as easy as possible. And to do that, the Factory needs to
 abstract as much as possible. </p>
 <p>
-    For starters, the factory itself is the one that knows the details 
+    For starters, the Factory itself is the one that knows the details 
 of various Grid sites and properly configures the glidein entry points, 
-so they will run without any additional knowledge. A frontend only needs 
+so they will run without any additional knowledge. A Frontend only needs 
 to know that an entry point exists, and the parameters it takes.
 </p>
 <p>
-    Additionally, the factory also does the submissions themselves. 
-The frontend just publishes that it needs some glideins and the factory 
-will start submitting them. The only handle the frontend may want to use 
+    Additionally, the Factory also does the submissions themselves. The Frontend just publishes that it needs some glideins and the Factory 
+will start submitting them. The only handle the Frontend may want to use 
 is the ability to regulate the rate of glideins that are sent to the
 Grid site. In the current implementation, this can be achieved by
 setting the desired number of 
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.4/2_6Managing_Job.html#SECTION00361000000000000000">idle glideins</A> 
+<A HREF="http://research.cs.wisc.edu/htcondor/manual/current/2_6Managing_Job.html#SECTION00361000000000000000">idle glideins</A> 
 
 to be kept in the Grid queue.
 </p>
 <p>
     The <A HREF="../images/factory_overview.png" TARGET="_blank">typical scenario</A> 
-features a frontend with several (hundreds or even
+features a Frontend with several (hundreds or even
 thousands of) user jobs in the queue that is looking for resources to
-run them. It will fetch the factory classads, select the ones that
+run them. It will fetch the Factory classads, select the ones that
 satisfy its needs, and advertise class-ads with requests for those
-glideins. If the frontend ever runs out of user jobs, it will
+glideins. If the Frontend ever runs out of user jobs, it will
 advertise the fact that it does not need those glideins anymore. In
-practical terms, this means asking the factory to keep exactly 0 idle
+practical terms, this means asking the Factory to keep exactly 0 idle
 glideins in the queue.</P>
 </div>
 
@@ -143,7 +142,7 @@ glideins in the queue.</P>
 <div class="section">
 <H2><A NAME="management"></A>Factory Management At a Glance</H2>
 <p>
-    Here are some common tasks you may need to do as a factory admin 
+    Here are some common tasks you may need to do as a Factory admin 
     (with links to more information):
 </p>
 <ul>
@@ -155,21 +154,21 @@ glideins in the queue.</P>
         <tt>&lt;glidein directory&gt;/factory_startup
         start|stop|restart|status</tt></li>
     <li><a href="configuration.html">Configuration</a> can be found in either
-        <tt>factory.xml</tt> or <tt>glideinWMS.xml</tt> in your factory's
+        <tt>factory.xml</tt> or <tt>glideinWMS.xml</tt> in your Factory's
         instance directory (depending on your installation method).</li>
     <li>After modifying the xml, be sure to 
-        <a href="install.html#factory_update">reconfig</a> your factory:
+        <a href="install.html#factory_update">reconfig</a> your Factory:
         <tt>&lt;glidein directory&gt;/factory_startup
         reconfig <i>config_copy_fname</i></tt></li>
     <li><a href="install.html#downtimes">Add a downtime</a>
         with: <tt>&lt;glidein directory&gt;/factory_startup
         up|down -entry 'factory'|&lt;entry name&gt; [-delay &lt;delay&gt;]
         </tt></li>
-    <li><a href="monitoring.html">Monitoring the factory</a></li>
+    <li><a href="monitoring.html">Monitoring the Factory</a></li>
 </ul>
 <p>
     If you installed the RPM distribution, files and commands differ a bit, see the 
-    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">Factory OSG RPM guide</a>.
+    <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">Factory OSG RPM guide</a>.
 </p>
 </div>
 
