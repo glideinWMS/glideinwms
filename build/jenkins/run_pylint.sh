@@ -12,7 +12,7 @@ process_branch() {
     echo "===================================================================="
     # Initialize logs
     > $pylint_log
-    > $pep8_log
+    > ${pep8_log}
     > $results
 
     echo "GIT_BRANCH=\"$git_branch\"" >> $results
@@ -71,7 +71,36 @@ process_branch() {
     # W291 trailing whitespace
     # E265 block comment should start with '# '
 
-    PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
+    #PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
+
+    PEP8_OPTIONS="--ignore="
+    # E225 missing whitespace around operator
+    PEP8_OPTIONS="$PEP8_OPTIONS,E225"
+    # E226 missing whitespace around arithmetic operator
+    PEP8_OPTIONS="$PEP8_OPTIONS,E226"
+    # E228 missing whitespace around modulo operator
+    PEP8_OPTIONS="$PEP8_OPTIONS,E228"
+    # E231 missing whitespace after ','
+    PEP8_OPTIONS="$PEP8_OPTIONS,E231"
+    # E261 at least two spaces before inline comment
+    PEP8_OPTIONS="$PEP8_OPTIONS,E261"
+    # E265 block comment should start with '# '
+    PEP8_OPTIONS="$PEP8_OPTIONS,E265"
+    # E302 expected 2 blank lines, found 1
+    PEP8_OPTIONS="$PEP8_OPTIONS,E302"
+    # E402 module level import not at top of file
+    PEP8_OPTIONS="$PEP8_OPTIONS,E402"
+    # E501 line too long
+    PEP8_OPTIONS="$PEP8_OPTIONS,E501"
+    # W291 trailing whitespace
+    PEP8_OPTIONS="$PEP8_OPTIONS,W291"
+    # W293 blank line contains whitespace
+    PEP8_OPTIONS="$PEP8_OPTIONS,W293"
+    # W504 line break after binary operator
+    PEP8_OPTIONS="$PEP8_OPTIONS,W504"
+
+
+    
 
 
     # get list of python scripts without .py extension
@@ -89,7 +118,7 @@ process_branch() {
       if [ "$PYLINT_SKIP" != "True" ]; then
           pylint $PYLINT_OPTIONS -e F0401 ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
       fi
-      pycodestyle $PEP8_OPTIONS ${script} >> $pep8_log || log_nonzero_rc "pep8" $?
+      pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
     done
 
     currdir=`pwd`
@@ -110,7 +139,7 @@ process_branch() {
       if [ "$PYLINT_SKIP" != "True" ]; then
           pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
       fi
-      pycodestyle $PEP8_OPTIONS $file >> "$pep8_log" || log_nonzero_rc "pep8" $?
+      pycodestyle $PEP8_OPTIONS $file >> "${pep8_log}" || log_nonzero_rc "pep8" $?
     done
     cd $currdir
 
@@ -118,10 +147,12 @@ process_branch() {
     echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $results
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l | tr -d " "`" >> $results
     echo "PYLINT_ERROR_COUNT=`grep '^E:' $pylint_log | wc -l | tr -d " "`" >> $results
-    echo "PEP8_ERROR_COUNT=`cat $pep8_log | wc -l | tr -d " "`" >> $results
+    echo "PEP8_ERROR_COUNT=`cat ${pep8_log} | wc -l | tr -d " "`" >> $results
     echo "----------------"
     cat $results
     echo "----------------"
+
+    awk '{$1=""; print $0}' ${pep8_log} | sort | uniq -c | sort -n > ${pep8_log}.sorted
 }
 
 
@@ -260,7 +291,7 @@ do
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch $pylint_log $pep8_log $results $gb
+    process_branch $pylint_log ${pep8_log} $results $gb
     log_branch_results $RESULTS_MAIL $results
 done
 
