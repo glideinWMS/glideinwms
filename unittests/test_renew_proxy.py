@@ -1,7 +1,7 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import re
-import unittest
+import unittest2 as unittest
 from glideinwms.frontend import gwms_renew_proxies as proxy
 
 class TestVo(unittest.TestCase):

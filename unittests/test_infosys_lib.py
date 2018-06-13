@@ -1,18 +1,27 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 Unit tests for the infosys_lib module.
 """
 from __future__ import absolute_import
 
-from glideinwms.unittests import unittest_utils
+#from glideinwms.unittests import unittest_utils
 
 import os
 import sys
 import re
-from xml.dom import minidom
-import unittest
+import xmlrunner
+import unittest2 as unittest
 
+from xml.dom import minidom
+
+try:
+    import ldap
+except ImportError:
+    import mock
+    sys.modules['ldap'] = mock.Mock()
+
+from glideinwms.lib import ldapMonitor
 from glideinwms.factory.tools.infosys_lib import query_bdii
 from glideinwms.factory.tools.infosys_lib import query_ress
 from glideinwms.factory.tools.infosys_lib import query_teragrid
@@ -24,7 +33,6 @@ from glideinwms.factory.tools.infosys_lib import generate_entry_xml
 from glideinwms.factory.tools.infosys_lib import format_entry_pair_output
 
 from glideinwms.lib import condorExe
-from glideinwms.lib import ldapMonitor
 
 
 class TestInfosysLib(unittest.TestCase):
@@ -32,6 +40,7 @@ class TestInfosysLib(unittest.TestCase):
     Unit tests for the config update tool.
     """
     
+    @unittest.skip('no bdii')
     def test_query_bdii(self):
         """
         Test querying the BDII.  
@@ -65,6 +74,7 @@ class TestInfosysLib(unittest.TestCase):
         self.assertTrue(infosys_entries != {})
         
                 
+    @unittest.skip('no ress')
     def test_query_ress(self):
         """
         Test querying RESS
@@ -108,6 +118,7 @@ class TestInfosysLib(unittest.TestCase):
         self.assertTrue(infosys_entries != {})
         
 
+    @unittest.skip('no teragrid')
     def test_query_teragrid(self):
         """
         Test querying TeraGrid information systems
@@ -577,8 +588,8 @@ class TestInfosysLib(unittest.TestCase):
         self.assertEqual(output, expected)
 
 
-def main():
-    return unittest_utils.runTest(TestInfosysLib)
         
-if __name__ == "__main__":
-    sys.exit(main())
+
+if __name__ == '__main__':
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+

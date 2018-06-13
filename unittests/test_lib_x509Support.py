@@ -13,7 +13,7 @@ from glideinwms.lib.x509Support import extract_DN
 class TestExtractDN(unittest.TestCase):
 
     def test_extract_dn(self):
-        fname = '/etc/grid-security/hostcert.pem'
+        fname = 'fixtures/hostcert.pem'
         cmd = "openssl x509 -in %s -noout -subject" % fname
         out = glideinwms.lib.subprocessSupport.iexe_cmd(cmd)
         expected = ' '.join(out.split()[1:])
