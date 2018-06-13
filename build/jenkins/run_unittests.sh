@@ -24,7 +24,6 @@ do
   h) help_msg; exit 0;;
   q) VERBOSE='';;
   a) LIST_FILES=yes;;
-  d) DIFF_OPTION='';;
   : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;
   *) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   \?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
