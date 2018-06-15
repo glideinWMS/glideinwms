@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -92,13 +92,13 @@ Factory Design Topics: <br/>
 <P>The Factory Entry Daemon is based on the polling principle; it
 runs in an eternal loop as described in the picture below.</P>
 <P><IMG SRC="../images/flow_entry_main.png"><BR>The
-configuration is read only once, at daemon startup, so a restart is
-needed for every configuration change.<BR>However, the daemon does
-check the downtime file at every iteration, so a change to the
+configuration is read only once, during daemon startup, needing a restart
+for every configuration change.<BR>However, the daemon checks
+the downtime file in every iteration, so a change to the
 downtime configuration file does not need any further action on the
 daemon.</P>
 <P>Most stages are self explanatory, so they will not be described to
-further detail. However a few need more detail; in particular:</P>
+further detail. However, a few need more detail; in particular:</P>
 <UL>
     <LI><A HREF="#flow_work">Find and perform work</A></li>
     <LI><A HREF="#flow_advertise">Advertise myself</A></li>
@@ -112,15 +112,10 @@ further detail. However a few need more detail; in particular:</P>
 <P>This stage is composed of three logical parts, as shown in the
 picture below:</P>
 <UL>
-    <LI><P>Find the requests by querying the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+    <LI><P>Find the requests by querying the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
     Collector</A></P>
-    <LI><P>For each request:</P>
-    <UL>
-
-        <LI><P>Keep the required number of idle jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
-        Schedd (G)</A> queue</P>
-        <LI><P>Extract the statistics</P>
-    </UL>
+    <LI><P>For each request:</P>Keep the required number of idle jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd (G)</A> queue</P>
+    <LI><P>For each request: Extract the statistics</P>
 </UL>
 <P><IMG SRC="../images/flow_entry_work.png"></P>
 <P>This stage requires two input fields, the configuration data and
@@ -129,9 +124,9 @@ the downtime flag, and returns the request-specific job statistics.</P>
 them, it currently uses the HTCondor command line tools:</P>
 
 <UL>
-    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_status.html">condor_status</A> to query the HTCondor Collector</li>
-    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_q.html">condor_q</A> to query the HTCondor Schedd</li>
-    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_submit.html">condor_submit</A> to submit new jobs to and to release held jobs in the HTCondor Schedd </li>
+    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_status.html">condor_status</A> to query the HTCondor Collector</li>
+    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_q.html">condor_q</A> to query the HTCondor Schedd</li>
+    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_submit.html">condor_submit</A> to submit new jobs to and to release held jobs in the HTCondor Schedd </li>
 </UL>
 
 <P>The requests are inserted into the HTCondor Collector by the <A HREF="../frontend/index.html">VO
@@ -144,7 +139,7 @@ present in the Collector.</P>
 <div class="section">
 <H3><A NAME="flow_advertise"></A>Advertise myself</H3>
 <P>The advertise stage advertises the existence of the Entry Daemon
-and its statistics to the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+and its statistics to the <A HREF="http://www.cs.wisc.edu/condor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
 Collector</A>. <BR>Two classes of ClassAds are sent, one for the
 Entry Daemon itself, and one for every processed event. The two types
 of ClassAds are shown in the pictures below.</P>
@@ -154,7 +149,7 @@ of ClassAds are shown in the pictures below.</P>
 <P><IMG SRC="../images/factory_client_publish.png">
 </P>
 <P>The current implementation uses a HTCondor provided command line
-tool, namely <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_advertise.html">condor_advertise</A>,
+tool, namely <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_advertise.html">condor_advertise</A>,
 for this task.</P>
 </div>
 
@@ -175,7 +170,7 @@ archives.
 <P>The XML data can be used by other applications, while the
 RRD archives can be viewed using the provided HTML pages based
 on <A HREF="https://sourceforge.net/projects/javascriptrrd/">JavascriptRRD</A> 
-and <A HREF="http://code.google.com/p/flot/">Flot</A>.</P>
+and <A HREF="http://www.flotcharts.org/">Flot</A>.</P>
 <P>The current implementation will use the Python <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool
 library</A>, if available. Else, it will fall back to the command
 line tool.</P>
@@ -186,19 +181,19 @@ line tool.</P>
 <P>The Factory Entry Daemons are implemented as python scripts, and
 they don't need to be pre-compiled.</P>
 <P>The code is spread over several Python modules, some specific to
-the factory other shared between different parts of the GlideinWMS. A
+the Factory other shared between different parts of the GlideinWMS. A
 shell script is also used. <BR>There are also some external
 dependencies, namely the <A HREF="http://oss.oetiker.ch/rrdtool/">rrdtool</A>
-and <A HREF="http://chandlerproject.org/bin/view/Projects/MeTooCrypto">M2Crypto</A>
+and <A HREF="https://pypi.org/project/M2Crypto/">M2Crypto</A>
 python libraries and the <A HREF="http://research.cs.wisc.edu/htcondor/">HTCondor</A>
 command line binaries.</P>
 
 <P>The picture below shows the dependency tree.</P>
-<P><IMG SRC="../images/modules_entry.png"><BR>glideFactoryEntry.py
+<P><IMG SRC="../images/modules_entry.png"><BR>Note: glideFactoryEntry.py
 is executable.</P>
-<P>The GlideinWMS common libraries are in glideinWMS/lib
+<P>The GlideinWMS common libraries are in GlideinWMS/lib
 directory.<BR>The shell script is located in the root directory of
-the factory tree, copied there during the <A HREF="index.html#create_entry">creation
+the Factory tree, copied there during the <A HREF="index.html#create_entry">creation
 of the tree itself</A>. 
 </P>
 </div>
@@ -207,7 +202,7 @@ of the tree itself</A>.
 <div class="section">
 <H2><A NAME="config"></A>Configuration files</H2>
 <P>The Factory Entry Daemons have configuration files both in the
-root of the factory configuration tree as well as in the entry
+root of the Factory configuration tree as well as in the entry
 specific subdirectory. The configuration files in the root are common
 for all the entry points, while the ones in the entry subdirectory
 are specific to that Entry Daemon.</P>
@@ -220,30 +215,30 @@ dedicated tool.</A></P>
 
 <div class="section">
 <H2><A NAME="config_global"></A>Shared configuration files</H2>
-<P>The configuration files in the root of the factory configuration
+<P>The configuration files in the root of the Factory configuration
 tree are shared between all the Factory Entry Daemons.</P>
 <P>The following files are used:</P>
 <UL>
-    <LI><P><TT>glidein.descript</TT> &ndash; This file contains the factory
-    description.<BR>Most of the elements are used. Follows the
+    <LI><P><TT>glidein.descript</TT> &ndash; This file contains the Factory
+    description, where the most of the elements are used. Follows the
     description of the most important ones:</P>
 
     <UL>
-        <LI>FactoryName and GlideinName &ndash; The factory name used when
+        <LI>FactoryName and GlideinName &ndash; The Factory name used when
         advertising the Entry Daemon.</li>
         <LI>WebURL &ndash; Where are the 
         <A HREF="design_glidein.html">glidein support files</A> 
         located.</li>
         <LI>PubKeyType &ndash; Should I use encrypted IPC and if so, using
         which algorithm.</li>
-        <LI>DowntimeFile &ndash; The name of the file containing all the factory
+        <LI>DowntimeFile &ndash; The name of the file containing all the Factory
         downtimes. Usually defaults to &ldquo;glideinWMS.downtimes&rdquo;.</li>
 
         <LI>LoopDelay and AdvertiseDelay &ndash; How much should it sleep
-        between iterations, and the minimum collector update frequency.</li>
+        between iterations, and the minimum Collector update frequency.</li>
     </UL>
-    <LI><P><TT>params.cfg</TT> &ndash; This file contains the factory global
-    default parameters.  These are for values the frontend will change, also published in the factory classad</P>
+    <LI><P><TT>params.cfg</TT> &ndash; This file contains the Factory global
+    default parameters.  These are for values the Frontend will change, also published in the Factory ClassAd</P>
 </UL>
 </div>
 
@@ -256,35 +251,34 @@ used by only one Entry Daemon.</P>
 <P>The following files are used:</P>
 <UL>
     <LI><P><TT>job.descript</TT> &ndash; This file contains the entry
-    description.  It is used by the factory entry daemon in order to 
-    decide how to do work.
-    <BR>All the elements are used. Follows the description
+    description.  It is used by the Factory entry Daemon in order to 
+    decide how to do work, and all the elements are used. Follows the description
     of the most important ones:</P>
     <UL>
         <LI>EntryName &ndash; The entry name used when advertising the Entry
         Daemon.</li>
-        <LI>ScheddName &ndash; The <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd</A> 
+        <LI>ScheddName &ndash; The <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd</A> 
         used to submit jobs.</li>
 
         <LI>SubmitCluster &ndash; How many jobs should I submit in a single
         submission.</li>
         <LI>MaxIdle, MaxGlideins, MaxHeld &ndash; Limits on the number of
-        jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd</A> 
+        jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd</A> 
         queue.</li>
         <LI>MaxSubmitRate, MaxRemoveRate, MaxReleaseRate, SubmitSleep,
         RemoveSleep, ReleaseSleep &ndash; Knobs to limit the interaction with
-        the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd.</A>
+        the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd.</A>
         </li>
         <LI>DowntimeFile &ndash; The name of the file containing all the
-        factory downtimes. Usually defaults to &ldquo;glideinWMS.downtimes&rdquo;.
+        Factory downtimes. Usually defaults to &ldquo;glideinWMS.downtimes&rdquo;.
         </li>
 
     </UL>
     <LI><P><TT>job.condor</TT> &ndash; A condor description file that is
-    used for submitting the jobs using <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_submit.html">condor_submit</A>.</P>
+    used for submitting the jobs using <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_submit.html">condor_submit</A>.</P>
     <LI><P><TT>params.cfg</TT> &ndash; This file contains the entry-specific
-    default parameters. These are for values the frontend will change, also published in the factory classad</P>
-    <li><p><tt>attributes.cfg</tt> - This file contains fixed values; these are published in the factory classad
+    default parameters. These are for values the Frontend will change and also published in the Factory ClassAd</P>
+    <li><p><tt>attributes.cfg</tt> - This file contains fixed values whiche are published in the Factory ClassAd
     <LI><P><TT>infosys.descript</TT> &ndash; This file contains the
     reference to the information system that contains the information of
     this entry point.</P>
