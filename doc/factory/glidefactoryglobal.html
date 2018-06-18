@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -64,12 +64,12 @@
 	     <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>glidefactoryglobal classad</h3>
+        <h3>glidefactoryglobal ClassAd</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
-    <LI><A HREF="#identify">Identify the classad</A></li>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
     <LI><A HREF="#configuration">Configuration and Installation</A></li>
     <LI><A HREF="#communication">Communication requirements</A></li>
 </ol>
@@ -86,23 +86,24 @@ Factory Design Topics: <br/>
 <div class="section">
 
 <h2>Factory Advertisement of Globals</h2>
-<p>Each Factory publishes a global classad that contains factory information that is used by all 
-Frontends.  There is one glidefactoryglobal classad per Factory.</p>
+<p>Each Factory publishes a global ClassAd that contains Factory information that is used by all 
+Frontends.  There is one glidefactoryglobal ClassAd per Factory.</p>
+
 <ol>
 	<li><a name="identify"></a><b>Information used to identify the Classad.</b>
 		<ol type="a">
 			<li>Values used to manage Classads in the Collector
 				<ul>
 					<li>Name = &quot;glidein_name@factory_name&quot;</li>
-					<li>Internal classad type of Master</li>
+					<li>Internal ClassAd type of Master</li>
 				</ul>
 			</li>
-			<li>Values used to distinguish the different classad types and used by glideinWMS to query the Collector
+			<li>Values used to distinguish the different ClassAd types and used by GlideinWMS to query the Collector
 				<ul>
 					<li>GlideinMyType = &quot;glidefactoryglobal&quot; </li>
 				</ul>
 			</li>
-			<li>Values set by glideinWMS to be used by Condor but not glideinWMS
+			<li>Values set by GlideinWMS to be used by HTCondor but not GlideinWMS
 				<ul>
 					<li>MyType = &quot;glidefactoryglobal&quot;</li>
 				</ul>
@@ -112,7 +113,7 @@ Frontends.  There is one glidefactoryglobal classad per Factory.</p>
 	<li><a name="configuration"></a><b>Information about the configuration and installation.</b> 
 		<ol type="a">
 			<li>These values are global to all entries in the Factory.  FactoryName and GlideinName are used by the Frontend 
-			when generating the globals client classads.
+			when generating the globals client ClassAds.
 				<ul>
 					<li>FactoryName = &quot;factory_name&quot;</li>
 					<li>GlideinName = &quot;glidein_name&quot; </li>
@@ -137,7 +138,7 @@ Frontends.  There is one glidefactoryglobal classad per Factory.</p>
 	</li>
 </ol>
 
-<h2>Example glidefactory classad</h2>
+<h2>Example glidefactory ClassAd</h2>
 <pre>
 MyType = "glidefactoryglobal"
 **PubKeyValue = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiGQKdZUhdUwIDAQAB\n-----END PUBLIC KEY-----\n"

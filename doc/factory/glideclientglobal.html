@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -64,12 +64,12 @@
 	     <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>glideclientglobal classad</h3>
+        <h3>glideclientglobal ClassAd</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
-    <LI><A HREF="#identify">Identify the classad</A></li>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
     <LI><A HREF="#configuration">Configuration and installation</A></li>
     <LI><A HREF="#security">Encrypted security parameters</A></li>
     <LI><A HREF="#credential">Credentials</A></li>   
@@ -87,7 +87,7 @@ Factory Design Topics: <br/>
 <div class="section">
 
 <h2>Frontend Advertisement of Globals</h2>
-<p>The Frontend advertises the one classad per Frontend Group per Factory.  The classad 
+<p>The Frontend advertises the one ClassAd per Frontend Group per Factory.  The ClassAd
 contains the credentials that are mapped to that Factory and are categorized by security class.</p>
 <ol>
 	<li><a name="identify"></a><b>Information used to identify the Classad.</b>
@@ -95,15 +95,15 @@ contains the credentials that are mapped to that Factory and are categorized by 
 			<li>Values used to manage Classads in the Collector.
 				<ul>
 					<li>Name = &quot;glidein_name@factory_name@frontend_name.group_name&quot; (this is just ReqName@ClientName)</li>
-					<li>Internal classad type of Master</li>
+					<li>Internal ClassAd type of Master</li>
 				</ul>
 			</li>
-			<li>Values used to distinguish the different classad types and used by glideinWMS to query the Collector
+			<li>Values used to distinguish the different ClassAd types and used by GlideinWMS to query the Collector
 				<ul>
 					<li>GlideinMyType = &quot;glideclientglobal&quot; </li>
 				</ul>
 			</li>
-			<li>Values set by glideinWMS to be used by Condor but not by glideinWMS
+			<li>Values set by GlideinWMS to be used by HTCondor but not by GlideinWMS
 				<ul>
 					<li>MyType = &quot;glideclientglobal&quot;</li>
 				</ul>
@@ -114,7 +114,7 @@ contains the credentials that are mapped to that Factory and are categorized by 
 	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for 
 	querying the collector or possibly in match expressions.  
 		<ol type="a">
-			<li>These describe the frontend and group making the request.  
+			<li>These describe the Frontend and group making the request.  
 				<ul>
 					<li>ClientName  = &quot;frontend_name.group_name&quot;</li>
 					<li>FrontendName  = &quot;frontend_name&quot; </li>
@@ -148,7 +148,7 @@ contains the credentials that are mapped to that Factory and are categorized by 
 		</ol>
 	</li>	
 		
-	<li><a name="credential"></a><b>Credentials allowed for this frontend group for this factory.  </b> The credentials are 
+	<li><a name="credential"></a><b>Credentials allowed for this Frontend group for this Factory.  </b> The credentials are 
 	identified by an ID, which needs to be unique and must stay the same for the lifetime of the requests that use it (a renewed proxy
 	will have the same ID as the expired proxy with the same subject).  Credential ids should not based on the type or content of the 
 	credential.  An example would be to base the ID on a hash of the filename.  All these attributes are encrypted with the 
@@ -174,7 +174,7 @@ contains the credentials that are mapped to that Factory and are categorized by 
 </ol>
 
 
-<h2>Example glideclient classad</h2>
+<h2>Example glideclient ClassAd</h2>
 <pre>
 MyType = "glideclientglobal"
 GlideinMyType = "glideclientglobal" 
