@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>GlideinWMS</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -81,7 +81,7 @@ Install as: root
             <p><img src="../images/overview_schedd.png" name="Schedd Overview" align="right" border="0"></p>
             <p>
                 This node will be a 
-                <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000">HTCondor Submit node</a>
+                <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION004120000000000000000">HTCondor Submit node</a>
                 for the user jobs.  You can install many such nodes to improve scalability of your system.
             </p>
     </div>
@@ -104,8 +104,8 @@ Install as: root
             
            <p>
                 This machine needs <b>a reasonably recent CPUs</b> and <b>a large amount of memory</b> (min <b>2GB</b>, recommended <b>16GB</b>, 
-                <b>~1.5MB per running job</b>).  The amount of <b>disk</b> needed <b>depends on the user jobs</b>; Condor itself uses very little 
-                (5 GB should be enough for Condor alone)
+                <b>~1.5MB per running job</b>).  The amount of <b>disk</b> needed <b>depends on the user jobs</b>; HTCondor itself uses very little 
+                (5 GB should be enough for HTCondor alone)
             </p>
                        
     </div>
@@ -127,7 +127,7 @@ Install as: root
 
     <h3><a name="before_install_certs">4.1 Required Certificates/Proxies</a></h3>
     <p>
-        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
+        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy, which should be
         created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
         </p><ul>
             <li>Glidein Submitter cert/proxy DN</li>
@@ -138,6 +138,8 @@ Install as: root
         <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  
         These nicknames are the HTCondor UID used in its configuration and mapfile. 
         These do not matter when installing the user schedds. 
+      
+        For more details, <a target="_blank" href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#proxy-configuration"> see OSG documentation.</a>
     <p></p>
     
     <h3><a name="before_install_misc">4.2 Miscellaneous Notes</a></h3>
@@ -151,7 +153,7 @@ Install as: root
     <h2><a name="condor">5. Installation instructions</a></h2>
     <p>
         The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
-        security implications; see the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_6Security.html#sec:Non-Root">HTCondor manual</a> for details.
+        security implications; see the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Security.html#sec:Non-Root">HTCondor manual</a> for details.
         The whole process is managed by the install script manage-glideins described below.
     </p>
 
@@ -211,7 +213,7 @@ Install as: root
         <td>Directory in which the condor software will be installed.    </td>
         <td>
            <b>IMPORTANT:</b> 
-              The Submit can share the same instance of Condor as the Frontend.
+              The Submit can share the same instance of HTCondor as the Frontend.
               The <b>condor_location</b> must not be a subdirectory of the Frontend's
               <b>install_location</b> or <b>logs_dir</b>.  
               They may share the same parent, however.
@@ -256,21 +258,21 @@ Install as: root
         <td>dn-subject-of-x509_cert-using-openssl</td>
         <td>
             This is the identity of the certificate used by this service to
-            contact the other Condor based glideinWMS services.
+            contact the other HTCondor based GlideinWMS services.
         <td>
             This is the <i>subject</i> of the certificate
             (<b>x509_cert</b> option).
             <blockquote>
             openssl x509 -subject -noout -in [<b>x509_cert</b>]<br/>
             </blockquote>
-            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
+            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other GlideinWMS services as needed.
         </td>
         </td>
         </tr>
 
         <tr>
         <td>condor_tarball</td>
-        <td>/path/to/condor/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz</td>
+        <td>/path/to/condor/tarballs/condor-8.7.6-x86_64_RedHat6-stripped.tar.gz</td>
         <td>Location of the condor tarball.</td>
         <td>
          The installation script will perform the installation of condor using this tarball.
@@ -281,7 +283,7 @@ Install as: root
         <tr>
         <td>condor_admin_email</td>
         <td>whomever@email.com</td>
-        <td>The email address to get Condor notifications in the event of a problem.</td>
+        <td>The email address to get HTCondor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
         </tr>
 
@@ -300,14 +302,13 @@ Install as: root
         for schedds.
         </td>
         <td>
-        This is only available in HTCondor 7.5.3+.</br>
         This can drastically reduce the number of ports used and thus improves
         scalability.</br>
         The default port is 9615.</br>
         Leave this option blank if you do not wish to utilize this feature or
-        if is is not supported in the version of Condor being used.<br/>
+        if is is not supported in the version of HTCondor being used.<br/>
         For more information on use of the shared_port_daemon, see the
-        <a href="condor.html#schedds">GlideinWMS - Advanced Condor Configuration manual</a>.
+        <a href="condor.html#schedds">GlideinWMS - Advanced HTCondor Configuration manual</a>.
         </br>
         </td>
         </tr>
@@ -353,7 +354,7 @@ The installer looks for the existence of 2 files to verify if this is a valid
         <tr>
         <td>glideinwms_location     </td>
         <td>/path/to/glideinWMS    </td>
-        <td>Directory of the glideinWMS software.   </td>
+        <td>Directory of the GlideinWMS software.   </td>
         <td>Since this is a HTCondor service only, this software is only used during the installation process. </td>
         </tr>
 
@@ -366,7 +367,7 @@ The installer looks for the existence of 2 files to verify if this is a valid
     <p>The installer allows you to automatically start the HTCondor daemons.  To start them on your own, source the condor env script and execute:</p>
     <blockquote>/path/to/condor/location/condor start</blockquote>
     
-    <p>To stop the Condor daemons, source the condor env script and execute:</p>
+    <p>To stop the HTCondor daemons, source the condor env script and execute:</p>
     <blockquote>/path/to/condor/location/condor stop</blockquote>
                        
     </div>
@@ -407,7 +408,7 @@ The installer looks for the existence of 2 files to verify if this is a valid
         of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in 
         the queue at any given time. This is particularly required for large scale installations. 
         <br><br>
-        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor This
+        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor. This
         is a good place to set higher file descriptor limit for the schedd process.
     </p>
 
