@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-    <title>glideinWMS - Glidein Recipes</title>
+    <title>GlideinWMS - Glidein Recipes</title>
     <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
     <style type="text/css">
     </style>
@@ -66,15 +66,7 @@
             <u>Jump to:</u>
             <ol>
                 <li><a href="#existingvm">New VM from existing VM</a> </li>
-                <li><a href="#scratchvm">Create new VM from scratch</a> </li>
             </ol>
-        </div>
-        <div class="related">
-            Related Information:
-            <ul>
-                <li> <a href="./install.html">Install</a></li>
-                <li> <a href="./troubleshooting.html">Troubleshooting</a></li>
-            </ul>
         </div>
         <div class="section">
             <a name="existingvm">
@@ -212,7 +204,7 @@
             </table>
             <p/>
             <p>
-            Now that the image has been modified, bundled, and uploaded, we now have to register the image.  Executing the following command
+            Now that the image has been modified, bundled, and uploaded, we have to register the image.  Executing the following command
             will register the image and return the AMI_ID that will be used in any subsequent launch requests.
             </p>
             <pre>ec2-register &lt;bucket_path&gt;/&lt;image_name&gt;.manifest.xml -K /root/.ec2/pk-XXXXXX.pem \
@@ -262,18 +254,13 @@
             Now we are done with the current image.  Shutdown the image and start using the new one!
             </p>
         </div>
-        <div class="section">
-            <a name="scratchvm">
-            <h2 class="western">New VM from scratch EC2</h2>
-            <p> This recipe describes the process to roll a new VM from scratch.</p>
-        </div>
         <div class="footer">
             Banner image by
             <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
             used under Creative Commons license.
             <br>
             Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-            glideinWMS email support: glideinwms-support at fnal.gov
+            glideinWMS email support: glideinwms-support@fnal.gov
         </div>
     </div>
 </body>
