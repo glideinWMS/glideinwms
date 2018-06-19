@@ -289,8 +289,8 @@ individual entry point configuration.
         </div>
     <b>Recommended:</b> You can have a dedicated collector serving just for message passing with the Frontend.<br>
     If this is not set, the default collector will be used, which also happens to be used to advertise the
-    internal Condor-G classads. That's undersirable both for security reasons, 
-    and also because frequent Condor-G updates tend to load it heavily.
+    internal HTCondor-G ClassAds. That's undersirable both for security reasons, 
+    and also because frequent HTCondor-G updates tend to load it heavily.
 
     </li>
     <LI>
@@ -315,19 +315,19 @@ individual entry point configuration.
     <div class="xml">
         &lt;glidein advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional:</b> Defines if the Factory should use TCP to advertise its classads.
+        <b>Optional:</b> Defines if the Factory should use TCP to advertise its ClassAds.
     </li>
     <LI>
     <div class="xml">
         &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional</b> Defines if the Factory should use -multiple to advertise its classads (requires HTCondor 7.5.4+).  
+        <b>Optional</b> Defines if the Factory should use -multiple to advertise its ClassAds.  
     </li>
     <LI>
     <div class="xml">
         &lt;glidein advertise_pilot_accounting=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional:</b> Defines if the Factory should condor_qedit pilot jobs after they finishes to add accounting information. A classad MONITOR_INFO will be added and jobs will be left in the Complete state for 12 hours.
+        <b>Optional:</b> Defines if the Factory should condor_qedit pilot jobs after they finishes to add accounting information. A ClassAd MONITOR_INFO will be added and jobs will be left in the Complete state for 12 hours.
     </li>
     </ul>
     </li>
@@ -541,7 +541,7 @@ individual entry point configuration.
             <TD>
                 <P>If set to True, 
                 the attribute will be published in Factory's
-                classad</P>
+                ClassAd</P>
             </TD>
         </TR>
         <TR>
@@ -549,7 +549,7 @@ individual entry point configuration.
             <TD>
 
                 <P>If set to True, the attribute will be 
-                available in the condor_startd's classad (and the glidein condor configuration). 
+                available in the condor_startd's ClassAd (and the glidein condor configuration). 
                 Used only if parameter is True.</P>
             </TD>
         </TR>
@@ -861,7 +861,7 @@ sleep, self.jobDescript.data['SubmitSleep'], self.gflFactoryConfig.submit_sleep 
 
         </div>
     <p>
-    Attributes you want to publish into the HTCondor classad.
+    Attributes you want to publish into the HTCondor ClassAd.
     These are used by the
     <A HREF="../frontend/index.html#match_expr">VO Frontend matchmaking</A>
     and job matchmaking.</p>
@@ -1011,11 +1011,11 @@ The following is an example of two different entry set containing two separate e
 The attributes auth_method, gridtype, and trust_domain must be the same in all entry elements (they are used for credential generation in the Frontend).
 </p>
 <p>
-Only the metasite will be advertized as a glideresource classad, so the Frontend will only see one element (entry).
+Only the metasite will be advertized as a glideresource ClassAd, so the Frontend will only see one element (entry).
 The Frontend will apply limits transparently as before, and the Factory as well. Right before glidein submission, the Factory
 will detect there are multiple CE where the work can be send (multiple submission files) and
 it will count the running+idle glideins for each CE and send jobs to the one with less.
-The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile classad).
+The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile ClassAd).
 </p>
 
 <div class="config">
@@ -1443,7 +1443,7 @@ configure multiple collectors in a chain.
     You will need a master and a set of slave collectors. 
     Each slave collector will service a portion of the pool 
     and will forward communication between the startd daemons 
-    to the master collector.  Machine classads from these startd's
+    to the master collector.  Machine ClassAds from these startd's
     will be sent to the master collector.
     The negotiator and the schedds will talk to the master collector, 
     and the startds will talk to one of the slave ones.  This will
@@ -1523,8 +1523,8 @@ For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options:
 The configuration is parsed during the reconfiguration of the Factory, and split into a number of files:
 <ul>
 <li>job.descript => read by the daemon do decide how to work </li>
-<li>attributes.cfg => fixed values, these are published in the Factory classad</li>
-<li>params.cfg => for values the Frontend will change, also published in the Factory classad</li>
+<li>attributes.cfg => fixed values, these are published in the Factory ClassAd</li>
+<li>params.cfg => for values the Frontend will change, also published in the Factory ClassAd</li>
 </ul>
 For more information, see the <a href="design_entry.html#config">Entry Internals</a> page.
 
@@ -2111,7 +2111,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div></div>
 </body>
 </html>

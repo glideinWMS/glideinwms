@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>GlideinWMS</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
@@ -117,7 +117,7 @@ Factory:
 
     The GlideinWMS is made of several services (In animation to the right, you 
     can see this process with green circles representing jobs, 
-    black circles as glideins and gray as resources in Condor).  
+    black circles as glideins and gray as resources in HTCondor).  
     <ul>
         <li>Users submit jobs to the <b>User Pool</b> 
         HTCondor schedd process.</li>
@@ -188,7 +188,7 @@ Factory:
           <ul>
               <li>User Pool (User Collector, Glidein Pool Collector): a HTCondor pool (at least collector and negotiator daemons) where all the user jobs are matched to glideins and managed. Jobs are queued in an separate service (User schedd)</li>
               <li>User Schedd (User submit node, scheduler node): a HTCondor system, consisting only of the schedd daemon, used to submit and queue jobs</li>
-              <li>WMS Pool (WMS Collector, glidein pool Collector node, glideinWMS Collector ): a HTCondor pool (at least collector, negotiator and schedd daemons) used to manage and submit the glideins to all the resources (entries)</li>
+              <li>WMS Pool (WMS Collector, glidein pool Collector node, GlideinWMS Collector ): a HTCondor pool (at least collector, negotiator and schedd daemons) used to manage and submit the glideins to all the resources (entries)</li>
               <li>GlideinWMS VO Frontend (Glidein Frontend, VO Frontend): a service that looks at the queued jobs, resources available to run them and applies VO defined policies to request glideins at desired sites (resources)</li>
               <li>GlideinWMS Factory (Glidein Factory): a service submitting glidein to the available resources</li>
           </ul>
@@ -205,7 +205,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a> 
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div>
 
 </body>

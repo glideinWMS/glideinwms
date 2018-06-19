@@ -191,7 +191,7 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
         <td>Notes</td>
     </tr>
     <tr>
-        <td>WMS Pool - Condor User</td>
+        <td>WMS Pool - HTCondor User</td>
         <td>If privilege separation is not used, then install as the same user as the Factory</td>
     </tr>
     <tr>
@@ -336,9 +336,9 @@ Unless you want to force your users to find and hard code the location.
 
         <tr>
         <td>collector_port</td>
-        <td>9618 (Condor default)</td>
+        <td>9618 (HTCondor default)</td>
         <td>Defines the HTCondor Collector port for the WMS Pool. </td>
-        <td>Optional: default is 9618 (Condor default)<br/>
+        <td>Optional: default is 9618 (HTCondor default)<br/>
             If multiple glidein services are installed on the same node, 
             this should be unique for each service. 
         </td>
@@ -405,7 +405,7 @@ Unless you want to force your users to find and hard code the location.
         <td>dn-subject-of-x509_cert-using-openssl</td>
         <td>
             This is the identity of the certificate used by this service to 
-            contact the other Condor based GlideinWMS services.
+            contact the other HTCondor based GlideinWMS services.
         <td>
             This is the <i>subject</i> of the certificate 
             (<b>x509_cert</b> option).
@@ -430,7 +430,7 @@ It must be a zipped tarball with a *.tg.tz name.
         <tr>
         <td>condor_admin_email</td>
         <td>whomever@email.com</td>
-        <td>The email address to get Condor notifications in the event of a problem.</td>
+        <td>The email address to get HTCondor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
         </tr>
 
@@ -1011,7 +1011,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div>
 
 

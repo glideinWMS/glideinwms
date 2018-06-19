@@ -72,7 +72,7 @@
     <LI><A HREF="#config">Script inclusion</A></li>
     <LI><A HREF="#api">Script API</A></li>
     <LI><A HREF="#glidein_config">Configuration file</A></li>
-    <LI><A HREF="#condor_vars">Condor vars file</A></li>
+    <LI><A HREF="#condor_vars">HTCondor vars file</A></li>
     <LI><A HREF="#xml_output">Reporting script exit status</A></li>
     <LI><A HREF="#order">Loading order</A></li>
     <LI><A HREF="#examples">Examples</A></li>
@@ -189,7 +189,7 @@ provided script and use it. Here is an example:</P>
 
 
 <div class="section">
-<H2><A NAME="condor_vars"></A>Condor vars file</H2>
+<H2><A NAME="condor_vars"></A>HTCondor vars file</H2>
 <P>The GlideinWMS uses a so called <I>condor vars file</I> to decide
 which attributes are going to be inserted into the condor
 configuration file, which are going to be published by the glidein
@@ -209,10 +209,10 @@ must have 7 columns. Each column has a specific meaning:</P>
         <LI>I &ndash; integer</li>
 
         <LI>S &ndash; quoted string</li>
-        <LI>C &ndash; unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>C &ndash; unquoted string (i.e. HTCondor keyword or expression)</li>
     </UL>
     <LI>Default value, use &ndash; if no default</li>
-    <LI>Condor name, i.e. under which name should this attribute be
+    <LI>HTCondor name, i.e. under which name should this attribute be
     known in the condor configuration</li>
     <LI>Is a value required for this attribute? <BR>Must be Y or N.
     If Y and the attribute is not defined, the glidein will fail.</li>
@@ -223,7 +223,7 @@ must have 7 columns. Each column has a specific meaning:</P>
     <UL>
         <LI>- - Do not export</li>
         <LI>+ - Export using the original attribute name</li>
-        <LI>@ - Export using the Condor name</li>
+        <LI>@ - Export using the HTCondor name</li>
 
     </UL>
 </OL>
@@ -236,7 +236,7 @@ var files</P>
 <P>Here below, you can see a short extract. For all the options, look
 at <A HREF="custom_vars.html">dedicated configuration variables page</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
-#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
 #                                                                                               + = Use VarName
 #                                                                                               @ = Use CondorName
 #################################################################################################################
@@ -409,7 +409,7 @@ Order:
     The (after-entry) Frontend scripts are executed in the following order: pre-group scripts (in global config with
     <tt>after_group=&quot;False&quot;</tt>, which is the default), group scripts and after-group (i.e.
         <tt>after_group=&quot;True&quot;</tt>).</P>
-    <LI><P>Final global system scripts are executed and the Condor daemons
+    <LI><P>Final global system scripts are executed and the HTCondor daemons
     are launched.</P>
 </OL>
 <P>The Glidein Factory configuration allows an administrator to
@@ -544,7 +544,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div>
 
 </div>

@@ -62,13 +62,13 @@
 	     <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>Custom Condor Variables</h3>
+        <h3>Custom HTCondor Variables</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
     <LI><A HREF="#location">Variable location</A>
-    <LI><A HREF="#condor_vars">Condor vars file</A>
+    <LI><A HREF="#condor_vars">HTCondor vars file</A>
     <LI><A HREF="#vars">Variables used</A> 
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
@@ -116,7 +116,7 @@ Factory configuration</A> file.</P>
 </div>
 
 <div class="section">
-<H2><A NAME="condor_vars"></A>Condor vars files</H2>
+<H2><A NAME="condor_vars"></A>HTCondor vars files</H2>
 <P>The condor vars files contain the GlideinWMS pre-defined
 configuration variables, and <B>should never be modified</B>.<BR>However,
 a GlideinWMS administrator should nevertheless be able to read them.</P>
@@ -131,13 +131,13 @@ specific meaning:</P>
     <UL>
         <LI>I (int) &ndash; integer</li>
         <LI>S (string) &ndash; quoted string</li>
-        <LI>C (expr) &ndash; unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>C (expr) &ndash; unquoted string (i.e. HTCondor keyword or expression)</li>
     </UL>
     </li>
     <LI>Default value, use &ndash; if no default</li>
 
-    <LI>Condor name, i.e. under which name should this attributed be
-    known in the configuration used by Condor daemons</li>
+    <LI>HTCondor name, i.e. under which name should this attributed be
+    known in the configuration used by HTCondor daemons</li>
     <LI>Is a value required for this attribute? <BR>Must be Y or N.
     If Y and the attribute is not defined, the glidein will fail.</li>
     <LI>Will condor_startd publish this attribute to the
@@ -148,14 +148,14 @@ specific meaning:</P>
 
         <LI>+ - Export to the user job environment using the original
         attribute name</li>
-        <LI>@ - Export to the user job environment using the Condor name</li>
+        <LI>@ - Export to the user job environment using the HTCondor name</li>
     </UL>
     </li>
 </OL>
 <P>Here below, you can see a short extract; the semantics of the
 variables is defined <A HREF="#vars">below</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
-#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
 #                                                                                               + = Use VarName
 #                                                                                               @ = Use CondorName
 #################################################################################################################
@@ -182,8 +182,8 @@ MAX_STARTD_LOG          I       10000000        +                               
 <A NAME="vars"></A>Glidein Variables</H2>
 <P>This section defines all the variables that the glideins explicity
 use. Please be aware that, apart from the below mentioned variable
-many other variables will be used by the Condor daemons, since
-glideins are Condor based; see the <A target="_blank" HREF="https://research.cs.wisc.edu/htcondor/manual/v8.6/3_3Introduction_Configurati.html">Condor manual</A> for more details.</P>
+many other variables will be used by the HTCondor daemons, since
+glideins are HTCondor based; see the <A target="_blank" HREF="https://research.cs.wisc.edu/htcondor/manual/v8.6/3_3Introduction_Configurati.html">HTCondor manual</A> for more details.</P>
 <P>The variables can be divided based on their source:
 </p>
 <UL>
@@ -247,7 +247,7 @@ by the VO Factory clients.</P>
 
         <TD> True </TD>
         <TD>
-            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            <P>HTCondor expression to use to specify when a user job in the glideins should be held. 
             If any expression is true, the glidein is held.  This is usually done to specify "bad"
             jobs, such as those that claim too much memory.
         </TD>
@@ -258,7 +258,7 @@ by the VO Factory clients.</P>
         <TD> Expr (Bool)</td>
         <TD>True </TD>
         <TD ROWSPAN=2>
-            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            <P>HTCondor expression to use to specify when a user job in the glideins should be preempted. 
             If any expression is true, the glidein is preempted.  This is usually done to specify 
             custom preemption policies for user jobs.
         </TD>
@@ -276,7 +276,7 @@ by the VO Factory clients.</P>
         <td>Expr (Int)</td>
         <TD>1</TD>
         <TD ROWSPAN=2>
-                <P>Used in calculating the Condor <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html">RANK</A></P><P>They
+                <P>Used in calculating the HTCondor <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html">RANK</A></P><P>They
                 are summed together, and the user job with the largest rank will run
                 first.</P>
 
@@ -1615,11 +1615,7 @@ Once the job finishes, it will wait for Glidein_Max_Tail for another job.
 If cannot find one, it will shutdown.
 </li>
 </ul>
-Note that for GlideinWMS versions before 3.2.7 or for glidins using HTCondor pre 8.2, 
-the idle limits are cumulative (it counts total idle time), so that
-the total idle times in all the yellow zones above will be counted towards
-GLIDEIN_Max_Tail. Not so for GlideinWMS 3.2.7 and HTCondor 8.2 or later, 
-where Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
+Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 </div>
 
 <div class="section">
@@ -1647,7 +1643,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div>
 
 </div>

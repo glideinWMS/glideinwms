@@ -852,7 +852,7 @@ v2_5_1  Factory now can remove excessive glideins
         Changed factory monitoring. It is now based on security names and not
           plain frontend names
         Improved installation process using ini based installer.
-        glideinWMS tarball does not include CVS directories and files any more
+        GlideinWMS tarball does not include CVS directories and files any more
         Added support of shared port configuration for condor daemons
         SIGHUP signals to glideins are ignored correctly.
         Improved documentation
@@ -861,12 +861,12 @@ v2_5_1  Factory now can remove excessive glideins
         BUG FIX: Fixed a typo in one of the links in frontendRRDBrowse.html
 
 v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
-	glideinWMS release is now available in 3 different tarballs, frontend
+	GlideinWMS release is now available in 3 different tarballs, frontend
 	  only, factory only and a complete tarball.
-	glideinWMS factory and the Corral frontend can now talk to each other
+	GlideinWMS factory and the Corral frontend can now talk to each other
 	Factory is smarter about handling held glideins
 	Factory can now black/white list VOs on a per-entry basis
-	Version of glideinWMS is now published in the classads. Scheme can 
+	Version of GlideinWMS is now published in the classads. Scheme can 
 	  detect any changes to any service appropriate files and advertises 
 	  cersion as patched.
 	Frontend should try to recover the crashed group before it gives up and
@@ -933,7 +933,7 @@ v2_4_1	Add a new configuration option for PREEMPT_GRACE_TIME
 	BUG FIX: Allow the use of the same DN for both the security and the
 	  collector
 	BUG FIX: Returning invalid variable during proxy creation
-	KNOWN ISSUES: Running glideinWMS v2_4_1 with Condor 7.5.3 has not been
+	KNOWN ISSUES: Running GlideinWMS v2_4_1 with Condor 7.5.3 has not been
 	  tested. Altough, most of the things may work, security changes in
 	  Condor may affect your installation.
 
@@ -964,9 +964,9 @@ v2_3_2	Fixed a security bug in the way certificate/proxy DN(s) are handled. If
 	  you are upgrading the installation rather than full install, you
 	  should patch the condor_mapfile used by Condor daemons in your
 	  installation using the convert_condormap tool available from the
-	  glideinWMS download page. For additional security, users should
+	  GlideinWMS download page. For additional security, users should
 	  add new DN to the condor_mapfile only by using the glidecondor_addDN 
-	  tool available in the glideinWMS/install directory.
+	  tool available in the GlideinWMS/install directory.
 
 v2_3_1	Updated documentation. This is document change only release
 	Introduced monitoringgroups to group sites together for monitoring
@@ -1033,7 +1033,7 @@ v1_6_3 Fixed a security bug in way certificate/proxy DN(s) are handled. If
           you are upgrading the installation rather than full install, you
           should patch the condor_mapfile used by Condor daemons in your
           installation using the convert_condormap tool available from the
-          glideinWMS download page. For additional security, users should
+          GlideinWMS download page. For additional security, users should
           add new DN to the condor_mapfile only by using the glidecondor_addDN
           tool available in the glideinWMS/install directory.	
 

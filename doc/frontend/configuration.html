@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Glidein Frontend</title>
+  <title>GlideinWMS - Glidein Frontend</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -73,7 +73,7 @@
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
-        <li><a href="#usercollector">Using multiple user pool collectors/Condor High Availability (HA) support</a> </li>
+        <li><a href="#usercollector">Using multiple user pool collectors/HTCondor High Availability (HA) support</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
         <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
         <li><a href="#attr_singularity">Using Singularity</a> </li>
@@ -319,14 +319,14 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         DN=&quot;<I>/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org</I>&quot;/&gt;
         </div>
     This shows what WMS Collector the Glidein Frontend will map to. It is the
-    mapped name for the identity of the classad. It also tells what
+    mapped name for the identity of the ClassAd. It also tells what
     should be the identity used by the Frontend itself and the expected
     identity of the Factory.  These attributes must be configured correctly,
     or else the Factory will drop requests from the Frontend, citing security
     concerns.
     <br><br>
     To configure the WMS collector for multiple (secondary) ports, refer to the 
-    <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a>.
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>.
     <br/>
     The configuration required for the Frontend to communicate with the secondary WMS collectors is shown below:
     <blockquote>
@@ -356,7 +356,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         query_expr=&quot;<I>expression</I>&quot; &gt;
         </div>
     A <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_q.html">
-    Condor constraint</A> to be used with condor_q when looking for user 
+    HTCondor constraint</A> to be used with condor_q when looking for user 
     jobs.  (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs). If you
     want to consider all user jobs, this can be set to TRUE. 
     </P></li>
@@ -625,7 +625,7 @@ Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/
             </div>
             This is a condor expression that determines whether a glidein job
             will start on a resource.  It is used for resource management by
-            Condor.
+            HTCondor.
         </P></li>
         <LI><P>
         <a name="attr_maxmem_estimate" />
@@ -644,7 +644,7 @@ Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/
     to the attributes on the Factory config file. The table below
     describes the &lt;attrs ... &gt; tag in more detail. 
     </P>
-    <p>Refer to description of <a href="../factory/custom_vars.html">Custom Condor Variables</a> section for the list of available variables.
+    <p>Refer to description of <a href="../factory/custom_vars.html">Custom HTCondor Variables</a> section for the list of available variables.
     <table class="requirements">
         <TR class="head">
             <TD> <P><B>Attribute Name</B></P> </TD>
@@ -670,7 +670,7 @@ Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/
         <TR>
             <TD> <P><b>glidein_publish</b></P> </TD>
 
-            <TD> <P>If set to True, the attribute will be available in the condor_startd's classad. Used only if parameter is True.</P>
+            <TD> <P>If set to True, the attribute will be available in the condor_startd's ClassAd. Used only if parameter is True.</P>
             </TD>
         </TR>
         <TR>
@@ -763,11 +763,11 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     expression, i.e. <tt>glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
     in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))</tt>. If you want
     to match all, just specify True.  
-    All Condor attributes used in this expression should be listed
+    All HTCondor attributes used in this expression should be listed
     below in the match_attrs section.<br/>
 
-    The start_expr is a Condor expression that will be evaluated
-    to match glideins to jobs.  This should be a valid Condor ClassAd
+    The start_expr is a HTCondor expression that will be evaluated
+    to match glideins to jobs.  This should be a valid HTCondor ClassAd
     expression, i.e. <tt>(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)</tt>.
     <br/><br/>
 
@@ -820,7 +820,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
 
         A list of glidein Factory attributes used in the
         Factory match expression.   Each match attribute
-        should be a HTCondor classad attribute that is listed 
+        should be a HTCondor ClassAd attribute that is listed 
         in the above    match_expr.
         <a href="#match_example">More on match expressions</a>
     </P></li>
@@ -846,7 +846,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
         A list of glidein Factory attributes used in the
         Factory match expression.   Each match attribute
-        should be a HTCondor classad attribute that is listed 
+        should be a HTCondor ClassAd attribute that is listed 
         in the above match_expr.
         <a href="#match_example">More on match expressions</a>
     </P></li>
@@ -915,7 +915,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <br><br>
     For <b>scalability</b> purposes, multiple (secondary) user pool collectors can be used. 
     Refer to the 
-    <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.<br/>
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.<br/>
     The configuration required for the Frontend to communicate with the secondary user pool collectors is shown below:
       <blockquote>
          &lt;collectors&gt;
@@ -928,11 +928,11 @@ glideins.  Groups are used to group users with similar requirements, such as pro
             is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
             element for each secondary port.</i></font><br/>
       </blockquote>
-    For <b>redundancy</b> purposes, the user pool can be configured using the Condor High Availability feature. 
+    For <b>redundancy</b> purposes, the user pool can be configured using the HTCondor High Availability feature. 
     Refer to the 
-    <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.  Support to utilize this Condor feature is available in v2.6+.<br/>
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.  Support to utilize this HTCondor feature is available in v2.6+.<br/>
     The requires listing all the condor collectors, primary as well as secondary, grouped by <b>group</b> name.
-    Condor daemons started by the glideins will report back to one of the
+    HTCondor daemons started by the glideins will report back to one of the
     secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
     the primary collector is selected for that group. 
     <blockquote>
@@ -994,7 +994,7 @@ Each Glidein will use only one CCB per group: it will receive a randomly shuffle
       </div>
       This setting allows you to run Frontend in HA mode. Currently only 1 master, 1 slave is supported. By default, the Frontend runs in master mode ie. <b>enabled="False"</b>.<br/><br/>
 
-      To configure the Frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the classads from the master Frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master Frontend ie. 'FrontendName' as it appears in the glideclient classad of the master Frontend or the value of <b>frontend_name</b> configuration for the master Frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests. You can use same <b>frontend_name</b> for both master and slave Frontend to make it transparent to other services, however you can still distinguish which Frontend is currently active by looking at the 'FrontendHAMode' in the glideclient classad.
+      To configure the Frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the ClassAds from the master Frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master Frontend ie. 'FrontendName' as it appears in the glideclient ClassAd of the master Frontend or the value of <b>frontend_name</b> configuration for the master Frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests. You can use same <b>frontend_name</b> for both master and slave Frontend to make it transparent to other services, however you can still distinguish which Frontend is currently active by looking at the 'FrontendHAMode' in the glideclient ClassAd.
 
 
       <pre>
@@ -1051,14 +1051,14 @@ i   any action requested (execute, untar, just keep it, ...).
     determine where glideins and jobs should be matched.<br/>
     For example, expressions allowing a white list by the frontend
     can be created in order to control where the glideins are submitted.
-    It can also allow you to give a Condor expression
+    It can also allow you to give a HTCondor expression
     to specify where jobs can run or to specify
     which glidein_sites can run jobs.  <br />
     There are two ways to restrict matching in most cases.
     Note that match_expr clauses, such as &lt;match match_expr&gt; 
     will use python based expressions as explained below.  Others,
     such as &lt;factory query_expr&gt; and &lt;job query_expr&gt;
-    use Condor ClassAd expressions.  For these, only valid Condor
+    use HTCondor ClassAd expressions.  For these, only valid HTCondor
     expressions can be used.  Python expressions can not be
     evaluated in these contexts.
     <br/>
@@ -1079,34 +1079,34 @@ i   any action requested (execute, untar, just keep it, ...).
     surrounded by parentheses and connected by the boolean expressions
     "and", "or", and "not".  You can use several dictionaries in
     these match expressions.  The "job" dictionary contains the
-    classad of the job being matched, and the "glidein" dictionary
-    contains information about the Factory (entry point) classad.
+    ClassAd of the job being matched, and the "glidein" dictionary
+    contains information about the Factory (entry point) ClassAd.
     There is also a "attr_dict" dictionary that can reference 
     attributes defined in the frontend.xml.
     While an extensive list of everything you can
     in these expressions is out of scope, some examples are below:
     <ul>
-    <li><b>(job.has_key("ImageSize"))</b>: Returns true if the job classad has the attribute "ImageSize".</li>
-    <li><b>(job["NumJobStarts"]>5)</b>: Returns true if the job classad attribute "NumJobStarts" is greater than 5.</li>
-    <li><b>(glidein["attrs"].has_key("GLIDEIN_Retire_Time"))</b>: Returns true if the Factory entry classad has the attribute "GLIDEIN_Retire_Time".</li>
-    <li><b>(glidein["attrs"]["GLIDEIN_Retire_Time"]>21600)</b>: Returns true if the Factory entry classad's "GLIDEIN_Retire_Time" is greater than 21600.</li>
+    <li><b>(job.has_key("ImageSize"))</b>: Returns true if the job ClassAd has the attribute "ImageSize".</li>
+    <li><b>(job["NumJobStarts"]>5)</b>: Returns true if the job ClassAd attribute "NumJobStarts" is greater than 5.</li>
+    <li><b>(glidein["attrs"].has_key("GLIDEIN_Retire_Time"))</b>: Returns true if the Factory entry ClassAd has the attribute "GLIDEIN_Retire_Time".</li>
+    <li><b>(glidein["attrs"]["GLIDEIN_Retire_Time"]>21600)</b>: Returns true if the Factory entry ClassAd's "GLIDEIN_Retire_Time" is greater than 21600.</li>
     <li><b>(attr_dict["NUM_USERS_ALLOWED"]&gt;0)</b>: Returns true if there is a attribute in the frontend.xml with NUM_USERS_ALLOWED that is greater than zero.</li>
-    <li><b>(job["Owner"] in attr_dict["ITB_Users"].split(","))</b>: Returns true if the job classad attribute "Owner" is in the comma-delimited string attribute ITB_USERS (which would be defined in frontend.xml)</li>
+    <li><b>(job["Owner"] in attr_dict["ITB_Users"].split(","))</b>: Returns true if the job ClassAd attribute "Owner" is in the comma-delimited string attribute ITB_USERS (which would be defined in frontend.xml)</li>
     </ul>
 </p>
 <p>
     Each attribute used in a match expression should be declared in a
-    subsequent match_attrs section.  This makes classad variables
+    subsequent match_attrs section.  This makes ClassAd variables
     available to the match expression. Attributes can be made available
     from the:</p>
     <ol>
-    <li> Factory classad: (&lt;match&gt;&lt;factory&gt;&lt;match_attr&gt;)</li>
-    <li> Job classad: (&lt;match&gt;&lt;job&gt;&lt;match_attr&gt;)</li>
+    <li> Factory ClassAd: (&lt;match&gt;&lt;factory&gt;&lt;match_attr&gt;)</li>
+    <li> Job ClassAd: (&lt;match&gt;&lt;job&gt;&lt;match_attr&gt;)</li>
     </ol>
     <p>
     Each <b>match_attr</b> tag must contain a <b>name</b>.
     This is the name of the attribute
-    in the appropriate classad.  <br/>
+    in the appropriate ClassAd.  <br/>
     It must also contain a <b>type</b> which can be
     one of the following:
     </p>
@@ -1141,7 +1141,7 @@ i   any action requested (execute, untar, just keep it, ...).
 
 <p><B><u>Example</u></b></p>
         Glideins can also use "start_expr" to make sure
-        the correct jobs start on pilots.  This is a Condor 
+        the correct jobs start on pilots.  This is a HTCondor 
         expression run on the pilot startd daemon.
         Here is an example:
         <div class="xml">
@@ -1291,7 +1291,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div>
 
 </div>

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Glidein Frontend</title>
+  <title>GlideinWMS - Glidein Frontend</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -73,7 +73,7 @@
     <li><a href="#software">Needed software</a></li>
 
     <li><a href="#before_install">Before you begin...</a></li>
-    <li><a href="#system">Condor installation</a></li>
+    <li><a href="#system">HTCondor installation</a></li>
     <li><a href="#frontend">Frontend installation</a></li>
 </ol>
 </div>
@@ -358,7 +358,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
            Note: The Frontend never runs any HTCondor daemons. 
            It only uses the HTCondor client tools.<br/><br/>
            <b>IMPORTANT:</b> 
-              The Frontend can share the same instance of Condor as the User Collector
+              The Frontend can share the same instance of HTCondor as the User Collector
               and /or Submit.
               The <b>condor_location</b> must not be a subdirectory of the Frontend's
               <b>install_location</b> or <b>logs_dir</b>.  
@@ -379,7 +379,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <tr>
         <td>condor_admin_email</td>
         <td>whomever@email.com</td>
-        <td>The email address to get Condor notifications in the event of a problem.</td>
+        <td>The email address to get HTCondor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
         </tr>
 
@@ -398,10 +398,10 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
             <td>
             /path-to-proxy/x509_proxyfile
             </td>
-            <td>The location of the proxy used to identify this service to the other glideinWMS services. </td>
+            <td>The location of the proxy used to identify this service to the other GlideinWMS services. </td>
             <td>
-             This is the only glideinWMS service that currently requires a proxy
-             to communicate with the other glideinWMS services. 
+             This is the only GlideinWMS service that currently requires a proxy
+             to communicate with the other GlideinWMS services. 
              This is <b>NOT</b> the glidein pilot proxy.</br>
              The <b>x509_gsi_dn</b> option that follows should be
              populated with the <i>issuer</i> of this proxy.
@@ -413,13 +413,13 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td>dn-issuer-of-x509_proxy-using-openssl</td>
         <td>
             This is the identity used by this service to contact the other
-            Condor based glideinWMS services.
+            HTCondor based GlideinWMS services.
         <td>
           This is the <i>issuer</i> of the proxy identified by the 
           <b>x509_proxy</b> option above.
           <blockquote>openssl x509 -issuer -noout -in [<b>x509_proxy</b>]</blockquote>
           It is used to populate the condor_config file GSI_DAEMON_NAME and 
-          condor_mapfile entries of this and the other glideinWMS services 
+          condor_mapfile entries of this and the other GlideinWMS services 
           as needed.
         </td>
         </td>
@@ -501,7 +501,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td>,</td>
         <td>This represents the criteria used for matching glideins to jobs.
         </td>
-        <td> This is a Condor expression.  A simple expression would be:
+        <td> This is a HTCondor expression.  A simple expression would be:
         <blockquote>
           (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
         </blockquote>
@@ -563,7 +563,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         <tr>
         <td>glideinwms_location</td>
         <td>/path/to/glideinWMS_code</td>
-        <td>Directory of the glideinWMS software.   </td>
+        <td>Directory of the GlideinWMS software.   </td>
         <td>This software is used for both the installation and during the actual running of this glidein service.</td>
         </tr>
 
@@ -709,7 +709,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support@fnal.gov
 </div>
 </div>
 </body>
