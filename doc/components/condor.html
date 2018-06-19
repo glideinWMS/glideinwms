@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>GlideinWMS</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -76,7 +76,6 @@ Related Links:
 
 <div class="section">
     <p>
-    The installation will assume you have installed HTCondor v7.0.5+.
     <br>
     For the purposes of the examples shown here the HTCondor install location is 
     shown as <b>/opt/glideincondor</b>.<br/>
@@ -86,10 +85,10 @@ Related Links:
 
     If you want to use a different setup, make the necessary changes.
     If you installed HTCondor via RPMs the configuration files location is different: see 
-     <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallCondor">this OSG guide</a>
+     <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#installing-htcondor">this OSG guide</a>
     or the OSG pages about the 
-     <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">Fronrtend</a>
-    and <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">Factory</a>.
+     <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">Frontend</a>
+    and <a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">Factory</a>.
     </p>
 </div>
 
@@ -117,13 +116,12 @@ Related Links:
 
 <h3>Using the condor_shared_port feature</h3>
     <p>
-    The HTCondor shared_port_daemon is available in Condor 7.5.3+.
     
     <!-- Shared port V2.5.2+ ----- -->
-    <h4>GlideinWMS V2.5.2+ </h4>
+    <h4>GlideinWMS V3+ </h4>
     Additional information on this daemon can be found here:<ul>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">HTCondor manual 3.1.2 The Condor Daemons</a></br>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">HTCondor manual 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    <a href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Introduction1.html#x29-1480003.1">HTCondor manual -  Daemons</a></br>
+    <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
     </p>
     <p>
     Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
@@ -140,49 +138,20 @@ Related Links:
     Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
     </p>
 
-    <!-- Shared port V2.5.1 ----- -->
-    <h4>GlideinWMS V2.5.1 and earlier</h4>
-    Additional information on this daemon can be found here:<ul>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">HTCondor manual 3.1.2 The Condor Daemons</a></br>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">HTCondor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
-    </p>
-    <p>
-    If you are using this feature, there are 3 additional variables that must 
-    be added to the schedd setup script described in the 
-    <a href="#new_schedd_setup">create setup files section</a>:
-    <blockquote>
-      _CONDOR_USE_SHARED_PORT</br>
-      _CONDOR_SHARED_PORT_DAEMON_AD_FILE</br>
-      _CONDOR_DAEMON_SOCKET_DIR
-    </blockquote>
-    In addition, your <b>/opt/glidecondor/condor_local/condor_config.local</b> 
-    will need to contain the following attributes. Port 9615 is the default port
-    for the schedds.
-    <blockquote>
-         #--  Enable shared_port_daemon<br>
-         SHADOW.USE_SHARED_PORT = True<br>
-         SCHEDD.USE_SHARED_PORT = True<br>
-         SHARED_PORT_MAX_WORKERS = 1000<br>
-         SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
-         DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
-    </blockquote>
-    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
-    </p>
-
 
 <!-- Multiple Schedds ---- -->
 <a name="new_schedd_setup"/>
-<h3>Multiple Schedds in GlideinWMS V2.5.2+</h3>
-The following needs to be added to your Condor config file for each additional 
+<h3>Multiple Schedds in GlideinWMS V3+</h3>
+The following needs to be added to your HTCondor config file for each additional 
 schedd desired.  
 Note the <b><font color="red">numeric</font></b> suffix used to distinguish each schedd.
 <br/> <br/>
-If the multiple schedds are being used on your WMS Collector, Condor-G is used
+If the multiple schedds are being used on your WMS Collector, HTCondor-G is used
 to submit the glidein pilot jobs and the 
     <font color="green"><b>SCHEDD(GLIDEINS/JOBS)2_ENVIRONMENT attribute</b></font> shown
 below is required.  If not, then it should be omitted.
 <br/> <br/>
-Effective with Condor 7.7.5+, the JOB_QUEUE_LOG attribute is required.
+The JOB_QUEUE_LOG attribute is required.
 <br/> <br/>
 <blockquote>
 <p>
@@ -196,7 +165,7 @@ SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDDGLIDEINS
 SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/lock<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/procd_pipe<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/spool<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with HTCondor 7.7.5+</b><br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)"<br/>
@@ -216,7 +185,7 @@ SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDDJOBS<b><font
 SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/lock<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/procd_pipe<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/spool<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)"<br/>
@@ -226,7 +195,7 @@ DC_DAEMON_LIST = + SCHEDDJOBS<b><font color="red">2</font></b><br/>
 </p>
 </blockquote>
 <p>
-The directories files will need to be created for the attributes by these attribtues defined above:<br/>
+The directories files will need to be created for the attributes by these attributes defined above:<br/>
 <blockquote>
   LOCAL_DIR<br/>
   EXECUTE<br/>
@@ -235,9 +204,9 @@ The directories files will need to be created for the attributes by these attrib
 </blockquote>
 </p>
 <p>
-A script is available to do this for you given the attributes are defined 
-with the naming convention shown.  If they already exist it will verify their 
-existance and ownership.  If they do not exist, they will be created.
+A script is available to do this for you, given the attributes are defined 
+with the naming convention shown.  If they already exist, it will verify their 
+existance and ownership, otherwise they will be created.
 <blockquote>
  source /opt/glidecondor/condor.sh<br/>
  GLIDEINWMS_LOCATION/install/services/init_schedd.sh<br/>
@@ -263,160 +232,6 @@ Processing schedd: SCHEDDJOBS2<br/>
 <p>
 </p>
 
-
-<h3>Multiple Schedds in GlideinWMS V2.5.1</h3>
-<h4>Create setup files</h4>
-    If not already created during installation, you will need to create
-    a set of files to support multiple schedds.  This describes the
-    steps necessary.
-    <p>
-    <b>/opt/glidecondor/new_schedd_setup.sh</b>
-    (<a href="../install/example-config/multi_schedd/new_schedd_setup.sh">example new_schedd_setup.sh</a>)<br/>
-     1. adds the necessary attributes when the schedds are initialized and 
-       started.
-    <blockquote>
-      if [ $# -ne 1 ]<br>
-      then<br>
-      &nbsp;echo "ERROR: arg1 should be schedd name"<br/>
-      &nbsp;return 1<br/>
-      fi<br/>
-      LD=`condor_config_val LOCAL_DIR`<br/>
-      export _CONDOR_SCHEDD_NAME=schedd_$1<br>
-      export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}<br/>
-      # SCHEDD and MASTER names MUST be the same (Condor requirement)<br/>
-      export _CONDOR_DAEMON_LIST="MASTER, SCHEDD,QUILL"<br/>
-      export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br/>
-      export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br/>
-      <b>
-      #-- condor_shared_port attributes ---<br/>
-      export _CONDOR_USE_SHARED_PORT=True<br/>
-      export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad<br/>
-      export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock<br/>
-      #------------------------------------<br/>
-      </b>
-      unset LD<br/>
-    </blockquote>
-    <p>
-    The same file can be downloaded from
-    <a href="../install/example-config/multi_schedd/new_schedd_setup.sh" title="example-config/multi_schedd/new_schedd_setup.sh">
-        example-config/multi_schedd/new_schedd_setup.sh
-    </a>.
-    </p>
-    <p>
-    <b>/opt/glidecondor/init_schedd.sh</b>
-    (<a href="../install/example-config/multi_schedd/init_schedd.sh">example init_schedd.sh</a>)<br/>
-    1. This script creates the necessary directories and files for the additional schedds.
-       It will only be used to initialize a new secondary schedd.
-       (see the <a href="#initialize_schedds">initialize schedds section</a>)
-       
-     <blockquote>
-      #!/bin/sh<br/>
-      CONDOR_LOCATION=/opt/glidecondor<br/>
-      script=$CONDOR_LOCATION/new_schedd_setup.sh<br/>
-      source $script $1<br/>
-      if [ "$?" != "0" ];then<br/>
-      &nbsp;echo "ERROR in $script"<br/>
-      &nbsp;exit 1<br/>
-      fi<br/>
-      # add whatever other config you need<br/>
-      # create needed directories<br/>
-      $CONDOR_LOCATION/sbin/condor_init<br/>
-    </blockquote>
-    2. This needs to be made executable by the user that installed Condor:<br>
-    <blockquote>
-      chmod u+x /opt/glidecondor/init_schedd.sh<br>
-    </blockquote>
-    <p></p>
-
-      chmod a+x /opt/glidecondor/init_schedd.sh<br>
-    </blockquote>
-    The same file can be downloaded from
-    <a href="../install/example-config/multi_schedd/init_schedd.sh" title="example-config/multi_schedd/init_schedd.sh">
-        example-config/multi_schedd/init_schedd.sh
-    </a>.
-    <p></p>
-    <p>
-    <b>/opt/glidecondor/start_master_schedd.sh</b>
-    (<a href="../install/example-config/multi_schedd/start_master_schedd.sh">example start_master_schedd.sh</a>)<br/>
-    1. This script is used to start the secondary schedds
-       (see the <a href="#starting">starting up schedds section</a>)
-    </p><blockquote>
-      #!/bin/sh<br/>
-      CONDOR_LOCATION=/opt/glidecondor/condor-submit<br/>
-      export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config<br/>
-      source $CONDOR_LOCATION/new_schedd_setup.sh $1<br/>
-      # add whatever other config you need<br/>
-      $CONDOR_LOCATION/sbin/condor_master<br/>
-    </blockquote>
-
-    2.- This needs to be made executable by the user that installed Condor:<br>
-    <blockquote>
-      chmod u+x /opt/glidecondor/start_master_schedd.sh<br>
-    </blockquote>
-
-    The same file can be downloaded from
-    <a href="../install/example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
-        example-config/multi_schedd/start_master_schedd.sh
-    </a>.
-    
-    <p>
-    </p>
-<a name="initialize_schedds"/>
-<h4>Initialize schedds</h4>
-    <p>
-    To initialize the secondary schedds, use
-    <b>/opt/glidecondor/init_schedd.sh</b> created above.
-    </p>
-    <p>
-    If you came here from another document, 
-    <b>make sure you configure the schedds specified there.</b>
-    </p>
-    <p>
-    For example, supposing you want to create schedds named schedd_jobs1, schedd_jobs2 and schedd_glideins1, you would run:
-    </p><blockquote>
-
-      /opt/glidecondor/init_schedd.sh jobs1<br>
-      /opt/glidecondor/init_schedd.sh jobs2<br>
-      /opt/glidecondor/init_schedd.sh glideins1<br>
-    </blockquote>
-<h4><a name="starting">Starting up schedds</a></h4>
-    <p>
-
-    If you came to this document as part of another installation, go back and follow
-those instructions.
-    </p>
-    <p>
-    Else, when you are ready, you can start the schedd by running
-    <b>/opt/glidecondor/start_master_schedd.sh</b> created above.
-    </p>
-    <p>
-    For example, supposing you want to start schedds named schedd_jobs1, schedd_jobs2 and schedd_glideins1, you would run:
-    </p><blockquote>
-      /opt/glidecondor/start_master_schedd.sh jobs1<br>
-
-      /opt/glidecondor/start_master_schedd.sh jobs2<br>
-      /opt/glidecondor/start_master_schedd.sh glideins1
-    </blockquote>
-    <b>Note:</b> Always start them after you have started the Collector.
-    <p>
-    </p>
-<h4><a name="submission">Submission and monitoring</a></h4>
-    <p>
-
-    The secondary schedds can be seen by issuing
-    </p><blockquote>
-      condor_status -schedd<br>
-    </blockquote>
-    To submit or query a secondary schedd, you need to use the <b>-name</b> options, like:
-    <blockquote>
-      condor_submit -name schedd_jobs1@ job.jdl<br>
-
-      condor_q -name schedd_jobs1@
-    </blockquote>
-
-</div>
-
-
 <!---  Multiple Collectors for Scalability-------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
@@ -434,12 +249,12 @@ those instructions.
     <p>
     <b>Important: </b>When secondary (additional) collectors are added to either 
        the WMS Collector or User Collector, changes must also be made to the 
-       <a href="../frontend/configuration.html">Frontend configurations</a>  
+       <a href="../frontend/configuration.html">Frontend configuration</a>  
        so they are made aware of them.
     </p>
 <h3></a>HTCondor configuration changes</h3>
     <p>
-     For <b>each</b> secondary collector, the following Condor attributes are required:
+     For <b>each</b> secondary collector, the following HTCondor attributes are required:
     </p>
     <blockquote>
       COLLECTOR<b>nn</b> = $(COLLECTOR)</br>
@@ -453,7 +268,7 @@ those instructions.
      Each secondary collector must also have a unique <b>port_number</b>.
     </p>
     <p>
-     After these  changes have been made in your Condor configuration file, restart HTCondor to effect
+     After these  changes have been made in your HTCondor configuration file, restart HTCondor to effect
      the change.  You will see these collector processes running (example has 5 secondary collectors).
     </p>
     <blockquote>
@@ -472,32 +287,25 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <hr width="90%"><hr width="90%">
 <a name="collectors_ha"><h2>Multiple Collectors for High Availability (HA)</h2></a>
     <p>
-     For reliability purposes, you may want to utilize Condor's High Availability (HA) feature for 
+     For reliability purposes, you may want to utilize HTCondor's High Availability (HA) feature for 
      collectors.<br/>  
-     <b>Note:</b>This is only supported in glideinWMS for use with the User pool collector and frontend 
-                  with v2.6+.<br/>
      <p/>
-     The Condor configuration of additional (secondary) collectors is the same as in the previous section, 
+     The HTCondor configuration of additional (secondary) collectors is the same as in the previous section, 
      <a href="#collectors">Multiple Collectors for Scalability</a>.
      Refer to the <a href="http://research.cs.wisc.edu/htcondor/manual/">HTCondor manual</a> section on 
      High Availability of the Central Manager for additional configuration requirements.
      <p> 
-    <b>Important: </b>When the Condor High Availability feature is used in the User Collector, 
+    <b>Important: </b>When the HTCondor High Availability feature is used in the User Collector, 
        changes must also be made to the 
        <a href="../frontend/configuration.html">Frontend configurations</a>  
        so it is made aware of them.
     </p>
     <p/>
 
-
-<!-- GCB is no mor in HTCondor: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=QuickAndDirtyGcb
-- The GCB section has been removed 
--->
-
 <div class="section">
     <h2><a name="quill">Installing Quill</a></h2>
 
-<p>The <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/9_3Quill.html">HTCondor manual section about Quill</a>
+<p>The <a href="http://research.cs.wisc.edu/htcondor/manual/current/9_3Quill.html">HTCondor manual section about Quill</a>
   may have instructions more updated than this section.
 </p>
 <h3><a name="software">Required software</a></h3>
@@ -519,7 +327,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <h3><a name="install">Installation instructions</a></h3>
 
     <p>
-    The installation will assume you have installed HTCondor v7.0.5 or newer.
+    The installation will assume you have installed HTCondor v8+.
     </p>
     <p>
     The install directory is <b>/opt/glidecondor</b>, the working directory is
