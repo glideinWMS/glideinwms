@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS Tools</title>
+  <title>GlideinWMS Tools</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -71,22 +71,22 @@
                 Inspect glideins output and HTCondor logs<br/>
                 (gwms-logcat.sh)</a>
         <li><a href="#glidecondor_addDN">
-                Add a DN to the Condor mapfile<br/>
+                Add a DN to the HTCondor mapfile<br/>
                 (glidecondor_addDN)</a>
         <li><a href="#glidecondor_createSecSched">
-                Add secondary Condor schedds<br/>
+                Add secondary HTCondor schedds<br/>
                 (glidecondor_createSecSched)</a>
         <li><a href="#glidecondor_createSecCol">
-                Add Condor collectors <br/>
+                Add HTCondor collectors <br/>
                 (glidecondor_createSecCol)</a>
         <li><a href="#create_condor_tarball">
-                Adding Condor tarballs<br/>
+                Adding HTCondor tarballs<br/>
                 (create_condor_tarball)</a>
 </ol>
 </div>
+<!--
 <div class="related">
 Related Links: <br/>
-<!--
 <ul>
         <LI><A HREF="./custom_scripts.html">Custom Scripts</A></li>
         <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
@@ -121,7 +121,7 @@ execution. See below for how to use it.
   -h       print this message
   -l       list all entries (arguments are ignored)
   -a       list only entries that were active (has at least one job) - used with '-l', ignored otherwise
-  -u USER  to use a different user (job owner) from the default frontend one
+  -u USER  to use a different user (job owner) from the default Frontend one
   -r       Remote running jobs. pilot_launcher.log is fetched form the VM
   -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
   -f URL   Forward the information (to a fodler: file:///path/ via copy or a URL http:// via post)
@@ -130,7 +130,7 @@ execution. See below for how to use it.
 <p>gwms-logcat.sh can be used interactively to examin the HTCondor log files or the XML file produced by the 
 Glideins and stored at the Factory.
 </p>
-<p>Files from a Glidein running on the cloud and spinning a VM are not transferred back to the factory but
+<p>Files from a Glidein running on the cloud and spinning a VM are not transferred back to the Factory but
 you can explore them if the VM is still running using the remote option (<tt>-r</tt>) which fetches pilot_launcher.log
 from the VM.
 </p>
@@ -147,7 +147,7 @@ from the VM.
 <a name="glidecondor_addDN"/><h4><b>glidecondor_addDN</b></h4>
 <p>
 The <tt>glidecondor_addDN</tt> script (found in the ./install directory of 
-the glideinWMS tree) can help manage Condor mapfiles.  The management of 
+the GlideinWMS tree) can help to  manage HTCondor mapfiles.  The management of 
 DNs and authorization to specific users can be confusing and this utility
 can help.
 </p>
@@ -176,7 +176,7 @@ Where <i>[options]</i> is any combination of:
          </blockquote>
          Use this option to specify a different file name (mostly useful for prototyping).</td></tr>
  <tr><td>-d <i>fname</i></td>
-     <td>By default, the script will put the daemon DNs into <tt>90_gwms_dns.config</tt> in the Condor's <tt>LOCAL_CONFIG_DIR</tt> (obtained via <tt>condor_config_val</tt>).<br>
+     <td>By default, the script will put the daemon DNs into <tt>90_gwms_dns.config</tt> in the HTCondor's <tt>LOCAL_CONFIG_DIR</tt> (obtained via <tt>condor_config_val</tt>).<br>
          Use this option to specify a different file name (mostly useful for prototyping).</td></tr>
  <tr><td>-allow-alterate</td>
      <td>If present, the tool will look for alternate config files (e.g. condor_config.local)
@@ -192,8 +192,8 @@ Where <i>[options]</i> is any combination of:
 </table>
 </p>
 <p>
-In both operation modes, the tool will add properly encoded (DN,username) entries in the certificate mapfile,
-and, iif the DN is tagged as belonging to a trusted daemon, also in the DN config file.
+In both operation modes, the tool will add properly encoded (DN,username) entries in the certificate mapfile. Also,
+if the DN is tagged as belonging to a trusted daemon, also in the DN config file.
 </p>
 <p>
 In both modes, the DN can be the actual DN string, or a certificate from which to extract the string from.
@@ -244,9 +244,9 @@ fe1    client /DC=org/DC=doegrids/OU=Services/CN=osg-glidein-fe.example.gov
 <a name="glidecondor_createSecSched"/><h4><b>glidecondor_createSecSched</b></h4>
 <p>
 The <tt>glidecondor_createSecSched</tt> script (found in the ./install directory of 
-the glideinWMS tree) can help manage the HTCondor's secondary schedds. It can be used
+the GlideinWMS tree) can help manage the HTCondor's secondary schedds. It can be used
 when HTCondor's configuration is stored in 
-<a href="http://research.cs.wisc.edu/htcondor/manual/v7.8/3_3Configuration.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
 </p>
 <p>
 Usage:
@@ -261,7 +261,7 @@ The node admin can thus easily change the number of secondary schedds as needed.
 <p>
 By default, each secondary schedd will have its own log file. 
 If a shared log is desired, use <tt>-commonlog</tt>.<br>
-Please <b>note</b> that the tool does not try to guess what the existing config, if any, is using.
+Please <b>note</b> that the tool does not try to guess what the existing config(if any) is using.
 </p>
 <p>
 By default, the tool will create any needed directories. 
@@ -282,9 +282,9 @@ Example:
 <a name="glidecondor_createSecCol"><h4><b>glidecondor_createSecCol</b></h4>
  <p>
 The <tt>glidecondor_createSecCol</tt> script (found in the ./install directory of 
-the glideinWMS tree) can help manage the HTCondor's secondary collectors. It can be used
+the GlideinWMS tree) can help manage the HTCondor's secondary collectors. It can be used
 when HTCondor's configuration is stored in 
-<a href="http://research.cs.wisc.edu/htcondor/manual/v7.8/3_3Configuration.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
 </p>
 <p>
 Usage:
@@ -297,15 +297,14 @@ This script will re-create the <tt>11_gwms_secondary_collectors.config file</tt>
 The node admin can thus easily change the number of secondary collectors as needed.
 </p>
 <p>
-Since each Condor Daemon needs a unique name, each collector will be called COLLECTOR<i>xxx</i>.
+Since each HTCondor Daemon needs a unique name, each collector will be called COLLECTOR<i>xxx</i>.
 By default, the numbering starts with 0 for the first collector in the port range, and is incremented by one for each additional one.<br>
-If <tt>-useportasname</tt> is used, <i>xxx</i> is instread defined as the port number used by the collector.<br>
-Please <b>note</b> that the tool does not try to guess what the existing config, if any, is using.
+If <tt>-useportasname</tt> is used, <i>xxx</i> is instead defined as the port number used by the collector.<br>
+Please <b>note</b> that the tool does not try to guess what the existing config (if any) is using.
 </p>
 <p>
 By default, each secondary collector will have its own log file. 
 If a shared log is desired, use <tt>-commonlog</tt>.<br>
-Please <b>note</b> that the tool does not try to guess what the existing config, if any, is using.
 </p>
 <p>
 Example:
@@ -321,12 +320,12 @@ Example:
 <a name="create_condor_tarball"><h4><b>create_condor_tarball</b></h4>
  <p>
 The <tt>create_condor_tarball</tt> script 
-(found in the ./factory/creation directory of the glideinWMS tree) 
-can help reduce the disk space needs on the factory node.
+(found in the ./factory/creation directory of the GlideinWMS tree) 
+can help reduce the disk space needs on the Factory node.
 <p/>
-It can be used to create a condor tarball for use by the glideinwms pilot process for various entry points.  
-The glideinwms pilot does not need all the files/processes contained in a normal HTCondor tarfile.  
-This utility extracts only the needed processes/libraries thereby reducing the space needed on your factory node.
+It can be used to create a condor tarball for use by the GlideinWMS pilot process for various entry points.  
+The GlideinWMS pilot does not need all the files/processes contained in a normal HTCondor tarfile.  
+This utility extracts only the needed processes/libraries thereby reducing the space needed on your Factory node.
 </p>
 <pre>
 Usage: create_condor_tarball output_filename input_tarfile_or_dir
@@ -337,8 +336,8 @@ Usage: create_condor_tarball output_filename input_tarfile_or_dir
                           the top level directory.
 </pre>
 Once the output condor tarball is created, additional configuration is required in 
-the factory configuration file.  Refer to the 
-<a href="../factory/configuration.html#tarballs">Multiple Condor Tarballs section of the Factory Configuration</a> document for details.
+the Factory configuration file.  Refer to the 
+<a href="../factory/configuration.html#tarballs">Multiple HTCondor Tarballs section of the Factory Configuration</a> document for details.
 
 <p>
 </p>
@@ -346,7 +345,7 @@ the factory configuration file.  Refer to the
 Example:
 </p>
 <blockquote>
-  create_condor_tarball   /tmp/condor-7.7.5     condor-7.7.5-x86_64_rhap_5-stripped.tar.gz
+  create_condor_tarball   /tmp/condor-8.7.6     condor-8.7.6-x86_64_RedHat6-stripped.tar.gz
 </blockquote>
 </div>
 
@@ -358,7 +357,7 @@ Example:
 <p>
 The tools <tt>analyze_entries</tt>,<tt>analyze_queues</tt>, and 
 <tt>analyze_frontends</tt> exist in the <tt>factory/tools</tt> directory.
-They can be used to monitor recent status of the factory, entries,
+They can be used to monitor recent status of the Factory, entries,
 and connected frontends. See <a href="../factory/monitoring.html#analyze_entries">Factory monitoring</a> for more details.
 </p>
 </div>
