@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>GlideinWMS</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
@@ -83,25 +83,25 @@
 <div class="section">
     <a name="vofe" />
     <h2>Submitting with a VO Frontend</h2>
-    These examples assumes you have GlideinWMS installation running and as a user you have access to submit jobs.  Make sure
+    These examples assumes you have GlideinWMS installation running and as a user, you have access to submit jobs.  Make sure
     you have sourced the correct HTCondor installation.
     <br/>
     <br/>
-    <b>NOTE:</b>  It is recommended that you always provide a voms proxy in the user job submission.  This will allow you to run on a site
+    <b>NOTE:</b>  It is recommended that you always provide a VOMS proxy in the user job submission.  This will allow you to run on a site
     whether or not gLExec is enabled.  A proxy may also be required for other reasons, such as the job staging data.
     <br/>
     <br/>
     The GlideinWMS environment looks almost exactly like a regular, local HTCondor pool.  It just does not have any 
     resources attached unless you ask for them; try
     <pre>$ condor_status</pre>
-    and you can see that no glideins are connected to your local pool. The glideinWMS system will submit glideins on your behalf when 
-    they are needed.  Some information may need to be specified in order for  you get glideins that can run your jobs. 
-    Depending on your VO Frontend configurations, you may also have to specify additional requirements.
+    and you can see that no glideins are connected to your local pool. The GlideinWMS system will submit glideins on your behalf when 
+    they are needed.  Some information may need to be specified in order for you get glideins that can run your jobs. 
+    Depending on your VO Frontend configuration, you may also have to specify additional requirements.
     <br/>
     <br/>
         
     <h4>Submitting a simple job with no requirements</h4>
-    Here is a generic job that calculates Pi using the monte carlo method.  First create a file called pi.py and make it executable:
+    Here there is a generic job that calculates Pi using the monte carlo method.  First create a file called pi.py and make it executable:
     <pre>
 #!/bin/env python
 from random import *  
@@ -127,7 +127,7 @@ $ ./pi.py 1000000
     <br/>
     <br/>
     Now, let's submit this as a HTCondor job.  Because we are going to run this multiple times (100), it will actually be a bunch of jobs.
-    These jobs should run everywhere so we won't need to specify any additional requirements.  Create the submit file and call it myjob.sh:
+    These jobs should run everywhere, so we won't need to specify any additional requirements.  Create the submit file and call it myjob.sh:
     <pre>
 Universe   = vanilla
 Executable = pi.py
@@ -148,12 +148,12 @@ Queue 100
     HTCondor will match your jobs to the glideins and the jobs will then run.  You can monitor the status of your user jobs by running
     <br/>
     <pre>$ condor_q</pre>
-    Once the jobs finish, you can view the output in the job.$(Cluster).$(Process).out files.
+    Once the jobs have finished, you can view the output in the job.$(Cluster).$(Process).out files.
     <br/>
     <br/>
     
     <h4>Understanding where jobs are running</h4>
-    While your jobs can run everywhere, you may still want to know where they actually ran; possibly becuase you want to know who to thank for the 
+    While your jobs can run everywhere, you may still want to know where they actually ran; possibly because you want to know who to thank for the 
     CPUs you were consuming, or to debug problems you had with your program. 
     <br/> 
     <br/>
@@ -197,7 +197,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 </body>
