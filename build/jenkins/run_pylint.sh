@@ -78,32 +78,50 @@ process_branch() {
     #various pep8 errors
 
     PEP8_OPTIONS="--ignore="
+    # E111 indentation is not a multiple of four
+    PEP8_OPTIONS="$PEP8_OPTIONS,E111"
+    # E121 continuation line under-indented for hanging indent
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
+    # E123 closing bracket does not match indentation of opening bracket’s line
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E123"
+    # E126 continuation line over-indented for hanging indent
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E126"
+    # E221 multiple spaces before operator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E221"
     # E225 missing whitespace around operator
     PEP8_OPTIONS="$PEP8_OPTIONS,E225"
     # E226 missing whitespace around arithmetic operator
-    #PEP8_OPTIONS="$PEP8_OPTIONS,E226"
+    PEP8_OPTIONS="$PEP8_OPTIONS,E226"
     # E228 missing whitespace around modulo operator
-    #PEP8_OPTIONS="$PEP8_OPTIONS,E228"
+    PEP8_OPTIONS="$PEP8_OPTIONS,E228"
     # E231 missing whitespace after ','
     PEP8_OPTIONS="$PEP8_OPTIONS,E231"
+    # E251 unexpected spaces around keyword / parameter equals
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E251"
     # E261 at least two spaces before inline comment
     PEP8_OPTIONS="$PEP8_OPTIONS,E261"
     # E265 block comment should start with '# '
     PEP8_OPTIONS="$PEP8_OPTIONS,E265"
     # E302 expected 2 blank lines, found 1
-    #PEP8_OPTIONS="$PEP8_OPTIONS,E302"
+    PEP8_OPTIONS="$PEP8_OPTIONS,E302"
+    # E303 too many blank lines (3)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E303"
     # E402 module level import not at top of file
     #PEP8_OPTIONS="$PEP8_OPTIONS,E402"
     # E501 line too long
     PEP8_OPTIONS="$PEP8_OPTIONS,E501"
+    # E704 multiple statements on one line (def)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E704"
     # W291 trailing whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W291"
     # W293 blank line contains whitespace
-    #PEP8_OPTIONS="$PEP8_OPTIONS,W293"
+    PEP8_OPTIONS="$PEP8_OPTIONS,W293"
     # W504 line break after binary operator
     #PEP8_OPTIONS="$PEP8_OPTIONS,W504"
 
 
+    #uncomment to see all pep8 errors
+    #PEP8_OPTIONS=""
     
 
 
