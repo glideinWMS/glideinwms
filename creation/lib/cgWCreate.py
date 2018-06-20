@@ -170,13 +170,14 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
+        self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
 
         #Leave jobs in the condor queue for 12 hours if they are completed.
         if conf['advertise_pilot_accounting'] == 'True':
             self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) < 12*60*60)")
 
-        self.add("periodic_remove", "JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME)")
+        self.add("periodic_remove", "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME)")
 
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
@@ -226,16 +227,14 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("transfer_Input_files", ','.join(input_files))
         self.add("encrypt_Input_files", ','.join(encrypt_input_files))
 
-        self.populate_submit_attrs(submit_attrs)
 
-
-    def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
+    def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
         for submit_attr in submit_attrs:
-            self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
+            if submit_attr.get(u'all_grid_types', 'False')=='True' or gridtype.startswith('batch ') or gridtype in ('condor', 'gce', 'ec2'):
+                self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
 
     def populate_condorc_grid(self, submit_attrs):
-        self.populate_submit_attrs(submit_attrs)
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
@@ -248,7 +247,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
         self.add("gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
-        self.populate_submit_attrs(submit_attrs)
 
 
     def populate_ec2_grid(self, submit_attrs):
@@ -264,7 +262,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # (and of course glidein_startup.sh)
         self.add("ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
-        self.populate_submit_attrs(submit_attrs)
 
 
     def populate_glidein_classad(self, proxy_url):
