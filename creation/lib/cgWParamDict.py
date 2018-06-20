@@ -520,14 +520,15 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
-            self.dicts[u'condor_jdl'] = []
             for subentry in entry.get_child_list(u'entries'):
-                condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry[u'name'])
-                condorJdl.load()
                 entry.select(subentry)
-                condorJdl.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+                # Find subentry
+                for cj in self.dicts[u'condor_jdl']:
+                    cj_entryname = cj.fname.split('.')[1]
+                    if cj_entryname==subentry.getName():
+                        break
+                cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
                 entry.select(None)
-                self.dicts[u'condor_jdl'].append(condorJdl)
         else:
             ################################################################################################################
             # This is the original function call:
