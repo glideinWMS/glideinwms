@@ -805,6 +805,7 @@ override the global arguments if present.
             &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br/>
             &nbsp;&nbsp;&lt;submit_attrs&gt;<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="RequestMemory" value="2000"/&gt;<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="+GlideinSkipIdleRemoval" value="True" all_grid_types="True"/&gt;<br/>
             &nbsp;&nbsp;&lt;/submit_attrs&gt;<br/>
             &lt;/submit&gt;<br/>
             &lt;/config&gt;
@@ -844,8 +845,15 @@ sleep, self.jobDescript.data['SubmitSleep'], self.gflFactoryConfig.submit_sleep 
                add to the HTCondor submit file that the Factory uses to submit pilots
                to a site.  These attributes are only added when the 
                <a name="entry">gridtype</a> is "batch SOMETHING" (<a href="../recipes/batch.html">using BOSCO</a>) 
-               or "condor".  The attributes are ignored
-               for all other grid types.
+               or "condor" or "ec2" or "gce".  The attributes are ignored
+               for all other grid types unless the attribute 'all_grid_types' is set to true.
+               </li>
+               <li>
+                The following submit attribute can be added to disable the temporary removal of idle glideins:
+                <br/>
+<div class="xml">
+                 &lt;submit_attr name="+GlideinSkipIdleRemoval" value="True" all_grid_types="True"/&gt;
+</div>
                </li>
            </ul>
         </li>
