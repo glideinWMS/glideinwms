@@ -5,9 +5,6 @@ import unittest2 as unittest
 import xmlrunner
 import xml
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.lib.xmlParse import OrderedDict 
 from glideinwms.lib.xmlParse import xmlfile2dict 
