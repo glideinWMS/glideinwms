@@ -6,7 +6,6 @@ import glideinwms.lib.subprocessSupport
 import unittest2 as unittest
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.lib.x509Support import extract_DN
 
 
