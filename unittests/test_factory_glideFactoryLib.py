@@ -61,12 +61,19 @@ from glideinwms.factory.glideFactoryLib import which
 from glideinwms.factory.glideFactoryLib import days2sec 
 from glideinwms.factory.glideFactoryLib import hrs2sec 
 from glideinwms.factory.glideFactoryLib import env_list2dict 
+from glideinwms.factory import glideFactoryConfig
+import os
+import mock
 
 
 class TestFactoryConfig(unittest.TestCase):
 
     def setUp(self):
+        self.cwd = os.getcwd()
+        os.chdir('fixtures/factory/work-dir')
         self.cnf = FactoryConfig()
+        self.gf_cnf = glideinwms.factory.glideFactoryConfig.FactoryConfig()
+        os.chdir(self.cwd)
 
     def test__init__(self):
         self.assertTrue(isinstance(self.cnf, FactoryConfig))
@@ -76,64 +83,190 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual(self.cnf.factory_name, 'my_factory')
         self.assertEqual(self.cnf.glidein_name, 'my_glidein')
 
+    @unittest.skip('for now')
     def test_get_condor_q_credential_list(self):
         glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
-        getCondorQCredentialList(self.cnf)
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        crdl = getCondorQCredentialList(self.cnf)
+        self.assertEqual( [], crdl)
 
-class TestSecClass2Name(unittest.TestCase):
-    @unittest.skip('for now')
+    def test_config_dirs(self):
+        submit_dir = 'submit_dir'
+        log_base_dir = 'log_base_dir'
+        client_log_base_dir = 'client_log_base_dir'
+        client_proxies_base_dir = 'client_proxies_base_dir'
+        self.cnf.config_dirs(submit_dir, log_base_dir,
+                                        client_log_base_dir, client_proxies_base_dir)
+        self.assertEqual(self.cnf.submit_dir, 'submit_dir')
+
+    def test_config_remove_freq(self):
+        sleepBetweenRemoves = 10
+        maxRemovesXCycle = 10
+        self.cnf.config_remove_freq(sleepBetweenRemoves, maxRemovesXCycle)
+        self.assertEqual(self.cnf.remove_sleep, 10)
+        self.assertEqual(self.cnf.max_removes, 10)
+
+    def test_config_submit_freq(self):
+        sleepBetweenSubmits = 10
+        maxSubmitsXCycle = 10
+        self.cnf.config_submit_freq(sleepBetweenSubmits, maxSubmitsXCycle)
+        self.assertEqual(self.cnf.submit_sleep, 10)
+        self.assertEqual(self.cnf.max_submits, 10)
+
+    def test_config_whoamI(self):
+        factory_name = 'factory_name'
+        glidein_name = 'glidein_name'
+        self.cnf.config_whoamI(factory_name, glidein_name)
+        self.assertEqual(self.cnf.factory_name, factory_name)
+        self.assertEqual(self.cnf.glidein_name, glidein_name)
+
+
+    def test_get_client_log_dir(self):
+        entry_name = 'entry_name'
+        username = 'username'
+        submit_dir = 'submit_dir'
+        log_base_dir = 'log_base_dir'
+        client_log_base_dir = 'client_log_base_dir'
+        client_proxies_base_dir = 'client_proxies_base_dir'
+        self.cnf.config_dirs(submit_dir, log_base_dir,
+                                        client_log_base_dir, client_proxies_base_dir)
+        factory_name = 'factory_name'
+        glidein_name = 'glidein_name'
+        self.cnf.config_whoamI(factory_name, glidein_name)
+
+        cldr = self.cnf.get_client_log_dir(entry_name, username)
+        expected = 'client_log_base_dir/user_username/glidein_glidein_name/entry_entry_name'
+        self.assertEqual(expected, cldr)
+
+    def test_get_client_proxies_dir(self):
+        entry_name = 'entry_name'
+        username = 'username'
+        submit_dir = 'submit_dir'
+        log_base_dir = 'log_base_dir'
+        client_log_base_dir = 'client_log_base_dir'
+        client_proxies_base_dir = 'client_proxies_base_dir'
+        self.cnf.config_dirs(submit_dir, log_base_dir,
+                                        client_log_base_dir, client_proxies_base_dir)
+        factory_name = 'factory_name'
+        glidein_name = 'glidein_name'
+        self.cnf.config_whoamI(factory_name, glidein_name)
+
+        cldr = self.cnf.get_client_proxies_dir(username)
+        expected = 'client_proxies_base_dir/user_username/glidein_glidein_name'
+        self.assertEqual(expected, cldr)
+
     def test_sec_class2_name(self):
-        self.assertEqual(expected, secClass2Name(client_security_name, proxy_security_class))
-        # assert False TODO: implement your test here
+        self.assertEqual('foo_bar', secClass2Name('foo','bar'))
 
-class TestGetCondorQData(unittest.TestCase):
-    @unittest.skip('for now')
+
     def test_get_condor_q_data(self):
-        self.assertEqual(expected, getCondorQData(entry_name, client_name, schedd_name, factoryConfig))
-        # assert False TODO: implement your test here
+        entry_name = 'entry_name'
+        client_name = 'client_name'
+        schedd_name = 'sched_name'
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        glideinwms.factory.glideFactoryLib.condorMonitor.CondorQ = mock.Mock()
+        cd = getCondorQData(entry_name, client_name, schedd_name, self.cnf)
+        self.assertEqual(cd.factory_name, self.cnf.factory_name)
+        self.assertEqual(cd.glidein_name, self.cnf.glidein_name)
+        self.assertEqual(cd.client_name, client_name)
+        self.assertEqual(cd.entry_name, entry_name)
 
 
-class TestGetQCredentials(unittest.TestCase):
-    @unittest.skip('for now')
     def test_get_q_credentials(self):
-        self.assertEqual(expected, getQCredentials(condorq, client_name, creds, client_sa, cred_secclass_sa, cred_id_sa))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        glideinwms.factory.glideFactoryLib.condorMonitor.SubQuery = mock.Mock()
+        condorq = mock.Mock()
+        schedd_name = 'schedd_name'
+        condorq.schedd_name = schedd_name
+        factory_name= 'factory_name'
+        condorq.factory_name = factory_name
+        glidein_name = 'glidein_name'
+        condorq.glidein_name = glidein_name
+        entry_name = 'entry_name'
+        condorq.entry_name = entry_name
+        client_name = 'client_name'
+        condorq.client_name = client_name
+        creds = mock.Mock()
+        client_sa = 'fake'
+        cred_secclass_sa = 'fake'
+        cred_id_sa = 'fake'
 
-class TestGetQProxSecClass(unittest.TestCase):
-    @unittest.skip('for now')
+        crd = getQCredentials(condorq, client_name,
+                              creds, client_sa, cred_secclass_sa, cred_id_sa)
+        self.assertEqual(crd.schedd_name, condorq.schedd_name)
+        self.assertEqual(crd.factory_name, condorq.factory_name)
+        self.assertEqual(crd.glidein_name, condorq.glidein_name)
+        self.assertEqual(crd.entry_name, condorq.entry_name)
+        self.assertEqual(crd.client_name, condorq.client_name)
+
     def test_get_q_prox_sec_class(self):
-        self.assertEqual(expected, getQProxSecClass(condorq, client_name, proxy_security_class, client_schedd_attribute, credential_secclass_schedd_attribute, factoryConfig))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        glideinwms.factory.glideFactoryLib.condorMonitor.SubQuery = mock.Mock()
+        condorq = mock.Mock()
+        schedd_name = 'schedd_name'
+        condorq.schedd_name = schedd_name
+        factory_name= 'factory_name'
+        condorq.factory_name = factory_name
+        glidein_name = 'glidein_name'
+        condorq.glidein_name = glidein_name
+        entry_name = 'entry_name'
+        condorq.entry_name = entry_name
+        client_name = 'client_name'
+        condorq.client_name = client_name
+        proxy_security_class = 'fake'
+        credential_secclass_schedd_attribute = 'fake'
+        client_schedd_attribute = 'fake'
 
-class TestGetQStatusSF(unittest.TestCase):
-    @unittest.skip('for now')
+        crd = getQProxSecClass(condorq, client_name, proxy_security_class,
+                               client_schedd_attribute,
+                               credential_secclass_schedd_attribute, self.cnf)
+        self.assertEqual(crd.schedd_name, condorq.schedd_name)
+        self.assertEqual(crd.factory_name, condorq.factory_name)
+        self.assertEqual(crd.glidein_name, condorq.glidein_name)
+        self.assertEqual(crd.entry_name, condorq.entry_name)
+
     def test_get_q_status_s_f(self):
-        self.assertEqual(expected, getQStatusSF(condorq))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        condorq = mock.Mock()
+        condorq.stored_data = {}
+        self.assertEqual({}, getQStatusSF(condorq))
 
-class TestGetQStatus(unittest.TestCase):
-    @unittest.skip('for now')
     def test_get_q_status(self):
-        self.assertEqual(expected, getQStatus(condorq))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        condorq = mock.Mock()
+        condorq.stored_data = {}
+        qs = getQStatus(condorq)
 
-class TestGetQStatusStale(unittest.TestCase):
-    @unittest.skip('for now')
     def test_get_q_status_stale(self):
-        self.assertEqual(expected, getQStatusStale(condorq))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        condorq = mock.Mock()
+        condorq.stored_data = {}
+        qs = getQStatusStale(condorq)
 
-class TestGetCondorStatusData(unittest.TestCase):
-    @unittest.skip('for now')
     def test_get_condor_status_data(self):
-        self.assertEqual(expected, getCondorStatusData(entry_name, client_name, pool_name, factory_startd_attribute, glidein_startd_attribute, entry_startd_attribute, client_startd_attribute, factoryConfig))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        condorq = mock.Mock()
+        glideinwms.factory.glideFactoryLib.condorMonitor.CondorStatus = condorq
 
-class TestUpdateX509ProxyFile(unittest.TestCase):
-    @unittest.skip('for now')
+        entry_name = 'entry_name'
+        client_name = 'client_name'
+
+        crd = getCondorStatusData(entry_name, client_name)
+
+        self.assertEqual(crd.factory_name, self.cnf.factory_name)
+        self.assertEqual(crd.glidein_name, self.cnf.glidein_name)
+        self.assertEqual(crd.entry_name, entry_name)
+        self.assertEqual(crd.client_name, client_name)
+
     def test_update_x509_proxy_file(self):
-        self.assertEqual(expected, update_x509_proxy_file(entry_name, username, client_id, proxy_data, factoryConfig))
-        # assert False TODO: implement your test here
+        glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
+        glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
+        update_x509_proxy_file(entry_name, username, client_id, proxy_data, self.cnf)
 
 class TestClientWeb(unittest.TestCase):
     @unittest.skip('for now')
