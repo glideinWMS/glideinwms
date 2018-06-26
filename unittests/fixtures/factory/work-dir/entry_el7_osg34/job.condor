@@ -1,0 +1,33 @@
+# File: job.condor
+#
+Universe = grid
+Grid_Resource = condor fermicloud378.fnal.gov fermicloud378.fnal.gov:9619
+Executable = glidein_startup.sh
+copy_to_spool = True
+Arguments = $ENV(GLIDEIN_ARGUMENTS)
+Transfer_Executable = True
+transfer_Output_files = 
+WhenToTransferOutput  = ON_EXIT
+stream_output = False
+stream_error  = False
++TransferOutput = ""
+x509userproxy = $ENV(X509_USER_PROXY)
++GlideinFactory = "$ENV(FACTORY_NAME)"
++GlideinName = "$ENV(GLIDEIN_NAME)"
++GlideinEntryName = "$ENV(GLIDEIN_ENTRY_NAME)"
++GlideinEntrySubmitFile = "$ENV(GLIDEIN_ENTRY_SUBMIT_FILE)"
++GlideinClient = "$ENV(GLIDEIN_CLIENT)"
++GlideinFrontendName = "$ENV(GLIDEIN_FRONTEND_NAME)"
++GlideinCredentialIdentifier = "$ENV(GLIDEIN_CREDENTIAL_ID)"
++GlideinSecurityClass = "$ENV(GLIDEIN_SEC_CLASS)"
++GlideinWebBase = "$ENV(GLIDEIN_WEB_URL)"
++GlideinLogNr = "$ENV(GLIDEIN_LOGNR)"
++GlideinWorkDir = "$ENV(GLIDEIN_STARTUP_DIR)"
++GlideinSlotsLayout = "$ENV(GLIDEIN_SLOTS_LAYOUT)"
+periodic_remove = JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME)
+Notification = Never
++Owner = undefined
+Log = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el7_osg34/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log
+Output = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el7_osg34/job.$(Cluster).$(Process).out
+Error = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el7_osg34/job.$(Cluster).$(Process).err
+Queue $ENV(GLIDEIN_COUNT)
