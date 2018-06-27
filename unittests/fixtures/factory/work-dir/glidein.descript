@@ -19,8 +19,8 @@ AdvertiseDelay 	5
 RestartAttempts 	3
 RestartInterval 	1800
 EntryParallelWorkers 	0
-LogDir 	/var/log/gwms-factory/server
-ClientLogBaseDir 	/var/log/gwms-factory/client
+LogDir 	server-log
+ClientLogBaseDir 	client-log
 ClientProxiesBaseDir 	/var/lib/gwms-factory/client-proxies
 DowntimesFile 	/var/lib/gwms-factory/work-dir/glideinWMS.downtimes
 MonitorDisplayText 	

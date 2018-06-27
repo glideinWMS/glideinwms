@@ -44,6 +44,9 @@ class TestEntry(unittest.TestCase):
                            self.glidein_descript, self.frontend_descript)
         os.chdir(self.testdir)
 
+    def tearDown(self):
+        os.chdir(self.testdir)
+
     def test___init__(self):
         self.assertTrue(isinstance(self.entry, Entry))
 

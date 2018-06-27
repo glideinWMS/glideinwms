@@ -48,7 +48,10 @@ SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 BR_NO_SLASH=$(echo ${BRANCH} | sed -e 's/\//-/g')
 
 coverage erase
-coverage run  --source="${SOURCES}" --omit="test_*.py"  -m unittest2 discover -s . 
+for TST in $(ls test*.py); do
+    echo '========>' $TST
+    coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $TST
+done
 coverage report > ${WORKSPACE}/coverage.report.${BR_NO_SLASH}
 coverage html
 mv htmlcov ${WORKSPACE}/htmlcov.${BR_NO_SLASH}
