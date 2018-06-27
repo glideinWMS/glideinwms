@@ -38,6 +38,13 @@ class TestFactoryConfig(unittest.TestCase):
         self.signatures = SignatureFile()
         os.chdir(self.testdir)
 
+    def tearDown(self):
+        os.chdir(self.testdir)
+        rsafile = os.path.join(self.confdir, 'rsa.key')
+        if os.path.exists(rsafile):
+            cmd = "git checkout %s " % rsafile
+            os.system(cmd)
+
     def test__init__(self):
         self.assertTrue(isinstance(self.factory_config, FactoryConfig))
 
