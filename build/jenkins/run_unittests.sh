@@ -17,9 +17,9 @@ EOF
 
 filename="$(basename $0)"
 VERBOSE=yes
-COVERAGE=''
+COVERAGE=no
 
-while getopts ":hqa" option
+while getopts ":hqac" option
 do
   case "${option}"
   in
@@ -33,9 +33,9 @@ do
   esac
 done
 
+shift $((OPTIND-1))
 # f) BRANCHES_FILE=$OPTARG;;
 
-shift $((OPTIND-1))
 
 # Script setup
 WORKSPACE=`pwd`
@@ -65,18 +65,18 @@ else
     files_list=$@
 fi
 
-[ -n "$COVERAGE" ] && coverage erase
+[ "$COVERAGE" = "yes" ] && coverage erase
 
 for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
     if [ -n "$VERBOSE" ]; then
-        if [ -n "$COVERAGE" ]; then
+        if [ "$COVERAGE" = "yes" ]; then
             coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $file || log_nonzero_rc "$file" $?
         else
             ./$file || log_nonzero_rc "$file" $?
         fi
     else
-        if [ -n "$COVERAGE" ]; then
+        if [ "$COVERAGE" = "yes" ]; then
             coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $file 
         else
             ./$file
@@ -87,7 +87,7 @@ done
 CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BR_NO_SLASH=$(echo ${CURR_BRANCH} | sed -e 's/\//-/g')
 
-if [ -n "$COVERAGE" ]; then
+if [ "$COVERAGE" = "yes" ]; then
     coverage report > ${WORKSPACE}/coverage.report.${BR_NO_SLASH}
     coverage html
     mv htmlcov ${WORKSPACE}/coverage_dir.${BR_NO_SLASH}
