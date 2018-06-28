@@ -652,6 +652,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
 
     try:
         gfg_classad.writeToFile(tmpnam, append=False)
+
         exe_condor_advertise(tmpnam, gfg_classad.adAdvertiseCmd,
                              factory_collector=factory_collector)
     finally:
@@ -1004,6 +1005,7 @@ def exe_condor_advertise(fname, command,
         try:
             ret = condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp,
                                                 is_multi, factory_collector)
+            logSupport.log.info("condorAdvertise()")
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
     finally:

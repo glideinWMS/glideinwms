@@ -696,6 +696,7 @@ def advertizeWorkFromFile(factory_pool,
                           is_multi=False):
     try:
         exe_condor_advertise(fname, "UPDATE_MASTER_AD", factory_pool, is_multi=is_multi)
+        logSupport.log.info("FrontendInterface: advertizeWorkFromFile(), condor executed")
     finally:
         if remove_file:
             os.remove(fname)
@@ -1288,6 +1289,7 @@ def deadvertizeAllWork(factory_pool, my_name, ha_mode='master'):
             fd.close()
 
         exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_pool)
+        logSupport.log.debug("FrontendInterface: deadvertizeAllWork(), condor executed")
     finally:
         os.remove(tmpnam)
 
@@ -1309,6 +1311,7 @@ def deadvertizeAllGlobals(factory_pool, my_name, ha_mode='master'):
             fd.close()
 
         exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_pool)
+        logSupport.log.debug("FrontendInterface: deadvertizeAllGlobals(), condor executed")
     finally:
         os.remove(tmpnam)
 

@@ -322,6 +322,7 @@ class glideinFrontendElement:
         for factory_pool in self.factory_pools:
             factory_pool_node = factory_pool[0]
             try:
+                logSupport.log.debug("FrontendElement: deadvertizeAllWork()")
                 glideinFrontendInterface.deadvertizeAllWork(
                     factory_pool_node,
                     self.published_frontend_name,
@@ -330,6 +331,7 @@ class glideinFrontendElement:
                 logSupport.log.warning("Failed to deadvertise work on %s"%factory_pool_node)
 
             try:
+                logSupport.log.debug("FrontendElement: deadvertizeAllGlobals()")
                 glideinFrontendInterface.deadvertizeAllGlobals(
                     factory_pool_node,
                     self.published_frontend_name,
@@ -1565,6 +1567,7 @@ class glideinFrontendElement:
 
 
     def get_condor_q(self, schedd_name):
+        logSupport.log.log(11, "get_condor_q(%s)" % schedd_name)
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1586,6 +1589,7 @@ class glideinFrontendElement:
 
 
     def get_condor_status(self):
+        logSupport.log.log(11, "get_condor_status()")
 
         # All slots for this group
         status_dict = {}
