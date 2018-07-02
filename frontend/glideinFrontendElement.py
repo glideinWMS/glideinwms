@@ -1596,7 +1596,8 @@ class glideinFrontendElement:
 
     def get_condor_status(self):
         # Jack Lundell
-        logSupport.log.log(11, "get_condor_status()")
+        logSupport.log.info("get_condor_status()")
+        logSupport.log.info("LJKEAHSLGKJSDLKGJLSKDJGLKSDJGLKSDJGKLSDJLKGJSDG")
 
         # All slots for this group
         status_dict = {}
