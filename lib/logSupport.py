@@ -282,8 +282,6 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
 
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
-    # Jack Lundell
-    mylog.addLevelName(11, "PROFILE")
 
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount, compression)
     handler.setFormatter(DEFAULT_FORMATTER)
@@ -304,9 +302,6 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
         if msg_type == "DEBUG":
             msg_type_list.append(logging.DEBUG)
             has_debug = True
-        # Jack Lundell
-        if msg_type == "PROFILE":
-            msg_type_list.append(11)
 
     if has_debug:
         handler.setFormatter(DEBUG_FORMATTER)

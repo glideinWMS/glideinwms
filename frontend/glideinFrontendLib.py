@@ -1078,6 +1078,9 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         full_constraint = type_constraint[0:]  # make copy
         if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
+            # Jack Lundell
+            logSupport.log.info("getCondorQConstrained(), full_constraint = %s", full_constraint)
+
 
         try:
             condorq = condorMonitor.CondorQ(schedd)
