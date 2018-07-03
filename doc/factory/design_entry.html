@@ -92,8 +92,8 @@ Factory Design Topics: <br/>
 <P>The Factory Entry Daemon is based on the polling principle; it
 runs in an eternal loop as described in the picture below.</P>
 <P><IMG SRC="../images/flow_entry_main.png"><BR>The
-configuration is read only once, during daemon startup, needing a restart
-for every configuration change.<BR>However, the daemon checks
+configuration is read only once, during daemon startup, so a restart is
+needed for every configuration change.<BR>However, the daemon checks
 the downtime file in every iteration, so a change to the
 downtime configuration file does not need any further action on the
 daemon.</P>
@@ -115,7 +115,7 @@ picture below:</P>
     <LI><P>Find the requests by querying the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
     Collector</A></P>
     <LI><P>For each request:</P>Keep the required number of idle jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd (G)</A> queue</P>
-    <LI><P>For each request: Extract the statistics</P>
+    <LI><P>For each request: Extract the statistics</P></li>
 </UL>
 <P><IMG SRC="../images/flow_entry_work.png"></P>
 <P>This stage requires two input fields, the configuration data and
@@ -191,7 +191,7 @@ command line binaries.</P>
 <P>The picture below shows the dependency tree.</P>
 <P><IMG SRC="../images/modules_entry.png"><BR>Note: glideFactoryEntry.py
 is executable.</P>
-<P>The GlideinWMS common libraries are in GlideinWMS/lib
+<P>The GlideinWMS common libraries are in glideinWMS/lib
 directory.<BR>The shell script is located in the root directory of
 the Factory tree, copied there during the <A HREF="index.html#create_entry">creation
 of the tree itself</A>. 
@@ -291,7 +291,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support@fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 

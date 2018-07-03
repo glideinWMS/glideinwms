@@ -321,7 +321,7 @@ individual entry point configuration.
     <div class="xml">
         &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional</b> Defines if the Factory should use -multiple to advertise its ClassAds.  
+        <b>Optional:</b> Defines if the Factory should use -multiple to advertise its ClassAds.  
     </li>
     <LI>
     <div class="xml">
@@ -519,7 +519,7 @@ individual entry point configuration.
         <TR>
             <TD> <P><b>const</b></P> </TD>
             <TD>
-                <P>If this attribute is a constant, 
+                <P>Set to True if the attribute is a constant. If so, 
                 Glidein Frontend can not change it. If set to const, 
                 the attribute will be available in
                 the constants file created in the staging area. 
@@ -682,6 +682,8 @@ override the global arguments if present.
     Please check the Grid site documentation and/or ask the Grid
     site administrator for the proper rsl and queue name for the site.<br/>
     (example: '<tt>(condorsubmit=(universe vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>'). <br/>
+    NOTE:  If the auth_method contains "+project_id" for a TeraGrid entry, the string "(project=TG_PROJECT_ID)"
+    will be added by the Factory and populated with the project id passed in the request.   
     </li>
     <li>
         <div class="xml">
@@ -717,7 +719,7 @@ override the global arguments if present.
         </div>
     <b>Optional:</b> This argument defines the directory where BOSCO (some HTCondor executables and Glite BLAHP) are
         installed on the BOSCO resource submit host. This is the node specified in the gatekeeper attribute when using
-        "batch ..." grid type bu tignored for other grid types. The path specified is relative to $HOME.
+        "batch ..." grid type. This is ignored for other grid types. The path specified is relative to $HOME.
     <i>Note: This must be the same directory used for the BOSCO installation on the remote resource (bosco_cluster_add).
     </i>  A different directory is useful only to avoid interferences if the same home directory is shared and
         mounted by multiple resources.
@@ -1258,8 +1260,7 @@ worker nodes. gLExec is a service that will take the following:</P>
     </blockquote>
 
 <P>Just some history information to understand about glexec: 
-As of version 7.1.3 of HTCondor, a new, better gLExec operation mode
-is supported; in the old operation mode, condor_startd invoked
+In the old gLExec operation mode, condor_startd invoked
 condor_starter through gLExec. The result was that ciondor_starter was
 running under the same UID as the user job, leaving it vulnerable to
 attack from a malicious user. The new operating mode solves this by
@@ -1280,9 +1281,6 @@ much more secure.</P>
 <P>
 Note that you still need to set <tt><B>GLEXEC_BIN</B></tt>,
 too.</p>
-    <p><B>Warning</B>: Use it only if you use HTCondor 7.1.3 or later,
-as it will not work on any older HTCondor version!</P>
-
 <H4 CLASS="western"><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
 <p>
     gLExec installations on at least
@@ -1313,7 +1311,7 @@ as it will not work on any older HTCondor version!</P>
 
     </div>
     <p>Another thing to consider is the startup directory; it must be
-    accessible by both; the starting user and the target user(s). The
+    accessible by both: the starting user and the target user(s). The
     directory you usually start in the Grid is most often not readable
     by any other user, so you must select something else. 
     Both <tt>HTCondor</tt>
@@ -2111,7 +2109,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support@fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div></div>
 </body>
 </html>

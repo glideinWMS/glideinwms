@@ -195,40 +195,37 @@ publish glideresource ClassAds to the User Pool Collector. Such a ClassAd will c
 
 
 <h4><a name="limits_triggered"></a>New limits and curbs on  number of glideins triggered appear in glideresource ClassAd:</h4>
-<ol>
-<li> To advertize Frontend limits/curbs</li>
+<li> <p>To advertize Frontend limits/curbs</p>
 <p>
-Frontend adds the following attributes in glideresource ClassAd about Frontend limits/curbs
+Frontend adds the following attributes in glideresource ClassAd about Frontend limits/curbs.
 These new attributes in glideresource all start with the prefix "GlideClientLimit" to indicate that this attribute provides information about limit triggered.
-examples>
+examples:<br/>
 If TotalGlideinsPerEntry on Frontend side is triggered, you will see in glideresource ClassAd
 GlideClientLimitTotalGlideinsPerEntry = "count=11, limit=10"
 It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
 </p>
 
-<li> To advertize Factory limits </li>
+<li> <p>To advertize Factory limits </p>
 <p>
-Factory adds the following attributes in glidefactoryclient ClassAd
-These new attributes in glidefactoryclient all start with 2 prefixes
-GlideinMonitorStatus and GlideFactoryLimit.
-GlideinMonitorStatus is pretended by Factory code for this attribute to be picked by Frontend code to become attribute of glideresource ClassAd.
-The second prefix GlideFactoryLimit indicates that this attribute provides information about limit triggered.
-
-<li>Examples found in glidefactoryclient:
+Factory adds the following attributes in glidefactoryclient ClassAd.
+These new attributes in glidefactoryclient all start with 2 prefixes: GlideinMonitorStatus and GlideFactoryLimit.
+GlideinMonitorStatus is pre-pended by the Factory code for this attribute to be picked by Frontend code to become attribute of glideresource ClassAd.
+The second prefix GlideFactoryLimit indicates that this attribute provides information about a limit triggered.
+Examples found in glidefactoryclient:<br/>
 If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
 GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
-It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
-
-Frontend code looks at glidefactoryclient and picks up attributes that start with
-GlideinMonitorStatus
-and convert them to start with
-GlideFactoryMonitorStatus</li>
-
-<>liExamples found in glideresource:
-Again, If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
-GlideFactoryMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"</li>
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this”
 </p>
-</ol>
+<p>
+The Frontend code looks at glidefactoryclient, picks up attributes that start with
+GlideinMonitorStatus
+and converts them to start with
+GlideFactoryMonitorStatus.
+Examples found in glideresource:<br/>
+Again, If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideFactoryMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+</p>
+</li>
 
 </div>
 </body>

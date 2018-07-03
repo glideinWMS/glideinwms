@@ -92,7 +92,7 @@ Factory Design Topics: <br/>
 The protocol defines how the Frontend describes &quot;what&quot; needs to be done and the Factory knows &quot;how&quot; to do it.  
 The VO Frontend, OSG, TeraGrid, and the Cloud all have special requirements where the frontends and users 
 have some information on the &quot;how&quot; that is needed by the Factory.  This means that the Frontend cannot pass information 
-that will affect glidein submission; instead, they pick entry configurations that best suits their needs. The Frontends maintain the ability to affect glidein behavior with glidein attributes.  
+that will affect glidein submission; instead, they pick entry configurations that best suits their needs. The only exception is the ability to pass VM Id and Type for cloud entries or the Project Id. The Frontends maintain the ability to affect glidein behavior with glidein attributes.  
 </p>
 
 <h2><a name="communication"></a>Communication between the Factory and Frontend</h2>
