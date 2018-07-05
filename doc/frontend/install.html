@@ -129,8 +129,8 @@ Install as: <b>VO Frontend User</b><br/>
             
             <p>
                 This machine needs <b>4 cores</b>, preferable no more than 2 years old  and a moderate amount of <b>memory</b> (<b>3GB </b> plus 2MB per running job should be enough).<br>
-
-                The <b>disk</b> needed is just for binaries, config files and log files (<b>30GB</b> should be enough)
+                The <b>disk</b> needed is just for binaries, config files and log files (<b>30GB</b> should be enough)<br/>
+                Hardware requirements depend on the expected load. With small loads or for test purposes one core and 1GB will suffice.
             </p>
     </div>
 
@@ -175,7 +175,7 @@ Install as: <b>VO Frontend User</b><br/>
             <li>User Submitter cert/proxy DN</li>
             <li>Glidein Frontend HTCondor proxy DN (cannot use a cert here)</li>
         </ul>
-        <strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs. These nicknames are the HTCondor UID used in its configuration and mapfile (/etc/condor/certs/condor_mapfile).  In the Frontend, these names do not matter.<br> 
+        <strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs. These nicknames are the HTCondor UIDs used in its configuration and mapfile (/etc/condor/certs/condor_mapfile).  In the Frontend, these names can be arbitrary, are not related to unix accounts.<br> 
         <strong>Note 2:</strong> The installer will ask if these are trusted HTCondor Daemons.  Answer 'y'. 
     </p>
 

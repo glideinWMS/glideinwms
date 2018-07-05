@@ -128,7 +128,7 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td>The installer will use the tarball or rpm to install and
-                configure HTCondor inline. It is recommended to use v7.8
+                configure HTCondor inline. It is recommended to use v8
                 and above.<br><br>
                 <b><u>Batch Submission via BOSCO:</u></b><br>
                 If you want to add batch resources (via BOSCO) you need
@@ -191,7 +191,7 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td> 
               The perl-Time-HiRes rpm is needed for this package.  Please verify all dependencies: 
-              rrdtool, perl-rrdtool and python-rrdtool. These packages are available via yum in EL6/7 
+              rrdtool, perl-rrdtool and python-rrdtool. These packages are available via yum using EPEL in EL6/7 
               or can be searched in RPMFind.
             </td>
 
@@ -274,8 +274,8 @@ Install as: various daemon users or as system rpms/packages
 <div class="section">
     <h2><a name="system_vdt">2. OSG Client</a></h2>
     <p>
-        The OSG Client (formerly known as VDT Client) is now available as a set of RPMs. 
-        OSG provides a <a href="https://opensciencegrid.org/docs/">
+        The OSG Worker Node Client (formerly known as VDT Client and OSG Client) is now available as a set of RPMs. 
+        OSG provides a <a href="https://opensciencegrid.org/docs/worker-node/install-wn">
         complete set of instructions</a> that that we recommend.
         Here you can follow the instructions to install OSG Client on RHEL 6 and 7  based systems (including CentOS and SL). 
         First you will need to enable the EPEL and OSG
@@ -296,7 +296,7 @@ Install as: various daemon users or as system rpms/packages
     </p>
 
     <p>
-        If you have the OSG repositories enabled (in this case slf-primary), you can install it via yum:
+        You can install it via yum. It is available in the Scientific Linux Repository (slf-primary):
         <pre> yum install rrdtool rrdtool-python </pre>
     </p>
 
@@ -368,7 +368,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-GlideinWMS email support: glideinwms-support@fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </div>
 </body>
