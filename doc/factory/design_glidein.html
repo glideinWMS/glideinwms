@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory Design</h2>
@@ -89,7 +87,7 @@ Factory Design Topics: <br/>
 <div class="section">
 
 <H2><A NAME="overview"></A>Overview of the glidein mechanism</H2>
-<P>A glidein is, simply put, a properly configured <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+<P>A glidein is, simply put, a properly configured <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
 Startd</A> submitted as a Grid job. Once a glidein starts on a worker
 node, it will join a specified HTCondor pool, making the obtained
 Grid-batch slot a slot in the HTCondor pool. At this point, a regular
@@ -106,9 +104,9 @@ picture below.</P>
 
 <P><IMG SRC="../images/factory_overview.png"></p>
 <p>This
-document describes how a glidein configures and starts the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+document describes how a glidein configures and starts the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
 Startd</A>.</P>
-<P>The glidein a factory sends is thus just a wrapper. However, it
+<P>The Glidein Factory sends just a wrapper. However, it
 must perform several tasks, including:</P>
 <UL>
     <LI>Check that the working environment on the worker node is
@@ -127,7 +125,7 @@ must perform several tasks, including:</P>
 <P>Given the complexity of the task, and for the sake of flexibility,
 it makes sense to split the script in several pieces. So the glidein
 job is composed of several pieces, including a startup script, helper
-scripts, the HTCondor binaries, and a base configuration file. 
+scripts, the HTCondor binaries and a base configuration file. 
 </P>
 <P>However, having a Grid job with data files can represent a
 challenge; each Grid flavor treats data in a different way. To make
@@ -175,7 +173,7 @@ tarballs are also supported.</P>
 <div class="section">
 <H2><A NAME="flow"></A>Program flow</H2>
 <P>The glidein startup script is tasked to setup the working
-environment, configure HTCondor and launch the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+environment, configure HTCondor and launch the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
 Startd</A>.<BR>As said in the overview, a glidein is basically a
 wrapper that downloads other files, executing some of them. <BR>A
 private working directory is used to minimize interference with other
@@ -188,14 +186,14 @@ processes running on the same node.</P>
     <LI>Helper files; these can be either simple files, tarballs or
     executables.</li>
 </UL>
-<P>The files are also split between general, or factory wide, and
+<P>The files are also split between general, or Factory wide, and
 entry-specific ones. Since order can be important, especially when
 executables are involved, the glidein allows for global helper files
 to be loaded (and executed) before and/or after the entry-specific
 ones.  One executable is special; this is the helper script that
 starts the 
 <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor Startd</A>. 
-This one must be the last to be run, so it is handled in
+and  must be the last to be run, so it is handled in
 a special way.</P>
 <P>See the picture below for an overview.</P>
 <P><IMG SRC="../images/flow_glidein_main.png"></p>
@@ -205,13 +203,13 @@ communication between stages is carried out by a locally created
 config file. The reason for this is due to the fact that environment
 changes can only propagate in one direction, from parent to child.
 Since most of the setup is done by external executables that would be
-unacceptable, so the config file was introduced</P>
+unacceptable, the config file was introduced.</P>
 <P>Some of the stages are pretty self explanatory, but most need
 further details. In particular:</P>
 <UL>
     <LI><A HREF="#flow_sign">Get signatures and file info</A></li>
     <LI><A HREF="#flow_file">Download and process a file</A></li>
-    <LI><A HREF="#flow_condor">Configure and start Condor</A></li>
+    <LI><A HREF="#flow_condor">Configure and start HTCondor</A></li>
 </UL>
 </div>
 
@@ -220,8 +218,8 @@ further details. In particular:</P>
 <P>The retrieval of the signature files is a multi step process. The
 main reason being that the startup script does not know the name of
 the signature file.<BR>Instead, the glidein startup script receives
-the name the file that contains the names of all the other important
-files. So that file is fetched first.<BR>Once the name of the
+the name of the file that contains the names of all the other important
+files. And that file is fetched first.<BR>Once the name of the
 signature file is know, it is fetched and validated against the
 provided SHA1 signature.<BR>Once the signature file can be trusted,
 the description file is verified, too, using the signature present in
@@ -265,7 +263,7 @@ output variable name.
 <div class="section">
 <H3><A NAME="flow_condor"></A>Configure and start HTCondor</H3>
 <P>As mentioned before, most of the work in a glidein is carried on
-by the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+by the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
 Startd</A>. This stage the condor_startd is configured and
 launched.<BR>To do this, the script parses the HTCondor variable
 description files and extracts the needed values from the glidein
@@ -292,10 +290,9 @@ compressed and streamed to the standard error.</P>
 mostly using <A HREF="http://tldp.org/LDP/abs/html/">bash</A>,
 although grep and <A HREF="http://www.vectorsite.net/tsawk.html">awk</A> are used
 extensively, too.</P>
-<P>The files are located in <TT>glideinWMS/creation/web_base</TT></P>
-
-<P>but are copied to the factory configuration directory during the
-<A HREF="index.html#create_entry">factory configuration</A>.</P>
+<P>The files are located in <TT>glideinWMS/creation/web_base</TT>but are copied 
+to the Factory configuration directory during the
+<A HREF="index.html#create_entry">Factory configuration</A>.</P>
 <P>The picture below shows the dependency tree of the most used
 scripts. The optional scripts are grayed out.</P>
 <P><IMG SRC="../images/scripts_glidein.png"></P>
@@ -318,7 +315,7 @@ from <TT>glideinWMS/creation/web_base</TT></P>
     should be documented here.</li>
 </UL>
 <P>Another set of configuration files is generated during the 
-<A HREF="index.html#create_entry">factory configuration</A>:</P>
+<A HREF="index.html#create_entry">Factory configuration</A>:</P>
 <UL>
 
     <LI><TT>constants</TT> &ndash; contains the values for a set of variables</li>
@@ -335,7 +332,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 

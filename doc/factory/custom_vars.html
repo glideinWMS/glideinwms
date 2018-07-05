@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -23,7 +23,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -52,7 +51,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory</h2>
@@ -64,13 +62,13 @@
 	     <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>Custom Condor Variables</h3>
+        <h3>Custom HTCondor Variables</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
     <LI><A HREF="#location">Variable location</A>
-    <LI><A HREF="#condor_vars">Condor vars file</A>
+    <LI><A HREF="#condor_vars">HTCondor vars file</A>
     <LI><A HREF="#vars">Variables used</A> 
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
@@ -97,9 +95,9 @@ site (for example: max allowed wallclock time).</P>
 
 <div class="section">
 <H2><A NAME="location"></A>Configuration variable location</H2>
-<P>The glideinWMS ships with a set of pre-defined configuration
-variables, that are stored in two files, known as <I>condor vars
-files</I>:</P>
+<P>The GlideinWMS ships with a set of pre-defined configuration
+variables, that are stored in two files (known as <I>condor vars
+files)</I>:</P>
 
 <BLOCKQUOTE>
     glideinWMS/creation/web_base/condor_vars.lst<BR>
@@ -110,7 +108,7 @@ reasons, and the second one is meant to contain site specific
 configuration variables.<BR><B>These files should never be modified,
 and represent just the default shipped by the software!</B> 
 </P>
-<P>A glideinWMS administrator can change the values of the predefined
+<P>A GlideinWMS administrator can change the values of the predefined
 variables (with some exceptions, see <A HREF="#dyn_vars">below</A>),
 and define new ones using the <A HREF="configuration.html#args">Glidein
 Factory configuration</A> file.</P>
@@ -118,10 +116,10 @@ Factory configuration</A> file.</P>
 </div>
 
 <div class="section">
-<H2><A NAME="condor_vars"></A>Condor vars files</H2>
-<P>The condor vars files contain the glideinWMS pre-defined
+<H2><A NAME="condor_vars"></A>HTCondor vars files</H2>
+<P>The condor vars files contain the GlideinWMS pre-defined
 configuration variables, and <B>should never be modified</B>.<BR>However,
-a glideinWMS administrator should nevertheless be able to read them.</P>
+a GlideinWMS administrator should nevertheless be able to read them.</P>
 <P>Each of them is an ASCII file, with one entry per row. <BR>Lines
 starting with # are comments and are ignored.</P>
 <P>Each non comment line must have 7 columns. Each column has a
@@ -133,13 +131,13 @@ specific meaning:</P>
     <UL>
         <LI>I (int) &ndash; integer</li>
         <LI>S (string) &ndash; quoted string</li>
-        <LI>C (expr) &ndash; unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>C (expr) &ndash; unquoted string (i.e. HTCondor keyword or expression)</li>
     </UL>
     </li>
     <LI>Default value, use &ndash; if no default</li>
 
-    <LI>Condor name, i.e. under which name should this attributed be
-    known in the configuration used by Condor daemons</li>
+    <LI>HTCondor name, i.e. under which name should this attributed be
+    known in the configuration used by HTCondor daemons</li>
     <LI>Is a value required for this attribute? <BR>Must be Y or N.
     If Y and the attribute is not defined, the glidein will fail.</li>
     <LI>Will condor_startd publish this attribute to the
@@ -150,14 +148,14 @@ specific meaning:</P>
 
         <LI>+ - Export to the user job environment using the original
         attribute name</li>
-        <LI>@ - Export to the user job environment using the Condor name</li>
+        <LI>@ - Export to the user job environment using the HTCondor name</li>
     </UL>
     </li>
 </OL>
 <P>Here below, you can see a short extract; the semantics of the
 variables is defined <A HREF="#vars">below</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
-#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
 #                                                                                               + = Use VarName
 #                                                                                               @ = Use CondorName
 #################################################################################################################
@@ -184,8 +182,8 @@ MAX_STARTD_LOG          I       10000000        +                               
 <A NAME="vars"></A>Glidein Variables</H2>
 <P>This section defines all the variables that the glideins explicity
 use. Please be aware that, apart from the below mentioned variable
-many other variables will be used by the Condor daemons, since
-glideins are Condor based; see the <A target="_blank" HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html">Condor manual</A> for more details.</P>
+many other variables will be used by the HTCondor daemons, since
+glideins are HTCondor based; see the <A target="_blank" HREF="https://research.cs.wisc.edu/htcondor/manual/v8.6/3_3Introduction_Configurati.html">HTCondor manual</A> for more details.</P>
 <P>The variables can be divided based on their source:
 </p>
 <UL>
@@ -203,7 +201,7 @@ glideins are Condor based; see the <A target="_blank" HREF="http://www.cs.wisc.e
 <H3><A NAME="factory_attrs"></A>Factory config xml - attr tags</H3>
 <P>This section presents all the variables that can be directly
 changed by a Glidein Factory administrator using attr tags in the
-factory configuration XML using the following tags:</P>
+Factory configuration XML using the following tags:</P>
 <BLOCKQUOTE>
     <B>&lt;attr name</B>=&ldquo;<I>name</I>&rdquo; <B>value</B>=&ldquo;<I>val</I>&rdquo;
 
@@ -221,7 +219,7 @@ which are used if the Glidein Factory administrator does not override
 them. These defaults are listed below.
 </P>
 <P>Please also note that some of these variables may also be provided
-by the VO factory clients.</P>
+by the VO Factory clients.</P>
 
 <TABLE class="attributes">
     <TR class="head">
@@ -249,7 +247,7 @@ by the VO factory clients.</P>
 
         <TD> True </TD>
         <TD>
-            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            <P>HTCondor expression to use to specify when a user job in the glideins should be held. 
             If any expression is true, the glidein is held.  This is usually done to specify "bad"
             jobs, such as those that claim too much memory.
         </TD>
@@ -260,7 +258,7 @@ by the VO factory clients.</P>
         <TD> Expr (Bool)</td>
         <TD>True </TD>
         <TD ROWSPAN=2>
-            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            <P>HTCondor expression to use to specify when a user job in the glideins should be preempted. 
             If any expression is true, the glidein is preempted.  This is usually done to specify 
             custom preemption policies for user jobs.
         </TD>
@@ -278,7 +276,7 @@ by the VO factory clients.</P>
         <td>Expr (Int)</td>
         <TD>1</TD>
         <TD ROWSPAN=2>
-                <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
+                <P>Used in calculating the HTCondor <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html">RANK</A></P><P>They
                 are summed together, and the user job with the largest rank will run
                 first.</P>
 
@@ -326,7 +324,7 @@ by the VO factory clients.</P>
             <br/>
             The random spread
             is used to improve the efficiencies, so the actual value used by
-            Condor will be anywhere between GRT-GRTS and GRT.</P>
+            HTCondor will be anywhere between GRT-GRTS and GRT.</P>
             <p>NOTE: if GLIDEIN_Max_Walltime is specified, then this value is ignored and the retire time is calculated
             (see GLIDEIN_Max_Walltime below)</p>
         </TD>
@@ -344,7 +342,7 @@ by the VO factory clients.</P>
 
         <TD>
             <P>Max allowed time for the glidein.<BR>This variable is optional.  If you specify this variable, 
-            then Condor startup scripts will calculate the GLIDEIN_Retire_Time for the glidein as GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time.  
+            then HTCondor startup scripts will calculate the GLIDEIN_Retire_Time for the glidein as GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time.  
             If GLIDEIN_Retire_Time is also specified, it will be ignored and only the calculated value is used.  Note that if GLIDEIN_Job_Max_Time is
             specified but is greater than GLIDEIN_Max_Walltime or 
             does not allow enough time for graceful shutdown, it will
@@ -358,7 +356,7 @@ by the VO factory clients.</P>
         <TD> 120 </TD>
         <TD>
             <P>Once DAEMON_SHUTDOWN is reached and the glidein pilot enters the 
-            <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I> state</a>, 
+            <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html"><I>Retiring</I> state</a>, 
             this amount passes to allow the startd and job to gracefully shutdown before forcefully terminating the glidein.
             See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
@@ -426,13 +424,13 @@ by the VO factory clients.</P>
         When adding resources to the main slots (type is <tt>main</tt> or <tt>extra</tt>): the memory and disk parameters are ignored; HTCondor splits automatically resources
         depending on the number of CPUs and having a partitionable main slot or not;
         if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots for the Glideins
-        (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOTS_LAYOUT partitionable in the frontend configuration)
+        (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOTS_LAYOUT partitionable in the Frontend configuration)
         otherwise the startd may fail due to impossible configuration. When adding resources to the main slots, regular jobs (not using the resource) may use
         all memory and CPUs (including the virtual ones). Only separate slots (type is <tt>partitionable</tt> or <tt>static</tt>) reserve CPUs and memory.
         <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
         -->
-        Check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
+        Check the <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">
             HTCondor manual to learn more on how resources are split</a>.
         </p>
         <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type, disk (see the last example below).</p>
@@ -441,7 +439,7 @@ by the VO factory clients.</P>
             T or TB indicates TiB, $2^{40}$ numbers of bytes.
             Disk space must be a fraction or percentage: 1/4, 25%.
             auto lets HTCondor do the splitting.
-            Check the <a href="http://research.cs.wisc.edu/htcondor/manual/v8.4/3_5Policy_Configuration.html#SECTION004511200000000000000">HTCondor manual</a> for more about resource splitting.</p>
+            Check the <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">HTCondor manual</a> for more about resource splitting.</p>
         <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
             e.g. request_ioslot=1</p>
         <p>Examples:</p>
@@ -466,9 +464,9 @@ by the VO factory clients.</P>
         <td> String </TD>
         <td> None </TD>
         <td>
-            <P>If set, Condor will launch all user jobs via <A HREF="http://vdt.cs.wisc.edu/components/glexec.html">glexec</A>,
+            <P>If set, HTCondor will launch all user jobs via glexec,
             thus <A HREF="configuration.html#glexec">running the job under the
-            appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
+            appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">GlideinWMS
             security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
             purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
             automatically find the locally installed gLExec on OSG worker
@@ -486,7 +484,7 @@ by the VO factory clients.</P>
         <TD>
             <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
             UID as the user job</A>. This has security implications.</P>
-            <P>If running Condor 7.1.3 or later, it is recommended to turn
+            <P>NOTE: It is recommended to turn
             this on and have the condor_starter be protected from the user
             jobs. 
             </P>
@@ -500,7 +498,7 @@ by the VO factory clients.</P>
 
         <TD>
             <P>Should process group monitoring be enabled?</P>
-            <P>This is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UseProcessGroups">Condor
+            <P>This is a <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_3Introduction_Configurati.html">HTCondor
             optimization</A> parameter. Unfortunately, it negatively
             interferes with the batch systems used by the Grid sites, so it
             should not be turned on unless you have a very good reason to do
@@ -516,7 +514,7 @@ by the VO factory clients.</P>
             <P>If True, forces the glidein to use <A HREF="configuration.html#tcp">TCP updates</A>.<BR>The collector must be configured in the same way
             for this to work.</P>
 
-            <P>Also see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UpdateCollectorWithTcp">Condor documentation</A> for implications and side effects.</P>
+            <P>Also see the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:UseProcessGroups">HTCondor documentation</A> for implications and side effects.</P>
         </TD>
     </TR>
     <TR>
@@ -525,16 +523,16 @@ by the VO factory clients.</P>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
-            <P>If True, enable the startd UDP command socket (Condor
+            <P>If True, enable the startd UDP command socket (HTCondor
             default).</P>
-            <P>Using the UDP command socket is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:WantUDPCommandSocket">Condor
+            <P>Using the UDP command socket is a <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:WantUDPCommandSocket">HTCondor
             optimization</A> that makes working over firewalls and NATs very
             difficult. It is thus recommended you leave it disabled in the
             glideins.</P>
 
             <P>Please note if you leave it disabled, that you must configure
             the schedd with<BR>SCHEDD_SEND_VACATE_VIA_TCP = True<BR>and the
-            negotiator with<BR><A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:NegotiatorInformStartd">NEGOTIATOR_INFORM_STARTD</A>
+            negotiator with<BR><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:NegotiatorInformStartd">NEGOTIATOR_INFORM_STARTD</A>
             = False<BR>to have a functional system.</P>
         </TD>
     </TR>
@@ -562,7 +560,7 @@ by the VO factory clients.</P>
             <P>Security related settings. Please notice that the glideins
             always require GSI authentication.</P>
             <P>For more details see the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html">Condor
+            page</A> or the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/Security.html#x36-2700003.8">HTCondor
             manual</A>.</P>
         </TD>
     </TR>
@@ -582,7 +580,7 @@ by the VO factory clients.</P>
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:SecEnableMatchPasswordAuthentication">HTCondor
             manual</A>.</P>
         </TD>
     </TR>
@@ -596,7 +594,7 @@ by the VO factory clients.</P>
 
             <P>Setting them too low will made debugging difficult.<BR>Setting
             them too high may fill up the disk in anomalous situations, both
-            on the work nodes and on the glidein factory.</P>
+            on the work nodes and on the glidein Factory.</P>
         </TD>
     </TR>
     <TR>
@@ -618,7 +616,7 @@ by the VO factory clients.</P>
 
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
-            <P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
+            <P>Configure <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">GCB</A>.</P>
             <P>GCB was needed to run glideins on worker nodes behind a
             firewall or a NAT in older versions of HTCondor.<BR>
             <B>Note: Newer versions of HTCondor do not support it anymore.</B></P>
@@ -658,7 +656,7 @@ by the VO factory clients.</P>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:CCB">HTCondor Connection Brokering (CCB)</A>,
+            <P>If set to True, it will enable <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor Connection Brokering (CCB)</A>,
             which is needed if the glideins are behind a firewall or a NAT.</P>
         </TD>
 
@@ -669,7 +667,7 @@ by the VO factory clients.</P>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:shared-port-daemon">the shared port daemon</A>,
+            <P>If set to True, it will enable <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#sec:shared-port-daemon">the shared port daemon</A>,
                which will reduce the number of connections between the glidein and the collectors.
                </P>
         </TD>
@@ -688,7 +686,7 @@ by the VO factory clients.</P>
 		Most of the time it is an integer, but the type is string to allow also the keywords.
                 In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots.
                 In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available.
-                Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
+                Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">NUM_CPUS</a></P>
         </TD>
     </TR>
     <TR>
@@ -711,7 +709,7 @@ by the VO factory clients.</P>
         <TD> Int</td>
         <TD> None </TD>
         <TD>
-            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor and Startd and jobs started by the glidein. If not GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE, glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19977">MEMORY</a></P>
+            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor and Startd and jobs started by the glidein. If not GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE, glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">MEMORY</a></P>
         </TD>
     </TR>
     <TR>
@@ -746,8 +744,8 @@ by the VO factory clients.</P>
 <div class="section">
 <H3><A NAME="factory_vars"></A>Factory config xml - configuration</H3>
 <P>The second set of variables comes from values the Glidein Factory
-administrator defined to make the factory to work. They are generated
-based on xml tags in the factory configuration (most in the entry tag).
+administrator defined to make the Factory to work. They are generated
+based on xml tags in the Factory configuration (most in the entry tag).
 They cannot be changed by an administrator in any other way.
 </P>
 <TABLE class="attributes">
@@ -895,7 +893,7 @@ described below ar the most often used.</P>
 
         <TD> String </TD>
         <TD>
-            <P>Identification name of the VO frontend request (like
+            <P>Identification name of the VO Frontend request (like
             &ldquo;ucsd5@v1_0@osg1@cms4&rdquo;).</P>
         </TD>
     </TR>
@@ -953,7 +951,7 @@ described below ar the most often used.</P>
         <td> <b>GLIDECLIENT_Rank</b> </td>
         <td>Expr (Int)</td>
         <TD ROWSPAN=2>
-                <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
+                <P>Used in calculating the Condor <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html">RANK</A></P><P>They
                 are summed together, and the user job with the largest rank will run
                 first.</P>
 
@@ -998,11 +996,11 @@ described below ar the most often used.</P>
 
         <TD>
             <P>If False, the user job environment will contain only glidein
-            factory provided variables.</P>
+            Factory provided variables.</P>
             <P>If True, the user job environment will also contain the
             environment variables defined at glidein startup. 
             </P>
-            <P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
+            <P>See <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_5Configuration_Macros.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
         </TD>
     </TR>
     <TR>
@@ -1028,11 +1026,11 @@ described below ar the most often used.</P>
             <ul>
               <li><b>fixed</b> - create N single core slots, and split memory and disk equally mong them
               <li><b>partitionable</b> - start up with 
-                        <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Policy_Configuration.html#sec:SMP-dynamicprovisioning">
+                        <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION004711800000000000000">
                         a single partitionable slot and let HTCondor do the spliting as needed</a>
             </ul>
 
-             The default behavior is defined by the factory, but it has historically been set to "fixed".<br><br>
+             The default behavior is defined by the Factory, but it has historically been set to "fixed".<br><br>
              <b>Note: This variable MUST NOT be passed as a parameter, or the glideins will fail!</b>
         </TD>
     </TR>
@@ -1091,7 +1089,7 @@ described below ar the most often used.</P>
 <div class="section">
 <H3><A NAME="vm_vars"></A>Cloud VM specific Variables</H3>
 <P>The following variables are only applicable to Cloud VMs.</P>
-<P>These variables can be either configured by factory or the frontend</P>
+<P>These variables can be either configured by Factory or the Frontend</P>
 <TABLE class="attributes">
     <TR class="head">
         <td> <P><b>Name</b></P></td>
@@ -1132,7 +1130,7 @@ described below ar the most often used.</P>
 <div class="section">
 <H3><A NAME="dyn_vars"></A>Dynamically generated variables</H3>
 <P>The following variables are being dynamically generated and/or
-modified by glideinWMS processes. The glideinWMS administrators
+modified by GlideinWMS processes. The GlideinWMS administrators
 cannot directly change them.</P>
 <P>The first set of variables comes from the Glidein Factory.</P>
 <TABLE class="attributes">
@@ -1299,7 +1297,7 @@ the working directory specified by</P>
                 may need 
                 <tt>exec "$GLIDEIN_PARROT/parrot_run" 
                 -t "$parrot_tmp" "$@" </tt>.<br/>
-                Note, the syntax of this command is very sensitiv
+                Note, the syntax of this command is very sensitive
                 This needs to be double-escaped in order to function correctly.
                 For the two examples listed above, you would need:
             </P>
@@ -1617,11 +1615,7 @@ Once the job finishes, it will wait for Glidein_Max_Tail for another job.
 If cannot find one, it will shutdown.
 </li>
 </ul>
-Note that for GlideinWMS versions before 3.2.7 or for glidins using HTCondor pre 8.2, 
-the idle limits are cumulative (it counts total idle time), so that
-the total idle times in all the yellow zones above will be counted towards
-GLIDEIN_Max_Tail. Not so for GlideinWMS 3.2.7 and HTCondor 8.2 or later, 
-where Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
+Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 </div>
 
 <div class="section">
@@ -1649,7 +1643,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 </div>

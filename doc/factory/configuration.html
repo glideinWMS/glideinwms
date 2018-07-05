@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" alt="Frontend" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" alt="Collector" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" alt="Factory" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" alt="Corral" />
     </map>
 
     <h2>WMS Factory</h2>
@@ -94,7 +92,7 @@ Related Links: <br/>
 </div>
 <div class="section">
 <a name="example_configuration"></a><h2>Example Configuration</h2>
-Below is an example factory configuration xml file.  Click on any piece
+Below is an example Factory configuration xml file.  Click on any piece
 for a more detailed description.
 <div class="config">
 <a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov" factory_collector="submit.fnal.gov:9618" entry_parallel_workers="0"&gt;</a><br/>
@@ -218,7 +216,7 @@ for a more detailed description.
 
 <P>
     The configuration file is a XML document.
-    It contains both global arguments as well as configuration specific 
+    It contains both global arguments as well as specific configuration 
     to each entry point.  At least one entry point must be specified in the
     configuration file.
 
@@ -227,9 +225,9 @@ for a more detailed description.
     The tags of the XML configuration file are described below.
     Each is given a designation:
     <uL>
-        <li><b>Required</b> You must change or examine this in order for the factory to function correctly.</li>
-        <li><b>Recommended</b> The installer provides a good default, but you should examine this attribute to make sure it is correct for your installation.</li>
-        <li><b>Optional</b> The installer-provided default is likely correct for your installation.  Change this only if your particular configuration requires special treatment or fine-tuning.</li>
+        <li><b>Required:</b> You must change or examine this in order for the Factory to function correctly.</li>
+        <li><b>Recommended:</b> The installer provides a good default, but you should examine this attribute to make sure it is correct for your installation.</li>
+        <li><b>Optional:</b> The installer-provided default is likely correct for your installation.  Change this only if your particular configuration requires special treatment or fine-tuning.</li>
     </ul>
 </p>
 </div>
@@ -246,7 +244,7 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein ... &gt;
         </div>
-    <p><b>Required</b> The main tag of the Factory configuration.  See below for the 
+    <p><b>Required:</b> The main tag of the Factory configuration.  See below for the 
         parameters for this tag:
     <ul>
     <li>
@@ -254,16 +252,16 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein glidein_name=&quot;<I>your name</I>&quot;&gt;
         </div>
-        <b>Required</b> The name
+        <b>Required:</b> The name
     of the configuration. It will be used to advertise the entry points,
     will be defined as HTCondor glidein attribute <tt>GLIDEIN_Name</tt>,
     and is used also to create the directory names.
-    Choose a short name that describes the set of Grid resources 
-    it represents and append a version number (like 
+    Choose a short name that describes the set of Grid resources .
+    It represents and append a version number (like 
     <tt>&quot;fnalcms_1&quot;</tt>).
-    Starting with v2.0 of glideinWMS, you can use the 
-    <A HREF="index.html#reconfig_entry">factory reconfig tool </A>
-    to make changes to the factory configuration. You
+    Starting with v2.0 of GlideinWMS, you can use the 
+    <A HREF="index.html#reconfig_entry">Factory reconfig tool </A>
+    to make changes to the Factory configuration. You
     will only need new configuration for the factories during major
     upgrade. For more details refer the 
     <A HREF="index.html#management">Glidein Factory management section</A>
@@ -271,14 +269,14 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein factory_name=&quot;<I>your name</I>&quot;&gt;
         </div>
-    <b>Recommended</b>  Changing this value from the name of the 
-       machine allows you to move the factory without disrupting the system.
+    <b>Recommended:</b>  Changing this value from the name of the 
+       machine allows you to move the Factory without disrupting the system.
     </li><LI>
         <div class="xml">
         &lt;glidein
         schedd_name=&quot;<I>schedd name[,schedd name]*</I>&quot;&gt;
         </div>
-    <b>Recommended</b> If you want to use multiple HTCondor schedds or you don't like the
+    <b>Recommended:</b> If you want to use multiple HTCondor schedds or you don't like the
     default name, you definitely need to set this. If you specify more
     than a single schedd, the various entries will be equally spread
     among all the listed schedds.  Possible values include (but are not limited to): <br/>
@@ -289,10 +287,10 @@ individual entry point configuration.
         &lt;glidein
         factory_collector=&quot;<I>collector_name:port</I>&quot;&gt;
         </div>
-    <b>Recommended</b> You can have a dedicated collector serving just for message passing with the Frontend.<br>
+    <b>Recommended:</b> You can have a dedicated collector serving just for message passing with the Frontend.<br>
     If this is not set, the default collector will be used, which also happens to be used to advertise the
-    internal Condor-G classads. That's undersirable both for security reasons, 
-    and also because frequent Condor-G updates tend to load it heavily.
+    internal HTCondor-G ClassAds. That's undersirable both for security reasons, 
+    and also because frequent HTCondor-G updates tend to load it heavily.
 
     </li>
     <LI>
@@ -300,8 +298,8 @@ individual entry point configuration.
         &lt;glidein loop_delay=&quot;<I>seconds</I>&quot;
         advertise_delay=&quot;<I>nr</I>&quot; &gt;
         </div>
-        <b>Optional</b> Defines how active the glidein factory should be.
-        The glidein factory works in polling mode.
+        <b>Optional:</b> Defines how active the glidein Factory should be.
+        The glidein Factory works in polling mode.
         <tt><B>loop_delay</B></tt> defines how much time should pass between each polling loop, with
     the collector being updated every <tt><B>advertise_delay</B></tt> loops.
 <LI>
@@ -309,7 +307,7 @@ individual entry point configuration.
         &lt;glidein restart_attempts=&quot;<I>nr</I>&quot;
         restart_interval=&quot;<I>seconds</I>&quot; &gt;
         </div>
-    <b>Optional</b> Defines how many times restart_attempts should be
+    <b>Optional:</b> Defines how many times restart_attempts should be
     applied within restart_interval seconds for an entry if the entry
     crashes.
     </li>
@@ -317,19 +315,19 @@ individual entry point configuration.
     <div class="xml">
         &lt;glidein advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional</b> Defines if the factory should use TCP to advertise its classads.
+        <b>Optional:</b> Defines if the Factory should use TCP to advertise its ClassAds.
     </li>
     <LI>
     <div class="xml">
         &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional</b> Defines if the factory should use -multiple to advertise its classads (requires HTCondor 7.5.4+).  
+        <b>Optional:</b> Defines if the Factory should use -multiple to advertise its ClassAds.  
     </li>
     <LI>
     <div class="xml">
         &lt;glidein advertise_pilot_accounting=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional</b> Defines if the factory should condor_qedit pilot jobs after they finishes to add accounting information. A classad MONITOR_INFO will be added and jobs will be left in the Complete state for 12 hours.
+        <b>Optional:</b> Defines if the Factory should condor_qedit pilot jobs after they finishes to add accounting information. A ClassAd MONITOR_INFO will be added and jobs will be left in the Complete state for 12 hours.
     </li>
     </ul>
     </li>
@@ -351,7 +349,7 @@ individual entry point configuration.
     <li>DEBUG:  Debug message. These are additional informational messages that describe code execution in detail.</li>
     <li>ERR:  Error messages. These may include tracebacks. </li>
     <li>WARN: Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
-    <li>ADMIN: This is a special setting only applicable to factory logs (and not entry logs) that contains admin messages, such as reconfig comments.  This will create a new log called factoryadmin.extension.log.  Currently, it cannot be combined with other message types.</li>
+    <li>ADMIN: This is a special setting only applicable to Factory logs (and not entry logs) that contains admin messages, such as reconfig comments.  This will create a new log called factoryadmin.extension.log.  Currently, it cannot be combined with other message types.</li>
     </ul>
     The extension is added to the log name to create separate logs.
     <br><br>
@@ -360,7 +358,7 @@ individual entry point configuration.
     Log files are rotated based on a time and size of the log files as follows:
     <ul>
         <li>If the log file size reaches <i>max_bytes</i> it will be rotated (NOTE: the value will be truncated and 0 means no rotation).</li>
-        <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days it will be rotated.</li>
+        <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days, it will be rotated.</li>
         <li><i>min_days</i> is not used and is there for backwards compatibility.</li>
         <li>Rotated files may be compressed. Supported compressions are Gzip "gz" and Zip "zip". Default is no compression (empty string).</li> 
         <li>After rotation, recent number of <i>backup_count</i> files will be kept and older ones are deleted. Defaults to 5.</li>
@@ -378,15 +376,15 @@ individual entry point configuration.
             base_dir=&quot;<I>directory</I>&quot;
             version=&quot;<I>condor version</I>&quot;/&gt;
         </div>
-    <p><b>Required</b> Where to find the HTCondor binaries.
+    <p><b>Required:</b> Where to find the HTCondor binaries.
     You can list as many as you need,
     but at least one is required. This lets you configure glideins for
     different sites to use different version of HTCondor binaries based on
-    architecture, os of the worker nodes that could be found on the site.<br/>
+    architecture, OS of the worker nodes that could be found on the site.<br/>
     It is recommended to have one default entry with
         <b>os=&quot;default&quot; arch=&quot;default&quot;
         version=&quot;default&quot;</b>.<br/>
-        To configure multiple tarballs, os, arch and version accept a comma
+        To configure multiple tarballs, OS, arch and version accept a comma
         separated list. See <a href="#tarballs">multiple tarballs</a> for more
         detailed instructions on supporting tarballs for multiple architectures.
     </p>
@@ -399,7 +397,7 @@ individual entry point configuration.
 
         base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;/&gt;
         </div>
-    <p><b>Recommended</b> Where to create the glidein submit directory. 
+    <p><b>Recommended:</b> Where to create the glidein submit directory. 
     The default is the user home
     directory. Log directories can be configured independent of the base
     directory using options mentioned above.</P>
@@ -410,7 +408,7 @@ individual entry point configuration.
 
         web_base_dir=&quot;<I>URL</I>&quot;/&gt;
         </div>
-    <p><b>Recommended</b> These two define where the Web server directories are located.
+    <p><b>Recommended:</b> These two define where the Web server directories are located.
     <BR/>The defaults are reasonable, but you may have different needs. 
     </P>
     <LI>
@@ -422,7 +420,7 @@ individual entry point configuration.
         jquery_dir=&quot;<I>web dir</I>>&quot; &gt;
 
         </div>
-    <p><b>Recommended</b> The <STRONG>base_dir</STRONG> defines where the monitoring web are
+    <p><b>Recommended:</b> The <STRONG>base_dir</STRONG> defines where the monitoring web are
     is.<BR/>The other entries point to where javascriptRRD, Flot and
     JQuery libraries are.</P>
     <LI>
@@ -444,7 +442,7 @@ individual entry point configuration.
 
         </div>
         <p>
-        The factory can remove old credential files saved on disk.  You can set the min age (in days) the credential needs to be 
+        The Factory can remove old credential files saved on disk.  You can set the min age (in days) the credential needs to be 
         before it can be deleted and the frequency (in hours) to perform the removal.  If you set the frequency to less than zero,
         the clean up functionality is disabled.
         </p>
@@ -457,14 +455,14 @@ individual entry point configuration.
         identity=&quot;username_usedby_factory@factory_hostname&quot;
         /&gt;</div>
 
-    <p><b>Recommended</b> (Required for privilege separation) 
-    This configures a frontend. 
-    <b>Frontend on the frontend hosting machine
-    should have same name as mentioned in the 'name'. </b>Identity tells the
-    factory the username under which the factory should map the given
-    frontend to.
-    <b>If this does not match the frontend configuration, 
-    the factory will drop all requested glideins.</b>
+    <p><b>Recommended:</b> (Required for privilege separation) 
+    This configures the Frontend. 
+    <b>Frontend on the Frontend hosting machine
+    should have the  same name as mentioned in the 'name'. </b>Identity tells the
+    Factory the username under which the Factory should map the given
+    Frontend to.
+    <b>If this does not match the Frontend configuration, 
+    the Factory will drop all requested glideins.</b>
     </P>
     <LI>
         <a name="security_class" />
@@ -474,7 +472,7 @@ individual entry point configuration.
         username=&quot;<I>>username_usedby_factory</I>&quot;/&gt;
         </div>
 
-    <p><b>Required</b> Tells the class and user name the factory uses for this frontend.<br/></p>
+    <p><b>Required:</b> Tells the class and user name the Factory uses for this Frontend.<br/></p>
     <ul>
         <div class="xml">-  <b>&lt;security_class name=&quot;frontend&quot; username=&quot;<I>username_usedby_factory</I>&quot;/&gt;</b></div>
 
@@ -494,8 +492,8 @@ individual entry point configuration.
         </div>
 
     <p>Attributes you want to publish that 
-    effect all the factory entries</p>
-    <p>To set Attributes specific to an entry point, set them in
+    effect all the Factory entries</p>
+    <p>To set specific attributes to an entry point, set them in
     /glidein/entries/entry/attrs section.</p>
     <p>Table below describes
     the &lt;attrs ... &gt; tag. 
@@ -521,7 +519,7 @@ individual entry point configuration.
         <TR>
             <TD> <P><b>const</b></P> </TD>
             <TD>
-                <P>If this attribute is a constant so that 
+                <P>Set to True if the attribute is a constant. If so, 
                 Glidein Frontend can not change it. If set to const, 
                 the attribute will be available in
                 the constants file created in the staging area. 
@@ -543,7 +541,7 @@ individual entry point configuration.
             <TD>
                 <P>If set to True, 
                 the attribute will be published in Factory's
-                classad</P>
+                ClassAd</P>
             </TD>
         </TR>
         <TR>
@@ -551,7 +549,7 @@ individual entry point configuration.
             <TD>
 
                 <P>If set to True, the attribute will be 
-                available in the condor_startd's classad (and the glidein condor configuration). 
+                available in the condor_startd's ClassAd (and the glidein condor configuration). 
                 Used only if parameter is True.</P>
             </TD>
         </TR>
@@ -585,7 +583,7 @@ individual entry point configuration.
 
     </TABLE>
     <P><BR>These are used by the <A HREF="../frontend/index.html#match_expr">VO
-    frontend matchmaking</A> and job matchmaking.<BR><BR>Example
+    Frontend matchmaking</A> and job matchmaking.<BR><BR>Example
     attributes are:</P>
     <PRE>&lt;attrs&gt;
  &lt;attr name=&quot;VOpilot&quot; value=&quot;CMS&quot; 
@@ -597,7 +595,7 @@ individual entry point configuration.
 &lt;/attrs&gt;</PRE>
     </p><p>A list of all the
     attributes can be found on the 
-    <A HREF="custom_vars.html"> dedicated configuration variables page </A>. 
+    <A HREF="custom_vars.html"> dedicated configuration variables page</A>. 
     </P>
     </LI>
     <LI>
@@ -613,7 +611,7 @@ individual entry point configuration.
         </div>
 
     <p>Custom files configuration is discussed in the <A HREF="#custom_code">Adding custom files/scripts to the glideins</A> paragraph in the advanced section below.</p>
-    <p>Custom files, how to write and use them, are discussed in the <A HREF="custom_scripts.html">custom scripts page</A>.</p>
+    <p>Custom files (how to write and use them), are discussed in the <A HREF="custom_scripts.html">custom scripts page</A>.</p>
     </LI> 
 </UL>
 <P><BR>The other arguments are for advanced admins only, and are
@@ -633,26 +631,25 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;&gt;
         </div>
-    <P><b>Required</b> Each entry point will have its own root tag with parameters:</p>
+    <P><b>Required:</b> Each entry point will have its own root tag with parameters:</p>
     <ul>
     <LI>
         <div class="xml">
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;&gt;
         </div>
-    <b>Required</b> Specify an easy to remember name that will identify this entry for display purposes and for specifying using command line tools.
+    <b>Required:</b> Specify an easy name to remember, that will identify this entry for display purposes and for specifying using command line tools.
     </li>
     <LI>
         <div class="xml">
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot; auth_method=&quot;<I>grid_proxy</I>&quot;&gt;
         </div>
-    <b>Required</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for 
+    <b>Required:</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for 
     submission.  Valid values: grid_proxy, voms_proxy, key_pair, cert_pair, username_password, vm_type, vm_id, project_id<br/>
     Multiple authentication methods may be needed and there may be reqirements on the authentication method depending on the type of entry. 
     E.g. ec2 requires a credential pair (key_pair, cert_pair, username_password) and the VM id and type. BOSCO requires a key_pair and a grid_proxy.
-    A TeraGrid site requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
-    method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;. <br/>
+    The authentication method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;. <br/>
     When multiple methods are needed these can be additional entry values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
     OR <br/>
     can be added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
@@ -662,7 +659,7 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot; trust_domain=&quot;<I>OSG</I>&quot;&gt;
         </div>
-    <b>Required</b> The trust domain for the entry.  This is not interpreted by the Factory code, only used to show what credentials are valid.  For example,
+    <b>Required:</b> The trust domain for the entry.  This is not interpreted by the Factory code, only used to show what credentials are valid.  For example,
     there may be two ec2-type entries for two different clouds with the authentication method of "key-pair".  This shows allows the Frontend to map a key pair
     to a particular cloud. Or in BOSCO you can use it to select the key to use with a specific cluster.
     </li>
@@ -672,7 +669,7 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         gatekeeper=&quot;<I>gatekeeper</I>&quot;&gt;
         </div>
-    <b>Required</b> The identifier of your Grid/BOSCO resource (like
+    <b>Required:</b> The identifier of your Grid/BOSCO resource (like
     <tt>&quot;cmsitbsrv01.fnal.gov/jobmanager-condor&quot;</tt>). 
     BOSCO resources are USER@FQDN, e.g. <tt>cmsuser@cmscluster.fnal.gov</tt>.
     </li>
@@ -685,9 +682,8 @@ override the global arguments if present.
     Please check the Grid site documentation and/or ask the Grid
     site administrator for the proper rsl and queue name for the site.<br/>
     (example: '<tt>(condorsubmit=(universe vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>'). <br/>
-    NOTE:  If the auth_method contains "+project_id" for a TeraGrid entry, the string "(project=TG_PROJECT_ID)" 
-    will be added by the Factory and populated with the project id passed in the Corral request.  Only Corral Frontends can use
-    these entries since we currently do not support a VO Frontend passing the project id.
+    NOTE:  If the auth_method contains "+project_id" for a TeraGrid entry, the string "(project=TG_PROJECT_ID)"
+    will be added by the Factory and populated with the project id passed in the request.   
     </li>
     <li>
         <div class="xml">
@@ -696,7 +692,7 @@ override the global arguments if present.
 
         gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
         </div>
-    <b>Optional</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
+    <b>Optional:</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
     batch pbs (for PBS and SLURM), batch lsf, batch sge, batch condor. 
     This tag can specify additional HTCondor Grid types.
     </li>
@@ -706,7 +702,7 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         work_dir=&quot;<I>WN dir</I>&quot;&gt;
         </div>
-    <b>Recommended</b> This argument defines where the glidein should run once
+    <b>Recommended:</b> This argument defines where the glidein should run once
     on the worker node.
     <i>Note: Most OSG sites are known to crash if you use your
     starting directory to run. </i>  For those sites, it is good practice to
@@ -721,9 +717,9 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         bosco_dir=&quot;<I>BOSCO dir [default: bosco]</I>&quot;&gt;
         </div>
-    <b>Optional</b> This argument defines the directory where BOSCO (some HTCondor executables and Glite BLAHP) are
+    <b>Optional:</b> This argument defines the directory where BOSCO (some HTCondor executables and Glite BLAHP) are
         installed on the BOSCO resource submit host. This is the node specified in the gatekeeper attribute when using
-        "batch ..." grid type. This is ignored for other grid types. the path specified is relative to $HOME.
+        "batch ..." grid type. This is ignored for other grid types. The path specified is relative to $HOME.
     <i>Note: This must be the same directory used for the BOSCO installation on the remote resource (bosco_cluster_add).
     </i>  A different directory is useful only to avoid interferences if the same home directory is shared and
         mounted by multiple resources.
@@ -734,7 +730,7 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         proxy_url=&quot;<I>Proxy URL</I>&quot;&gt;
         </div>
-    <b>Recommended</b> If you have a Web cache you can use, you set it here (like
+    <b>Recommended:</b> If you have a Web cache you can use, you set it here (like
     <tt>&quot;cmsitbsquid002.fnal.gov:3128&quot;</tt>).
     On OSG resources, you can set it to <tt>&quot;OSG&quot;</tt>,
     and the default OSG squid will be used.
@@ -749,7 +745,7 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         schedd_name=&quot;<I>schedd name</I>&quot;&gt;
         </div>
-    <b>Optional</b> If you have an entry that needs a dedicated schedd,
+    <b>Optional:</b> If you have an entry that needs a dedicated schedd,
     you can set it here (to something like
     <tt>&quot;myveryspecialschedd@mymachine.mydomain&quot;)</tt>
     </li>
@@ -760,10 +756,10 @@ override the global arguments if present.
 
         enabled=&quot;<I>True/False</I>&quot;&gt;
         </div>
-    <b>Optional</b> You can define an entry point even if you do not plan to use it right
+    <b>Optional:</b> You can define an entry point even if you do not plan to use it right
     away.  The entry point directory will be created independently of
     the <tt><B>enabled</B></tt> flag, but will only
-    be used by the glidein factory if it is set to
+    be used by the glidein Factory if it is set to
     <tt><B>True</B></tt>.
     (Defaults to <tt><B>True</B></tt>).
     </li>
@@ -773,7 +769,7 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         verbosity=&quot;<I>std/fast/nodebug</I>&quot;&gt;
         </div>
-    <b>Optional</b> Specify the verbosity level and
+    <b>Optional:</b> Specify the verbosity level and
     termination time in case of validation errors:
     <UL>
         <LI><b>std (default)</b> &ndash; reasonable
@@ -867,7 +863,7 @@ sleep, self.jobDescript.data['SubmitSleep'], self.gflFactoryConfig.submit_sleep 
 
         </div>
     <p>
-    Attributes you want to publish into the HTCondor classad.
+    Attributes you want to publish into the HTCondor ClassAd.
     These are used by the
     <A HREF="../frontend/index.html#match_expr">VO Frontend matchmaking</A>
     and job matchmaking.</p>
@@ -895,7 +891,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         parameter=&quot;True&quot;
         publish=&quot;True&quot;/&gt;
         </div>
-    <b>Recommended</b> This defines the glidein attribute <tt>GLIDEIN_Site</tt>,
+    <b>Recommended:</b> This defines the glidein attribute <tt>GLIDEIN_Site</tt>,
     both for use of the Frontend and for the use of the job
     negotiation.  Logically defining a site is useful, so that you
     can change entry points but the user jobs do still known where they
@@ -926,7 +922,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     const=&quot;True&quot; parameter=&quot;True&quot; 
     publish=&quot;False&quot;/&gt;
     </div>
-    <b>Recommended</b> Select a non-default HTCondor binary.<BR/>
+    <b>Recommended:</b> Select a non-default HTCondor binary.<BR/>
 
     The entry will default to 
     <tt><B>CONDOR_OS=&quot;default&quot; CONDOR_ARCH=&quot;default&quot; 
@@ -945,7 +941,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         job_publish=&quot;True&quot;
         publish=&quot;True&quot;/&gt;
         </div>
-        <b>Recommended for BOSCO resources</b> BOSCO resources normally have no OSG software installed, so it is safer to publish the location of the CA certificates because the job may not be able to find them otherwise.
+        <b>Recommended for BOSCO resources:</b> BOSCO resources normally have no OSG software installed, so it is safer to publish the location of the CA certificates because the job may not be able to find them otherwise.
      </li>
      <li>
         <div class="xml">
@@ -957,7 +953,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         parameter=&quot;True&quot;
         publish=&quot;True&quot;/&gt;
         </div>
-        <b>Recommended</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
+        <b>Recommended:</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
         Valid values are 1..N and "auto" or "0" which means to use all cores by using HTCondor's
         core auto-detection.  The entry will default to 1 if not otherwise defined. 
     </li>
@@ -973,11 +969,11 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         </div>
         <p>
         This argument allows you to create a whitelist of
-        vo Frontends that can access this entry point.
+        VO Frontends that can access this entry point.
         If this tag is blank or missing, it is assumed that
         all VO Frontends can submit glideins to this entry point.
         However, if any allow_frontend tags exist, the entry point
-        will <b>only</b> allow those frontends to submit glideins.
+        will <b>only</b> allow those Frontends to submit glideins.
         The name of the Frontend must match the name given in
         the security class above in the configuration.
         </p>
@@ -1008,20 +1004,20 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
 <div class="section">
 <a name="metasites"></a><h2>Grouping entries into metasites</h2>
 <p>
-Starting in v3.2.20, entries with similar configuration can be grouped in &lt;entry_sets&gt; to form what we call a metasite. &lt;entry_sets&gt; starts right after the &lt;entries&gt; tag is closed. A metasite is defined by starting an &lt;entry_set&gt;, which then contains the common configuration for the different entries, and then an &lt;entries&lt; tag containing the different entries for the metasite.
+Starting in v3.2.20, entries with similar configuration can be grouped in &lt;entry_sets&gt; to form what we call a metasite. &lt;entry_sets&gt; starts right after the &lt;entries&gt; tag is closed. A metasite is defined by starting an &lt;entry_set&gt;, which then contains the common configuration for the different entries, and then an &lt;entries&gt; tag containing the different entries for the metasite.
 </p>
 <p>
 The following is an example of two different entry set containing two separate entries.
 </p>
 <p>
-The attributes auth_method, gridtype, and trust_domain must be the same in all entry elements (they are used for credential generation in the frontend).
+The attributes auth_method, gridtype, and trust_domain must be the same in all entry elements (they are used for credential generation in the Frontend).
 </p>
 <p>
-Only the metasite will be advertized as a glideresource classad, so the frontend will only see one element (entry).
-The Frontend will apply limits transparently as before, and the Factory as well. Right before glidein submission the factory
+Only the metasite will be advertized as a glideresource ClassAd, so the Frontend will only see one element (entry).
+The Frontend will apply limits transparently as before, and the Factory as well. Right before glidein submission, the Factory
 will detect there are multiple CE where the work can be send (multiple submission files) and
 it will count the running+idle glideins for each CE and send jobs to the one with less.
-The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile classad).
+The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile ClassAd).
 </p>
 
 <div class="config">
@@ -1061,7 +1057,7 @@ The submission file is added to the job condor submit file for accounting purpos
 publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
 publish="True" type="string" value="default"/&gt;<br>
-              &lt;attr name="GLEXEC_BIN" const="True" iglidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
+              &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
               &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_GRATIA_TEST"/&gt;<br>
               &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS"/&gt;<br>
               &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
@@ -1169,19 +1165,19 @@ of glidein pools will be presented.
 <UL>
     <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity AND enforces the use of Singularity, you must have 
 &lt;attr name=&quot;GLIDEIN_SINGULARITY_REQUIRE&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;True&quot;/&gt; in &lt;attrs&gt;
-and SINGULARITY_BIN must be given the full path name of singularity binary, for example,
+and SINGULARITY_BIN must be given the full path name of Singularity binary, for example,
 &lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin/singularity&quot;/&gt; in &lt;attrs&gt;.
     </P>
     <LI><P STYLE="margin-bottom: 0in">If an entry is not capable of Singularity at all, make sure you don't have SINGULARITY_BIN in &lt;attrs&gt;.
-	Remember that SINGULARITY_BIN should NEVER be set in the factory configuration if your site does not support the Singularity (or set it to the keyword NONE, uppercase).
+	Remember that SINGULARITY_BIN should NEVER be set in the Factory configuration if your site does not support the Singularity (or set it to the keyword NONE, uppercase).
     </P>
     <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity BUT does not necessarily enforce the use of Singularity,
 you don't need to have GLIDEIN_SINGULARITY_REQUIRE in &lt;attrs&gt; but 
 SINGULARITY_BIN must be given the path of singularity binary(not including the filename), for example,
 &lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin&quot;/&gt;.
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If the value of SINGULARITY_BIN is not a valid Singularity path (and is different from NONE),
-    then GlideinWMS will search on the node for the singularity binary, first using $PATH, then trying to invoke module, for example,
+    <LI><P STYLE="margin-bottom: 0in">If the value of SINGULARITY_BIN is not a valid, Singularity path (and is different from NONE),
+    then GlideinWMS will search on the node for the Singularity binary; first using $PATH, then trying to invoke module. For example,
 &lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;yes&quot;/&gt;.
     </P>
 </UL>
@@ -1263,9 +1259,9 @@ worker nodes. gLExec is a service that will take the following:</P>
     GLEXEC = /bin/false 
     </blockquote>
 
-<P>As of version 7.1.3 of HTCondor, a new, better glexec operation mode
-is supported; in the old operation mode, condor_startd invoked
-condor_starter through glexec. The result was that condor_starter was
+<P>Just some history information to understand about glexec: 
+In the old gLExec operation mode, condor_startd invoked
+condor_starter through gLExec. The result was that ciondor_starter was
 running under the same UID as the user job, leaving it vulnerable to
 attack from a malicious user. The new operating mode solves this by
 having condor_starter run the user jobs via glexec; this adds a
@@ -1285,9 +1281,6 @@ much more secure.</P>
 <P>
 Note that you still need to set <tt><B>GLEXEC_BIN</B></tt>,
 too.</p>
-    <p><B>Warning</B>: Use it only if you use HTCondor 7.1.3 or later,
-as it will not work on any older HTCondor version!</P>
-
 <H4 CLASS="western"><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
 <p>
     gLExec installations on at least
@@ -1318,7 +1311,7 @@ as it will not work on any older HTCondor version!</P>
 
     </div>
     <p>Another thing to consider is the startup directory; it must be
-    accessible by both the starting user and the target user(s). The
+    accessible by both: the starting user and the target user(s). The
     directory you usually start in the Grid is most often not readable
     by any other user, so you must select something else. 
     Both <tt>HTCondor</tt>
@@ -1342,14 +1335,12 @@ but it is no more supported in recent versions, so remove it if you still have i
 
 <H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
 <p>
-    CCB was introduced in Condor v7.3.0
-    to replace GCB in most circumstances. It is much more reliable than
-    GCB and also easier to setup. <BR/>
+    <BR/>
     The detailed description of CCB is
     beyond the scope of this manual and you should refer to the HTCondor
-    documentation available at
-    <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_7Networking_includes.html#sec:CCB">http://research.cs.wisc.edu/htcondor/manual/v8.0/3_7Networking_includes.html#sec:CCB</A>.
-    Here you will find only the parameters needed to enable it in the
+    documentation available
+    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">here</A>.
+    , where you will find only the parameters needed to enable it in the
     glideins.
     </p><p>To use HTCondor with CCB, you need to specify: 
     <div class="xml">
@@ -1364,8 +1355,7 @@ but it is no more supported in recent versions, so remove it if you still have i
 
     </div>
 <P>
-and you are done. Just make sure you follow the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">suggested
-scalability guidelines described in the HTCondor manual</A>.</P>
+and you are done. Just make sure you follow the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">suggested scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">
@@ -1386,7 +1376,7 @@ and the default values are:</P>
     <LI><B>DELEGATE_JOB_GSI_CREDENTIALS</B>=False</li>
 </UL>
 </tt>
-<P>As of HTCondor version 7.1.3 condor also supports a more efficient
+<P>HTCondor also supports a more efficient
 authentication mechanism between the condor_schedd/condor_shadow and
 condor_startd/condor_starter. This method uses the match ClaimId as a
 shared password for authentication between these daemons. Since using
@@ -1436,7 +1426,7 @@ should be used every time it is feasible.</P>
 <P>In GlideinWMS, we enable the glideins to update the user collector using TCP by default.
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See 
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor documentation</A>
+<A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">Condor documentation</A>
  for more details.</P>
 </div>
 
@@ -1451,7 +1441,7 @@ configure multiple collectors in a chain.
     You will need a master and a set of slave collectors. 
     Each slave collector will service a portion of the pool 
     and will forward communication between the startd daemons 
-    to the master collector.  Machine classads from these startd's
+    to the master collector.  Machine ClassAds from these startd's
     will be sent to the master collector.
     The negotiator and the schedds will talk to the master collector, 
     and the startds will talk to one of the slave ones.  This will
@@ -1473,7 +1463,7 @@ export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
 export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 <p>
     Using <t>localhost</t> to communicate to the master collector is more efficient.
-    But will not work if they are on different hosts or if you are using HTCondor older than 8.2.
+    But will not work if they are on different hosts with HTCondor version 8.2.
     For those case you'll need: <t>export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</t> 
 
 </p><p>
@@ -1482,10 +1472,10 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 
 </p><p>
     The <A HREF="../frontend/index.html">VO Frontend</A>
-    will have to point the factory to a 
+    will have to point the Factory to a 
     <A HREF="../frontend/index.html#management">list of collectors</A>. 
 </p><p>
-    The configuration internally will add a line in the factory 
+    The configuration internally will add a line in the Factory 
     configuration file that will set up the glideins to handle
     the multiple collectors.  (You should now see a line like:
     <i>"&lt;file absfname=&quot;web_base/collector_setup.sh&quot;
@@ -1494,13 +1484,12 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 </p>
 </div>
 
-
 <div class="section">
 <H3 CLASS="western">
 <A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
 <P>As with any HTCondor pool, you may need to set the startd 
-<A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
-and <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Startd_Policy.html#SECTION00454000000000000000">rank</A>
+<A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION00471400000000000000">start</A>
+and <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION00471400000000000000">rank</A>
 conditions. <BR/>
 
 For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options: 
@@ -1526,13 +1515,14 @@ For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options:
     parameter=&quot;True&quot;/&gt; 
     </div>
 </div>
+
 <div class="section">
 <h3>Internal Configuration</h3>
 The configuration is parsed during the reconfiguration of the Factory, and split into a number of files:
 <ul>
-<li>job.descript = is read by the daemon do decide how to work </li>
-<li>attributes.cfg = are fixed values, these are published in the factory classad</li>
-<li>params.cfg = are for values the frontend will change, also published in the Factory classad</li>
+<li>job.descript => read by the daemon do decide how to work </li>
+<li>attributes.cfg => fixed values, these are published in the Factory ClassAd</li>
+<li>params.cfg => for values the Frontend will change, also published in the Factory ClassAd</li>
 </ul>
 For more information, see the <a href="design_entry.html#config">Entry Internals</a> page.
 
@@ -1541,9 +1531,9 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
 <div class="section">
 
     <h3><a name="tarballs">Multiple Condor Tarballs</a></h3>
-    <p>One frequent problem is that one particular condor binary will not run on all compute nodes.  Entry points require different architectures, or have different versions of glibc (ie. SL3 does not have glib2.4). </p>
+    <p>One frequent problem is that one particular condor binary will not run on all compute nodes.  Entry points require different architectures, or have different versions of glibc. </p>
 <p> 
-    The solution is to have multiple condor binaries.  The way to do this is to specify a tarball tag in the factory configuration file.  
+    The solution is to have multiple condor binaries.  The way to do this is to specify a tarball tag in the Factory configuration file.  
 </p>
 <ol>
     <li>Download the HTCondor binary from the 
@@ -1553,17 +1543,17 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
       <p/>
       The glideinwms pilot uses a subset of the condor binaries/libraries.
       The <tt>create_condor_tarball</tt>
-      script can be used to reduce space needed on your factory node.
+      script can be used to reduce space needed on your Factory node.
       Details on this script can be found in the 
       <a href="../components/tools.html#create_condor_tarball" >
       Components - Tools section of the documentation</a>.
     </li>
     <p/>
 
-    <li>Add a new <tt>condor_tarball</tt> tag to the factory configuration file:<br/>
-        There are two ways you can do this:
+    <li>Add a new <tt>condor_tarball</tt> tag to the Factory configuration file:<br/>
+        There are two different ways you can do this:
        <ul>
-        <li> put the tarball in a directory owned by the wmsfactory and 
+        <li> Put the tarball in a directory owned by the wmsfactory and 
              enter the <tt>condor_tarball</tt> tag as:
         <blockquote>
         &lt;glidein ... &gt;<br/>
@@ -1576,7 +1566,7 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
                     version="<i>Condor_Version</i>" /&gt;
         </blockquote>
        </li>
-        <li> or put the tarball in a directory owned by the wmsfactory and unzip/untar it.
+        <li> Put the tarball in a directory owned by the wmsfactory and unzip/untar it.
              Then, enter the <tt>condor_tarball</tt> tag as:
         <blockquote>
         &lt;glidein ... &gt;<br/>
@@ -1589,30 +1579,30 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
        </li>
       </ul>
     <p/>
-        Starting v2.6.2, to simplify the configuration, os, arch and version
+        To simplify the configuration, os, arch and version
         support comma values. This can drastically reduce the number of 
         condor_tarball entries needed in the configuration file.
         <br><br>
         Consider an example below for default <tt>os as rhel5</tt> and <tt>default arch as
-        x86_64</tt>. If the factory admin also wants <tt>os</tt> and <tt>arch</tt> information
+        x86_64</tt>. If the Factory admin also wants <tt>os</tt> and <tt>arch</tt> information
         explicitly available, the configuration needs following entries to cover
         possible combinations.
         <blockquote>
         &lt;condor_tarball <font color="blue"><b>os="default" arch="default"</b></font>
                            base_dir="dir" version="default"/&gt;<br>
-        &lt;condor_tarball <font color="blue"><b>os="rhel5" arch="x86_64"</b></font>
+        &lt;condor_tarball <font color="blue"><b>os="rhel6" arch="x86_64"</b></font>
                            base_dir="dir" version="default"/&gt;<br>
-        &lt;condor_tarball <font color="blue"><b>os="rhel5" arch="default"</b></font>
+        &lt;condor_tarball <font color="blue"><b>os="rhel6" arch="default"</b></font>
                            base_dir="dir" version="default"/&gt;<br>
         &lt;condor_tarball <font color="blue"><b>os="default" arch="x86_64"</b></font>
                            base_dir="dir" version="default"/&gt;
         </blockquote>
         Above example can be easily consolidated into a single <tt>condor_tarball</tt>
-        entry as below and the factory reconfiguration process will 
+        entry as below and the Factory reconfiguration process will 
         internally consider all the combinations. This also applies to the
         <tt>version</tt>.
         <blockquote>
-        &lt;condor_tarball <font color="blue"><b>os="default,rhel5" arch="default,x86_64"</b></font>
+        &lt;condor_tarball <font color="blue"><b>os="default,rhel6" arch="default,x86_64"</b></font>
                            base_dir="dir" <font color="blue"><b>version="default"</b></font>/&gt;
         </blockquote>
     </li>
@@ -1655,7 +1645,7 @@ value="True"/&gt;<br/>
  	        define one locally in the <tt>entry</tt> if needed.
     </li>
     <p/>
-    <li>Reconfigure the factory using the command:
+    <li>Reconfigure the Factory using the command:
         <blockquote>
 
         ./factory_startup reconfig ../CONFIG_DIR/glideinWMS.xml
@@ -1667,7 +1657,7 @@ value="True"/&gt;<br/>
         condor distribution in the <tt>condor_tarball</tt> element in the configuration
         as (if you populated just <tt>tar_file</tt> in step 2
         <blockquote>
- &lt;condor_tarball arch="default" os="default" <font color="blue"><b>tar_file="FACTORY_DIR/condor-7.8.tgz"</b></font> version="default"/&gt;
+ &lt;condor_tarball arch="default" os="default" <font color="blue"><b>tar_file="FACTORY_DIR/condor-8.7tgz"</b></font> version="default"/&gt;
         </blockquote>
             or (if you populated just <tt>base_dir</tt> in step 2)
         <blockquote>
@@ -1695,7 +1685,7 @@ of time.
 <OL>
     <LI><P>After a specified amount of time,
     the glidein will enter the 
-    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00457400000000000000">RETIRING state</A>. 
+    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">RETIRING state</A>. 
     This means, it will wait for the current job to finish
     (or kill it if it does not end within a configurable timeout) and
     exit immediately afterwards. This obviously implies that no new jobs
@@ -1755,7 +1745,7 @@ of time.
 <div class="section">
 <H3 CLASS="western">
 <A NAME="multi-monitor"></A>Old-style pseudo-interactive monitoring</H3>
-<P>Since v1_4_1, the pseudo-interactive monitoring uses a dedicated
+<P>The pseudo-interactive monitoring uses a dedicated
 startd in the glideins for monitoring purposes. This allows for
 monitoring even when the job starter enters the &ldquo;<I>Retiring&rdquo;</I>
 activity.</P>
@@ -1780,9 +1770,9 @@ statistics and the names of the slots is also different.</P>
 <P>While provided code should cover most of the general purpose use
 cases, some administrators may have additional needs. For these
 cases, the Glidein framework provides the possibility to download and process additional files.
-    Both Factory and Frontend configuration allow to specify lists of files either for all their glideins,
-    or for a specific entry (Factory), or job group (Frontend).
-    These files can be scripts (executables), regular files or tar-balls and depending on the options can be downloaded
+    Both , Factory and Frontend configuration allow to specify lists of files either for all their glideins,
+    for a specific entry (Factory), or job group (Frontend).
+    These files can be scripts (executables), regular files or tarballs and depending on the options can be downloaded
     at different times (see <A HREF="custom_scripts.html">the custom scripts document</A> for more detils).</P>
 <p><b>Note:</b>
 <A NAME="ref"></A>Files and subsystems will be
@@ -1809,11 +1799,11 @@ daemons are started up.</P>
         </TR>
         <TR>
             <TD> <P><b>untar</b></P></TD>
-            <TD> <P>True if the file is a tar-ball that needs to be expanded (see example below), default is False</P></TD>
+            <TD> <P>True if the file is a tarball that needs to be expanded (see example below), default is False</P></TD>
         </TR>
         <TR>
             <TD> <P><b>const</b></P></TD>
-            <TD> <P>If False the file is not constant (i.e. changes may happen without a reconfiguration of the factory
+            <TD> <P>If False the file is not constant (i.e. changes may happen without a reconfiguration of the Factory
                 and the file cannot be checksummed), default is True</P></TD>
         </TR>
         <TR>
@@ -1887,7 +1877,7 @@ daemons are started up.</P>
     The script will be copied in
     the Web-accessible area, and will be sourced just before a user job
     starts starts; i.e. it will become part of the 
-    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#16039">user job wrapper</A>.</P>
+    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_5Configuration_Macros.html">user job wrapper</A>.</P>
     <LI>
 
         <div class="xml">
@@ -1931,7 +1921,7 @@ daemons are started up.</P>
         </div>
     <p>Sometimes it is useful to transfer a
     whole set of files, or even directories, and that is much easier to
-    accomplish by means of a tar-ball. A subsystem is the glidein way to
+    accomplish by means of a tarball. A subsystem is the glidein way to
     describe a compressed tarball that is delivered to the worker nodes,
     untarred in a separate directory and advertised to the other
     scripts.</p>
@@ -2042,14 +2032,13 @@ together.</P>
     <a name="xsltplugins"/>
         <h3 class="western">XSLT Plugins to extend configuration</h3>
         <p>
-        Starting in v3.2.1, you can use XSL transformations (XSLT) to manage
-complex configuration files. During the reconfig process, the glidein Factory
-applies XSL transformations available to it in the directory configured by the
-environment variable GWMS_XSLT_PLUGIN_DIR. (It is also available by
-supplying the -xslt_plugin_dir option to the reconfig_glidein and
-reconfig_frontend commands as shown below.)</p>
+        You can use XSL transformations (XSLT) to manage complex configuration 
+files. During the reconfig process, the glidein Factory applies XSL transformations 
+available to it in the directory configured by the environment variable 
+GWMS_XSLT_PLUGIN_DIR. (It is also available by supplying the -xslt_plugin_dir 
+option to the reconfig_glidein and reconfig_frontend commands as shown below.)</p>
 <p>        Setting the variable via sysconfig files are supported:
-/etc/sysconfig/gwms-factory for the factory service and
+/etc/sysconfig/gwms-factory for the Factory service and
 /etc/sysconfig/gwms-frontend for the Frontend service,
 with the following contents:</p>
         <pre>
@@ -2064,7 +2053,7 @@ export GWMS_XSLT_PLUGIN_DIR=/etc/gwms-factory/plugin.d
         </pre>
 
 The following sample XSLT adds a custom attribute to the configuration file
-used by the factory.
+used by the Factory.
 
 <pre>
 &lt;?xml version=&quot;1.0&quot;?&gt;
@@ -2096,7 +2085,7 @@ The default behavior can be overridden by specifying the option -xslt_plugin_dir
     <a name="sitecollector"/>
         <h3 class="western">Glidein's Startd Advertising to Site HTCondor-CE Collector</h3>
         <p>
-        Starting in v3.2.11, you can make glidein's HTCondor daemons advertise
+        You can make glidein's HTCondor daemons advertise
         to site's local collector. There is no Glideinwms configuration
         that enable this and all the changes are on the site side.
         <ol>
@@ -2120,7 +2109,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div></div>
 </body>
 </html>

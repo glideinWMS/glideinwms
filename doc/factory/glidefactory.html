@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory Design</h2>
@@ -66,12 +64,12 @@
 	     <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>glidefactory classad</h3>
+        <h3>glidefactory ClassAd</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
-    <LI><A HREF="#identify">Identify the classad</A></li>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
     <LI><A HREF="#requirements">Requirements</A></li>
     <LI><A HREF="#configuration">Configuration and Installation</A></li>
     <LI><A HREF="#optional">Optional attributes</A></li>
@@ -92,25 +90,25 @@ Factory Design Topics: <br/>
 <div class="section">
 
 <h2>Factory Advertisement of Entries</h2>
-<p>Each Factory entry advertises information about itself that Frontends use in creating requests.  The Frontend also 
-uses this information to publish resource classads to the User Collector. <br><br> There is one Classad per 
+<p>Each Factory entry advertises information about itself that Frontends use when creating requests.  The Frontend also 
+uses this information to publish resource ClassAds to the User Collector. <br><br> There is one ClassAd per 
 entry point and it includes the following:</p>
 <ol>
-	<li><a name="identify"></a><b>Information used to identify the Classad.</b> FactoryName and GlideinName are used 
+	<li><a name="identify"></a><b>Information used to identify the ClassAd.</b> FactoryName and GlideinName are used 
 	by the Frontend to identify the factory needed when generating requests.
 		<ol type="a">
 			<li>Values used to manage Classads in the Collector
 				<ul>
 					<li>Name = &quot;entry_name@glidein_name@factory_name&quot;</li>
-					<li>Internal classad type of Master</li>
+					<li>Internal ClassAd type of Master</li>
 				</ul>
 			</li>
-			<li>Values used to distinguish the different classad types and used by glideinWMS to query the Collector
+			<li>Values used to distinguish the different ClassAd types and used by GlideinWMS to query the Collector
 				<ul>
 					<li>GlideinMyType = &quot;glidefactory&quot; </li>
 				</ul>
 			</li>
-			<li>Values set by glideinWMS to be used by Condor but not by glideinWMS
+			<li>Values set by GlideinWMS to be used by HTCondor but not by GlideinWMS
 				<ul>
 					<li>MyType = &quot;glidefactory&quot;</li>
 				</ul>
@@ -121,7 +119,7 @@ entry point and it includes the following:</p>
 		<ol type="a">
 			<li>The Factory and Frontend agree on trust domains and are used to determine what credentials are valid for a site.  This 
 			is used by the Frontend to map a credential to an entry so each entry publishes its trust domain.  The Factory does not 
-			interpret this value and it is used only by v3+ Frontends.
+			interpret this value and it is used by Frontends.
 				<ul>
 					<li>GLIDEIN_TrustDomain = &quot;OSG&quot;</li>
 				</ul>
@@ -134,20 +132,7 @@ entry point and it includes the following:</p>
 					<li>GlideinRequireGlideinProxy = False</li>
 				</ul>
 			</li>
-			<li>Additional requirements may need to be supplied by the Frontend.  An entry may require the Frontend to pass the project 
-			id (Corral only) or the VM Id and Type (both frontend types).  Only v3+ Frontends interpret this value.
-				<ul>
-					<li>add +project_id to the authentication method above, &quot;grid_proxy+project_id&quot;</li>
-					<li>add +vm_id and/or +vm_type to the authentication method above, &quot;key_pair+vm_id+vm_type&quot;</li>
-				</ul>
-			</li>
-			<li>These attributes are only needed for backwards compatibility with v2+ protocol Frontends and the values are derived from the 
-			authentication method for each entry.  If it is a grid site, these are True.  Non-grid sites set this to False (v2+ frontends can 
-			only submit to grid sites).
-				<ul>
-					<li>GlideinAllowx509_Proxy = True</li>
-					<li>GlideinRequirex509_Proxy = True</li>
-				</ul>
+			<li>Additional requirements may need to be supplied by the Frontend.  An entry may require the Frontend to pass the VM Id and Type.
 			</li>
 		</ol>
 	</li>
@@ -197,19 +182,18 @@ entry point and it includes the following:</p>
 				</ul>
 			</li>
 		</ol>
-	</li>	
-	<li><a name="communication"></a><b>Communication requirements.  </b>
-		<ol type="a">
-			<li>The Factory publishes the security information that the Frontend uses to communicate requests.  This is needed for backwards 
-			compatibility for v2+ protocol Frontends.
-				<ul>
-					<li>PubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
-					<li>PubKeyType = &quot;RSA&quot;</li>
-					<li>SupportedSignTypes = &quot;sha1&quot;</li>
-					<li>PubKeyValue = &quot;-----BEGIN PUBLIC KEY-----&#92;nMIIBIjAG9w0BAQ32m ... eZWnULjTB&#92;n-----END PUBLIC KEY-----&#92;n&quot;</li>
-				</ul>
-			</li>
-		</ol>
+       </li>
+       <li><a name="communication"></a><b>Communication requirements.  </b>
+               <ol type="a">
+                       <li>The Factory publishes the security information that the Frontend uses to communicate requests.  This is needed for legacy reasons.
+                               <ul>
+                                       <li>PubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+                                       <li>PubKeyType = &quot;RSA&quot;</li>
+                                       <li>SupportedSignTypes = &quot;sha1&quot;</li>
+                                       <li>PubKeyValue = &quot;-----BEGIN PUBLIC KEY-----&#92;nMIIBIjAG9w0BAQ32m ... eZWnULjTB&#92;n-----END PUBLIC KEY-----&#92;n&quot;</li>
+                               </ul>
+                       </li>
+               </ol>
 	</li>
 	<li><a name="downtime"></a><b>Downtime information.  </b>
 		<ol type="a">
@@ -238,7 +222,7 @@ entry point and it includes the following:</p>
 on how many pilots are allowed in the queue, or glidein behavior at the site, such as unpublished attributes.
 </p>
 
-<h2>Example glidefactory classad</h2>
+<h2>Example glidefactory ClassAd</h2>
 <pre>
 MyType = "glidefactory"
 TargetType = ""

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory Design</h2>
@@ -66,13 +64,13 @@
 	     <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>glideclient classad</h3>
+        <h3>glideclient ClassAd</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
     <LI><A HREF="#userdefined">User defined values</A></li>
-    <LI><A HREF="#identify">Identify the classad</A></li>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
     <LI><A HREF="#configuration">Configuration and installation</A></li>
     <LI><A HREF="#request">Request information</A></li>
     <LI><A HREF="#encryption">Encryption information</A></li>
@@ -95,7 +93,7 @@ Factory Design Topics: <br/>
 <div class="section">
 
 <h2>Frontend Advertisement of Requests</h2>
-<p>The Frontend creates request Classads for the factory to submit glideins. In the 
+<p>The Frontend creates request Classads for the Factory to submit glideins. In the 
 Frontend configuration, you can either match to all entries or customize the match 
 string to request pilots at specific sites.  This match string will use information 
 published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
@@ -106,8 +104,7 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 			Users can affect <i>where</i> they are submitted when the Frontend configures 
 			match expressions and the user provides supported requirements but this 
 			all takes place in the Frontend.  User requirements are not put into the 
-			Frontend request for the Factory to interpret. The only exception is the 
-			Project ID passed by Corral Frontends.
+			Frontend request for the Factory to interpret. The only exception is the Project ID.
 				<ul>
 					<li>GlideinEncParamProjectId = &quot;abcx123&quot;</li>
 				</ul>
@@ -116,22 +113,22 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 		</ol>
 	</li>	
 
-	<li><a name="identify"></a><b>Information used to identify the Classad.</b>
+	<li><a name="identify"></a><b>Information used to identify the ClassAd.</b>
 		<ol type="a">
-			<li>Values used to manage Classads in the Collector. The id is the credential ID in this 
-			classad and is the grid_proxy, public cert, public key, or username, depending on 
-			the authentication method for this entry.  Each request classad contains one set of credentials.
+			<li>Values used to manage ClassAds in the Collector. The id is the credential ID in this 
+			ClassAd and is the grid_proxy, public cert, public key, or username, depending on 
+			the authentication method for this entry.  Each request ClassAd contains one set of credentials.
 				<ul>
 					<li>Name = &quot;id_entry@glidein_name@factory_name @frontend_name.group_name&quot;</li>
-					<li>Internal classad type of Master</li>
+					<li>Internal ClassAd type of Master</li>
 				</ul>
 			</li>
-			<li>Values used to distinguish the different classad types
+			<li>Values used to distinguish the different ClassAd types
 				<ul>
 					<li>GlideinMyType = &quot;glideclient&quot; </li>
 				</ul>
 			</li>
-			<li>Values set by glideinWMS for consistency but are not used
+			<li>Values set by GlideinWMS for consistency but are not used
 				<ul>
 					<li>MyType = &quot;glideclient&quot;</li>
 				</ul>
@@ -162,7 +159,7 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 				</ul>
 			</li>
 			<li>The entry that the Frontend needs glideins from.  This value is used to match the request to the entry 
-			so it must <u>exactly</u> match the &quot;Name&quot; attribute in the entry classad.
+			so it must <u>exactly</u> match the &quot;Name&quot; attribute in the entry ClassAd.
 				<ul>
 					<li>ReqGlidein = &quot;entry_name&#64;glidein_name@factory_name&quot;</li>
 				</ul>
@@ -221,7 +218,7 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 	<li><a name="ident_cred"></a><b>Identity Credentials.  </b>The Factory may also require the Frontend to 
 	pass identity information in addition to the authenication methods for glidein submission.
 		<ol type="a">
-			<li>Authentication method contains &quot;+project_id&quot;.  This is only applicable for Corral Frontends and for TeraGrid sites.
+			<li>Authentication method contains &quot;+project_id&quot;.  This is only applied for TeraGrid sites.
 				<ul>
 					<li>GlideinEncParamProjectId = encrypted project id</li>
 				</ul>
@@ -314,7 +311,7 @@ published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
 </ol>
 
 
-<h2>Example glideclient classad</h2>
+<h2>Example glideclient ClassAd</h2>
 <pre>
 MyType = "glideclient"
 TargetType = ""
@@ -365,7 +362,13 @@ UpdatesHistory = "0x00000000000000000000000000000000"
 **Note:  This attribute was shortened to fit into this document.
 </pre>
 
-
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>
 </html>

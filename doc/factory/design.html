@@ -1,8 +1,8 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory</h2>
@@ -99,17 +97,9 @@ is autonomous; it advertises itself and processes the incoming
 requests. The main Factory Daemon just launches and monitors the
 Factory Entry Daemons.</p>
 
-<p>
-    See the picture below for a logical
-overview.
-</p>
-    <IMG SRC="../images/entry_points_overview.png">
 
 <p>
-    All daemons of a Glidein Factory share the same directory tree. The root
-of the tree contains the common startup and configuration files,
-while each entry point has a few additional configuration files on
-its own.</P>
+    In the section below, each components will be described.</P>
 </div>
 
 <div class="section">
@@ -129,12 +119,12 @@ The factory is made of several parts, which each have their own section on their
 
 <h3><a name="glidein_daemons"></a>The Glidein Factory Daemon</h3>
 
-<p>The Glidein Factory is composed of several entry points. The
+<p>Also, the Glidein Factory is composed of several entry points. The
 Factory Daemon is really just a small process tasked to start and
 monitor the Factory Entry Daemons. See picture in the 
 <a href="#entry_daemons">next section</a> for a logical overview.</p>
-<p>All daemons of a Glidein Factory share the same directory tree.
-The root of the tree contains the main configuration files used by
+<p>All daemons of a Glidein Factory share the same directory tree,
+which root contains the main configuration files used by
 the Factory daemon.</p>
 <p>More details about the Glidein Factory Daemon internals can be
 found <a href="design_factory.html">here</a>.</p>
@@ -145,13 +135,13 @@ picture below for a logical overview.
 
 </p>
 <img src="../images/entry_points_overview.png" name="graphics2" width="80%" align="BOTTOM" border="0/">
-<p>All daemons of a Glidein Factory share the same directory tree. The root
+<p>As explained previously, the root
 of the tree contains the common startup and configuration files,
 while each entry point has a few additional configuration files on
 its own. Each entry point is completely described by these files on
 disk; the Factory Entry Daemons only extract information about entry
 point attributes and supported parameters needed for advertising.
-When glidein jobs are submitted, only the frontend provided
+When glidein jobs are submitted, only the Frontend provided
 parameters need to be given to the glidein startup script, as the
 script itself will autonomously gather all the other
 information.
@@ -161,7 +151,7 @@ information.
 internals can be found <a href="design_entry.html">here</a>.</p>
 <h3><a name="glidein_startup"></a>The glidein startup script</h3>
 <p>As said in the <a href="../index.html#glideins">overview</a>,&nbsp;
-a glidein is essentially a properly configured Condor startd.
+a glidein is essentially a properly configured HTCondor startd.
 However, somebody needs to do that configuration. So we need a job
 startup script that will do the work.<br><br>A startup script needs
 to perform several tasks:</p>
@@ -170,16 +160,16 @@ to perform several tasks:</p>
     <li>check that the working environment on the worker node is
     reasonable (else user jobs will fail) </li>
 
-    <li>obtain the Condor binaries </li>
-    <li>configure Condor </li>
-    <li>prepare the environment for Condor </li>
-    <li>start Condor </li>
+    <li>obtain the HTCondor binaries </li>
+    <li>configure HTCondor </li>
+    <li>prepare the environment for HTCondor </li>
+    <li>start HTCondor </li>
 
 </ul>
-<p>Given the complexity of the task, and for the sake of flexibility,
-it makes sense to split the script in several pieces. So the glidein
+<p>Given the complexity of the task and for the sake of flexibility,
+it makes sense to split the script in several pieces. Thus, the glidein
 job is composed of several pieces, including the startup script
-pieces, the Condor binaries, and a base configuration file.
+pieces, the HTCondor binaries, and a base configuration file.
 </p>
 <p>
     However, having a Grid job with data files can represent a
@@ -189,7 +179,7 @@ challenge; each Grid flavor treats data in a different way!
 <p>
     To make the system as general as possible, the Glidein Factory
 requires the use of a Web Server to distribute its data. This version
-of the Glide based Factory was tested with 
+of the Glidein based Factory was tested with 
 <a href="http://www.apache.org/">Apache</a>
 and <a href="http://www.stllinux.org/meeting_notes/2001/0719/tux/index.html">TUX</a>,
 but any other web server should work just well, as only static file
@@ -202,8 +192,8 @@ starts up is given in the picture below.</p>
 <img src="../images/glidein_script.png" name="graphics3" width="80%" align="BOTTOM" border="0/">
 <p>
 The task of the basic startup script (called <tt><b>glidein_startup.sh</b></tt>)
-is thus reduced to loading the other files, including the support
-scripts, the base config files and the Condor binaries. The list of
+is thus reduced to loading the other files including the support
+scripts, the base config files and the HTCondor binaries. The list of
 files to load is obtained from the Web server as one of the first
 steps, making the startup script completely generic.<br><br>Please
 notice two things. First, all the files transfered over the Web are
@@ -245,7 +235,7 @@ fi
 
 <i>launch scripts</i></pre>
 </ol>
-<p>The second point I would like to stress are the advantages that
+<p>The second point I would like to stress, are the advantages that
 come from using standard Web technologies. Web technologies are
 widely used nowadays and there is a plethora of tools that can be
 readily used. In our case, we can reduce the network load and speed
@@ -267,7 +257,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>
 </html>
