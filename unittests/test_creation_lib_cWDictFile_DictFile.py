@@ -8,11 +8,9 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.unittests.unittest_utils import create_temp_file
 
 from glideinwms.creation.lib.cWDictFile import DictFile
-from glideinwms.creation.lib.cWDictFile import fileDicts
 
 
 class TestDictFile(unittest.TestCase):
