@@ -79,7 +79,10 @@ def main():
     """
     # Move to the working direcotry
     try:
-        os.chdir("/var/lib/gwms-factory/work-dir/")
+        if "GLIDEIN_FACTORY_DIR" in os.environ:
+            os.chdir(os.environ["GLIDEIN_FACTORY_DIR"])
+        else:
+            os.chdir("/var/lib/gwms-factory/work-dir/")
     except OSError as ose:
         logging.error("Cannot chdir to /var/lib/gwms-factory/work-dir/: %s", ose)
         return 1
