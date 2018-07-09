@@ -28,6 +28,7 @@ class TestEntry(unittest.TestCase):
     def setUp(self):
         self.testdir = os.getcwd()
         self.datadir = 'fixtures/factory/work-dir'
+        os.system('git checkout %s' % self.datadir)
         self.startup_dir = os.path.join(self.testdir, self.datadir)
         self.entry_name = 'el6_osg34'
         os.chdir(self.datadir)

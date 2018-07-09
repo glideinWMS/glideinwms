@@ -27,6 +27,7 @@ class TestFactoryConfig(unittest.TestCase):
     def setUp(self):
         self.testdir = os.getcwd()
         self.confdir = 'fixtures/factory/work-dir'
+        os.system('git checkout %s' % self.confdir)
         os.chdir(self.confdir)
         self.factory_config = FactoryConfig()
         self.entry_config = EntryConfigFile('el6_osg34', 'attributes.cfg')
