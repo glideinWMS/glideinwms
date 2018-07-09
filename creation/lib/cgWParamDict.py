@@ -526,8 +526,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 for cj in self.dicts[u'condor_jdl']:
                     cj_entryname = cj.fname.split('.')[1]
                     if cj_entryname==subentry.getName():
+                        cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
                         break
-                cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
                 entry.select(None)
         else:
             ################################################################################################################
