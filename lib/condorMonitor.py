@@ -22,6 +22,8 @@ import socket
 import xml.parsers.expat
 from . import condorExe
 from . import condorSecurity
+# Jack Lundell
+import logSupport
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:

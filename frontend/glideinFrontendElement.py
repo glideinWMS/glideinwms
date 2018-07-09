@@ -1568,7 +1568,7 @@ class glideinFrontendElement:
 
     def get_condor_q(self, schedd_name):
         # Jack Lundell
-        logSupport.log.info("get_condor_q(%s)" % (schedd_name))
+        logSupport.profiler("get_condor_q(%s)" % (schedd_name), "condor_q")
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1579,10 +1579,11 @@ class glideinFrontendElement:
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
             condorq_format_list=list(condorq_format_list)+list((('x509userproxy', 's'),))
-            logSupport.log.info("glideinFrontendLib.getCondorQ([schedd_name],expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),condorq_format_list)")
-            logSupport.log.info("merged_data['JobQueryExpr'] = %s" % (self.elementDescript.merged_data['JobQueryExpr']))
-            logSupport.log.info("attr_dict = %s" % (self.attr_dict))
-            logSupport.log.info("merged_data['JobMatchAttrs'] = %s" % (self.elementDescript.merged_data['JobMatchAttrs']))
+            logSupport.profiler("::glideinFrontendLib.getCondorQ([schedd_name],expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),condorq_format_list)", "condor_q")
+            logSupport.profiler("::merged_data['JobQueryExpr'] = %s" % (self.elementDescript.merged_data['JobQueryExpr']), "condor_q")
+            logSupport.profiler("::attr_dict = %s" % (self.attr_dict), "condor_q")
+            logSupport.profiler("::merged_data['JobMatchAttrs'] = %s" % (self.elementDescript.merged_data['JobMatchAttrs']), "condor_q")
+            logSupport.profiler("::%s" % (list(condorq_format_list)), "condor_q")
 
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
@@ -1596,8 +1597,7 @@ class glideinFrontendElement:
 
     def get_condor_status(self):
         # Jack Lundell
-        logSupport.log.info("get_condor_status()")
-        logSupport.log.info("LJKEAHSLGKJSDLKGJLSKDJGLKSDJGLKSDJGKLSDJLKGJSDG")
+        logSupport.profiler("get_condor_status()", "condor_status")
 
         # All slots for this group
         status_dict = {}
@@ -1773,6 +1773,8 @@ class glideinFrontendElement:
             logSupport.log.exception("Terminating iteration due to errors:")
             return
         logSupport.log.info("All children terminated - took %s seconds" % t_end)
+        # Jack Lundell
+        logSupport.profiler("Fork terminated: %s" % t_end)
 
         for dt, el in self.condorq_dict_types.iteritems():
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)

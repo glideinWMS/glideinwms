@@ -1070,6 +1070,12 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
 # specify the appropriate additional constraint
 #
 def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format_list=None):
+    # Jack Lundell
+    logSupport.profiler("getCondorQConstrained()", "condor_q")
+    logSupport.profiler("\tschedd_names = %s" % (schedd_names), "condor_q")
+    logSupport.profiler("\ttype_constraint = %s" % (type_constraint), "condor_q")
+    logSupport.profiler("\tconstraint = %s" % (constraint), "condor_q")
+    logSupport.profiler("\tformat_list = %s" % (format_list), "condor_q")
     out_condorq_dict = {}
     for schedd in schedd_names:
         if schedd == '':
@@ -1079,11 +1085,11 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
             # Jack Lundell
-            logSupport.log.info("getCondorQConstrained(), full_constraint = %s", full_constraint)
-
+            logSupport.profiler("\tfull_constraint = %s" % (full_constraint), "condor_q")
 
         try:
             condorq = condorMonitor.CondorQ(schedd)
+            logSupport.profiler("\tcondorq = %s" % (condorq), "condor_q")
             condorq.load(full_constraint, format_list)
             if len(condorq.fetchStored()) > 0:
                 out_condorq_dict[schedd] = condorq
@@ -1109,11 +1115,21 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
 #
 def getCondorStatusConstrained(collector_names, type_constraint, constraint=None,
                                format_list=None, subsystem_name=None):
+    # Jack Lundell
+    logSupport.profiler("getCondorStatusConstrained()", "condor_status")
+    logSupport.profiler("\tcollector_names = %s, type_constraint = %s, constraint = %s, format_list = %s, subsystem_name = %s" %
+        (collector_names, type_constraint, constraint, format_list, subsystem_name), "condor_status")
+    logSupport.profiler("\ttype_constraint = %s" % (type_constraint), "condor_status")
+    logSupport.profiler("\tconstraint = %s" % (constraint), "condor_status")
+    logSupport.profiler("\tformat_list = %s" % (format_list), "condor_status")
+    logSupport.profiler("\tsubsystem_name = %s" % (subsystem_name), "condor_status")
     out_status_dict = {}
     for collector in collector_names:
         full_constraint = type_constraint[0:]  # make copy
         if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
+            # Jack Lundell
+            logSupport.profiler("\tfull_constraint = %s" % (full_constraint))
 
         try:
             status = condorMonitor.CondorStatus(subsystem_name=subsystem_name,
