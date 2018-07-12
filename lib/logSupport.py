@@ -345,9 +345,9 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
 
 def profiler(msg, query_type=None):
     if log:
-        if query_type = "condor_q":
+        if query_type == "condor_q":
             log.debug("PROFILER :: CONDOR_Q :: %s" % (msg))
-        elif query_type = "condor_status":
+        elif query_type == "condor_status":
             log.debug("PROFILER :: CONDOR_STATUS :: %s" % (msg))
         else:
             log.debug("PROFILER :: %s" % (msg))

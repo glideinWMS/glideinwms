@@ -23,7 +23,7 @@ import xml.parsers.expat
 from . import condorExe
 from . import condorSecurity
 # Jack Lundell
-import logSupport
+from . import logSupport
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
@@ -214,6 +214,8 @@ def condorq_attrs(q_constraint, attribute_list):
     for attr in attribute_list:
         attr_str += " -attr %s" % attr
 
+    # Jack Lundell
+    logSupport.profiler(q_constraint, "condor_q")
     xml_data = condorExe.exe_cmd("condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
 
     classads_xml = []
@@ -539,6 +541,8 @@ class CondorQ(CondorQuery):
                              pool_name, security_obj, env)
 
     def fetch(self, constraint=None, format_list=None):
+        # Jack Lundell
+        logSupport.profiler("FETCH!!!")
         if format_list is not None:
             # If format_list, make sure ClusterId and ProcId are present
             format_list = complete_format_list(
@@ -597,6 +601,7 @@ class CondorStatus(CondorQuery):
             subsystem_str = ""
         else:
             subsystem_str = "-%s" % subsystem_name
+        logSupport.profiler("exe: %s" % (subsystem_str), "condor_status")
         CondorQuery.__init__(self, "condor_status", subsystem_str,
                              "Name", pool_name, security_obj, {})
 
