@@ -138,6 +138,7 @@ function showPopUpSubEntries(hoveritem, entryName)
         try {
             currentEntry = statusEntries[row].parentNode.parentNode.parentNode.attributes["name"].nodeValue;
         } catch(e) {
+            /* IN CASE NO FRONTEND IS AVAILABLE */
             currentEntry = ""
         }
         if (currentEntry == entryName) {
