@@ -1567,8 +1567,6 @@ class glideinFrontendElement:
 
 
     def get_condor_q(self, schedd_name):
-        # Jack Lundell
-        logSupport.profiler("get_condor_q(%s)" % (schedd_name), "condor_q")
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1579,11 +1577,11 @@ class glideinFrontendElement:
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
             condorq_format_list=list(condorq_format_list)+list((('x509userproxy', 's'),))
-            logSupport.profiler("::glideinFrontendLib.getCondorQ([schedd_name],expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),condorq_format_list)", "condor_q")
-            logSupport.profiler("::merged_data['JobQueryExpr'] = %s" % (self.elementDescript.merged_data['JobQueryExpr']), "condor_q")
-            logSupport.profiler("::attr_dict = %s" % (self.attr_dict), "condor_q")
-            logSupport.profiler("::merged_data['JobMatchAttrs'] = %s" % (self.elementDescript.merged_data['JobMatchAttrs']), "condor_q")
-            logSupport.profiler("::%s" % (list(condorq_format_list)), "condor_q")
+#            logSupport.profiler("::glideinFrontendLib.getCondorQ([schedd_name],expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),condorq_format_list)", "condor_q")
+#            logSupport.profiler("::merged_data['JobQueryExpr'] = %s" % (self.elementDescript.merged_data['JobQueryExpr']), "condor_q")
+#            logSupport.profiler("::attr_dict = %s" % (self.attr_dict), "condor_q")
+#            logSupport.profiler("::merged_data['JobMatchAttrs'] = %s" % (self.elementDescript.merged_data['JobMatchAttrs']), "condor_q")
+#            logSupport.profiler("::%s" % (list(condorq_format_list)), "condor_q")
 
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
