@@ -138,7 +138,7 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS -e F0401 ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
+          pylint $PYLINT_OPTIONS  ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
       fi
       pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
     done
