@@ -215,8 +215,10 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     # Jack Lundell
-    logSupport.profiler(q_constraint, "condor_q")
+    logsupport.profiler("BEGIN exe condor_q", "condor_q")
+#    logSupport.profiler("CONSTRAINTS = %s" % (q_constraint), "condor_q")
     xml_data = condorExe.exe_cmd("condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
+    logSupport.profiler("END exe condor_q", "condor_q")
 
     classads_xml = []
     tmp_list = []
@@ -542,7 +544,7 @@ class CondorQ(CondorQuery):
 
     def fetch(self, constraint=None, format_list=None):
         # Jack Lundell
-        logSupport.profiler("FETCH!!!")
+        #logSupport.profiler("FETCH!!!")
         if format_list is not None:
             # If format_list, make sure ClusterId and ProcId are present
             format_list = complete_format_list(

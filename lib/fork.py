@@ -291,8 +291,10 @@ class ForkManager:
     def fork_and_collect(self):
         pipe_ids = {}
         for key in self.key_list:
+            logSupport.profiler("FORK Key = %s" % (key))
             pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
         results = fetch_fork_result_list(pipe_ids)
+        logSupport.profielr("FORK PIP_IDS = %s" % (pipe_ids))
         return results
 
     def bounded_fork_and_collect(self, max_forks, log_progress=True, sleep_time=0.01):

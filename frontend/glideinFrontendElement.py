@@ -1567,6 +1567,7 @@ class glideinFrontendElement:
 
 
     def get_condor_q(self, schedd_name):
+        logSupport.profiler("BEGIN get_condor_q")
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1595,7 +1596,7 @@ class glideinFrontendElement:
 
     def get_condor_status(self):
         # Jack Lundell
-        logSupport.profiler("get_condor_status()", "condor_status")
+        logSupport.profiler("get_condor_status()")
 
         # All slots for this group
         status_dict = {}
