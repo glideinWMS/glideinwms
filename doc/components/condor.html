@@ -292,12 +292,10 @@ Processing schedd: SCHEDDJOBS2<br/>
      the change.  You will see these collector processes running (example has 5 secondary collectors).
     </p>
     <blockquote>
-       user  17732     1  0 13:34 ?        00:00:00 /usr/sbin/condor_master -f
+       user  17732 17732  0 13:34 ?        00:00:00 /usr/sbin/condor_master -f
        user  17735 17732  0 13:34 ?        00:00:00 condor_shared_port -f -p 9618 <font color="blue">shared port</font></br>
        user  17735 17732  0 13:34 ?        00:00:00 condor_collector -f <font color="blue">primary</font></br>
        user  17736 17732  0 13:34 ?        00:00:00 condor_negotiator -f</br>
-       user  17737 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9619 <font color="blue">secondary</font></br>
-       user  17738 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9620 <font color="blue">secondary</font></br>
        user  17739 17732  0 13:34 ?        00:00:00 condor_collector -f -f -local-name COLLECTOR1 -sock collector1 <font color="blue">secondary</font></br>
        user  17740 17732  0 13:34 ?        00:00:00 condor_collector -f -f -local-name COLLECTOR2 -sock collector2 <font color="blue">secondary</font></br>
        user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -f -local-name COLLECTOR3 -sock collector3 <font color="blue">secondary</font></br>
