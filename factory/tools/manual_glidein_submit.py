@@ -65,7 +65,7 @@ def parse_opts():
 
 
 def log_debug(msg, header=''):
-    """ Simpleutility log function to print the glideclient classad
+    """ Simple utility log function to print the glideclient classad
     """
     if header:
         logging.debug('=' * (len(header) + 2))
