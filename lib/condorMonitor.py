@@ -179,7 +179,7 @@ class LocalScheddCache(NoneScheddCache):
 
         el = data[schedd_name]
         if 'SPOOL_DIR_STRING' not in el and 'LOCAL_DIR_STRING' not in el:
-            # not advertising, cannot use disk optimization
+            # not sadvertising, cannot use disk optimization
             return None
         if 'ScheddIpAddr' not in el:
             # This should never happen
@@ -215,10 +215,11 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     # Jack Lundell
-    logsupport.profiler("BEGIN exe condor_q", "condor_q")
+    logsupport.profiler("BEGIN exe condor_q : PID = %s" % (os.getpid()), "condor_q")
+    logSupport.profiler("CONSTRAINTS = %s" % (q_constraint), "condor_q")
 #    logSupport.profiler("CONSTRAINTS = %s" % (q_constraint), "condor_q")
     xml_data = condorExe.exe_cmd("condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
-    logSupport.profiler("END exe condor_q", "condor_q")
+    logSupport.profiler("END exe condor_q : PID = %s" % (os.getpid()), "condor_q")
 
     classads_xml = []
     tmp_list = []
@@ -493,6 +494,8 @@ class CondorQuery(StoredQuery):
             # restore old security context
             self.security_obj.restore_state()
 
+        logSupport.profiler("exe_cmd=%s %s -xml %s %s" % (self.exe_name, self.resource_str, self.pool_str, constraint_str, self.env))
+
         list_data = xml2list(xml_data)
         del xml_data
         dict_data = list2dict(list_data, self.group_attribute)
@@ -509,6 +512,7 @@ class CondorQuery(StoredQuery):
         Fetch the results and cache it in self.stored_data
         """
         self.stored_data = self.fetch(constraint, format_list)
+        logSupport.profiler("load(%s, %s)=%s" % (constraint, format_list, self.stored_data))
 
     def __repr__(self):
         output = "%s:\n" % self.__class__.__name__
@@ -603,9 +607,10 @@ class CondorStatus(CondorQuery):
             subsystem_str = ""
         else:
             subsystem_str = "-%s" % subsystem_name
-        logSupport.profiler("exe: %s" % (subsystem_str), "condor_status")
+        logSupport.profiler("BEGIN exe condor_status : PID = %s" % (os.getpid()), "exe_condor_status")
         CondorQuery.__init__(self, "condor_status", subsystem_str,
                              "Name", pool_name, security_obj, {})
+        logSupport.profiler("END exe condor_status : PID = %s" % (os.getpid()), "exe_condor_status")
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:
@@ -1198,8 +1203,10 @@ class CondorQLite(CondorQuery):
 
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
+#        logSupport.profiler("BEGIN exe condor_q", "exe_condor_q")
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)
+#        logSupport.profiler("END exe condor_q", "exe_condor_q")
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:

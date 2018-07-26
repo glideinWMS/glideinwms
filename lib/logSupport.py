@@ -347,7 +347,11 @@ def profiler(msg, query_type=None):
     if log:
         if query_type == "condor_q":
             log.debug("PROFILER :: CONDOR_Q :: %s" % (msg))
+        elif query_type == "exe_condor_q":
+            log.debug("PROFILER :: EXE_CONDOR_Q :: %s" % (msg))
         elif query_type == "condor_status":
             log.debug("PROFILER :: CONDOR_STATUS :: %s" % (msg))
+        elif query_type == "exe_condor_status":
+            log.debug("PROFILER :: EXE_CONDOR_STATUS :: %s" % (msg))
         else:
             log.debug("PROFILER :: %s" % (msg))

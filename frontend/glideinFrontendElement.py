@@ -382,6 +382,7 @@ class glideinFrontendElement:
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
             return
+        logSupport.profiler("PIPE_OUT = %s" % (pipe_out))
         logSupport.log.info("All children terminated")
         del forkm_obj
 
