@@ -72,6 +72,7 @@
     <LI><A HREF="#vars">Variables used</A> 
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
+    <LI><A HREF="#cpuscalculation">Setting amd discovering CPUs</A>
     <LI><A HREF="#lifetime">Lifetime of a glidein</A>
     <LI><A HREF="#draining">Draining glideins</A>
 </ol>
@@ -80,6 +81,8 @@
 Related Links: <br/>
 <ul>
         <LI><A HREF="./custom_scripts.html">Custom Scripts</A></li>
+        <LI><A HREF="./configuration.html">Factory configuration</A></li>
+        <LI><A HREF="../frontend/configuration.html">Frontend configuration</A></li>
 </ul>
 </div>
 <div class="section">
@@ -686,7 +689,7 @@ by the VO Factory clients.</P>
 		Most of the time it is an integer, but the type is string to allow also the keywords.
                 In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots.
                 In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available.
-                Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">NUM_CPUS</a></P>
+                Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#24707">NUM_CPUS</a></P>
         </TD>
     </TR>
     <TR>
@@ -1553,6 +1556,43 @@ startup scripts.</P>
     </TR>
 </TABLE>
 </div>
+<div class="section">
+<a name="cpuscalculation" />
+<h2>Setting and discovering CPUs</h2>
+<p>Jobs express the number of CPUs they require via RequestCpus.
+</p>
+<p>You can force HTCondor to assume it has a certain number of CPUs by setting GLIDEIN_CPUS to a number or let the Glidein 
+discover the number of phisical CPUs (<tt>node</tt>) or of CPUs received by the job manager (<tt>slot</tt>, <tt>auto</tt>).
+</p>
+<p>If GLIDEIN_CPUS is set to <tt>auto</tt> (or <tt>slot</tt>, <tt>node</tt>). When the Frontend does provisioning, 
+it triggers requests to resources 
+where RequestCpus&lt;=GLIDEIN_ESTIMATED_CPUS (1 if GLIDEIN_ESTIMATED_CPUS is not set) and it is dimensioning the request 
+expecting to receive CPUs = GLIDEIN_ESTIMATED_CPUS * number_of_glidiens. 
+<br/>
+When glideins actually start at the site, they advertise the CPUs they actually receive, ignoring what is set in 
+GLIDEIN_ESTIMATED_CPUS and will match jobs with RequestCpus&lt;=CPUs received.
+This is different from setting GLIDEIN_CPUS, that artificially tells condor in the glidein that it has those CPUs, 
+over- or under-provisioning if the number of CPUs discovered is different.
+</p>
+<p>So if you have a site with a variable number of CPUs you can set GLIDEIN_ESTIMATED_CPUS to the min number of CPUs you will 
+be receiving (for ease call it MinCpus). All jobs triggering Glideins on that site will be able to run on them. Multiple 
+jobs will run on the same Glidein if it receives more CPUs.
+If you need to run jobs w/ RequestCpus&gt;MinCpus, you can set GLIDEIN_ESTIMATED_CPUS to a bigger number but be aware that 
+some Glideins (the ones that received less than GLIDEIN_ESTIMATED_CPUS CPUs) will not match jobs that triggered their 
+submission (those Glideins will probably be wasted).
+</p>
+<p>Another attribute changing the number of CPUs is GLIDEIN_Resource_Slots. When you add resource slots of type 
+<tt>extra</tt>, <tt>partitionable</tt> or <tt>static</tt>, these increase the number of CPUs set in HTCondor, independently 
+from whether the initial number was set with GLIDEIN_CPUS or discovered. 
+These virtual CPUs are though not considered in provisioning, are frequently reserved for jobs matching the special resources 
+(<tt>partitionable</tt>, <tt>static</tt>) and are available also for regular jobs only when the slot type <tt>extra</tt>
+is used.
+</p>
+<p>For more information see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS and GLIDEIN_Resource_Slots above. And 
+ <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#24707">NUM_CPUS</a> in the HTCondor manual.
+</p>
+</div>
+
 <div class="section">
 <a name="lifetime" />
 <h2>Lifetime of a Glidein</h2>
