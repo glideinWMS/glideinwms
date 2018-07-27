@@ -767,24 +767,24 @@ def add_attr_unparsed_real(attr, dicts):
     do_glidein_publish=eval(attr[u'glidein_publish'], {}, {})
     do_job_publish=eval(attr[u'job_publish'], {}, {})
 
-    if do_glidein_publish or do_job_publish:
-            # need to add a line only if will be published
-            if attr_name in dicts['vars']:
-                # already in the var file, check if compatible
-                attr_var_el=dicts['vars'][attr_name]
-                attr_var_type=attr_var_el[0]
-                if (((attr[u'type'] == "int") and (attr_var_type != 'I')) or
-                    ((attr[u'type'] == "expr") and (attr_var_type == 'I')) or
-                    ((attr[u'type'] == "string") and (attr_var_type == 'I'))):
-                    raise RuntimeError("Types not compatible (%s,%s)" % (attr[u'type'], attr_var_type))
-                attr_var_export = attr_var_el[4]
-                if do_glidein_publish and (attr_var_export == 'N'):
-                    raise RuntimeError("Cannot force glidein publishing")
-                attr_var_job_publish=attr_var_el[5]
-                if do_job_publish and (attr_var_job_publish=='-'):
-                    raise RuntimeError("Cannot force job publishing")
-            else:
-                dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False, do_glidein_publish, do_job_publish)
+    #if do_glidein_publish or do_job_publish:
+    # need to add a line only if will be published
+    if attr_name in dicts['vars']:
+        # already in the var file, check if compatible
+        attr_var_el=dicts['vars'][attr_name]
+        attr_var_type=attr_var_el[0]
+        if (((attr[u'type'] == "int") and (attr_var_type != 'I')) or
+           ((attr[u'type'] == "expr") and (attr_var_type == 'I')) or
+           ((attr[u'type'] == "string") and (attr_var_type == 'I'))):
+              raise RuntimeError("Types not compatible (%s,%s)" % (attr[u'type'], attr_var_type))
+        attr_var_export = attr_var_el[4]
+        if do_glidein_publish and (attr_var_export == 'N'):
+            raise RuntimeError("Cannot force glidein publishing")
+        attr_var_job_publish=attr_var_el[5]
+        if do_job_publish and (attr_var_job_publish=='-'):
+            raise RuntimeError("Cannot force job publishing")
+    else:
+        dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False, do_glidein_publish, do_job_publish)
 
 
 ##################################
