@@ -72,7 +72,7 @@
     <LI><A HREF="#vars">Variables used</A> 
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
-    <LI><A HREF="#cpuscalculation">Setting amd discovering CPUs</A>
+    <LI><A HREF="#cpuscalculation">Set and discover available CPUs</A>
     <LI><A HREF="#lifetime">Lifetime of a glidein</A>
     <LI><A HREF="#draining">Draining glideins</A>
 </ol>
@@ -1558,20 +1558,25 @@ startup scripts.</P>
 </div>
 <div class="section">
 <a name="cpuscalculation" />
-<h2>Setting and discovering CPUs</h2>
-<p>Jobs express the number of CPUs they require via RequestCpus.
+<h2>Set and discover available CPUs</h2>
+<p>For this explanation the term CPUs refers to the number of cores, provided by one or more CPUs. 
+It is whatever is detected or provided and will set the level of parallelism (NUM_CPUS) used by the HTCondor startd started
+by the Glidein.
+</p>
+<p>Jobs express the number of CPUs they require via RequestCpus. 
 </p>
 <p>You can force HTCondor to assume it has a certain number of CPUs by setting GLIDEIN_CPUS to a number or let the Glidein 
-discover the number of phisical CPUs (<tt>node</tt>) or of CPUs received by the job manager (<tt>slot</tt>, <tt>auto</tt>).
+discover the number of physical CPUs in the worker node (<tt>node</tt>) or the number of CPUs received from the job manager 
+(<tt>slot</tt>, <tt>auto</tt>).
 </p>
 <p>If GLIDEIN_CPUS is set to <tt>auto</tt> (or <tt>slot</tt>, <tt>node</tt>). When the Frontend does provisioning, 
 it triggers requests to resources 
 where RequestCpus&lt;=GLIDEIN_ESTIMATED_CPUS (1 if GLIDEIN_ESTIMATED_CPUS is not set) and it is dimensioning the request 
 expecting to receive CPUs = GLIDEIN_ESTIMATED_CPUS * number_of_glidiens. 
 <br/>
-When glideins actually start at the site, they advertise the CPUs they actually receive, ignoring what is set in 
-GLIDEIN_ESTIMATED_CPUS and will match jobs with RequestCpus&lt;=CPUs received.
-This is different from setting GLIDEIN_CPUS, that artificially tells condor in the glidein that it has those CPUs, 
+When Glideins actually start at the site, they advertise the CPUs they actually discover, ignoring what is set in 
+GLIDEIN_ESTIMATED_CPUS and will match jobs with RequestCpus&lt;=CPUs discovered.
+This is different from setting GLIDEIN_CPUS, that artificially tells HTCondor in the Glidein that it has those CPUs, 
 over- or under-provisioning if the number of CPUs discovered is different.
 </p>
 <p>So if you have a site with a variable number of CPUs you can set GLIDEIN_ESTIMATED_CPUS to the min number of CPUs you will 
@@ -1588,7 +1593,7 @@ These virtual CPUs are though not considered in provisioning, are frequently res
 (<tt>partitionable</tt>, <tt>static</tt>) and are available also for regular jobs only when the slot type <tt>extra</tt>
 is used.
 </p>
-<p>For more information see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS and GLIDEIN_Resource_Slots above. And 
+<p>For more information, see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_Resource_Slots above. And 
  <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#24707">NUM_CPUS</a> in the HTCondor manual.
 </p>
 </div>
