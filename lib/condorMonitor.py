@@ -24,6 +24,7 @@ from . import condorExe
 from . import condorSecurity
 # Jack Lundell
 from . import logSupport
+import traceback
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
@@ -215,9 +216,9 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     # Jack Lundell
+    q_constraint += "&& (MyType=!=\"condor_q_ASDF\")"
     logsupport.profiler("BEGIN exe condor_q : PID = %s" % (os.getpid()), "condor_q")
     logSupport.profiler("CONSTRAINTS = %s" % (q_constraint), "condor_q")
-#    logSupport.profiler("CONSTRAINTS = %s" % (q_constraint), "condor_q")
     xml_data = condorExe.exe_cmd("condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
     logSupport.profiler("END exe condor_q : PID = %s" % (os.getpid()), "condor_q")
 
@@ -494,7 +495,10 @@ class CondorQuery(StoredQuery):
             # restore old security context
             self.security_obj.restore_state()
 
-        logSupport.profiler("exe_cmd=%s %s -xml %s %s" % (self.exe_name, self.resource_str, self.pool_str, constraint_str, self.env))
+            if self.exe_name == "condor_status":
+                constraint_str += "&&(MyType=!=\"exe_condor_status_ASDF\")"
+                logSupport.profiler("exe_cmd=%s :: %s %s -xml %s %s" % (self.exe_name, self.resource_str, self.pool_str, constraint_str, self.env))
+                logSupport.profiler("TRACEBACK=%s" % traceback.format_stack())
 
         list_data = xml2list(xml_data)
         del xml_data
@@ -547,8 +551,6 @@ class CondorQ(CondorQuery):
                              pool_name, security_obj, env)
 
     def fetch(self, constraint=None, format_list=None):
-        # Jack Lundell
-        #logSupport.profiler("FETCH!!!")
         if format_list is not None:
             # If format_list, make sure ClusterId and ProcId are present
             format_list = complete_format_list(
@@ -1203,10 +1205,10 @@ class CondorQLite(CondorQuery):
 
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
-#        logSupport.profiler("BEGIN exe condor_q", "exe_condor_q")
+        logSupport.profiler("BEGIN exe condor_q", "exe_condor_q")
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)
-#        logSupport.profiler("END exe condor_q", "exe_condor_q")
+        logSupport.profiler("END exe condor_q", "exe_condor_q")
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:
