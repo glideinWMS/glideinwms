@@ -22,7 +22,7 @@ restart() {
 }
 
 status() {
-    if [ -f $lockfile ]; then
+    if [ -f $LOCK ]; then
         renew_status="enabled"
         RETVAL=0
     else
@@ -45,7 +45,7 @@ case $1  in
   reload)
 	;;
   condrestart)
-	[ ! -f "$lockfile" ] && restart
+	[ ! -f "$LOCK" ] && restart
 	;;
   status)
 	status
