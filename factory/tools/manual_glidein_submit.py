@@ -7,7 +7,11 @@ import pprint
 import logging
 import argparse
 
-import htcondor
+try:
+    import htcondor # pylint: disable=import-error
+except:
+    print("Python bindings not available. Exiting.")
+    sys.exit(1)
 
 from glideinwms.factory import glideFactoryConfig as gfc
 from glideinwms.factory.glideFactoryLib import ClientWeb
