@@ -516,7 +516,12 @@ class CondorQuery(StoredQuery):
         Fetch the results and cache it in self.stored_data
         """
         self.stored_data = self.fetch(constraint, format_list)
-        logSupport.profiler("load(%s, %s)=%s" % (constraint, format_list, self.stored_data))
+        stack = traceback.format_stack()
+        for s in stack:
+            logSupport.profiler("load() :: stack trace\t%s" % s)
+        logSupport.profiler("CondorQuery exe_name = %s\tPID = %s" % (self.exe_name, os.getpid()))
+#        logSupport.profiler("STORED DATA = %s" % self.fetch(None, format_list))
+        logSupport.profiler("load(%s, %s) :: %s" % (constraint, format_list, self.stored_data))
 
     def __repr__(self):
         output = "%s:\n" % self.__class__.__name__
@@ -534,7 +539,7 @@ class CondorQuery(StoredQuery):
 
 class CondorQ(CondorQuery):
     """
-    Class to implement condor_q. Uses htcondor-python bindings if possible.
+    Class to implement condor_q. Uses htcondor-python bindings if possible.q
     """
 
     def __init__(self, schedd_name=None, pool_name=None, security_obj=None,
@@ -609,7 +614,10 @@ class CondorStatus(CondorQuery):
             subsystem_str = ""
         else:
             subsystem_str = "-%s" % subsystem_name
+
         logSupport.profiler("BEGIN exe condor_status : PID = %s" % (os.getpid()), "exe_condor_status")
+        for s in traceback.format_stack():
+            logSupport.profiler("Condor Status Stack Trace = %s" % s, "exe_condor_status")
         CondorQuery.__init__(self, "condor_status", subsystem_str,
                              "Name", pool_name, security_obj, {})
         logSupport.profiler("END exe condor_status : PID = %s" % (os.getpid()), "exe_condor_status")
@@ -1205,6 +1213,7 @@ class CondorQLite(CondorQuery):
 
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
+        logSupport.profiler("CondorQLite", "exe_condor_q")
         logSupport.profiler("BEGIN exe condor_q", "exe_condor_q")
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)
