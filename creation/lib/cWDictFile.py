@@ -1641,74 +1641,65 @@ class MonitorFileDicts:
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
 
+
+#########################################################
+#
+# Common functions
+#
+#########################################################
+
 #####################################################
 # Validate HTCondor endpoint (node) string
 # this can be a node, node:port, node:port-range
-# or a shared port synful string host:port?sock=some_string$ID
+# or a shared port sinful string host:port?sock=some_string$ID
 # or schedd_name@host:port[?sock=some_string]
-# we replace allow_prange by allow_range as now this variable
-# will include either port range or collector range.
+# allow_range is true if existing either port range or range at
+# the end  of the name of the sock parameter in the sinful string.
 
-def validate_node(nodestr, allow_range=False):
-    doublerange = nodestr.split('-')#controls the double range
-    if len(doublerange) > 2:
-        raise RuntimeError(
-            "Invalid configuration. Not allowed to have too many (-) in the range definition '%s'" % nodestr)
-    eparr = nodestr.split('?')
-    if len(eparr) > 2:
-        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
-    if len(eparr) == 2:
-        if not eparr[1].startswith("sock="):
-            raise RuntimeError("Unrecognized HTCondor sinful string: %s" % nodestr)
-        # check that ; and , are not in the endpoint ID (they are not before ?)
-        if ',' in eparr[1] or ';' in eparr[1]:
-            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
-        collect = eparr[1].split("-")
-        # Let's go now with the collectors
-        if len(collect) > 1:  # collectors range exists
-            if not allow_range:
-                raise RuntimeError("Collector ranges not allowed for this node: '%s'" % nodestr)
-            else:
-                clist = eparr[1][5:]#Takes the collector range
-                match = re.search('(^[a-zA-Z]+[0-9]*)', clist, re.IGNORECASE)#we accept strings w/o sensitive case
-                if match:  # checks if string
-                    crange = clist.split("-")
-                    if len(crange) > 1:
-                        cmin = re.findall('\d+', crange[0])[0]#checks if digits exist, otherwise error
-                        cmax = crange[1]
-                        if not cmin or not cmax:#if there is not digits
-                            raise RuntimeError("Invalid collector range definition: '%s'" % nodestr)
-                        else:
-                            cmin = int(re.findall('\d+', crange[0])[0])
-                            cmax = crange[1]
-        else:  # only one collector
-            clist = collect[0][5:]
-            colnum = re.findall('\d+', clist)
-            if not colnum:
-                raise RuntimeError("Invalid collectors definition  %s" % nodestr)
-            else:
-                cmin = int(colnum[0])
-                cmax = int(colnum[0])
-        try:
-            cmini = int(cmin)
-            cmaxi = int(cmax)
-        except ValueError as e:
-            raise RuntimeError("Collectors range are not integer: '%s'" % nodestr)
-        if cmini > cmaxi:
-            raise RuntimeError("Invalid collector range definition: '%s'" % nodestr)
-    #ports part
+def validate_node(nodestr,allow_range=False):
+   crange = False
+   prange = False
+   eparr = nodestr.split('?')
+   if len(eparr) > 2:
+       raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+   if len(eparr) == 2:
+       if ',' in eparr[1] or ';' in eparr[1]:
+          raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
+       # Use regular expression to validate sinful string
+       matches = re.findall(r'(.*&)*\bsock\b=([A-z]+(\d+)+(\-(\d+))?)', eparr[1])
+       if not matches:
+           raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
+       else:
+            for sock in matches:
+                if sock[3]:
+                    crange = True
+                    cmin = sock[2]
+                    cmax = sock[4]
+                else:
+                    cmin = sock[2]
+                    cmax = sock[2]
+                try:
+                    cmini = int(cmin)
+                    cmaxi = int(cmax)
+                except ValueError as e:
+                    raise RuntimeError("Collectors identifier are not integer: '%s'" % nodestr)
+                if cmini > cmaxi:
+                    raise RuntimeError("Invalid collectors definition: '%s'" % nodestr)
     narr = eparr[0].split(':')
     if len(narr) > 2:
         raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
-    if len(narr) > 1:
+    if len(narr)>1:
         # have ports, validate them
         ports = narr[1]
         parr = ports.split('-')
+        if len(parr) > 2:
+            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
         if len(parr) > 1:
             if not allow_range:
                 raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
             pmin = parr[0]
             pmax = parr[1]
+            prange = True
         else:
             pmin = parr[0]
             pmax = parr[0]
@@ -1717,13 +1708,17 @@ def validate_node(nodestr, allow_range=False):
             pmaxi = int(pmax)
         except ValueError as e:
             raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
-        if pmini > pmaxi:
+        if pmini>pmaxi:
             raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
-        if pmini < 1:
+        if pmini<1:
             raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
-        if pmaxi > 65535:
+        if pmaxi>65535:
             raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
-        # split needed to handle the multiple schedd naming convention
+    # Check out if there is range of ports and range at
+    # the end of the name of the sock parameter in the sinful string
+    if(prange == crange == True):
+        raise RuntimeError("Invalid range configuration: %s" % nodestr)
+    # split needed to handle the multiple schedd naming convention
     nodename = narr[0].split("@")[-1]
     try:
         socket.getaddrinfo(nodename, None)
