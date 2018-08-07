@@ -1657,34 +1657,34 @@ class MonitorFileDicts:
 # the end  of the name of the sock parameter in the sinful string.
 
 def validate_node(nodestr,allow_range=False):
-   crange = False
-   prange = False
-   eparr = nodestr.split('?')
-   if len(eparr) > 2:
+    crange = False
+    prange = False
+    eparr = nodestr.split('?')
+    if len(eparr) > 2:
        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
-   if len(eparr) == 2:
+    if len(eparr) == 2:
        if ',' in eparr[1] or ';' in eparr[1]:
           raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
        # Use regular expression to validate sinful string
        matches = re.findall(r'(.*&)*\bsock\b=([A-z]+(\d+)+(\-(\d+))?)', eparr[1])
        if not matches:
-           raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
+          raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
        else:
-            for sock in matches:
-                if sock[3]:
-                    crange = True
-                    cmin = sock[2]
-                    cmax = sock[4]
-                else:
-                    cmin = sock[2]
-                    cmax = sock[2]
-                try:
-                    cmini = int(cmin)
-                    cmaxi = int(cmax)
-                except ValueError as e:
-                    raise RuntimeError("Collectors identifier are not integer: '%s'" % nodestr)
-                if cmini > cmaxi:
-                    raise RuntimeError("Invalid collectors definition: '%s'" % nodestr)
+           for sock in matches:
+              if sock[3]:
+                        crange = True
+                        cmin = sock[2]
+                        cmax = sock[4]
+              else:
+                   cmin = sock[2]
+                   cmax = sock[2]
+              try:
+                  cmini = int(cmin)
+                  cmaxi = int(cmax)
+              except ValueError as e:
+                  raise RuntimeError("Collectors identifier are not integer: '%s'" % nodestr)
+              if cmini > cmaxi:
+                  raise RuntimeError("Invalid collectors definition: '%s'" % nodestr)
     narr = eparr[0].split(':')
     if len(narr) > 2:
         raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
