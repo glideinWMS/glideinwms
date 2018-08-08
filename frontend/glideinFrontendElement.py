@@ -382,7 +382,6 @@ class glideinFrontendElement:
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
             return
-        logSupport.profiler("PIPE_OUT = %s" % (pipe_out))
         logSupport.log.info("All children terminated")
         del forkm_obj
 
@@ -1568,7 +1567,6 @@ class glideinFrontendElement:
 
 
     def get_condor_q(self, schedd_name):
-        logSupport.profiler("BEGIN get_condor_q")
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1579,11 +1577,6 @@ class glideinFrontendElement:
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
             condorq_format_list=list(condorq_format_list)+list((('x509userproxy', 's'),))
-#            logSupport.profiler("::glideinFrontendLib.getCondorQ([schedd_name],expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),condorq_format_list)", "condor_q")
-#            logSupport.profiler("::merged_data['JobQueryExpr'] = %s" % (self.elementDescript.merged_data['JobQueryExpr']), "condor_q")
-#            logSupport.profiler("::attr_dict = %s" % (self.attr_dict), "condor_q")
-#            logSupport.profiler("::merged_data['JobMatchAttrs'] = %s" % (self.elementDescript.merged_data['JobMatchAttrs']), "condor_q")
-#            logSupport.profiler("::%s" % (list(condorq_format_list)), "condor_q")
 
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
@@ -1596,9 +1589,6 @@ class glideinFrontendElement:
 
 
     def get_condor_status(self):
-        # Jack Lundell
-        logSupport.profiler("get_condor_status()")
-
         # All slots for this group
         status_dict = {}
         fe_counts = {'Idle':0, 'Total':0}
@@ -1773,8 +1763,6 @@ class glideinFrontendElement:
             logSupport.log.exception("Terminating iteration due to errors:")
             return
         logSupport.log.info("All children terminated - took %s seconds" % t_end)
-        # Jack Lundell
-        logSupport.profiler("Fork terminated: %s" % t_end)
 
         for dt, el in self.condorq_dict_types.iteritems():
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)

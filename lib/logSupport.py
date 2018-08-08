@@ -343,15 +343,17 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
 
     return formatted_string
 
-def profiler(msg, query_type=None):
+def profiler(msg, query_type=None, use_python_bindings=False):
     if log:
+        out = "PROFILER :: USE_PYTHON_BINDINGS = %s :: " % use_python_bindings
         if query_type == "condor_q":
-            log.debug("PROFILER :: CONDOR_Q :: %s" % (msg))
+            out += "CONDOR_Q :: %s" % msg
         elif query_type == "exe_condor_q":
-            log.debug("PROFILER :: EXE_CONDOR_Q :: %s" % (msg))
+            out += "EXE_CONDOR_Q :: %s" % msg
         elif query_type == "condor_status":
-            log.debug("PROFILER :: CONDOR_STATUS :: %s" % (msg))
+            out += "CONDOR_STATUS :: %s" % msg
         elif query_type == "exe_condor_status":
-            log.debug("PROFILER :: EXE_CONDOR_STATUS :: %s" % (msg))
+            out += "EXE_CONDOR_STATUS :: %s" % msg
         else:
-            log.debug("PROFILER :: %s" % (msg))
+            out += "PROFILER :: %s" % msg
+        log.debug(out)

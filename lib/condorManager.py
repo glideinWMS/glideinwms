@@ -180,4 +180,5 @@ def condorAdvertise(classad_fname,command,
     logSupport.profiler("BEGIN condor_advertise")
     cmd_opts="%s%s%s%s %s"%(pool2str(pool_name), usetcp2str(use_tcp), ismulti2str(is_multi), command, classad_fname)
     logSupport.profiler("condor_advertise, cmd_opts=%s" % cmd_opts)
+    logSupport.profiler("END condor_advertise")
     return condorExe.exe_cmd_sbin("condor_advertise", cmd_opts)
