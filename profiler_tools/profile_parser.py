@@ -33,13 +33,13 @@ def get_log_timestamp(log):
     return time_stamp
 
 def get_log_type(log):
-    if log.find("CONDOR_Q :: ") != -1:
+    if log.find(" CONDOR_Q :: ") != -1:
         return "condor_q"
-    elif log.find("EXE_CONDOR_Q :: ") != -1:
+    elif log.find(" EXE_CONDOR_Q :: ") != -1:
         return "exe_condor_q"
-    elif log.find("CONDOR_STATUS :: ") != -1:
+    elif log.find(" CONDOR_STATUS :: ") != -1:
         return "condor_status"
-    elif log.find("EXE_CONDOR_STATUS :: ") != -1:
+    elif log.find(" EXE_CONDOR_STATUS :: ") != -1:
         return "exe_condor_status"
     else:
         return "unknown"
@@ -74,9 +74,6 @@ start_time["unknown"] = None
 query = Query(None, None)
 queries = []
 
-count = 0
-
-
 constraint = {};
 constraint["condor_q"] = None
 constraint["condor_status"] = None
@@ -84,65 +81,68 @@ constraint["exe_condor_q"] = None
 constraint["exe_condor_status"] = None
 constraint["unknown"] = None
 
-schedds_count = 0
-
 use_python_bindings_dict = {}
 
 file_name = "/var/log/gwms-frontend/group_main/main.all.log"
 with open(file_name, "rb") as fd:
     for log in fd:
-        pid = -1
-        count += 1
-        time_stamp = get_log_timestamp(log)
-        log_type = get_log_type(log)
-        if log_type in constraint and constraint[log_type] == None:
-            constraint[log_type] = get_constraint(log)
-        # TODO: identify non-constraint queries        
-        if time_stamp and query_time == None:
-            pid_indx = log.find("PID = ")
-            if pid_indx != -1:
-                pid_tmp = log[(pid_indx + 6):]
+        if "PROFILER :: " in log:
+            pid = -1
+            time_stamp = get_log_timestamp(log)
+            log_type = get_log_type(log)
+            if log_type in constraint and constraint[log_type] == None:
+                constraint[log_type] = get_constraint(log)
+            # TODO: identify non-constraint queries
+            if time_stamp and query_time == None:
                 try:
-                    pid = int(pid_tmp)
-                except ValueError:
-                    print "Not an Int: %s" % pid_tmp
-            if log.find("BEGIN getCondorQConstrained()") != -1:
-                start_time["condor_q"] = time_stamp
+                    pid_str = re.search("PID = [0-9]+", log).group(0)
+                    try:
+                        pid = int(pid_str[7:])
+                    except ValueError:
+                        pid = -1
+                        print "Not an Int: %s" % pid_str[7:]
+                except AttributeError:
+                    pid = -1
 
-            elif log.find("END getCondorQConstrained()") != -1 and start_time["condor_q"]:
-                query_time = time_stamp - start_time["condor_q"]
+                if log.find("BEGIN getCondorQConstrained()") != -1:
+                    start_time["condor_q"] = time_stamp
 
-            elif log.find("BEGIN exe_condor_q") != -1:
-                try:
-                    py_bindings_str = re.search("USE_HTCONDOR_PYTHON_BINDINGS = (True|False)").group(0)
-                    py_bindings = ("True" in py_bindings_str)
-                except:
-                    py_bindings = None
-                start_time["exe_condor_q"] = time_stamp
-                use_python_bindings_dict["exe_condor_q"] = use_python_bindings
+                elif log.find("END getCondorQConstrained()") != -1 and start_time["condor_q"]:
+                    query_time = time_stamp - start_time["condor_q"]
 
-            elif log.find("END exe_condor_q") != -1 and start_time["exe_condor_q"]:
-                query_time = time_stamp - start_time["exe_condor_q"]
+                elif log.find("BEGIN exe_condor_q") != -1:
+                    try:
+                        py_bindings_str = re.search("USE_HTCON(D)?OR_PYTHON_BINDINGS = (True|False)", log).group(0)
+                        py_bindings = ("True" in py_bindings_str)
+                        print log
+                    except AttributeError:
+                        py_bindings = None
+                    start_time["exe_condor_q"] = time_stamp
+                    use_python_bindings_dict["exe_condor_q"] = py_bindings
 
-            elif log.find("BEGIN getCondorStatusConstrained()") != -1:
-                start_time["condor_status"] = time_stamp
+                elif log.find("END exe_condor_q") != -1 and start_time["exe_condor_q"]:
+                    query_time = time_stamp - start_time["exe_condor_q"]
 
-            elif log.find("END getCondorStatusConstrained()") != -1 and start_time["condor_status"]:
-                query_time = time_stamp - start_time["condor_status"]
+                elif log.find("BEGIN getCondorStatusConstrained()") != -1:
+                    start_time["condor_status"] = time_stamp
 
-            elif log.find("BEGIN exe_condor_status") != -1:
-                try:
-                    py_bindings_str = re.search("USE_HTCONDOR_PYTHON_BINDINGS = (True|False)").group(0)
-                    py_bindings = ("True" in py_bindings_str)
-                except:
-                    py_bindings = None
-                start_time["exe_condor_status"] = time_stamp
-                use_python_bindings_dict["exe_condor_status"] = py_bindings
+                elif log.find("END getCondorStatusConstrained()") != -1 and start_time["condor_status"]:
+                    query_time = time_stamp - start_time["condor_status"]
 
-            elif log.find("END exe_condor_status") != -1 and start_time["exe_condor_status"]:
-                query_time = time_stamp - start_time["exe_condor_status"]
+                elif log.find("BEGIN exe_condor_status") != -1:
+                    try:
+                        py_bindings_str = re.search("USE_HTCON(D)?OR_PYTHON_BINDINGS = (True|False)", log).group(0)
+                        py_bindings = ("True" in py_bindings_str)
+                        print log
+                    except AttributeError:
+                        py_bindings = None
+                    start_time["exe_condor_status"] = time_stamp
+                    use_python_bindings_dict["exe_condor_status"] = py_bindings
 
-        if query_time and query_time.total_seconds() > 0.25:
+                elif log.find("END exe_condor_status") != -1 and start_time["exe_condor_status"]:
+                    query_time = time_stamp - start_time["exe_condor_status"]
+
+        if query_time:
             query.query_time = query_time
             query.query_type = log_type
             query.start_time = start_time[log_type] if log_type in start_time else None
@@ -150,10 +150,11 @@ with open(file_name, "rb") as fd:
             query.constraint = constraint[log_type] if log_type in constraint else "UNCONSTRAINED"
             queries.append(query)
 
-            print "[%s]\t%s :: %s :: %s" % (query.start_time, query.query_type, query.query_time, query.constraint)
+            #print "[%s]\t%s :: %s :: %s" % (query.start_time, query.query_type, query.query_time, query.constraint)
             query = Query()
             query_frq[log_type] += 1
             constraint[log_type] = None
+            use_python_bindings_dict[log_type] = None
         query_time = None
 
 print query_frq
@@ -215,13 +216,16 @@ print "Variance\t%s" % (var_time_stats)
 python_binding_stats = [q for q in queries if (q.use_python_bindings != None)]
 use_python_binding_stats = [q for q in python_binding_stats if (q.use_python_bindings)]
 no_python_binding_stats = [q for q in python_binding_stats if (not q.use_python_bindings)]
+#print python_binding_stats
+#print use_python_binding_stats
+#print no_python_binding_stats
 
 use_python_binding = {}; use_python_binding_avg = {}
 no_python_binding = {}; no_python_binding_avg = {}
 
 for qt in ["exe_condor_status", "exe_condor_q"]:
-    use_python_binding[qt] = [q for q in use_python_binding_stats if (q.query_type == qt)]
-    no_python_binding[qt] = [q for q in no_python_binding_stats if (q.query_type == qt)]
+    use_python_binding[qt] = [q.query_time.total_seconds() for q in use_python_binding_stats if (q.query_type == qt)]
+    no_python_binding[qt] = [q.query_time.total_seconds() for q in no_python_binding_stats if (q.query_type == qt)]
 
     if len(use_python_binding[qt]) > 0:
         use_python_binding_avg[qt] = sum(use_python_binding[qt])/len(use_python_binding[qt])
