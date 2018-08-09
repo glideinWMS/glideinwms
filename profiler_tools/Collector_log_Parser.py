@@ -24,6 +24,7 @@ projections = None
 query_time = -1
 send_time = -1
 
+# Parsing the logs to gather information
 with open("/var/log/condor/CollectorLog") as fd:
     for log in fd:
         qi = QueryInfo(log)
@@ -109,7 +110,6 @@ if len(stime_list) > 1:
     stime_var = sum((qi - stime_avg) ** 2 for qi in stime_list) / (len(stime_list) - 1)
 else:
     stime_var = -1
-stime_max = max(stime_list)
 
 stime_empty_projection_list = [qi.send_time for qi in grouped_query_info if (qi.projections == None or qi.projections == "")]
 stime_empty_projection_avg = sum(stime_empty_projection_list) / len(stime_empty_projection_list)
@@ -123,20 +123,29 @@ print "Number of Query Info = %s\n" % len(query_info_list)
 
 print "Max query_time = %s" % qtime_max
 print "Average query_time = %s" % qtime_avg
-print "Variance query_time = %s\n" % qtime_var
+print "Variance query_time = %s" % qtime_var
+print "Max query_time = %s" % max(qtime_list)
+print "Min query_time = %s\n" % min(qtime_list)
 
 print "Max Nonempty Projection query_time = %s" % qtime_nonempty_max
 print "Average Nonempty Projection query_time = %s" % qtime_nonempty_avg
-print "Variance Nonempty Projection query_time = %s\n" % qtime_nonempty_var
+print "Variance Nonempty Projection query_time = %s" % qtime_nonempty_var
+print "Max Nonempty Projection query_time = %s" % max(qtime_nonempty_list)
+print "Min Nonempty Projection query_time = %s\n" % min(qtime_nonempty_list)
 
 print "Max Empty Projection query_time = %s" % qtime_empty_projection_max
 print "Average Empty Projection query_time = %s" %  qtime_empty_projection_avg
-print "Variance Empty Projection query_time = %s\n" % qtime_empty_projection_var
+print "Variance Empty Projection query_time = %s" % qtime_empty_projection_var
+print "Max Empty Projection query_time = %s" % max(qtime_empty_projection_list)
+print "Min Empty Projection query_time = %s\n" % min(qtime_empty_projection_list)
 
-print "Max sending_time = %s" % stime_max
 print "Average sending_time = %s" % stime_avg
-print "Variance sending_time = %s\n" % stime_var
+print "Variance sending_time = %s" % stime_var
+print "Max sending_time = %s" % max(stime_list)
+print "Min sending_time = %s\n" % min(stime_list)
 
 print "Max Empty Projection sending_time = %s" % stime_empty_projection_max
 print "Average Empty Projection sending_time = %s" % stime_empty_projection_avg
 print "Variance Empty Projection sending_time = %s" % stime_empty_projection_var
+print "Max Empty Projection sending_time = %s" % max(stime_list)
+print "Min Empty Projection sending_time = %s" % min(stime_list)

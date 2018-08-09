@@ -216,14 +216,16 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     # Jack Lundell
-    logsupport.profiler("BEGIN exe_condor_q : PID = %s" % (os.getpid()), "exe_condor_q", USE_HTCONDOR_PYTHON_BINDINGS)
+    logsupport.profiler("BEGIN exe_condor_q :: PID = %s :: USE_HTCONDOR_PYTHON_BINDINGS = %s :: " % (os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_condor_q")
+    for s in traceback.format_stack():
+        logSupport.profiler("condorq_attrs() :: stack trace\t%s" % s)
 
-    q_constraint += "&& (MyType=!=\"condor_q_%s\")" % os.getpid()
-    logSupport.profiler("ATTRIBUTES = %s" % attribute_list, "condor_q", USE_HTCONDOR_PYTHON_BINDINGS)
-    logSupport.profiler("CONSTRAINTS = %s" % q_constraint, "condor_q", USE_HTCONDOR_PYTHON_BINDINGS)
+    q_constraint += '&& (MyType=!=\"condor_q_%s\")' % os.getpid()
+    logSupport.profiler("ATTRIBUTES = %s" % attribute_list, "condor_q")
+    logSupport.profiler("CONSTRAINTS = %s" % q_constraint, "condor_q")
 
     xml_data = condorExe.exe_cmd("condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
-    logSupport.profiler("END exe_condor_q : PID = %s" % (os.getpid()), "condor_q", USE_HTCONDOR_PYTHON_BINDINGS)
+    logSupport.profiler("END exe_condor_q :: PID = %s" % (os.getpid()), "condor_q")
 
     classads_xml = []
     tmp_list = []
@@ -468,10 +470,11 @@ class CondorQuery(StoredQuery):
         @rtype: dict
         """
 
+        bogus_constraint = "(MyType=!=\"exe_%s_%s\") && (Name=!=\"use_htcondor_python_bindings_%s\")" % (self.exe_name, os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS)
         if constraint is None:
-            constraint_str = ""
+            constraint_str = bogus_constraint
         else:
-            constraint_str = "-constraint '%s'"%constraint
+            constraint_str = "-constraint '%s && %s'" % (constraint, bogus_constraint)
 
         full_xml = (format_list is None)
         if format_list is not None:
@@ -488,9 +491,8 @@ class CondorQuery(StoredQuery):
             self.security_obj.enforce_requests()
 
             if self.exe_name == "condor_status" or self.exe_name == "condor_q":
-                logSupport.profiler("BEGIN exe_%s : PID = %s" % (self.exe_name, os.getpid()), "exe_%s" % self.exe_name, USE_HTCONDOR_PYTHON_BINDINGS)
-                constraint_str += "&& (MyType=!=\"exe_%s_%s\")" % (self.exe_name, os.getpid())
-                logSupport.profiler("CONSTRAINT = %s" % constraint_str, "exe_%s" % self.exe_name, USE_HTCONDOR_PYTHON_BINDINGS)
+                logSupport.profiler("BEGIN exe_%s :: PID = %s :: USE_HTCONOR_PYTHON_BINDINGS = %s" % (self.exe_name, os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_%s" % self.exe_name)
+                logSupport.profiler('CONSTRAINT = %s' % constraint_str, "exe_%s" % self.exe_name)
             if full_xml:
                 xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" %
                                              (self.resource_str, self.pool_str, constraint_str), env=self.env)
@@ -499,7 +501,7 @@ class CondorQuery(StoredQuery):
                 xml_data = condorExe.exe_cmd(self.exe_name, "%s %s -xml %s %s" %
                                              (self.resource_str, format_str, self.pool_str, constraint_str), env=self.env)
             if self.exe_name == "condor_status" or self.exe_name == "condor_q":
-                logSupport.profiler("END exe %s : PID = %s" % (self.exe_name, os.getpid()), "exe_%s" % self.exe_name, USE_HTCONDOR_PYTHON_BINDINGS)
+                logSupport.profiler("END exe_%s :: PID = %s" % (self.exe_name, os.getpid()), "exe_%s" % self.exe_name)
         finally:
             # restore old security context
             self.security_obj.restore_state()
@@ -520,12 +522,11 @@ class CondorQuery(StoredQuery):
         Fetch the results and cache it in self.stored_data
         """
         self.stored_data = self.fetch(constraint, format_list)
-        stack = traceback.format_stack()
-        for s in stack:
-            logSupport.profiler("load() :: stack trace\t%s" % s, USE_HTCONDOR_PYTHON_BINDINGS)
-        logSupport.profiler("CondorQuery exe_name = %s : PID = %s" % (self.exe_name, os.getpid()), USE_HTCONDOR_PYTHON_BINDINGS)
+        for s in traceback.format_stack():
+            logSupport.profiler("load() :: stack trace\t%s" % s)
+        logSupport.profiler("CondorQuery exe_name = %s : PID = %s" % (self.exe_name, os.getpid()), "exe_%s" % self.exe_name)
 #        logSupport.profiler("STORED DATA = %s" % self.fetch(None, format_list))
-        logSupport.profiler("load(%s, %s) :: %s" % (constraint, format_list, self.stored_data), USE_HTCONDOR_PYTHON_BINDINGS)
+        logSupport.profiler("load()\t%s" % self, "exe_%s" % self.exe_name)
 
     def __repr__(self):
         output = "%s:\n" % self.__class__.__name__
@@ -619,7 +620,7 @@ class CondorStatus(CondorQuery):
             subsystem_str = "-%s" % subsystem_name
 
         for s in traceback.format_stack():
-            logSupport.profiler("CondorStatus() : Stack Trace\t%s" % s, "exe_condor_status", USE_HTCONDOR_PYTHON_BINDINGS)
+            logSupport.profiler("CondorStatus() : Stack Trace\t%s" % s, "exe_condor_status")
         CondorQuery.__init__(self, "condor_status", subsystem_str,
                              "Name", pool_name, security_obj, {})
 
@@ -1215,7 +1216,7 @@ class CondorQLite(CondorQuery):
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
         for s in traceback.format_stack():
-            logSupport.profiler("CondorQLite() : Stack Trace\t%s" % s, "exe_condor_q", USE_HTCONDOR_PYTHON_BINDINGS)
+            logSupport.profiler("CondorQLite() : Stack Trace\t%s" % s, "exe_condor_q"ƒ)
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)
 

@@ -226,8 +226,6 @@ def findGlideinClientMonitoring(factory_pool, factory_identity,
     if additional_constraint is not None:
         status_constraint += ' && (%s)' % additional_constraint
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
-    # Jack Lundell
-    status_constraint += "&& (MyType=!=\"findGlideinClientMonitoring_ASDF\")"
     status.load(status_constraint)
 
     data = status.fetchStored()
