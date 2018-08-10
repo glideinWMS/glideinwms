@@ -491,7 +491,7 @@ class CondorQuery(StoredQuery):
             self.security_obj.enforce_requests()
 
             if self.exe_name == "condor_status" or self.exe_name == "condor_q":
-                logSupport.profiler("BEGIN exe_%s :: PID = %s :: USE_HTCONOR_PYTHON_BINDINGS = %s" % (self.exe_name, os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_%s" % self.exe_name)
+                logSupport.profiler("BEGIN exe_%s :: PID = %s :: USE_HTCONDOR_PYTHON_BINDINGS = %s" % (self.exe_name, os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_%s" % self.exe_name)
                 logSupport.profiler('CONSTRAINT = %s' % constraint_str, "exe_%s" % self.exe_name)
             if full_xml:
                 xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" %
@@ -1216,7 +1216,7 @@ class CondorQLite(CondorQuery):
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
         for s in traceback.format_stack():
-            logSupport.profiler("CondorQLite() : Stack Trace\t%s" % s, "exe_condor_q"ƒ)
+            logSupport.profiler("CondorQLite() : Stack Trace\t%s" % s, "exe_condor_q")
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)
 

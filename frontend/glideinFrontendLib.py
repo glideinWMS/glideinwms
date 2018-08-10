@@ -1073,7 +1073,7 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
 # specify the appropriate additional constraint
 #
 def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format_list=None):
-    logSupport.profiler("BEGIN getCondorQConstrained() : PID = %s" % os.getpid(), "condor_q")
+    logSupport.profiler("BEGIN getCondorQConstrained() :: PID = %s" % os.getpid(), "condor_q")
     out_condorq_dict = {}
     for schedd in schedd_names:
         if schedd == '':
@@ -1103,7 +1103,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         except Exception:
             logSupport.log.exception("Unknown Exception. Failed to talk to schedd %s" % schedd)
     
-    logSupport.profiler("END getCondorQConstrained() : PID = %s" % os.getpid(), "condor_q")
+    logSupport.profiler("END getCondorQConstrained() :: PID = %s" % os.getpid(), "condor_q")
     return out_condorq_dict
 
 
@@ -1117,7 +1117,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
 def getCondorStatusConstrained(collector_names, type_constraint, constraint=None,
                                format_list=None, subsystem_name=None):
     # Jack Lundell
-    logSupport.profiler("BEGIN getCondorStatusConstrained() : PID = %s" % os.getpid(), "condor_status")
+    logSupport.profiler("BEGIN getCondorStatusConstrained() :: PID = %s" % os.getpid(), "condor_status")
     out_status_dict = {}
     for collector in collector_names:
         full_constraint = type_constraint[0:]  # make copy
@@ -1153,7 +1153,7 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
 
         logSupport.profiler("CONSTRAINT = %s" % full_constraint, "condor_status")
         logSupport.profiler("FORMAT_LIST = %s" % format_list, "condor_status")
-    logSupport.profiler("END getCondorStatusConstrained() : PID = %s" % os.getpid(), "condor_status")
+    logSupport.profiler("END getCondorStatusConstrained() :: PID = %s" % os.getpid(), "condor_status")
     return out_status_dict
 
 

@@ -119,10 +119,14 @@ else:
     stime_empty_projection_var = -1
 stime_empty_projection_max = max(stime_empty_projection_list)
 
+# Group by (MyType, Projection, Constraint), and do same stats as below
+
+
 print "Number of Query Info = %s\n" % len(query_info_list)
 
 print "Max query_time = %s" % qtime_max
 print "Average query_time = %s" % qtime_avg
+print "N query_time = %s"
 print "Variance query_time = %s" % qtime_var
 print "Max query_time = %s" % max(qtime_list)
 print "Min query_time = %s\n" % min(qtime_list)
