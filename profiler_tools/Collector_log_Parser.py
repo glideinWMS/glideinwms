@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 
 class QueryInfo:
-    def __init__(self, log, time_stamp=None, query_time=None, send_time=None, query_type=None, requirements=None, projections=None):
+    def __init__(self, log, time_stamp=None, query_time=None, send_time=None, query_type=None, requirements=None, projections=None, query_pid = -1):
         self.log = log.strip()
         self.time_stamp = time_stamp
         self.query_time = query_time
@@ -12,6 +12,7 @@ class QueryInfo:
         self.query_type = query_type
         self.requirements = requirements
         self.projections = projections
+        self.query_pid = query_pid
 
     def __str__(self):
         return "time_stamp:\t%squery_time:\t%f\nsend_time:\t%f\nquery_type:\t%s\nrequirements:\t%s\nprojections:\t%s\n" % (self.time_stamp, self.query_time, self.send_time, self.query_type, self.requirements, self.projections)
@@ -50,6 +51,12 @@ with open("/var/log/condor/CollectorLog") as fd:
             requirements = re.search("requirements={.*?}", query_info).group(0)
             requirements = requirements[14:-1]
             qi.requirements = requirements
+
+            pid_str = re.search("MyType[\s]*?=!=[\s]*?\"(condor_status_|exe_condor_status_|condor_q_|exe_condor_q_)[0-9]+\"", requirements)
+            if pid_str:
+                qi.pid = int(re.search("[0-9]+", pid_str.group(0)).group(0))
+            else:
+                qi.pid = -1
 
             projections = re.search("projection={.*?}", query_info).group(0)
             projections = projections[12:-1]
