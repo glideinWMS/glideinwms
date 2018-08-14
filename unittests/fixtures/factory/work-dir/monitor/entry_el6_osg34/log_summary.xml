@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<glideFactoryEntryLogSummary>
+   <updated>
+      <timezone name="Local" ISO8601="2018-08-14T16:42:18-05:00" RFC2822="Tue, 14 Aug 2018 16:42:18 -0500" human="Tue Aug 14 16:42:18 2018"/>
+      <timezone name="UTC" ISO8601="2018-08-14T21:42:18Z" RFC2822="Tue, 14 Aug 2018 21:42:18 +0000" unixtime="1534282938"/>
+   </updated>
+   <frontends>
+   </frontends>
+   <total>
+      <CompletedCounts>
+         <Sum CondorLasted="0" FailedNr="0" Glideins="0" JobsGoodput="0" JobsLasted="0" JobsNr="0" JobsTerminated="0" Lasted="0"/>
+         <Waste>
+            <badput>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </badput>
+            <idle>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </idle>
+            <nosuccess>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </nosuccess>
+            <validation>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </validation>
+         </Waste>
+         <WasteTime>
+            <badput>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </badput>
+            <idle>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </idle>
+            <nosuccess>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </nosuccess>
+            <validation>
+               <Fraction name="100m" val="0"/>
+               <Fraction name="250m" val="0"/>
+               <Fraction name="25m" val="0"/>
+               <Fraction name="500m" val="0"/>
+               <Fraction name="5m" val="0"/>
+               <Fraction name="All" val="0"/>
+               <Fraction name="Most" val="0"/>
+               <Fraction name="None" val="0"/>
+            </validation>
+         </WasteTime>
+         <JobsDuration>
+            <TimeRange name="2hours" val="0"/>
+            <TimeRange name="30mins" val="0"/>
+            <TimeRange name="32hours" val="0"/>
+            <TimeRange name="8hours" val="0"/>
+            <TimeRange name="Days" val="0"/>
+            <TimeRange name="Minutes" val="0"/>
+            <TimeRange name="Unknown" val="0"/>
+         </JobsDuration>
+         <JobsNr>
+            <Range name="16jobs" val="0"/>
+            <Range name="1job" val="0"/>
+            <Range name="2jobs" val="0"/>
+            <Range name="4jobs" val="0"/>
+            <Range name="Many" val="0"/>
+            <Range name="None" val="0"/>
+         </JobsNr>
+         <Lasted>
+            <TimeRange name="2hours" val="0"/>
+            <TimeRange name="30mins" val="0"/>
+            <TimeRange name="32hours" val="0"/>
+            <TimeRange name="8hours" val="0"/>
+            <TimeRange name="Days" val="0"/>
+            <TimeRange name="Minutes" val="0"/>
+            <TimeRange name="Unknown" val="0"/>
+         </Lasted>
+      </CompletedCounts>
+      <Current Held="0" Idle="0" Running="0" Wait="0"/>
+      <Entered Completed="0" Held="0" Idle="0" Removed="0" Running="0" Wait="0"/>
+      <Exited Held="0" Idle="0" Running="0" Wait="0"/>
+   </total>
+</glideFactoryEntryLogSummary>
+

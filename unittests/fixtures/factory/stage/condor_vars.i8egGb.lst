@@ -1,0 +1,7 @@
+# File: condor_vars.i8egGb.lst
+#
+# VarName               Type    Default         CondorName                     Req.     Export  UserName           
+#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export 
+#                                                                                                + = Use VarName   
+#                                                                                                @ = Use CondorName
+###################################################################################################################
