@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory</h2>
@@ -97,10 +95,10 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
         <img src="../images/overview_WMS_factory.png" name="graphics1" align="right" border="0">
 
                     The glidein Factory node will be the 
-                    <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000">HTCondor Central Manager</a> 
+                    <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000">HTCondor Central Manager</a> 
                     for the WMS, i.e. it will run the HTCondor Collector and Negotiator daemons, but it will also act as a 
-                    <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000">HTCondor Submit node</a>
-                    for the glidein factory, running HTCondor schedds used for Grid submission.
+                    <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000">HTCondor Submit node</a>
+                    for the glidein Factory, running HTCondor schedds used for Grid submission.
                 </p>
                 <p>
                     On top of that, this node also hosts the Glidein Factory daemons. The Glidein Factory is also responsible for the base 
@@ -112,7 +110,7 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
 
                 <p><b>Note:</b> This document refers to the tarball distribution of the Glidein Factory.
                 If you want to install or installed via RPM please refer to the 
-                <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG RMP Guide</a>.
+                <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">OSG RMP Guide</a>.
                 </p>
 
 
@@ -150,7 +148,7 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
                 <img src="../images/overview_glidein.png" name="graphics1b" align="right" border="0">
                     A major installation, serving tens of sites and several thousand glideins will require 
                     <b>several CPUs</b> (recommended <b>4-8</b>: 1 for the HTCondor damons, 1-2 for the glidein
-                    factory daemons and 2 or more for HTCondor-G schedds) and a reasonable amount of 
+                    Factory daemons and 2 or more for HTCondor-G schedds) and a reasonable amount of 
                     <b>memory</b> (at least <b>2GB</b>, <b>4GB</b> for a large installation to provide some 
                     disk caching).
                 </p>
@@ -184,7 +182,7 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
  
     <h3><a name="before_install_users">4.1 Required Users</a></h3>
     <p>
-        The installer requires several non-privileged users.  These should be created prior to running theglideinWMS installer.  
+        The installer requires several non-privileged users.  These should be created prior to running the GlideinWMS installer.  
     </p>
     <p>
     <table class="requirements">
@@ -193,7 +191,7 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
         <td>Notes</td>
     </tr>
     <tr>
-        <td>WMS Pool - Condor User</td>
+        <td>WMS Pool - HTCondor User</td>
         <td>If privilege separation is not used, then install as the same user as the Factory</td>
     </tr>
     <tr>
@@ -203,8 +201,8 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
     <tr>
         <td>One user per Fontend (See notes)</td>
         <td>
-            If you are using privilege separation, you will need a user for each frontend that will be communicating with the Factory.  Otherwise,
-            no new users need to be created for the frontends.
+            If you are using privilege separation, you will need a user for each Frontend that will be communicating with the Factory.  Otherwise,
+            no new users need to be created for the Frontends.
         </td>
     </tr>
     </table>
@@ -215,14 +213,14 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
         The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
         created and put in place before running the installer.  The following is a list of DNs the installer will ask for:</p>
         <ul>
-            <li>WMS Pool cert/proxy DN</li>
-            <li>Glidein Frontend proxy DN (cannot use a cert here)</li>
+            <li>WMS Pool cert/Proxy DN</li>
+            <li>Glidein Frontend Proxy DN (cannot use a cert here)</li>
         </ul>
         <p><strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs.  
          These nicknames are the HTCondor UID used in its configuration and mapfile. 
          The name given doesn't 
          matter, EXCEPT if you are using privilege separation. Then on the WMS Pool the nickname for 
-        each Glidein Frontend must be the UNIX username that you created for that frontend. <br>
+        each Glidein Frontend must be the UNIX username that you created for that Frontend. <br>
         <strong>Note 2:</strong> The installer will ask if these are trusted HTCondor Daemons.  Answer 'y'.<p> 
     
     
@@ -338,9 +336,9 @@ Unless you want to force your users to find and hard code the location.
 
         <tr>
         <td>collector_port</td>
-        <td>9618 (Condor default)</td>
+        <td>9618 (HTCondor default)</td>
         <td>Defines the HTCondor Collector port for the WMS Pool. </td>
-        <td>Optional: default is 9618 (Condor default)<br/>
+        <td>Optional: default is 9618 (HTCondor default)<br/>
             If multiple glidein services are installed on the same node, 
             this should be unique for each service. 
         </td>
@@ -349,7 +347,7 @@ Unless you want to force your users to find and hard code the location.
         <tr>
         <td> <a name="privilege_separation"/> privilege_separation</td>
         <td align="center">y</td>
-        <td>See the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_6Security.html#SECTION004612000000000000000">HTCondor Privilege Separation  Documentation</a> for more information</td>
+        <td>See the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.6/3_8Security.html#SECTION004813000000000000000">HTCondor Privilege Separation  Documentation</a> for more information</td>
         <td>Valid values:<br/>
             * <b>y</b> - privilege separation is used<br/>
             * <b>n</b> - privilege separation is not used <br/>
@@ -359,13 +357,13 @@ Unless you want to force your users to find and hard code the location.
         <tr>
         <td>frontend_users </td>
         <td>frontend_service_name : unix_account </td>
-        <td>Maps the vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install. 
+        <td>Maps the vofrontend's service name to the UNIX account that has been created for it.  Only one Frontend service can be specified on install. 
         </td>
         <td>The format is: <b>service_name : unix account </b><br/>
         If <b>privilege_separation</b> is specified, this must specify
-        the unique UNIX user account you set up for that frontend service.</br>
+        the unique UNIX user account you set up for that Frontend service.</br>
         If <b>privilege_separation</b> is <b>not</b> specified, this must be the
-        factory username.</br>
+        Factory username.</br>
         </td>
         </tr>
 
@@ -407,7 +405,7 @@ Unless you want to force your users to find and hard code the location.
         <td>dn-subject-of-x509_cert-using-openssl</td>
         <td>
             This is the identity of the certificate used by this service to 
-            contact the other Condor based glideinWMS services.
+            contact the other HTCondor based GlideinWMS services.
         <td>
             This is the <i>subject</i> of the certificate 
             (<b>x509_cert</b> option).
@@ -421,7 +419,7 @@ Unless you want to force your users to find and hard code the location.
 
         <tr>
         <td>condor_tarball</td>
-        <td>/path/to/condor/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz</td>
+        <td>/path/to/condor/tarballs/condor-version.x-linux-x86-rhelX-dynamic.tar.gz</td>
         <td>Location of the condor tarball.</td>
         <td>
          The installation script will perform the installation of condor using this tarball.
@@ -432,7 +430,7 @@ It must be a zipped tarball with a *.tg.tz name.
         <tr>
         <td>condor_admin_email</td>
         <td>whomever@email.com</td>
-        <td>The email address to get Condor notifications in the event of a problem.</td>
+        <td>The email address to get HTCondor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
         </tr>
 
@@ -493,7 +491,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	</p>
 <br/>
 
-    <p>If you are <b>using privilege separation</b>, please control the content of the PrivSep configuration file (/etc/condor/privsep_config) and make sure that the callers and targets are colon separated lists including respectively all the users (and default groups) the factory runs under and the ones representing the frontend. This should match the security_classes section in the factory configuration (glideinWMS.xml).
+    <p>If you are <b>using privilege separation</b>, please control the content of the PrivSep configuration file (/etc/condor/privsep_config) and make sure that the callers and targets are colon separated lists including respectively all the users (and default groups). The Factory runs under and the ones representing the Frontend. This should match the security_classes section in the Factory configuration (glideinWMS.xml).
     </p>
 
     <p>The installer allows you to automatically start the HTCondor daemons.  To start them on your own, source the condor env script and execute:</p>
@@ -509,19 +507,19 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
     <h2><a name="factory">6. Glidein Factory installation guide</a></h2>
 
     <p>
-        The Glidein Factory requires a proxy from the frontend to use for submitting glideins. This proxy must at any point in time have 
-        a validity of at least the longest expected job being run by the GlideinWMS and not less than 12 hours.<br>
+        The Glidein Factory requires a proxy from the Frontend to use for submitting glideins. This proxy must (at any point in time) have 
+        a validity of at least, the longest expected job being run by the GlideinWMS and not less than 12 hours.<br>
         How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a local certificate, scp from other nodes, or other methods), 
         is beyond the scope of this document.
     </p>
 
     <p>
         <b>The Glidein Factory itself should be installed as a non privileged user</b>. The installer will create the configuration
-        file used to configure and run the factory, although some manual tunning will probably be needed.
+        file used to configure and run the Factory, although some manual tunning will probably be needed.
     </p>
 
 	<p>
-	The manage-glideins script should be run as the factory user when installing
+	The manage-glideins script should be run as the Factory user when installing
 	the WMS Factory (see the <b>username</b> option below).
 	<blockquote>
 	    ./manage-glideins --install factory --ini glideinWMS.ini
@@ -572,12 +570,12 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         <tr>
         <td>install_location</td>
         <td>/path/to/glidein/factory</td>
-        <td>HOME directory for the factory software.</td>
-        <td>When the factory is created the following files/directories will 
+        <td>HOME directory for the Factory software.</td>
+        <td>When the Factory is created the following files/directories will 
             exist in this directory:<br/>
             * factory.sh - environment script<br/>
-            * glidein_[instance_name].cfg - the factory configuration file<br/>
-            * glidein_[instance_name] - directory containing the factory files<br/>
+            * glidein_[instance_name].cfg - the Factory configuration file<br/>
+            * glidein_[instance_name] - directory containing the Factory files<br/>
              <br/>
              The install script will create this directory if it does not exist. 
         </td>
@@ -588,8 +586,8 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
             <td>/path/to/factory/logs  </td>
             <td>User settable location for all Factory log files.</td>
             <td>Beneath this location there will be multiple sets of logs:</br> 
-                * for the factory as a whole</li</br>
-                * for each entry point the factory utilizes</br>
+                * for the Factory as a whole</li</br>
+                * for each entry point the Factory utilizes</br>
              <br/>
              The install script will create this directory if it does not exist. 
             </td>
@@ -715,7 +713,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         <tr>
         <td> glideinwms_location</td>
         <td>     /path/to/glideinWMS    </td>
-        <td>Directory of the glideinWMS software.</td>
+        <td>Directory of the GlideinWMS software.</td>
         <td>This software is used for both the installation and during the actual running of this glidein service.</td>
         </tr>
 
@@ -780,9 +778,9 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
     </p>
     <p>
         The installer will allow to you automatically "create" the glidein.  This means it will create all the directories and files in the
-        working directory that the factory processes will use.  These will be located in:<br/>        
+        working directory that the Factory processes will use.  These will be located in:<br/>        
         <b>/path/to/glidein/working/directory/glidein_&lt;instance_name&gt;/*</b>. <br/>
-        If you choose not to do this in the installer, you can create them on your own by sourcing the factory.sh file and then running
+        If you choose not to do this in the installer, you can create them on your own by sourcing the Factory.sh file and then running
         <blockquote>cd glideinWMS/creation<br/> ./create_glidein <i>&lt;config file&gt;</i></blockquote>
     </p>
     <p>
@@ -790,15 +788,15 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         Use the <a href="#factory_update">reconfig tools described below</a> instead.
     </p>
    
-    <p>At this point, your factory installation is complete and you can start the factory.  See below for the <a href="#management">commands</a> for running a factory.  
+    <p>At this point, your Factory installation is complete and you can start the Factory.  See below for the <a href="#management">commands</a> for running a Factory.  
     </p>
 </div>
 <div class="section">
     <a name="management" />
     <h2>7. Factory Management Commands</h2>
 
-    <p><b>Note:</b> If you installed the factory via RPM some files or commands will differ. Please refer to the 
-    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG RMP Guide</a>.
+    <p><b>Note:</b> If you installed the Factory via RPM some files or commands will differ. Please refer to the 
+    <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">OSG RMP Guide</a>.
     </p>
 
 
@@ -807,12 +805,12 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
     <p>Glidein Factory starting and stopping is handled by </p>
     <blockquote>&lt;glidein directory&gt;/factory_startup
     start|stop|restart</blockquote>
-	<p>You can check that the factory is actually running with</p>
+	<p>You can check that the Factory is actually running with</p>
 	    <blockquote>
 	    &lt;glidein directory&gt;/factory_startup
 	    status
 	    </blockquote>
-	<p>To get the list of entries defined in the factory, use</p>
+	<p>To get the list of entries defined in the Factory, use</p>
 	    <blockquote>
 	    &lt;glidein directory&gt;/factory_startup
 	    info -entries -CE
@@ -823,7 +821,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	    statusdown entries
 	    </blockquote>
 	
-	<p>To see the status of the overall factory, use</p>
+	<p>To see the status of the overall Factory, use</p>
 	    <blockquote>
 	    &lt;glidein directory&gt;/factory_startup
 	    statusdown factory 
@@ -835,7 +833,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 
 <div class="section">
 
-    <h3><a name="factory_update">7.2 Changing the factory configuration</a></h3>
+    <h3><a name="factory_update">7.2 Changing the Factory configuration</a></h3>
 
     <p>The files in an entry point must <b>never be changed by hand</b> after the directory structure has been created. The 
     reason why manual changes are so problematic are two fold:</p>
@@ -843,7 +841,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	<ul>
 	    <li>The first problem are signatures. Any change requires the
 	    change of the signature file, that in turn gets a new signature.
-	    Since the signature file signature is one of the parameters of the
+	    Since the signature is one of the parameters of the
 	    startup script, all glideins already in the queue will fail. </li>
 	    <li>The second problem is caching. For performance reasons,
 	    most Web caches don't check too often if the original document has
@@ -866,36 +864,36 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	    &lt;glidein working directory&gt;/factory_startup reconfig <i>config_copy_fname</i>
 	</blockquote>
 	<p>
-	This will update the directory tree and restart the factory and entry dameons. (If the factory wasn't running at the time of reconfig it
+	This will update the directory tree and restart the Factory and entry dameons. (If the Factory wasn't running at the time of reconfig, it
 	will only update the directory tree.)
 	</p>
 	<p>
-	Please notice that if you make any errors in the new configuration file, the reconfig 
+	Please, notice that if you make any errors in the new configuration file, the reconfig 
 	script will throw an error and do nothing. If you executed the reconfig command while the facotry was running, it will revert to 
 	the last config file and restart with those settings.  As long as you use this tool, you should never corrupt the installation tree.
 	</p>
-	<p>The factory_startup script contains a default location for the factory configuration and is set to the location used for the initial
+	<p>The factory_startup script contains a default location for the Factory configuration and is set to the location used for the initial
 	install.  This allows you to not have to specify the config location when doing a reconfig.  To change the default location in the file,
 	run the command:	
 	<blockquote>
 	    &lt;glidein working directory&gt;/factory_startup reconfig <i>config_copy_fname</i> update_default_cfg
 	</blockquote>
 	</p>
-	<p><b>NOTE</b>: The reconfig tool does not kill the factory in case of errors.
+	<p><b>NOTE</b>: The reconfig tool does not kill the Factory in case of errors.
 	It is also recommended that you only disable any entry points that will not be used.  Never remove them from the config file.</p>
 
 </div>
 <div class="section">
 	<h3><a name="downtimes"></a>7.4 Downtime handling</h3>
-	<p>The glidein factory supports the dynamic
-	handling of downtimes at the factory, entry, and security class level.</p>
+	<p>The glidein Factory supports the dynamic
+	handling of downtimes at the Factory, entry, and security class level.</p>
 
 	<p>Downtimes are useful when one or more Grid sites are known to have
 	issues (can be anything from scheduled maintenance to a storage
-	element corrupting user files).<br>In this case the factory
+	element corrupting user files).<br>In this case the Factory
 	administrator can temporarily stop submitting glideins to the
-	affected sites, without stopping the factory as a whole.
-	The list of current downtimes are listed in the factory 
+	affected sites, without stopping the Factory as a whole.
+	The list of current downtimes are listed in the Factory 
 	file in <tt>glideinWMS.downtimes</tt>
 	</p>
 	<p>Downtimes are handled with </p>
@@ -905,7 +903,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
     </blockquote>
 
 	<p>
-	<b>Caution</b>: An admin can handle downtimes factory, entry, and security class levels. <br>
+	<b>Caution</b>: An admin can handle downtimes from Factory, entry, and security class levels. <br>
 	Please be aware that both will be used.
 	</p>
 
@@ -917,14 +915,14 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         <b>-cmd</b> [command]
         [options]
     </blockquote>
-    <p>You must specify the above options for the factory directory, the entry
+    <p>You must specify the above options for the Factory directory, the entry
     you wish to disable/enable, and the command to run.  The valid commands
     are:</p>
     <ul>
         <li> add           - Add a scheduled downtime period
-        <li> down          - Put the factory down now(+delay)
-        <li> up            - Get the factory back up now(+delay)
-        <li> check         - Report if the factory is in downtime now(+delay)
+        <li> down          - Put the Factory down now(+delay)
+        <li> up            - Get the Factory back up now(+delay)
+        <li> check         - Report if the Factory is in downtime now(+delay)
         <li> vacuum        - Remove all expired downtime info
     </ul>
     <p>Additional options that can be given based on the command above are:</p>
@@ -974,11 +972,11 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
             </blockquote>
         <p>You should see several condor_master and condor_procd processes.  You should also be able to see one 
         schedd process for each secondary schedd you specified in the install.</p>
-        <p>Verify glideinWMS processes are running by:</p>
+        <p>Verify GlideinWMS processes are running by:</p>
             <blockquote>
                 ps -ef | grep <i>factory_username</i>
             </blockquote>
-        <p>You should a main factory process as well as a process for each entry.</p>
+        <p>You should see also a main Factory process as well as a process for each entry.</p>
         <p>You can query the WMS collector by (use .csh if using c shell):</p>
             <blockquote>
                 $ source /path/to/condor/location/condor.sh<br/>
@@ -990,7 +988,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         <p>The condor_q command queries any jobs by schedd in the WMS pool (-global is needed to show grid jobs).<br/><br/>
             The condor_status will show all daemons and glidein classads in the condor pool.  Eventually, there will be 
             glidefactory classads for each entry, glideclient classads for each client and credential, and glidefactoryclient classads 
-            for each entry-client relationship.  The glideclient and glidefactoryclient classads will not show up unless a frontend is
+            for each entry-client relationship.  The glideclient and glidefactoryclient classads will not show up unless a Frontend is
             able to communicate with the WMS Collector.</p>
             <pre>
 MyType               TargetType           Name                          
@@ -1013,7 +1011,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 

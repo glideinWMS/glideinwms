@@ -32,8 +32,8 @@ process_branch() {
     echo "GIT_CHECKOUT=\"PASSED\"" >> $results
 
     # pylint related variables
-    PYLINT_RCFILE=$WORKSPACE/pylintrc
-    PYLINT_OPTIONS="--rcfile=$PYLINT_RCFILE"
+    PYLINT_RCFILE=/dev/null
+    PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
 
 
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
@@ -46,13 +46,13 @@ process_branch() {
         PYLINT_IGNORE_LIST=""
         # pylint directives added since v1.3.1 throw bad-option-value
         # errors unless disabled at command line
-        #PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable bad-option-value"
+        PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable bad-option-value"
     else
         #PYLINT_IGNORE_LIST files for python 2.7+ here
         PYLINT_IGNORE_LIST=""
         # unsubscriptable-object considered to be buggy in recent
         # pylint relases
-        #PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
+        PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
     fi
 
     # pep8 related variables
@@ -81,13 +81,13 @@ process_branch() {
     # E111 indentation is not a multiple of four
     PEP8_OPTIONS="$PEP8_OPTIONS,E111"
     # E121 continuation line under-indented for hanging indent
-    PEP8_OPTIONS="$PEP8_OPTIONS,E121"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
     # E123 closing bracket does not match indentation of opening bracket’s line
-    PEP8_OPTIONS="$PEP8_OPTIONS,E123"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E123"
     # E126 continuation line over-indented for hanging indent
-    PEP8_OPTIONS="$PEP8_OPTIONS,E126"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E126"
     # E221 multiple spaces before operator
-    PEP8_OPTIONS="$PEP8_OPTIONS,E221"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E221"
     # E225 missing whitespace around operator
     PEP8_OPTIONS="$PEP8_OPTIONS,E225"
     # E226 missing whitespace around arithmetic operator
@@ -97,7 +97,7 @@ process_branch() {
     # E231 missing whitespace after ','
     PEP8_OPTIONS="$PEP8_OPTIONS,E231"
     # E251 unexpected spaces around keyword / parameter equals
-    PEP8_OPTIONS="$PEP8_OPTIONS,E251"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E251"
     # E261 at least two spaces before inline comment
     PEP8_OPTIONS="$PEP8_OPTIONS,E261"
     # E265 block comment should start with '# '
@@ -105,19 +105,19 @@ process_branch() {
     # E302 expected 2 blank lines, found 1
     PEP8_OPTIONS="$PEP8_OPTIONS,E302"
     # E303 too many blank lines (3)
-    PEP8_OPTIONS="$PEP8_OPTIONS,E303"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E303"
     # E402 module level import not at top of file
-    PEP8_OPTIONS="$PEP8_OPTIONS,E402"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E402"
     # E501 line too long
     PEP8_OPTIONS="$PEP8_OPTIONS,E501"
     # E704 multiple statements on one line (def)
-    PEP8_OPTIONS="$PEP8_OPTIONS,E704"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E704"
     # W291 trailing whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W291"
     # W293 blank line contains whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W293"
     # W504 line break after binary operator
-    PEP8_OPTIONS="$PEP8_OPTIONS,W504"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W504"
 
 
     #uncomment to see all pep8 errors
@@ -138,7 +138,7 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS ${script} >> $pylint_log || log_nonzero_rc "pylint" $?
+          pylint $PYLINT_OPTIONS -e F0401 ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
       fi
       pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
     done
@@ -159,11 +159,11 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS  ${script} >> "$pylint_log" || log_nonzero_rc "pylint" $?
+          pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
       fi
       pycodestyle $PEP8_OPTIONS $file >> "${pep8_log}" || log_nonzero_rc "pep8" $?
     done
-    awk '{$1=""; print $0}' ${pep8_log} |  sed -e 's/(.*$//g' | sort | uniq -c | sort -n > ${pep8_log}.sorted
+    awk '{$1=""; print $0}' ${pep8_log} | sort | uniq -c | sort -n > ${pep8_log}.sorted
     echo "-------------------" >> ${pep8_log}
     echo "error count summary" >> ${pep8_log}
     echo "-------------------" >> ${pep8_log}
@@ -284,12 +284,8 @@ git_branches="$1"
 WORKSPACE=`pwd`
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
 
-cp ${GLIDEINWMS_SRC}/build/jenkins/pylintrc $WORKSPACE
-
 source $GLIDEINWMS_SRC/build/jenkins/utils.sh
-if [ "x$VIRTUAL_ENV" = "x" ]; then
-    setup_python_venv $WORKSPACE
-fi
+setup_python_venv $WORKSPACE
 
 # Jenkins will reuse the workspace on the slave node if it is available
 # There is no reason for not using it, but we need to make sure we keep

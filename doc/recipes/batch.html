@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-    <title>glideinWMS - Glidein Recipes</title>
+    <title>GlideinWMS - Glidein Recipes</title>
     <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
     <style type="text/css">
     </style>
@@ -24,7 +24,6 @@
             <li> <a href="../index.html">Home</a></li>
             <li> <a href="../download.html">Download</a></li>
             <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
             <li> <a href="../factory/index.html">WMS Factory</a></li>
             <li> <a href="../components/index.html" >Components</a></li>
             <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -52,7 +51,6 @@
                 <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
                 <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
                 <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-                <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
             </map>
 
             <h2>Glidein Recipes</h2>
@@ -70,17 +68,10 @@
                 <li><a href="#Overview">Overview</a> </li>
             </ol>
         </div>
-        <div class="related">
-            Related Information:
-            <ul>
-                <li> <a href="./install.html">Install</a></li>
-                <li> <a href="./troubleshooting.html">Troubleshooting</a></li>
-            </ul>
-        </div>
         <div class="section">
             <h2 class="western">Description</h2>
             <p>
-                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs to a batch cluster via BOSCO.
+                This recipe is designed to give an example on how to configure a Factory and Frontend to submit user jobs to a batch cluster via BOSCO.
             </p>
             <table summary="Requirements for Batch/BOSCO Submission" class="requirements">
                 <tbody>
@@ -89,16 +80,16 @@
                         <td scope="col">Description</td>
                     </tr>
                     <tr>
-                        <td>A functioning glideinwms factory</td>
+                        <td>A functioning GlideinWMS Factory</td>
                         <td>
-                            The factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
-                            able to be assured that the factory is running and works before we do any configuration for BOSCO.
+                            The Factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
+                            able to be assured that the Factory is running and works before we do any configuration for BOSCO.
                         </td>
                     </tr>
                     <tr>
-                        <td>A functioning glideinwms frontend</td>
+                        <td>A functioning GlideinWMS Frontend</td>
                         <td>
-                            The frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the factory 
+                            The Frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the Factory 
                             applies here.
                         </td>
                     </tr>
@@ -109,18 +100,18 @@
                             Specifically, you need the private and public ssh keys are needed for submission.
                             Then you can add the resource by invoking the "bosco_cluster --add" command. This can be invoked 
                             from any host but we suggest to do it form the Frontend so that you don't need to transfer the ssh keys.
-                            See the <a href="https://twiki.grid.iu.edu/bin/view/CampusGrids/BoscoInstall#4_3_Add_a_cluster_to_BOSCO">BOSCO manual</a> 
+                            See the <a href="https://osg-bosco.github.io/docs/BoscoInstall/#how-to-use"">BOSCO manual</a> 
                             for more information on adding a BOSCO resource.
                         </td>
                     </tr>
                 </tbody>
             </table>
             <p>
-                The BOSCO submission from the Factory uses SSH. Before being able to do ssh in batch mode for the glidein submission you must trust the 
+                The BOSCO submission from the Factory uses SSH. Before being able to do ssh in batch mode for the glidein submission, you must trust the 
 keys of the BOSCO resource, the one added with "bosco_cluster --add" on the Frontend, in our example <tt>carvergrid.nersc.gov</tt>. 
 You have a couple of options depending on how you want to configure ssh:
                  <ul>
-                      <li>Build up a global fingerprint list. Collect the keys in /etc/ssh/ssh_known_hosts (or ~/.ssh/known_hosts of the users submitting glideins). Note that you'll have to update the fingerprint list if the BOSCO recource key will change or all the glidein submisison attempts will fail
+                      <li>Build up a global fingerprint list. Collect the keys in /etc/ssh/ssh_known_hosts (or ~/.ssh/known_hosts of the users submitting glideins). Note that you'll have to update the fingerprint list if the BOSCO recource key will change or all the glidein submisison attempts will fail.
 <pre>
 ssh-keyscan -t rsa,dsa carvergrid.nersc.gov >> /etc/ssh/ssh_known_hosts
 </pre>
@@ -140,7 +131,7 @@ Host 192.168.0.*
 </pre>
                       </li>
                   </ul> 
-                 If you have access to the ssh key on the factory, it is recommended also to manually ssh to the host to see if the ssh connection works correctly.
+                 If you have access to the ssh key on the Factory, it is recommended also to manually ssh to the host to see if the ssh connection works correctly.
             </p>
             <p> 
                 The configuration fragments below highlight the parts that differ most for a BOSCO entry: the entry configuration on the Factory 
@@ -197,7 +188,7 @@ and the credentials configuration on the Frontend.
 &lt;/entry&gt;
             </pre>
             <p> The important pieces of the entry stanza listed above are listed below:</p>
-            <table summary="Important sections of the example factory entry" class="requirements">
+            <table summary="Important sections of the example Factory entry" class="requirements">
                 <tbody>
                     <tr class="head">
                         <td scope="col">Name</td>
@@ -250,7 +241,7 @@ and the credentials configuration on the Frontend.
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
                         <td>"bosco"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value. Both the factory and the frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value. Both the Factory and the Frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -269,7 +260,7 @@ and the credentials configuration on the Frontend.
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"3"</td>
                         <td>
-                            <p>This is a hard limit for the number of glideins that the factory will submit to the remote batch system. For testing purposes
+                            <p>This is a hard limit for the number of glideins that the Factory will submit to the remote batch system. For testing purposes
                             this example was restricted to 3 running VMs.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -280,7 +271,7 @@ and the credentials configuration on the Frontend.
                         <td>"1"</td>
                         <td>
                             <p>This is a limit for the number of glideins requests that can be in held state.  If the number of held requests match
-                            this number, the factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
+                            this number, the Factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -308,7 +299,7 @@ and the credentials configuration on the Frontend.
         </div>
         <div class="section">
             <h2 class="western">Example BOSCO Frontend Configuration</h2>
-            <p>The frontend configuration fragment in this example is only for the credential setup.  The credential setup can be included 
+            <p>The Frontend configuration fragment in this example is only for the credential setup.  The credential setup can be included 
             in the group credential definition or in the global credential definition.
            <pre>
 &lt;credential absfname="/path/to/grid_proxy"
@@ -325,7 +316,7 @@ and the credentials configuration on the Frontend.
 one generated by "bosco_cluster --add" (after removing the passphrase), or a different key-pair that you setup. pilotabsfname is the proxy needed by the glidein to 
 authenticate back with the User pool. 
 </p>
-            <p>If you decide to use the "bosco_cluster --add" key pair you must first remove the passphrase as mentioned above. To do so as the user that ran the BOSCO 
+            <p>If you decide to use the "bosco_cluster --add" key pair, you must first remove the passphrase as mentioned above. To do so as the user that ran the BOSCO 
             command, check first that the important files exist (<tt>$HOME/.ssh/bosco_key.rsa</tt>, <tt>$HOME/.ssh/bosco_key.rsa.pub</tt>, <tt>$HOME/.bosco.pass</tt>), 
             and then run:
             <pre>
@@ -335,7 +326,7 @@ cp $HOME/.ssh/bosco_key.rsa_new /path/to/bosco_key.rsa
 cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
             </p>
             <p> The important pieces of the credential stanza listed above are listed below:</p>
-            <table summary="Important sections of the example factory entry" class="requirements">
+            <table summary="Important sections of the example Factory entry" class="requirements">
                 <tbody>
                     <tr class="head">
                         <td scope="col">Name</td>
@@ -377,7 +368,7 @@ cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"frontend"</td>
                         <td>
-                            <p>This is the security class that is defined for the other credentials on this frontend</p>
+                            <p>This is the security class that is defined for the other credentials on this Frontend</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -386,7 +377,7 @@ cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"bosco"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value. Both the factory and the frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value. Both the Factory and the Frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -397,7 +388,7 @@ cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
                         <td>
                             <p>The key pair in this case refers to the public and secret keys that can be used to ssh to the BOSCO resource submit host.
                             </p>
-                            <p>This must match the value specified in the factory for the credentials to be matched properly</p>
+                            <p>This must match the value specified in the Factory for the credentials to be matched properly</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -421,7 +412,7 @@ cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
             used under Creative Commons license.
             <br>
             Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-            glideinWMS email support: glideinwms-support at fnal.gov
+            GlideinWMS email support: glideinwms-support at fnal.gov
         </div>
     </div>
 </body>

@@ -1,7 +1,7 @@
-# VarName		Type	Default		CondorName			Req.	Export 	UserJobEnvName
-#                       S=Quote - = No Default	+ = VarName				Condor	- = Do not export
-#												+ = Use VarName
-#												@ = Use CondorName
+# VarName   Type      Default         CondorName   Req.  ExportCondor    UserJobEnvName
+#           S=Quote   - = No Default  + = VarName                        - = Do not export
+#                                                                        + = Use VarName
+#                                                                        @ = Use CondorName
 #################################################################################################################
 
 # User modifiable variables

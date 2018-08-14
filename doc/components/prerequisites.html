@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>GlideinWMS</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -22,7 +22,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
@@ -115,7 +114,7 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> A reasonably recent <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/1_5Availability.html">Condor-supported</a>
+            <td> A reasonably recent <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/1_5Availability.html">HTCondor-supported</a>
              Linux OS (RH/SL5 tested at press time).</td>
         </tr>
         
@@ -129,7 +128,7 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td>The installer will use the tarball or rpm to install and
-                configure HTCondor inline. It is recommended to use v7.8
+                configure HTCondor inline. It is recommended to use v8
                 and above.<br><br>
                 <b><u>Batch Submission via BOSCO:</u></b><br>
                 If you want to add batch resources (via BOSCO) you need
@@ -138,17 +137,14 @@ Install as: various daemon users or as system rpms/packages
                 the BOSCO resource (bosco_cluster_add). Other components
                 can use previous recommended versions of HTCondor.
                 <br><br>
-                <b><u>HTCondor monitoring via Ganglia:</u></b><br>
-                HTCondor v8.1.0+ supports <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_10Monitoring.html">monitoring via Ganglia</a>.
+                <b><u>HTCondor </u></b><br>
+                <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/Monitoring.html#x40-3350003.12">monitoring via Ganglia</a>.
                 GlideinWMS provides configuration files for it.
-                If you have HTCondor 8.0.x or earlier you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
-                otherwise your HTCondor will complain about an unsupported option
-                and crash.
                 </td>
         </tr>
 
         <tr>
-            <td> <a target="_blank" href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG client</a> </td>
+            <td> <a target="_blank" href="https://opensciencegrid.org/docs/">OSG client</a> </td>
             <td> current version </td>
             <td class="checked"> y </td>
 
@@ -156,7 +152,7 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> Needed to generate grid/voms proxies. See <a href="">below</a> for instructions.</td>
+            <td> Needed to generate GRID/VOMS proxies. See <a href="">below</a> for instructions.</td>
 
         </tr>
         <tr>
@@ -195,14 +191,13 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td> 
               The perl-Time-HiRes rpm is needed for this package.  Please verify all dependencies: 
-              <a href="http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">rrdtool-1.2.18-1.el4.rf.i386.rpm</a> <br>
-              <a href="http://dag.wieers.com/rpm/packages/rrdtool/perl-rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">perl-rrdtool-1.2.18-1.el4.rf.i386.rpm<br>
-              <a href="http://dag.wieers.com/rpm/packages/rrdtool/python-rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">python-rrdtool-1.2.18-1.el4.rf.i386.rpm<br>
+              rrdtool, perl-rrdtool and python-rrdtool. These packages are available via yum using EPEL in EL6/7 
+              or can be searched in RPMFind.
             </td>
 
         </tr>
         <tr>
-            <td> <a target="_blank" href="http://freshmeat.net/projects/m2crypto">M2Crypto</a> </td>
+            <td> <a target="_blank" href="https://pypi.org/project/M2Crypto/">M2Crypto</a> </td>
             <td> v0.17+ </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
@@ -229,18 +224,6 @@ Install as: various daemon users or as system rpms/packages
         </tr>
     </tbody></table>
     <br/>
-    <h4>NOTE:</h4>
-    <ul>
-        <li>HTCondor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
-        <li>
-            If you are using HTCondor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
-            than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
-
-            <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
-            or for individual condor daemons like collector<br>
-            <blockquote>COLLECTOR.USE_VOMS_ATTRIBUTES = False </blockquote> 
-        </li>
-    </ul>
 </div>    
 
 <div class="section">
@@ -253,7 +236,7 @@ Install as: various daemon users or as system rpms/packages
     to glideins so they can download appropriate software.
     </p>
     <p> 
-        The choice of web server is independent of glideinWMS, but this documentation will only
+        The choice of web server is independent of GlideinWMS, but this documentation will only
         show the example of Apache Web Server.  For most systems, this can be installed via
         yum:
         <pre>
@@ -291,33 +274,15 @@ Install as: various daemon users or as system rpms/packages
 <div class="section">
     <h2><a name="system_vdt">2. OSG Client</a></h2>
     <p>
-        The OSG Client (formerly known as VDT Client) is now available as a set of RPMs. 
-        OSG provides a <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClient">
+        The OSG Worker Node Client (formerly known as VDT Client and OSG Client) is now available as a set of RPMs. 
+        OSG provides a <a href="https://opensciencegrid.org/docs/worker-node/install-wn">
         complete set of instructions</a> that that we recommend.
-        Here folow a short version to install OSG Client on RHEL6 based systems (including CentOS and SL). 
+        Here you can follow the instructions to install OSG Client on RHEL 6 and 7  based systems (including CentOS and SL). 
         First you will need to enable the EPEL and OSG
         repositories.  It is also advisable to enable the yum priorities
         module in order to guarantee the correct packages.
-        The following commands will enable the repositories:
-        <pre>
-        rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
-        yum install yum-priorities
-        yum install http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
-        Next, you can install the CA certificates and OSG client:
-        <pre>
-        yum install osg-ca-certs
-        yum install osg-client </pre>
-        You may also want to enable the fetch-crl service
-        to keep your certificate revocation lists up to date:
-        <pre>
-        fetch-crl
-        /sbin/service fetch-crl-boot start
-        /sbin/service fetch-crl-cron start
-        /sbin/chkconfig fetch-crl-boot on
-        /sbin/chkconfig fetch-crl-cron on </pre>
-        If you have no root privileges, OSG Client is available also in a tarball distribution
-        <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClientTarball">
-        check here</a> for more information.
+        For more detail, you have everything explained step by step
+        <a href="https://opensciencegrid.org/docs/#add-osg-software">here</a>.
     </p>
 </div>
 
@@ -326,15 +291,12 @@ Install as: various daemon users or as system rpms/packages
 
     <h3><a name="system_rrdtool">3. RRDTool</a></h3>
     <p>
-        You will also need the python module for <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (v1.2.18 or later). Many 
+        You will also need the python module for <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (currently v1.7.0). Many 
         systems come with packages for it; if possible use that.
     </p>
 
     <p>
-        RPMs for Redhat/Scientific Linux distributions can be found  
-        <a target="_blank" href="http://dag.wieers.com/rpm/packages/rrdtool/">here</a>.
-        <br/>
-        However, if you have the OSG repositories enabled, you can install it via yum:
+        You can install it via yum. It is available in the Scientific Linux Repository (slf-primary):
         <pre> yum install rrdtool rrdtool-python </pre>
     </p>
 
@@ -353,7 +315,7 @@ Install as: various daemon users or as system rpms/packages
     <h3><a name="system_m2crypto">4. M2Crypto</a></h3>
 
     <p>
-        You will need the <a target="_blank" href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. 
+        You will need the <a target="_blank" href="https://pypi.org/project/M2Crypto/">M2Crypto python library</a>. 
         However, if you have the OSG repositories enabled, you can install it via yum:
         <pre> yum install m2crypto </pre>
     </p>
@@ -362,7 +324,7 @@ Install as: various daemon users or as system rpms/packages
 
         If your system does not come with m2crypto package, or you do not can/want install it as root, compile it from source as 
         the <b>glidein factory</b> user.<br>  The source code can be downloaded from   
-        <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">here</a>.
+        <a target="_blank" href="https://pypi.org/project/M2Crypto/#files">here</a>.
     </p>
 
     <p>The build process is very easy:</p>
@@ -374,7 +336,7 @@ Install as: various daemon users or as system rpms/packages
     </blockquote>
 
     <p>
-        Finally add M2Crypto site-packages into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc.<br>
+        Finally, add M2Crypto site-packages into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc.<br>
         The exact path is system specific. On a 32bit system with python 2.3.x it will look like this:
     </p>
 
@@ -406,7 +368,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </div>
 </body>

@@ -37,10 +37,10 @@ class TestDictFile(unittest.TestCase):
     def test_bad_init(self):
         try:
             df = DictFile(dir="fixtures/frontend",
-                              fname="attrs.cfg",
-                              sort_keys=True,
-                              order_matters=True,
-                              fname_idx=None)
+                          fname="attrs.cfg",
+                          sort_keys=True,
+                          order_matters=True,
+                          fname_idx=None)
             self.assertTrue(False, "DictFile init succeeded with " +
                             "sort_keys=True and order_matters=True")
         except RuntimeError:

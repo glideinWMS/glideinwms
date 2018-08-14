@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>GlideinWMS</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
@@ -23,7 +23,6 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
         <li> <a href="./recipes/index.html">Recipes</a></li>
@@ -52,7 +51,6 @@
         <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="./corral.html" />
     </map>
 
     <h2>GlideinWMS</h2>
@@ -89,7 +87,7 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_4</b> released on May 31, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4.tgz">Tarball</a>)<br>
+        <b>v3_4</b> released on June 4, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4.tgz">Tarball</a>)<br>
         <ul>
             <li>GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3</li>
             <li>Inform the admin in case multiple service reload is done in rapid succession</li>
@@ -107,8 +105,9 @@ Related Pages:
             <li>Increased testing (more than doubled unit tests coverage and testing more files w/ pylint)</li>
             <li>Bug Fix: TypeError: under special conditions in Factory reconfig</li>
             <li>Bug Fix: Entries in downtime slow down the ramp-up for the frontend</li>
-	    <li>NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.</li>
+            <li>NOTE: The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot, node). Documentation was reporting Int incorrectly. Make sure your configuration uses the correct type or you may get a reconfig/upgrade error.</li>
             <li>NOTE: If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install also glideinwms-switchboard, to have condor_root_switchboard, that was removed from HTCondor</li>
+            <li>NOTE: 'entry_sets' should be considered an experimental feature: the imlpementation is changing and there may be errors when upgrading across versions</li>
         </ul>
       </li>
       <li>
@@ -302,13 +301,13 @@ COLLECTOR.USE_SHARED_PORT=False
 	  the glideresource classads
 	  <li>Glideins can now shutdown themselves if the worker node is marked
 	  for draining with appropriate messages logged in the glideins output
-	  <li>Condor classad fetching is now done by using python bindings by
+	  <li>HTCondor classad fetching is now done by using python bindings by
 	  default. Until now this was done using condor_q and condor_status
 	  commands
 	  <li>Various limits configred in the factory and frontend are now
 	  advertised in the respective classads
 	  <li>Updated documentation
-	  <li>Bug Fix: Factory will not release glideins sent to Condor CE if
+	  <li>Bug Fix: Factory will not release glideins sent to HTCondor CE if
           they are held with authentication/authorization issues
 	  <li>Bug Fix: Factory will not release glideins sent to AWS in case of 
 	  certain types of HoldReason 
@@ -1747,7 +1746,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>
 </html>

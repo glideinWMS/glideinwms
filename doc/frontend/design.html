@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Glidein Frontend</title>
+  <title>GlideinWMS - Glidein Frontend</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>Glidein Frontend</h2>
@@ -87,7 +85,7 @@ Related Information:
 
 <H2 CLASS="western"><A NAME="implementation"></A>Implementation</H2>
 <P>The current implementation of the VO Frontend is <A HREF="http://www.python.org/">Python</A>
-based. It uses a tree of process like the factory does.
+based. It uses a tree of process like the Factory does.
 <BR>
 <BR><BR>
 The sub-process (group) code is composed of 4 logical pieces:</P>
@@ -100,9 +98,9 @@ The sub-process (group) code is composed of 4 logical pieces:</P>
 </UL>
 <P><A NAME="match_expr"></A>The top two elements simply contact the
 appropriate HTCondor Collector and store the data in memory.<BR><BR>The
-matchmaking procedure loops over all the <A HREF="../factory/design.html#factory_classads">factory
+matchmaking procedure loops over all the <A HREF="../factory/design.html#factory_classads">Factory
 ads</A> and&nbsp;counts the number of idle user jobs that match the
-attributes of that particular factory entry point. <BR><BR>The
+attributes of that particular Factory entry point. <BR><BR>The
 matching expression is a <A HREF="http://www.python.org/doc/">Python
 expression</A>, having as inputs 
 
@@ -126,7 +124,7 @@ them into appropriate <A HREF="../factory/design_data_exchange.html#frontend_cla
 Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
 input parameters, loading the configuration values and loop over the
 above steps.</P>
-<P>The frontend also can handle multiple proxies. The proxy selection
+<P>The Frontend also can handle multiple proxies. The proxy selection
 is handled by a plugin mechanism.</P>
 </div>
 
@@ -135,7 +133,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 </div>

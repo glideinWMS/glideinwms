@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Glidein Frontend</title>
+  <title>GlideinWMS - Glidein Frontend</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -24,7 +24,6 @@
 	<li> <a href="../index.html">Home</a></li>
 	<li> <a href="../download.html">Download</a></li>
 	<li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-        <li> <a href="../corral.html">Corral Frontend</a></li>
 	<li> <a href="../factory/index.html">WMS Factory</a></li>
 	<li> <a href="../components/index.html" >Components</a></li>
         <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>Glidein Frontend</h2>
@@ -75,7 +73,7 @@
     <li><a href="#software">Needed software</a></li>
 
     <li><a href="#before_install">Before you begin...</a></li>
-    <li><a href="#system">Condor installation</a></li>
+    <li><a href="#system">HTCondor installation</a></li>
     <li><a href="#frontend">Frontend installation</a></li>
 </ol>
 </div>
@@ -101,12 +99,12 @@ Install as: <b>VO Frontend User</b><br/>
             </p>
 
     <p> Note: if you are installing only the frontend
-    and planning to connect to the OSG factory, please refer to this section:
+    and planning to connect to the OSG Factory, please refer to this section:
     <a href="../install.html#osg">Connecting to OSG Factory</a></p>
 
     <p><b>Note:</b> This document refers to the tarball distribution of the Glidein Frontend.
                 If you want to install or installed via RPM please refer to the 
-    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG RMP Guide</a>.
+    <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG RMP Guide</a>.
                 </p>
 
 
@@ -123,16 +121,16 @@ Install as: <b>VO Frontend User</b><br/>
                 <td>Disk</td>
             </tr>
             <tr>
-                <td>1</td>
-                <td>1GB</td>
-                <td>~20GB</td>
+                <td>4</td>
+                <td>3GB</td>
+                <td>~30GB</td>
             </tr>
             </table>
             
             <p>
-                This machine needs <b>a fast CPU</b> and a moderate amount of <b>memory</b> (<b>1GB </b>should be enough).<br>
-
-                The <b>disk</b> needed is just for binaries, config files and log files (<b>20GB</b> should be enough)
+                This machine needs <b>4 cores</b>, preferable no more than 2 years old  and a moderate amount of <b>memory</b> (<b>3GB </b> plus 2MB per running job should be enough).<br>
+                The <b>disk</b> needed is just for binaries, config files and log files (<b>30GB</b> should be enough)<br/>
+                Hardware requirements depend on the expected load. With small loads or for test purposes one core and 1GB will suffice.
             </p>
     </div>
 
@@ -157,7 +155,7 @@ Install as: <b>VO Frontend User</b><br/>
         <td>Notes</td>
     </tr>
     <tr>
-        <td>VO Frontend User</td>
+        <td>VO Frontend User(<b>frontend</b>)</td>
         <td>
             The Glidein Frontend should be installed as a non-privilged user.  
             <strong>Note:</strong> It is recommended that you install HTCondor as this user as well.
@@ -177,7 +175,7 @@ Install as: <b>VO Frontend User</b><br/>
             <li>User Submitter cert/proxy DN</li>
             <li>Glidein Frontend HTCondor proxy DN (cannot use a cert here)</li>
         </ul>
-        <strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs. These nicknames are the HTCondor UID used in its configuration and mapfile.  In the Frontend, these names do not matter.<br> 
+        <strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs. These nicknames are the HTCondor UIDs used in its configuration and mapfile (/etc/condor/certs/condor_mapfile).  In the Frontend, these names can be arbitrary, are not related to unix accounts.<br> 
         <strong>Note 2:</strong> The installer will ask if these are trusted HTCondor Daemons.  Answer 'y'. 
     </p>
 
@@ -216,7 +214,6 @@ Unless you want to force your users to find and hard code the location.
 </div>
 
 
-
 <div class="section">
     
     <h2><a name="system">5. HTCondor installation instructions</a></h2>
@@ -241,16 +238,15 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
     <h2><a name="frontend">6. Glidein Frontend installation</a></h2>
     <p>
         The Glidein Frontend needs a x509 proxy to communicate with the glidein Factory. You need to create such proxy before starting a VO 
-        Frontend and then keep it valid for the life of the frontend. If used for glidein submission (i.e. if it is passed to the glidein
-        Factory), this proxy must at any point in time have a validity of at least the longest expected job being run by the GlideinWMS
+        Frontend and then keep it valid for the life of the Frontend (see <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#vo-frontend-proxy">here</a>). If used for glidein submission (i.e. if it is passed to the glidein Factory), this proxy must at any point in time have a validity of at least the longest expected job being run by the GlideinWMS
         (and not less than 12 hours).<br><br>
         How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a local certificate, scp from other nodes, or other methods), 
         is beyond the scope of this document.
     </p>
 
     <p>
-        The VO frontend can also host the x509 proxies used for glidein submission. If you do use this (recommended) method, you need to
-        keep these proxies valid at all times, as you do for the main frontend proxy.
+        The VO Frontend can also host the x509 proxies used for glidein submission. If you do use this (recommended) method, you need to
+        keep these proxies valid at all times, as you do for the main Frontend proxy.
     </p>
 
     <p>
@@ -264,7 +260,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
     <p>Move into</p>
     <blockquote>glideinWMS/install</blockquote>
 
-	<p>And execute the following.  The installation of the frontend should be done as the frontend user
+	<p>And execute the following.  The installation of the Frontend should be done as the Frontend user
 	(see username below).
 	<blockquote>
 	    ./manage-glideins --install vofrontend --ini glideinWMS.ini
@@ -314,21 +310,21 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td>  Used as the 'nickname' for the GSI DN in the condor_mapfile.  
         </td>
         <td>   
-          This name MUST correspond to frontend service name listed the factory
-          configuration for the frontend to be able to talk to the factory.  
+          This name MUST correspond to Frontend service name listed the Factory
+          configuration for the Frontend to be able to talk to the Factory.  
         </td>
         </tr>
 
         <tr>
         <td>install_location    </td>
         <td>/path/to/vofrontend   </td>
-        <td>HOME directory for the frontend software.   </td>
+        <td>HOME directory for the Frontend software.   </td>
         <td>
-            When the frontend is created the following files/directories will 
+            When the Frontend is created the following files/directories will 
             exist in this directory:<br/>
             * frontend.sh - environment script<br/>
-            * frontend_[instance_name].cfg - directory containing the frontend configuration file<br/>
-            * frontend_[instance_name] - directory containing the frontend files</br>
+            * frontend_[instance_name].cfg - directory containing the Frontend configuration file<br/>
+            * frontend_[instance_name] - directory containing the Frontend files</br>
            <br/>
            The install script will create this directory if it does exist.
           </td>
@@ -340,8 +336,8 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td>User settable location for all Frontend log files.</td>
         <td>
             Beneath this location there will be multiple sets of logs:</br>
-            * for the frontend as a whole</br>
-            * for each group the frontend utilizes</br>
+            * for the Frontend as a whole</br>
+            * for each group the Frontend utilizes</br>
            <br/>
            The install script will create this directory if it does exist.
         </td>
@@ -362,7 +358,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
            Note: The Frontend never runs any HTCondor daemons. 
            It only uses the HTCondor client tools.<br/><br/>
            <b>IMPORTANT:</b> 
-              The Frontend can share the same instance of Condor as the User Collector
+              The Frontend can share the same instance of HTCondor as the User Collector
               and /or Submit.
               The <b>condor_location</b> must not be a subdirectory of the Frontend's
               <b>install_location</b> or <b>logs_dir</b>.  
@@ -383,7 +379,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <tr>
         <td>condor_admin_email</td>
         <td>whomever@email.com</td>
-        <td>The email address to get Condor notifications in the event of a problem.</td>
+        <td>The email address to get HTCondor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
         </tr>
 
@@ -402,10 +398,10 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
             <td>
             /path-to-proxy/x509_proxyfile
             </td>
-            <td>The location of the proxy used to identify this service to the other glideinWMS services. </td>
+            <td>The location of the proxy used to identify this service to the other GlideinWMS services. </td>
             <td>
-             This is the only glideinWMS service that currently requires a proxy
-             to communicate with the other glideinWMS services. 
+             This is the only GlideinWMS service that currently requires a proxy
+             to communicate with the other GlideinWMS services. 
              This is <b>NOT</b> the glidein pilot proxy.</br>
              The <b>x509_gsi_dn</b> option that follows should be
              populated with the <i>issuer</i> of this proxy.
@@ -417,13 +413,13 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td>dn-issuer-of-x509_proxy-using-openssl</td>
         <td>
             This is the identity used by this service to contact the other
-            Condor based glideinWMS services.
+            HTCondor based GlideinWMS services.
         <td>
           This is the <i>issuer</i> of the proxy identified by the 
           <b>x509_proxy</b> option above.
           <blockquote>openssl x509 -issuer -noout -in [<b>x509_proxy</b>]</blockquote>
           It is used to populate the condor_config file GSI_DAEMON_NAME and 
-          condor_mapfile entries of this and the other glideinWMS services 
+          condor_mapfile entries of this and the other GlideinWMS services 
           as needed.
         </td>
         </td>
@@ -467,7 +463,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td align="center">optional</td>
         <td>Tells the Factory service if use of the glexec authorization
             process is to be considered in selecting entry points to submit
-            glidein pilots for the frontend user jobs.. 
+            glidein pilots for the Frontend user jobs.. 
         </td>
         <td>Valid values:<br/>
             * <b>required</b> - will only request glidein pilots to entry points that use glexec<br/>
@@ -505,7 +501,7 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         <td>,</td>
         <td>This represents the criteria used for matching glideins to jobs.
         </td>
-        <td> This is a Condor expression.  A simple expression would be:
+        <td> This is a HTCondor expression.  A simple expression would be:
         <blockquote>
           (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
         </blockquote>
@@ -567,7 +563,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
         <tr>
         <td>glideinwms_location</td>
         <td>/path/to/glideinWMS_code</td>
-        <td>Directory of the glideinWMS software.   </td>
+        <td>Directory of the GlideinWMS software.   </td>
         <td>This software is used for both the installation and during the actual running of this glidein service.</td>
         </tr>
 
@@ -632,46 +628,46 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 
     <p>The same script can be used to stop, reconfig and restart the Glidein Frontend.</p>
 
-    <p><b>Note:</b> If you installed the frontend via RPM some files or commands will differ. Please refer to the 
-    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG RMP Guide</a>.
+    <p><b>Note:</b> If you installed the Frontend via RPM some files or commands will differ. Please refer to the 
+    <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG RMP Guide</a>.
     </p>
 
 
     <h3>6.2. Reconfiguring the Glidein Frontend</h3>
-    <p>The files in the frontend working directory must <b>never be changed by hand</b> after the directory structure has been created. </p>
+    <p>The files in the Frontend working directory must <b>never be changed by hand</b> after the directory structure has been created. </p>
     <p>
-	The proper procedure to update the frontend configuration is to make a copy of the official configuration file 
+	The proper procedure to update the Frontend configuration is to make a copy of the official configuration file 
 	(i.e. <i>frontend.xml</i>) as a backup.  Then edit the config file and run
 	</p>
 	<blockquote>
-	    &lt;frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i>
+	    &lt;Frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i>
 	</blockquote>
 	<p>
-	This will update the directory tree and restart the frontend and group dameons. (If the frontend wasn't running at the time of reconfig it
+	This will update the directory tree and restart the Frontend and group dameons. (If the Frontend wasn't running at the time of reconfig it
 	will only update the directory tree.)
 	</p>
 	
 	<p>
 	Please notice that if you make any errors in the new configuration file, the reconfig 
-	script will throw an error and do nothing. If you executed the reconfig command while the frontend was running, it will revert to 
+	script will throw an error and do nothing. If you executed the reconfig command while the Frontend was running, it will revert to 
 	the last config file and restart with those settings.  As long as you use this tool, you should never corrupt the installation tree.
 	</p>
-	<p>The frontend_startup script contains a default location for the frontend configuration and is set to the location used for the initial
+	<p>The frontend_startup script contains a default location for the Frontend configuration and is set to the location used for the initial
 	install.  This allows you to not have to specify the config location when doing a reconfig.  To change the default location in the file,
 	run the command:	
 	<blockquote>
-	    &lt;frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i> update_default_cfg
+	    &lt;Frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i> update_default_cfg
 	</blockquote>
 	</p>
-	<p><b>NOTE</b>: The reconfig tool does not kill the frontend in case of errors.
+	<p><b>NOTE</b>: The reconfig tool does not kill the Frontend in case of errors.
 	It is also recommended that you disable any groups that will not be used.  Never remove them from the config file.</p>
 
 
         <h3>6.3 Downtime handling</h3>
-        <p>The glidein frontend supports the dynamic handling of downtimes.</p>
-        <p>You(frontend admins) should add the following attribute for the frontend tag in frontend.xml manually:
+        <p>The glidein Frontend supports the dynamic handling of downtimes.</p>
+        <p>You(Frontend admins) should add the following attribute for the Frontend tag in frontend.xml manually:
 	  <blockquote>
-           &lt;frontend downtimes_file="frontenddowntime"
+           &lt;Frontend downtimes_file="frontenddowntime"
 	  </blockquote>
         </p>
         <p>Downtimes are handled with </p>
@@ -689,9 +685,9 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
     <p>You must specify the command to run. The valid commands are:</p>
     <ul>
         <li> add           - Add a scheduled downtime period
-        <li> down          - Put the frontend down now(+delay)
-        <li> up            - Get the frontend back up now(+delay)
-        <li> check         - Report if the frontend is in downtime now(+delay)
+        <li> down          - Put the Frontend down now(+delay)
+        <li> up            - Get the Frontend back up now(+delay)
+        <li> check         - Report if the Frontend is in downtime now(+delay)
     </ul>
     <p>Additional options that can be given based on the command above are:</p>
     <ul>
@@ -713,7 +709,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </div>
 </body>

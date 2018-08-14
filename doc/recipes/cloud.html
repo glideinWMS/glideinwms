@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-    <title>glideinWMS - Glidein Recipes</title>
+    <title>GlideinWMS - Glidein Recipes</title>
     <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
     <style type="text/css">
     </style>
@@ -24,7 +24,6 @@
             <li> <a href="../index.html">Home</a></li>
             <li> <a href="../download.html">Download</a></li>
             <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
             <li> <a href="../factory/index.html">WMS Factory</a></li>
             <li> <a href="../components/index.html" >Components</a></li>
             <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -52,14 +51,13 @@
                 <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
                 <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
                 <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-                <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
             </map>
 
             <h2>Glidein Recipes</h2>
             <ul class="subcomponents">
                 <li><a href="./index.html">Overview</a></li>
                 <li> <a href="./batch.html">Batch (BOSCO)</a></li>
-                <li>Cloud Recipes</li>
+                <li>cloud Recipes</li>
                 <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
             </ul>
             <h3>Overview</h3>
@@ -70,17 +68,10 @@
                 <li><a href="#Overview">Overview</a> </li>
             </ol>
         </div>
-        <div class="related">
-            Related Information:
-            <ul>
-                <li> <a href="./install.html">Install</a></li>
-                <li> <a href="./troubleshooting.html">Troubleshooting</a></li>
-            </ul>
-        </div>
         <div class="section">
             <h2 class="western">Description</h2>
             <p>
-                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs and for running in cloud resources like, Amazon EC2, OpenStack, OpenNebula, Google Cloud.
+                This recipe is designed to give an example on how to configure a Factory and Frontend to submit user jobs and for running in cloud resources like: Amazon EC2, OpenStack, OpenNebula or Google cloud.
             </p>
             <table summary="Requirements for EC2 Submission" class="requirements">
                 <tbody>
@@ -89,16 +80,16 @@
                         <td scope="col">Description</td>
                     </tr>
                     <tr>
-                        <td>A functioning glideinwms factory</td>
+                        <td>A functioning GlideinWMS Factory</td>
                         <td>
-                            The factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
-                            able to be assured that the factory is running and works before we do any configuration for cloud.
+                            The Factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
+                            able to be assured that the Factory is running and works before we do any configuration for cloud.
                         </td>
                     </tr>
                     <tr>
-                        <td>A functioning glideinwms frontend</td>
+                        <td>A functioning GlideinWMS  Frontend</td>
                         <td>
-                            The frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the factory 
+                            The Frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the Factory 
                             applies here.
                         </td>
                     </tr>
@@ -120,7 +111,7 @@
     gatekeeper="https://us-east-1.ec2.amazonaws.com"
     gridtype="ec2" 
     schedd_name="cms-xen6.fnal.gov" 
-    trust_domain="Cloud" 
+    trust_domain="cloud" 
     verbosity="std" 
     work_dir="."&gt;
 
@@ -161,7 +152,7 @@
 
 
 
-            <h2 class="western">Example Factory Entry: Google Cloud</h2>
+            <h2 class="western">Example Factory Entry: Google cloud</h2>
             <pre>
 &lt;entry name="Google_Entry" 
     auth_method="auth_file+vm_id+vm_type" 
@@ -169,7 +160,7 @@
     gatekeeper="https://www.googleapis.com/compute/v1"
     gridtype="gce" 
     schedd_name="cms-xen6.fnal.gov" 
-    trust_domain="Google_Cloud" 
+    trust_domain="Google_cloud" 
     verbosity="std" 
     work_dir="."&gt;
 
@@ -205,7 +196,7 @@
 
 
             <p> The important pieces of the entry stanza listed above are listed below:</p>
-            <table summary="Important sections of the example factory entry" class="requirements">
+            <table summary="Important sections of the example Factory entry" class="requirements">
                 <tbody>
                     <tr class="head">
                         <td scope="col">Name</td>
@@ -221,7 +212,7 @@
                             <p>The key pair in this case refers to the AccessKey and SecretKey that EC2-like cloud providers give for their
                             REST interface.  The vm_id and vm_type correspond to EC2's AMI_ID and AMI_TYPE descriptors.  Each cloud implementation
                             will have their own definitions for what these descriptors mean.  In this example, the actual values will be configured
-                            by the frontend.</p>
+                            by the Frontend.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -231,7 +222,7 @@
                         <td><nobr>"https://us-east-1.ec2.amazonaws.com"</nobr></td>
                         <td>
                             <p>The gatekeeper attribute in the cloud case is similar enough to a grid gatekeeper that there is no function
-                            difference as far as the glideinWMS factory admin is concerned.  EC2 has regional gatekeepers, so choose the 
+                            difference as far as the GlideinWMS Factory admin is concerned.  EC2 has regional gatekeepers, so choose the 
                             gatekeeper for the region in which you would like to run in.  In this example, the US-EAST region has bee selected.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -248,10 +239,10 @@
                     <tr>
                         <td>trust_domain</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td>"Cloud"</td>
+                        <td>"cloud"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
-                            must be configured to use the same value.  In this example, "Cloud" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the Factory and the Frontend
+                            must be configured to use the same value.  In this example, "cloud" is the arbitrary value.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -274,7 +265,7 @@
                         <td>"3"</td>
                         <td>
                             <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the 
-                            computing cycles.  This is a hard limit for the number of VMs that the factory will start.  For testing purposes
+                            computing cycles.  This is a hard limit for the number of VMs that the Factory will start.  For testing purposes
                             this example was restricted to 3 running VMs.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -285,7 +276,7 @@
                         <td>"1"</td>
                         <td>
                             <p>This is a limit for the number of VM requests that can be in held state.  If the number of held requests match
-                            this number, the factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
+                            this number, the Factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -308,13 +299,13 @@
         </div>
         <div class="section">
             <h2 class="western">Example Frontend Configuration: Amazon EC2</h2>
-            <p>This only configuration for the frontend in this example is for the credential setup.  The credential setup can be included 
+            <p>This only configuration for the Frontend in this example is for the credential setup.  The credential setup can be included 
             in the group credential definition or in the global credential definition.
             <pre>
-&lt;credential absfname="/path/to/Cloud_AccessKey"
-            keyabsfname="/path/to/Cloud_SecretKey"
+&lt;credential absfname="/path/to/cloud_AccessKey"
+            keyabsfname="/path/to/cloud_SecretKey"
             security_class="Security Class"
-            trust_domain="Cloud"
+            trust_domain="cloud"
             type="key_pair+vm_id+vm_type"
             vm_id="ami-7bf43812"
             vm_type="m1.large"
@@ -322,18 +313,18 @@
             vm_type_fname="/path/to/file_with_vm_type"
             pilotabsfname="/path/to/pilot_proxy"/&gt;
             </pre>
-            <h2 class="western">Example Frontend Configuration: Google Cloud</h2>
+            <h2 class="western">Example Frontend Configuration: Google cloud</h2>
             <pre>
 &lt;credential absfname="/path/to/Auth_File"
             security_class="Security Class"
-            trust_domain="Google_Cloud"
+            trust_domain="Google_cloud"
             type="auth_file+vm_id+vm_type"
             vm_id="projects/centos-cloud/global/images/centos-6-v20160803"
             vm_type="projects/fermilab-poc/zones/us-central1-a/machineTypes/n1-standard-1"
             pilotabsfname="/path/to/pilot_proxy"/&gt;
             </pre>
             <p> The important pieces of the credential stanza listed above are listed below:</p>
-            <table summary="Important sections of the example factory entry" class="requirements">
+            <table summary="Important sections of the example Factory entry" class="requirements">
                 <tbody>
                     <tr class="head">
                         <td scope="col">Name</td>
@@ -344,7 +335,7 @@
                     <tr>
                         <td>absfname</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"/path/to/Cloud_AccessKey"</td>
+                        <td>"/path/to/cloud_AccessKey"</td>
                         <td>
                             <p>This is the full path to the file containing the AccessKey for the account that will be used to submit 
                             the VM request</p>
@@ -354,7 +345,7 @@
                     <tr>
                         <td>keyabsfname</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"/path/to/Cloud_SecretKey"</td>
+                        <td>"/path/to/cloud_SecretKey"</td>
                         <td>
                             </p>This is the full path to the file containing the SectretKey for the account that will be used to submit 
                             the VM request</p>
@@ -366,17 +357,17 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"Security Class"</td>
                         <td>
-                            <p>This is the security class that is defined for the other credentials on this frontend</p>
+                            <p>This is the security class that is defined for the other credentials on this Frontend</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>trust_domain</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"Cloud"</td>
+                        <td>"cloud"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
-                            must be configured to use the same value.  In this example, "Cloud" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the Factory and the Frontend
+                            must be configured to use the same value.  In this example, "cloud" is the arbitrary value.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -388,8 +379,8 @@
                             <p>The key pair in this case refers to the AccessKey and SecretKey that EC2-like cloud providers give for their
                             REST interface.  The vm_id and vm_type correspond to EC2's AMI_ID and AMI_TYPE descriptors.  Each cloud implementation
                             will have their own definitions for what these descriptors mean.  In this example, the actual values will be configured
-                            by the frontend.</p>
-                            <p>This must match the value specified in the factory for the credentials to be matched properly</p>
+                            by the Frontend.</p>
+                            <p>This must match the value specified in the Factory for the credentials to be matched properly</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -423,7 +414,7 @@
                             <p>Alternate means to provide the vm_id.
                             If vm_id_fname is configured, updated vm_id from
                             the file is used without a need to reconfigure
-                            the frontend service. If vm_id and vm_id_fname are
+                            the Frontend service. If vm_id and vm_id_fname are
                             both found in the configuration, vm_id_fname will be
                             used.
                             vm_id_fname should contain a line in following format
@@ -440,7 +431,7 @@
                             <p>Alternate means to provide the vm_type.
                             If vm_type_fname is configured, updated vm_type from
                             the file is used without a need to reconfigure
-                            the frontend service. If vm_type and vm_type_fname are
+                            the Frontend service. If vm_type and vm_type_fname are
                             both found in the configuration, vm_type_fname will be
                             used.
                             vm_type_fname should contain a line in following format
@@ -467,7 +458,7 @@
             used under Creative Commons license.
             <br>
             Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-            glideinWMS email support: glideinwms-support at fnal.gov
+            GlideinWMS email support: glideinwms-support at fnal.gov
         </div>
     </div>
 </body>
