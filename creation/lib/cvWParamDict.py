@@ -801,8 +801,11 @@ def calc_glidein_collectors(collectors):
         if el.group not in collector_nodes:
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
-            cWDictFile.validate_node(el.node, allow_range=True)
-            collector_nodes[el.group]['secondary'].append(el.node)
+            if 'RANDOM_INTEGER' in el.node:
+                collector_nodes[el.group]['secondary'].append(el.node)
+            else:
+                cWDictFile.validate_node(el.node)
+                collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
@@ -825,8 +828,11 @@ def calc_glidein_ccbs(collectors):
     for el in collectors:
         if el.group not in ccb_nodes:
             ccb_nodes[el.group] = []
-        cWDictFile.validate_node(el.node, allow_range=True)
-        ccb_nodes[el.group].append(el.node)
+        if 'RANDOM_INTEGER' in el.node:
+            ccb_nodes[el.group].append(el.node)
+        else:
+            cWDictFile.validate_node(el.node)
+            ccb_nodes[el.group].append(el.node)
 
     for group in ccb_nodes.keys():
         glidein_ccbs.append(string.join(ccb_nodes[group], ","))

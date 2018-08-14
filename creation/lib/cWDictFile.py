@@ -1651,40 +1651,28 @@ class MonitorFileDicts:
 #####################################################
 # Validate HTCondor endpoint (node) string
 # this can be a node, node:port, node:port-range
-# or a shared port sinful string host:port?sock=some_string$ID
+# or a shared port sinful string host:port?sock=collector$RANDOM_INTEGER(ID1,ID2)
 # or schedd_name@host:port[?sock=some_string]
-# allow_range is true if existing either port range or range at
-# the end  of the name of the sock parameter in the sinful string.
 
-def validate_node(nodestr,allow_range=False):
-    crange = False
-    prange = False
+def validate_node(nodestr):
     eparr = nodestr.split('?')
     if len(eparr) > 2:
        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
     if len(eparr) == 2:
-       if ',' in eparr[1] or ';' in eparr[1]:
-          raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
+       if ';' in eparr[1]:
+          raise RuntimeError("HTCondor sinful string should not contain separators (;): %s" % nodestr)
        # Use regular expression to validate sinful string
-       matches = re.findall(r'(.*&)*\bsock\b=([A-z]+(\d+)+(\-(\d+))?)', eparr[1])
+       matches = re.findall(r'^(.*&)*sock=([^&\n]+)(\n(\d+))?', eparr[1])
        if not matches:
           raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
        else:
            for sock in matches:
-              if sock[3]:
-                        crange = True
-                        cmin = sock[2]
-                        cmax = sock[4]
-              else:
-                   cmin = sock[2]
-                   cmax = sock[2]
-              try:
-                  cmini = int(cmin)
-                  cmaxi = int(cmax)
-              except ValueError as e:
-                  raise RuntimeError("Collectors identifier are not integer: '%s'" % nodestr)
-              if cmini > cmaxi:
-                  raise RuntimeError("Invalid collectors definition: '%s'" % nodestr)
+               if 'sock' in sock:
+                  col = re.findall('\d+', str(sock))
+                  try:
+                      int(col[0])
+                  except ValueError as e:
+                      raise RuntimeError("Collectors identifier is wrong: '%s'" % nodestr)
     narr = eparr[0].split(':')
     if len(narr) > 2:
         raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
@@ -1695,11 +1683,8 @@ def validate_node(nodestr,allow_range=False):
         if len(parr) > 2:
             raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
         if len(parr) > 1:
-            if not allow_range:
-                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
             pmin = parr[0]
             pmax = parr[1]
-            prange = True
         else:
             pmin = parr[0]
             pmax = parr[0]
@@ -1714,10 +1699,6 @@ def validate_node(nodestr,allow_range=False):
             raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
         if pmaxi>65535:
             raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
-    # Check out if there is range of ports and range at
-    # the end of the name of the sock parameter in the sinful string
-    if(prange == crange == True):
-        raise RuntimeError("Invalid range configuration: %s" % nodestr)
     # split needed to handle the multiple schedd naming convention
     nodename = narr[0].split("@")[-1]
     try:
