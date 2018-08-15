@@ -1085,7 +1085,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             full_constraint = "(%s) && (%s) && (MyType=!=\"condor_q_%s\")" % (full_constraint, constraint, os.getpid())
         else:
             full_constraint = "(%s) && (MyType=!=\"condor_q_%s\")" % (full_constraint, os.getpid())
-        logSupport.profiler("CONSTRAINT = %s" % full_constraint, "condor_q")
+        logSupport.profiler("PID = %s :: CONSTRAINT = %s" % (os.getpid(), full_constraint), "condor_q")
         logSupport.profiler("SCHEDD = %s" % schedd, "condor_q")
 
         try:
@@ -1103,9 +1103,9 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         except Exception:
             logSupport.log.exception("Unknown Exception. Failed to talk to schedd %s" % schedd)
     
+    logSupport.profiler("SCHEDD_NAMES = %s :: CONSTRAINT = %s :: out_condorq_dict = %s" % (schedd_names, full_constraint, out_condorq_dict), "condor_q")
     logSupport.profiler("END getCondorQConstrained() :: PID = %s" % os.getpid(), "condor_q")
     return out_condorq_dict
-
 
 #
 # Return a dictionary of collectors containing classads of a certain kind 
