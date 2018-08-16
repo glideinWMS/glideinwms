@@ -2,8 +2,8 @@
 
 <glideFactoryEntryRRDStats>
    <updated>
-      <timezone name="Local" ISO8601="2018-08-14T16:42:18-05:00" RFC2822="Tue, 14 Aug 2018 16:42:18 -0500" human="Tue Aug 14 16:42:18 2018"/>
-      <timezone name="UTC" ISO8601="2018-08-14T21:42:18Z" RFC2822="Tue, 14 Aug 2018 21:42:18 +0000" unixtime="1534282938"/>
+      <timezone name="Local" ISO8601="2018-08-16T16:12:31-05:00" RFC2822="Thu, 16 Aug 2018 16:12:31 -0500" human="Thu Aug 16 16:12:31 2018"/>
+      <timezone name="UTC" ISO8601="2018-08-16T21:12:31Z" RFC2822="Thu, 16 Aug 2018 21:12:31 +0000" unixtime="1534453951"/>
    </updated>
    <total>
       <periods>
