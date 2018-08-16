@@ -16,6 +16,20 @@ class Query:
     def __str__(self):
         return "[%s]; query_type = %s; query_time = %s; constraint = %s; query_pid = %s" % (self.start_time, self.query_type, self.query_time, self.constraint, self.query_pid)
 
+query_type_regex = " (CONDOR_Q|EXE_CONDOR_Q|CONDOR_STATUS|EXE_CONDOR_STATUS) :: "
+constraint_regex = " CONSTRAINT = "
+timestamp_regex = "^\[.*\]"
+query_regex = "(BEGIN|END) (condor_q|exe_condor_q|condor_status|exe_condor_status) :(:)? PID = [0-9]+"
+
+def tokenize(log):
+    try:
+        time_str = re.search('^\[.*\]', log).group(0)
+        time_str = time_str[1:-8]
+        time_stamp = datetime.datetime.striptime(time_str, '%Y-%m-%d %H:%M:%S,%f')
+
+    except AttributeError:
+        print "Error: %s" % log
+
 # Get time stamp for log line
 def get_log_timestamp(log):
     time_sub_str = None
@@ -83,7 +97,8 @@ constraint["unknown"] = None
 
 use_python_bindings_dict = {}
 
-file_name = "/var/log/gwms-frontend/group_main/main.all.log"
+#file_name = "/var/log/gwms-frontend/group_main/main.all.log"
+file_name = "/Users/jlundell/Documents/main.all.log"
 with open(file_name, "rb") as fd:
     for log in fd:
         if "PROFILER :: " in log:
@@ -112,6 +127,7 @@ with open(file_name, "rb") as fd:
 
                 elif log.find("BEGIN exe_condor_q") != -1:
                     try:
+                        # Earlier logs had a typo wherein 'USE_HTCONOR_PYTHON_BINDINGS' was being logged, hence 'D' is optional
                         py_bindings_str = re.search("USE_HTCON(D)?OR_PYTHON_BINDINGS = (True|False)", log).group(0)
                         py_bindings = ("True" in py_bindings_str)
                         print log

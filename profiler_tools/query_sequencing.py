@@ -1,5 +1,5 @@
-#import profile_parser.Query
-#import Collector_Log_Parser.QueryInfo
+import profile_parser.Query
+import Collector_Log_Parser.QueryInfo
 import datetime
 import re
 from operator import attrgetter
@@ -222,9 +222,22 @@ Function to order both query_info and query_list, and then to determine whether 
 Need to make a judgement call... determine whether to 
 """
 def order_queries(query_info_list, query_list):
-    # Sort both lists by the Process ID, then by start_time
-    grouped_query_info = sorted(query_info_list, key=attrgetter("query_pid", "time_stamp"))
-    grouped_query_list = sorted(query_list, key=attrgetter("query_pid", "start_time"))
+#    grouped_query_info = sorted(query_info_list, key=attrgetter("query_pid", "time_stamp"))
+#    grouped_query_list = sorted(query_list, key=attrgetter("query_pid", "start_time"))
+
+    query_dict = build_query_dict(query_list)
+    query_info_dict = build_query_info_dict(query_info_list)
+
+    for query_type in query_dict.join(query_info_dict):
+        for query_pid in query_dict[query_type].join(query_info_dict[query_type]):
+            print "query_type = %s; pid = %s" % (query_type, query_pid)
+            print "%s\t\t%s" % (query_dict[query_type][query_pid], query_info_dict[query_type][query_pid])
+
+"""    for qi in grouped_query_info:
+        matched_query_list = query_dict[qi.query_type][qi.pid]
+        print "query_type = %s; pid = %s"
+        for q in matched_query_list:
+            if qi.time_stamp < q.start_time
 
     in_sync = True
     iter_max = min(len(grouped_query_info), len(grouped_query_list))
@@ -242,8 +255,26 @@ def order_queries(query_info_list, query_list):
         else:
             print "query_info %d{3}: %s: %s %s; %s; %s" % (i, qi.query_pid, qi.time_stamp, qi.query_type, qi.requirements, qi.projections)
             print "query      %d{3}: %s: %s %s; %s" % (i, q.query_pid, q.start_time, q.query_type, q.constraint)
-
+"""
 query_list = build_frontend_queries()
 query_info_list = build_condor_queries()
 
-order_queries(query_info_list, query_list)
+query_dict = build_query_dict(query_list)
+query_info_dict = build_query_info_dict(query_info_list)
+
+#order_queries(query_info_list, query_list)
+with open("Query_Dict.txt", "wa") as out_file:
+    for qt in query_dict:
+        for pid in query_dict[qt]:
+            out_file.write("query_type = %s; query_pid = %s\n" % (qt, pid), "a")
+            out_str = "\n".join(query_dict[qt][pid])
+            out_file.write(out_str)
+            out_file.write("\n--------\n")
+
+with open("Query_Info_Dict.txt", "wa") as out_file:
+    for qt in query_info_dict:
+        for pid in query_info_dict[qt]:
+            out_file.write("query_type = %s; query_pid = %s\n" % (qt, pid), "a")
+            out_str = "\n".join(query_info_dict[qt][pid])
+            out_file.write(out_str)
+            out_file.write("\n--------\n")
