@@ -217,7 +217,7 @@ def condorq_attrs(q_constraint, attribute_list):
 
     # Jack Lundell
     logSupport.profiler("BEGIN exe_condor_q :: PID = %s :: USE_HTCONDOR_PYTHON_BINDINGS = %s :: " % (os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_condor_q")
-    stack_str = "".join(traceback.format.stack())
+    stack_str = "".join(traceback.format_stack())
     logSupport.profiler(stack_str)
 
     q_constraint += '&& (MyType=!=\"condor_q_%s\")' % os.getpid()
@@ -1222,7 +1222,7 @@ class CondorQLite(CondorQuery):
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
         stack_str = "".join(traceback.format.stack())
-        logSuport.profiler(stack_str)
+        logSupport.profiler(stack_str)
 #        logSupport.profiler("CondorQLite() : Stack Trace\t%s" % s, "exe_condor_q")
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)

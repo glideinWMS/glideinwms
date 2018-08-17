@@ -344,7 +344,7 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
 
     return formatted_string
 
-def profiler(msg, log_type, query_type=None, pid=None):
+def profiler(msg, log_type=None, query_type=None, pid=None):
     """
     Writes standardized profiling logs to debug logs, if verbose mode is activated
     """
