@@ -18,6 +18,7 @@ from . import cvWConsts, cWConsts
 from . import cvWCreate
 from .cWParamDict import is_true, add_file_unparsed
 import shutil
+import re
 from glideinwms.lib import x509Support
 from .cvWParams import MatchPolicy
 
@@ -803,7 +804,14 @@ def calc_glidein_collectors(collectors):
         if is_true(el.secondary):
             if 'RANDOM_INTEGER' in el.node:
                 collector_nodes[el.group]['secondary'].append(el.node)
-            else:
+            elif '-' in el.node:  # if secondary collector has port range
+                cWDictFile.validate_node(el.node)
+                rport = el.node.split(':')
+                parr = rport[1].split('-')
+                rinteger = '$RANDOM_INTEGER(' + parr[0] + ',' + parr[1] + ')'
+                rnode = re.sub(rport[1], rinteger, el.node)
+                collector_nodes[el.group]['secondary'].append(rnode)
+            else:  # single port in secondary
                 cWDictFile.validate_node(el.node)
                 collector_nodes[el.group]['secondary'].append(el.node)
         else:
@@ -829,7 +837,14 @@ def calc_glidein_ccbs(collectors):
         if el.group not in ccb_nodes:
             ccb_nodes[el.group] = []
         if 'RANDOM_INTEGER' in el.node:
-            ccb_nodes[el.group].append(el.node)
+           ccb_nodes[el.group].append(el.node)
+        elif '-' in el.node: #if ccb node has port range
+                cWDictFile.validate_node(el.node)
+                rccb=el.node.split(':')
+                pccb=rccb[1].split('-')
+                rintegerccb='$RANDOM_INTEGER('+pccb[0]+','+pccb[1]+')'
+                rnodeccb=re.sub(rccb[1],rintegerccb,el.node)
+                ccb_nodes[el.group].append(rnodeccb)
         else:
             cWDictFile.validate_node(el.node)
             ccb_nodes[el.group].append(el.node)

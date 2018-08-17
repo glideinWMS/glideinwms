@@ -1673,38 +1673,39 @@ def validate_node(nodestr):
                       int(col[0])
                   except ValueError as e:
                       raise RuntimeError("Collectors identifier is wrong: '%s'" % nodestr)
-    narr = eparr[0].split(':')
-    if len(narr) > 2:
-        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
-    if len(narr)>1:
-        # have ports, validate them
-        ports = narr[1]
-        parr = ports.split('-')
-        if len(parr) > 2:
-            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
-        if len(parr) > 1:
-            pmin = parr[0]
-            pmax = parr[1]
-        else:
-            pmin = parr[0]
-            pmax = parr[0]
+    else:
+        narr = eparr[0].split(':')
+        if len(narr) > 2:
+            raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
+        if len(narr)>1:
+            # have ports, validate them
+            ports = narr[1]
+            parr = ports.split('-')
+            if len(parr) > 2:
+                raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
+            if len(parr) > 1:
+                pmin = parr[0]
+                pmax = parr[1]
+            else:
+                pmin = parr[0]
+                pmax = parr[0]
+            try:
+               pmini = int(pmin)
+               pmaxi = int(pmax)
+            except ValueError as e:
+               raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
+            if pmini>pmaxi:
+               raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
+            if pmini<1:
+               raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
+            if pmaxi>65535:
+               raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
+        # split needed to handle the multiple schedd naming convention
+        nodename = narr[0].split("@")[-1]
         try:
-            pmini = int(pmin)
-            pmaxi = int(pmax)
-        except ValueError as e:
-            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
-        if pmini>pmaxi:
-            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
-        if pmini<1:
-            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
-        if pmaxi>65535:
-            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
-    # split needed to handle the multiple schedd naming convention
-    nodename = narr[0].split("@")[-1]
-    try:
-        socket.getaddrinfo(nodename, None)
-    except:
-        raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
+           socket.getaddrinfo(nodename, None)
+        except:
+           raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
 
     # OK, all looks good
     return
