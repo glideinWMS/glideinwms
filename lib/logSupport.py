@@ -34,6 +34,7 @@ log = None # create a place holder for a global logger, individual modules can c
 log_dir = None
 disable_rotate = False
 handlers = []
+verbose = True
 
 DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
 DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s')
@@ -343,17 +344,21 @@ def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
 
     return formatted_string
 
-def profiler(msg, query_type=None):
-    if log:
+def profiler(msg, log_type, query_type=None, pid=None):
+    """
+    Writes standardized profiling logs to debug logs, if verbose mode is activated
+    """
+    if log and verbose:
+        query_type_list = ["condor_q", "exe_condor_q", "condor_status", "exe_condor_status"]
         out = "PROFILER :: "
-        if query_type == "condor_q":
-            out += "CONDOR_Q :: %s" % msg
-        elif query_type == "exe_condor_q":
-            out += "EXE_CONDOR_Q :: %s" % msg
-        elif query_type == "condor_status":
-            out += "CONDOR_STATUS :: %s" % msg
-        elif query_type == "exe_condor_status":
-            out += "EXE_CONDOR_STATUS :: %s" % msg
-        else:
-            out += msg
+        if query_type in query_type_list:
+            out += "%s :: " % upper(query_type)
+
+        if pid:
+            out += "PID = %s :: " % pid
+
+        if log_type == "BEGIN" or log_type == "END":
+            out += "%s :: " % log_type
+
+        out += str(msg)
         log.debug(out)
