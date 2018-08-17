@@ -216,7 +216,7 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     # Jack Lundell
-    logsupport.profiler("BEGIN exe_condor_q :: PID = %s :: USE_HTCONDOR_PYTHON_BINDINGS = %s :: " % (os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_condor_q")
+    logSupport.profiler("BEGIN exe_condor_q :: PID = %s :: USE_HTCONDOR_PYTHON_BINDINGS = %s :: " % (os.getpid(), USE_HTCONDOR_PYTHON_BINDINGS), "exe_condor_q")
     stack_str = "".join(traceback.format.stack())
     logSupport.profiler(stack_str)
 

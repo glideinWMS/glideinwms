@@ -352,7 +352,7 @@ def profiler(msg, log_type, query_type=None, pid=None):
         query_type_list = ["condor_q", "exe_condor_q", "condor_status", "exe_condor_status"]
         out = "PROFILER :: "
         if query_type in query_type_list:
-            out += "%s :: " % upper(query_type)
+            out += "%s :: " % query_type.upper()
 
         if pid:
             out += "PID = %s :: " % pid

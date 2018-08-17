@@ -56,7 +56,6 @@ def exe_cmd(condor_exe, args, stdin_data=None, env={}):
         raise UnconfigError("condor_bin_path is undefined!")
     condor_exe_path = os.path.join(condor_bin_path, condor_exe)
 
-    logSupport.profiler("exe_cmd(%s, %s, %s, %s" % (condor_exe, args, stdin_data, env))
     cmd = "%s %s" % (condor_exe_path, args)
 
     return iexe_cmd(cmd, stdin_data, env)
@@ -69,7 +68,6 @@ def exe_cmd_sbin(condor_exe, args, stdin_data=None, env={}):
         raise UnconfigError("condor_sbin_path is undefined!")
     condor_exe_path = os.path.join(condor_sbin_path, condor_exe)
 
-    logSupport.profiler("exe_cmd_sbin(%s, %s, %s, %s" % (condor_exe, args, stdin_data, env))
     cmd = "%s %s" % (condor_exe_path, args)
 
     return iexe_cmd(cmd, stdin_data, env)
