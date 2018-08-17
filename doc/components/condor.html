@@ -93,7 +93,7 @@ Related Links:
 </div>
 
 <div class="section">
-<a name="schedds"><h2>Multiple Schedds</h2></a>
+<a name="schedds"><h2>Multiple Schedds in the Factory</h2></a>
 
    <p>
     <b>Note: </b>If you specified any of these options using the GlideinWMS
@@ -253,8 +253,39 @@ Processing schedd: SCHEDDJOBS2<br/>
        so they are made aware of them.
     </p>
 <h3></a>HTCondor configuration changes</h3>
+<h4></a>Individual Ports</h4>
     <p>
-    Since HTCondor v8.6, shared_port is supported by default. Since GlideinWMS v3.4.1, shared_port is supported for
+     For <b>each</b> secondary collector, the following Condor attributes are required:
+    </p>
+    <blockquote>
+      COLLECTOR<b>nn</b> = $(COLLECTOR)</br>
+      COLLECTOR<b>nn</b>_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector<b>nn</b>Log"</br>
+      COLLECTOR<b>nn</b>_ARGS = -f -p <b>port_number</b></br>
+      DAEMON_LIST = $(DAEMON_LIST), COLLECTOR<b>nn</b></br>
+    </blockquote>
+    <p>
+     In the above example, <b>n</b> is an arbitrary value to uniquely identify
+     each secondary collector.
+     Each secondary collector must also have a unique <b>port_number</b>.
+    </p>
+    <p>
+     After these  changes have been made in your Condor configuration file, restart HTCondor to effect
+     the change.  You will see these collector processes running (example has 5 secondary collectors).
+    </p>
+    <blockquote>
+user  17732     1  0 13:34 ?        00:00:00 /usr/local/glideins/separate-no-privsep-7-6/condor-userpool/sbin/condor_master
+user  17735 17732  0 13:34 ?        00:00:00 condor_collector -f <font color="blue">primary</font></br>
+user  17736 17732  0 13:34 ?        00:00:00 condor_negotiator -f</br>
+user  17737 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9619 <font color="blue">secondary</font></br>
+user  17738 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9620 <font color="blue">secondary</font></br>
+user  17739 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9621 <font color="blue">secondary</font></br>
+user  17740 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9622 <font color="blue">secondary</font></br>
+user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font color="blue">secondary</font></br>
+    </blockquote>
+    <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port.
+<h4></a>Shared Port</h4>
+    <p>
+    Since GlideinWMS v3.4.1, shared_port is supported by default for
     secondary collectors and CCBs, having all the collector communication behind a single TCP port. This helps to have a
     queue <b>per daemon</b>, instead of global queue. To carry out this, the following HTCondor attributes are required:
     </p>
@@ -288,7 +319,7 @@ Processing schedd: SCHEDDJOBS2<br/>
       ├─1675237 condor_collector -f -f -local-name COLLECTOR4 -sock collector4 <font color="blue">secondary</font></br>
       ├─1675240 condor_collector -f -f -local-name COLLECTOR5 -sock collector5 <font color="blue">secondary</font></br>
     </blockquote>
-    <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port. 
+    <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port.
 <!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
