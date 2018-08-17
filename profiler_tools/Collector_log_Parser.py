@@ -75,7 +75,7 @@ def get_cached_queries(in_file_name, query_types_list, query_info_types_list, re
                 qi.send_time = float(send_time[12:])
 
                 query_info_type = re.search("type = .*?;", line).group(0)
-                if query_info_types_list == None or query_info_type[7:-1] in query_info_types_list`
+                if query_info_types_list == None or query_info_type[7:-1] in query_info_types_list:
                     qi.query_info_type = query_info_type[7:-1]
                 else:
                     continue
@@ -223,6 +223,9 @@ def arg_parse():
     stats_parser.add_argument('--query_info_types', metavar='QI', dest='query_info_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_info_type(s) will be included in the results')
     stats_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
     stats_parser.add_argument('--projections', metavar='P', dest='projections', type=str, nargs='*', help='list of strings specifying that only queries with the given projection(s) will be included in the results')
+
+    args = args_parser.parse_args()
+    return args
 
 def main():
     args = arg_parse()
