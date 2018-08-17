@@ -1652,11 +1652,11 @@ class MonitorFileDicts:
 # Validate HTCondor endpoint (node) string
 # this can be a node, node:port, node:port-range
 # or a shared port sinful string host:port?sock=collector$RANDOM_INTEGER(ID1,ID2)
-# or schedd_name@host:port[?sock=some_string]
+# or schedd_name@host:port[?sock=collector]
 
-def validate_node(nodestr):
+def validate_node(nodestr,flag_prange=False):
     eparr = nodestr.split('?')
-    if len(eparr) > 2:
+    if len(eparr) > 2 and flag_prange==False:
        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
     if len(eparr) == 2:
        if ';' in eparr[1]:
@@ -1681,6 +1681,8 @@ def validate_node(nodestr):
             # have ports, validate them
             ports = narr[1]
             parr = ports.split('-')
+            if len(parr)>1 and flag_prange==True:
+               raise RuntimeError("Invalid Configuration.Unrecognized HTCondor sinful string: '%s'" % nodestr)
             if len(parr) > 2:
                 raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
             if len(parr) > 1:
