@@ -1102,7 +1102,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         except Exception:
             logSupport.log.exception("Unknown Exception. Failed to talk to schedd %s" % schedd)
     
-    logSupport.profiler("SCHEDD_NAMES = %s :: CONSTRAINT = %s :: out_condorq_dict = %s" % (schedd_names, full_constraint, out_condorq_dict), "condor_q")
+    logSupport.profiler("out_condorq_dict = %s :: SCHEDD_NAMES = %s :: CONSTRAINT = %s" % (out_condor_q_dict, schedd_names, full_constraint), "condor_q")
     logSupport.profiler("END getCondorQConstrained() :: PID = %s" % os.getpid(), "condor_q")
     # logSupport.profiler("END :: PID = %s :: CONSTRAINT = %s :: SCHEDD_NAMES = %s :: out_condorq_dict = %s" % (os.getpid(), full_constraint, schedd_names,
     # out_condorq_dict), "condor_q")
