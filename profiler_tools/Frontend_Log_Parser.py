@@ -4,6 +4,7 @@ import copy
 import os
 import argparse
 import errno
+import numpy as np
 
 class Query:
     def __init__(self, query_type="unknown", start_time=datetime.date(1900, 1, 1), end_time=datetime.date(1900, 1, 1), query_time=-1, constraint=None, query_pid=-1, use_python_bindings=None):
@@ -25,7 +26,7 @@ class Query:
         out_str += " constraint = %s;" % self.constraint
         out_str += " use_python_bindings = %s;" % self.use_python_bindings
         if self.error:
-            out_str += error
+            out_str += str(self.error)
 
         return out_str
 
@@ -59,7 +60,7 @@ def get_query_type(log):
     except AttributeError:
         return "unknown"
 
-def parse_frontend_logs(log_file_name, query_types_list, constraints_list):
+def parse_frontend_logs(log_file_name):
     query_list = []
     query_endpts_regex = "(getCondorQConstrained\(\)|getCondorStatusConstrained\(\)|exe_condor_q|exe_condor_status)"
 #    query_types = {"getCondorQConstrained()" : "condor_q", "exe_condor_q" : "exe_condor_q",
@@ -106,10 +107,8 @@ def parse_frontend_logs(log_file_name, query_types_list, constraints_list):
                     if query_type not in type_dict:
                         type_dict[query_type] = {}
 
-                    if pid != -1 and (query_types_list is None or q.query_type in query_types_list):
+                    if pid != -1:
                         type_dict[query_type][pid] = copy.copy(q)
-                    elif query_types_list is None or q.query_type in query_types_list:
-                        print q.query_type
                     q = Query()
                 except AttributeError:
                     if log.find("BEGIN") != -1 and log.find("condor_advertise") == -1:
@@ -117,12 +116,12 @@ def parse_frontend_logs(log_file_name, query_types_list, constraints_list):
 
                 try:
                     end_str = re.search("END %s :: " % query_endpts_regex, log).group(0)
-                    if pid in type_dict[query_type] and (constraints_list is None or q.constraint in constraints_list):
+                    if pid in type_dict[query_type]:
                         q = copy.copy(type_dict[query_type][pid])
                         q.end_time = timestamp
                         q.query_time = (timestamp - type_dict[query_type][pid].start_time).total_seconds()
                         query_list.append(q)
-                    elif pid != -1 and not (constraints_list is None or q.constraint in constraints_list):
+                    elif pid != -1:
                         print "No associated start time for query_type = %s and query_pid = %s" % (query_type, pid)
                     q = Query()
                 except AttributeError:
@@ -145,7 +144,7 @@ def cache_queries(query_list, out_file_name=""):
     if out_file_name == "" and len(query_list) > 0:
         min_time = min([q.start_time for q in query_list])
         max_time = max([q.end_time for q in query_list])
-        out_file_name = "Frontend_Queries %s-%s" % (datetime.datetime.strftime(min_time, '%Y-%m-%d %H:%M:%S'), datetime.datetime.strftime(max_time, '%Y-%m-%d %H:%M:%S'))
+        out_file_name = "Frontend_Queries %s-%s" % (datetime.datetime.strftime(min_time, '%Y-%m-%d %H %M %S'), datetime.datetime.strftime(max_time, '%Y-%m-%d %H %M %S'))
         print os.path.dirname(os.path.realpath(__file__))
     elif len(query_list) == 0:
         print "No queries in list"
@@ -171,7 +170,7 @@ def get_cached_queries(in_file_name, query_types_list, constraints_list):
                 q = Query()
                 try:
                     query_type = re.search("query_type = .*?;", line).group(0)
-                    if query_types_list == None or query_type in query_types_list:
+                    if query_types_list == None or query_type[13:-1] in query_types_list:
                         q.query_type = query_type[13:-1]
                     else:
                         continue
@@ -189,7 +188,7 @@ def get_cached_queries(in_file_name, query_types_list, constraints_list):
                     q.query_time = float(re.search("(-)?([0-9\.]+)([eE](-)?[0-9]+)?", query_time).group(0))
 
                     constraint = re.search("constraint = .*?;", line).group(0)
-                    if constraints_list == None or constraint in constraints_list:
+                    if constraints_list == None or constraint[13:-1] in constraints_list:
                         q.constraint = constraint[13:-1]
                     else:
                         continue
@@ -204,7 +203,7 @@ def get_cached_queries(in_file_name, query_types_list, constraints_list):
         print "File %s not found" % in_file_name
     return query_list
 
-def build_query_dict(query_list, query_type_restricted=[], constraints_restriction=[]):
+def build_query_dict(query_list):
     query_dict = {}
     for q in query_list:
         key = "%s; %s" % (q.query_type, q.constraint)
@@ -243,31 +242,15 @@ def arg_parse():
     subparsers = args_parser.add_subparsers(help='sub-command help', dest='command')
 
     parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument('--query_types', metavar='Q', dest='query_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_type(s) will be included in the results')
-    parent_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
-
-#    log_parser = argparse.ArgumentParser(parents=[args_parser])
-#    log_parser.add_argument('--parse', metavar='F', nargs='?', default='/var/log/gwms-frontend/group_main/main.all.log', help='specifies the file path of a frontend log file to parse and write to; defaults to /var/log/gwms-frontend/group_main/main.all.log')
-#    log_parser.add_argument('--out', dest='cache_file', default='', help='specifies the name of the cache file where the results of parsing a log file will be written inside the directory glideinwms/profiler_tools/frontend_cache')
-
-#    stats_parser = argparse.ArgumentParser(parents=[args_parser])
-#    stats_parser.add_argument('--stats', nargs=1, help='specifies a queries cache_file from which statistics will be generated')
-
-#    args_parser = argparse.ArgumentParser()
-#    args_parser.add_argument('--query_types', metavar='Q', dest='query_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_type(s) will be included in the results')
-#    args_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
-#    subparsers = args_parser.add_subparsers(dest='command', help='sub-command help')
 
     log_parser = subparsers.add_parser('parse', parents=[parent_parser])
     log_parser.add_argument('parse', metavar='F', nargs='?', default='/var/log/gwms-frontend/group_main/main.all.log', help='specifies the file path of a frontend log file to parse and write to; defaults to /var/log/gwms-frontend/group_main/main.all.log')
     log_parser.add_argument('--out', dest='cache_file', default='', help='specifies the name of the cache file where the results of parsing a log file will be written inside the directory glideinwms/profiler_tools/frontend_cache')
-#    log_parser.add_argument('--query_types', metavar='Q', dest='query_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_type(s) will be included in the results')
-#    log_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
 
     stats_parser = subparsers.add_parser('stats', parents=[parent_parser])
-    stats_parser.add_argument('stats', nargs=1, help='specifies a queries cache_file from which statistics will be generated')
-#    stats_parser.add_argument('--query_types', metavar='Q', dest='query_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_type(s) will be included in the results')
-#    stats_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
+    stats_parser.add_argument('stats', metavar='F', help='specifies a queries cache_file from which statistics will be generated')
+    stats_parser.add_argument('--query_types', metavar='Q', dest='query_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_type(s) will be included in the results')
+    stats_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
 
     args = args_parser.parse_args()
     return args
@@ -275,15 +258,16 @@ def arg_parse():
 def main():
     args = arg_parse()
     if args.command == 'parse':
-        print args.query_types
-        print args.constraints
-        query_list = parse_frontend_logs(args.parse, args.query_types, args.constraints)
+        query_list = parse_frontend_logs(args.parse)
         print "Completed parsing %s" % args.parse
         out_file_path = cache_queries(query_list, args.cache_file)
     elif args.command == 'stats':
         query_list = get_cached_queries(args.stats, args.query_types, args.constraints)
-        get_query_stats(query_list)
-
+        print [q for q in query_list if (q.query_time == -1)]
+        query_dict = build_query_dict(query_list)
+        for k in query_dict:
+            query_times_list = [q.query_time for q in query_dict[k]]
+            get_query_stats(query_times_list, k)
 main()
 
 #query_list = parse_frontend_logs("/Users/jlundell/Documents/main.all.log")

@@ -20,13 +20,13 @@ class QueryInfo:
 
     def __repr__(self):
         out_str = "query_type = %s;" % self.query_type
-        out_str += "query_pid = %s;" % self.query_pid
-        out_str += "time_stamp = %s;" % datetime.strftime(self.time_stamp, "%Y-%m-%d %H:%M:%S")
-        out_str += "query_time = %s;" % self.query_time
-        out_str += "send_time = %s;" % self.send_time
-        out_str += "type = %s;" % self.query_info_type
-        out_str += "requirements = %s;" % self.requirements
-        out_str += "projections = {%s};" % self.projections
+        out_str += " query_pid = %s;" % self.query_pid
+        out_str += " time_stamp = %s;" % datetime.strftime(self.time_stamp, "%Y-%m-%d %H:%M:%S")
+        out_str += " query_time = %s;" % self.query_time
+        out_str += " send_time = %s;" % self.send_time
+        out_str += " type = %s;" % self.query_info_type
+        out_str += " requirements = %s;" % self.requirements
+        out_str += " projections = {%s};" % self.projections
 
         return out_str
 
@@ -49,7 +49,7 @@ def cache_queries(query_info_list, out_file_name=""):
 
     return out_file_name
 
-def get_cached_queries(in_file_name=""):
+def get_cached_queries(in_file_name, query_types_list, query_info_types_list, requirements_list, projections_list):
     query_list = []
     with open(in_file_name, "r") as in_file:
         for line in in_file:
@@ -57,36 +57,40 @@ def get_cached_queries(in_file_name=""):
             error_check = ""
             try:
                 query_type = re.search("query_type = .*?;", line).group(0)
-                qi.query_type = query_type[13:-1]
-                error_check += "query_type parsed"
+                if query_types_list == None or query_type in query_types_list:
+                    q.query_type = query_type[13:-1]
+                else:
+                    continue
 
                 query_pid = re.search("query_pid = (-)?[0-9]*?;", line).group(0)
                 qi.query_pid = int(re.search("(-)?[0-9]+", query_pid).group(0))
-                error_check += "query_pid parsed"
 
                 time_stamp_str = re.search("time_stamp = .*?;", line).group(0)
                 qi.time_stamp = datetime.strptime(time_stamp_str[13:-1], '%Y-%m-%d %H:%M:%S')
-                error_check += "time_stamp parsed"
 
                 query_time = re.search("query_time = (-)?([0-9\.]+)([eE](-)?[0-9]+)?", line).group(0)
                 qi.query_time = float(query_time[13:])
-                error_check += "query_time parsed,"
 
                 send_time = re.search("send_time = (-)?([0-9\.]+)([eE](-)?[0-9]+)?", line).group(0)
                 qi.send_time = float(send_time[12:])
-                error_check += "send_time parsed"
 
                 query_info_type = re.search("type = .*?;", line).group(0)
-                qi.query_info_type = query_info_type[7:-1]
-                error_check += "query_info_type parsed"
+                if query_info_types_list == None or query_info_type[7:-1] in query_info_types_list`
+                    qi.query_info_type = query_info_type[7:-1]
+                else:
+                    continue
 
                 constraint = re.search("requirements = .*?;", line).group(0)
-                qi.constraint = constraint[15:-1]
-                error_check += "constraint parsed"
+                if requirements_list == None or constraint[15:-1] in requirements_list:
+                    qi.constraint = constraint[15:-1]
+                else:
+                    continue
 
                 projection = re.search("projections = {.*?};", line).group(0)
-                qi.constraint = constraint[15:-2]
-                error_check += "projection parsed"
+                if projections_list == None or projection[15:-2] in projections_list:
+                    qi.constraint = projection[15:-2]
+                else:
+                    continue
 
             except AttributeError:
 #                print error_check
@@ -145,7 +149,7 @@ def parse_condor_logs(log_file_name):
                     qi.requirements = requirements
 
                     try:
-                        query_type_pid_str = re.search("MyType[\s]*=!=[\s]*\"(condor_status_|exe_condor_status_|condor_q_|exe_condor_q_)[0-9]+\"", requirements).group(0)
+                        query_type_pid_str = re.search("MyType[\s]*=!=[\s]*\"(exe_condor_status_|condor_status_|exe_condor_q_|condor_q_)(-)?[0-9]+\"", requirements).group(0)
                         qi.query_type = re.search("\"(condor_status|exe_condor_status|condor_q|exe_condor_q)", query_type_pid_str).group(0)
                         qi.pid = int(re.search("[0-9]+", query_type_pid_str).group(0))
                     except AttributeError:
@@ -203,132 +207,37 @@ def get_query_stats(query_stats_list, list_title=""):
     else:
         print "Invalid query statistics passed"
 
-query_info_list = parse_condor_logs("/Users/jlundell/Documents/collector_logs/CollectorLog.20180619T004611")
-query_info_projection_dict = {"Empty" : [], "Nonempty" : []}
-query_info_dict = build_query_info_dict(query_info_list)
-for k in query_info_dict:
-    query_time_list = [qi.query_time for qi in query_info_dict[k]]
-    send_time_list = [qi.send_time for qi in query_info_dict[k]]
-    get_query_stats(query_time_list, "Query.query_time: %s" % k)
-    get_query_stats(send_time_list, "Query.send_time: %s" % k)
-cache_queries(query_info_list)
+def arg_parse():
+    args_parser = argparse.ArgumentParser()
+    subparsers = args_parser.add_subparsers(help='sub-command help', dest='command')
 
-"""
-grouped_query_info = sorted(query_info_list, key=attrgetter("projections", "requirements", "query_type"))
-time_types = {}
-time_avg = {}
-for qi in grouped_query_info:
-    if qi.query_type in time_types:
-        time_types[qi.query_type].append(qi)
-    else:
-        time_types[qi.query_type] = [qi]
+    parent_parser = argparse.ArgumentParser(add_help=False)
 
-    if (qi.projections == None or qi.projections == ""):
-        print qi.log
-#        print "%s\t%s\t%s\t%s\t%s" % (datetime.datetime.strftime(qi.time_stamp, "%m/%d/%y %H:%M:%S"), qi.query_time, qi.query_type, qi.requirements, qi.projections)
+    log_parser = subparsers.add_parser('parse', parents=[parent_parser])
+    log_parser.add_argument('parse', metavar='F', nargs='?', default='/var/log/condor/CollectorLog', help='specifies the file path of a condor log file to parse and write to; defaults to /var/log/CollectorLog')
+    log_parser.add_argument('--out', dest='cache_file', default='', help='specifies the name of the cache file where the results of parsing a log file will be written inside the directory glideinwms/profiler_tools/condor_cache')
 
-for query_type in time_types:
-    time_avg[query_type] = sum(qi.query_time for qi in time_types[query_type]) / len(time_types[query_type])
-print "query_time Averages by Type = %s\n" % time_avg
+    stats_parser = subparsers.add_parser('stats', parents=[parent_parser])
+    stats_parser.add_argument('stats', metavar='F', help='specifies a queries cache_file from which statistics will be generated')
+    stats_parser.add_argument('--query_types', metavar='Q', dest='query_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_type(s) will be included in the results')
+    stats_parser.add_argument('--query_info_types', metavar='QI', dest='query_info_types', type=str, nargs='*', help='list of strings specifying that only queries with the given query_info_type(s) will be included in the results')
+    stats_parser.add_argument('--constraints', metavar='C', dest='constraints', type=str, nargs='*', help='list of strings specifying that only queries with the given constraint(s) will be included in the results')
+    stats_parser.add_argument('--projections', metavar='P', dest='projections', type=str, nargs='*', help='list of strings specifying that only queries with the given projection(s) will be included in the results')
 
-# Condense!!!
-qtime_list = [qi.query_time for qi in grouped_query_info]
-qtime_avg = np.average(qtime_list)
-qtime_var = np.var(qtime_list, ddof = 1)
+def main():
+    args = arg_parse()
+    if args.command == 'parse':
+        print args.query_types
+        print args.constraints
+        query_list = parse_frontend_logs(args.parse)
+        print "Completed parsing %s" % args.parse
+        out_file_path = cache_queries(query_list, args.cache_file)
+    elif args.command == 'stats':
+        query_list = get_cached_queries(args.stats, args.query_types, args.query_info_types, args.constraints, args.projections)
+        query_dict = build_query_info_dict(query_list)
+        for k in query_dict:
+            query_times_list = [q.query_time for q in query_dict[k]]
+            send_times_list = [q.send_time for q in query_dict[k]]
+            get_query_stats(query_times_list)
 
-qtime_avg = sum(qtime_list) / len(qtime_list)
-if len(qtime_list) > 1:
-    qtime_var = sum((qi - qtime_avg) ** 2 for qi in qtime_list) / (len(qtime_list) - 1)
-else:
-    qtime_var = -1
-qtime_max = max(qtime_list)
-
-qtime_nonempty_list = [qi.query_time for qi in grouped_query_info if (qi.projections != None or qi.projections != "")]
-qtime_nonempty_avg = sum(qtime_nonempty_list) / len(qtime_nonempty_list)
-if len(qtime_nonempty_list) > 1:
-    qtime_nonempty_var = sum((qi - qtime_nonempty_avg) ** 2 for qi in qtime_nonempty_list) / (len(qtime_nonempty_list) - 1)
-else:
-    qtime_nonempty_var = -1
-qtime_nonempty_max = max(qtime_nonempty_list)
-
-qtime_empty_projection_list = [qi.query_time for qi in grouped_query_info if (qi.projections == None or qi.projections == "")]
-qtime_empty_projection_avg = sum(qtime_empty_projection_list) / len(qtime_empty_projection_list)
-if len(qtime_empty_projection_list) > 1:
-    qtime_empty_projection_var = sum((qi - qtime_empty_projection_avg) ** 2 for qi in qtime_empty_projection_list) / (len(qtime_empty_projection_list) - 1)
-else:
-    qtime_empty_projection_var = -1
-qtime_empty_projection_max = max(qtime_empty_projection_list)
-
-stime_list = [qi.send_time for qi in grouped_query_info]
-stime_avg = sum(stime_list) / len(stime_list)
-if len(stime_list) > 1:
-    stime_var = sum((qi - stime_avg) ** 2 for qi in stime_list) / (len(stime_list) - 1)
-else:
-    stime_var = -1
-
-stime_empty_projection_list = [qi.send_time for qi in grouped_query_info if (qi.projections == None or qi.projections == "")]
-stime_empty_projection_avg = sum(stime_empty_projection_list) / len(stime_empty_projection_list)
-if len(stime_empty_projection_list) > 1:
-    stime_empty_projection_var = sum((qi - stime_empty_projection_avg) ** 2 for qi in stime_empty_projection_list) / (len(stime_empty_projection_list) - 1)
-else:
-    stime_empty_projection_var = -1
-stime_empty_projection_max = max(stime_empty_projection_list)
-
-# Group by (MyType, Projection, Constraint), and do same stats as below
-
-query_dict = {}
-for qi in query_info_list:
-    key = (qi.query_type, qi.projections)
-    if key in query_dict:
-        query_dict[key].append(qi)
-    else:
-        query_dict[key] = [qi]
-
-print "Number of unique combinations of (query_type, query_projections) = %s" % len(query_dict.keys())
-for k in query_dict:
-    print k
-    print "\tNumber elements = %s" % len(query_dict[k])
-
-    query_times = [qi.query_time for qi in query_dict[k]]
-    qtime_avg = sum(query_times) / len(query_times)
-    print "\tAverage query_time = %s" % qtime_avg
-    if len(query_dict[k]) > 1:
-        qtime_var = sum([(q_time - qtime_avg) ** 2 for q_time in query_times]) / (len(query_times) - 1)
-    else:
-        qtime_var = 0
-    print"\tVariance query_time = %s" % qtime_var
-    print "\tMin query_time = %s" % min(query_times)
-    print "\tMax query_time = %s" % max(query_times)
-
-print "Number of Query Info = %s\n" % len(query_info_list)
-
-print "Max query_time = %s" % qtime_max
-print "Average query_time = %s" % qtime_avg
-print "N query_time = %s"
-print "Variance query_time = %s" % qtime_var
-print "Max query_time = %s" % max(qtime_list)
-print "Min query_time = %s\n" % min(qtime_list)
-
-print "Max Nonempty Projection query_time = %s" % qtime_nonempty_max
-print "Average Nonempty Projection query_time = %s" % qtime_nonempty_avg
-print "Variance Nonempty Projection query_time = %s" % qtime_nonempty_var
-print "Max Nonempty Projection query_time = %s" % max(qtime_nonempty_list)
-print "Min Nonempty Projection query_time = %s\n" % min(qtime_nonempty_list)
-
-print "Max Empty Projection query_time = %s" % qtime_empty_projection_max
-print "Average Empty Projection query_time = %s" %  qtime_empty_projection_avg
-print "Variance Empty Projection query_time = %s" % qtime_empty_projection_var
-print "Max Empty Projection query_time = %s" % max(qtime_empty_projection_list)
-print "Min Empty Projection query_time = %s\n" % min(qtime_empty_projection_list)
-
-print "Average sending_time = %s" % stime_avg
-print "Variance sending_time = %s" % stime_var
-print "Max sending_time = %s" % max(stime_list)
-print "Min sending_time = %s\n" % min(stime_list)
-
-print "Max Empty Projection sending_time = %s" % stime_empty_projection_max
-print "Average Empty Projection sending_time = %s" % stime_empty_projection_avg
-print "Variance Empty Projection sending_time = %s" % stime_empty_projection_var
-print "Max Empty Projection sending_time = %s" % max(stime_list)
-print "Min Empty Projection sending_time = %s" % min(stime_list)
-"""
+main()
