@@ -1080,13 +1080,12 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             logSupport.log.warning("Skipping empty schedd name")
             continue
         full_constraint = type_constraint[0:]  # make copy
+        logSupport.profiler("type_constraint = %s" % type_constraint, "condor_q")
         if constraint is not None:
 #            full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
             full_constraint = "(%s) && (%s) && (MyType=!=\"condor_q_%s\")" % (full_constraint, constraint, os.getpid())
         else:
             full_constraint = "(%s) && (MyType=!=\"condor_q_%s\")" % (full_constraint, os.getpid())
-        logSupport.profiler("PID = %s :: CONSTRAINT = %s" % (os.getpid(), full_constraint), "condor_q")
-        logSupport.profiler("SCHEDD = %s" % schedd, "condor_q")
 
         try:
             condorq = condorMonitor.CondorQ(schedd)
@@ -1105,6 +1104,8 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
     
     logSupport.profiler("SCHEDD_NAMES = %s :: CONSTRAINT = %s :: out_condorq_dict = %s" % (schedd_names, full_constraint, out_condorq_dict), "condor_q")
     logSupport.profiler("END getCondorQConstrained() :: PID = %s" % os.getpid(), "condor_q")
+    # logSupport.profiler("END :: PID = %s :: CONSTRAINT = %s :: SCHEDD_NAMES = %s :: out_condorq_dict = %s" % (os.getpid(), full_constraint, schedd_names,
+    # out_condorq_dict), "condor_q")
     return out_condorq_dict
 
 #
@@ -1151,7 +1152,7 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
         if len(status.fetchStored()) > 0:
             out_status_dict[collector] = status
 
-        logSupport.profiler("CONSTRAINT = %s" % full_constraint, "condor_status")
+        logSupport.profiler("PID = %s :: CONSTRAINT = %s" % (os.getpid(), full_constraint), "condor_status")
         logSupport.profiler("FORMAT_LIST = %s" % format_list, "condor_status")
     logSupport.profiler("END getCondorStatusConstrained() :: PID = %s" % os.getpid(), "condor_status")
     return out_status_dict
