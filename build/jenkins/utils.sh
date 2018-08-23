@@ -96,6 +96,100 @@ setup_python_venv() {
 }
 
 
+setup_python3_venv() {
+    if [ $# -gt 1 ]; then
+        echo "Invalid number of arguments to setup_python3_venv. Will accept "
+        echo "the location to install venv or use PWD as default"
+        exit 1
+    fi
+    WORKSPACE=${1:-`pwd`}
+
+    PY_VER="3.4"
+    VIRTUALENV_VER="virtualenv-16.0.0"
+    PYLINT='pylint'
+    ASTROID='astroid'
+    HYPOTHESIS="hypothesis"
+    AUTOPEP8="autopep8"
+
+    VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
+    VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
+    VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
+    VENV=$WORKSPACE/venv-$PY_VER
+
+    # Following is useful for running the script outside jenkins
+    if [ ! -d "$WORKSPACE" ]; then
+        mkdir $WORKSPACE
+    fi
+
+    echo "SETTING UP VIRTUAL ENVIRONMENT ..."
+    if [ -f $WORKSPACE/$VIRTUALENV_TARBALL ]; then
+        rm $WORKSPACE/$VIRTUALENV_TARBALL
+    fi
+    curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
+    tar xf $WORKSPACE/$VIRTUALENV_TARBALL
+
+    PV=$(python3 --version 2>/dev/null)
+    if [ "x$PV" = "x" ]; then
+        PYTHON3_DIR=py34_libs
+        PYTHON3_TARBALL=${PYTHON3_DIR}.tar
+        PYTHON3_URL=https://jobsub.fnal.gov/other/${PYTHON3_TARBALL}
+        curl -L -o $WORKSPACE/$PYTHON3_TARBALL $PYTHON3_URL
+        tar xf $WORKSPACE/$PYTHON3_TARBALL
+        cd $WORKSPACE/$PYTHON3_DIR/usr
+        source bin/activate
+        cd -
+    fi
+
+
+    #if we download the venv tarball everytime we should remake the venv
+    #every time
+    rm -rf $VENV
+    $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --python python3 $VENV
+
+    source $VENV/bin/activate
+
+    export PYTHONPATH="$PWD:$PYTHONPATH"
+
+    # Install dependancies first so we don't get uncompatible ones
+    # Following RPMs need to be installed on the machine:
+    # 1. rrdtool-devel
+    # 2. openssl-devel
+    # 3. swig
+    # pep8 has been replaced by pycodestyle
+    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
+    pip_packages="$pip_packages pyyaml mock xmlrunner future importlib argparse"
+    pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8}"
+
+
+    for package in $pip_packages; do
+        echo "Installing $package ..."
+        status="DONE"
+        pip install --quiet $package
+        if [ $? -ne 0 ]; then
+            status="FAILED"
+        fi
+        echo "Installing $package ... $status"
+    done
+    #pip install M2Crypto
+
+    ## Need this because some strange control sequences when using default TERM=xterm
+    export TERM="linux"
+
+    ## PYTHONPATH for glideinwms source code
+    # pythonpath for pre-packaged only
+    if [ -n "$PYTHONPATH" ]; then
+        export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}
+    else
+        export PYTHONPATH=${GLIDEINWMS_SRC}
+    fi
+
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/lib
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/creation/lib
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/factory
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/frontend
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
+}
 print_python_info() {
     if [ $# -ne 0 ]; then
         br="<br/>"

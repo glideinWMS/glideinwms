@@ -16,14 +16,16 @@ EOF
 
 filename="$(basename $0)"
 VERBOSE=yes
+PYTHON3=''
 
-while getopts ":hqa" option
+while getopts ":hqa3" option
 do
   case "${option}"
   in
   h) help_msg; exit 0;;
   q) VERBOSE='';;
   a) LIST_FILES=yes;;
+  3) PYTHON3=yes;;
   : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;
   *) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   \?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
@@ -39,7 +41,12 @@ WORKSPACE=`pwd`
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
 
 source $GLIDEINWMS_SRC/build/jenkins/utils.sh
-setup_python_venv $WORKSPACE
+
+if [ "$PYTHON3" = "yes" ]; then
+    setup_python3_venv $WORKSPACE
+else
+    setup_python_venv $WORKSPACE
+fi
 
 cd $GLIDEINWMS_SRC/unittests
 
