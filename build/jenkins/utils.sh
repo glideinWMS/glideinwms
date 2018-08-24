@@ -97,11 +97,19 @@ setup_python_venv() {
 
 
 setup_python3_venv() {
+
     if [ $# -gt 1 ]; then
         echo "Invalid number of arguments to setup_python3_venv. Will accept "
         echo "the location to install venv or use PWD as default"
         exit 1
     fi
+
+    if grep ' 6\.' /etc/redhat-release >/dev/null ; then
+        echo "this script only works on SL7, RH7 variants"
+        echo "exiting..."
+        exit 1
+    fi
+
     WORKSPACE=${1:-`pwd`}
 
     PY_VER="3.4"
@@ -128,11 +136,12 @@ setup_python3_venv() {
     curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
     tar xf $WORKSPACE/$VIRTUALENV_TARBALL
 
+    EXTERNAL_SOURCE_URL="https://jobsub.fnal.gov/other"
     PV=$(python3 --version 2>/dev/null)
     if [ "x$PV" = "x" ]; then
         PYTHON3_DIR=py34_libs
         PYTHON3_TARBALL=${PYTHON3_DIR}.tar
-        PYTHON3_URL=https://jobsub.fnal.gov/other/${PYTHON3_TARBALL}
+        PYTHON3_URL=${EXTERNAL_SOURCE_URL}/${PYTHON3_TARBALL}
         curl -L -o $WORKSPACE/$PYTHON3_TARBALL $PYTHON3_URL
         tar xf $WORKSPACE/$PYTHON3_TARBALL
         cd $WORKSPACE/$PYTHON3_DIR/usr
@@ -155,9 +164,8 @@ setup_python3_venv() {
     # 1. rrdtool-devel
     # 2. openssl-devel
     # 3. swig
-    # pep8 has been replaced by pycodestyle
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
-    pip_packages="$pip_packages pyyaml mock xmlrunner future importlib argparse"
+    pip_packages="$pip_packages pyyaml mock xmlrunner future  argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8}"
 
 
@@ -170,7 +178,14 @@ setup_python3_venv() {
         fi
         echo "Installing $package ... $status"
     done
-    #pip install M2Crypto
+    if ! pip install M2Crypto ; then
+        #echo "m2crypto install code here"
+        M2_CRYPTO_URL=${EXTERNAL_SOURCE_URL}/m2crypto.py3.tgz
+        curl -L -o $WORKSPACE/$M2_CRYPTO_TARBALL $M2_CRYPTO_URL
+        cd $VENV/lib/python3.4/site-packages
+        tar xf $WORKSPACE/$M2_CRYPTO_TARBAL
+        cd -
+    fi
 
     ## Need this because some strange control sequences when using default TERM=xterm
     export TERM="linux"

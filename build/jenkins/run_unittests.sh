@@ -11,6 +11,7 @@ Runs unit tests and exit the results to standard output. Failed tests will cause
   -q          Just print the unit test output
   -h          print this message
   -a          run on all unit tests (see above)
+  -3          run unit tests using python3 (SL7 only)
 EOF
 }
 
