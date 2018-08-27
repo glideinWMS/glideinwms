@@ -18,21 +18,22 @@
 
 glidein_config="$1"
 
+GLIDEIN_THIS_SCRIPT=$0
 GWMS_AUX_SUBDIR=.gwms_aux
 
 echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
-# Source utility files
-# TODO: Check that the path works both outside and within Singularity
-if [ -e singularity_util.sh ]; then
+
+# Source utility files, outside and inside Singularity
+if [ -e singularity_lib.sh ]; then
     GWMS_AUX_DIR="./"
-elif [ -e /srv/.gwms_aux/singularity_util.sh ]; then
+elif [ -e /srv/.gwms_aux/singularity_lib.sh ]; then
     # In Singularity
     GWMS_AUX_DIR="/srv/$GWMS_AUX_SUBDIR/"
 else
-    echo "ERROR: singularity_setup.sh: Unable to source singularity_util.sh! File not found. Quitting" 1>&2
+    echo "ERROR: singularity_setup.sh: Unable to source singularity_lib.sh! File not found. Quitting" 1>&2
     exit 1
 fi
-source ${GWMS_AUX_DIR}singularity_util.sh
+source ${GWMS_AUX_DIR}singularity_lib.sh
 
 
 error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
@@ -171,8 +172,8 @@ export GLIDEIN_DEBUG_OUTPUT=`grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk
 # SINGULARITY_BIN is now undocumented (can still be used for compatibility or to force a path for Singularity)
 # TODO: review use of SINGULARITY_BIN
 # some hackery to deal with spaces in SINGULARITY_BIN
-temp_singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`
-singularity_bin=$(echo $temp_singularity_bin)
+temp_singularity_bin="`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`"
+singularity_bin="$(echo $temp_singularity_bin)"
 
 # only to suggest a path, but path is used otherwise
 #if [ -z "$singularity_bin" ]; then
@@ -243,10 +244,10 @@ SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config
 SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | awk '{print $2}'`"
 SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config | awk '{print $2}'`"
 
-# Select the singularity image:  get_singularity_image platforms restrictions
+# Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] located on CVMFS"
-GWMS_SINGULARITY_IMAGE="`get_singularity_image default,rhel7,rhel6 cvmfs`"
+GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 cvmfs`"
 ec=$?
 if [ $ec -ne 0 ]; then
     out_str="ERROR selecting a Singularity image ($ec, $GWMS_SINGULARITY_IMAGE)"
@@ -265,7 +266,7 @@ export GWMS_SINGULARITY_IMAGE
 
 # Look for binary and adapt if missing
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
-locate_singularity "$singularity_bin"
+singularity_locate_bin "$singularity_bin"
 
 if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
     info "Singularity binary appears present and claims to be version $GWMS_SINGULARITY_VERSION"
@@ -276,7 +277,7 @@ fi
 
 # Valid singularity binary found, "$HAS_SINGULARITY" = True (otherwise would have exited)
 # Test execution and adapt if failed
-if ! test_singularity_exec "$GWMS_SINGULARITY_IMAGE" "$GWMS_SINGULARITY_PATH" ; then
+if ! singularity_test_exec "$GWMS_SINGULARITY_IMAGE" "$GWMS_SINGULARITY_PATH" ; then
     # HAS_SINGULARITY="False"
     no_singularity_fail_or_exit $gwms_singularity_status "Simple singularity exec inside $GWMS_SINGULARITY_IMAGE failed."
 fi
@@ -287,7 +288,7 @@ advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
-# The dict has changed after get_singularity_image to include values from legacy variables
+# The dict has changed after singularity_get_image to include values from legacy variables
 advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
 # TODO: advertise GWMS_SINGULARITY_IMAGE ?
 # TODO: is GLIDEIN_REQUIRED_OS really "any" ?

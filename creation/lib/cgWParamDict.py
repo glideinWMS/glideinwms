@@ -77,12 +77,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
         self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE, allow_overwrite=True)  # this one must be loaded before setup_x509.sh is run
+        self.dicts['file_list'].add_placeholder('singularity_lib.sh', allow_overwrite=True)  # this one must be loaded before singularity_setup.sh and any singularity wrapper are run
 
         #load system files
         for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
                           'condor_config', 'condor_config.multi_schedd.include',
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
-                          'condor_config.monitor.include', 'glidein_lib.sh'):
+                          'condor_config.monitor.include', 'glidein_lib.sh', 'singularity_lib.sh'):
             self.dicts['file_list'].add_from_file(file_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), 'regular'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
