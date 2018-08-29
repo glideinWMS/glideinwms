@@ -1,13 +1,22 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for glideinwms/creation/lib/cvWConsts.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import os
 import xmlrunner
 import unittest2 as unittest
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-#from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.creation.lib.cvWConsts import get_group_work_dir
 from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_work_dir
 from glideinwms.creation.lib.cvWConsts import get_group_log_dir
@@ -16,7 +25,7 @@ from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_stage_di
 from glideinwms.creation.lib.cvWConsts import get_group_monitor_dir
 from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_monitor_dir
 
-
+#test fixtures defined globall here for convenience
 work_dir = 'templates/frontend'
 group_name = 'group_1'
 group_basedir = 'group_group_1'

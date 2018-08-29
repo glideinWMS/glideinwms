@@ -1,13 +1,20 @@
 #!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   unit test for glideinwms/creation/lib/cgWConsts.py
+#
+# Author:
+#   Dennis Box dbox@fnal.gov
+#
+
 from __future__ import absolute_import
 from __future__ import print_function
 import unittest2 as unittest
 import xmlrunner
 import os
-
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.creation.lib.cgWConsts import get_entry_submit_dir 
 from glideinwms.creation.lib.cgWConsts import get_entry_name_from_entry_submit_dir 

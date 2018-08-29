@@ -1,4 +1,16 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for glideinwms/lib/symCrypto.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import unittest2 as unittest
@@ -7,9 +19,6 @@ import xmlrunner
 import hypothesis
 import hypothesis.strategies as st
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.lib.symCrypto import SymKey
 from glideinwms.lib.symCrypto import MutableSymKey
@@ -214,5 +223,5 @@ class TestSymDESKey(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ofl = 'unittests-reports'
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
+    OFL = 'unittests-reports'
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=OFL))

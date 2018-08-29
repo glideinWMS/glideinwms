@@ -1,16 +1,24 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for subclasses of DictFileTwoKeys in
+   glideinwms/creation/lib/cWDictFile.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
-import os
-import copy
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.creation.lib.cWDictFile import DictFile
+# from glideinwms.creation.lib.cWDictFile import DictFile
 from glideinwms.creation.lib.cWDictFile import DescriptionDictFile
 from glideinwms.creation.lib.cWDictFile import GridMapDict
 
@@ -64,5 +72,5 @@ class TestGridMapDict(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ofl = 'unittests-reports'
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
+    OFL = 'unittests-reports'
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=OFL))
