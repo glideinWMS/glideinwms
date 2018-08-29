@@ -937,8 +937,8 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('RequireGlideinGlexecUse', restrictions[u'require_glidein_glexec_use'])
 
     # Job submit file pick algorithm
-    pick_algorithm = config.get_child(u'pick_algorithm')
-    job_descript_dict.add("PickAlgoName", pick_algorithm.get("algortihm_name"))
+    entry_selection = config.get_child(u'entry_selection')
+    job_descript_dict.add("EntrySelectionAlgorithm", entry_selection.get("algortihm_name"))
 
     # Add the frontend specific job limits to the job.descript file
     max_held_frontend = ""

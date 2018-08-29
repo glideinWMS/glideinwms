@@ -1,7 +1,7 @@
 import time
 import random
 
-def pickAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log):
+def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log):
     """
     Given the list of sub entries (aka submit files), and the status of each sub entry (how many idle + running etc)
     figures out how many glideins to submit for each sub entry.
@@ -35,7 +35,7 @@ def pickAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log):
 
     csf = 0 # current submit file
     for _ in range(nr_glideins):
-        curr_sf = submit_files[csf] # e.g.: job.entryname.condor
+        curr_sf = submit_files[csf]  # e.g.: job.entryname.condor
         curr_states = status_sf.get(curr_sf, {})
         curr_assigned = res[curr_sf]
         if (curr_states.get(1, 0) + curr_assigned < sf_idle_limit) and \

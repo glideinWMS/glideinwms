@@ -33,7 +33,7 @@ from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
 
-import glideinwms.factory.glideFactoryPickAlgos
+import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
 
 
@@ -1287,8 +1287,9 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
     # Need information from glidein.descript, job.descript, and signatures.sha1
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
     schedd = jobDescript.data["Schedd"]
-    algo_name = jobDescript.data["PickAlgoName"]
-    log.info("Algo name %s" % algo_name)
+    algo_name = jobDescript.data["EntrySelectionAlgorithm"]
+    if algo_name != "Default":
+        log.debug("Selection algorithm name for entry %s is: %s" % (entry_name, algo_name))
 
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
@@ -1317,8 +1318,8 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                     log.warning(msg)
     try:
         submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
-        pick_function = getattr(glideinwms.factory.glideFactoryPickAlgos, 'pickAlgo' + algo_name)
-        submit_files = pick_function(submit_files, status_sf, jobDescript, nr_glideins, log)
+        selection_function = getattr(glideinwms.factory.glideFactorySelectionAlgorithms, 'selectionAlgo' + algo_name)
+        submit_files = selection_function(submit_files, status_sf, jobDescript, nr_glideins, log)
 
         for submit_file, nr_glideins_sf in submit_files.items():
             nr_submitted = 0
