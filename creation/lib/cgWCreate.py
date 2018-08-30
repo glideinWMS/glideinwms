@@ -177,7 +177,11 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if conf['advertise_pilot_accounting'] == 'True':
             self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) < 12*60*60)")
 
-        self.add("periodic_remove", "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME)")
+        remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
+        max_walltime = next(iter([ x for x in entry.get_child_list(u'attrs') if x['name'] == 'GLIDEIN_Max_Walltime' ]), None)  # Get the GLIDEIN_Max_Walltime attribute
+        if max_walltime:
+            remove_expr += " || (JobStatus==2 && EnteredCurrentState > (GLIDEIN_Max_Walltime + 12*60*60))"
+        self.add("periodic_remove", remove_expr)
 
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
