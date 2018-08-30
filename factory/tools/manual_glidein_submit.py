@@ -7,7 +7,7 @@ import pprint
 import logging
 import argparse
 
-import htcondor
+import htcondor # pylint: disable=import-error
 
 from glideinwms.factory import glideFactoryConfig as gfc
 from glideinwms.factory.glideFactoryLib import ClientWeb
