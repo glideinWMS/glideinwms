@@ -99,11 +99,11 @@ for file in $files_list ; do
 done
 
 CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-BR_NO_SLASH=$(echo ${CURR_BRANCH} | sed -e 's/\//-/g')
+BR_NO_SLASH=$(echo ${CURR_BRANCH} | sed -e 's/\//_/g')
 
 if [ "$COVERAGE" = "yes" ]; then
     coverage report > ${WORKSPACE}/coverage.report.${BR_NO_SLASH}
     coverage html
-    mv htmlcov ${WORKSPACE}/coverage_dir.${BR_NO_SLASH}
+    mv htmlcov ${WORKSPACE}/htmlcov.${BR_NO_SLASH}
 fi
 
