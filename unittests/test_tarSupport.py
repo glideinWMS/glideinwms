@@ -8,9 +8,6 @@ import tarfile
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.unittests.unittest_utils import create_temp_file
 from glideinwms.unittests.unittest_utils import create_random_string
 from glideinwms.lib.hashCrypto import extract_md5

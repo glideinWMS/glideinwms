@@ -1,13 +1,21 @@
 #!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   unit test for glideinwms/lib/xmlParse.py
+#
+# Author:
+#   Dennis Box dbox@fnal.gov
+#
+
 from __future__ import absolute_import
 from __future__ import print_function
 import unittest2 as unittest
 import xmlrunner
 import xml
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.lib.xmlParse import OrderedDict 
 from glideinwms.lib.xmlParse import xmlfile2dict 

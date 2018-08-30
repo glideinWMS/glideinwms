@@ -1,4 +1,16 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for DictFile object from glideinwms/creation/lib/cWDictFile.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import os
@@ -8,7 +20,6 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.unittests.unittest_utils import create_temp_file
 
 from glideinwms.creation.lib.cWDictFile import DictFile
@@ -229,5 +240,4 @@ class TestDictFile(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ofl = 'unittests-reports'
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
+    unittest.main(testRunner=xmlrunner.XMLTestRunner('unittests-reports'))

@@ -1,20 +1,29 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for glideinwms/lib/exprParser.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
 import glideinwms.lib.exprParser as ep
 
-TEST_LIST = ['a or b', 'a and b', '3',  'None', 'False', 'a + b',
+TEST_LIST = ['a or b', 'a and b', '3', 'None', 'False', 'a + b',
              'a*b', 'a/b', 'not a', 'x[:1]', 'str(a)', 'a<<3',
-             '(a,b,x)', '[a,b,x]', 'a<3', 'a+b>4', 'a**b', 
+             '(a,b,x)', '[a,b,x]', 'a<3', 'a+b>4', 'a**b',
              'a>>3', 'a/b', 'a/3', 'lambda a,b:hash((a,b))',
-             'a-b', 'a in x', 'x[0]', 'd[a]', 'a in d',   ]
+             'a-b', 'a in x', 'x[0]', 'd[a]', 'a in d', ]
 
 TEST_RAISE_LIST = ['a^b', 'a&b', 'a|b', 'a+=3', ]
 
@@ -34,7 +43,7 @@ class TestExprParserSymmetric(unittest.TestCase):
         a = 3
         b = 4
         x = [a, b]
-        d = {a:b}
+        d = {a: b}
 
         # just test that nothing in TEST_LIST throws an exception when compiled
         for itm in TEST_LIST:
@@ -48,5 +57,4 @@ class TestExprParserSymmetric(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ofl = 'unittests-reports'
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
+    unittest.main(testRunner=xmlrunner.XMLTestRunner('unittests-reports'))

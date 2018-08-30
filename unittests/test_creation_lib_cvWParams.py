@@ -1,17 +1,26 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for glideinwms/creation/lib/cvWParams.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import os
 import sys
+import copy
+import tempfile
 import unittest2 as unittest
 import xmlrunner
 import mock
-import copy
-import tempfile
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-#from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.creation.lib.cvWParams import VOFrontendSubParams
 from glideinwms.creation.lib.cvWParams import VOFrontendParams
@@ -19,16 +28,15 @@ from glideinwms.creation.lib.cvWParams import extract_attr_val
 from glideinwms.creation.lib.cWParams import Params
 from glideinwms.creation.lib.cWParams import SubParams
 
-argv = ["fixtures/frontend.xml", "fixtures/frontend.xml"]
-frontendVersioning = ""
-src_dir = "fixtures/frontend"
-usage_prefix = "create_frontend"
+ARGV = ["fixtures/frontend.xml", "fixtures/frontend.xml"]
+SRC_DIR = "fixtures/frontend"
+USAGE_PREFIX = "create_frontend"
 
 
 class TestVOFrontendSubParams(unittest.TestCase):
 
     def setUp(self):
-        v_o_frontend_params = VOFrontendParams(usage_prefix, src_dir,argv)
+        v_o_frontend_params = VOFrontendParams(USAGE_PREFIX, SRC_DIR, ARGV)
         self.sub_params = VOFrontendSubParams(v_o_frontend_params.data)
 
     def test_init(self):
@@ -38,7 +46,7 @@ class TestVOFrontendSubParams(unittest.TestCase):
         cpy = copy.deepcopy(self.sub_params)
         self.assertEqual(cpy, self.sub_params)
         self.assertTrue(cpy == self.sub_params)
-        self.assertFalse(self.sub_params ==  None)
+        self.assertFalse(self.sub_params is None)
 
     def test_extract_attr_val(self):
         monkey = mock.Mock()
@@ -48,25 +56,30 @@ class TestVOFrontendSubParams(unittest.TestCase):
 
     def test_looks_like_dict(self):
         self.assertTrue(len(list(self.sub_params.keys())) > 0)
-        #for k in self.sub_params: FAILS in the __getitem__ step
-        #for k in self.sub_params.keys(): PASSES __getitem__
+        # for k in self.sub_params: FAILS in the __getitem__ step
+        # for k in self.sub_params.keys(): PASSES __getitem__
         for k in self.sub_params.keys():
             self.assertTrue(k in self.sub_params)
             val1 = self.sub_params.__getitem__(k)
             val2 = self.sub_params[k]
-            self.assertEqual(val1,val2)
+            self.assertEqual(val1, val2)
 
 
 class TestVOFrontendParams(unittest.TestCase):
 
     def setUp(self):
-        self.v_o_frontend_params = VOFrontendParams(usage_prefix,src_dir,argv)
+        self.v_o_frontend_params = VOFrontendParams(
+            USAGE_PREFIX, SRC_DIR, ARGV)
 
     def test_init(self):
         self.assertTrue(isinstance(self.v_o_frontend_params, Params))
 
     def test_buildDir(self):
-        self.assertEqual(src_dir, self.v_o_frontend_params.buildDir("", src_dir))
+        self.assertEqual(
+            SRC_DIR,
+            self.v_o_frontend_params.buildDir(
+                "",
+                SRC_DIR))
 
     def test_derive(self):
         try:
@@ -89,7 +102,9 @@ class TestVOFrontendParams(unittest.TestCase):
         self.assertNotEqual(None, sc)
 
     def test_get_top_element(self):
-        self.assertEqual('frontend', self.v_o_frontend_params.get_top_element())
+        self.assertEqual(
+            'frontend',
+            self.v_o_frontend_params.get_top_element())
 
     def test_get_xml_format(self):
         fmt_dict = self.v_o_frontend_params.get_xml_format()
@@ -100,7 +115,8 @@ class TestVOFrontendParams(unittest.TestCase):
         self.assertTrue(len(self.v_o_frontend_params.get_xml().__repr__()) > 0)
 
     def test_get_description(self):
-        self.assertTrue(len(self.v_o_frontend_params.get_description().__repr__()) > 0)
+        self.assertTrue(
+            len(self.v_o_frontend_params.get_description().__repr__()) > 0)
 
     def test_init_defaults(self):
         try:
@@ -135,4 +151,6 @@ class TestExtractAttrVal(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(
+            output='unittests-reports'))

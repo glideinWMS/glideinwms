@@ -6,7 +6,7 @@ import sys
 import tempfile
 import random
 import string
-import unittest
+import unittest2 as unittest
 
 # We assume that this module is in the unittest directory
 module_globals = globals()
