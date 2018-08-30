@@ -11,6 +11,7 @@ from __future__ import print_function
 #
 
 import os, os.path  # string
+import re
 import shutil
 import copy
 import socket
@@ -1640,6 +1641,7 @@ class MonitorFileDicts:
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
 
+
 #########################################################
 #
 # Common functions
@@ -1649,54 +1651,63 @@ class MonitorFileDicts:
 #####################################################
 # Validate HTCondor endpoint (node) string
 # this can be a node, node:port, node:port-range
-# or a shared port synful string host:port?sock=some_string$ID
-# or schedd_name@host:port[?sock=some_string]
-def validate_node(nodestr,allow_prange=False):
+# or a shared port sinful string host:port?sock=collector$RANDOM_INTEGER(ID1,ID2)
+# or schedd_name@host:port[?sock=collector]
+
+def validate_node(nodestr,flag_prange=False):
     eparr = nodestr.split('?')
-    if len(eparr) > 2:
-        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+    if len(eparr) > 2 and flag_prange==False:
+       raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
     if len(eparr) == 2:
-        if not eparr[1].startswith("sock="):
-            raise RuntimeError("Unrecognized HTCondor sinful string: %s" % nodestr)
-        # check that ; and , are not in the endpoint ID (they are not before ?)
-        if ',' in eparr[1] or ';' in eparr[1]:
-            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
-    narr = eparr[0].split(':')
-    if len(narr) > 2:
-        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
-    if len(narr)>1:
-        # have ports, validate them
-        ports = narr[1]
-        parr = ports.split('-')
-        if len(parr) > 2:
-            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
-        if len(parr) > 1:
-            if not allow_prange:
-                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
-            pmin = parr[0]
-            pmax = parr[1]
-        else:
-            pmin = parr[0]
-            pmax = parr[0]
+       if ';' in eparr[1]:
+          raise RuntimeError("HTCondor sinful string should not contain separators (;): %s" % nodestr)
+       # Use regular expression to validate sinful string
+       matches = re.findall(r'^(.*&)*sock=([^&\n]+)(\n(\d+))?', eparr[1])
+       if not matches:
+          raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
+       else:
+           for sock in matches:
+               if 'sock' in sock:
+                  col = re.findall('\d+', str(sock))
+                  try:
+                      int(col[0])
+                  except ValueError as e:
+                      raise RuntimeError("Collectors identifier is wrong: '%s'" % nodestr)
+    else:
+        narr = eparr[0].split(':')
+        if len(narr) > 2:
+            raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
+        if len(narr)>1:
+            # have ports, validate them
+            ports = narr[1]
+            parr = ports.split('-')
+            if len(parr)>1 and flag_prange==True:
+               raise RuntimeError("Invalid Configuration.Unrecognized HTCondor sinful string: '%s'" % nodestr)
+            if len(parr) > 2:
+                raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
+            if len(parr) > 1:
+                pmin = parr[0]
+                pmax = parr[1]
+            else:
+                pmin = parr[0]
+                pmax = parr[0]
+            try:
+               pmini = int(pmin)
+               pmaxi = int(pmax)
+            except ValueError as e:
+               raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
+            if pmini>pmaxi:
+               raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
+            if pmini<1:
+               raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
+            if pmaxi>65535:
+               raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
+        # split needed to handle the multiple schedd naming convention
+        nodename = narr[0].split("@")[-1]
         try:
-            pmini = int(pmin)
-            pmaxi = int(pmax)
-        except ValueError as e:
-            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
-        if pmini>pmaxi:
-            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
-
-        if pmini<1:
-            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
-        if pmaxi>65535:
-            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
-
-    # split needed to handle the multiple schedd naming convention
-    nodename = narr[0].split("@")[-1]
-    try:
-        socket.getaddrinfo(nodename, None)
-    except:
-        raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
+           socket.getaddrinfo(nodename, None)
+        except:
+           raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
 
     # OK, all looks good
     return

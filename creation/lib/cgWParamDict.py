@@ -1144,7 +1144,7 @@ def calc_monitoring_collectors_string(collectors):
         if el[u'group'] not in collector_nodes:
             collector_nodes[el[u'group']] = {'primary': [], 'secondary': []}
         if eval(el[u'secondary']):
-            cWDictFile.validate_node(el[u'node'], allow_prange=True)
+            cWDictFile.validate_node(el[u'node'])
             collector_nodes[el[u'group']]['secondary'].append(el[u'node'])
         else:
             cWDictFile.validate_node(el[u'node'])

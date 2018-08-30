@@ -149,7 +149,7 @@ Click on any piece for a more detailed description.
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1" /&gt;</a><br/>
-        <a href="#attr_client_start">&lt;attr  name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_client_start">&lt;attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
@@ -201,21 +201,21 @@ Click on any piece for a more detailed description.
       <a href="#files">&lt;file absfname="/opt/script/testSW.sh" after_entry="True" after_group="False" const="True" executable="True" untar="False" wrapper="False" /&gt;</a><br/>
       <a href="#files">&lt;file absfname="/opt/script/testP.sh" after_entry="True" after_group="False" const="True" executable="True" period="1800" untar="False" wrapper="False" /&gt;</a><br/>
     </blockquote>
-    <a href="#files">&lt;/files&gt;</a><br/>     
+    <a href="#files">&lt;/files&gt;</a><br/>
+    <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
+    <blockquote>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov:9620-9640" node="ccb.fnal.gov" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(1,20)" group="group2" /&gt;</a><br/>
+    </blockquote>
+    <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#usercollector">&lt;collectors&gt;</a><br/>
     <blockquote>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9618?sock=collector3" secondary="True" group="default" /&gt;</a><br/>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(30,40)" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
-    <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
-    <blockquote>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
-    </blockquote>
-    <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
     <blockquote>
        <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
@@ -342,7 +342,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
          </ol>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
             element for each secondary port.</i></font><br/>
     </blockquote>
 
@@ -927,7 +927,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
                   node="User Pool Collector:<b>secondary_port</b>"/&gt;</br>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
             element for each secondary port.</i></font><br/>
       </blockquote>
     For <b>redundancy</b> purposes, the user pool can be configured using the HTCondor High Availability feature. 
@@ -936,22 +936,26 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     The requires listing all the condor collectors, primary as well as secondary, grouped by <b>group</b> name.
     HTCondor daemons started by the glideins will report back to one of the
     secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
-    the primary collector is selected for that group. 
+    the primary collector is selected for that group.  Here there are examples of different configurations:
     <blockquote>
          &lt;collectors&gt;
         <ul>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
                   node="<b>User Pool Collector 1</b>:primary_port" <b>group="default"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
-                  node="<b>User Pool Collector 1</b>:secondary_port" <b>group="default"</b>/&gt;</br>
+                  node="<b>User Pool Collector 1</b>:secondary_port_range" <b>group="default"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
-                  node="<b>User Pool Collector 2</b>:primary_port" <b>group="1"</b>/&gt;</br>
+                  node="<b>User Pool Collector 2</b>:primary_port_range" <b>group="1"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
-                  node="<b>User Pool Collector 2</b>:secondary_port" <b>group="1"</b>/&gt;</br>
+                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collector$RANGE_INTEGER(ID1, ID2)" <b>group="1"</b>/&gt;</br>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
-            element for each secondary port.</i></font><br/>
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
+                element for each secondary port. <b>If this option is set, shared_port must be disabled.</b>
+            <b>Important: </b> For the secondary collectors configuration, there are multiple options with port number, <i>port range</i>,
+            single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case
+            (<b>sock=collector$RANDOM_INTEGER(ID1, ID2)</b>). It's important to follow this configuration pattern.
+            No semicolon is allowed in the node specification.</i></font><br/>
        </ul>
       </blockquote>
     </li>
@@ -970,23 +974,25 @@ will use CCBs or not.<br><br>
 Only very specific setups need to change this section.
     <br><br>
     For <b>scalability</b> purposes, multiple CCB can be listed. For <b>availability</b> purposes divide them in multiple groups.
-Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
-        chosen at random from each distinct group (port ranges are expanded as different entries in the same group); 
-        will connect to all of them to listen for requests Communications and 
-        will start using the first one and fall back to the following ones in case of errors to send messages. 
-        Daemons on the same host using a shared port daemon will share the same CCBs.<br>
-        NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
-        any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
+    Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
+    chosen by HTCondor at random from each distinct group; will connect to all of them to listen for requests Communications and
+    will start using the first one and fall back to the following ones in case of errors to send messages.
+    Daemons on the same host using a shared port daemon will share the same CCBs.<br>
+    NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
+    any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
     The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
       <blockquote>
          &lt;ccbs&gt;
          &lt;ccb DN="<i>certificate DN</i>"  
                   node="CCB Collector:<b>port</b>"/&gt;</br>
          &lt;ccb DN="<i>certificate DN</i>" 
-                  node="CCB Collector:<b>other_port</b>"/&gt;</br>
+                  node="CCB Collector:<b>port_range</b>"/&gt;</br>
+         &lt;ccb DN="<i>certificate DN</i>"
+                  node="CCB Collector:<b>other_port?sock=collector$RANDOM_INTEGER(ID1, ID2)</b>"/&gt;</br>
             <font color="blue">
-            Like in User Pool Collector configuration, here an optional port number, <i>port range</i> or sinful
-            string can be used. No comma or semicolon are allowed in the node specification.</font><br/>
+            <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration:<i>port range</i>,
+                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collector$RANDOM_INTEGER(ID1, ID2)</b).
+            It's important to follow this configuration pattern. No semicolon is allowed in the node specification.</font><br/>
       </blockquote>
     </li>
     <li>
