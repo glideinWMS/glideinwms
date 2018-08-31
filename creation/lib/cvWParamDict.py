@@ -606,12 +606,19 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
     if (glidein_singularity_use):
         descript_dict.add('GLIDEIN_Singularity_Use', glidein_singularity_use)
 
-        if (glidein_singularity_use == 'REQUIRED'):
-            query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
-            match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+        if (glidein_singularity_use == 'REQUIRED'):  # avoid NEVER and undefiled (probably will not have Singularity)
+            #query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
+            #match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+            #ma_arr.append(('SINGULARITY_BIN', 's'))
+            # TODO: in the future remove legacy SINGULARITY_BIN support
+            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="NEVER") && (GLIDEIN_SINGULARITY_REQUIRE=!=UNDEFINED  || (SINGULARITY_BIN=!=UNDEFINED && SINGULARITY_BIN=!="NONE"))' % query_expr
+            match_expr = '(%s) and ((glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER") or (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE"))' % match_expr
             ma_arr.append(('SINGULARITY_BIN', 's'))
-        elif (glidein_singularity_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "False") == "False")' % match_expr
+            ma_arr.append(('GLIDEIN_SINGULARITY_REQUIRE', 's'))
+        elif (glidein_singularity_use == 'NEVER'):  # avoid REQUIRED, REQUIRED_GWMS
+            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED") && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED_GWMS")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER")[:8] != "REQUIRED")' % match_expr
+            ma_arr.append(('GLIDEIN_SINGULARITY_REQUIRE', 's'))
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
