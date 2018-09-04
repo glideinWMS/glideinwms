@@ -2,7 +2,8 @@
 # 
 EXITSLEEP=5m
 GWMS_AUX_SUBDIR=.gwms_aux
-GLIDEIN_THIS_SCRIPT="$0"
+GWMS_THIS_SCRIPT="$0"
+GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
 
 ################################################################################
 #
@@ -25,12 +26,11 @@ function exit_wrapper {
     #  2: Exit code (1 by default)
     #  3: sleep time (default: $EXITSLEEP)
     [ -n "$1" ] && warn_raw "ERROR: $1"
-    exit_code=$2
-    [ -z "$exit_code" ] && exit_code=1
+    local exit_code=${2:-1}
     # Publish the error so that HTCondor understands that is a wrapper error and retries the job
     if [ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]; then
         warn "Wrapper script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
-        echo "Wrapper script $GLIDEIN_THIS_SCRIPT failed ($exit_code): $1" >> $_CONDOR_WRAPPER_ERROR_FILE
+        echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >> $_CONDOR_WRAPPER_ERROR_FILE
     fi
     #  TODO: Add termination stamp? see OSG
     #              touch ../../.stop-glidein.stamp >/dev/null 2>&1
@@ -41,18 +41,34 @@ function exit_wrapper {
     exit $exit_code
 }
 
+# In case singularity_lib cannot be imported
+function warn_raw {
+    echo "$@" 1>&2
+}
+
+[ -z "$glidein_config" ] && [ -e "$GWMS_THIS_SCRIPT_DIR/glidein_config" ] &&
+    glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
+
+# error_gen defined in singularity_lib.sh
+[ -e "$glidein_config" ] && error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+
+
 # Source utility files, outside and inside Singularity
-if [ -e singularity_lib.sh ]; then
-    GWMS_AUX_DIR="./"
-elif [ -e /srv/.gwms_aux/singularity_lib.sh ]; then
+# condor_job_wrapper is in the base directory, singularity_lib.sh in main
+# and copied to RUNDIR/$GWMS_AUX_SUBDIR (RUNDIR becomes /srv in Singularity)
+if [ -e "$GWMS_THIS_SCRIPT_DIR/main/singularity_lib.sh" ]; then
+    GWMS_AUX_DIR="$GWMS_THIS_SCRIPT_DIR/main/"
+elif [ -e /srv/$GWMS_AUX_SUBDIR/singularity_lib.sh ]; then
     # In Singularity
     GWMS_AUX_DIR="/srv/$GWMS_AUX_SUBDIR/"
 else
-    echo "ERROR: $GLIDEIN_THIS_SCRIPT: Unable to source singularity_lib.sh! File not found. Quitting" 1>&2
-    exit_wrapper "Wrapper script $GLIDEIN_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
+    echo "ERROR: $GWMS_THIS_SCRIPT: Unable to source singularity_lib.sh! File not found. Quitting" 1>&2
+    warn=warn_raw
+    exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
 source ${GWMS_AUX_DIR}singularity_lib.sh
 
+info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_util.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
 
 function exit_or_fallback {
     # An error in Singularity occurred. Fallback to no Singularity if preferred or fail if required
@@ -151,9 +167,9 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     #  if [ -e $MNTPOINT/. -a -e $OSG_SINGULARITY_IMAGE/$MNTPOINT ]; then
     GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs"
 
-    # cvmfs access inside container (default, but optional)
+    # CVMFS access inside container (default, but optional)
     if [ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]; then
-        GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val /cvmfs`"
+        GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs`"
     fi
 
     # GPUs - bind outside GPU library directory to inside /host-libs
@@ -166,24 +182,25 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
                 HOST_LIBS="$PWD/.host-libs"
             fi
             if [ "x$HOST_LIBS" != "x" ]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val "$HOST_LIBS:/host-libs"`"
+                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "$HOST_LIBS" /host-libs`"
             fi
             if [ -e /etc/OpenCL/vendors ]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val "/etc/OpenCL/vendors:/etc/OpenCL/vendors"`"
+                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
             fi
         fi
     else
         # if not using gpus, we can limit the image more
         GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --contain"
     fi
+    info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
     # notably the user-job-wrapper.sh (this script!) and singularity_util.sh (in $GWMS_AUX_SUBDIR)
-    cp "$GLIDEIN_THIS_SCRIPT" .gwms-user-job-wrapper.sh
+    cp "$GWMS_THIS_SCRIPT" .gwms-user-job-wrapper.sh
     export JOB_WRAPPER_SINGULARITY="/srv/.gwms-user-job-wrapper.sh"
     mkdir -p "$GWMS_AUX_SUBDIR"
-    cp singularity_util.sh "$GWMS_AUX_SUBDIR/"
+    cp "${GWMS_AUX_DIR}singularity_lib.sh" "$GWMS_AUX_SUBDIR/"
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to somewhere inside that dir (for example, X509_USER_PROXY)
@@ -196,17 +213,17 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN
     singularity_update_path /srv "$@"
 
-    info_dbg "about to invoke singularity, pwd is $PWD"
-    export GWMS_SINGULARITY_REEXEC=1
-
     # Get Singularity binds, uses also GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT
     # remove binds w/ non existing src (e)
     singularity_binds="`singularity_get_binds e "$GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"`"
     # Run and log the Singularity command.
+    info_dbg "about to invoke singularity, pwd is $PWD"
+    export GWMS_SINGULARITY_REEXEC=1
     singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
             "$GWMS_SINGULARITY_EXTRA_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY"  "${GWMS_RETURN[@]}"
 
     # Continuing here only if exec of singularity failed
+    GWMS_SINGULARITY_REEXEC=0
     exit_or_fallback "exec of singularity failed" $?
 }
 
@@ -219,6 +236,8 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     #
     # Outside Singularity - Run this only on the 1st invocation
     #
+
+    info_dbg "GWMS singualrtity wrapper, first invocation"
 
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     setup_classad_variables
@@ -242,9 +261,9 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
 
         # If we arrive here, then something failed in Singularity but is OK to continue w/o
 
-    #else  #if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ];
-    #    # TODO: First execution, no Singularity. Should I do something here?
-    #
+    else  #if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ];
+        # First execution, no Singularity.
+        info_dbg "GWMS singualrtity wrapper, first invocation, not using singularity"
     fi
 
 else
@@ -256,7 +275,7 @@ else
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
-    info_dbg "running inside singularity env = "`printenv`
+    info_dbg "GWMS singualrtity wrapper, running inside singularity env = "`printenv`
 
 
 
@@ -271,6 +290,7 @@ fi
 # - if setup or exec of singularity failed (it is possible to fall-back)
 #
 
+info_dbg "GWMS singualrtity wrapper, final setup."
 
 #############################
 #
@@ -288,16 +308,6 @@ if [ -e ../../main/condor/libexec ]; then
     # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
 fi
 
-# load modules, if available
-if [ "x$LMOD_BETA" = "x1" ]; then
-    # used for testing the new el6/el7 modules
-    if [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh ]; then
-        . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh
-    fi
-elif [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh ]; then
-    . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
-fi
-
 # fix discrepancy for Squid proxy URLs
 if [ "x$GLIDEIN_Proxy_URL" = "x" -o "$GLIDEIN_Proxy_URL" = "None" ]; then
     if [ "x$OSG_SQUID_LOCATION" != "x" -a "$OSG_SQUID_LOCATION" != "None" ]; then
@@ -305,6 +315,23 @@ if [ "x$GLIDEIN_Proxy_URL" = "x" -o "$GLIDEIN_Proxy_URL" = "None" ]; then
     fi
 fi
 
+# load modules, if available
+#MODULE_USE
+[ "x$LMOD_BETA" = "x1" ] && MODULE_USE=1
+if [ "x$MODULE_USE" = "x1" ]; then
+    if [ "x$LMOD_BETA" = "x1" ]; then
+        # used for testing the new el6/el7 modules
+        if [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh ]; then
+            . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh
+        fi
+    elif [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh ]; then
+        . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
+    fi
+    module -v >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        MODULE_USE=0
+    fi
+fi
 
 #############################
 #
@@ -312,41 +339,49 @@ fi
 #
 
 function setup_stashcp {
-  module load stashcp
+    if [ "x$MODULE_USE" != "x1" ]; then
+        warn "Module unavailable. Unable to setup Stash cache."
+        return 1
+    fi
 
-  # we need xrootd, which is available both in the OSG software stack
-  # as well as modules - use the system one by default
-  if ! which xrdcp >/dev/null 2>&1; then
+    module load stashcp
+
+    # we need xrootd, which is available both in the OSG software stack
+    # as well as modules - use the system one by default
+    if ! which xrdcp >/dev/null 2>&1; then
       module load xrootd
-  fi
+    fi
 
-  # Determine XRootD plugin directory.
-  # in lieu of a MODULE_<name>_BASE from lmod, this will do:
-  export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
-  export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
+    # Determine XRootD plugin directory.
+    # in lieu of a MODULE_<name>_BASE from lmod, this will do:
+    export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
+    export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
 
 }
 
 # Check for PosixStashCache first
 if [ "x$POSIXSTASHCACHE" = "x1" ]; then
-  setup_stashcp
+    setup_stashcp
+    if [ $? -eq 0 ]; then
 
-  # Add the LD_PRELOAD hook
-  export LD_PRELOAD="$MODULE_XROOTD_BASE/lib64/libXrdPosixPreload.so:$LD_PRELOAD"
+        # Add the LD_PRELOAD hook
+        export LD_PRELOAD="$MODULE_XROOTD_BASE/lib64/libXrdPosixPreload.so:$LD_PRELOAD"
 
-  # Set proxy for virtual mount point
-  # Format: cache.domain.edu/local_mount_point=/storage_path
-  # E.g.: export XROOTD_VMP=data.ci-connect.net:/stash=/
-  # Currently this points _ONLY_ to the OSG Connect source server
-  export XROOTD_VMP=$(stashcp --closest | cut -d'/' -f3):/stash=/
-
+        # Set proxy for virtual mount point
+        # Format: cache.domain.edu/local_mount_point=/storage_path
+        # E.g.: export XROOTD_VMP=data.ci-connect.net:/stash=/
+        # Currently this points _ONLY_ to the OSG Connect source server
+        export XROOTD_VMP=$(stashcp --closest | cut -d'/' -f3):/stash=/
+    fi
 elif [ "x$STASHCACHE" = "x1" ]; then
-  setup_stashcp
+    setup_stashcp
 fi
 
 if [ "x$STASHCACHE_WRITABLE" = "x1" ]; then
-  setup_stashcp
-  export PATH="/cvmfs/oasis.opensciencegrid.org/osg/projects/stashcp/writeback:$PATH"
+    setup_stashcp
+    if [ $? -eq 0 ]; then
+        export PATH="/cvmfs/oasis.opensciencegrid.org/osg/projects/stashcp/writeback:$PATH"
+    fi
 fi
 
 
@@ -355,10 +390,14 @@ fi
 #  Load user specified modules
 #
 if [ "X$LoadModules" != "X" ]; then
-    ModuleList=`echo $LoadModules | sed 's/^LoadModules = //i' | sed 's/"//g'`
-    for Module in $ModuleList; do
-        module load $Module
-    done
+    if [ "x$MODULE_USE" != "x1" ]; then
+        warn "Module unavailable. Unable to load desired modules: $LoadModules"
+    else
+        ModuleList=`echo $LoadModules | sed 's/^LoadModules = //i;s/"//g'`
+        for Module in $ModuleList; do
+            module load $Module
+        done
+    fi
 fi
 
 # TODO: This is OSG specific. Should there be something similar in GWMS?
@@ -377,7 +416,8 @@ fi
 #
 #  Cleanup
 #
-# Aux dir in the future mounted read only. Remove it if in Singularity
+# Aux dir in the future mounted read only. Remove the directory if in Singularity
+# TODO: should always auxdir be copied and removed? Should be left for the job?
 [[ "$GWMS_AUX_SUBDIR/" == /srv/* ]] && rm -rf "$GWMS_AUX_SUBDIR/" >/dev/null 2>&1 || true
 rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 
@@ -385,6 +425,8 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 #  Run the real job
 #
+info_dbg "GWMS singualrtity wrapper, current directory (`pwd`): `ls -al`"
+info_dbg "GWMS singualrtity wrapper, job exec: $@"
 exec "$@"
 error=$?
 # exec failed. Log, communicate to HTCondor, avoid black hole and exit

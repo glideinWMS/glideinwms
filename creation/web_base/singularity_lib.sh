@@ -26,7 +26,7 @@
 # Functions are using:
 # - $glidein_config
 # - $GLIDEIN_DEBUG_OUTPUT
-# - $GLIDEIN_THIS_SCRIPT
+# - $GWMS_THIS_SCRIPT
 
 # Singularity images:
 # SINGULARITY_IMAGES_DICT
@@ -69,41 +69,46 @@
 # GLIDEIN_SINGULARITY_FEATURES
 #
 
-# glidein_config from the file importing this
-error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
 
 # Output log levels:
 # WARN used also for error, always to stderr
 # INFO if GLIDEIN_QUIET is not set (default)
 # DEBUG if GLIDEIN_DEBUG_OUTPUT is set (and GLIDEIN_QUIET is not set)
-# GLIDEIN_THIS_SCRIPT should be set to $0 to log the file name
+# GWMS_THIS_SCRIPT should be set to $0 to log the file name
+
+GWMS_SCRIPT_LOG="`dirname "$GWMS_THIS_SCRIPT"`/.LOG_`basename "$GWMS_THIS_SCRIPT"`.$$.txt"
+# Change this to enable script log
+SCRIPT_LOG=
+[ -n "$GLIDEIN_DEBUG_OUTPUT" ] && SCRIPT_LOG="$GWMS_SCRIPT_LOG"
 
 function info_stdout {
-    [ -z "$GLIDEIN_QUIET" ] && echo $@
+    [ -z "$GLIDEIN_QUIET" ] && echo "$@"
 }
 
 function info_raw {
-    [ -z "$GLIDEIN_QUIET" ] && echo $@  1>&2
+    [ -z "$GLIDEIN_QUIET" ] && echo "$@"  1>&2
+    [ -n "$SCRIPT_LOG" ] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
 }
 
 function info {
-    [ -z "$GLIDEIN_QUIET" ] && echo "INFO " $@  1>&2
+    info_raw "INFO " "$@"
 }
 
 function info_dbg {
     if [ -n "$GLIDEIN_DEBUG_OUTPUT" ]; then
-        local script_txt=''
-        [ -n "$GLIDEIN_THIS_SCRIPT" ] && script_txt="(file: $GLIDEIN_THIS_SCRIPT)"
-        info_raw "DEBUG $script_txt" $@
+        #local script_txt=''
+        #[ -n "$GWMS_THIS_SCRIPT" ] && script_txt="(file: $GWMS_THIS_SCRIPT)"
+        info_raw "DEBUG ${GWMS_THIS_SCRIPT:+"(file: $GWMS_THIS_SCRIPT)"}" "$@"
     fi
 }
 
 function warn {
-    echo "WARNING " $@  1>&2
+    warn_raw "WARNING " "$@"
 }
 
 function warn_raw {
-    echo $@  1>&2
+    echo "$@"  1>&2
+    [ -n "$SCRIPT_LOG" ] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
 }
 
 
@@ -158,8 +163,9 @@ function dict_set_val {
         my_dict="`echo ",${my_dict}," | sed -E "s/,${2}(,|:[^,]*,)/,/;s/,+/,/g;s/^,//;s/,\$//"`"
         key_found=yes
     fi
-    [ -n "${my_dict}" ] && my_dict="${my_dict},"
-    [ -n "$3" ] && echo "${my_dict}$2:$3" || echo "${my_dict}$2"
+    # [ -n "${my_dict}" ] && my_dict="${my_dict},"
+    # [ -n "$3" ] && echo "${my_dict}$2:$3" || echo "${my_dict}$2"
+    echo "${my_dict:+"${my_dict},"}$2${3:+":$3"}"
     [ -n "${key_found}" ] && return 0
     return 1
 }
@@ -234,8 +240,8 @@ function get_prop_bool {
     #  return the opposite to allow shell truth values true,1->0 , false,0->1
     # NOTE Spaces are trimmed, so strings like "T RUE" are true
 
-    local default=$3
-    [ -z "$default" ] && default=0
+    local default=${3:-0}
+    local val
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         val=0
     elif [ "x$1" = "NONE" ]; then
@@ -294,31 +300,40 @@ function get_prop_str {
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         return 1
     elif [ "x$1" = "NONE" ]; then
-        echo $3
+        echo "$3"
         return 1
     fi
     val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
-    [ -z "$val" ] && val=$3
-    echo $val
+    [ -z "$val" ] && val="$3"
+    echo "$val"
     return 0
 }
 
-
+# $glidein_config from the file importing this
 # add_config_line and add_condor_vars_line are in add_config_line.source (ADD_CONFIG_LINE_SOURCE in $glidein_config)
-if [ "$glidein_config" != "NONE" ] && [ "x$SOURCED_ADD_CONFIG_LINE" = "x" ]; then
-    # import add_config_line and add_condor_vars_line functions used in advertise
-    if [ "x$add_config_line_source" = "x" ]; then
-        export add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-        export       condor_vars_file=`grep -i "^CONDOR_VARS_FILE "    $glidein_config | awk '{print $2}'`
-    fi
+if [ -e "$glidein_config" ]; then    # was: [ -n "$glidein_config" ] && [ "$glidein_config" != "NONE" ]
+    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+    if [ "x$SOURCED_ADD_CONFIG_LINE" = "x" ]; then
+        # import add_config_line and add_condor_vars_line functions used in advertise
+        if [ "x$add_config_line_source" = "x" ]; then
+            export add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+            export       condor_vars_file=`grep -i "^CONDOR_VARS_FILE "    $glidein_config | awk '{print $2}'`
+        fi
 
-    info "Sourcing $add_config_line_source"
-    source $add_config_line_source
-    # make sure we don't source a second time inside the container
-    export SOURCED_ADD_CONFIG_LINE=1
+        info "Sourcing add config line: $add_config_line_source"
+        source $add_config_line_source
+        # make sure we don't source a second time inside the container
+        export SOURCED_ADD_CONFIG_LINE=1
+    fi
+else
+    # glidein_config not available
+    warn "glidein_config not definied ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited."
+    [ -z "$error_gen" ] && error_gen=warn
+    glidein_config=NONE
 fi
 
 
+# TODO: should always use add_config_line_safe to avoid 2 functions?
 function advertise {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # In:
@@ -336,8 +351,36 @@ function advertise {
     atype="$3"
 
     if [ "$glidein_config" != "NONE" ]; then
-        # TODO: should I use add_config_line_safe? is it there risk for race conditions?
         add_config_line $key "$value"
+        add_condor_vars_line $key "$atype" "-" "+" "Y" "Y" "+"
+    fi
+
+    if [ "$atype" = "S" ]; then
+        echo "$key = \"$value\""
+    else
+        echo "$key = $value"
+    fi
+}
+
+function advertise_safe {
+    # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
+    # Thos should be used in periodic scripts or wrappers, because it uses add_config_line_safe
+    # In:
+    #  1 - key
+    #  2 - value
+    #  3 - type, atype is the type of the value as defined by GlideinWMS:
+    #    I - integer
+    #    S - quoted string
+    #    C - unquoted string (i.e. Condor keyword or expression)
+    # Out:
+    #  string for ClassAd
+    #  Added lines to glidein_config and condor_vars.lst
+    key="$1"
+    value="$2"
+    atype="$3"
+
+    if [ "$glidein_config" != "NONE" ]; then
+        add_config_line_safe $key "$value"
         add_condor_vars_line $key "$atype" "-" "+" "Y" "Y" "+"
     fi
 
@@ -377,7 +420,8 @@ function singularity_check_paths {
     # 2: src
     # 3: dst:options
     if [ -z "$1" ]; then
-        [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
+        # Same as  [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
+        echo -n "$2${3:+":$3"},"
         return
     fi
     local failed=
@@ -388,7 +432,8 @@ function singularity_check_paths {
     [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path $to_check. File does not exist"; false; return; }
     [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path $to_check. Is not in CVMFS"; false; return; }
     [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path $val_no_opt. File does not exist"; false; return; }
-    [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
+    # Same as [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
+    echo -n "$2${3:+":$3"},"
 }
 
 
@@ -424,22 +469,25 @@ function singularity_get_binds {
 
 
 function singularity_update_path {
-    # Replace all outside paths in the command line referring PWD so that they can work inside
+    # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
+    # so that they can work inside. Also "/execute/dir_[0-9a-zA-Z]*" directories are replaced
     # In:
     #  1 - PWD inside path (path of current PWD once singularity is invoked)
     #  2... Arguments to correct
-    #  PWD
+    #  GWMS_SINGULARITY_OUTSIDE_PWD (or PWD if not defined)
     # Out:
     #  nothing in stdout
     #  GWMS_RETURN - Array variable w/ the commands
     GWMS_RETURN=()
+    local outside_pwd="${GWMS_SINGULARITY_OUTSIDE_PWD:-$PWD}"
     local inside_pwd=$1
     shift
     local arg
     for arg in "$@"; do
         # two sed commands to make sure we catch variations of the iwd,
         # including symlinked ones
-        arg="`echo " $arg" | sed -E "s,$PWD/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,"`"
+        # TODO: should it become /execute/dir_[0-9a-zA-Z]* => /execute/dir_[^/]* ? Check w/ Mats and Edgar if OK
+        arg="`echo "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,"`"
         GWMS_RETURN+=("$arg")
     done
 }
@@ -490,22 +538,22 @@ function singularity_exec {
     # Quote all the path strings ($PWD, $singularity_bin, ...) to deal with a path that contains whitespaces
     # CMS is not using "--home $PWD:/srv", OSG is
     info_dbg  "$execution_opt \"$singularity_bin\" exec --home \"$PWD\":/srv --pwd /srv --ipc --pid " \
-            "${singularity_binds:"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
+            "${singularity_binds:+"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
             "\"$singularity_image\"" "${@}"
     local error
     if [[ ",$execution_opt," = *",exec,"* ]]; then
         exec "$singularity_bin" exec --home "$PWD":/srv --pwd /srv --ipc --pid \
-            ${singularity_binds:"--bind" "$singularity_binds"} $singularity_extra_opts \
+            ${singularity_binds:+"--bind" "$singularity_binds"} $singularity_extra_opts \
             "$singularity_image" "${@}"
         error=$?
         [ -n "$_CONDOR_WRAPPER_ERROR_FILE" ] && echo "Failed to exec singularity ($error): exec \"$singularity_bin\" exec --home \"$PWD\":/srv --pwd /srv " \
-            "${singularity_binds:"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
+            "${singularity_binds:+"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
             "\"$singularity_image\"" "${@}" >> $_CONDOR_WRAPPER_ERROR_FILE
         warn "exec of singularity failed: exit code $error"
         return $error
     else
         "$singularity_bin" exec --home "$PWD":/srv --pwd /srv --ipc --pid \
-            ${singularity_binds:"--bind" "$singularity_binds"} $singularity_extra_opts \
+            ${singularity_binds:+"--bind" "$singularity_binds"} $singularity_extra_opts \
             "$singularity_image" "${@}"
         return $?
     fi
@@ -527,10 +575,8 @@ function singularity_test_exec {
     #  true - Singularity OK
     #  false - Singularity not working or empty bin/image
     # E.g. if ! singularity_test_exec "$GWMS_SINGULARITY_IMAGE" "$GWMS_SINGULARITY_PATH" ; then
-    local singularity_image="$1"
-    local singularity_bin="$2"
-    [ -z "$singularity_image" ] && singularity_image="$GWMS_SINGULARITY_IMAGE_DEFAULT"
-    [ -z "$singularity_bin" ] && singularity_bin="$GWMS_SINGULARITY_PATH_DEFAULT"
+    local singularity_image="${1:-$GWMS_SINGULARITY_IMAGE_DEFAULT}"
+    local singularity_bin="${2:-$GWMS_SINGULARITY_PATH_DEFAULT}"
     [ -z "$singularity_image" ] || [ -z "$singularity_bin" ] &&
             { info "Singularity image or binary empty. Test failed "; false; return; }
     if (singularity_exec_simple "$singularity_bin" "$singularity_image" \
@@ -714,7 +760,7 @@ function singularity_get_image {
 
     singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
 
-    # TODO: these checks are also in the caller, fix that, return error string if ec != 0?
+    # TODO: these checks are also in the caller, duplicates can be removed, return error string if ec != 0?
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
     if [ "x$singularity_image" = "x" ]; then
         warn "If you get this error when you did not specify a desired platform, your VO does not support any default Singularity image"
@@ -738,7 +784,7 @@ function singularity_get_image {
 }
 
 function singularity_sanitize_image {
-    # TODO: these checks are also in the wrapper, fix that, use function
+    # TODO: these checks are also in the wrapper, remove duplicates, use function
     # for /cvmfs based directory images, expand the path without symlinks so that
     # the job can stay within the same image for the full duration
     # In:
@@ -853,7 +899,8 @@ function setup_classad_variables {
     # from Job ClassAd
     export REQUIRED_OS=$(get_prop_str $_CONDOR_JOB_AD REQUIRED_OS)
     export GWMS_SINGULARITY_IMAGE=$(get_prop_str $_CONDOR_JOB_AD SingularityImage)
-    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool $_CONDOR_JOB_AD SingularityAutoLoad 1)
+    # If not provided default to whatever is Singularity availability
+    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool $_CONDOR_JOB_AD SingularityAutoLoad $HAS_SINGULARITY)
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool $_CONDOR_JOB_AD SingularityBindCVMFS 1)
     export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool $_CONDOR_JOB_AD SingularityBindGPULibs 1)
     export CVMFS_REPOS_LIST=$(get_prop_str $_CONDOR_JOB_AD CVMFSReposList)
@@ -862,7 +909,8 @@ function setup_classad_variables {
     export STASHCACHE_WRITABLE=$(get_prop_bool $_CONDOR_JOB_AD WantsStashCacheWritable 0)
     export POSIXSTASHCACHE=$(get_prop_bool $_CONDOR_JOB_AD WantsPosixStashCache 0)
     # OSG Modules
-    export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)
+    export MODULE_USE=$(get_prop_str $_CONDOR_JOB_AD MODULE_USE 1)
+    export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)   # List of modules to load
     export LMOD_BETA=$(get_prop_bool $_CONDOR_JOB_AD LMOD_BETA 0)
     # GLIDEIN_DEBUG_OUTPUT may have been defined in the machine AD (takes precedence)
     if [ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]; then
@@ -911,9 +959,9 @@ function singularity_setup_inside {
         info_dbg "changed $key => $val"
     done
 
-    # If X509_USER_PROXY and friends are not set by the job, we might see the
+    # If CONDOR_CONFIG, X509_USER_PROXY and friends are not set by the job, we might see the
     # glidein one - in that case, just unset the env var
-    for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY ; do
+    for key in CONDOR_CONFIG X509_USER_PROXY X509_USER_CERT X509_USER_KEY ; do
         val="${!key}"
         if [ -n "$val" ]; then
             if [ ! -e "$val" ]; then
@@ -950,8 +998,23 @@ function singularity_setup_inside {
 
     # Some java programs have seen problems with the timezone in our containers.
     # If not already set, provide a default TZ
-    [ -z "$TZ" = "x" ] && export TZ="UTC"
+    [ -z "$TZ" ] && export TZ="UTC"
 
+}
+
+
+function singularity_is_inside {
+    # Return true (0) if in Singularity false (1) otherwise
+    # In Singularity SINGULARITY_NAME and SINGULARITY_CONTAINER are defined
+    # In the default GWMS wrapper GWMS_SINGULARITY_REEXEC=1
+    # The process 1 in singularity is called init-shim (v>=2.6), not init
+    # If the parent is 1 and is not init (very likely)
+    [ -n "$SINGULARITY_NAME" ] && { true; return }
+    [ -n "$GWMS_SINGULARITY_REEXEC" ] && { true; return }
+    [ "x`ps -p1 -ocomm=`" = "xshim-init" ] && { true; return }
+    [ "x$PPID" = x1 ] && [ "x`ps -p1 -ocomm=`" != "xinit" ] && { true; return }
+    false
+    return
 }
 
 
@@ -961,7 +1024,7 @@ function singularity_setup_inside {
 #
 
 function cvmfs_test_and_open {
-    # Testing and opening all CVMFS repos named in the comma separated list
+    # Testing and opening all CVMFS repos named in the comma separated list. Call-back or exit if failing
     # In:
     #  1 - CVMFS repos names, comma separated
     #  2 - callback for failure (must me a single command or function name), exit 1 if none is provided or callback returns false

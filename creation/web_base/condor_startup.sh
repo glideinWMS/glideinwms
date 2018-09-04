@@ -108,6 +108,7 @@ wrapper_list=`grep -i "^WRAPPER_LIST " $config_file | awk '{print $2}'`
 #
 # Create the job wrapper
 #
+# TODO: should it skip the wrapper if WRAPPER_LIST is empty?
 condor_job_wrapper="condor_job_wrapper.sh"
 cat > $condor_job_wrapper <<EOF
 #!/bin/bash
