@@ -79,7 +79,7 @@ process_branch() {
 
     PEP8_OPTIONS="--ignore="
     # E111 indentation is not a multiple of four
-    PEP8_OPTIONS="$PEP8_OPTIONS,E111"
+    PEP8_OPTIONS="$PEP8_OPTIONS""E111"
     # E121 continuation line under-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
     # E123 closing bracket does not match indentation of opening bracket’s line
@@ -138,7 +138,7 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS  ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
+          pylint $PYLINT_OPTIONS ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
       fi
       pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
     done
@@ -284,8 +284,26 @@ git_branches="$1"
 WORKSPACE=`pwd`
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
 
-source $GLIDEINWMS_SRC/build/jenkins/utils.sh
-setup_python_venv $WORKSPACE
+
+
+if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
+    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
+    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+    echo "exiting"
+    exit 1
+fi
+
+if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
+    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+    echo "exiting"
+    exit 1
+fi
+
+
+
+if [ "x$VIRTUAL_ENV" = "x" ]; then
+     setup_python_venv $WORKSPACE
+fi
 
 # Jenkins will reuse the workspace on the slave node if it is available
 # There is no reason for not using it, but we need to make sure we keep
