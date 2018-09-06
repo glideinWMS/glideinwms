@@ -1190,23 +1190,90 @@ of glidein pools will be presented.
 <div class="section">
 <H3 CLASS="western"><A NAME="singularity"></A>Integration with Singularity</H3>
 <UL>
-    <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity AND enforces the use of Singularity, you must have 
-&lt;attr name=&quot;GLIDEIN_SINGULARITY_REQUIRE&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;True&quot;/&gt; in &lt;attrs&gt;
-and SINGULARITY_BIN must be given the full path name of Singularity binary, for example,
-&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin/singularity&quot;/&gt; in &lt;attrs&gt;.
+    <LI><P STYLE="margin-bottom: 0in">An entry can control the use of Singularity by setting GLIDEIN_SINGULARITY_REQUIRE to NEVER (Singularity is not supported),
+        OPTIONAL or PREFERRED (capable of Singularity but it is not enforced),
+        REQUIRED (jobs must run with Singularity) or
+        REQUIRED_GWMS (jobs must run with Singularity and use the GWMS wrapper scripts). This last option is the only one that really
+enforces Singularity, but is not compatible with VOs that currently self-manage Singularity with custom scripts, like OSG and CMS.
+        The attribute can be set in the general or entry &lt;attrs&gt; section of the Factory configuration:
+&lt;attr name=&quot;GLIDEIN_SINGULARITY_REQUIRE&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;REQUIRED&quot;/&gt;.
+    <LI><P STYLE="margin-bottom: 0in">If Singularity is allowed or required (all values of GLIDEIN_SINGULARITY_REQUIRE except NEVER), singularity is expected on all worker nodes of the entry. The Glidein will search a singularity binary
+in the PATH and then invoking Modules (if available).
+        SINGULARITY_BIN is now <b>deprecated</b>. It should not be used and will be ignored in future versions of GWMS.
+Currently, for compatibility with previous versions, any value of SINGULARITY_BIN different from 'NONE' sets
+GLIDEIN_SINGULARITY_REQUIRE to OPTIONAL (if not already set) and if the content is a valid path, is considered in the search for singularity.
+Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if not already set).
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If an entry is not capable of Singularity at all, make sure you don't have SINGULARITY_BIN in &lt;attrs&gt;.
-	Remember that SINGULARITY_BIN should NEVER be set in the Factory configuration if your site does not support the Singularity (or set it to the keyword NONE, uppercase).
+    <LI><P STYLE="margin-bottom: 0in">The value of GLIDEIN_SINGULARITY_REQUIRE is used to provision resources and to negotiate the use of Singularity with the jobs.
+An entry where Singularity is OPTIONAL or PREFERRED will allow to run without Singularity if the job prefers so or if Singularity fails.
+An entry requiring Singularity (REQUIRED, REQUIRED_GWMS) will not allow to run without Singularity and fail the Glidein if Singularity
+fails (e.g. the singularity binary or the image aer not found).
+    <br>
+    NOTE: For compatibility with previos versions and to ease the migration to the use of GWMS scripts,
+    GLIDEIN_SINGULARITY_REQUIRE=REQUIRED works only if Singularity is managed via GWMS.
+    GLIDEIN_Singularity_Use=GWMS_DISABLE in the Frontend configuration (default) allows VOs to manage Singularity independently
+    from GWMS. GLIDEIN_SINGULARITY_REQUIRE=REQUIRED_GWMS will not accept jobs where GLIDEIN_Singularity_Use=GWMS_DISABLE.
+    It is a stronger enforcement, but will not allow VOs managing Singularity on their own.
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity BUT does not necessarily enforce the use of Singularity,
-you don't need to have GLIDEIN_SINGULARITY_REQUIRE in &lt;attrs&gt; but 
-SINGULARITY_BIN must be given the path of singularity binary(not including the filename), for example,
-&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin&quot;/&gt;.
+    <LI><P STYLE="margin-bottom: 0in">The Factory can specify a dictionary of available Singularity images using SINGULARITY_IMAGES_DICT. This can be overridden by the Frontend, unless the attribute is declared constant (const="True").
+&lt;attr name=&quot;SINGULARITY_IMAGES_DICT&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest&quot;/&gt;.
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If the value of SINGULARITY_BIN is not a valid, Singularity path (and is different from NONE),
-    then GlideinWMS will search on the node for the Singularity binary; first using $PATH, then trying to invoke module. For example,
-&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;yes&quot;/&gt;.
+    <LI><P STYLE="margin-bottom: 0in">The Factory can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH_DEFAULT. This can be overridden by the Frontend, unless the attribute is declared constant (const="True").
+    If one os more of the specified paths does not exist on the node, it will be removed from the list.
+&lt;attr name=&quot;GLIDEIN_SINGULARITY_BINDPATH_DEFAULT&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/cvmfs,/src_path:/dst_path&quot;/&gt;.
     </P>
+    <LI><P STYLE="margin-bottom: 0in">The use of Singularity is negotiated using GLIDEIN_SINGULARITY_REQUIRE and GLIDEIN_Singularity_Use, according to the table below, resulting in
+    DISABLE (no GWMS Singularity mechanisms),
+    FAIL (do not provision on this entry or fail the Glidein),
+    NEVER (do not use Singularity),
+    PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found) or
+    REQUIRED (use Singularity and fail the Glidein if cannot run with Singularity).
+        <table class="requirements">
+        <TR>
+            <TD> <P><B></B></P> </TD>
+            <TD> <P><B>NEVER</B></P> </TD>
+            <TD> <P><B>OPTIONAL</B></P> </TD>
+            <TD> <P><B>PREFERRED</B></P> </TD>
+            <TD> <P><B>REQUIRED (REQUIRED_GWMS)</B></P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>NEVER</b></P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>FAIL</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>OPTIONAL</b></P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>PREFERRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>PREFERRED</b></P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>PREFERRED</P> </TD>
+            <TD> <P>PREFERRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>REQUIRED</b></P> </TD>
+            <TD> <P>FAIL</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>DISABLE_GWMS</b></P> </TD>
+            <TD> <P>DISABLE</P> </TD>
+            <TD> <P>DISABLE</P> </TD>
+            <TD> <P>DISABLE</P> </TD>
+            <TD> <P>DISABLE (FAIL)</P> </TD>
+        </TR>
+</table>
+
+</P>
 </UL>
 
 <div class="section">

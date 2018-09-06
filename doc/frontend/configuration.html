@@ -571,20 +571,33 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         the use of Singularity. Possible values are
             DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - Default) or
             NEVER (do not use Singularity) or
-            OPTIONAL (use Singularity if the site is configured with it) 
+            OPTIONAL or PREFERRED (use Singularity if the site is configured with it)
             or REQUIRED (always use Singularity). 
-        If REQUIRED or OPTIONAL are used, the default wrapper script that we provide should be used, in other words
-a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
+        If REQUIRED, PREFERRED or OPTIONAL are used, the default wrapper script that we provide should be used (or a similar one), in other words
+a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added
+in the &lt;files&gt; section of the general or group parts of the Frontend configuration.
 	    <br>
-        If REQUIRED or OPTIONAL are used, you have to have a valid pre_singularity setup, e.g. copy generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/, rename it
-and set SINGULARITY_IMAGE_DEFAULT6 and SINGULARITY_IMAGE_DEFAULT7 to the pathnames of your singularity images for El6 and El7 respectively in /cvmfs area.
-Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/(your vo)_pre_singularity_setup.sh</I>&quot; 
- after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
+        If REQUIRED, PREFERRED or OPTIONAL are used, you or the Factory have to provide valid images compatible with your REQUIRED_OS.
+This can be done by setting the SINGULARITY_IMAGES_DICT variable (a string-encoded key-value pair dictionary listing Singularity images, see)
+or by running a pre_singularity setup script.
+You can use the generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/, or you can copy, rename and customize it to
+set SINGULARITY_IMAGES_DICT as desired. If you use a script, add a line such as
+&lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/(your vo)_pre_singularity_setup.sh</I>&quot;  after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt;
+in &lt;files&gt; section as before.
+The example script sets a SINGULARITY_IMAGES_DICT with the OSG images in CVMFS for rhel7 and rhel6.
+            <br>
+            SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7 and SINGULARITY_IMAGE_DEFAULT are <b>deprecated</b>. These will be ignored in future versions.
+Currently these set the values of the 'rhel6', 'rhel7' and 'default' images respectively in SINGULARITY_IMAGES_DICT.
 	    <br>
         If you want to use your own wrapper script for singularity, you must first understand 
         <I>/var/lib/gwms-frontend/web-base/default_singularity_wrapper.sh</I>
         and make your custom script compatible with this setup script.
 	<br>
+            The Frontend or a group can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH.
+These bind-mounts override the ones listed by the Factory in GLIDEIN_SINGULARITY_BINDPATH_DEFAULT.
+If one os more of the specified paths does not exist on the node, it will be removed from the list.
+&lt;attr name=&quot;GLIDEIN_SINGULARITY_BINDPATH&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/vo_files,/src_path:/dst_path&quot;/&gt;.
+<br>
         Users can specify the following 2 lines in their job submit file
 	<ul>
 	  <li> If their jobs need a list of repositories, they must specify the list between double quotes, separated by commas, for example,
@@ -600,6 +613,7 @@ Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/
 	    If users use this feature and if the singularity image is not in /cvmfs repository, the user job will error out.
           </li>
 	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
+          SINGULARITY_IMAGES_DICT will be searched for 'default', 'rhel7' and 'rhel6' images.
 	    But if any default singularity image is not available, the user job will fail.
 	    Also, if the users specify REQUIRED_OS as rhel6 or rhel7, the corresponding version of default singularity image will be used.
 	    But if the corresponding version of default singularity image is not available, the user job will fail.
