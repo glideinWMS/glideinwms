@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-EXITSLEEP=5m
+EXITSLEEP=10m
 GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
@@ -34,9 +34,9 @@ function exit_wrapper {
     fi
     #  TODO: Add termination stamp? see OSG
     #              touch ../../.stop-glidein.stamp >/dev/null 2>&1
-    # Prevent a black whole by sleeping 20 minutes before exiting.
     # Eventually the periodic validation of singularity will make the pilot
     # to stop matching new payloads
+    # Prevent a black hole by sleeping EXITSLEEP (10) minutes before exiting. Sleep time can be changed on top of this file
     sleep $EXITSLEEP
     exit $exit_code
 }
@@ -80,7 +80,7 @@ function exit_or_fallback {
     #  3: sleep time (default: $EXITSLEEP)
     #  $GWMS_SINGULARITY_STATUS
     if [ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]; then
-        # Fall back to no singularity
+        # Fall back to no Singularity
         export HAS_SINGULARITY=0
         export GWMS_SINGULARITY_PATH=
         export GWMS_SINGULARITY_REEXEC=
@@ -94,28 +94,42 @@ function exit_or_fallback {
 
 function prepare_and_invoke_singularity {
     # Code moved into a function to allow early return in case of failure
+    # In:
+    #   SINGULARITY_IMAGES_DICT: dictionary w/ Singularity images
+    #   $SINGULARITY_IMAGE_RESTRICTIONS: constraints on the Singularity image
 
     # If  image is not provided, load the default one
     # Custom URIs: http://singularity.lbl.gov/user-guide#supported-uris
     if [ -z "$GWMS_SINGULARITY_IMAGE" ]; then
         # No image requested by the job
         # Use OS matching to determine default; otherwise, set to the global default.
-        # TODO: verify meaning of $GLIDEIN_REQUIRED_OS and $REQUIRED_OS, both lists?
-        DESIRED_OS="`get_desired_platform "$GLIDEIN_REQUIRED_OS" "$REQUIRED_OS"`"
-        GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 cvmfs`"
-
-        # Default TODO: check  $OSG_SINGULARITY_IMAGE_DEFAULT --> default key
-        #export OSG_SINGULARITY_IMAGE="$OSG_SINGULARITY_IMAGE_DEFAULT"
+        DESIRED_OS="`list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}"`"
+        if [ -z "$DESIRED_OS" ]; then
+            msg="ERROR   VO (or job) REQUIRED_OS and Entry GLIDEIN_REQUIRED_OS have no intersection. Cannot select a Singularity image."
+            exit_or_fallback "$msg" 1
+            return
+        fi
+        if [ "x$DESIRED_OS" = xany ]; then
+            # Prefer the platforms default,rhel7,rhel6, otherwise pick the first one available
+            GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 ${SINGULARITY_IMAGE_RESTRICTIONS:+$SINGULARITY_IMAGE_RESTRICTIONS,}any`"
+        else
+            GWMS_SINGULARITY_IMAGE="`singularity_get_image "$DESIRED_OS" $SINGULARITY_IMAGE_RESTRICTIONS`"
+        fi
     fi
 
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
     if [ -z "$GWMS_SINGULARITY_IMAGE" ]; then
         msg="\
-ERROR   If you get this error when you did not specify desired OS, your VO does not support any default image
-        If you get this error when you specified desired OS, your VO does not support that OS"
+ERROR   If you get this error when you did not specify required OS, your VO does not support any valid default Singularity image
+        If you get this error when you specified required OS, your VO does not support any valid image for that OS"
         exit_or_fallback "$msg" 1
         return
     fi
+
+    # TODO: Custom images are not subject to SINGULARITY_IMAGE_RESTRICTIONS in OSG and CMS scripts. Should add a check here?
+    #if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
+    #    exit_wrapper "ERROR: $GWMS_SINGULARITY_IMAGE is not in /cvmfs area. Exiting" 1
+    #fi
 
     # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
     # TODO: better -e or ls?
@@ -131,11 +145,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         return
     fi
 
-    # TODO: does it need really to exit if not in CVMFS?
-    #if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
-    #    exit_wrapper "ERROR: $GWMS_SINGULARITY_IMAGE is not in /cvmfs area. Exiting" 1
-    #fi
-
     # Put a human readable version of the image in the env before
     # expanding it - useful for monitoring
     export GWMS_SINGULARITY_IMAGE_HUMAN="$GWMS_SINGULARITY_IMAGE"
@@ -146,6 +155,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         # Make sure CVMFS is mounted in Singularity
         export GWMS_SINGULARITY_BIND_CVMFS=1
         if (cd "$GWMS_SINGULARITY_IMAGE") >/dev/null 2>&1; then
+            # This will fail for images that are not expanded in CVMFS, just ignore the failure
             NEW_IMAGE_PATH="`(cd "$GWMS_SINGULARITY_IMAGE" && pwd -P) 2>/dev/null`"
             if [ "x$NEW_IMAGE_PATH" != "x" ]; then
                 GWMS_SINGULARITY_IMAGE="$NEW_IMAGE_PATH"
@@ -153,6 +163,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         fi
     fi
 
+    info_dbg "using image $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE)"
     # Singularity image is OK, continue w/ other init
 
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
@@ -163,7 +174,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     GWMS_SINGULARITY_EXTRA_OPTS="$GLIDEIN_SINGULARITY_OPTS"
 
     # Binding different mounts (they will be removed if not existent on the host)
-    # OSG: checks also in image, may not work if not expanded
+    # OSG: checks also in image, may not work if not expanded. And Singularity will not fail if missing, only give a warning
     #  if [ -e $MNTPOINT/. -a -e $OSG_SINGULARITY_IMAGE/$MNTPOINT ]; then
     GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs"
 
@@ -237,7 +248,7 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     # Outside Singularity - Run this only on the 1st invocation
     #
 
-    info_dbg "GWMS singualrtity wrapper, first invocation"
+    info_dbg "GWMS singulartity wrapper, first invocation"
 
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     setup_classad_variables
@@ -263,7 +274,7 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
 
     else  #if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ];
         # First execution, no Singularity.
-        info_dbg "GWMS singualrtity wrapper, first invocation, not using singularity"
+        info_dbg "GWMS singulartity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
     fi
 
 else
@@ -275,7 +286,7 @@ else
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
-    info_dbg "GWMS singualrtity wrapper, running inside singularity env = "`printenv`
+    info_dbg "GWMS singulartity wrapper, running inside singularity env = "`printenv`
 
 
 
@@ -290,7 +301,7 @@ fi
 # - if setup or exec of singularity failed (it is possible to fall-back)
 #
 
-info_dbg "GWMS singualrtity wrapper, final setup."
+info_dbg "GWMS singulartity wrapper, final setup."
 
 #############################
 #
@@ -395,6 +406,7 @@ if [ "X$LoadModules" != "X" ]; then
     else
         ModuleList=`echo $LoadModules | sed 's/^LoadModules = //i;s/"//g'`
         for Module in $ModuleList; do
+            info_dbg "Loading module: $Module"
             module load $Module
         done
     fi
@@ -425,8 +437,8 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 #  Run the real job
 #
-info_dbg "GWMS singualrtity wrapper, current directory (`pwd`): `ls -al`"
-info_dbg "GWMS singualrtity wrapper, job exec: $@"
+info_dbg "current directory at execution (`pwd`): `ls -al`"
+info_dbg "GWMS singulartity wrapper, job exec: $@"
 exec "$@"
 error=$?
 # exec failed. Log, communicate to HTCondor, avoid black hole and exit

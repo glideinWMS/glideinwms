@@ -98,7 +98,7 @@ function info_dbg {
     if [ -n "$GLIDEIN_DEBUG_OUTPUT" ]; then
         #local script_txt=''
         #[ -n "$GWMS_THIS_SCRIPT" ] && script_txt="(file: $GWMS_THIS_SCRIPT)"
-        info_raw "DEBUG ${GWMS_THIS_SCRIPT:+"(file: $GWMS_THIS_SCRIPT)"}" "$@"
+        info_raw "DEBUG ${GWMS_THIS_SCRIPT:+"($GWMS_THIS_SCRIPT)"}" "$@"
     fi
 }
 
@@ -127,8 +127,8 @@ function dict_get_val {
     # Return to stdout the value of the fist key present in the dictionary
     # Return true (0) if a value is found and is not empty, 1 otherwise
     # Use a regex to extract the values
-    # $1 dict name
-    # $2 comma separated list of keys (key can contain a space if you quote it but not a comma)
+    #  $1 dict name
+    #  $2 comma separated list of keys (key can contain a space if you quote it but not a comma)
     local IFS=,
     local key_list="$2"
     for key in $key_list; do
@@ -220,6 +220,65 @@ function dict_get_keys {
     local my_dict=${!1}
     local res="`echo "$my_dict," | sed 's/:[^,]*,/,/g; s/,\+/,/g'`"
     echo "${res%,}"
+}
+
+
+function dict_get_first {
+    # Returns the first element of the dictionary (whole item, or key, or value)
+    #  $1 dict
+    #  $2 what to return: item, key, value (default: value)
+    local my_dict=${!1}
+    local what=${2:-value}
+    local res="${my_dict%%,*}"
+    if [ -n "$res" ]; then
+        # to protect from empty dicts
+        case $what in
+        item)
+            echo "$res"
+            ;;
+        value)
+            [[ "$res" = *\:* ]] && echo "${res#*:}"
+            ;;
+        key)
+            echo "${res%%:*}"
+            ;;
+        esac
+    fi
+}
+
+
+function list_get_intersection {
+    # Return the intersection of two comma separated lists.
+    # 'any' in any of the 2 lists, means that the other list is returned (is a wildcard)
+    # If the Input lists are sorted in order of preference, the result is as well
+    # In:
+    #   1: comma separated list of values
+    #   2: comma separated list of values
+    # Out:
+    #   intersection returned on stdout, 'any' is returned if both lists are 'any'
+    #   Return 1 if the intersection is empty, 0 otherwise
+    # This can be used to evaluate the desired OS (platform) that works for both Entry and VO,
+    # intersection of GLIDEIN_REQUIRED_OS and REQUIRED_OS
+    # Valid values: rhel6, rhel7, default
+    local intersection
+    [ -z "$1" -o -z "$2" ] && return 1
+    if [ "x$1" = "xany" ]; then
+        intersection="$2"
+    else
+        if [ "x$2" = "xany" ]; then
+            intersection="$1"
+        else
+            # desired_os="$(python -c "print sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))[0]" 2>/dev/null)"
+            intersection="$(python -c "print ','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(',')))))" 2>/dev/null)"
+        fi
+    fi
+    [ -z "intersection" ] && return 1
+#        if [ "x$desired_os" = "xany" ]; then
+#            desired_os="default,rhel7,rhel6"  # Default
+#        fi
+    ## Correct some legacy names? What if they are used in the dictionary?
+    #desired_os="`echo ",$desired_os," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
+    echo "$desired_os"
 }
 
 
@@ -424,7 +483,6 @@ function singularity_check_paths {
         echo -n "$2${3:+":$3"},"
         return
     fi
-    local failed=
     local to_check="$2"
     local val_no_opt="${3%:*}"  # singularity binds are "src:dst:options", keep only 'dst'
     [ -z "$val_no_opt" ] && val_no_opt="$2"
@@ -703,53 +761,29 @@ function singularity_locate_bin {
 }
 
 
-function get_desired_platform {
-    # Return the desired OS (platform) that works for both Entry and VO
-    # Input lists should be sorted in order of preference
-    # In:
-    #   1: GLIDEIN_REQUIRED_OS - comma separated list of OSes provided by the Entry
-    #   2: REQUIRED_OS - comma separated list of OSes required by the VO
-    # Out:
-    #   desired_os
-    # Return on stdout the desired platform/OS (first item in the intersection)
-    # Valid values: rhel6, rhel7 (default),
-    local desired_os
-    if [ "x$1" = "xany" ]; then
-        desired_os="$2"
-        if [ "x$desired_os" = "xany" ]; then
-            desired_os="default,rhel7,rhel6"  # Default
-        fi
-    else
-        # desired_os="$(python -c "print sorted(list(set('$2'.split(',')).intersection('$1'.split(','))))[0]" 2>/dev/null)"
-        desired_os="$(python -c "print ','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(',')))))" 2>/dev/null)"
-    fi
-    ## Correct some legacy names? What if they are used in the dictionary?
-    #desired_os="`echo ",$desired_os," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
-    echo "$desired_os"
-}
-
-
 function singularity_get_image {
     # Return on stdout the Singularity image
     # Let caller decide what to do if there are problems
     # In:
-    #  1: a comma separated list of platforms (OS) to choose the image (default: DESIRED_OS, [default,rhel7,rhel6])
+    #  1: a comma separated list of platforms (OS) to choose the image
     #  2: a comma separated list of restrictions (default: none)
     #     - cvmfs: image must be on CVMFS
+    #     - any: any image is OK, $1 was just a preference (the first one in SINGULARITY_IMAGES_DICT is used if none of the preferred is available)
     #  SINGULARITY_IMAGES_DICT
     #  SINGULARITY_IMAGE_DEFAULT (legacy)
     #  SINGULARITY_IMAGE_DEFAULT6 (legacy)
     #  SINGULARITY_IMAGE_DEFAULT7 (legacy)
     # Out:
+    #  Singularity image path/URL returned on stdout
     #  EC: 0: OK, 1: Empty/no image for the desired OS (or for any), 2: File not existing, 3: restriction not met (e.g. image not on cvmfs)
 
     local s_platform="$1"
-    local singularity_image
     if [ -z "$s_platform" ]; then
-        s_platform="$DESIRED_OS"
-        [ -z "$s_platform" ] && s_platform="default,rhel7,rhel6"
+        warn "No desired platform, unable to select a Singularity image"
+        return 1
     fi
     local s_restrictions="$2"
+    local singularity_image
 
     # To support legacy variables SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
     # values are added to SINGULARITY_IMAGES_DICT
@@ -758,13 +792,18 @@ function singularity_get_image {
     [ -n "$SINGULARITY_IMAGE_DEFAULT7" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT rhel7 "$SINGULARITY_IMAGE_DEFAULT7"`"
     [ -n "$SINGULARITY_IMAGE_DEFAULT" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT default "$SINGULARITY_IMAGE_DEFAULT"`"
 
-    singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
+    if [ -n "$s_platform" ]; then
+        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
+        if [[ -z "$singularity_image" && ",${s_restrictions}," = *",any,"* ]]; then
+            # any means that any image is OK, take the first one
+            singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
+        fi
+    fi
 
-    # TODO: these checks are also in the caller, duplicates can be removed, return error string if ec != 0?
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
-    if [ "x$singularity_image" = "x" ]; then
-        warn "If you get this error when you did not specify a desired platform, your VO does not support any default Singularity image"
-        warn "If you get this error when you specified desired platform, your VO does not support an image for your desired platform"
+    if [ -z "$singularity_image" ]; then
+        [ -z "$SINGULARITY_IMAGES_DICT" ] && warn "No Singularity image available (SINGULARITY_IMAGES_DICT is empty)" ||
+                warn "No Singularity image available for the required platforms ($s_platform)"
         return 1
     fi
 
@@ -1009,10 +1048,10 @@ function singularity_is_inside {
     # In the default GWMS wrapper GWMS_SINGULARITY_REEXEC=1
     # The process 1 in singularity is called init-shim (v>=2.6), not init
     # If the parent is 1 and is not init (very likely)
-    [ -n "$SINGULARITY_NAME" ] && { true; return }
-    [ -n "$GWMS_SINGULARITY_REEXEC" ] && { true; return }
-    [ "x`ps -p1 -ocomm=`" = "xshim-init" ] && { true; return }
-    [ "x$PPID" = x1 ] && [ "x`ps -p1 -ocomm=`" != "xinit" ] && { true; return }
+    [ -n "$SINGULARITY_NAME" ] && { true; return; }
+    [ -n "$GWMS_SINGULARITY_REEXEC" ] && { true; return; }
+    [ "x`ps -p1 -ocomm=`" = "xshim-init" ] && { true; return; }
+    [ "x$PPID" = x1 ] && [ "x`ps -p1 -ocomm=`" != "xinit" ] && { true; return; }
     false
     return
 }
