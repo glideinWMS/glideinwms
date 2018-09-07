@@ -89,8 +89,31 @@ echo ""
 # Setup the build environment
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
-source "$GLIDEINWMS_SRC/build/jenkins/utils.sh"
-setup_python_venv "$WORKSPACE"
+
+
+if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
+    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
+    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+    echo "exiting"
+    exit 1
+fi
+
+if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
+    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+    echo "exiting"
+    exit 1
+fi
+
+
+
+if [ "x$VIRTUAL_ENV" = "x" ]; then
+    if [ "$PYTHON3" = "yes" ]; then
+        setup_python3_venv $WORKSPACE
+    else
+        setup_python_venv $WORKSPACE
+    fi
+fi
+
 cd "$GLIDEINWMS_SRC" || exit 1
 
 echo ""
