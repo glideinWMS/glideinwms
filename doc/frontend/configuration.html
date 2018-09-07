@@ -568,18 +568,22 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
             &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
             </div>
         This determines whether or not you want to mandate
-        the use of Singularity. Possible values are
+        the use of Singularity and is used both for provisioning and once the job is on the site. Possible values are
             DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - Default) or
             NEVER (do not use Singularity) or
             OPTIONAL or PREFERRED (use Singularity if the site is configured with it)
-            or REQUIRED (always use Singularity). 
-        If REQUIRED, PREFERRED or OPTIONAL are used, the default wrapper script that we provide should be used (or a similar one), in other words
+            or REQUIRED (always require Singularity).
+        If REQUIRED, PREFERRED or OPTIONAL are used, the default wrapper script that we provide should be used (or a similar one). In other words
 a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added
 in the &lt;files&gt; section of the general or group parts of the Frontend configuration.
+            See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
+            a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE
+            (the entry variable).
 	    <br>
         If REQUIRED, PREFERRED or OPTIONAL are used, you or the Factory have to provide valid images compatible with your REQUIRED_OS.
-This can be done by setting the SINGULARITY_IMAGES_DICT variable (a string-encoded key-value pair dictionary listing Singularity images, see)
-or by running a pre_singularity setup script.
+This can be done by setting the SINGULARITY_IMAGES_DICT variable (a string-encoded key-value pair dictionary listing Singularity images)
+or by running a pre_singularity setup script that will set the variable.
+See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the format of the dictionary.
 You can use the generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/, or you can copy, rename and customize it to
 set SINGULARITY_IMAGES_DICT as desired. If you use a script, add a line such as
 &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/(your vo)_pre_singularity_setup.sh</I>&quot;  after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt;
@@ -595,8 +599,9 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
 	<br>
             The Frontend or a group can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH.
 These bind-mounts override the ones listed by the Factory in GLIDEIN_SINGULARITY_BINDPATH_DEFAULT.
-If one os more of the specified paths does not exist on the node, it will be removed from the list.
+If one or more of the specified paths does not exist on the node, it will be removed from the list.
 &lt;attr name=&quot;GLIDEIN_SINGULARITY_BINDPATH&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/vo_files,/src_path:/dst_path&quot;/&gt;.
+See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the bind mounts.
 <br>
         Users can specify the following 2 lines in their job submit file
 	<ul>
