@@ -1046,6 +1046,10 @@ it will count the running+idle glideins for each CE and send jobs to the one wit
 The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile ClassAd).
 </p>
 
+<p>
+The &lt;entry_selection&gt; parameter determines how the factory decides between the subentries of the metasite. By default the frontend requests are equally split among subentries until they are filled. Limits for the subentries correspond to the limits for the metasites divided by the number of subentries. More algorithms may be implemented in the future.
+<p>
+
 <div class="config">
 <a>
     ...<br>
@@ -1067,6 +1071,7 @@ The submission file is added to the job condor submit file for accounting purpos
               &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
               &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
+              &lt;entry_selection algorithm_name="Default" &gt;<br>
               &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br>
                  <blockquote>
                  &lt;submit_attrs&gt;<br>
@@ -1126,6 +1131,7 @@ trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
             &lt;restrictions require_glidein_glexec_use="False"<br>
+            &lt;entry_selection algorithm_name="Default" &gt;<br>
 require_voms_proxy="False"/&gt;<br>
             &lt;submit cluster_size="10" max_per_cycle="10" sleep="2"<br>
 slots_layout="fixed"&gt;<br>

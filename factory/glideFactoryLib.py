@@ -32,6 +32,8 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
+
+import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
 
 
@@ -1247,24 +1249,6 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     return submit_out
 
 
-def pickSubmitFile(submit_files, status_sf, nr_submitted_sf, log):
-    """ Function that given the status of the submit file,
-        and the already submitted glideins decide which submit file to use.
-
-        Currently sum idle+running of each resource and send to the one with less
-        jobs (counting jobs just submitted).
-    """
-    minsf = None  # submit file with minimun jobs
-    minNJ = -1
-    for sf in submit_files:
-        curr = status_sf.get(sf, {})
-        currNJ = curr.get(1, 0) + curr.get(2, 0) + nr_submitted_sf.get(sf, 0) #sum idle + running + just submitted
-        if minNJ == -1 or currNJ < minNJ:  # if it's the first, or the number of jobs is less than the previous minumum
-            minsf = sf
-            minNJ = currNJ
-    return minsf
-
-
 def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend_name,
                    submit_credentials, client_web, params, status_sf, log=logSupport.log,
                    factoryConfig=None):
@@ -1303,6 +1287,9 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
     # Need information from glidein.descript, job.descript, and signatures.sha1
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
     schedd = jobDescript.data["Schedd"]
+    algo_name = jobDescript.data["EntrySelectionAlgorithm"]
+    if algo_name != "Default":
+        log.debug("Selection algorithm name for entry %s is: %s" % (entry_name, algo_name))
 
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
@@ -1331,32 +1318,31 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                     log.warning(msg)
     try:
         submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
+        selection_function = getattr(glideinwms.factory.glideFactorySelectionAlgorithms, 'selectionAlgo' + algo_name)
+        submit_files = selection_function(submit_files, status_sf, jobDescript, nr_glideins, log)
 
-        nr_submitted = 0
-        nr_submitted_sf = {}
-        while (nr_submitted < nr_glideins):
-            sub_env = []
-            if nr_submitted != 0:
-                time.sleep(factoryConfig.submit_sleep)
+        for submit_file, nr_glideins_sf in submit_files.items():
+            nr_submitted = 0
+            while (nr_submitted < nr_glideins_sf):
+                sub_env = []
+                if nr_submitted != 0:
+                    time.sleep(factoryConfig.submit_sleep)
 
-            nr_to_submit = (nr_glideins - nr_submitted)
-            if nr_to_submit > factoryConfig.max_cluster_size:
-                nr_to_submit = factoryConfig.max_cluster_size
+                nr_to_submit = (nr_glideins - nr_submitted)
+                if nr_to_submit > factoryConfig.max_cluster_size:
+                    nr_to_submit = factoryConfig.max_cluster_size
 
-            submit_file = pickSubmitFile(submit_files, status_sf, nr_submitted_sf, log)
+                sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
+                sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+                sub_env.append('GLIDEIN_ENTRY_SUBMIT_FILE=%s' % submit_file)
+                exe_env = entry_env + sub_env
 
-            sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
-            sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
-            sub_env.append('GLIDEIN_ENTRY_SUBMIT_FILE=%s' % submit_file)
-            exe_env = entry_env + sub_env
+                submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
 
-            submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
-
-            cluster, count=extractJobId(submit_out)
-            for j in range(count):
-                submitted_jids.append((cluster, j))
-            nr_submitted += count
-            nr_submitted_sf[submit_file] = nr_submitted_sf.setdefault(submit_file, 0) + count
+                cluster, count=extractJobId(submit_out)
+                for j in range(count):
+                    submitted_jids.append((cluster, j))
+                nr_submitted += count
     finally:
         # write out no matter what
         log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids),
