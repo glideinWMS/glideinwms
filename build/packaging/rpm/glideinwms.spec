@@ -214,8 +214,8 @@ install of wmscollector + wms factory
 %build
 cp %{SOURCE7} .
 chmod 700 chksum.sh
-./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh  creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh  creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -279,7 +279,7 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitattributes
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/chksum.sh
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/LICENSE.txt
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/LICENSE
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
 
 # Following files are Put in other places. Remove them from python_sitelib
@@ -628,7 +628,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files factory
 %defattr(-,gfactory,gfactory,-)
-%doc LICENSE.txt
+%doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
 %doc doc
 %attr(755,root,root) %{_bindir}/analyze_entries
@@ -640,26 +640,15 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/cat_StarterLog
 %attr(755,root,root) %{_bindir}/cat_XMLResult
 %attr(755,root,root) %{_bindir}/cat_logs
-%attr(755,root,root) %{_bindir}/configGUI
-%attr(755,root,root) %{_bindir}/convert_factory_2to3.sh
-%attr(755,root,root) %{_bindir}/convert_factory_2to3.xslt
-%attr(755,root,root) %{_bindir}/convert_factory_rrds_2to3.sh
 %attr(755,root,root) %{_bindir}/create_condor_tarball
 %attr(755,root,root) %{_bindir}/entry_ls
 %attr(755,root,root) %{_bindir}/entry_q
 %attr(755,root,root) %{_bindir}/entry_rm
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
 %attr(755,root,root) %{_bindir}/find_StartdLogs
-%attr(755,root,root) %{_bindir}/find_ids_not_published
 %attr(755,root,root) %{_bindir}/find_logs
-%attr(755,root,root) %{_bindir}/find_matching_ids
-%attr(755,root,root) %{_bindir}/find_missing_ids
-%attr(755,root,root) %{_bindir}/find_new_entries
-%attr(755,root,root) %{_bindir}/find_partial_matching_ids
 %attr(755,root,root) %{_bindir}/gwms-logcat.sh
-%attr(755,root,root) %{_bindir}/infosys_lib
 %attr(755,root,root) %{_bindir}/manual_glidein_submit
-%attr(755,root,root) %{_bindir}/proxy_info
 %attr(755,root,root) %{_sbindir}/checkFactory.py
 %attr(755,root,root) %{_sbindir}/stopFactory.py
 %attr(755,root,root) %{_sbindir}/glideFactory.py
@@ -733,7 +722,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend-standalone
 %defattr(-,frontend,frontend,-)
-%doc LICENSE.txt
+%doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
 %doc doc
 %attr(755,root,root) %{_bindir}/glidein_off
@@ -837,7 +826,10 @@ rm -rf $RPM_BUILD_ROOT
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_4_1/history.html
 - Release candidates: 3.4.1-0.1.rc1
 
-* Tue June 5 2018 Marco Mambelli <marcom@fnal.gov> - 3.4-1
+* Tue Aug 21 2018 Mátyás Selmeci <matyas@cs.wisc.edu> - 3.4-1.1
+- Bump to rebuild
+
+* Tue Jun 5 2018 Marco Mambelli <marcom@fnal.gov> - 3.4-1
 - Glideinwms v3.4
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_4/history.html
 - Release candidates: 3.4-0.1.rc1
