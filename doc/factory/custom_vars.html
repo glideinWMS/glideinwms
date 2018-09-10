@@ -1536,7 +1536,7 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
         <td></td>
         <td>Dynamic</td>
         <td><P>Tells the Glidein wheter Singularity is available. This is not set if GWMS_SINGULARITY_STATUS is DISABLE,
-            is set to 1 (true) if GWMS_SINGULARITY_STATUS is PREFERRED or REQUIRED, set to 0 (false) otherwise.
+            it is set to 1 (true) if GWMS_SINGULARITY_STATUS is PREFERRED or REQUIRED, and it is set to 0 (false) otherwise.
             It can change to 0 if GWMS_SINGULARITY_STATUS is PREFERRED but the Singularity tests fail.
             </P>
         </td>
@@ -1547,7 +1547,7 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
         <td></td>
         <td>Frontend Factory</td>
         <td><P>String-encoded comma separated key-value pair dictionary listing Singularity images. Keys cannot contain commas or colons. Values cannot contain commas.
-            The keys are identifiers for a platform, the values are paths (or URL) for the corresponding image in the format supported by Singularity.
+            The keys are identifiers for a platform and the values are paths (or URLs) for the corresponding images, expressed in any format supported by Singularity.
             REQUIRED_OS is used to select the platform: the first platform in the list that matches a key will be used.
             You can use any string to identify the images as lons as you are consistent with REQUIRED_OS, but we recommend to
             use standard names like: rhel7 (for RHEL7 or SL7), rhel6 (fpr RHEL6 or SL6).
@@ -1603,14 +1603,15 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend</td>
-        <td><P>This is used to set Singularity bind mounts. It is a comma separated list of src[:dst[:opt]] elements, as you would express in the --bind option in Singularity.
-            'src' is the path on the system, 'dst' is the path in the Singularity image, 'opt' is a mount option, currently only 'ro' (read-only) is supported.
-            Commas or are not allowed in the paths, colons not allowed in the src path.
+        <td><P>This is used to set Singularity bind mounts. It is a comma separated list of <tt>src[:dst[:opt]]</tt> elements, as you would express in the --bind option in Singularity.
+            'src' is the path on the system, 'dst' is the path in the Singularity image, 'opt' is a mount option (e.g. 'ro', for read-only mounts).
+            See the Singularity for a description of the format and the supported options.
+            Commas are not allowed in both the paths, and colons are not allowed in the 'src' path.
             GWMS combines in order GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, and a default list.
             The default list includes "/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs", and "/cvmfs" (if GWMS_SINGULARITY_BIND_CVMFS is true) and some
             GPUs libraries (if GPUs are detected).
             The combined list is validated removing paths not existing (outside Singularity) and is passed as --bind option to singularity.
-            Singularity prepends also the environment variable $SINGULARITY_BINDPATH (this could be set by the Site or by setup scripts on the worker nodes).
+            Singularity prepends to the mounts list also the environment variable $SINGULARITY_BINDPATH (this could be set by the Site or by setup scripts on the worker nodes).
             Singularity will skip mounts where the destination path does not exist in the Singularity image selected.
             The suggestion is to set GLIDEIN_SINGULARITY_BINDPATH_DEFAULT in the Factory and GLIDEIN_SINGULARITY_BINDPATH in the Frontend.
 

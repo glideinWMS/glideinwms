@@ -103,6 +103,8 @@ function prepare_and_invoke_singularity {
     if [ -z "$GWMS_SINGULARITY_IMAGE" ]; then
         # No image requested by the job
         # Use OS matching to determine default; otherwise, set to the global default.
+        #  # Correct some legacy names? What if they are used in the dictionary?
+        #  REQUIRED_OS="`echo ",$REQUIRED_OS," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
         DESIRED_OS="`list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}"`"
         if [ -z "$DESIRED_OS" ]; then
             msg="ERROR   VO (or job) REQUIRED_OS and Entry GLIDEIN_REQUIRED_OS have no intersection. Cannot select a Singularity image."
@@ -439,6 +441,7 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 info_dbg "current directory at execution (`pwd`): `ls -al`"
 info_dbg "GWMS singulartity wrapper, job exec: $@"
+info_dbg "GWMS singulartity wrapper, messages after this line are form the actual job ##################"
 exec "$@"
 error=$?
 # exec failed. Log, communicate to HTCondor, avoid black hole and exit

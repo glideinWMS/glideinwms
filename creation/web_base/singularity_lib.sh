@@ -272,13 +272,8 @@ function list_get_intersection {
             intersection="$(python -c "print ','.join(sorted(list(set('$2'.split(',')).intersection('$1'.split(',')))))" 2>/dev/null)"
         fi
     fi
-    [ -z "intersection" ] && return 1
-#        if [ "x$desired_os" = "xany" ]; then
-#            desired_os="default,rhel7,rhel6"  # Default
-#        fi
-    ## Correct some legacy names? What if they are used in the dictionary?
-    #desired_os="`echo ",$desired_os," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
-    echo "$desired_os"
+    [ -z "$intersection" ] && return 1
+    echo "$intersection"
 }
 
 

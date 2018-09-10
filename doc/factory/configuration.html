@@ -1212,9 +1212,9 @@ Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if 
     GLIDEIN_SINGULARITY_REQUIRE=REQUIRED works only if Singularity is managed via GWMS.
     GLIDEIN_Singularity_Use=GWMS_DISABLE in the Frontend configuration (default) allows VOs to manage Singularity independently
     from GWMS. GLIDEIN_SINGULARITY_REQUIRE=REQUIRED_GWMS will not accept jobs where GLIDEIN_Singularity_Use=GWMS_DISABLE.
-    It is a stronger enforcement, but will not allow VOs managing Singularity on their own. Jobs with GWMS_DISABLE will not trigger
-    Glideins on entries with REQUIRED_GWMS, will not match Glideins on those entries and will cause the Glidein to fail if
-    somehow they land on it.
+    It is a stronger enforcement, but will not allow VOs managing Singularity on their own.
+    Jobs with GWMS_DISABLE will not trigger Glideins on entries with REQUIRED_GWMS, and the Glidein will fail at setup setup
+    if somehow this combination happens.
     </P>
     <LI><P STYLE="margin-bottom: 0in">The Factory can specify a dictionary of available Singularity images using SINGULARITY_IMAGES_DICT. This can be overridden by the Frontend, unless the attribute is declared constant (const="True").
 &lt;attr name=&quot;SINGULARITY_IMAGES_DICT&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest&quot;/&gt;.
@@ -1223,13 +1223,13 @@ Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if 
     If one or more of the specified paths does not exist on the node, it will be removed from the list.
 &lt;attr name=&quot;GLIDEIN_SINGULARITY_BINDPATH_DEFAULT&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/cvmfs,/src_path:/dst_path&quot;/&gt;.
     </P>
-    <LI><P STYLE="margin-bottom: 0in">The use of Singularity is negotiated using GLIDEIN_SINGULARITY_REQUIRE and GLIDEIN_Singularity_Use (from the Frontend), according to the table below, resulting in
+    <LI><P STYLE="margin-bottom: 0in">The use of Singularity is negotiated according to the table below, using GLIDEIN_SINGULARITY_REQUIRE (from the Factory) and GLIDEIN_Singularity_Use (from the Frontend), resulting in
     DISABLE (do not use the GWMS Singularity mechanisms),
     FAIL (do not provision on this entry, do not match with these Glideins or fail the Glidein),
     NEVER (do not use Singularity),
     PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found) or
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
-    The table below combines GLIDEIN_SINGULARITY_REQUIRE values (first row, in bold) and GLIDEIN_Singularity_Use values (first column, in bold)
+    <b>The table below combines GLIDEIN_SINGULARITY_REQUIRE</b> values (first row, in bold) <b>and GLIDEIN_Singularity_Use</b> values (first column, in bold)
     and the results are in the intersection. REQUIRED_GWMS is in the same column as REQUIRED and the only difference is with DISABLE_GWMS,
     where is causes FAIL instead of DISABLE.
         <table class="requirements">
