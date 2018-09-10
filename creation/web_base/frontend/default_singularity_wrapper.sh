@@ -250,7 +250,7 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     # Outside Singularity - Run this only on the 1st invocation
     #
 
-    info_dbg "GWMS singulartity wrapper, first invocation"
+    info_dbg "GWMS singularity wrapper, first invocation"
 
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     setup_classad_variables
@@ -276,7 +276,7 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
 
     else  #if [ "x$HAS_SINGULARITY" = "x1" -a "xSINGULARITY_PATH" != "x" ];
         # First execution, no Singularity.
-        info_dbg "GWMS singulartity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
+        info_dbg "GWMS singularity wrapper, first invocation, not using singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH)"
     fi
 
 else
@@ -288,7 +288,7 @@ else
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
-    info_dbg "GWMS singulartity wrapper, running inside singularity env = "`printenv`
+    info_dbg "GWMS singularity wrapper, running inside singularity env = "`printenv`
 
 
 
@@ -303,7 +303,7 @@ fi
 # - if setup or exec of singularity failed (it is possible to fall-back)
 #
 
-info_dbg "GWMS singulartity wrapper, final setup."
+info_dbg "GWMS singularity wrapper, final setup."
 
 #############################
 #
@@ -440,8 +440,8 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #  Run the real job
 #
 info_dbg "current directory at execution (`pwd`): `ls -al`"
-info_dbg "GWMS singulartity wrapper, job exec: $@"
-info_dbg "GWMS singulartity wrapper, messages after this line are form the actual job ##################"
+info_dbg "GWMS singularity wrapper, job exec: $@"
+info_dbg "GWMS singularity wrapper, messages after this line are from the actual job ##################"
 exec "$@"
 error=$?
 # exec failed. Log, communicate to HTCondor, avoid black hole and exit

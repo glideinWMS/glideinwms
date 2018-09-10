@@ -251,7 +251,7 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
         Several improvements to rpm packaging. Useful frontend tools are
           now available in the user path
         Support of version control for the factory configuration and splitting 
-          of entries configuration form the main factory configuration (entries.d)
+          of entries configuration from the main factory configuration (entries.d)
         Unique idle jobs matched by the frontend is now available in
           glideresource classads
           deloyment specific configuration and entry specific configuration.

@@ -139,7 +139,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
-            # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username form env
+            # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username from env
             # This returns always the host:port part: gatekeeper.split('@')[-1]
             if u'bosco_dir' in entry:
                 bosco_dir = "--rgahp-glite ~/%s/glite" % entry[u'bosco_dir']

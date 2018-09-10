@@ -28,7 +28,7 @@
 #      At the beginning is published w/ error_genn then directly
 #  GLIDEIN_PS_FAILED_LAST - name of the last script that failed execution
 #  GLIDEIN_PS_FAILED_LAST_REASON - string describing the last failure
-#  GLIDEIN_PS_FAILED_LAST_END - end time (sec form Epoch) of the last failure
+#  GLIDEIN_PS_FAILED_LAST_END - end time (sec from Epoch) of the last failure
 #  GLIDEIN_PS_LAST (w/ error_gen) - file path of the last script
 #  GLIDEIN_PS_LAST_END (w/ error_gen) - end time of the last script execution
 #                   (0 for script_wrapper.sh invoked at startup)
