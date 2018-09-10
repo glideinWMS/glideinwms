@@ -4,6 +4,20 @@
 #                                                                        @ = Use CondorName
 #################################################################################################################
 
+# Singularity variables
+# GLIDEIN_Singularity_Use (DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED)
+# GLIDEIN_SINGULARITY_REQUIRE (NEVER, OPTIONAL, PREFERRED, REQUIRED, REQUIRED_GWMS)
+GLIDEIN_SINGULARITY_REQUIRE S   -               +   N   N   -
+GLIDEIN_Singularity_Use     S   DISABLE_GWMS    +   N   N   -
+GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   N   -
+GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   N   -
+SINGULARITY_IMAGES_DICT                 S   -   +   N   N   -
+GLIDEIN_SINGULARITY_OPTS                S   -   +   N   N   -
+GLIDEIN_REQUIRED_OS         S   any             +   N   N   -
+REQUIRED_OS                 S   any             +   N   N   -
+GLIDEIN_DEBUG_OUTPUT        S   -               +   N   N   -
+
+
 # User modifiable variables
 GLIDEIN_Start		C	True		+				N	N	-
 GLIDEIN_Hold		C	False		+				N	N	-
