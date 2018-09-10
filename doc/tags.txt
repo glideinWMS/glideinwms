@@ -1,3 +1,13 @@
+v3_4_1  Improved Singularity support (added bind path variables and GPU support)
+        Switch User collector child collectors to shared_port
+        Updated documentation: remove obsolete parts, verified all references.
+        Increased unit test coverage
+        Added the possibility to skip idle removal per entry
+        Improved how subentries are picked for metasites
+        Bug fix: Periodic scripts fails but report GLIDEIN_PS_OK=True
+        Bug fix: Fix entry_set configuration not to load temporary files and to work across upgrades
+        Big fix: fixed metasites monitoring
+
 v3_4    GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3
         Inform the admin in case multiple service reload is done in rapid succession
         Released glideinwms-switchdoard RPM to provide condor_root_switchboard
