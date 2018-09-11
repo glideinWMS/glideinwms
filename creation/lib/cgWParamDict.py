@@ -938,9 +938,9 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     job_descript_dict.add('RequireVomsProxy', restrictions[u'require_voms_proxy'])
     job_descript_dict.add('RequireGlideinGlexecUse', restrictions[u'require_glidein_glexec_use'])
 
-    # Job submit file pick algorithm
-    entry_selection = config.get_child(u'entry_selection')
-    job_descript_dict.add("EntrySelectionAlgorithm", entry_selection.get("algorithm_name"))
+    # Job submit file pick algorithm. Only present for metasites, will be Default otherwise
+    entry_selection = config.children.get('entry_selection', {})
+    job_descript_dict.add("EntrySelectionAlgorithm", entry_selection.get("algorithm_name", "Default"))
 
     # Add the frontend specific job limits to the job.descript file
     max_held_frontend = ""
