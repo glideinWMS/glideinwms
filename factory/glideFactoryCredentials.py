@@ -180,8 +180,9 @@ def process_global(classad, glidein_descript, frontend_descript):
 
             update_credential_file(username, cred_id, cred_data, request_clientname)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
+        logSupport.log.debug("\nclassad %s\nfrontend_descript %s\npub_key_obj %s)" % (classad, frontend_descript, pub_key_obj))
+        error_str = "Error occurred processing the globals classads."
+        logSupport.log.exception(error_str)
         raise CredentialError(error_str)
 
 
@@ -199,8 +200,9 @@ def get_key_obj(pub_key_obj, classad):
             sym_key_obj = pub_key_obj.extract_sym_key(classad['ReqEncKeyCode'])
             return sym_key_obj
         except:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            error_str = "Symmetric key extraction failed. \nTraceback: \n%s" % tb
+            logSupport.log.debug("\nclassad %s\npub_key_obj %s\n" % (classad, pub_key_obj))
+            error_str = "Symmetric key extraction failed."
+            logSupport.log.exception(error_str)
             raise CredentialError(error_str)
     else:
         error_str = "Classad does not contain a key.  We cannot decrypt."
@@ -233,20 +235,19 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     try:
         enc_identity = sym_key_obj.decrypt_hex(classad['ReqEncIdentity'])
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        error_str = "Cannot decrypt ReqEncIdentity.  \nTraceback: \n%s" % tb
+        error_str = "Cannot decrypt ReqEncIdentity."
+        logSupport.log.exception(error_str)
         raise CredentialError(error_str)
 
     if enc_identity != authenticated_identity:
         error_str = "Client provided invalid ReqEncIdentity(%s!=%s). " \
                     "Skipping for security reasons." % (enc_identity, authenticated_identity)
         raise CredentialError(error_str)
-
     try:
         frontend_sec_name = sym_key_obj.decrypt_hex(classad['GlideinEncParamSecurityName'])
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        error_str = "Cannot decrypt GlideinEncParamSecurityName.  \nTraceback: \n%s" % tb
+        error_str = "Cannot decrypt GlideinEncParamSecurityName."
+        logSupport.log.exception(error_str)
         raise CredentialError(error_str)
 
     # verify that the frontend is authorized to talk to the factory
