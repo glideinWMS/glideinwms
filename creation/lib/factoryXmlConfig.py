@@ -221,6 +221,14 @@ class Config(xmlConfig.DictElement):
         else:
             self.web_url = self.get_child(u'stage')[u'web_base_url']
 
+    def set_num_factories(self):
+        if eval(self[u'factory_versioning']):
+            self.num_factories = os.path.join(self.get_child(u'submit')[u'num_factories'],
+                                        u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.num_factories = self.get_child(u'submit')[u'num_factories']
+        self.num_factories = int(self.num_factories)
+
     #######################
     #
     # FactoryXmlConfig getter functions
@@ -293,6 +301,7 @@ def parse(file):
     conf.set_client_log_dirs()
     conf.set_client_proxy_dirs()
     conf.set_web_url()
+    conf.set_num_factories()
 
     return conf
 
