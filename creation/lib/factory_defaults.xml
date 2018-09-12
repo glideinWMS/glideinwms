@@ -23,7 +23,7 @@
       </frontends>
    </security>
    <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://localhost/factory/stage"/>
-   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server" num_factories="1"/>
+   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
    <attrs>
       <!-- required: name, value -->
       <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
