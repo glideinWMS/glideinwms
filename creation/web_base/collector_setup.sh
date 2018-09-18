@@ -20,7 +20,7 @@ error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
 
-collector_host="`grep -i "^GLIDEIN_Collector " $glidein_config | awk '{print $2}'`"
+collector_host="`grep -i "^GLIDEIN_Collector " $glidein_config | awk '{$1=""; print $0}'`"
 if [ -z "$collector_host" ]; then
     #echo "No GLIDEIN_Collector found!" 1>&2
     STR="No GLIDEIN_Collector found!"
@@ -36,7 +36,7 @@ fi
 
 add_config_line GLIDEIN_Collector $collector_host
 
-ccb_host="`grep -i "^GLIDEIN_CCB " $glidein_config | awk '{print $2}'`"
+ccb_host="`grep -i "^GLIDEIN_CCB " $glidein_config | awk '{$1=""; print $0}'`"
 if [ -z "ccb_host" ]; then
     echo "No GLIDEIN_CCB found (using collectors)!" 1>&2
 else
@@ -45,7 +45,7 @@ else
 fi
 
 
-factory_collector_host="`grep -i "^GLIDEIN_Factory_Collector " $glidein_config | awk '{print $2}'`"
+factory_collector_host="`grep -i "^GLIDEIN_Factory_Collector " $glidein_config | awk '{$1=""; print $0}'`"
 if [ -z "$factory_collector_host" ]; then
     # no factory collector, master will use the standard collector list
     master_collector_host="$collector_host"

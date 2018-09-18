@@ -1651,7 +1651,7 @@ class MonitorFileDicts:
 #####################################################
 # Validate HTCondor endpoint (node) string
 # this can be a node, node:port, node:port-range
-# or a shared port sinful string host:port?sock=collector$RANDOM_INTEGER(ID1,ID2)
+# or a shared port sinful string host:port?sock=collector$RANDOM_INTEGER(ID1, ID2)
 # or schedd_name@host:port[?sock=collector]
 
 def validate_node(nodestr,flag_prange=False):

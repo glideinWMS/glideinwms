@@ -34,9 +34,9 @@ use_ccb=`grep '^USE_CCB ' $glidein_config | awk '{print $2}'`
 if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_ccb" == "Yes" -o "$use_ccb" == "Y" -o "$use_ccb" == "1" ]; then
     # ok, we need to define CCB variable
 
-    ccb_host=`grep '^GLIDEIN_CCB ' $glidein_config | awk '{print $2}'`
+    ccb_host=`grep '^GLIDEIN_CCB ' $glidein_config | awk '{$1=""; print $0}'`
     if [ -z "$ccb_host" ]; then
-        ccb_host=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
+        ccb_host=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{$1=""; print $0}'`
         if [ -z "$ccb_host" ]; then
             #echo "No GLIDEIN_Collector found!" 1>&2
             STR="No GLIDEIN_CCB or GLIDEIN_Collector found!"
