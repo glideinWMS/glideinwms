@@ -205,7 +205,7 @@ Click on any piece for a more detailed description.
     <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
     <blockquote>
         <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov:9620-9640" node="ccb.fnal.gov" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(1, 20)" group="group2" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(1,20)" group="group2" /&gt;</a><br/>
     </blockquote>
     <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#usercollector">&lt;collectors&gt;</a><br/>
@@ -213,7 +213,7 @@ Click on any piece for a more detailed description.
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9618?sock=collector3" secondary="True" group="default" /&gt;</a><br/>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(30, 40)" secondary="True" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(30,40)" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
@@ -973,7 +973,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
                 element for each secondary port. <b>If this option is set, shared_port must be disabled.</b>
             <b>Important: </b> For the secondary collectors configuration, there are multiple options with port number, <i>port range</i>,
             single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case
-            (<b>sock=collector$RANDOM_INTEGER(ID1, ID2)</b>). It's important to follow this configuration pattern.
+            (<b>sock=collector$RANDOM_INTEGER(ID1,ID2)</b>). It's important to follow this configuration pattern.
             No semicolon is allowed in the node specification.</i></font><br/>
        </ul>
       </blockquote>
@@ -1007,10 +1007,10 @@ Only very specific setups need to change this section.
          &lt;ccb DN="<i>certificate DN</i>" 
                   node="CCB Collector:<b>port_range</b>"/&gt;</br>
          &lt;ccb DN="<i>certificate DN</i>"
-                  node="CCB Collector:<b>other_port?sock=collector$RANDOM_INTEGER(ID1, ID2)</b>"/&gt;</br>
+                  node="CCB Collector:<b>other_port?sock=collector$RANDOM_INTEGER(ID1,ID2)</b>"/&gt;</br>
             <font color="blue">
             <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration:<i>port range</i>,
-                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collector$RANDOM_INTEGER(ID1, ID2)</b).
+                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collector$RANDOM_INTEGER(ID1,ID2)</b).
             It's important to follow this configuration pattern. No semicolon is allowed in the node specification.</font><br/>
       </blockquote>
     </li>
