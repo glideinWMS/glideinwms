@@ -966,7 +966,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
                   node="<b>User Pool Collector 2</b>:primary_port_range" <b>group="1"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
-                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collector$RANGE_INTEGER(ID1, ID2)" <b>group="1"</b>/&gt;</br>
+                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collector$RANDOM_INTEGER(ID1, ID2)" <b>group="1"</b>/&gt;</br>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
             is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
