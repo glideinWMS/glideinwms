@@ -7,15 +7,15 @@
 # Singularity variables
 # GLIDEIN_Singularity_Use (DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED)
 # GLIDEIN_SINGULARITY_REQUIRE (NEVER, OPTIONAL, PREFERRED, REQUIRED, REQUIRED_GWMS)
-GLIDEIN_SINGULARITY_REQUIRE S   -               +   N   N   -
-GLIDEIN_Singularity_Use     S   DISABLE_GWMS    +   N   N   -
-GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   N   -
-GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   N   -
-SINGULARITY_IMAGES_DICT                 S   -   +   N   N   -
-GLIDEIN_SINGULARITY_OPTS                S   -   +   N   N   -
-GLIDEIN_REQUIRED_OS         S   any             +   N   N   -
-REQUIRED_OS                 S   any             +   N   N   -
-GLIDEIN_DEBUG_OUTPUT        S   -               +   N   N   -
+GLIDEIN_SINGULARITY_REQUIRE S   -               +   N   Y   -
+GLIDEIN_Singularity_Use     S   DISABLE_GWMS    +   N   Y   -
+GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   Y   -
+GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   Y   -
+SINGULARITY_IMAGES_DICT                 S   -   +   N   Y   -
+GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
+GLIDEIN_REQUIRED_OS         S   any             +   N   Y   -
+REQUIRED_OS                 S   any             +   N   Y   -
+GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -
 
 
 # User modifiable variables
