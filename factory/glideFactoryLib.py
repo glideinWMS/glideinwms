@@ -1287,8 +1287,8 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
     # Need information from glidein.descript, job.descript, and signatures.sha1
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
     schedd = jobDescript.data["Schedd"]
-    algo_name = jobDescript.data["EntrySelectionAlgorithm"]
-    if algo_name != "Default":
+    algo_name = jobDescript.data.get("EntrySelectionAlgorithm", None)
+    if algo_name and algo_name != "Default":
         log.debug("Selection algorithm name for entry %s is: %s" % (entry_name, algo_name))
 
     # List of job ids that have been submitted - initialize to empty array
@@ -1318,8 +1318,11 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                     log.warning(msg)
     try:
         submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
-        selection_function = getattr(glideinwms.factory.glideFactorySelectionAlgorithms, 'selectionAlgo' + algo_name)
-        submit_files = selection_function(submit_files, status_sf, jobDescript, nr_glideins, log)
+        if algo_name:
+            selection_function = getattr(glideinwms.factory.glideFactorySelectionAlgorithms, 'selectionAlgo' + algo_name)
+            submit_files = selection_function(submit_files, status_sf, jobDescript, nr_glideins, log)
+        else:
+            submit_files = { submit_files[0]: nr_glideins }
 
         for submit_file, nr_glideins_sf in submit_files.items():
             nr_submitted = 0
