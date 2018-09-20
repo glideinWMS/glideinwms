@@ -83,13 +83,13 @@ function combine_requirements {
     local res_str
 
     local valid_list="NEVER,OPTIONAL,PREFERRED,REQUIRED,"
-    if [ ",$valid_list,REQUIRED_GWMS," = *",$req_factory,"* ]; then
+    if [[ ! ",$valid_list,REQUIRED_GWMS," = *",$req_factory,"* ]]; then
         STR="GLIDEIN_SINGULARITY_REQUIRE in Factory configured to be $req_factory.\nAccepted values are $valid_list,REQUIRED_GWMS."
         res_str=`echo -e "$STR"`
         echo "FAIL,$res_str"
         return 1
     fi
-    if [ ",$valid_list,DISABLE_GWMS," = *",$req_frontend,"* ]; then
+    if [[ ! ",$valid_list,DISABLE_GWMS," = *",$req_frontend,"* ]]; then
         STR="GLIDEIN_Singularity_Use in VO Frontend configured to be $req_frontend.\nAccepted values are $valid_list,DISABLE_GWMS."
         res_str=`echo -e "$STR"`
         echo "FAIL,$res_str"

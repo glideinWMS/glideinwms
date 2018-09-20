@@ -251,7 +251,7 @@ function cond_print_log {
     logname=$1
     shift
     # Use ls to allow fpath to include wild cards
-    files_to_zip="`ls -1 $@ 2>/dev/null`"
+    files_to_zip="`ls -1 "$@" 2>/dev/null`"
     
     if [ "$files_to_zip" != "" ]; then
         echo "$logname" 1>&2

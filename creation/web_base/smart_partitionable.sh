@@ -14,7 +14,7 @@ glidein_config="$1"
 tmp_fname="${glidein_config}.$$.tmp"
 
 function warn {
- echo `date` $@ 1>&2
+ echo `date` "$@" 1>&2
 }
 
 # import add_config_line function

@@ -12,7 +12,7 @@ tmp_fname="${glidein_config}.$$.tmp"
 dir_id=$2
 
 function warn {
- echo `date` $@ 1>&2
+ echo `date` "$@" 1>&2
 }
 
 # import add_config_line function

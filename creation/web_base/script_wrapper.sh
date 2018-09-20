@@ -72,7 +72,7 @@ verbose=
 # write to stderr only if verbose is set
 function vmessage {
     # echo `date` $@ 1>&2 
-    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" $@ 1>&2
+    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" "$@" 1>&2
 }
 
 

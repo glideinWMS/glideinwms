@@ -24,7 +24,7 @@ function ignore_signal {
 }
 
 function warn {
- echo `date` $@ 1>&2
+ echo `date` "$@" 1>&2
 }
 
 function usage {
@@ -821,7 +821,7 @@ if [ -n "$client_repository_url" ]; then
 
   if [ -n "$client_repository_group_url" ]; then
       # client group data is optional, user url as a switch
-      if [ -z '$client_group' ]; then
+      if [ -z "$client_group" ]; then
 	  warn "Missing client group name." 1>&2
 	  usage
       fi
@@ -882,11 +882,11 @@ echo "glidein_credential_id = '$glidein_cred_id'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
 echo "glidein_entry     = '$glidein_entry'"
-if [ -n '$client_name' ]; then
+if [ -n "$client_name" ]; then
     # client name not required as it is not used for anything but debug info
     echo "client_name       = '$client_name'"
 fi
-if [ -n '$client_group' ]; then
+if [ -n "$client_group" ]; then
     echo "client_group       = '$client_group'"
 fi
 echo "work_dir          = '$work_dir'"
@@ -1110,11 +1110,11 @@ echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
 echo "GLIDEIN_Entry_Name $glidein_entry" >> glidein_config
-if [ -n '$client_name' ]; then
+if [ -n "$client_name" ]; then
     # client name not required as it is not used for anything but debug info
     echo "GLIDECLIENT_Name $client_name" >> glidein_config
 fi
-if [ -n '$client_group' ]; then
+if [ -n "$client_group" ]; then
     # client group not required as it is not used for anything but debug info
     echo "GLIDECLIENT_Group $client_group" >> glidein_config
 fi
@@ -1295,7 +1295,7 @@ function fetch_file_regular {
 function fetch_file {
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
-        echo "More then 8 arguments, considering the first 8 ($#/$ifs_str): $@" 1>&2
+        echo "More then 8 arguments, considering the first 8 ($#/$ifs_str): $*" 1>&2
     elif [ $# -ne 8 ]; then
         if [ $# -eq 7 ]; then
             #TODO: remove in version 3.3
@@ -1319,7 +1319,7 @@ function fetch_file {
         fi
         local ifs_str
         printf -v ifs_str '%q' "$IFS"
-        warn "Not enough arguments in fetch_file, 8 expected ($#/$ifs_str): $@" 1>&2
+        warn "Not enough arguments in fetch_file, 8 expected ($#/$ifs_str): $*" 1>&2
         glidein_exit 1
     fi
 

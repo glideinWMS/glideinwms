@@ -483,7 +483,7 @@ function singularity_check_paths {
     [ -z "$val_no_opt" ] && val_no_opt="$2"
     [[ $1 = *v* ]] && to_check="$3"
     [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path $to_check. File does not exist"; false; return; }
-    [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path $to_check. Is not in CVMFS"; false; return; }
+    [[ $1 = *c* ]] && [[ ! "$to_check" = "/cvmfs"* ]] && { info "Discarding path $to_check. Is not in CVMFS"; false; return; }
     [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path $val_no_opt. File does not exist"; false; return; }
     # Same as [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
     echo -n "$2${3:+":$3"},"
@@ -1067,7 +1067,7 @@ function cvmfs_test_and_open {
     local IFS=,  # "\t\t\""
     if [ -n "$1" ]; then
         # Test and keep open each CVMFS repo
-        for x in "$1"; do
+        for x in $1; do  # Spaces in file name are OK, separator is comma
             if eval "exec $holdfd</cvmfs/\"$x\""; then
                 echo "\"/cvmfs/$x\" exists and available"
                 let "holdfd=holdfd+1"
@@ -1079,5 +1079,4 @@ function cvmfs_test_and_open {
         done
     fi
 }
-
 
