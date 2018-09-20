@@ -50,7 +50,7 @@ function warn_raw {
     glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
 
 # error_gen defined in singularity_lib.sh
-[ -e "$glidein_config" ] && error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+[ -e "$glidein_config" ] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 
 # Source utility files, outside and inside Singularity

@@ -27,7 +27,7 @@ GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
 echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
 
 # defined in singularity_lib.sh
-[ -e "$glidein_config" ] && error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+[ -e "$glidein_config" ] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 # Source utility files, outside and inside Singularity
 if [ -e "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh ]; then
@@ -162,12 +162,12 @@ function combine_requirements {
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 
-export GLIDEIN_DEBUG_OUTPUT=`grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | awk '{print $2}'`
+export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | cut -d ' ' -f 2-`"
 
 # SINGULARITY_BIN is now undocumented (can still be used for compatibility or to force a path for Singularity)
 # TODO: future review use of SINGULARITY_BIN, remove to end legacy support
 # some hackery to deal with spaces in SINGULARITY_BIN
-temp_singularity_bin="`grep '^SINGULARITY_BIN ' $glidein_config | awk '{$1=""; print $0}'`"
+temp_singularity_bin="`grep '^SINGULARITY_BIN ' $glidein_config | cut -d ' ' -f 2-`"
 singularity_bin="$(echo $temp_singularity_bin)"
 
 # only to suggest a path, but path is used otherwise
@@ -176,7 +176,7 @@ singularity_bin="$(echo $temp_singularity_bin)"
 #fi
 
 # Does frontend want to use singularity?
-use_singularity=`grep '^GLIDEIN_Singularity_Use ' $glidein_config | awk '{print $2}'`
+use_singularity=`grep '^GLIDEIN_Singularity_Use ' $glidein_config | cut -d ' ' -f 2-`
 if [ -z "$use_singularity" ]; then
     info_stdout "`date` GLIDEIN_Singularity_Use not configured. Defaulting to DISABLE_GWMS"
     # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to DISABLE_GWMS (2018-03-19 discussion)
@@ -184,7 +184,7 @@ if [ -z "$use_singularity" ]; then
 fi
 
 # Does entry require glidein to use singularity?
-require_singularity=`grep '^GLIDEIN_SINGULARITY_REQUIRE ' $glidein_config | awk '{print $2}'`
+require_singularity=`grep '^GLIDEIN_SINGULARITY_REQUIRE ' $glidein_config | cut -d ' ' -f 2-`
 if [ -z "$require_singularity" ]; then
     info_stdout "`date` GLIDEIN_SINGULARITY_REQUIRE not configured. Defaulting to OPTIONAL"
     require_singularity="OPTIONAL"
@@ -235,10 +235,10 @@ esac
 # So, if a VO wants to have their own _new_pre_singularity_setup.sh, they must copy and modify
 # generic_pre_singularity_setup.sh and also must put their default singularity images 
 # under /cvmfs/singularity.opensciencegrid.org
-SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' $glidein_config | awk '{print $2}'`"
-SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | awk '{print $2}'`"
-SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | awk '{print $2}'`"
-SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config | awk '{print $2}'`"
+SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' $glidein_config | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config | cut -d ' ' -f 2-`"
 
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7

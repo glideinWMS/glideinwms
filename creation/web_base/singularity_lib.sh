@@ -366,16 +366,16 @@ function get_prop_str {
 # $glidein_config from the file importing this
 # add_config_line and add_condor_vars_line are in add_config_line.source (ADD_CONFIG_LINE_SOURCE in $glidein_config)
 if [ -e "$glidein_config" ]; then    # was: [ -n "$glidein_config" ] && [ "$glidein_config" != "NONE" ]
-    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+    error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
     if [ "x$SOURCED_ADD_CONFIG_LINE" = "x" ]; then
         # import add_config_line and add_condor_vars_line functions used in advertise
         if [ "x$add_config_line_source" = "x" ]; then
-            export add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-            export       condor_vars_file=`grep -i "^CONDOR_VARS_FILE "    $glidein_config | awk '{print $2}'`
+            export add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-`"
+            export       condor_vars_file="`grep -i "^CONDOR_VARS_FILE "    $glidein_config | cut -d ' ' -f 2-`"
         fi
 
         info "Sourcing add config line: $add_config_line_source"
-        source $add_config_line_source
+        source "$add_config_line_source"
         # make sure we don't source a second time inside the container
         export SOURCED_ADD_CONFIG_LINE=1
     fi
