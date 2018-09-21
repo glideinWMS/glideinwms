@@ -809,18 +809,11 @@ def calc_glidein_collectors(collectors):
         if el.group not in collector_nodes:
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
-            if 'RANDOM_INTEGER' in el.node:
-                cWDictFile.validate_node(el.node, flag_prange=True)
+            if 'sock=' in el.node:
+                cWDictFile.validate_node(el.node,allow_prange=True)
                 collector_nodes[el.group]['secondary'].append(el.node)
-            elif '-' in el.node:  # if secondary collector has port range
-                cWDictFile.validate_node(el.node)
-                rport = el.node.split(':')
-                parr = rport[1].split('-')
-                rinteger = '$RANDOM_INTEGER(' + parr[0] + ',' + parr[1] + ')'
-                rnode = re.sub(rport[1], rinteger, el.node)
-                collector_nodes[el.group]['secondary'].append(rnode)
             else:  # single port in secondary
-                cWDictFile.validate_node(el.node)
+                cWDictFile.validate_node(el.node,allow_prange=True)
                 collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
@@ -844,16 +837,12 @@ def calc_glidein_ccbs(collectors):
     for el in collectors:
         if el.group not in ccb_nodes:
             ccb_nodes[el.group] = []
-        if 'RANDOM_INTEGER' in el.node:
-           cWDictFile.validate_node(el.node, flag_prange=True)
+        if 'sock=' in el.node:
+           cWDictFile.validate_node(el.node, allow_prange=True)
            ccb_nodes[el.group].append(el.node)
         elif '-' in el.node: #if ccb node has port range
-                cWDictFile.validate_node(el.node)
-                rccb=el.node.split(':')
-                pccb=rccb[1].split('-')
-                rintegerccb='$RANDOM_INTEGER('+pccb[0]+','+pccb[1]+')'
-                rnodeccb=re.sub(rccb[1],rintegerccb,el.node)
-                ccb_nodes[el.group].append(rnodeccb)
+                cWDictFile.validate_node(el.node, allow_prange=True)
+                ccb_nodes[el.group].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
             ccb_nodes[el.group].append(el.node)
@@ -863,13 +852,12 @@ def calc_glidein_ccbs(collectors):
 
     return string.join(glidein_ccbs, ";")
 
-
 #####################################################
 # Populate gridmap to be used by the glideins
 def populate_gridmap(params, gridmap_dict):
     collector_dns=[]
     for coll_list in (params.collectors, params.ccbs):
-        # Add both collectors and CCB DNs (if any). Duplicates are skipped 
+        # Add both collectors and CCB DNs (if any). Duplicates are skipped
         # The name is for both collector%i.
         for el in coll_list:
             dn=el.DN
