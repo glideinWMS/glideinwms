@@ -810,10 +810,10 @@ def calc_glidein_collectors(collectors):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
             if 'sock=' in el.node:
-                cWDictFile.validate_node(el.node,allow_prange=True)
+                cWDictFile.validate_node(el.node,allow_range=True)
                 collector_nodes[el.group]['secondary'].append(el.node)
             else:  # single port in secondary
-                cWDictFile.validate_node(el.node,allow_prange=True)
+                cWDictFile.validate_node(el.node,allow_range=True)
                 collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
@@ -838,10 +838,10 @@ def calc_glidein_ccbs(collectors):
         if el.group not in ccb_nodes:
             ccb_nodes[el.group] = []
         if 'sock=' in el.node:
-           cWDictFile.validate_node(el.node, allow_prange=True)
+           cWDictFile.validate_node(el.node, allow_range=True)
            ccb_nodes[el.group].append(el.node)
         elif '-' in el.node: #if ccb node has port range
-                cWDictFile.validate_node(el.node, allow_prange=True)
+                cWDictFile.validate_node(el.node, allow_range=True)
                 ccb_nodes[el.group].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
