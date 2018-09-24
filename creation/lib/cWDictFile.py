@@ -1651,11 +1651,12 @@ class MonitorFileDicts:
 #####################################################
 # Validate HTCondor endpoint (node) string
 # this can be a node, node:port, node:port-range
-# or a shared port sinful string host:port?sock=collectorN1-N2
-# or schedd_name@host:port[?sock=collector]
+# or a shared port sinful string node:port?[var=val&]sock=collectorN1[-N2][&var=val]
+# or schedd_name@node:port[?sock=collector&var=val]
 
-def validate_node(nodestr,allow_prange=False,flag_prange=False):
+def validate_node(nodestr,allow_range=False,):
     eparr = nodestr.split('?')
+    flag_range = False
 
     if len(eparr) > 2:
        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
@@ -1664,25 +1665,27 @@ def validate_node(nodestr,allow_prange=False,flag_prange=False):
         if ',' in eparr[1] or ';' in eparr[1]:
             raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
         # Use regular expression to validate sinful string
-        matches = re.findall(r'(.*&)*sock=([^&\n]+)(\n(\d+))?', eparr[1])
+        matches = re.findall(r'(.*&)*sock=([^&]+)(\d+)?', eparr[1])
         if not matches:
            raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
         else:
             for sock in matches:
                   col = re.findall('\d+', str(sock))
-                  flag_prange=True
+                  flag_range=True
                   try:
-                      if len(col)==1:
-                         cmin=int(col[0])
-                      elif len(col)>1:
-                           cmin=int(col[0])
-                           cmax=int(col[1])
-                           if cmin>cmax or cmin==cmax:
-                                raise RuntimeError("Values from the collector sock list are bad defined: '%s'" % nodestr)
-                      else:
-                          raise RuntimeError("Collector sock list is bad defined: '%s'" % nodestr)
-                  except ValueError as e:
-                      raise RuntimeError("Collectors identifier is wrong: '%s'" % nodestr)
+                      if len(col) != 0:
+                          try:
+                              if len(col) == 1:
+                                  cmin = int(col[0])
+                              elif len(col) > 1:
+                                  cmin = int(col[0])
+                                  cmax = int(col[1])
+                                  if cmin >= cmax:
+                                      raise RuntimeError("Low value in the sock range list must be lower than the high one: '%s'" % nodestr)
+                                  else:
+                                      raise RuntimeError("Collector sock list is bad defined: '%s'" % nodestr)
+                          except ValueError as e:
+                             raise RuntimeError("Collectors identifier is wrong: '%s'" % nodestr)
     narr = eparr[0].split(':')
     if len(narr) > 2:
         raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
@@ -1693,7 +1696,7 @@ def validate_node(nodestr,allow_prange=False,flag_prange=False):
         if len(parr) > 2:
             raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
         if len(parr) > 1:
-            if not allow_prange or flag_prange:
+            if not allow_range or flag_range:
                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
             pmin = parr[0]
             pmax = parr[1]

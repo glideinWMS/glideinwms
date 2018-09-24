@@ -32,15 +32,6 @@ for v in $condor_vars; do
 done
 echo "Removed condor variables $condor_vars" 1>&2
 
-# Fix collector and ccb host parameters, to adapt to RANDOM_INTEGER function
-collector="`grep -i "^GLIDEIN_Collector " $config_file | awk '{$1=""; print $0}'`"
-ß
-collector_host="$(echo "$collector" | sed -E 's;^([^?:]+):([0-9]+)-([0-9]+);\1:\$RANDOM_INTEGER(\2,\3);;s;^([^?\-]+)\?(.*&)*sock=([^&\-]*[^0-9&]+)([0-9]+)-([0-9]+)(&.*)*$;\1?\2sock=\3\$RANDOM_INTEGER(\4,\5)\6;')"
-
-ccb="`grep -i "^GLIDEIN_CCB " $config_file | awk '{$1=""; print $0}'`"
-ccb_host="$(echo "$ccb" | sed -E 's;^([^?:]+):([0-9]+)-([0-9]+);\1:\$RANDOM_INTEGER(\2,\3);;s;^([^?\-]+)\?(.*&)*sock=([^&\-]*[^0-9&]+)([0-9]+)-([0-9]+)(&.*)*$;\1?\2sock=\3\$RANDOM_INTEGER(\4,\5)\6;')"
-
-
 # Condor 7.5.6 and above will use the system's gsi-authz.conf.  We don't want that.
 export GSI_AUTHZ_CONF=/dev/null
 # Specifically for the cloud:  If we want Condor to run as a specific user on the VM,

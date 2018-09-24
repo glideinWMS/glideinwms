@@ -204,16 +204,16 @@ Click on any piece for a more detailed description.
     <a href="#files">&lt;/files&gt;</a><br/>
     <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
     <blockquote>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov:9620-9640" node="ccb.fnal.gov" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(1,20)" group="group2" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
     </blockquote>
     <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#usercollector">&lt;collectors&gt;</a><br/>
     <blockquote>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9618?sock=collector3" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9618-20" secondary="True" group="default" /&gt;</a><br/>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9618?sock=collector$RANDOM_INTEGER(30,40)" secondary="True" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-30" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
@@ -966,15 +966,16 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
                   node="<b>User Pool Collector 2</b>:primary_port_range" <b>group="1"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
-                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collector$RANDOM_INTEGER(ID1, ID2)" <b>group="1"</b>/&gt;</br>
+                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collectorID1-ID2" <b>group="1"</b>/&gt;</br>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
             is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
                 element for each secondary port. <b>If this option is set, shared_port must be disabled.</b>
             <b>Important: </b> For the secondary collectors configuration, there are multiple options with port number, <i>port range</i>,
             single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case
-            (<b>sock=collector$RANDOM_INTEGER(ID1,ID2)</b>). It's important to follow this configuration pattern.
-            No semicolon is allowed in the node specification.</i></font><br/>
+            (<b>sock=collectorID1-ID2</b>). This last case is further explained in
+             <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
+                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</i></font><br/>
        </ul>
       </blockquote>
     </li>
@@ -1007,11 +1008,13 @@ Only very specific setups need to change this section.
          &lt;ccb DN="<i>certificate DN</i>" 
                   node="CCB Collector:<b>port_range</b>"/&gt;</br>
          &lt;ccb DN="<i>certificate DN</i>"
-                  node="CCB Collector:<b>other_port?sock=collector$RANDOM_INTEGER(ID1,ID2)</b>"/&gt;</br>
-            <font color="blue">
+                  node="CCB Collector:<b>other_port?sock=collectorID1-ID2</b>"/&gt;</br>
+            <font color="blue"><i>
             <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration:<i>port range</i>,
-                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collector$RANDOM_INTEGER(ID1,ID2)</b).
-            It's important to follow this configuration pattern. No semicolon is allowed in the node specification.</font><br/>
+                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collectorID1-ID2</b).
+                This last case is further explained in
+                <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
+                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</i></font><br/>
       </blockquote>
     </li>
     <li>
