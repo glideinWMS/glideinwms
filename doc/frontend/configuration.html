@@ -967,7 +967,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
                   node="<b>User Pool Collector 2</b>:primary_port_range" <b>group="1"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
                   node="<b>User Pool Collector 2</b>:secondary_port?sock=collectorID1-ID2" <b>group="1"</b>/&gt;</br>
-            <font color="blue"><i>
+            <font color="blue">
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
             is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
                 element for each secondary port. <b>If this option is set, shared_port must be disabled.</b>
@@ -975,7 +975,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
             single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case
             (<b>sock=collectorID1-ID2</b>). This last case is further explained in
              <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
-                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</i></font><br/>
+                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</font><br/>
        </ul>
       </blockquote>
     </li>
@@ -1009,12 +1009,12 @@ Only very specific setups need to change this section.
                   node="CCB Collector:<b>port_range</b>"/&gt;</br>
          &lt;ccb DN="<i>certificate DN</i>"
                   node="CCB Collector:<b>other_port?sock=collectorID1-ID2</b>"/&gt;</br>
-            <font color="blue"><i>
+            <font color="blue">
             <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration:<i>port range</i>,
                 single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collectorID1-ID2</b).
                 This last case is further explained in
                 <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
-                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</i></font><br/>
+                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</font><br/>
       </blockquote>
     </li>
     <li>

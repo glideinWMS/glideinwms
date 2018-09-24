@@ -1654,8 +1654,9 @@ class MonitorFileDicts:
 # or a shared port sinful string node:port?[var=val&]sock=collectorN1[-N2][&var=val]
 # or schedd_name@node:port[?sock=collector&var=val]
 
-def validate_node(nodestr,allow_range=False,):
+def validate_node(nodestr,allow_range=False):
     eparr = nodestr.split('?')
+    # Controls there is no port range and sock range list at the same time
     flag_range = False
 
     if len(eparr) > 2:
