@@ -59,7 +59,7 @@
 <ol>
     <li><a href="#schedds">Multiple Schedds</a></li>
     <li><a href="#schedds">Multiple Schedds / Shared Port</a></li>
-    <li><a href="#collectors">Multiple Collectors for Scalability</a></li>
+    <li><a href="#collectors">Multiple Collectors for Scalability /Shared Port</a></li>
     <li><a href="#collectors_ha">Multiple Collectors for Reliability / Condor High Availability (HA) Feature</a></li>
     <li><a href="#quill">Quill</a></li>
 </ol>
@@ -232,13 +232,13 @@ Processing schedd: SCHEDDJOBS2<br/>
 <p>
 </p>
 
-<!---  Multiple Collectors for Scalability-------- -->
+<!---  Multiple Collectors for Scalability and explanation of Shared Port-------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
-<a name="collectors"><h2>Multiple Collectors for Scalability</h2></a>
+<a name="collectors"><h2>Multiple Collectors for Scalability / Shared Port</h2></a>
     <p>
      For scalability purposes, this section will describe the steps (configuration) necessary to add additional
-     (secondary) HTCondor collectors for the WMS and/or User Collectors.
+     (secondary) HTCondor collectors for the WMS and/or User Collectors using shared_port.
     </p>
     <p>
     <b>Note: </b>If you specified any of these options using the GlideinWMS
@@ -285,7 +285,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
     <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port.
 <h4></a>Shared Port</h4>
     <p>
-    Since GlideinWMS v3.4.1, shared_port is supported by default for
+    Since GlideinWMS v3.4.1, shared_port is enabled by default for
     secondary collectors and CCBs, having all the collector communication behind a single TCP port. This helps to have a
     queue <b>per daemon</b>, instead of global queue. To carry out this, the following HTCondor attributes are required:
     </p>
@@ -301,7 +301,6 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
     <blockquote>
       use Experimental:CollectorNode(<b>nn</b>)
       COLLECTOR<b>nn</b>_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector<b>nn</b>Log"
-      DAEMON_LIST = $(DAEMON_LIST), COLLECTOR<b>nn</b></br>
     </blockquote>
     <p>
      After these  changes have been made in your HTCondor configuration file, restart HTCondor to effect
@@ -319,7 +318,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
       ├─1675237 condor_collector -f -f -local-name COLLECTOR4 -sock collector4 <font color="blue">secondary</font></br>
       ├─1675240 condor_collector -f -f -local-name COLLECTOR5 -sock collector5 <font color="blue">secondary</font></br>
     </blockquote>
-    <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port.
+    <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port. In other
+        words, if shared_port is enabled is not possible to define range of ports. The same for CCB.
 <!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
