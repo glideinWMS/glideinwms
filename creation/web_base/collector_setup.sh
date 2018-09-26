@@ -66,7 +66,7 @@ function parse_and_select_collectors {
     # Split the groups
     # local ingroups="`echo "$inlist" | awk '{split($0,g,";"); for (i in g) print g[i] }'`"
     local was_ifs="$IFS"
-    IFS=;
+    IFS=\;
     local -a ingroups=($(echo "${inlist}"))
     IFS="$was_ifs"
 
@@ -153,9 +153,9 @@ if [ -z "$factory_collector_host" ]; then
 else
     # factory has a collector, add it to the master collector list 
     master_collector_host="$collector_host,$factory_collector_host"
-    add_config_line GLIDEIN_Factory_Collector $factory_collector_host
+    add_config_line GLIDEIN_Factory_Collector "$factory_collector_host"
 fi
-add_config_line GLIDEIN_Master_Collector $master_collector_host
+add_config_line GLIDEIN_Master_Collector "$master_collector_host"
 
 "$error_gen" -ok "collector_setup.sh" "Collector" "$collector_host" "MasterCollector" "$master_collector_host"
 

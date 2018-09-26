@@ -1648,79 +1648,91 @@ class MonitorFileDicts:
 #
 #########################################################
 
-#####################################################
-# Validate HTCondor endpoint (node) string
-# this can be a node, node:port, node:port-range
-# or a shared port sinful string node:port?[var=val&]sock=collectorN1[-N2][&var=val]
-# or schedd_name@node:port[?sock=collector&var=val]
+# Some valid addresses to test validate_node with (using fermicloudui to avoid DNS errors):
+# ['fermicloudui.fnal.gov:9618-9620', 'fermicloudui.fnal.gov:9618?sock=collector30-40',
+# 'fermicloudui.fnal.gov:9618-9630', 'fermicloudui.fnal.gov:9618?sock=collector30-50',
+# 'fermicloudui.fnal.gov:9618?sock=collector10-20', 'fermicloudui.fnal.gov:9618?sock=collector',
+# 'fermicloudui.fnal.gov:9618?sock=collector30-40', 'fermicloudui.fnal.gov:9618?sock=collector30',
+# 'fermicloudui.fnal.gov:9618?sock=collector', 'fermicloudui.fnal.gov:9618?sock=collector&key1=val1',
+# 'name@fermicloudui.fnal.gov:9618?sock=schedd', 'fermicloudui.fnal.gov:9618?sock=my5alpha0num',
+# 'fermicloudui.fnal.gov:9618?key1=val1&sock=collector&key2=val2']
 
-def validate_node(nodestr,allow_range=False):
+def validate_node(nodestr, allow_range=False):
+    """Validate HTCondor endpoint (node) string
+    this can be a node, node:port, node:port-range
+    or a shared port sinful string node[:port]?[var=val&]sock=collectorN1[-N2][&var=val]
+    or a schedd schedd_name@node:port[?sock=collector&var=val]
+    'sock' cannot appear more than once
+    ranges can be either in ports or in 'sock', not in both at the same time
+    @param nodestr: endpoint (node) string
+    @param allow_range: True if a port range is allowed (e.g. for secondary collectors or CCBs)
+    @return: raise RuntimeError if the validation fails
+    """
+    # check that ; and , are not in the node string
+    if ',' in nodestr or ';' in nodestr:
+        raise RuntimeError("End-point name can not contain list separators (,;): '%s'" % nodestr)
     eparr = nodestr.split('?')
-    # Controls there is no port range and sock range list at the same time
-    flag_range = False
-
     if len(eparr) > 2:
-       raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+        raise RuntimeError("Too many ? in the end-point name: '%s'" % nodestr)
+    found_range = False
     if len(eparr) == 2:
-        # check that ; and , are not in the endpoint ID (they are not before ?)
-        if ',' in eparr[1] or ';' in eparr[1]:
-            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
-        # Use regular expression to validate sinful string
-        matches = re.findall(r'(.*&)*sock=([^&]+)(\d+)?', eparr[1])
-        if not matches:
-           raise RuntimeError("Unrecognized HTCondor sinful string: '%s'" % nodestr)
-        else:
-            for sock in matches:
-                  col = re.findall('\d+', str(sock))
-                  flag_range=True
-                  try:
-                      if len(col) != 0:
-                          try:
-                              if len(col) == 1:
-                                  cmin = int(col[0])
-                              elif len(col) > 1:
-                                  cmin = int(col[0])
-                                  cmax = int(col[1])
-                                  if cmin >= cmax:
-                                      raise RuntimeError("Low value in the sock range list must be lower than the high one: '%s'" % nodestr)
-                                  else:
-                                      raise RuntimeError("Collector sock list is bad defined: '%s'" % nodestr)
-                          except ValueError as e:
-                             raise RuntimeError("Collectors identifier is wrong: '%s'" % nodestr)
+        # Validate sinful string
+        ss_arr = eparr[1].split('&')
+        sock_found = False
+        for i in ss_arr:
+            if i.startswith('sock='):
+                if sock_found:
+                    raise RuntimeError("Only one 'sock' element allowed in end-point's sinful string: '%s'" % nodestr)
+                sock_found = True
+                match = re.match(r'(^[^\-]*[^0-9\-]+)(\d+)?(?:-(\d+))?$', i[5:])
+                if match is None:
+                    raise RuntimeError("Invalid 'sock=' value in in the end-point's sinful string: '%s'" % nodestr)
+                if match.groups()[2] is not None:
+                    # Check the sock range
+                    if not allow_range:
+                        raise RuntimeError("'sock' range not allowed for this end-point: '%s'" % nodestr)
+                    found_range = True
+                    try:
+                        if int(match.groups()[1]) >= int(match.groups()[2]):
+                            raise RuntimeError("In the end-point, left value in the sock range must be lower than the right one: '%s'" % nodestr)
+                    except (TypeError, ValueError):
+                        # match.group can be None (or not an integer?)
+                        raise RuntimeError("Invalid 'sock' value in in the end-point's sinful string: '%s'" % nodestr)
     narr = eparr[0].split(':')
     if len(narr) > 2:
-        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
-    if len(narr)>1:
+        raise RuntimeError("Too many : in the end-point name: '%s'" % nodestr)
+    if len(narr) > 1:
         # have ports, validate them
         ports = narr[1]
         parr = ports.split('-')
         if len(parr) > 2:
-            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
-        if len(parr) > 1:
-            if not allow_range or flag_range:
-               raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
-            pmin = parr[0]
-            pmax = parr[1]
-        else:
-            pmin = parr[0]
-            pmax = parr[0]
+            raise RuntimeError("Too many - in the end-point ports: '%s'" % nodestr)
         try:
-           pmini = int(pmin)
-           pmaxi = int(pmax)
-        except ValueError as e:
-            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
-        if pmini>pmaxi:
-            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
-        if pmini<1:
-            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
-        if pmaxi>65535:
-            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
+            pleft = int(parr[0])
+            if len(parr) > 1:
+                # found port range
+                if not allow_range:
+                    raise RuntimeError("Port range not allowed for this end-point: '%s'" % nodestr)
+                if found_range:
+                    raise RuntimeError("Cannot have both port range and 'sock' range in end-point: '%s'" % nodestr)
+                pright = int(parr[1])
+                if pleft >= pright:
+                    raise RuntimeError("Left port must be lower than right port in end-point port range: '%s'" %
+                                       nodestr)
+            else:
+                pright = pleft
+        except ValueError:
+            raise RuntimeError("End-point ports are not integer: '%s'" % nodestr)
+        if pleft < 1:
+            raise RuntimeError("Ports cannot be less than 1 for end-point ports: '%s'" % nodestr)
+        if pright > 65535:
+            raise RuntimeError("Ports cannot be more than 64k for end-point ports: '%s'" % nodestr)
     # split needed to handle the multiple schedd naming convention
     nodename = narr[0].split("@")[-1]
     try:
-       socket.getaddrinfo(nodename, None)
+        socket.getaddrinfo(nodename, None)
     except:
         raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
-
     # OK, all looks good
     return
+
