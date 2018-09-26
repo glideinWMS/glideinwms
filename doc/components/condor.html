@@ -238,7 +238,7 @@ Processing schedd: SCHEDDJOBS2<br/>
 <a name="collectors"><h2>Multiple Collectors for Scalability / Shared Port</h2></a>
     <p>
      For scalability purposes, this section will describe the steps (configuration) necessary to add additional
-     (secondary) HTCondor collectors for the WMS and/or User Collectors using shared_port.
+     (secondary) HTCondor collectors for the WMS and/or User Collectors using or not, shared_port option.
     </p>
     <p>
     <b>Note: </b>If you specified any of these options using the GlideinWMS
@@ -318,8 +318,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
       ├─1675237 condor_collector -f -f -local-name COLLECTOR4 -sock collector4 <font color="blue">secondary</font></br>
       ├─1675240 condor_collector -f -f -local-name COLLECTOR5 -sock collector5 <font color="blue">secondary</font></br>
     </blockquote>
-    <b>Important: </b>When port range is established, it's mandatory user collector needs to disable shared_port. In other
-        words, if shared_port is enabled is not possible to define range of ports. The same for CCB.
+
 <!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
