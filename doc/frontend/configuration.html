@@ -211,9 +211,9 @@ Click on any piece for a more detailed description.
     <a href="#usercollector">&lt;collectors&gt;</a><br/>
     <blockquote>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9618-20" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;</a><br/>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-30" secondary="True" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
@@ -942,7 +942,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          &lt;collectors&gt;
             &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
                   node="User Pool Collector:<b>primary_port</b>"/&gt;</br>
-            <collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
+            &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
                   node="User Pool Collector:<b>secondary_port</b>"/&gt;</br>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
@@ -954,7 +954,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.<br/>
     The requires listing all the condor collectors, primary as well as secondary, grouped by <b>group</b> name.
     HTCondor daemons started by the glideins, will report back to <b>one<b> of the
-    secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
+    secondary collectors in each <b>group</b>, chosen by random. If a <b>group</b> has no secondary collector, 
     the primary collector is selected for that group.  Here there are examples of different configurations:
     <blockquote>
          &lt;collectors&gt;
@@ -964,18 +964,18 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
                   node="<b>User Pool Collector 1</b>:secondary_port_range" <b>group="default"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
-                  node="<b>User Pool Collector 2</b>:primary_port_range" <b>group="1"</b>/&gt;</br>
-         <collector DN="<i>certificate DN</i>" secondary="True"
+                  node="<b>User Pool Collector 2</b>" <b>group="1"</b>/&gt;</br>
+         &lt;<collector DN="<i>certificate DN</i>" secondary="True"
                   node="<b>User Pool Collector 2</b>:secondary_port?sock=collectorID1-ID2" <b>group="1"</b>/&gt;</br>
             <font color="blue">
-            If the secondary port numbers were assigned as contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
-                element for each secondary port.
             <b>Important: </b> For the secondary collectors configuration, there are multiple options like port number or <i>port range</i> and
             single collector (<b>sock=collectorX</b>), or sinful string that can be used for the sock range case
                 (<b>sock=collectorID1-ID2</b>) for <b>shared_port</b>b> option. This two last cases are further explained in
              <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
                 It's very important to follow <b>this configuration pattern</b>. No coma or semicolon is allowed in the node specification.</font><br/>
+            If the secondary port numbers (or the numeric part at the end of the sock name) were assigned as contiguous range, only one additional <b>collector</b>
+            line is required specifying the <i>port range</i> (e.g.: 9640-9645) or <i>sock range</i> (e.g. collector1-16), otherwise you will need a collector
+                element for each secondary port or sock value.
        </ul>
       </blockquote>
     </li>
@@ -995,8 +995,9 @@ Only very specific setups need to change this section.
     <br><br>
     For <b>scalability</b> purposes, multiple CCB can be listed. For <b>availability</b> purposes divide them in multiple groups.
     Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
-    chosen by HTCondor at random from each distinct group; will connect to all of them to listen for requests Communications and
-    will start using the first one and fall back to the following ones in case of errors to send messages.
+    chosen by HTCondor at random from each distinct group; 
+    HTCondor connects to all of them and will load balance across them  (<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_9Networking_includes.html#43687">
+    see the HTCondor manual</a>).
     Daemons on the same host using a shared port daemon will share the same CCBs.<br>
     NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
     any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
