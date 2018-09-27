@@ -317,6 +317,26 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
       ├─1675237 condor_collector -f -f -local-name COLLECTOR4 -sock collector4 <font color="blue">secondary</font></br>
       ├─1675240 condor_collector -f -f -local-name COLLECTOR5 -sock collector5 <font color="blue">secondary</font></br>
     </blockquote>
+<h4></a>Transition to Shared Port</h4>
+    <p>
+        <b>This is a temporary configuration to switch from separate ports to shared_port</b>
+        In GlideinWMS v3.4.1, shared port configuration is incompatible if talking to older Factories (v3.4 or older).
+        Also, it requires the Frontend admin to drain the Frontend, change the configuration and restart it.
+        To make it compatible and to allow a smother transition, the following configuration makes possible to support
+        both, different ports and shared port and avoid the pitfalls mentioned.
+
+        A secondary collector can both listen on a separate port and listen to the shared port daemon.
+
+        <blockquote>
+        COLLECTOR<b>nn</b> = $(COLLECTOR)
+        COLLECTOR<b>nn</b>_ARGS = -f -local-name COLLECTOR<b>nn</b> -p <b>port_number></b> -sock collector<b>nn</b>
+        COLLECTOR<b>nn</b>_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector<b>nn</b>Log"
+        DAEMON_LIST=$(DAEMON_LIST), COLLECTOR<b>nn</b>
+        </blockquote>
+        <p>
+        After these  changes have been made in your Condor configuration file, restart HTCondor to effect the change.
+        You will see many collector processes running as many defined.
+        </p>
 
 <!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
