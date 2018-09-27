@@ -1663,7 +1663,7 @@ def validate_node(nodestr, allow_range=False):
     or a shared port sinful string node[:port]?[var=val&]sock=collectorN1[-N2][&var=val]
     or a schedd schedd_name@node:port[?sock=collector&var=val]
     'sock' cannot appear more than once
-    renges can be either in ports or in 'sock', not in both at the same time
+    ranges can be either in ports or in 'sock', not in both at the same time
 
     @param nodestr: endpoint (node) string
     @param allow_range: True if a port range is allowed (e.g. for secondary collectors or CCBs)
@@ -1685,7 +1685,7 @@ def validate_node(nodestr, allow_range=False):
                 if sock_found:
                     raise RuntimeError("Only one 'sock' element allowed in end-point's sinful string: '%s'" % nodestr)
                 sock_found = True
-                match = re.match(r'(^[^\-]*[^0-9\-]+)(\d+)?(?:-(\d+))?$', i[5:])
+                match = re.match(r'(^\w*[a-zA-Z_]+)(\d+)?(?:-(\d+))?$', i[5:])
                 if match is None:
                     raise RuntimeError("Invalid 'sock=' value in in the end-point's sinful string: '%s'" % nodestr)
                 if match.groups()[2] is not None:
@@ -1736,3 +1736,4 @@ def validate_node(nodestr, allow_range=False):
         raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
     # OK, all looks good
     return
+
