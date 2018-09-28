@@ -24,6 +24,15 @@ def is_true(s):
     return s.lower() == 'true'
 
 
+def has_file_wrapper(dicts):
+    for file_dict in ['preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list']:
+        if file_dict in dicts:
+            for file_info in dicts[file_dict].values():
+                if file_info[1] == 'wrapper':
+                    return True
+    return False
+
+
 def add_file_unparsed(user_file, dicts, is_factory):
     """Add a user file residing in the stage area
     file as described by Params.file_defaults
@@ -39,7 +48,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     relfname = user_file.relfname
     if relfname is None:
-        relfname = os.path.basename(absfname)  # defualt is the final part of absfname
+        relfname = os.path.basename(absfname)  # default is the final part of absfname
     if len(relfname) < 1:
         raise RuntimeError("Found a file element with an empty relfname: %s" % user_file)
 
@@ -100,7 +109,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
         wnsubdir = user_file.untar_options.dir
         if wnsubdir is None:
-            wnsubdir = string.split(relfname, '.', 1)[0]  # deafult is relfname up to the first .
+            wnsubdir = string.split(relfname, '.', 1)[0]  # default is relfname up to the first .
 
         config_out = user_file.untar_options.absdir_outattr
         if config_out is None:
