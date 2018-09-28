@@ -320,7 +320,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <h4></a>Transition to Shared Port</h4>
     <p>
         <b>This is a temporary configuration to switch from separate ports to shared_port</b>
-        In GlideinWMS v3.4.1, shared port configuration is incompatible if talking to older Factories (v3.4 or older).
+        In GlideinWMS v3.4.1, shared port only configuration is incompatible if talking to older Factories (v3.4 or older).
         Also, it requires the Frontend admin to drain the Frontend, change the configuration and restart it.
         To make it compatible and to allow a smother transition, the following configuration makes possible to support
         both, different ports and shared port and avoid the pitfalls mentioned.
@@ -335,7 +335,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
         </blockquote>
         <p>
         After these  changes have been made in your Condor configuration file, restart HTCondor to effect the change.
-        You will see many collector processes running as many defined.
+        You will see as many collector processes running as you defined.
         </p>
 
 <!---  Multiple Collectors for High Availability (HA)-------- -->
