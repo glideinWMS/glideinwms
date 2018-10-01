@@ -137,9 +137,9 @@ if [ -z "ccb_host" ]; then
     echo "No GLIDEIN_CCB found (will use collectors if CCB is enabled)!" 1>&2
     # This is taken care in setup_network.sh
 else
-    # No need to shuffle the CCBs, HTC connects to all and picks one at random each time a channel is needed
-    # TODO: double check w/ the HTCondor team that there is no need to shuffle the CCB list
-    # 8/2018 HTC team said that HTC connects to all CCBs and picks one at random when it needs to communicate
+    # No need to shuffle the CCBs. HTC connects to all the given CCBs servers and include all
+    # of them in its sinful string. When other daemon tries to contact that daemon, it will try
+    # the CCB servers in ranmdom order until it gets a successful connection.
     # add a last shuffle to change the order between groups
     # add_config_line GLIDEIN_CCB "`csv_shuffle $ccb_host`"
     add_config_line GLIDEIN_CCB "$ccb_host"
