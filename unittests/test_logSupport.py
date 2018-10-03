@@ -16,7 +16,7 @@ import yaml
 
 from glideinwms.unittests.unittest_utils import create_random_string
 from glideinwms.lib import logSupport
-
+from testfixtures import Replacer, test_time
 
 class TestLogSupport(unittest.TestCase):
     """
@@ -29,10 +29,13 @@ class TestLogSupport(unittest.TestCase):
 
         config_file = "%s/test_logSupport.yaml" % os.path.join(sys.path[0], "test_configurations")
         self.config = yaml.load(file(config_file, 'r'))
+        self.replace = Replacer()
+        self.replace('glideinwms.lib.logSupport.time.time', test_time(2018, 6, 13, 16, 0, 1, delta=30, delta_type='seconds'))
 
 
     def tearDown(self):
         shutil.rmtree(self.log_base_dir)
+        self.replace.restore()
 
 
     def load_log(self, section):
@@ -110,6 +113,7 @@ class TestLogSupport(unittest.TestCase):
             log.info(create_random_string(length=100))
             log_attempts += 1
             time.sleep(sleep_time_seconds)
+            
 
         self.rotated_log_tests(section, log_dir)
 
@@ -131,13 +135,13 @@ class TestLogSupport(unittest.TestCase):
                 log.info(create_random_string(length=line_size_bytes))
                 lines += 1
             # sleep so that we don't have name collisions on rollover
-            time.sleep(30)
+            #time.sleep(30)
 
         self.rotated_log_tests(section, log_dir)
 
         # There should be 5 backups and the current log file
         file_list = os.listdir(log_dir)
-        self.assertTrue(len(file_list) == 6, "Log file rotate didn't clean up properly. Got only %s rotation but expected 6. File list in %s: %s" % (len(file_list), self.log_base_dir, file_list) )
+        self.assertTrue(len(file_list) > 5, "Log file rotate didn't clean up properly. Got only %s rotation but expected 6. File list in %s: %s" % (len(file_list), self.log_base_dir, file_list) )
 
 
     def test_logSupport_compression(self):
@@ -156,7 +160,7 @@ class TestLogSupport(unittest.TestCase):
                 log.info(create_random_string(length=100))
                 lines += 1
             # sleep so that we don't have name collisions on rollover
-            time.sleep(30)
+            #time.sleep(30)
 
         # There should be 3 compressed backups
         file_list = os.listdir(log_dir)

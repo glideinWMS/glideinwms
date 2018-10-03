@@ -31,15 +31,15 @@
          </schedds>
       </job>
    </match>
-   <monitor base_dir="/var/lib/gwms-frontend/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
+   <monitor base_dir="fixtures/frontend/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
    <monitor_footer display_txt="" href_link=""/>
-   <security classad_proxy="/tmp/frontend_proxy" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
+   <security classad_proxy="fixtures/hostcert.pem" proxy_DN="/DC=org/DC=cilogon/C=US/O=Fermi National Accelerator Laboratory/OU=People/CN=Dennis Box/CN=UID:dbox" proxy_selection_plugin="ProxyAll" security_name="vofrontend_service" sym_key="aes_256_cbc">
       <credentials>
-         <credential absfname="/tmp/vo_proxy" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
+          <credential absfname="fixtures/hostcert.pem" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
       </credentials>
    </security>
-   <stage base_dir="/var/lib/gwms-frontend/web-area/stage" use_symlink="True" web_base_url="http://fermicloud312.fnal.gov/vofrontend/stage"/>
-   <work base_dir="/var/lib/gwms-frontend/vofrontend" base_log_dir="/var/log/gwms-frontend"/>
+   <stage base_dir="fixtures/frontend/web-area/stage" use_symlink="True" web_base_url="http://fermicloud312.fnal.gov/vofrontend/stage"/>
+   <work base_dir="fixtures/frontend/vofrontend" base_log_dir="fixtures/frontend/log"/>
    <attrs>
       <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>
       <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"/>

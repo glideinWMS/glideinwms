@@ -1,0 +1,28 @@
+<monitor_config>
+  <entries>
+    <entry name="TEST_SITE_3">
+      <monitorgroups>
+      </monitorgroups>
+    </entry>
+    <entry name="TEST_SITE_4">
+      <monitorgroups>
+      </monitorgroups>
+    </entry>
+    <entry name="TEST_SITE_HTCCE_5">
+      <monitorgroups>
+      </monitorgroups>
+    </entry>
+    <entry name="TEST_SITE_1">
+      <monitorgroups>
+      </monitorgroups>
+    </entry>
+    <entry name="TEST_SITE_2">
+      <monitorgroups>
+      </monitorgroups>
+    </entry>
+    <entry name="TEST_SITE_HTCCE_2">
+      <monitorgroups>
+      </monitorgroups>
+    </entry>
+  </entries>
+</monitor_config>

@@ -8,7 +8,7 @@
 		<process_log extension="err" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN,EXCEPTION"/>
       </process_logs>
    </log_retention>
-   <monitor base_dir="/var/lib/gwms-factory/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
+   <monitor base_dir="fixtures/factory/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
    <monitor_footer display_txt="" href_link=""/>
    <security key_length="2048" pub_key="RSA" remove_old_cred_age="30" remove_old_cred_freq="24" reuse_oldkey_onstartup_gracetime="900">
       <frontends>
@@ -19,8 +19,8 @@
          </frontend>
       </frontends>
    </security>
-   <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://fermicloud380.fnal.gov/factory/stage"/>
-   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
+   <stage base_dir="fixtures/factory/web-area/stage" use_symlink="True" web_base_url="http://fermicloud380.fnal.gov/factory/stage"/>
+   <submit base_client_log_dir="fixtures/factory/log/client" base_client_proxies_dir="fixtures/factory/client-proxies" base_dir="fixtures/factory/work-dir" base_log_dir="fixtures/factory/log/server"/>
    <attrs>
       <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
       <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
