@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_4_1_rc2
+# GLIDEINWMS_VERSION v3_4_1_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -21,7 +21,7 @@ f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-5053bceddbdcbce66ef93052913bfbb7  ./build/packaging/rpm/glideinwms.spec
+25bec30c4e1fdc248f4a3d0ebabff46d  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
@@ -37,7 +37,7 @@ e7e6bafcc24e77c27751313ea0022908  ./creation/create_condor_tarball
 1c4efa608122748c0d534efb4b0aa750  ./creation/info_glidein
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 e38a4fa46d2d8f804037d2f5db1f3612  ./creation/lib/cWConsts.py
-37cf51f17e0e717b65857fd185ba42fe  ./creation/lib/cWDictFile.py
+a7ba1dab3f4f7a0417c6ddccab9f2b6c  ./creation/lib/cWDictFile.py
 42e74ec5a5fce65f6ee12ef7ac3862bb  ./creation/lib/cWParamDict.py
 993891d4dcc25f7cb0a0d6d38ee9c0cc  ./creation/lib/cWParams.py
 21672dabcbc61d5d2fc346d4eb48ec49  ./creation/lib/cgWConsts.py
@@ -73,7 +73,7 @@ d54684f520856a54572008b3b53e3656  ./creation/templates/proxies.ini
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
 569bb2a8f8edd34719d3ba2cd08c1f37  ./creation/web_base/check_proxy.sh
 f79af46f0f740ae3a9ca525c96381a0e  ./creation/web_base/check_wn_drainstate.sh
-b61c7a5640f64fa60d0f650e37f9207d  ./creation/web_base/collector_setup.sh
+831e13e7aec1814f8ae88ab166693a5f  ./creation/web_base/collector_setup.sh
 38b0f94b484a44afca74f9a3473a6bea  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
 5a58d9b077275b1e5832475f6fbdd4ec  ./creation/web_base/condor_config.dedicated_starter.include
