@@ -32,6 +32,17 @@ GOOD_NODES = ['fermicloudui.fnal.gov:9618-9620',
               'name@fermicloudui.fnal.gov:9618?sock=schedd',
               'fermicloudui.fnal.gov:9618?sock=my5alpha0num',
               'fermicloudui.fnal.gov:9618?key1=val1&sock=collector&key2=val2',
+              'jobsub-dev.fnal.gov:9618',
+              'fermicloudui.fnal.gov:9618?sock=collector30-40&key=',
+              'fermicloudui.fnal.gov',
+              'fermicloudui.fnal.gov:9618',
+              'fermicloudui.fnal.gov:9620-9640',
+              'fermicloudui.fnal.gov:9618?sock=collect10',
+              'fermicloudui.fnal.gov:9618?sock=collect10-20',
+              'fermicloudui.fnal.gov:9618?var1=val1&sock=collect10-20&var2=val2',
+              'fermicloudui.fnal.gov:9618?var1=val1&sock=collect10-20&var2=val2-6',
+              'fermicloudui.fnal.gov:9618?var1=val1&sock=my5collect30-50',
+              'fermicloudui.fnal.gov:9618?var1=val1&sock=collect$RANDOM_INTEGER(3,9)&var2=val2-6',
               ]
 
 BAD_NODES = ['fermicloudui.fnal.gov:9618-9620-9999'
@@ -39,6 +50,9 @@ BAD_NODES = ['fermicloudui.fnal.gov:9618-9620-9999'
              'fermicloudui.fnal.gov:9618?sock=collector30-20',
              'fermicloudui.fnal.gov:9618-9620?sock=collector30-40',
              'I.dont.exist:9618',
+             'jobsub-dev.fnal.gov:9618-9999-332',
+             'I.dont.exist:9618?key1=val1&sock=collector&key2=val2',
+             'fermicloudui.fnal.gov:9618-9620?sock=collector30-40&',
              ]
 
 
