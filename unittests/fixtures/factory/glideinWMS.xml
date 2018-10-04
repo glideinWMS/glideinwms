@@ -8,7 +8,7 @@
 		<process_log extension="err" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN,EXCEPTION"/>
       </process_logs>
    </log_retention>
-   <monitor base_dir="fixtures/factory/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
+   <monitor base_dir="fixtures/factory/web-area/monitor" flot_dir="fixtures/javascriptrrd/flot" javascriptRRD_dir="fixtures/javascriptrrd/js" jquery_dir="fixtures/javascriptrrd/flot"/>
    <monitor_footer display_txt="" href_link=""/>
    <security key_length="2048" pub_key="RSA" remove_old_cred_age="30" remove_old_cred_freq="24" reuse_oldkey_onstartup_gracetime="900">
       <frontends>
