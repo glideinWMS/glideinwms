@@ -42,7 +42,6 @@ GOOD_NODES = ['fermicloudui.fnal.gov:9618-9620',
               'fermicloudui.fnal.gov:9618?var1=val1&sock=collect10-20&var2=val2',
               'fermicloudui.fnal.gov:9618?var1=val1&sock=collect10-20&var2=val2-6',
               'fermicloudui.fnal.gov:9618?var1=val1&sock=my5collect30-50',
-              'fermicloudui.fnal.gov:9618?var1=val1&sock=collect$RANDOM_INTEGER(3,9)&var2=val2-6',
               ]
 
 BAD_NODES = ['fermicloudui.fnal.gov:9618-9620-9999'
