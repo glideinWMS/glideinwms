@@ -57,8 +57,8 @@ class TestcgWDictFile(unittest.TestCase):
         self.common_dicts = get_common_dicts(self.submit_dir, self.stage_dir)
         self.entry_dicts = get_entry_dicts(
             self.submit_dir, self.stage_dir, 'entry_el6_osg34')
-        #self.main_dicts.populate()
-        #self.entry_dicts.populate()
+        # self.main_dicts.populate()
+        # self.entry_dicts.populate()
 
     def test__init__(self):
         self.assertTrue(isinstance(self.main_dicts, dict))
@@ -329,7 +329,8 @@ class TestClientDirSupport(unittest.TestCase):
         self.dir_name = 'client_dir'
         self.priv_dir_name = 'priv_dir'
         self.cds = clientDirSupport(self.user, self.dir, self.dir_name, False)
-        self.cdp = clientDirSupport(self.user, self.dir, self.priv_dir_name, True)
+        self.cdp = clientDirSupport(
+            self.user, self.dir, self.priv_dir_name, True)
 
     def test___init__(self):
         self.assertTrue(isinstance(self.cds, clientDirSupport))
@@ -341,7 +342,7 @@ class TestClientDirSupport(unittest.TestCase):
         try:
             self.cds.create_dir(fail_if_exists=True)
             assert False
-        except:
+        except BaseException:
             assert True
 
     def test_create_priv_dir(self):
@@ -350,7 +351,7 @@ class TestClientDirSupport(unittest.TestCase):
         try:
             self.cdp.create_dir(fail_if_exists=True)
             assert False
-        except:
+        except BaseException:
             assert True
 
     def test_delete_dir(self):
@@ -364,6 +365,7 @@ class TestClientDirSupport(unittest.TestCase):
         self.assertTrue(os.path.exists(self.dir))
         self.cdp.delete_dir()
         self.assertFalse(os.path.exists(self.dir))
+
 
 class TestChmodClientDirSupport(unittest.TestCase):
     @unittest.skip('for now')
@@ -464,8 +466,6 @@ class TestGlideinMainDicts(unittest.TestCase):
         self.gmdicts.save(set_readonly=False)
 
 
-
-
 class TestGlideinEntryDicts(unittest.TestCase):
 
     def setUp(self):
@@ -485,15 +485,14 @@ class TestGlideinEntryDicts(unittest.TestCase):
                                    self.client_log_dirs,
                                    self.client_proxy_dirs)
 
-
         self.gmdicts = glideinEntryDicts(self.submit_dir,
-                                        self.stage_dir,
-                                        'el7_osg34',
-                                        self.md.get_summary_signature(),
-                                        'entry_el7_osg34',
-                                        self.log_dir,
-                                        self.client_log_dirs,
-                                        self.client_proxy_dirs)
+                                         self.stage_dir,
+                                         'el7_osg34',
+                                         self.md.get_summary_signature(),
+                                         'entry_el7_osg34',
+                                         self.log_dir,
+                                         self.client_log_dirs,
+                                         self.client_proxy_dirs)
 
     def test___init__(self):
         self.assertTrue(isinstance(self.gmdicts, glideinEntryDicts))
@@ -502,16 +501,15 @@ class TestGlideinEntryDicts(unittest.TestCase):
     def test_load(self):
         self.gmdicts.load()
 
-
     def test_reuse(self):
         other = glideinEntryDicts(self.submit_dir,
-                                 self.stage_dir,
-                                 'el7_osg34',
-                                 self.md.get_summary_signature(),
-                                 'another-work-dir',
-                                 self.log_dir,
-                                 self.client_log_dirs,
-                                 self.client_proxy_dirs)
+                                  self.stage_dir,
+                                  'el7_osg34',
+                                  self.md.get_summary_signature(),
+                                  'another-work-dir',
+                                  self.log_dir,
+                                  self.client_log_dirs,
+                                  self.client_proxy_dirs)
 
         self.gmdicts.reuse(other)
         if other:
@@ -522,9 +520,6 @@ class TestGlideinEntryDicts(unittest.TestCase):
     def test_save(self):
         self.gmdicts.save(set_readonly=True)
         self.gmdicts.save(set_readonly=False)
-
-
-
 
     def test_get_sub_dicts(self):
         sub_d = self.gmdicts.get_sub_dicts()
@@ -548,14 +543,14 @@ class TestGlideinEntryDicts(unittest.TestCase):
         # self.assertEqual(expected, glidein_entry_dicts.get_sub_work_dir(base_dir))
         assert False  # TODO: implement your test here
 
-    #@unittest.skip('for now')
-    #def test_load(self):
+    # @unittest.skip('for now')
+    # def test_load(self):
         # glidein_entry_dicts = glideinEntryDicts(base_work_dir, base_stage_dir, sub_name, summary_signature, workdir_name, base_log_dir, base_client_log_dirs, base_client_proxies_dirs)
         # self.assertEqual(expected, glidein_entry_dicts.load())
     #    assert False  # TODO: implement your test here
 
-    #@unittest.skip('for now')
-    #def test_reuse(self):
+    # @unittest.skip('for now')
+    # def test_reuse(self):
         # glidein_entry_dicts = glideinEntryDicts(base_work_dir, base_stage_dir, sub_name, summary_signature, workdir_name, base_log_dir, base_client_log_dirs, base_client_proxies_dirs)
         # self.assertEqual(expected, glidein_entry_dicts.reuse(other))
     #    assert False  # TODO: implement your test here
@@ -566,8 +561,8 @@ class TestGlideinEntryDicts(unittest.TestCase):
         # self.assertEqual(expected, glidein_entry_dicts.reuse_nocheck(other))
         assert False  # TODO: implement your test here
 
-    #@unittest.skip('for now')
-    #def test_save(self):
+    # @unittest.skip('for now')
+    # def test_save(self):
         # glidein_entry_dicts = glideinEntryDicts(base_work_dir, base_stage_dir, sub_name, summary_signature, workdir_name, base_log_dir, base_client_log_dirs, base_client_proxies_dirs)
         # self.assertEqual(expected, glidein_entry_dicts.save(set_readonly))
     #    assert False  # TODO: implement your test here
@@ -584,11 +579,12 @@ class TestGlideinEntryDicts(unittest.TestCase):
         # self.assertEqual(expected, glidein_entry_dicts.erase())
         assert False  # TODO: implement your test here
 
-    #@unittest.skip('for now')
-    #def test_populate(self):
+    # @unittest.skip('for now')
+    # def test_populate(self):
         # glidein_entry_dicts = glideinEntryDicts(conf, sub_name, summary_signature, workdir_name)
         # self.assertEqual(expected, glidein_entry_dicts.populate(entry, schedd))
     #    assert False  # TODO: implement your test here
+
 
 class TestGlideinDicts(unittest.TestCase):
     def setUp(self):

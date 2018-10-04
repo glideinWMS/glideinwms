@@ -54,6 +54,7 @@ class TestFactFileElement(unittest.TestCase):
             fact_file_element.validate()
             self.assertTrue(isinstance(fact_file_element, FactFileElement))
 
+
 class TestCondTarElement(unittest.TestCase):
 
     def setUp(self):
@@ -74,6 +75,7 @@ class TestCondTarElement(unittest.TestCase):
             except RuntimeError as err:
                 pass
 
+
 class TestFrontendElement(unittest.TestCase):
 
     def setUp(self):
@@ -87,6 +89,7 @@ class TestFrontendElement(unittest.TestCase):
             self.assertTrue(u'name' in frontend_element)
             self.assertTrue(u'identity' in frontend_element)
             self.assertTrue(isinstance(frontend_element, FrontendElement))
+
 
 class TestEntryElement(unittest.TestCase):
 
@@ -132,6 +135,8 @@ class TestEntrySetElement(unittest.TestCase):
             #self.assertTrue(isinstance(entry_set_element, EntrySetElement))
 
 # pylint: disable=maybe-no-member
+
+
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
@@ -197,6 +202,8 @@ class TestConfig(unittest.TestCase):
         self.config.validate()
 
 # pylint: enable=maybe-no-member
+
+
 class TestParse(unittest.TestCase):
 
     def test_parse(self):
@@ -206,5 +213,8 @@ class TestParse(unittest.TestCase):
         except RuntimeError:
             pass
 
+
 if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(
+            output='unittests-reports'))
