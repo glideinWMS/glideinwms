@@ -58,7 +58,7 @@
       </entry>
    </entries>
    <condor_tarballs>
-      <condor_tarball arch="default" base_dir="/usr" os="default" version="default"/>
+       <condor_tarball arch="default" base_dir="fixtures/factory/condor/condor-8.6.5-x86_64_RedHat6-stripped" os="default" version="default"/>
    </condor_tarballs>
    <files>
    </files>
