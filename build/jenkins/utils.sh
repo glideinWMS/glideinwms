@@ -20,6 +20,7 @@ setup_python_venv() {
         ASTROID='astroid==1.2.1'
         HYPOTHESIS="hypothesislegacysupport"
         AUTOPEP8="autopep8==1.3"
+        TESTFIXTURES="testfixtures==5.4.0"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -28,6 +29,7 @@ setup_python_venv() {
         ASTROID='astroid==1.6.0'
         HYPOTHESIS="hypothesis"
         AUTOPEP8="autopep8"
+        TESTFIXTURES="testfixtures"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -64,7 +66,7 @@ setup_python_venv() {
     # pep8 has been replaced by pycodestyle
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
     pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
-    pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8}"
+    pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
 
 
     for package in $pip_packages; do
