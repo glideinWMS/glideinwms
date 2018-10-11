@@ -261,6 +261,18 @@ In case HTCondor daemons are crashing, you can browse the logs of HTCondor daemo
         Other issues that can cause this symptom:
     </p>
     <ul>
+	    <li><b>Factory (or Frontend) Web server down or unreachable </b>
+You should see a wget and/or curl error in the Glidein los files. You can test the Factory Web server loading the following URLs (possibly from the Glidein nodes or outside the firewall):
+<ul>
+	<li>monitoring pages: http://FACTORY_HOST_NAME/factory/monitor/ </li>
+	<li>staging area (most files have a hash in the file name):  http://FACTORY_HOST_NAME/factory/stage/glidein_startup.sh</li>
+</ul>
+If the pages are not reachable check that your web server is running and that no firewall (host or network) is blocking those pages. 
+See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troubleshooting page</a> to check the Frontend Web server.
+</p>
+   </li>
+
+
     <li><b>GLIBC incompatibilities</b>:<br/>
         One possible error that can appear at this point is a problem due to the version of GLIBC:
         <blockquote>
