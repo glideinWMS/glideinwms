@@ -787,12 +787,13 @@ function singularity_get_image {
     [ -n "$SINGULARITY_IMAGE_DEFAULT7" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT rhel7 "$SINGULARITY_IMAGE_DEFAULT7"`"
     [ -n "$SINGULARITY_IMAGE_DEFAULT" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT default "$SINGULARITY_IMAGE_DEFAULT"`"
 
-    if [ -n "$s_platform" ]; then
-        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
-        if [[ -z "$singularity_image" && ",${s_restrictions}," = *",any,"* ]]; then
-            # any means that any image is OK, take the first one
-            singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
-        fi
+    # [ -n "$s_platform" ] not needed, s_platform is never null here (verified above)
+    # Try a match first, then check if there is "any" in the list
+    singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
+    if [[ -z "$singularity_image" && ",${s_platform}," = *",any,"* ]]; then
+        # any means that any image is OK, take the 'default' one and if not there the   first one
+        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT default`"
+        [ -z "$singularity_image" ] && singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
     fi
 
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
