@@ -27,9 +27,20 @@ def is_true(s):
 def has_file_wrapper(dicts):
     for file_dict in ['preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list']:
         if file_dict in dicts:
-            for file_info in dicts[file_dict].values():
+            # dicts[file_dict] contains information about status, ..., vals are the tuples w/ files info and content
+            # tuples are (fname, type, ...)
+            for file_info in dicts[file_dict].vals.values():
                 if file_info[1] == 'wrapper':
                     return True
+    return False
+
+
+def has_file_wrapper_params(file_params):
+    # file_params is the list in a files section (global o group): each one is a file specification
+    # If there is one wrapper return true
+    for user_file in file_params:
+        if is_true(user_file.wrapper):
+            return True
     return False
 
 

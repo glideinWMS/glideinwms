@@ -16,7 +16,7 @@ import os, os.path, shutil, string
 from . import cvWDictFile, cWDictFile
 from . import cvWConsts, cWConsts
 from . import cvWCreate
-from .cWParamDict import is_true, add_file_unparsed, has_file_wrapper
+from .cWParamDict import is_true, add_file_unparsed, has_file_wrapper, has_file_wrapper_params
 import shutil
 # import re - not used
 from glideinwms.lib import x509Support
@@ -224,16 +224,16 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self, params, sub_name,
                  summary_signature, workdir_name):
         cvWDictFile.frontendGroupDicts.__init__(self, params.work_dir, params.stage_dir, sub_name, summary_signature, workdir_name, simple_work_dir=False, base_log_dir=params.log_dir)
-        self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
+        self.monitor_dir = cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
-        self.params=params
-        self.client_security={}
+        self.params = params
+        self.client_security = {}
 
-    def populate(self,params=None):
+    def populate(self, params=None):
         if params is None:
-            params=self.params
+            params = self.params
 
-        sub_params=params.groups[self.sub_name]
+        sub_params = params.groups[self.sub_name]
 
         # put default files in place first
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
@@ -316,7 +316,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                                                                                   other.monitor_dir))
         return cvWDictFile.frontendGroupDicts.reuse(self, other)
 
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         cvWDictFile.frontendGroupDicts.save(self, set_readonly)
         self.save_client_security()
         # Create a local copy of the policy file so we are not impacted
@@ -412,20 +412,34 @@ def add_attr_unparsed(attr_name, params, dicts, description):
     try:
         add_attr_unparsed_real(attr_name, params, dicts)
     except RuntimeError as e:
-        raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr_name, str(e)))
+        raise RuntimeError("Error parsing attr %s[%s]: %s" % (description, attr_name, str(e)))
+
+
+def validate_attribute(attr_name, attr_val):
+    """Check the attribute value is valid. Otherwise throw RuntimeError"""
+    if not attr_name or not attr_val:
+        return
+    # Consider adding a common one in cWParamDict
+    # Series of if/elif sections validating the attributes
+    if attr_name == "GLIDEIN_Singularity_Use":
+        if attr_val not in ('DISABLE_GWMS', 'NEVER', 'OPTIONAL', 'PREFERRED', 'REQUIRED'):
+            raise RuntimeError("Invalid value for GLIDEIN_Singularity_Use: %s not in DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED." %
+                               attr_val)
 
 
 def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj = params.attrs[attr_name]
     
     if attr_obj.value is None:
-        raise RuntimeError("Attribute '%s' does not have a value: %s"%(attr_name, attr_obj))
+        raise RuntimeError("Attribute '%s' does not have a value: %s" % (attr_name, attr_obj))
 
     is_parameter = is_true(attr_obj.parameter)
     # attr_obj.type=="expr" is now used for HTCondor expression
     is_expr = False
     attr_val = params.extract_attr_val(attr_obj)
-    
+
+    validate_attribute(attr_name, attr_val)
+
     if is_parameter:
         dicts['params'].add_extended(attr_name, is_expr, attr_val)
     else:
@@ -444,14 +458,15 @@ def add_attr_unparsed_real(attr_name, params, dicts):
                     ((attr_obj.type == "expr") and (attr_var_type == 'I')) or
                     ((attr_obj.type == "string") and (attr_var_type == 'I'))):
                     raise RuntimeError("Types not compatible (%s,%s)" % (attr_obj.type, attr_var_type))
-                attr_var_export=attr_var_el[4]
-                if do_glidein_publish and (attr_var_export=='N'):
+                attr_var_export = attr_var_el[4]
+                if do_glidein_publish and (attr_var_export == 'N'):
                     raise RuntimeError("Cannot force glidein publishing")
                 attr_var_job_publish = attr_var_el[5]
                 if do_job_publish and (attr_var_job_publish == '-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
-                dicts['vars'].add_extended(attr_name, attr_obj.type, None, None, False, do_glidein_publish, do_job_publish)
+                dicts['vars'].add_extended(attr_name, attr_obj.type, None, None, False,
+                                           do_glidein_publish, do_job_publish)
 
 
 ###################################
@@ -639,9 +654,10 @@ def validate_singularity(descript_dict, sub_params, params, name):
 
     if glidein_singularity_use in ['OPTIONAL', 'PREFERRED', 'REQUIRED', 'REQUIRED_GWMS']:
         # Using Singularity, check that there is a wrapper
-        if not has_file_wrapper(descript_dict):
-            raise RuntimeError("Error: group %s allows Singularity (%s) but has no wrapper file in the files list" %
-                               (name, glidein_singularity_use))
+        if not has_file_wrapper(descript_dict):  # Checks within the group files
+            if not has_file_wrapper_params(params.files):  # Check global files using the params (main file dict is not accessible)
+                raise RuntimeError("Error: group %s allows Singularity (%s) but has no wrapper file in the files list" %
+                                   (name, glidein_singularity_use))
 
 
 def apply_multicore_policy(descript_dict):
