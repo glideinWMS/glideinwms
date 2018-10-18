@@ -58,7 +58,7 @@ else
 fi
 
 # find error reporting helper script 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
 if [ -z "$3" ]; then
     # no script passed, wrapper invoked by the initial test
@@ -72,7 +72,7 @@ verbose=
 # write to stderr only if verbose is set
 function vmessage {
     # echo `date` $@ 1>&2 
-    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" $@ 1>&2
+    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" "$@" 1>&2
 }
 
 
@@ -103,7 +103,7 @@ function list_manage {
     # invoked locally, trust 3 parameters
     # $1 command (add|del), $2 value_to_add_to_list, $3 list_name (in glidein_config, case insensitive)
     # Uses $glidein_config
-    local tmp_list=",`grep -i "^$3 " $glidein_config | awk '{print $2}'`,"
+    local tmp_list=",`grep -i "^$3 " "$glidein_config" | cut -d ' ' -f 2-`,"
     #  Trim commas (greedy, ^$ not needed) - bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
     local re=",*([^,]|[^,].*[^,]),*"
     if [[ "$1" == "del" && "$tmp_list" == *,$2,* ]]; then

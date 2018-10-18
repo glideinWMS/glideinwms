@@ -67,21 +67,21 @@ function check_quotas {
 ############################################################
 
 # Assume all functions exit on error
-config_file=$1
+config_file="$1"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$config_file" | cut -d ' ' -f 2-`"
 
 #
 # Check space on current directory
 #
-reqgbs=`grep -i "^MIN_DISK_GBS " $config_file | awk '{print $2}'`
+reqgbs=`grep -i "^MIN_DISK_GBS " "$config_file" | cut -d ' ' -f 2-`
 if [ -n "$reqgbs" ]; then
  # can only check if defined
  let "reqmbs=$reqgbs * 1024"
 
  check_df . $reqmbs "Cwd"
 
- reqquotas=`grep -i "^CHECK_QUOTA " $config_file | awk '{print $2}'`
+ reqquotas=`grep -i "^CHECK_QUOTA " "$config_file" | cut -d ' ' -f 2-`
  if [ "$reqquotas" == "1" ]; then
     check_quotas . $reqmbs "Cwd"
  fi

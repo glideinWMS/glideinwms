@@ -12,18 +12,18 @@
 #   as it turns on one of them
 #
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
+glidein_config="$1"
+tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
-condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
 
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
-condor_os=`grep '^CONDOR_OS ' $glidein_config | awk '{print $2}'`
+condor_os="`grep '^CONDOR_OS ' "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -z "$condor_os" ]; then
     condor_os="default"
 fi
@@ -113,7 +113,7 @@ if [ "$condor_os" == "auto" ]; then
     fi
 fi
 
-condor_arch=`grep '^CONDOR_ARCH ' $glidein_config | awk '{print $2}'`
+condor_arch="`grep '^CONDOR_ARCH ' "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -z "$condor_arch" ]; then
     condor_arch="default"
 fi
@@ -132,7 +132,7 @@ if [ "$condor_arch" == "auto" ]; then
     fi
 fi
 
-condor_version=`grep '^CONDOR_VERSION ' $glidein_config | awk '{print $2}'`
+condor_version="`grep '^CONDOR_VERSION ' "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -z "$condor_version" ]; then
     condor_version="default"
 fi

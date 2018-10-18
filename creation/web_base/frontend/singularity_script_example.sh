@@ -51,7 +51,7 @@ function warn_raw {
     glidein_config="$GWMS_THIS_SCRIPT_DIR/../glidein_config"
 
 # error_gen defined in singularity_lib.sh
-[ -e "$glidein_config" ] && error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+[ -e "$glidein_config" ] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 
 # Source utility files, outside and inside Singularity
@@ -67,7 +67,7 @@ else
     warn=warn_raw
     exit_script "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
-source ${GWMS_AUX_DIR}singularity_lib.sh
+source "${GWMS_AUX_DIR}singularity_lib.sh"
 
 info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_util.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
 

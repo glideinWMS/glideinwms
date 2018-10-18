@@ -24,7 +24,7 @@ function ignore_signal {
 }
 
 function warn {
- echo `date` $@ 1>&2
+ echo `date` "$@" 1>&2
 }
 
 function usage {
@@ -93,7 +93,7 @@ do case "$1" in
     -clientdescriptgroup)   client_descript_group_file="$2";;
     -slotslayout)			slots_layout="$2";;
     -v)          operation_mode="$2";;
-    -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
+        -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
 shift
@@ -357,16 +357,16 @@ function glidein_exit {
   final_result_long=`simplexml2longxml "${final_result_simple}" "${global_result}"`
 
   if [ $1 -ne 0 ]; then
-      report_failed=`grep -i "^GLIDEIN_Report_Failed " $glidein_config | awk '{print $2}'`
+      report_failed=`grep -i "^GLIDEIN_Report_Failed " "$glidein_config" | cut -d ' ' -f 2-`
 
       if [ -z "$report_failed" ]; then
 	  report_failed="NEVER"
       fi
 
-      factory_report_failed=`grep -i "^GLIDEIN_Factory_Report_Failed " $glidein_config | awk '{print $2}'`
+      factory_report_failed=`grep -i "^GLIDEIN_Factory_Report_Failed " "$glidein_config" | cut -d ' ' -f 2-`
 
       if [ -z "$factory_report_failed" ]; then
-          factory_collector=`grep -i "^GLIDEIN_Factory_Collector " $glidein_config | awk '{print $2}'`
+          factory_collector=`grep -i "^GLIDEIN_Factory_Collector " "$glidein_config" | cut -d ' ' -f 2-`
           if [ -z "$factory_collector" ]; then
               # no point in enabling it if there are no collectors
               factory_report_failed="NEVER"
@@ -394,7 +394,7 @@ function glidein_exit {
 
       add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until $dl ($dlf)."
 
-      condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+      condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
       if [ -n "${condor_vars_file}" ]; then
          # if we are to advertise, this should be available... else, it does not matter anyhow
          add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
@@ -592,16 +592,16 @@ function create_get_id_selectors {
 # Arg: type (main/entry/client/client_group)
 function get_work_dir {
     if [ "\$1" = "main" ]; then
-        grep "^GLIDEIN_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "entry" ]; then
-        grep "^GLIDEIN_ENTRY_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_ENTRY_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "client" ]; then
-        grep "^GLIDECLIENT_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "client_group" ]; then
-        grep "^GLIDECLIENT_GROUP_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_GROUP_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     fi
     echo "[get_work_dir] Invalid id: \$1" 1>&2
@@ -613,16 +613,16 @@ function get_work_dir {
 # Arg: type (main/entry/client/client_group)
 function get_descript_file {
     if [ "\$1" = "main" ]; then
-        grep "^DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^DESCRIPTION_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "entry" ]; then
-        grep "^DESCRIPTION_ENTRY_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^DESCRIPTION_ENTRY_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "client" ]; then
-        grep "^GLIDECLIENT_DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_DESCRIPTION_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "client_group" ]; then
-        grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     fi
     echo "[get_descript_file] Invalid id: \$1" 1>&2
@@ -634,16 +634,16 @@ function get_descript_file {
 # Arg: type (main/entry/client/client_group)
 function get_signature {
     if [ "\$1" = "main" ]; then
-        grep "^GLIDEIN_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "entry" ]; then
-        grep "^GLIDEIN_Entry_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_Entry_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "client" ]; then
-        grep "^GLIDECLIENT_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     elif [ "\$1" = "client_group" ]; then
-        grep "^GLIDECLIENT_Group_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_Group_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
         return \$?
     fi
     echo "[get_signature] Invalid id: \$1" 1>&2
@@ -821,7 +821,7 @@ if [ -n "$client_repository_url" ]; then
 
   if [ -n "$client_repository_group_url" ]; then
       # client group data is optional, user url as a switch
-      if [ -z '$client_group' ]; then
+      if [ -z "$client_group" ]; then
 	  warn "Missing client group name." 1>&2
 	  usage
       fi
@@ -882,11 +882,11 @@ echo "glidein_credential_id = '$glidein_cred_id'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
 echo "glidein_entry     = '$glidein_entry'"
-if [ -n '$client_name' ]; then
+if [ -n "$client_name" ]; then
     # client name not required as it is not used for anything but debug info
     echo "client_name       = '$client_name'"
 fi
-if [ -n '$client_group' ]; then
+if [ -n "$client_group" ]; then
     echo "client_group       = '$client_group'"
 fi
 echo "work_dir          = '$work_dir'"
@@ -1098,11 +1098,11 @@ create_get_id_selectors get_id_selectors.source
 source get_id_selectors.source
 
 wrapper_list="$PWD/wrapper_list.lst"
-touch $wrapper_list
+touch "$wrapper_list"
 
 # create glidein_config
 glidein_config="$PWD/glidein_config"
-echo > glidein_config
+echo > "$glidein_config"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Could not create '$glidein_config'"
 fi
@@ -1110,11 +1110,11 @@ echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
 echo "GLIDEIN_Entry_Name $glidein_entry" >> glidein_config
-if [ -n '$client_name' ]; then
+if [ -n "$client_name" ]; then
     # client name not required as it is not used for anything but debug info
     echo "GLIDECLIENT_Name $client_name" >> glidein_config
 fi
-if [ -n '$client_group' ]; then
+if [ -n "$client_group" ]; then
     # client group not required as it is not used for anything but debug info
     echo "GLIDECLIENT_Group $client_group" >> glidein_config
 fi
@@ -1223,13 +1223,13 @@ function get_untar_subdir {
     gus_prefix=`get_prefix $gus_id`
     gus_config_cfg="${gus_prefix}UNTAR_CFG_FILE"
 
-    gus_config_file=`grep "^$gus_config_cfg " glidein_config | awk '{print $2}'`
+    gus_config_file="`grep "^$gus_config_cfg " glidein_config | cut -d ' ' -f 2-`"
     if [ -z "$gus_config_file" ]; then
 	warn "Error, cannot find '$gus_config_cfg' in glidein_config." 1>&2
 	glidein_exit 1
     fi
 
-    gus_dir=`grep -i "^$gus_fname " $gus_config_file | awk '{print $2}'`
+    gus_dir="`grep -i "^$gus_fname " "$gus_config_file" | cut -d ' ' -f 2-`"
     if [ -z "$gus_dir" ]; then
 	warn "Error, untar dir for '$gus_fname' cannot be empty." 1>&2
 	glidein_exit 1
@@ -1295,7 +1295,7 @@ function fetch_file_regular {
 function fetch_file {
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
-        echo "More then 8 arguments, considering the first 8 ($#/$ifs_str): $@" 1>&2
+        echo "More then 8 arguments, considering the first 8 ($#/$ifs_str): $*" 1>&2
     elif [ $# -ne 8 ]; then
         if [ $# -eq 7 ]; then
             #TODO: remove in version 3.3
@@ -1319,7 +1319,7 @@ function fetch_file {
         fi
         local ifs_str
         printf -v ifs_str '%q' "$IFS"
-        warn "Not enough arguments in fetch_file, 8 expected ($#/$ifs_str): $@" 1>&2
+        warn "Not enough arguments in fetch_file, 8 expected ($#/$ifs_str): $*" 1>&2
         glidein_exit 1
     fi
 
@@ -1344,7 +1344,7 @@ function fetch_file_try {
 	    # TRUE is a special case
 	    fft_get_ss=1
     else
-	    fft_get_ss=`grep -i "^$fft_config_check " glidein_config | awk '{print $2}'`
+	    fft_get_ss=`grep -i "^$fft_config_check " glidein_config | cut -d ' ' -f 2-`
     fi
 
     # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
@@ -1736,12 +1736,12 @@ do
   # Fetch description file
   gs_id_descript_file=`get_descript_file $gs_id`
   fetch_file_regular "$gs_id" "$gs_id_descript_file"
-  signature_file_line=`grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}"`
+  signature_file_line="`grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}"`"
   if [ $? -ne 0 ]; then
       warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
-  signature_file=`echo $signature_file_line|awk '{print $2}'`
+  signature_file="`echo $signature_file_line|cut -d ' ' -f 2-`"
 
   # Fetch signature file
   gs_id_signature=`get_signature $gs_id`
@@ -1778,10 +1778,10 @@ do
       fi
   fi
 
-  gs_id_descript_file=`get_descript_file $gs_id`
+  gs_id_descript_file="`get_descript_file $gs_id`"
   check_file_signature "$gs_id" "$gs_id_descript_file"
   if [ $? -ne 0 ]; then
-      gs_id_work_dir=`get_work_dir $gs_id`
+      gs_id_work_dir="`get_work_dir $gs_id`"
       warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
@@ -1789,9 +1789,9 @@ done
 
 ###################################################
 # get last_script, as it is used by the fetch_file
-gs_id_work_dir=`get_work_dir main`
-gs_id_descript_file=`get_descript_file main`
-last_script=`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | awk '{print $2}'`
+gs_id_work_dir="`get_work_dir main`"
+gs_id_descript_file="`get_descript_file main`"
+last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -d ' ' -f 2-`"
 if [ $? -ne 0 ]; then
     warn "last_script not in description file ${gs_id_work_dir}/$gs_id_descript_file." 1>&2
     glidein_exit 1
@@ -1834,7 +1834,7 @@ do
       warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
-  gs_file_list=`echo $gs_file_list_line |awk '{print $2}'`
+  gs_file_list="`echo $gs_file_list_line |cut -d ' ' -f 2-`"
 
   # fetch list file
   fetch_file_regular "$gs_id" "$gs_file_list"
