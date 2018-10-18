@@ -482,9 +482,10 @@ function singularity_check_paths {
     local val_no_opt="${3%:*}"  # singularity binds are "src:dst:options", keep only 'dst'
     [ -z "$val_no_opt" ] && val_no_opt="$2"
     [[ $1 = *v* ]] && to_check="$3"
-    [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path $to_check. File does not exist"; false; return; }
-    [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path $to_check. Is not in CVMFS"; false; return; }
-    [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path $val_no_opt. File does not exist"; false; return; }
+    [ -z "$to_check" ] && { info "Cannot check empty key/value ('$to_check'). Discarding it"; false; return; }
+    [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path '$to_check'. File does not exist"; false; return; }
+    [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path '$to_check'. Is not in CVMFS"; false; return; }
+    [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path '$val_no_opt'. File does not exist"; false; return; }
     # Same as [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
     echo -n "$2${3:+":$3"},"
 }
@@ -787,12 +788,13 @@ function singularity_get_image {
     [ -n "$SINGULARITY_IMAGE_DEFAULT7" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT rhel7 "$SINGULARITY_IMAGE_DEFAULT7"`"
     [ -n "$SINGULARITY_IMAGE_DEFAULT" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT default "$SINGULARITY_IMAGE_DEFAULT"`"
 
-    if [ -n "$s_platform" ]; then
-        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
-        if [[ -z "$singularity_image" && ",${s_restrictions}," = *",any,"* ]]; then
-            # any means that any image is OK, take the first one
-            singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
-        fi
+    # [ -n "$s_platform" ] not needed, s_platform is never null here (verified above)
+    # Try a match first, then check if there is "any" in the list
+    singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
+    if [[ -z "$singularity_image" && ",${s_platform}," = *",any,"* ]]; then
+        # any means that any image is OK, take the 'default' one and if not there the   first one
+        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT default`"
+        [ -z "$singularity_image" ] && singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
     fi
 
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong

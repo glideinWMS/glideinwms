@@ -743,7 +743,21 @@ def add_attr_unparsed(attr, dicts, description):
     try:
         add_attr_unparsed_real(attr, dicts)
     except RuntimeError as e:
-        raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr[u'name'], str(e)))
+        raise RuntimeError("Error parsing attr %s[%s]: %s" % (description, attr[u'name'], str(e)))
+
+
+def validate_attribute(attr_name, attr_val):
+    """Check the attribute value is valid. Otherwise throw RuntimeError"""
+    if not attr_name or not attr_val:
+        return
+    # Consider adding a common one in cWParamDict
+    # Series of if/elif sections validating the attributes
+    if attr_name == "GLIDEIN_SINGULARITY_REQUIRE":
+        if attr_val.lower == 'true':
+            raise RuntimeError("Invalid value for GLIDEIN_SINGULARITY_REQUIRE: use REQUIRED or REQUIRED_GWMS instead of True")
+        if attr_val not in ('REQUIRED_GWMS', 'NEVER', 'OPTIONAL', 'PREFERRED', 'REQUIRED'):
+            raise RuntimeError("Invalid value for GLIDEIN_SINGULARITY_REQUIRE: %s not in REQUIRED_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED." %
+                               attr_val)
 
 
 def add_attr_unparsed_real(attr, dicts):
@@ -751,7 +765,9 @@ def add_attr_unparsed_real(attr, dicts):
     do_publish = eval(attr[u'publish'], {}, {})
     is_parameter = eval(attr[u'parameter'], {}, {})
     is_const = eval(attr[u'const'], {}, {})
-    attr_val=attr.get_val()
+    attr_val = attr.get_val()
+
+    validate_attribute(attr_name, attr_val)
 
     if do_publish:  # publish in factory ClassAd
         if is_parameter:  # but also push to glidein
@@ -766,15 +782,15 @@ def add_attr_unparsed_real(attr, dicts):
     else:  # do not publish, only to glidein
         dicts['consts'].add(attr_name, attr_val)
 
-    do_glidein_publish=eval(attr[u'glidein_publish'], {}, {})
-    do_job_publish=eval(attr[u'job_publish'], {}, {})
+    do_glidein_publish = eval(attr[u'glidein_publish'], {}, {})
+    do_job_publish = eval(attr[u'job_publish'], {}, {})
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
             if attr_name in dicts['vars']:
                 # already in the var file, check if compatible
-                attr_var_el=dicts['vars'][attr_name]
-                attr_var_type=attr_var_el[0]
+                attr_var_el = dicts['vars'][attr_name]
+                attr_var_type = attr_var_el[0]
                 if (((attr[u'type'] == "int") and (attr_var_type != 'I')) or
                     ((attr[u'type'] == "expr") and (attr_var_type == 'I')) or
                     ((attr[u'type'] == "string") and (attr_var_type == 'I'))):
@@ -782,11 +798,12 @@ def add_attr_unparsed_real(attr, dicts):
                 attr_var_export = attr_var_el[4]
                 if do_glidein_publish and (attr_var_export == 'N'):
                     raise RuntimeError("Cannot force glidein publishing")
-                attr_var_job_publish=attr_var_el[5]
-                if do_job_publish and (attr_var_job_publish=='-'):
+                attr_var_job_publish = attr_var_el[5]
+                if do_job_publish and (attr_var_job_publish == '-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
-                dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False, do_glidein_publish, do_job_publish)
+                dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False,
+                                           do_glidein_publish, do_job_publish)
 
 
 ##################################
