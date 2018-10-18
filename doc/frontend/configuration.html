@@ -70,13 +70,14 @@
 <ol>
         <li><a href="#example">Example Configuration</a> </li>
         <li><a href="#management">Frontend Configuration</a> </li>
+        <li><a href="#attr_singularity">Singularity attributes</a> </li>
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
         <li><a href="#usercollector">Using multiple user pool collectors/HTCondor High Availability (HA) support</a> </li>
+        <li><a href="#singularity">Using Singularity</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
         <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
-        <li><a href="#attr_singularity">Using Singularity</a> </li>
 </ol>
 </div>
 <div class="related">
@@ -567,28 +568,25 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
             </div>
-        This determines whether or not you want to mandate
-        the use of Singularity and is used both for provisioning and once the job is on the site. Possible values are
-            DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - Default) or
-            NEVER (do not use Singularity) or
-            OPTIONAL or PREFERRED (use Singularity if the site is configured with it)
-            or REQUIRED (always require Singularity).
-        If REQUIRED, PREFERRED or OPTIONAL are used, the default wrapper script that we provide should be used (or a similar one). In other words
-a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added
-in the &lt;files&gt; section of the general or group parts of the Frontend configuration.
-            See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
+        This determines whether or not you want to mandate the use of Singularity.
+        It affects both provisioning and the job on the site. Possible values are:
+        <ul>
+            <li>DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - this is the <d></d>efault) or
+            <li>NEVER (do not use Singularity) or
+            <li>OPTIONAL or PREFERRED (use Singularity if the site is configured with it)
+            <li>or REQUIRED (always require Singularity).
+            </li>
+        </ul>
+        If REQUIRED, PREFERRED or OPTIONAL are used (i.e. if the Glidein may use Singularity), further configuration steps are required to specify
+        a user-job-wrapper and a Singularity image.
+        The actual use of Singularity is negotiated with the Factory Entry.
+        See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
             a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE
-            (the entry variable).
-	    <br>
-        If REQUIRED, PREFERRED or OPTIONAL are used, you or the Factory have to provide valid images compatible with your REQUIRED_OS.
-This can be done by setting the SINGULARITY_IMAGES_DICT variable (a string-encoded key-value pair dictionary listing Singularity images)
-or by running a pre_singularity setup script that will set the variable.
-See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the format of the dictionary.
-You can use the generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/, or you can copy, rename and customize it to
-set SINGULARITY_IMAGES_DICT as desired. If you use a script, add a line such as
-&lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/(your vo)_pre_singularity_setup.sh</I>&quot;  after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt;
-in &lt;files&gt; section as before.
-The example script sets a SINGULARITY_IMAGES_DICT with the OSG images in CVMFS for rhel7 and rhel6.
+            (the entry variable).    <br>
+            See the <a href="#singularity">section on how to use Singularity</a> below for more on how to specify the wrapper,
+            how to set the available images and select one.
+            And see the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for a reference information on all the variables and
+            more information about the format of the dictionary.
             <br>
             SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7 and SINGULARITY_IMAGE_DEFAULT are <b>deprecated</b>. These will be ignored in future versions.
 Currently these set the values of the 'rhel6', 'rhel7' and 'default' images respectively in SINGULARITY_IMAGES_DICT.
@@ -597,33 +595,35 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
         <I>/var/lib/gwms-frontend/web-base/default_singularity_wrapper.sh</I>
         and make your custom script compatible with this setup script.
 	<br>
-            The Frontend or a group can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH.
-These bind-mounts override the ones listed by the Factory in GLIDEIN_SINGULARITY_BINDPATH_DEFAULT.
-If one or more of the specified paths does not exist on the node, it will be removed from the list.
-&lt;attr name=&quot;GLIDEIN_SINGULARITY_BINDPATH&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/vo_files,/src_path:/dst_path&quot;/&gt;.
-See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the bind mounts.
-<br>
-        Users can specify the following 2 lines in their job submit file
+        The Frontend or a group can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH or custom options.
+        Again, you can fnid more in the <a href="../factory/configuration.html#singularity">Factory configuration document</a> and the
+        <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a>.
+    <br>
+        Users can specify one or more of the following 3 lines in their job submit file:
 	<ul>
 	  <li> If their jobs need a list of repositories, they must specify the list between double quotes, separated by commas, for example,
-	    <br>
+	    <blockquote>
           +CVMFSReposList = &quot;cms.cern.ch,atlas.cern.ch&quot;.
-	    <br>
+        </blockquote>
 	    If any of these cvmfs repositories is not availale, the user jobs will fail.
           </li>
-	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I>
-	    <br>
-          and use +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/&lt;path name to the image&gt;&quot;.
-	    <br>
-	    If users use this feature and if the singularity image is not in /cvmfs repository, the user job will error out.
+	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I> and use:
+	    <blockquote>
+          +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE&quot;.
+        </blockquote>
+	    If users use this feature and if the Singularity image is not in the path indicated in the /cvmfs repository, the user job will error out.
           </li>
 	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
-          SINGULARITY_IMAGES_DICT will be searched for 'default', 'rhel7' and 'rhel6' images.
-	    But if any default singularity image is not available, the user job will fail.
-	    Also, if the users specify REQUIRED_OS as rhel6 or rhel7, the corresponding version of default singularity image will be used.
-	    But if the corresponding version of default singularity image is not available, the user job will fail.
-	    If the users specify REQUIRED_OS as any, any default singularity image available will be used 
-            and the user job will fail if there is no default singularity image.
+        SINGULARITY_IMAGES_DICT will be searched for 'default', 'rhel7' and 'rhel6' images.
+          Users can select a specific image form SINGULARITY_IMAGES_DICT by using REQUIRED_OS:
+	    <blockquote>
+          +REQUIRED_OS = &quot;rhel6&quot;.
+        </blockquote>
+        If the users specify a value different from 'any' for <b>REQUIRED_OS</b> (e.g. rhel6, rhel7),
+        the corresponding version of default Singularity image (the one with matching name in the dictionary) will be used.
+	    Independently from how an image was selected, if the chosen Singularity image is not available, the user job will fail.
+        If the users specify <b>REQUIRED_OS</b> as 'any', the first available default Singularity image will be used
+        and the user job will fail only if there is no default Singularity image.
 	  </li>
 	</ul>
         </P></li>
@@ -1011,7 +1011,7 @@ Only very specific setups need to change this section.
                   node="CCB Collector:<b>other_port?sock=collectorID1-ID2</b>"/&gt;</br>
             <font color="blue"><i>
             <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration:<i>port range</i>,
-                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collectorID1-ID2</b).
+                single collector (<b>sock=collectorX</b>), or sinful string can be used for the sock range case (<b>sock=collectorID1-ID2</b>).
                 This last case is further explained in
                 <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
                 It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</i></font><br/>
@@ -1289,6 +1289,77 @@ One example follows:
 </div>
 </p>
 </div>
+
+<div class="section">
+<H2 CLASS="western"><A NAME="singularity"></A>Run jobs under Singularity</H2>
+
+    <P>As mentionsd <a href="#attr_singularity">above</a>, <b>GLIDEIN_Singularity_Use</b> determines whether or not you want to mandate the use of Singularity
+    (via GlideinWMS) and is used both for provisioning and to match and run once the Glidein is on the site.
+To use Singularity you have to set it to one of REQUIRED, PREFERRED or OPTIONAL, e.g.:
+<blockquote>&lt;attr name="GLIDEIN_Singularity_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="PREFERRED"/&gt;
+</blockquote>
+The Factory setting and the actual availability of singularity and an image will also affect the actual use of Singularity.
+    See the <a href="../factory/configuration.html#singularity">Factory configuration document</a>
+for a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE (the entry variable)
+    to decide wether the Glidein can run there and should use Singularity or not.
+</P>
+
+<p>To use Singularity you must also (in the general or group configuration):
+<ol>
+    <li>Use the default wrapper script that we provide (or a similar one). In other words a line like:
+<blockquote>&lt;file absfname="/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh" wrapper="True"/>
+</blockquote>
+    must be added in the &lt;files> section of the general or group parts of the Frontend configuration.
+NOTE: Remember to remove your previous VO wrapper if you had one, e.g. if you were using Singularity via OSG
+</li>
+<li>Specify an image. You can specify one single image or a dictionary of images, SINGULARITY_IMAGES_DICT, and pick one with the variable REQUIRED_OS (set in the job of in the Frontend group).
+If you use SINGULARITY_IMAGES_DICT and REQUIRED_OS, the value of REQUIRED_OS must be 'any' or one of the keys used in the dictionary.
+To specify the image dictionary you have a couple of options:
+<ul style="list-style-type:none">
+    <li><b>2a.</b> run a pre-singularity script like generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/,
+        (or a similar one you did for your VO). To do this add a line such as:
+        <blockquote>
+    &lt;file absfname="/var/lib/gwms-frontend/web-base/frontend/generic_pre_singularity_setup.sh" after_entry="False" executable="True" period="0" untar="False" wrapper="False"/>
+</blockquote>
+    in the &lt;files> section as before. This script sets a SINGULARITY_IMAGES_DICT with the OSG images in CVMFS for "rhel7" and "rhel6".
+        You can select one of them by setting <b>REQUIRED_OS</b> to one of the keys. "rhel7" is the default.
+    </li>
+        <li><b>2b.</b> You can set directly SINGULARITY_IMAGES_DICT in your group attributes adding a line like:
+<blockquote>
+            &lt;attr name="SINGULARITY_IMAGES_DICT" glidein_publish="True" job_publish="True" parameter="False" type="string" value="default:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el6,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el7"/>
+</blockquote>
+Then you can use REQUIRED_OS to select one of the images.
+        </li>
+    <li><b>2c.</b> You can ask the Factory to set SINGULARITY_IMAGES_DICT for you and use REQUIRED_OS to select the image.
+    </li>
+    <li><b>2d.</b> You set SingularityImage in the job submit file, e.g:
+<blockquote>
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE"
+</blockquote>
+    </li>
+</ul>
+    </li>
+</ol>
+    </p>
+
+Optionally, in the general or group configuration you can also:
+<ul>
+    <li>Specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH. These bind-mounts override the ones listed by the Factory in GLIDEIN_SINGULARITY_BINDPATH_DEFAULT.
+        If one or more of the specified paths does not exist on the node, it will be removed from the list. Here an example:
+<blockquote>
+&lt;attr name="GLIDEIN_SINGULARITY_BINDPATH" const="False" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="/vo_files,/src_path:/dst_path"/>.
+</blockquote>
+        See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the bind mounts.
+    </li>
+    <li>Specify additional options for the singularity command, using the attribute <b>GLIDEIN_SINGULARITY_OPTS</b>
+</li>
+</ul>
+
+The <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> contains a reference of all the
+    Singularity attributes used in the Frontend, Factory or Glidein.
+</div>
+
+
 
 <div class="section">
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend
