@@ -133,7 +133,7 @@ if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
 fi
 
 ccb_host="$(parse_and_select_collectors GLIDEIN_CCB)"
-if [ -z "ccb_host" ]; then
+if [ -z "$ccb_host" ]; then
     echo "No GLIDEIN_CCB found (will use collectors if CCB is enabled)!" 1>&2
     # This is taken care in setup_network.sh
 else

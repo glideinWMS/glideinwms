@@ -482,9 +482,10 @@ function singularity_check_paths {
     local val_no_opt="${3%:*}"  # singularity binds are "src:dst:options", keep only 'dst'
     [ -z "$val_no_opt" ] && val_no_opt="$2"
     [[ $1 = *v* ]] && to_check="$3"
-    [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path $to_check. File does not exist"; false; return; }
-    [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path $to_check. Is not in CVMFS"; false; return; }
-    [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path $val_no_opt. File does not exist"; false; return; }
+    [ -z "$to_check" ] && { info "Cannot check empty key/value ('$to_check'). Discarding it"; false; return; }
+    [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path '$to_check'. File does not exist"; false; return; }
+    [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path '$to_check'. Is not in CVMFS"; false; return; }
+    [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path '$val_no_opt'. File does not exist"; false; return; }
     # Same as [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
     echo -n "$2${3:+":$3"},"
 }
