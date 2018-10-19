@@ -142,7 +142,7 @@ for a more detailed description.
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port" gridtype="condor" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
@@ -691,9 +691,9 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;
 
-        gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
+        gridtype=&quot;<I>grid type [default: condor]</I>&quot;&gt;
         </div>
-    <b>Optional:</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
+    <b>Optional:</b> The default condor is for HTCondor-CE Gatekeepers. Other values are ec2 or one of the batch types supported by HTCondor:
     batch pbs (for PBS and SLURM), batch lsf, batch sge, batch condor. 
     This tag can specify additional HTCondor Grid types.
     </li>

@@ -121,6 +121,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         glidein_name = conf[u'glidein_name']
         gridtype = entry[u'gridtype']
         gatekeeper = entry[u'gatekeeper']
+        entry_enabled = entry[u'enabled']
         if u'rsl' in entry:
             rsl = entry[u'rsl']
         else:
@@ -161,14 +162,14 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
             # next we add the Condor-C additions
             self.populate_condorc_grid(submit_attrs)
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
             self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -191,10 +192,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype):
-        if gridtype == 'gt2' or gridtype == 'gt5':
-            if "project_id" in auth_method or ((rsl is not None) and rsl != ""):
-                self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
+    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled):
+        if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
+            raise RuntimeError(" The grid type '%s' is no longer supported. Review the entry attributes" % gridtype)
         elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
@@ -219,7 +219,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         input_files = []
         encrypt_input_files = []
 
-        self.populate_standard_grid(rsl, auth_method, gridtype)
+        self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
 
         input_files.append('$ENV(X509_USER_PROXY)')
         encrypt_input_files.append('$ENV(X509_USER_PROXY)')

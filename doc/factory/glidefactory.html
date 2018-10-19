@@ -150,9 +150,9 @@ entry point and it includes the following:</p>
 			to jobs.
 				<ul>
 					<li>EntryName = &quot;entry_name&quot;</li>
-					<li>GLIDEIN_GridType = &quot;gt2&quot;</li>
+					<li>GLIDEIN_GridType = &quot;condor&quot;</li>
 					<li>GLIDEIN_GlobusRSL = &quot;&#40;queue=default&#41;&quot;</li>
-					<li>GLIDEIN_Gatekeeper = &quot;entry.domain.name&frasl;jobmanager-condor&quot;</li>
+					<li>GLIDEIN_Gatekeeper = &quot;entry.domain.name entry.domain.name:port;&quot;</li>
 					<li>DaemonStartTime = 1291848363</li>
 				</ul>
 			</li>
@@ -242,7 +242,7 @@ DaemonStartTime = 1293038517
 UpdateSequenceNumber = 3794
 GLIDEIN_In_Downtime = "False"
 GLEXEC_JOB = "True"
-GLIDEIN_GridType = "gt2"
+GLIDEIN_GridType = "condor"
 GLEXEC_BIN = "NONE"
 USE_CCB = "True"
 GCB_ORDER = "NONE"
