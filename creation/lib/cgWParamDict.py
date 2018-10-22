@@ -410,6 +410,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self, conf, sub_name,
                  summary_signature, workdir_name):
+        self.conf=conf
+        self.entry_name=sub_name
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()
         monitor_dir = conf.get_monitor_dir()
@@ -421,15 +423,20 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir, sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
-        self.conf=conf
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
-        condor_jdls = glob.glob(os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE_ENTRYSET % '*'))
-        if condor_jdls:
+        for entry in self.conf.get_entries():
+            if entry.getName()==self.entry_name:
+                break
+        else:
+            # This happens when old_dictionary contains something (e.g.: entries are removed from the conf)
+            entry = None
+        if entry and isinstance(entry, factoryXmlConfig.EntrySetElement):
             self.dicts['condor_jdl'] = []
-            for cj in condor_jdls:
-                self.dicts['condor_jdl'].append(cgWCreate.GlideinSubmitDictFile(self.work_dir, os.path.basename(cj)))
+            for sub_entry in entry.get_subentries():
+                self.dicts['condor_jdl'].append(cgWCreate.GlideinSubmitDictFile(self.work_dir,
+                                                os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE_ENTRYSET % sub_entry.getName())))
         else:
             self.dicts['condor_jdl'] = [cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)]
 
