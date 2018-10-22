@@ -10,7 +10,7 @@
 #   This script will setup the GCB parameters
 #
 
-glidein_config=$1
+glidein_config="$1"
 
 # fail catastrophically on error
 function append_config {
@@ -94,7 +94,7 @@ function setup_gcb {
     return 0
 }
 
-gcb_order=`grep '^GCB_ORDER ' $glidein_config | awk '{print $2}'`
+gcb_order=`grep '^GCB_ORDER ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$gcb_order" ]; then
     gcb_order="NONE"
 fi
@@ -104,7 +104,7 @@ if [ "$gcb_order" == "NONE" ]; then
     exit 0
 fi
 
-condor_dir=`grep '^CONDOR_DIR ' $glidein_config | awk '{print $2}'`
+condor_dir="`grep '^CONDOR_DIR ' "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -z "$condor_dir" ]; then
     echo "No CONDOR_DIR found!" 1>&2
     exit 1
@@ -115,7 +115,7 @@ if [ -e "$condor_dir/sbin/gcb_broker_query" ]; then
     gcb_query_exists=1
 fi
 
-gcb_min_free=`grep '^GCB_MIN_FREE ' $glidein_config | awk '{print $2}'`
+gcb_min_free=`grep '^GCB_MIN_FREE ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -n "$gcb_min_free" ]; then
     if [ "$gcb_query_exists" -eq 0 ]; then
 	echo "GCB_MIN_FREE defined, but gcb_broker_query not present." 1>&2
@@ -123,14 +123,14 @@ if [ -n "$gcb_min_free" ]; then
     fi
 fi
 
-gcb_list=`grep '^GCB_LIST ' $glidein_config | awk '{print $2}'`
+gcb_list=`grep '^GCB_LIST ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$gcb_list" ]; then
     echo "No GCB_LIST found!" 1>&2
     exit 1
 fi
 
 default_gcb_port=65432
-gcb_port=`grep '^GCB_PORT ' $glidein_config | awk '{print $2}'`
+gcb_port=`grep '^GCB_PORT ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$gcb_port" ]; then
     gcb_port=$default_gcb_port
 fi
@@ -146,8 +146,8 @@ elif [ "$gcb_order" == "RR" -o "$gcb_order" == "ROUNDROBIN" ]; then
     ##########################################################
     # round robin, based on the cluster number
     ##########################################################
-    nr1=`grep '^CONDORG_CLUSTER ' $glidein_config | awk '{print $2}'`
-    nr2=`grep '^CONDORG_SUBCLUSTER ' $glidein_config | awk '{print $2}'`
+    nr1=`grep '^CONDORG_CLUSTER ' "$glidein_config" | cut -d ' ' -f 2-`
+    nr2=`grep '^CONDORG_SUBCLUSTER ' "$glidein_config" | cut -d ' ' -f 2-`
     let nr=$nr1+$nr2
     nr_gcb_els=`echo "$gcb_list" | awk '{split($0,g,","); nr=0; for (i in g) nr=nr+1; print nr}'`
     let start_nr=$nr%$nr_gcb_els
@@ -209,7 +209,7 @@ if [ "$gcb_configured" -eq 0 ]; then
 fi
 
 # setup the routing tables
-gcb_port=`grep '^GCB_REMAP_ROUTE ' $glidein_config | awk '{print $2}'`
+gcb_port=`grep '^GCB_REMAP_ROUTE ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -n "$gcb_remap" ]; then
     if [ -r "$gcb_remap" ]; then
 	append_config "NET_REMAP_ROUTE = $PWD/$gcb_remap"

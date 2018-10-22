@@ -50,18 +50,18 @@ function check_blacklist {
 ############################################################
 
 # Assume all functions exit on error
-config_file=$1
+config_file="$1"
 dir_id=$2
 
-error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$config_file" | cut -d ' ' -f 2-`"
 
 # import get_prefix function
-get_id_selectors_source=`grep '^GET_ID_SELECTORS_SOURCE ' $config_file | awk '{print $2}'`
-source $get_id_selectors_source
+get_id_selectors_source="`grep '^GET_ID_SELECTORS_SOURCE ' "$config_file" | cut -d ' ' -f 2-`"
+source "$get_id_selectors_source"
 
 id_prefix=`get_prefix $dir_id`
 
-blacklist_file=`grep -i "^${id_prefix}BLACKLIST_FILE " $config_file | awk '{print $2}'`
+blacklist_file="`grep -i "^${id_prefix}BLACKLIST_FILE " "$config_file" | cut -d ' ' -f 2-`"
 if [ -n "$blacklist_file" ]; then
   check_blacklist
 fi

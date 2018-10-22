@@ -50,7 +50,7 @@ function warn_raw {
     glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
 
 # error_gen defined in singularity_lib.sh
-[ -e "$glidein_config" ] && error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+[ -e "$glidein_config" ] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 
 # Source utility files, outside and inside Singularity
@@ -440,9 +440,9 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #  Run the real job
 #
 info_dbg "current directory at execution (`pwd`): `ls -al`"
-info_dbg "GWMS singularity wrapper, job exec: $@"
+info_dbg "GWMS singularity wrapper, job exec: $*"
 info_dbg "GWMS singularity wrapper, messages after this line are from the actual job ##################"
 exec "$@"
 error=$?
 # exec failed. Log, communicate to HTCondor, avoid black hole and exit
-exit_wrapper "exec failed  (Singularity:$GWMS_SINGULARITY_REEXEC, exit code:$error): $@" $error
+exit_wrapper "exec failed  (Singularity:$GWMS_SINGULARITY_REEXEC, exit code:$error): $*" $error

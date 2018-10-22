@@ -89,25 +89,25 @@ stderr:
 }
 
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
+glidein_config="$1"
+tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
-condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
 
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
 # Is site configured with glexec?
-glexec_bin=`grep '^GLEXEC_BIN ' $glidein_config | awk '{print $2}'`
+glexec_bin="`grep '^GLEXEC_BIN ' "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -z "$glexec_bin" ]; then
     glexec_bin="NONE"
 fi
 
 # Does frontend wants to use glexec?
-use_glexec=`grep '^GLIDEIN_Glexec_Use ' $glidein_config | awk '{print $2}'`
+use_glexec=`grep '^GLIDEIN_Glexec_Use ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$use_glexec" ]; then
     # Default to optional usage
     echo "`date` GLIDEIN_Glexec_Use not configured. Defaulting it to OPTIONAL"
@@ -115,7 +115,7 @@ if [ -z "$use_glexec" ]; then
 fi
 
 # Does entry require glidein to use glexec?
-require_glexec_use=`grep '^GLIDEIN_REQUIRE_GLEXEC_USE ' $glidein_config | awk '{print $2}'`
+require_glexec_use=`grep '^GLIDEIN_REQUIRE_GLEXEC_USE ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$require_glexec_use" ]; then
     # Default is False
     echo "`date` GLIDEIN_Require_Glexec_Use not configured. Defaulting it to False"
@@ -171,7 +171,7 @@ case "$use_glexec" in
 esac
 
 # We should use the copy of the proxy created by setup_x509.sh
-x509_user_proxy=`grep "^X509_USER_PROXY " $glidein_config | awk '{print $2}'`
+x509_user_proxy="`grep "^X509_USER_PROXY " "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -f "$x509_user_proxy" ]; then
   export X509_USER_PROXY=$x509_user_proxy
 else
@@ -201,7 +201,7 @@ add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 # Set glidein working dir into the tmp dir
 # This is needed since the user will be changed and 
 # the tmp directory is world writtable
-glide_tmp_dir=`grep '^TMP_DIR ' $glidein_config | awk '{print $2}'`
+glide_tmp_dir="`grep '^TMP_DIR ' "$glidein_config" | cut -d ' ' -f 2-`"
 if [ -z "$glide_tmp_dir" ]; then
     #echo "TMP_DIR not found!" 1>&2
     STR="TMP_DIR not found!"
@@ -286,7 +286,7 @@ else
 fi
 
 
-glexec_job=`grep '^GLEXEC_JOB ' $glidein_config | awk '{print $2}'`
+glexec_job=`grep '^GLEXEC_JOB ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$glexec_job" ]; then
     # default to the new mode
     glexec_job="True"
@@ -328,7 +328,7 @@ test_glexec2
 # Also add requirement that voms proxies exist
 ####################################################################
 
-start_condition=`grep '^GLIDEIN_Entry_Start ' $glidein_config | awk '{print $2}'`
+start_condition=`grep '^GLIDEIN_Entry_Start ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$start_condition" ]; then
     add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&((GLIDEIN_REQUIRE_VOMS=?=UNDEFINED)||(GLIDEIN_REQUIRE_VOMS=?=False)||(TARGET.x509userproxyfirstfqan=!=UNDEFINED))"
 else

@@ -366,16 +366,16 @@ function get_prop_str {
 # $glidein_config from the file importing this
 # add_config_line and add_condor_vars_line are in add_config_line.source (ADD_CONFIG_LINE_SOURCE in $glidein_config)
 if [ -e "$glidein_config" ]; then    # was: [ -n "$glidein_config" ] && [ "$glidein_config" != "NONE" ]
-    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
+    error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
     if [ "x$SOURCED_ADD_CONFIG_LINE" = "x" ]; then
         # import add_config_line and add_condor_vars_line functions used in advertise
         if [ "x$add_config_line_source" = "x" ]; then
-            export add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-            export       condor_vars_file=`grep -i "^CONDOR_VARS_FILE "    $glidein_config | awk '{print $2}'`
+            export add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-`"
+            export       condor_vars_file="`grep -i "^CONDOR_VARS_FILE "    $glidein_config | cut -d ' ' -f 2-`"
         fi
 
         info "Sourcing add config line: $add_config_line_source"
-        source $add_config_line_source
+        source "$add_config_line_source"
         # make sure we don't source a second time inside the container
         export SOURCED_ADD_CONFIG_LINE=1
     fi
@@ -429,9 +429,9 @@ function advertise_safe {
     # Out:
     #  string for ClassAd
     #  Added lines to glidein_config and condor_vars.lst
-    key="$1"
-    value="$2"
-    atype="$3"
+    local key="$1"
+    local value="$2"
+    local atype="$3"
 
     if [ "$glidein_config" != "NONE" ]; then
         add_config_line_safe $key "$value"
@@ -464,7 +464,8 @@ function get_all_platforms {
 #
 
 function singularity_check_paths {
-    # Check if the mount-points are valid. Return true if all tests are satisfied, false otherwise.
+    # Check if the mount-points are valid. Return true and echo the mount-point if all tests are satisfied,
+    # return false otherwise.
     # List of valid checks (other letters will be ignored):
     #  e: exist
     #  c: in cvmfs
@@ -482,9 +483,10 @@ function singularity_check_paths {
     local val_no_opt="${3%:*}"  # singularity binds are "src:dst:options", keep only 'dst'
     [ -z "$val_no_opt" ] && val_no_opt="$2"
     [[ $1 = *v* ]] && to_check="$3"
-    [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path $to_check. File does not exist"; false; return; }
-    [[ $1 = *c* ]] && [ ! "$to_check" = "/cvmfs"* ] && { info "Discarding path $to_check. Is not in CVMFS"; false; return; }
-    [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path $val_no_opt. File does not exist"; false; return; }
+    [ -z "$to_check" ] && { info "Cannot check empty key/value ('$to_check'). Discarding it"; false; return; }
+    [[ $1 = *e* ]] && [ ! -e "$to_check" ] && { info "Discarding path '$to_check'. File does not exist"; false; return; }
+    [[ $1 = *c* ]] && [[ ! "$to_check" = "/cvmfs"* ]] && { info "Discarding path '$to_check'. Is not in CVMFS"; false; return; }
+    [[ $1 = *d* ]] && [ ! -e "$val_no_opt" ] && { info "Discarding value path '$val_no_opt'. File does not exist"; false; return; }
     # Same as [ -n "$3" ] && echo -n "$2:$3," || echo -n "$2,"
     echo -n "$2${3:+":$3"},"
 }
@@ -787,12 +789,13 @@ function singularity_get_image {
     [ -n "$SINGULARITY_IMAGE_DEFAULT7" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT rhel7 "$SINGULARITY_IMAGE_DEFAULT7"`"
     [ -n "$SINGULARITY_IMAGE_DEFAULT" ] && SINGULARITY_IMAGES_DICT="`dict_set_val SINGULARITY_IMAGES_DICT default "$SINGULARITY_IMAGE_DEFAULT"`"
 
-    if [ -n "$s_platform" ]; then
-        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
-        if [[ -z "$singularity_image" && ",${s_restrictions}," = *",any,"* ]]; then
-            # any means that any image is OK, take the first one
-            singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
-        fi
+    # [ -n "$s_platform" ] not needed, s_platform is never null here (verified above)
+    # Try a match first, then check if there is "any" in the list
+    singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT "$s_platform"`"
+    if [[ -z "$singularity_image" && ",${s_platform}," = *",any,"* ]]; then
+        # any means that any image is OK, take the 'default' one and if not there the   first one
+        singularity_image="`dict_get_val SINGULARITY_IMAGES_DICT default`"
+        [ -z "$singularity_image" ] && singularity_image="`dict_get_first SINGULARITY_IMAGES_DICT`"
     fi
 
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
@@ -1067,7 +1070,7 @@ function cvmfs_test_and_open {
     local IFS=,  # "\t\t\""
     if [ -n "$1" ]; then
         # Test and keep open each CVMFS repo
-        for x in "$1"; do
+        for x in $1; do  # Spaces in file name are OK, separator is comma
             if eval "exec $holdfd</cvmfs/\"$x\""; then
                 echo "\"/cvmfs/$x\" exists and available"
                 let "holdfd=holdfd+1"
@@ -1079,5 +1082,4 @@ function cvmfs_test_and_open {
         done
     fi
 }
-
 

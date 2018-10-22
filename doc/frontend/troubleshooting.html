@@ -324,7 +324,7 @@ code 1:Error: communication error<br/>
     <b>Symptoms:</b>User job stays idle and there are no glideins submitted that correspond to your job.<br/>
 
     <p>
-    This step involves the interaction of the VO Frontend and WMS Factory.  Hence, there are two separate facilities to see why no glideins are being created.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> page if none of these suggestions help.
+    This step involves the interaction of the VO Frontend, the WMS Factory and the Glideins.  Hence, there are two separate facilities to see why no glideins are being created.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> page if none of suggestions below help.
     </p>
 
     <h3>Frontend unable to map your job to any entry point</h3>
@@ -381,6 +381,22 @@ code 1:Error: communication error<br/>
 </p>
    </div>
 
+<div class="section">
+<h3>Frontend Web server down or unreachable </h3>
+<b>Symptoms:</b>  Glideins do not report. Everything seems OK, no special error visible in the Frontend. Errors would be visible in the Glidein logs, in the Facotry
+<b>Debugging Steps</b>:
+<p>
+It is worth to test quickly the Web server. It serves both the monitoring pages and the stage area used by the Glideins.
+Check that the following pages are available (the staging area should be available from everywhere Glideins are running, so check the pages also from outside the Firewall):
+<ul>
+	<li>monitoring pages: http://FRONTEND_HOST_NAME/vofrontend/monitor/ </li>
+	<li>staging area (most files have a hash in the file name):  http://FRONTEND_HOST_NAME/vofrontend/stage/nodes.blacklist</li>
+</ul>
+If the pages are not reachable check that your web server is running and that no firewall (host or network) is blocking those pages.
+</p>
+   </div>
+
+  
 
     <div class="section">
     <h2><a name="admin_tools">Administrative tools</a></h2>

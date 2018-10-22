@@ -10,19 +10,19 @@
 #   This script will setup the memory available to the glidein
 #
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
+glidein_config="$1"
+tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
-condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
 
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
 # Use GLIDEIN_MaxMemMBs if configured by the factory
-GLIDEIN_MaxMemMBs=`grep -i "^GLIDEIN_MaxMemMBs " $glidein_config | awk '{print $2}'`
+GLIDEIN_MaxMemMBs=`grep -i "^GLIDEIN_MaxMemMBs " "$glidein_config" | cut -d ' ' -f 2-`
 
 if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
     echo "`date` GLIDEIN_MaxMemMBs not set in $glidein_config."
@@ -36,7 +36,7 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
         # Figure out how much free memory is available
         mem=`free -m | grep "^Mem:" | awk '{print $2}'`
 
-        glidein_cpus=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
+        glidein_cpus=`grep -i "^GLIDEIN_CPUS " "$glidein_config" | cut -d ' ' -f 2-`
 
         if [ "$glidein_cpus" != "" ]; then
             # GLIDEIN_CPUS is set. Set Max to all the free. Let HTCondor handle the memory.
