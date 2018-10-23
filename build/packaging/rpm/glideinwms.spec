@@ -495,7 +495,12 @@ if [ -f %{_localstatedir}/log/gwms-frontend/frontend/startup.log ]; then
     chown frontend.frontend %{_localstatedir}/log/gwms-frontend/frontend/startup.log
 fi
 
+%if %{?rhel}%{!?rhel:0} == 7
+systemctl daemon-reload
+%else
 /sbin/chkconfig --add gwms-frontend
+%endif
+
 if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
@@ -516,6 +521,12 @@ if [ "$1" = "1" ] ; then
         ln -s %{_localstatedir}/log/gwms-factory %{factory_dir}/log
     fi
 fi
+
+%if %{?rhel}%{!?rhel:0} == 7
+systemctl daemon-reload
+%else
+/sbin/chkconfig --add gwms-factory
+%endif
 
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
@@ -553,7 +564,11 @@ usermod --append --groups frontend frontend >/dev/null
 # $1 = 1 - Action is upgrade
 
 if [ "$1" = "0" ] ; then
+%if %{?rhel}%{!?rhel:0} == 7
+    systemctl daemon-reload
+%else
     /sbin/chkconfig --del gwms-frontend
+%endif
 fi
 
 if [ "$1" = "0" ]; then
@@ -569,7 +584,11 @@ fi
 
 %preun factory
 if [ "$1" = "0" ] ; then
+%if %{?rhel}%{!?rhel:0} == 7
+    systemctl daemon-reload
+%else
     /sbin/chkconfig --del gwms-factory
+%endif
 fi
 if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/log
