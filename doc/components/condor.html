@@ -92,6 +92,7 @@ Related Links:
     </p>
 </div>
 
+    <hr width="90%">
 <div class="section">
 <a name="schedds"><h2>Multiple Schedds in the Factory</h2></a>
 
@@ -224,17 +225,12 @@ Processing schedd: SCHEDDJOBS2<br/>
 
 
 </blockquote>
-</p>
-<p>
+</div>
 
-
-</p>
-<p>
-</p>
+    <hr width="90%">
 
 <!---  Multiple Collectors for Scalability and explanation of Shared Port-------- -->
 <div class="section">
-<hr width="90%"><hr width="90%">
 <a name="collectors"><h2>Multiple Collectors for Scalability / Shared Port</h2></a>
     <p>
      For scalability purposes, this section will describe the steps (configuration) necessary to add additional
@@ -294,7 +290,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
      SHARED_PORT_MAX_WORKERS = 1000
      SHARED_PORT_ARGS = -p <b>port_number</b>
      DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
-    <blockquote>
+    </blockquote>
     For the secondary collectors configuration, in this example we show an arbitrary value to uniquely identify each
         secondary collector, but all of the collector host are behind of a single TCP port.
     <blockquote>
@@ -337,10 +333,12 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
         After these  changes have been made in your Condor configuration file, restart HTCondor to effect the change.
         You will see as many collector processes running as you defined.
         </p>
+</div>
+
+    <hr width="90%">
 
 <!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
-<hr width="90%"><hr width="90%">
 <a name="collectors_ha"><h2>Multiple Collectors for High Availability (HA)</h2></a>
     <p>
      For reliability purposes, you may want to utilize HTCondor's High Availability (HA) feature for 
@@ -357,6 +355,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
        so it is made aware of them.
     </p>
     <p/>
+</div>
+    <hr width="90%">
 
 <div class="section">
     <h2><a name="quill">Installing Quill</a></h2>
