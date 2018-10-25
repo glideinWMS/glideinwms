@@ -156,18 +156,18 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # set up the grid specific attributes
         if gridtype == 'ec2':
-            self.populate_ec2_grid(submit_attrs)
+            self.populate_ec2_grid()
         if gridtype == 'gce':
-            self.populate_gce_grid(submit_attrs)
+            self.populate_gce_grid()
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
             self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
             # next we add the Condor-C additions
-            self.populate_condorc_grid(submit_attrs)
+            self.populate_condorc_grid()
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
-            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
+            self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
 
@@ -215,7 +215,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_error ", "False")
 
 
-    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+    def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
         input_files = []
         encrypt_input_files = []
 
@@ -234,12 +234,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
 
-    def populate_condorc_grid(self, submit_attrs):
+    def populate_condorc_grid(self):
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
 
-    def populate_gce_grid(self, submit_attrs):
+    def populate_gce_grid(self):
         self.add("gce_image", "$ENV(IMAGE_ID)")
         self.add("gce_machine_type", "$ENV(INSTANCE_TYPE)")
         # self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
@@ -249,7 +249,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
 
-    def populate_ec2_grid(self, submit_attrs):
+    def populate_ec2_grid(self):
         self.add("ec2_ami_id", "$ENV(IMAGE_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
