@@ -760,6 +760,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/matchPolicy.py
 %{python_sitelib}/glideinwms/creation/lib/matchPolicy.pyc
 %{python_sitelib}/glideinwms/creation/lib/matchPolicy.pyo
+%{python_sitelib}/glideinwms/creation/lib/check_config_frontend.py
+%{python_sitelib}/glideinwms/creation/lib/check_config_frontend.pyc
+%{python_sitelib}/glideinwms/creation/lib/check_config_frontend.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
