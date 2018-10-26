@@ -304,7 +304,7 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-renew-
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-renew-proxies.timer
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/proxies.ini
 
-%if %{?rhel}%{!?rhel:0} == 7
+%if 0%{?rhel} >= 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
 install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
@@ -495,7 +495,12 @@ if [ -f %{_localstatedir}/log/gwms-frontend/frontend/startup.log ]; then
     chown frontend.frontend %{_localstatedir}/log/gwms-frontend/frontend/startup.log
 fi
 
+%if 0%{?rhel} >= 7
+systemctl daemon-reload
+%else
 /sbin/chkconfig --add gwms-frontend
+%endif
+
 if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
@@ -516,6 +521,12 @@ if [ "$1" = "1" ] ; then
         ln -s %{_localstatedir}/log/gwms-factory %{factory_dir}/log
     fi
 fi
+
+%if 0%{?rhel} == 7
+systemctl daemon-reload
+%else
+/sbin/chkconfig --add gwms-factory
+%endif
 
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
@@ -553,7 +564,11 @@ usermod --append --groups frontend frontend >/dev/null
 # $1 = 1 - Action is upgrade
 
 if [ "$1" = "0" ] ; then
+    %if 0%{?rhel} >= 7
+    systemctl daemon-reload
+    %else
     /sbin/chkconfig --del gwms-frontend
+    %endif
 fi
 
 if [ "$1" = "0" ]; then
@@ -569,7 +584,11 @@ fi
 
 %preun factory
 if [ "$1" = "0" ] ; then
+    %if 0%{?rhel} >= 7
+    systemctl daemon-reload
+    %else
     /sbin/chkconfig --del gwms-factory
+    %endif
 fi
 if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/log
@@ -708,7 +727,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
 %{python_sitelib}/glideinwms/creation/reconfig_glidein
 %{python_sitelib}/glideinwms/factory
-%if %{?rhel}%{!?rhel:0} == 7
+%if 0%{?rhel} >= 7
 %{_sbindir}/gwms-factory
 %{systemddir}/gwms-factory.service
 %else
@@ -762,7 +781,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/matchPolicy.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
-%if %{?rhel}%{!?rhel:0} == 7
+%if 0%{?rhel} >= 7
 %{_sbindir}/gwms-frontend
 %attr(0644, root, root) %{systemddir}/gwms-frontend.service
 %attr(0644, root, root) %{systemddir}/gwms-renew-proxies.service
@@ -821,6 +840,12 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Fri Oct 26 2018  Marco Mambelli <marcom@fnal.gov> - 3.4.1.1-1
+- Controlling that Frontend is not using options incompatible w/ linked Factories
+
+* Wed Oct 24 2018 Brian Lin <blin@cs.wisc.edu> - 3.4.1-2
+- Use systemctl for loading/unloading on EL7
+
 * Thu Oct 18 2018 Marco Mambelli <marcom@fnal.gov> - 3.4.1-1
 - Glideinwms v3.4.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_4_1/history.html
