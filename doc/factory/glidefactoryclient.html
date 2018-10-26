@@ -125,7 +125,6 @@ contains monitoring information that may be used by either the Factory or Fronte
 				<ul>
 					<li>ReqEntryName = &quot;entry_name&quot;</li>
                                         <li>GLIDEIN_GridType = &quot;condor&quot;</li>
-                                        <li>GLIDEIN_GlobusRSL = &quot;&#40;queue=default&#41;&quot;</li>
                                         <li>GLIDEIN_Gatekeeper = &quot;entry.domain.name entry.domain.name:port&quot;</li>
 				</ul>
 			</li>
@@ -212,7 +211,7 @@ USE_CCB = "True"
 GCB_ORDER = "NONE"
 GLIDEIN_Site = "entry"
 GLIDEIN_GlobusRSL = "(queue=default)"
-GLIDEIN_Gatekeeper = "node.domain.name/jobmanager-condor"
+GLIDEIN_Gatekeeper = "node.domain.name node.domain.name:port"
 GlideinParamUSE_MATCH_AUTH = "True"
 GlideinParamGLIDEIN_Collector = "user_collector_node.domain.name"
 GlideinMonitorClientMonitorGlideRunning = 0
