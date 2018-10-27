@@ -843,8 +843,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Fri Oct 26 2018  Marco Mambelli <marcom@fnal.gov> - 3.4.1.1-1
+* Fri Oct 26 2018  Marco Mambelli <marcom@fnal.gov> - 3.4.2-1
 - Controlling that Frontend is not using options incompatible w/ linked Factories
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_4_2/history.html
 
 * Wed Oct 24 2018 Brian Lin <blin@cs.wisc.edu> - 3.4.1-2
 - Use systemctl for loading/unloading on EL7
