@@ -20,6 +20,8 @@ setup_python_venv() {
         ASTROID='astroid==1.2.1'
         HYPOTHESIS="hypothesislegacysupport"
         AUTOPEP8="autopep8==1.3"
+        # htcondor is not pip for python 2.6 (will be found from the RPM)
+        HTCONDOR=
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -28,6 +30,8 @@ setup_python_venv() {
         ASTROID='astroid==1.6.0'
         HYPOTHESIS="hypothesis"
         AUTOPEP8="autopep8"
+        # Installing the pip version, in case the RPM is not installed
+        HTCONDOR=htcondor
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -65,7 +69,7 @@ setup_python_venv() {
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
     pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8}"
-    pip_packages="$pip_packages htcondor"
+    pip_packages="$pip_packages ${HTCONDOR}"
 
 
     for package in $pip_packages; do

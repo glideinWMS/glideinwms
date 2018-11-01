@@ -34,9 +34,10 @@ process_branch() {
     # pylint related variables
     PYLINT_RCFILE=/dev/null
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
-    # Starting pylint 1.4 external modules must be whitelisted
-    PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"
 
+    # Some of the options in the following section depend more on the pylint version 
+    # than the Python version
+    # Make sure to check and be consistent w/ the venv setup in util.sh
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # PYLINT_IGNORE_LIST files for python 2.6 here
         # white-space seperated list of files to be skipped by pylint 
@@ -51,9 +52,10 @@ process_branch() {
     else
         #PYLINT_IGNORE_LIST files for python 2.7+ here
         PYLINT_IGNORE_LIST=""
-        # unsubscriptable-object considered to be buggy in recent
-        # pylint relases
+        # unsubscriptable-object considered to be buggy in recent pylint relases
         PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
+        # Starting pylint 1.4 external modules must be whitelisted
+        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"	
     fi
 
     # pep8 related variables
