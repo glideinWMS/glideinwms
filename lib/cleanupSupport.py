@@ -5,7 +5,7 @@ import time
 import re
 import pwd
 from . import logSupport
-from . import condorPrivsep
+import glideinwms.lib.subprocessSupport
 from .pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -192,7 +192,7 @@ class PrivsepDirCleanupWSpace(DirCleanupWSpace):
         if (self.username is not None) and (self.username != MY_USERNAME):
             # use privsep
             # do not use rmtree as we do not want root privileges
-            condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', fpath], stdout_fname=None)
+            glideinwms.lib.subprocessSupport.iexe_cmd("rm %s*" % fpath)
         else:
             # use the native method, if possible
             os.unlink(fpath)
@@ -239,7 +239,7 @@ class PrivsepDirCleanupCredentials(DirCleanup):
         if (self.username is not None) and (self.username != MY_USERNAME):
             # use privsep
             # do not use rmtree as we do not want root privileges
-            condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', "-f", fpath], stdout_fname=None)
+            glideinwms.lib.subprocessSupport.iexe_cmd("rm -f %s*" % fpath, useShell=True)
         else:
             # use the native method, if possible
             os.unlink(fpath)

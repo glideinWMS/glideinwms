@@ -16,9 +16,8 @@ import base64
 
 from . import glideFactoryLib
 from . import glideFactoryInterface
-from glideinwms.lib import condorPrivsep
-from glideinwms.lib import condorMonitor
 
+from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -98,38 +97,12 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     fname = os.path.join(proxy_dir, fname_short)
     fname_compressed = "%s_compressed" % fname
 
-    msg = "updating credential file %s" % fname
+    msg = "no privsep, updating directly credential file %s" % fname
     logSupport.log.debug(msg)
-    if username != MY_USERNAME:
-        msg = "updating using privsep"
-        logSupport.log.debug(msg)
 
-        # use privsep
-        # all args go through the environment, so they are protected
-        update_credential_env = ['HEXDATA=%s' % binascii.b2a_hex(credential_data), 
-                                 'FNAME=%s' % fname,
-                                 'FNAME_COMPRESSED=%s' % fname_compressed]
-        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if var in os.environ:
-                update_credential_env.append('%s=%s' % (var, os.environ[var]))
-
-        try:
-            condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir,
-                                  os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'),
-                                  ['update_proxy.py'], update_credential_env)
-        except condorPrivsep.ExeError as e:
-            raise RuntimeError("Failed to update credential %s in %s (user %s): %s" %
-                               (client_id, proxy_dir, username, e))
-        except:
-            raise RuntimeError("Failed to update credential %s in %s (user %s): Unknown privsep error" %
-                               (client_id, proxy_dir, username))
-    else:
-        msg = "no privsep, updating directly"
-        logSupport.log.debug(msg)
-
-        safe_update(fname, credential_data)
-        compressed_credential = compress_credential(credential_data)
-        safe_update(fname_compressed, compressed_credential)
+    safe_update(fname, credential_data)
+    compressed_credential = compress_credential(credential_data)
+    safe_update(fname_compressed, compressed_credential)
 
     return fname, fname_compressed
 

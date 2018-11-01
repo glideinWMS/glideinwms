@@ -15,7 +15,7 @@ from . import cgWConsts, cWConsts
 from . import cWDictFile
 import pwd
 import shutil
-from glideinwms.lib import condorPrivsep
+import glideinwms.lib.subprocessSupport
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
@@ -430,14 +430,11 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts, entry_name):
 #
 ################################################
 
-###########################################
-# Privsep support classes
 
 class clientDirSupport(cWDictFile.simpleDirSupport):
-    def __init__(self,user,dir,dir_name,privsep_mkdir=False):
+    def __init__(self,user,dir,dir_name):
         cWDictFile.simpleDirSupport.__init__(self, dir, dir_name)
         self.user=user
-        self.privsep_mkdir=privsep_mkdir
 
     def create_dir(self,fail_if_exists=True):
         base_dir=os.path.dirname(self.dir)
@@ -456,27 +453,15 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 os.mkdir(self.dir)
             except OSError as e:
                 raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
-        elif self.privsep_mkdir:
-            try:
-                # use privsep mkdir, as requested
-                condorPrivsep.mkdir(base_dir, os.path.basename(self.dir), self.user)
-                # with condor 7.9.4 a permissions change is required
-                condorPrivsep.execute(self.user, base_dir, '/bin/chmod', ['chmod', '0755', self.dir], stdout_fname=None)
-            except condorPrivsep.ExeError as e:
-                raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name, self.user))
         else:
             try:
                 # use the execute command
                 # do not use the mkdir one, as we do not need root privileges
-                condorPrivsep.execute(self.user, base_dir, '/bin/mkdir', ['mkdir', self.dir], stdout_fname=None)
+                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/mkdir %s*" % (self.dir))
                 # with condor 7.9.4 a permissions change is required
-                condorPrivsep.execute(self.user, base_dir, '/bin/chmod', ['chmod', '0755', self.dir], stdout_fname=None)
-            except condorPrivsep.ExeError as e:
+                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0755 %s*" % (self.dir))
+            except glideinwms.lib.subprocessSupport.CalledProcessError as e:
                 raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name, self.user))
         return True
 
     def delete_dir(self):
@@ -487,23 +472,13 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         if self.user==MY_USERNAME:
             # keep it simple, if possible
             shutil.rmtree(self.dir)
-        elif self.privsep_mkdir:
-            try:
-                # use privsep rmtree, as requested
-                condorPrivsep.rmtree(base_dir, os.path.basename(self.dir))
-            except condorPrivsep.ExeError as e:
-                raise RuntimeError("Failed to remove %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to remove %s dir (user %s): Unknown privsep error"%(self.dir_name, self.user))
         else:
             try:
                 # use the execute command
                 # do not use the rmtree one, as we do not need root privileges
-                condorPrivsep.execute(self.user, base_dir, '/bin/rm', ['rm', '-fr', self.dir], stdout_fname=None)
-            except condorPrivsep.ExeError as e:
+                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/rm -fr %s" % (self.dir))
+            except glideinwms.lib.subprocessSupport.CalledProcessError as e:
                 raise RuntimeError("Failed to remove %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to remove %s dir (user %s): Unknown privsep error"%(self.dir_name, self.user))
 
 class chmodClientDirSupport(clientDirSupport):
     def __init__(self, user, dir, chmod, dir_name):
@@ -531,13 +506,11 @@ class chmodClientDirSupport(clientDirSupport):
             try:
                 # use the execute command
                 # do not use the mkdir one, as we do not need root privileges
-                condorPrivsep.execute(self.user, base_dir, '/bin/mkdir', ['mkdir', self.dir], stdout_fname=None)
+                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/mkdir %s*" % (self.dir))
                 # with condor 7.9.4 a permissions change is required
-                condorPrivsep.execute(self.user, base_dir, '/bin/chmod', ['chmod', "0%o"%self.chmod, self.dir], stdout_fname=None)
-            except condorPrivsep.ExeError as e:
+                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0%o%s" % self.chmod, self.dir)
+            except glideinwms.lib.subprocessSupport.CalledProcessError as e:
                 raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name, self.user))
         return True
 
 
@@ -554,7 +527,7 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
             # Parent does not exist
             # This is the user base directory
             # In order to make life easier for the factory admins, create it automatically when needed
-            self.add_dir_obj(clientDirSupport(user, self.base_dir, "base %s"%dir_name, privsep_mkdir=True))
+            self.add_dir_obj(clientDirSupport(user, self.base_dir, "base %s"%dir_name))
 
         self.add_dir_obj(clientDirSupport(user, dir, dir_name))
 
