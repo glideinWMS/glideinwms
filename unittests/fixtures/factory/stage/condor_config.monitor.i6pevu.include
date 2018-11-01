@@ -1,0 +1,36 @@
+######################################################################
+##
+##  condor_config.monitor.include
+##
+##  Condor include file for monitor starter 
+##
+######################################################################
+
+WORK_DIR=$(LOCAL_DIR)/monitor
+
+# This is monitoring slot, be nice
+JOB_RENICE_INCREMENT = 20
+
+# force a single CPU (the WN could have many)
+NUM_CPUS = 1
+SLOT_TYPE_1 = cpus=1, memory=10%, swap=10%, disk=10%
+NUM_SLOTS_TYPE_1 = 1
+
+HAS_MONITOR_VM=True
+IS_MONITOR_VM=True
+USES_MONITOR_STARTD = True
+
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM, USES_MONITOR_STARTD,Monitored_Names
+
+START = ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
+PREEMPT = (($(GLIDEIN_HOLD_CONDITION)) || ($(GLIDEIN_PREEMPT_CONDITION)))
+WANT_HOLD = ($(GLIDEIN_HOLD_CONDITION))
+
+IsOwner = (START =?= False)
+
+# Max time a job is guaranteed to run in the glidein
+# This is a monitoring job, so low limits
+MaxJobRetirementTime=120
+SHUTDOWN_GRACEFUL_TIMEOUT=10
+
+

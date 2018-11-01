@@ -28,7 +28,7 @@
 #      At the beginning is published w/ error_genn then directly
 #  GLIDEIN_PS_FAILED_LAST - name of the last script that failed execution
 #  GLIDEIN_PS_FAILED_LAST_REASON - string describing the last failure
-#  GLIDEIN_PS_FAILED_LAST_END - end time (sec form Epoch) of the last failure
+#  GLIDEIN_PS_FAILED_LAST_END - end time (sec from Epoch) of the last failure
 #  GLIDEIN_PS_LAST (w/ error_gen) - file path of the last script
 #  GLIDEIN_PS_LAST_END (w/ error_gen) - end time of the last script execution
 #                   (0 for script_wrapper.sh invoked at startup)
@@ -58,7 +58,7 @@ else
 fi
 
 # find error reporting helper script 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
 if [ -z "$3" ]; then
     # no script passed, wrapper invoked by the initial test
@@ -72,7 +72,7 @@ verbose=
 # write to stderr only if verbose is set
 function vmessage {
     # echo `date` $@ 1>&2 
-    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" $@ 1>&2
+    [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" "$@" 1>&2
 }
 
 
@@ -97,20 +97,26 @@ function publish {
 
 
 # Manage failure listst in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
+# GLIDEIN_PS_FAILING_LIST empty -> GLIDEIN_PS_OK True, GLIDEIN_PS_FAILING_LIST not empty -> GLIDEIN_PS_OK False 
 # list_manage add|del name list_name 
 function list_manage {
     # invoked locally, trust 3 parameters
-    tmp_list=",`grep -i "^$3 " $glidein_config | awk '{print $2}'`,"
+    # $1 command (add|del), $2 value_to_add_to_list, $3 list_name (in glidein_config, case insensitive)
+    # Uses $glidein_config
+    local tmp_list=",`grep -i "^$3 " "$glidein_config" | cut -d ' ' -f 2-`,"
+    #  Trim commas (greedy, ^$ not needed) - bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
+    local re=",*([^,]|[^,].*[^,]),*"
     if [[ "$1" == "del" && "$tmp_list" == *,$2,* ]]; then
         tmp_list="${tmp_list/,$2,/,}"
-        add_config_line_safe "$3" "`[[ "$tmp_list" =~ ,*([^,]|[^,].*[^,]),* ]]; echo -n "${BASH_REMATCH[1]}"`"
+        add_config_line_safe "$3" "`[[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}"`"
     elif [[ "$1" == "add" && ! "$tmp_list," == *,$2,* ]]; then
-        tmp_list="$tmp_list,$2"
-        add_config_line_safe "$3" "`[[ "$tmp_list" =~ ,*([^,]|[^,].*[^,]),* ]]; echo -n "${BASH_REMATCH[1]}"`"
+        tmp_list="${tmp_list}$2"
+        add_config_line_safe "$3" "`[[ "$tmp_list" =~ $re ]]; echo -n "${BASH_REMATCH[1]}"`"
     fi
     if [ "$3" == GLIDEIN_PS_FAILING_LIST ]; then
         # publish test status
-        if [[ "$tmp_list" =~ ,* ]]; then
+        re="^,*$"  # Empty or only commas
+        if [[ "$tmp_list" =~ $re ]]; then
             publish OK True
         else
             publish OK False

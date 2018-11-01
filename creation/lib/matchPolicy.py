@@ -56,7 +56,7 @@ class MatchPolicy:
 
     def __init__(self, file, search_path=[]):
         """
-        Load match policy form the policy file
+        Load match policy from the policy file
 
         @param file: Path to the python file
         @type file: string

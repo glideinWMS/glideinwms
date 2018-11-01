@@ -1,19 +1,29 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit tests for glideinwms/lib/condorExe.py
+
+ Author:
+   tiradani <tiradani>
+"""
+
+
 from __future__ import absolute_import
 import os
 import sys
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.lib import condorExe
 from glideinwms.lib.condorExe import iexe_cmd
 from glideinwms.lib.condorExe import exe_cmd
 from glideinwms.lib.condorExe import exe_cmd_sbin
 from glideinwms.lib.condorExe import ExeError
+
 
 class TestCondorExe(unittest.TestCase):
 
@@ -93,8 +103,11 @@ class TestCondorExe(unittest.TestCase):
 
         # Execution should exit with an exception.  If no exception, then fail
         for script in self.abnormal_exit_scripts:
-            self.failUnlessRaises(ExeError, exe_cmd_sbin, script, self.dummy_args)
+            self.failUnlessRaises(
+                ExeError, exe_cmd_sbin, script, self.dummy_args)
 
 
 if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(
+            output='unittests-reports'))

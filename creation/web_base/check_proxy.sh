@@ -14,13 +14,13 @@
 glidein_config="$1"
 
 # import add_config_line function
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-X509_CERT_DIR=`grep '^X509_CERT_DIR ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' $glidein_config | cut -d ' ' -f 2-`"
+X509_CERT_DIR="`grep '^X509_CERT_DIR ' $glidein_config | cut -d ' ' -f 2-`"
 export X509_CERT_DIR
-X509_USER_PROXY=`grep '^X509_USER_PROXY ' $glidein_config | awk '{print $2}'`
+X509_USER_PROXY="`grep '^X509_USER_PROXY ' $glidein_config | cut -d ' ' -f 2-`"
 export X509_USER_PROXY
 
 

@@ -10,13 +10,13 @@
 #
 
 config_file="$1"
-glidein_config="$1"
+glidein_config="$1"  # TODO: why this? For some sourced file?
 
 # import add_config_line function
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $config_file | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$config_file" | cut -d ' ' -f 2-`"
 
 
 function get_proxy_fname {
@@ -171,13 +171,13 @@ EXPECTED_GRIDMAP_FNAME="grid-mapfile"
 X509_GRIDMAP="$PWD/$EXPECTED_GRIDMAP_FNAME"
 X509_CONDORMAP="$PWD/condor_mapfile"
 
-GLIDEIN_WORK_DIR=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
-GLIDEIN_ENTRY_WORK_DIR=`grep -i "^GLIDEIN_ENTRY_WORK_DIR " $config_file | awk '{print $2}'`
-GLIDECLIENT_WORK_DIR=`grep -i "^GLIDECLIENT_WORK_DIR " $config_file | awk '{print $2}'`
-GLIDECLIENT_GROUP_WORK_DIR=`grep -i "^GLIDECLIENT_GROUP_WORK_DIR " $config_file | awk '{print $2}'`
+GLIDEIN_WORK_DIR="`grep -i "^GLIDEIN_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`"
+GLIDEIN_ENTRY_WORK_DIR="`grep -i "^GLIDEIN_ENTRY_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`"
+GLIDECLIENT_WORK_DIR="`grep -i "^GLIDECLIENT_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`"
+GLIDECLIENT_GROUP_WORK_DIR="`grep -i "^GLIDECLIENT_GROUP_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`"
 
-X509_CERT_DIR=`grep -i "^X509_CERT_DIR " $config_file | awk '{print $2}'`
-X509_USER_PROXY=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
+X509_CERT_DIR="`grep -i "^X509_CERT_DIR " "$config_file" | cut -d ' ' -f 2-`"
+X509_USER_PROXY="`grep -i "^X509_USER_PROXY " "$config_file" | cut -d ' ' -f 2-`"
 
 X509_SKIP_HOST_CHECK_DNS_REGEX=""
 

@@ -35,7 +35,9 @@ process_branch() {
     PYLINT_RCFILE=/dev/null
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
 
-
+    # Some of the options in the following section depend more on the pylint version 
+    # than the Python version
+    # Make sure to check and be consistent w/ the venv setup in util.sh
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # PYLINT_IGNORE_LIST files for python 2.6 here
         # white-space seperated list of files to be skipped by pylint 
@@ -50,9 +52,10 @@ process_branch() {
     else
         #PYLINT_IGNORE_LIST files for python 2.7+ here
         PYLINT_IGNORE_LIST=""
-        # unsubscriptable-object considered to be buggy in recent
-        # pylint relases
+        # unsubscriptable-object considered to be buggy in recent pylint relases
         PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
+        # Starting pylint 1.4 external modules must be whitelisted
+        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"	
     fi
 
     # pep8 related variables
@@ -279,6 +282,17 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 
 ###############################################################################
 
+
+if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
+	echo "$0           Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
+	echo "$0 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (space separated list of branch names)"
+	echo "The source code (a clone of the GWMS git repository) is expected to be already in the ./glideinwms subdirectory of PWD (source dir)"
+	echo "The script will checkout one by one and run pylint and pycodestyle on all listed BRANCHES, in the listed order"
+        echo "At the end of the tests the last branch will be the one in the source directory."
+	echo "The script has no cleanup. Will leave directories and result files in the working directory (virtualenv,  log files, ...)"
+	echo "$0 -h        Print this message and exit"
+	exit 0
+fi
 
 git_branches="$1"
 WORKSPACE=`pwd`

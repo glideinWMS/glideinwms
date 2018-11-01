@@ -1,0 +1,37 @@
+# File: glidein.descript
+#
+CondorTarballDirMap 	{u'/var/lib/gwms-factory/condor/condor-8.6.5-x86_64_RedHat6-stripped': u'/var/lib/gwms-factory/web-area/stage/condor_bin_1.i6pdq1.tgz', u'/var/lib/gwms-factory/condor/condor-8.6.5-x86_64_RedHat7-stripped': u'/var/lib/gwms-factory/web-area/stage/condor_bin_2.i6pdq1.tgz', u'/usr': u'/var/lib/gwms-factory/web-area/stage/condor_bin_0.i6pdq1.tgz'}
+FactoryCollector 	None
+FactoryName 	gfactory_service
+GlideinName 	gfactory_instance
+WebURL 	http://fermicloud322.fnal.gov/factory/stage
+PubKeyType 	RSA
+OldPubKeyGraceTime 	900
+MonitorUpdateThreadCount 	1
+RemoveOldCredFreq 	24
+RemoveOldCredAge 	30
+Entries 	el6_osg33,el6_osg34,el7_osg33,el7_osg34
+AdvertiseWithTCP 	False
+AdvertiseWithMultiple 	False
+LoopDelay 	60
+AdvertisePilotAccounting 	False
+AdvertiseDelay 	5
+RestartAttempts 	3
+RestartInterval 	1800
+EntryParallelWorkers 	0
+LogDir 	server-log
+ClientLogBaseDir 	client-log
+ClientProxiesBaseDir 	/var/lib/gwms-factory/client-proxies
+DowntimesFile 	/var/lib/gwms-factory/work-dir/glideinWMS.downtimes
+MonitorDisplayText 	
+MonitorLink 	
+JobLogRetentionMaxDays 	7.0
+JobLogRetentionMinDays 	3.0
+JobLogRetentionMaxMBs 	100.0
+SummaryLogRetentionMaxDays 	31.0
+SummaryLogRetentionMinDays 	3.0
+SummaryLogRetentionMaxMBs 	100.0
+CondorLogRetentionMaxDays 	14.0
+CondorLogRetentionMinDays 	3.0
+CondorLogRetentionMaxMBs 	100.0
+ProcessLogs 	[{u'compression': u'', u'extension': u'info', u'min_days': u'3.0', u'msg_types': u'INFO', u'max_days': u'7.0', u'max_mbytes': u'100.0', u'backup_count': u'5'}, {u'compression': u'', u'extension': u'err', u'min_days': u'3.0', u'msg_types': u'DEBUG,ERR,WARN,EXCEPTION', u'max_days': u'7.0', u'max_mbytes': u'100.0', u'backup_count': u'5'}]

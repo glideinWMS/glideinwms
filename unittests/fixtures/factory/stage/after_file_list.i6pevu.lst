@@ -1,0 +1,17 @@
+# File: after_file_list.i6pevu.lst
+#
+# Outfile 	InFile         	Cache/exec 	Period 	Prefix 	Condition 	ConfigOut
+#########################################################################################
+check_proxy.sh 	check_proxy.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+create_mapfile.sh 	create_mapfile.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+validate_node.sh 	validate_node.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+setup_network.sh 	setup_network.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+gcb_setup.sh 	gcb_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+singularity_setup.sh 	singularity_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+glexec_setup.sh 	glexec_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+java_setup.sh 	java_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+glidein_memory_setup.sh 	glidein_memory_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+glidein_cpus_setup.sh 	glidein_cpus_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+glidein_sitewms_setup.sh 	glidein_sitewms_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+script_wrapper.sh 	script_wrapper.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+smart_partitionable.sh 	smart_partitionable.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE

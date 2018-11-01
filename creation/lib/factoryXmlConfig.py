@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import os
 import xml.sax
 from . import xmlConfig
+import glideinwms.factory.glideFactorySelectionAlgorithms
 
 ENTRY_INDENT = 6
 CONFIG_DIR = 'config.d'
@@ -111,6 +112,11 @@ class EntrySetElement(EntryElement):
         self.check_missing(u'alias')
         self.check_boolean(u'enabled')
         self.validate_sub_elements()
+        algo_name = self.get_child(u'config').children.get('entry_selection', {}).get('algorithm_name')
+        if algo_name:
+            if not(getattr(glideinwms.factory.glideFactorySelectionAlgorithms, 'selectionAlgo' + algo_name, None)):
+                raise RuntimeError('Function name selectionAlgo%s not found in the glideFactorySelectionAlgorithms module' % algo_name)
+
 
     def select(self, entry):
         self.selected_entry = entry

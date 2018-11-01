@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS Installation Guide</title>
+  <title>GlideinWMS Installation Guide</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
@@ -23,7 +23,6 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
         <li> <a href="./recipes/index.html">Recipes</a></li>
@@ -52,7 +51,6 @@
         <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="./corral.html" />
     </map>
 
     <h2>GlideinWMS</h2>
@@ -70,11 +68,11 @@
 <u>Jump to:</u>
 <ol>
 <li> <a href="#process">Installation Process</a></li>
-<li> <a href="#configuration">Possible Configurations</a></li>
+<li> <a href="#configurations">Possible Configurations</a></li>
 <li> <a href="#osg">Using the OSG Factory</a></li>
 <li> <a href="#osgrpm">Installation via RPMs</a></li>
 <li> <a href="#configuration_based">Configuration-based Installer</a></li>
-<li> <a href="#ini_file">glideinWMS ini file</a></li>
+<li> <a href="#ini_file">GlideinWMS ini file</a></li>
 <li> <a href="#manage_script">manage_glidens script</a></li>
 <li> <a href="#documents">Additional documents</a></li>
 </ol>
@@ -99,7 +97,7 @@ Install documents:
 		and documented in the following pages:</p>
 	<ul>
 		<li><a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">Instructions to install via RPM the Frontend and the related components (User Collector, Submit host, ...)</a></li>
-		<li><a href="https://opensciencegrid.github.io/docs/other/install-gwms-factory">Instructions to install via RPM the Factory and related components (Factory collector)</a></li>
+		<li><a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">Instructions to install via RPM the Factory and related components (Factory collector)</a></li>
 	</ul>
 	<p>If you are installing GlideinWMS via RPM, you can ignore the reminder of this document. Check the
 		<a href="factory/configuration.html">Factory configuration</a> and <a href="frontend/configuration.html">Frontend configuration</a>
@@ -111,8 +109,8 @@ Install documents:
     <p>Installation of GlideinWMS is a multi-step process and depending on your intended use, will require you installing 
     several services.
     This document and all the linked install documents describe how to install and setup the GlideinWMS components using the TAR files 
-    distribution, to use the RPMs, see the links in the 
-    <a href="download.htmml">download page</a>.  
+    distribution. To use the RPMs, see the links in the 
+    <a href="download.html">download page</a>.  
     The following must be installed in the correct sequence, follow the links for the details on how to
     install:</p>
       <ol>
@@ -134,20 +132,20 @@ Install documents:
 	on all nodes to resolve any errors affecting dependencies.
     </p>
 	<p>
-	The configuration based installer does NOT modify any scripts that set a user environment upon log in, e.g., .bashrc file, 
+	The configuration based installer does NOT modify any scripts that set a user environment upon log in, e.g.: .bashrc file, 
 	/etc/profile.d files, et al. Instead, an environment script is created for each service in its respective "home" location. If inclusion 
 	of these scripts is required at a location, it will need to be performed manually. The only exception to this is when privilege 
-	separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in Condor and 
+	separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in HTCondor and 
 	cannot be changed. For each of the GlideinsWMS services, the scripts for setting the environment are:
 	<ul>
 	<li><b>wmscollector, usercollector, submit</b>: condor_location/condor.sh</li>
-	<li><b>factory</b>: install_location/factory.sh</li>
+	<li><b>Factory</b>: install_location/factory.sh</li>
 	<li><b>vofrontend</b>: install_location/frontend.sh</li>
 	</ul>
 	</p>
     <p>
-	For GlideinWMS services using Condor, the CONDOR_LOCATION/config.d directory
-	will contain the Condor attributes required for that service.
+	For GlideinWMS services using HTCondor, the CONDOR_LOCATION/config.d directory
+	will contain the HTCondor attributes required for that service.
 	</p>
     <p>If you are upgrading services already installed, please see <a href="upgrade.html">here</a>.
     </p>
@@ -160,19 +158,19 @@ Install documents:
         GlideinWMS.  If you are installing a Factory, note that
         only configurations with the WMS Pool and Factory on the 
         same node are supported.  Also note that worker nodes must be able to 
-        access the web server on the factory and frontend nodes in order to
+        access the web server on the Factory and Frontend nodes in order to
         download necessary files.</p>
     <p>   
-	    It should be noted that it is possible to install the glideinWMS
+	    It should be noted that it is possible to install the GlideinWMS
 	    across administrative boundaries (i.e. you will only install part
 	    of the GlideinWMS infrastructure).  See the OSG section below for
 	    an example.</p>
     <p>
-    Several possible configurations are below:  
+    Several possible configurations are:  
     </p> 
     <p><b>Two Server configuration</b> (recommended minimum):
 	<ul>
-	  <li><a href="factory/install.html">The glidein WMS Pool and colocated
+	  <li><a href="factory/install.html">The GlideinWMS Pool and colocated
 	    glidein Factory node</a> </li>
 	
 	  <li>A node containing the <a href="frontend/install.html">Glidein Frontend</a>,
@@ -194,7 +192,7 @@ Install documents:
 
 	<p><b>One Server configuration</b> (Use only for test installs)
 	<ul>
-	  <li><a href="factory/install.html">The glidein WMS Pool and colocated
+	  <li><a href="factory/install.html">The GlideinWMS Pool and colocated
 	    glidein Factory node</a>, with the collector of the WMS Pool running on port 8618.
 	    <a href="frontend/install.html">Glidein Frontend</a>,
 	    the <a href="components/collector_install.html">glidein User Pool</a> 
@@ -206,7 +204,7 @@ Install documents:
 	</p>
 	<p><a name="osg"/><b>OSG Factory configuration</b>
 	<p>
-	    Members of the Open Science Grid can use the OSG factory at UCSD or GOC.    
+	    Members of the Open Science Grid can use the OSG Factory at UCSD or GOC.    
 	    In this case, they need to install only the following services:
 	    <ul>
 	    <li><a href="components/collector_install.html">glidein User Pool</a></li> 
@@ -215,14 +213,14 @@ Install documents:
 	    </ul>
 	</p>
 	<p>
-            See <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> 
+            See <a target="_blank" href="https://opensciencegrid.org/operations/services/install-gwms-factory/">OSG Glidein Factory</a> 
 	    for more details on how to use this setup to talk to the OSG Factory.
-	    You will also need a proxy for the frontend to communicate and (at least) one proxy for the glideins for submission.  
+	    You will also need a proxy for the Frontend to communicate and (at least) one proxy for the glideins for submission.  
         </p>
         <p>
             OSG provides also an RPM to install the Glidein Frontend, the User Pool and scheduler. See the 
             <a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">OSG GlideinWMS VO Frontend RPM installation guide</a>
-            for the RPM installation and configuration to use the OSG factory. 
+            for the RPM installation and configuration to use the OSG Factory. 
             Note that the RPM installation by default installs all three these components.
 </p>
 <h3><a name="osgrpm"/>RPM based installer</h3>
@@ -248,15 +246,15 @@ complicated configurations.  Instructions can be found here:
 	<h3>Configuration based installer (manage-glideins)</h3>
 	<p>
 	GlideinWMS is installed with a configuration file (ini format) based installer.  All information needed by the services is 
-	listed in this file before installation, with a few exceptions. For example, the factory entry details 
+	listed in this file before installation, with a few exceptions. For example, the Factory entry details 
 	are still provided in a Q&A format during the installation process.  You may also need to manually add configuration 
 	information after installation, just as you did with the Q&A version.</p>
 	<p> There are several advantages to this type of install.  In addition to having all the details documented, it performs the actual 
 	installation faster and allows for re-installs more quickly.  Since you have all the information in this file, you can also 
 	reproduce the same installation as needed.
 	</p>
-	<p>As of v3.0, the Q&A installer is no longer supported (but still available in v2+). Installation is done through the 
-	manage_glideins script, located in glideinWMS/install/, and uses the ini file described above.  This script offers several 
+	<p>As of v3.0, the Q&A installer is no longer supported. Installation is done through the 
+	manage_glideins script, located in GlideinWMS/install/, and uses the ini file described above.  This script offers several 
 	additional features as well, see <a href="#manage_script">below</a> for more information.</p>
 	<p><b>NOTE:</b> If you get an error during installation or validation that requires a change to 
 	the ini file, it is recommended that you go back and re-install ALL services.  You may affect one of the dependencies that will not 
@@ -282,7 +280,7 @@ complicated configurations.  Instructions can be found here:
 	<h4>Default Section</h4>
 	<p>
 	The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically 
-	in that section.  So, if the location/value of any option in this section varies from host to host, you will need to 
+	in that section.  So, if the location/value of any option varies from host to host, you will need to 
 	override them in that section of the ini file. 
         <!--The only options in the <i>glideinWMS.ini</i> template will be the pacman 
 	options in the next section.-->
@@ -303,9 +301,9 @@ If OSG Client and the CA certificates are not already installed on the node see 
         prerequisites section for instructions to install them</a>.
 	</p>
 	<h4>Service options</h4>
-    <p>The Glidein WMS system provides five different services, each one with a section in the ini file: 
+    <p>The GlideinWMS system provides five different services, each one with a section in the ini file: 
 WMSCollector, Factory, VOFrontend, UserCollector, Submit (host). All service attributes are described 
-in their respective install pages.  Each page, e.g. the <a href="frontend/install.html">VOFrontend installation page</a> 
+in their respective install pages.  Each page, e.g. the <a href="frontend/install.html">VO Frontend installation page</a> 
 describes what is required for installing and validating that service.  
 </p>
     <p><a href="components/configuration_install.html">Here</a> you can find some example configuration files.
@@ -317,7 +315,7 @@ describes what is required for installing and validating that service.
 <a name="manage_script" />
 <h3>The manage-glideins script </h3>
 <p>
-This script is used to install and manage the glideinWMS services.  It is located in <i>glideinWMS/install/manage-glideins</i> and can be invoked in different ways.  
+This script is used to install and manage the GlideinWMS services.  It is located in <i>glideinWMS/install/manage-glideins</i> and can be invoked in different ways.  
 </p>
 <pre>./manage-glideins --ACTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</pre>
 
@@ -331,24 +329,24 @@ the glidein services based on the configuration in the specified ini file.
 <li> <b>install</b>: Install the service</li>
 <li> <b>configure</b>: This allows  you to reconfigure your service based on changes to the ini file without re-installing HTCondor.<br/>
      For services using HTCondor, it will update the config.d local config files,<br/> 
-     For the factory and vofrontend, it will update the respective xml config files.</li>
-<li> <b>start</b>: Start the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
-<li> <b>stop</b>: Stop the service.  Remote stopping of services is possible if remote access (via ssh) is allowed.</li>
-<li> <b>status</b>: Return the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
+     For the Factory and VO Frontend, it will update the respective xml config files.</li>
+<li> <b>start</b>: Starts the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
+<li> <b>stop</b>: Stops the service.  Remote stopping of services is possible if remote access (via ssh) is allowed.</li>
+<li> <b>status</b>: Returns the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
 </ul>
 </p>
 <p><b>SERVICE</b> can be one of:
 <ul>
 <li> wmscollector</li>
 <li> usercollector</li>
-<li> factory</li>
+<li> Factory</li>
 <li> submit</li>
 <li> vofrontend</li>
 <li> rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</li>
 <li> all: can only be used with start/stop/status actions</li>
 </ul>
 </p>
-<p><b>--ssh</b>: allows the start/stop/status actions to be performed 
+<p><b>--ssh</b>: Allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
 'ssh -l' using the service's username.  The '--ssh' option will use the ini file
 specified username attribute unless an optional 'user' is specified.
@@ -368,7 +366,7 @@ the script. There are some limitation to this.
 <p>
 <pre>./manage-glideins --create-entries --ini INIFILE</pre>
 This invocation can be used to select new glidein entry points after the
-initial installation of a factory service. It will walk you through the same
+initial installation of a Factory service. It will walk you through the same
 question and answer process querying ReSS and allowing for manual entries.
 It will then create a file containing the entry elements for the elements you selected. 
 This can then be merged with the existing Factory configuration file
@@ -379,10 +377,10 @@ and a reconfiguration performed to update those elements.
 <p>
 <pre>./manage-glideins --create-group --ini INIFILE</pre>
 This invocation can be used to select new group selection criteria after the
-initial installation of a frontend service. It will walk you through the same
+initial installation of a Frontend service. It will walk you through the same
 question and answer process as during the installation.
 It will then create a file containing the group element for the criteria selected.
-This can then be merged with the existing frontend configuration file
+This can then be merged with the existing Frontend configuration file
 and a reconfiguration performed.
 </p>
 
@@ -410,12 +408,12 @@ performed on the node for those services.
 
 <h3>Additional Documents:</h3>
 <ul>
-  <li><a href="components/prerequisites.html">Component Installation</a>: Installation tips for other software needed by the glideinWMS, 
+  <li><a href="components/prerequisites.html">Component Installation</a>: Installation tips for other software needed by the GlideinWMS, 
     such as HTTP, OSG Client, JavascriptRRD, etc.
     <b>NOTE:</b> If you install using the RPMs, the process will take care of the dependencies.
   </li>
   <li>
-    <a href="components/gsi.html">Quick Reference Guide to GSI Authentication Setup in glideinWMS</a>:
+    <a href="components/gsi.html">Quick Reference Guide to GSI Authentication Setup in GlideinWMS</a>:
     for information on how to configure the GSI security, and additional GSI configuration.
   </li>
   <li>
@@ -443,7 +441,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>
 </html>

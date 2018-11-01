@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Custom Scripts</title>
+  <title>GlideinWMS - Custom Scripts</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -25,7 +25,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -54,7 +53,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>WMS Factory</h2>
@@ -74,8 +72,9 @@
     <LI><A HREF="#config">Script inclusion</A></li>
     <LI><A HREF="#api">Script API</A></li>
     <LI><A HREF="#glidein_config">Configuration file</A></li>
-    <LI><A HREF="#condor_vars">Condor vars file</A></li>
+    <LI><A HREF="#condor_vars">HTCondor vars file</A></li>
     <LI><A HREF="#xml_output">Reporting script exit status</A></li>
+    <LI><A HREF="#periodic">Periodic scripts</A></li>
     <LI><A HREF="#order">Loading order</A></li>
     <LI><A HREF="#examples">Examples</A></li>
 </ol>
@@ -84,6 +83,8 @@
 Related Links: <br/>
 <ul>
         <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+	<LI><A HREF="./configuration.html">Factory configuration</A></li>
+        <LI><A HREF="../frontend/configuration.html">Frontend configuration</A></li>
 </ul>
 </div>
 <div class="section">
@@ -121,16 +122,16 @@ administrator needs explicitly list the executable ones.</P>
 configuration file</A> that is used as a dashboard between different
 scripts.</P>
 <P>If the script provides any output to be used by other scripts, it
-should write it <A HREF="#glidein_config">the glidein configuration
+should write it in <A HREF="#glidein_config">the glidein configuration
 file</A>. If the values need to be published by the condor_startd or
 visible by the user jobs, the <A HREF="#condor_vars">condor vars</A> file should also be
 modified.</P>
 
     <P>NOTE that periodic scripts provide an additional output mechanism: since they run via
-        <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#sec:daemon-classad-hooks">HTCondor startd_cron</a>
+        <a href="https://research.cs.wisc.edu/htcondor/manual/current/4_4Hooks.html">HTCondor startd_cron</a>
         and the output is not masked, anything sent to standard output is added by HTCondor to the machine classad after
         adding a prefix (see the <A HREF="#periodic">periodic scripts section below</A>).
-        If you want to be more compatible though we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
+        If you want to be more compatible though, we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
         and the <A HREF="#condor_vars">condor vars</A> file to specify if the variable needs to be published to the startd.
     </P>
 <P>The script must return with exit code 0 if successful; a non-zero
@@ -144,10 +145,10 @@ error. A non-zero return value on following invocations of periodic scripts will
 <H2><A NAME="glidein_config"></A>The glidein configuration file</H2>
 <P>The glidein configuration file acts as a dashboard between
 different scripts.</P>
-<P>The glidein configuration file is a simple ASCII file, with one
-value per line; the first column represents the attribute name, while
-the rest is the attribute value.<BR>If the value does not contain any
-spaces, the easiest way to extract a value in bash is:</P>
+<P>It is a simple ASCII file, with one value per line; the first column 
+represents the attribute name, while the rest is the attribute value.<BR>
+If the value does not contain any spaces, the easiest way to extract a 
+value in bash is:</P>
 
     <BLOCKQUOTE>
     <I>attr_val</I>=`grep &quot;^$<I>attr_name</I> 
@@ -165,7 +166,7 @@ most interesting being:</P>
     <LI>PROXY_URL &ndash; The URL of the Web proxy</li>
 
 </UL>
-<P>All attributes of the glidein factory (both the common and the
+<P>All attributes of the glidein Factory (both the common and the
 entry specific) are also loaded into this file.</P>
 <P>To write into the glidein configuration file, the best approach in
 bash is to use the add_config_line support script. Just source the
@@ -191,8 +192,8 @@ provided script and use it. Here is an example:</P>
 
 
 <div class="section">
-<H2><A NAME="condor_vars"></A>Condor vars file</H2>
-<P>The glideinWMS uses a so called <I>condor vars file</I> to decide
+<H2><A NAME="condor_vars"></A>HTCondor vars file</H2>
+<P>The GlideinWMS uses a so called <I>condor vars file</I> to decide
 which attributes are going to be inserted into the condor
 configuration file, which are going to be published by the glidein
 condor_startd to the collector, and which attributes are going to be
@@ -211,10 +212,10 @@ must have 7 columns. Each column has a specific meaning:</P>
         <LI>I &ndash; integer</li>
 
         <LI>S &ndash; quoted string</li>
-        <LI>C &ndash; unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>C &ndash; unquoted string (i.e. HTCondor keyword or expression)</li>
     </UL>
     <LI>Default value, use &ndash; if no default</li>
-    <LI>Condor name, i.e. under which name should this attributed be
+    <LI>HTCondor name, i.e. under which name should this attribute be
     known in the condor configuration</li>
     <LI>Is a value required for this attribute? <BR>Must be Y or N.
     If Y and the attribute is not defined, the glidein will fail.</li>
@@ -225,11 +226,11 @@ must have 7 columns. Each column has a specific meaning:</P>
     <UL>
         <LI>- - Do not export</li>
         <LI>+ - Export using the original attribute name</li>
-        <LI>@ - Export using the Condor name</li>
+        <LI>@ - Export using the HTCondor name</li>
 
     </UL>
 </OL>
-<P>The glideinWMS defines several attributes in the default condor
+<P>The GlideinWMS defines several attributes in the default condor
 var files</P>
 <BLOCKQUOTE>
     glideinWMS/creation/web_base/condor_vars.lst<BR>
@@ -238,7 +239,7 @@ var files</P>
 <P>Here below, you can see a short extract. For all the options, look
 at <A HREF="custom_vars.html">dedicated configuration variables page</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
-#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
 #                                                                                               + = Use VarName
 #                                                                                               @ = Use CondorName
 #################################################################################################################
@@ -282,13 +283,13 @@ $glidein_config | awk '{print $2}'`<BR>
 
 <div class="section">
 <H2><A NAME="xml_output"></A>Reporting script exit status</H2>
-<P>Since v2_6_2, the glideinWMS factory can receive and interpret a
-detailed exit status report, if provided by the validation script.</P>
+<P>GlideinWMS Factory can receive and interpret a detailed exit status report, 
+if provided by the validation script.</P>
 <P>The script should write the exit status report in the following file:</P>
 <BLOCKQUOTE>
 otrb_output.xml
 </BLOCKQUOTE>
-<P>The factory provides a helper script to properly generate such a file.
+<P>The Factory provides a helper script to properly generate such a file.
 A detailed description of the format can be found in the dedicated
 <A HREF="validation_xml_output.html">description page</A>.</P>
 <P>To use the helper script, first discover its location with:</P>
@@ -325,29 +326,29 @@ E.g. if you claim the script succeeded, you must also exit with a 0 exit code.</
 <p>Scripts by default have period=0 and are invoked only once. The Factory/Frontend administrator can specify
     an integer number of seconds to make a script periodic.
     Periodic scripts are invoked a first time at the beginning, according to their order, like all other scripts,
-    then they are invoked using the <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#sec:daemon-classad-hooks">
+    then they are invoked using the <a href="https://research.cs.wisc.edu/htcondor/manual/current/4_4Hooks.html#SECTION00543000000000000000">
     HTCondor damon ClassAd hook mechanism</a> (aka schedd_cron) and a wrapper script that allows them to maintain the same API.
 </p>
     <p>The Periodic scripts wrapper defines some additional variables in glidein_config and in the schedd ClassAds:</p>
     <ul>
-        <li>GLIDEIN_PS_FAILED_LIST - list of scripts that failed at least once</li>
-        <li>GLIDEIN_PS_FAILING_LIST - list of scripts that failed the last execution</li>
+        <li>GLIDEIN_PS_FAILED_LIST - List of scripts that failed at least once</li>
+        <li>GLIDEIN_PS_FAILING_LIST - List of scripts that failed the last execution</li>
         <li>GLIDEIN_PS_OK - True is no script failed its last execution (GLIDEIN_PS_FAILING_LIST is empty)
       At the beginning is published to schedd then directly</li>
-        <li>GLIDEIN_PS_FAILED_LAST - name of the last script that failed execution</li>
-        <li>GLIDEIN_PS_FAILED_LAST_REASON - string describing the last failure</li>
-        <li>GLIDEIN_PS_FAILED_LAST_END - end time (seconds form Epoch) of the last failure</li>
-        <li>GLIDEIN_PS_LAST - file path of the last script</li>
+        <li>GLIDEIN_PS_FAILED_LAST - Name of the last script that failed execution</li>
+        <li>GLIDEIN_PS_FAILED_LAST_REASON - String describing the last failure</li>
+        <li>GLIDEIN_PS_FAILED_LAST_END - End time (seconds from Epoch) of the last failure</li>
+        <li>GLIDEIN_PS_LAST - File path of the last script</li>
         <li>GLIDEIN_PS_LAST_END - end time of the last script execution
             (0 for script_wrapper.sh invoked at startup)</li>
     </ul>
     <p>All these attributes can be used in the startd (e.g. start or shutdown expressions:
         <tt>start_expr="GLIDEIN_PS_OK =!= FALSE"</tt>) or in other scripts.</p>
     <p>Periodic scripts run via
-        <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#sec:daemon-classad-hooks">HTCondor startd_cron</a>,
+        <a href="https://research.cs.wisc.edu/htcondor/manual/current/4_4Hooks.html#SECTION00543000000000000000">HTCondor startd_cron</a>,
         the output is not masked, so anything sent to standard output is added by HTCondor to the machine ClassAd. To protect form
         clashes a prefix is added (via STARTD_CRON_<JobName>_PREFIX in HTCondor). By default the prefix is GLIDEIN_PS_ but you can
-            change that by setting "prefix" in the file section of the frontend or factory configuration.
+            change that by setting "prefix" in the file section of the Frontend or Factory configuration.
             The special value "NOPREFIX" unsets the automatic prefix allowing
             to set the variables as you output them. Be aware that you may overwrite system variables with unpleasant effects.
         If you want to be more compatible we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
@@ -411,12 +412,12 @@ Order:
     The (after-entry) Frontend scripts are executed in the following order: pre-group scripts (in global config with
     <tt>after_group=&quot;False&quot;</tt>, which is the default), group scripts and after-group (i.e.
         <tt>after_group=&quot;True&quot;</tt>).</P>
-    <LI><P>Final global system scripts are executed and the Condor daemons
+    <LI><P>Final global system scripts are executed and the HTCondor daemons
     are launched.</P>
 </OL>
 <P>The Glidein Factory configuration allows an administrator to
 specify the files/scripts mentioned in points 2, 4 and 5. <BR>
-    <tt>after_entry</tt> and <tt>after_group</tt> allow to set the belonging to one group pr the other.<br>
+    <tt>after_entry</tt> and <tt>after_group</tt> allow to set the belonging to one group or the other.<br>
     Within a group the files/scripts are loaded/executed in the order in which they are
 specified in the configuration file.</P>
 
@@ -546,7 +547,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 </div>

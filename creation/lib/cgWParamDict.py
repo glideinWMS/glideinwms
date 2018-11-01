@@ -77,12 +77,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
         self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE, allow_overwrite=True)  # this one must be loaded before setup_x509.sh is run
+        self.dicts['file_list'].add_placeholder('singularity_lib.sh', allow_overwrite=True)  # this one must be loaded before singularity_setup.sh and any singularity wrapper are run
 
         #load system files
         for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
                           'condor_config', 'condor_config.multi_schedd.include',
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
-                          'condor_config.monitor.include', 'glidein_lib.sh'):
+                          'condor_config.monitor.include', 'glidein_lib.sh', 'singularity_lib.sh'):
             self.dicts['file_list'].add_from_file(file_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), 'regular'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
@@ -520,14 +521,15 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
-            self.dicts[u'condor_jdl'] = []
             for subentry in entry.get_child_list(u'entries'):
-                condorJdl = cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE_ENTRYSET % subentry[u'name'])
-                condorJdl.load()
                 entry.select(subentry)
-                condorJdl.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+                # Find subentry
+                for cj in self.dicts[u'condor_jdl']:
+                    cj_entryname = cj.fname.split('.')[1]
+                    if cj_entryname==subentry.getName():
+                        cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+                        break
                 entry.select(None)
-                self.dicts[u'condor_jdl'].append(condorJdl)
         else:
             ################################################################################################################
             # This is the original function call:
@@ -741,7 +743,21 @@ def add_attr_unparsed(attr, dicts, description):
     try:
         add_attr_unparsed_real(attr, dicts)
     except RuntimeError as e:
-        raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr[u'name'], str(e)))
+        raise RuntimeError("Error parsing attr %s[%s]: %s" % (description, attr[u'name'], str(e)))
+
+
+def validate_attribute(attr_name, attr_val):
+    """Check the attribute value is valid. Otherwise throw RuntimeError"""
+    if not attr_name or not attr_val:
+        return
+    # Consider adding a common one in cWParamDict
+    # Series of if/elif sections validating the attributes
+    if attr_name == "GLIDEIN_SINGULARITY_REQUIRE":
+        if attr_val.lower == 'true':
+            raise RuntimeError("Invalid value for GLIDEIN_SINGULARITY_REQUIRE: use REQUIRED or REQUIRED_GWMS instead of True")
+        if attr_val not in ('REQUIRED_GWMS', 'NEVER', 'OPTIONAL', 'PREFERRED', 'REQUIRED'):
+            raise RuntimeError("Invalid value for GLIDEIN_SINGULARITY_REQUIRE: %s not in REQUIRED_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED." %
+                               attr_val)
 
 
 def add_attr_unparsed_real(attr, dicts):
@@ -749,7 +765,9 @@ def add_attr_unparsed_real(attr, dicts):
     do_publish = eval(attr[u'publish'], {}, {})
     is_parameter = eval(attr[u'parameter'], {}, {})
     is_const = eval(attr[u'const'], {}, {})
-    attr_val=attr.get_val()
+    attr_val = attr.get_val()
+
+    validate_attribute(attr_name, attr_val)
 
     if do_publish:  # publish in factory ClassAd
         if is_parameter:  # but also push to glidein
@@ -764,15 +782,15 @@ def add_attr_unparsed_real(attr, dicts):
     else:  # do not publish, only to glidein
         dicts['consts'].add(attr_name, attr_val)
 
-    do_glidein_publish=eval(attr[u'glidein_publish'], {}, {})
-    do_job_publish=eval(attr[u'job_publish'], {}, {})
+    do_glidein_publish = eval(attr[u'glidein_publish'], {}, {})
+    do_job_publish = eval(attr[u'job_publish'], {}, {})
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
             if attr_name in dicts['vars']:
                 # already in the var file, check if compatible
-                attr_var_el=dicts['vars'][attr_name]
-                attr_var_type=attr_var_el[0]
+                attr_var_el = dicts['vars'][attr_name]
+                attr_var_type = attr_var_el[0]
                 if (((attr[u'type'] == "int") and (attr_var_type != 'I')) or
                     ((attr[u'type'] == "expr") and (attr_var_type == 'I')) or
                     ((attr[u'type'] == "string") and (attr_var_type == 'I'))):
@@ -780,11 +798,12 @@ def add_attr_unparsed_real(attr, dicts):
                 attr_var_export = attr_var_el[4]
                 if do_glidein_publish and (attr_var_export == 'N'):
                     raise RuntimeError("Cannot force glidein publishing")
-                attr_var_job_publish=attr_var_el[5]
-                if do_job_publish and (attr_var_job_publish=='-'):
+                attr_var_job_publish = attr_var_el[5]
+                if do_job_publish and (attr_var_job_publish == '-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
-                dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False, do_glidein_publish, do_job_publish)
+                dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False,
+                                           do_glidein_publish, do_job_publish)
 
 
 ##################################
@@ -934,6 +953,11 @@ def populate_job_descript(work_dir, job_descript_dict,
     restrictions = config.get_child(u'restrictions')
     job_descript_dict.add('RequireVomsProxy', restrictions[u'require_voms_proxy'])
     job_descript_dict.add('RequireGlideinGlexecUse', restrictions[u'require_glidein_glexec_use'])
+
+    # Job submit file pick algorithm. Only present for metasites, will be Default otherwise
+    if 'entry_selection' in config.children:
+        entry_selection = config.children.get('entry_selection')
+        job_descript_dict.add("EntrySelectionAlgorithm", entry_selection.get("algorithm_name", "Default"))  # Keeping "Default" although not necessary
 
     # Add the frontend specific job limits to the job.descript file
     max_held_frontend = ""
@@ -1143,7 +1167,7 @@ def calc_monitoring_collectors_string(collectors):
         if el[u'group'] not in collector_nodes:
             collector_nodes[el[u'group']] = {'primary': [], 'secondary': []}
         if eval(el[u'secondary']):
-            cWDictFile.validate_node(el[u'node'], allow_prange=True)
+            cWDictFile.validate_node(el[u'node'])
             collector_nodes[el[u'group']]['secondary'].append(el[u'node'])
         else:
             cWDictFile.validate_node(el[u'node'])

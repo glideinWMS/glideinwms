@@ -89,7 +89,7 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
     The resulting keys are the string concatenation of the original ones
     A separator can be added between keys
 
-    NOTE: Value could be clobbered if there are duplicates in the strings resulting form concatenating keys, e.g.
+    NOTE: Value could be clobbered if there are duplicates in the strings resulting from concatenating keys, e.g.
     {'a':{'b':1}, 'ab':2}
     A separator will not solve the problem if it is a valid character for the keys
 

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - condor attributes</title>
+  <title>GlideinWMS - HTCondor attributes</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -14,7 +14,7 @@
     <ul class="breadcrumbs">
         <li><a href="../index.html">Home</a></li>
         <li><a href="./index.html">Components</a></li>
-        <li>Condor Configuration Attributes</li>
+        <li>HTCondor Configuration Attributes</li>
     </ul>
 
     <div class="clear" />
@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
@@ -54,9 +53,9 @@
 	     <li> <a href="./collector_install.html">User Pool</a></li>
 	     <li> <a href="./pool_install.html">User Schedd</a></li>
              <li> <a href="./gsi.html">GSI</a></li>
-	     <li class="last">Condor</li>
+	     <li class="last">HTCondor</li>
 	</ul>
-        <h3>Condor Configuration Attributes</h3>
+        <h3>HTCondor Configuration Attributes</h3>
     </div>
 
 <div class="jump">
@@ -95,7 +94,7 @@
   </td>
   <td>CONDOR_IDS = 500.500
   </td>
-  <td>Condor user (uid.gid)
+  <td>HTCondor user (uid.gid)
    </td>
 </tr>
 <tr>
@@ -119,7 +118,7 @@
 <tr>
    <td>LOCK = $(LOG)
    </td>
-   <td>Condor lock files to synchronize access to  various log files.<br/>
+   <td>HTCondor lock files to synchronize access to  various log files.<br/>
        They use the log directory so they are collocated.
    </td>
 </tr>
@@ -127,7 +126,7 @@
 <tr>
    <td>DAEMON_LIST = MASTER, COLLECTOR, NEGOTIATOR, SCHEDD
    </td>
-   <td>Condor daemons.<br/>
+   <td>HTCondor daemons.<br/>
        The WMS Collector services will have the list shown above.<br/>
        The User Collector service uses all but the SCHEDD.<br/>
        The Submit service uses only the SCHEDD.<br/>
@@ -195,7 +194,7 @@
 <tr>
   <td>CERTIFICATE_MAPFILE = full_path_to_the_condor_mapfile
   </td>
-  <td>Condor mapfile
+  <td>HTCondor mapfile
   </td>
   </tr>
 
@@ -204,7 +203,6 @@
       ALLOW_WRITE = $(HOSTALLOW_WRITE)
   </td>
   <td>With strong security, do not use IP based controls<br/>
-      <font color="blue">Condor 7.4+ only</font>
   </td>
   </tr>
 
@@ -295,7 +293,7 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
 
 <tr>
   <td>##COLLECTOR_MAX_FILE_DESCRIPTORS = 20000</td>
-  <td>Allow more file descriptors (only works if Condor is started as root)</td>
+  <td>Allow more file descriptors (only works if HTCondor is started as root)</td>
 
 <!--  Secondary Collectors -->
 <tr>
@@ -305,10 +303,10 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
       DAEMON_LIST = $(DAEMON_LIST), COLLECTOR0<br/>
   </td>
   <td valign="top">
-      For <b>each</b> secondary Condor collector desired, the attributes specified must be set.
+      For <b>each</b> secondary HTCondor collector desired, the attributes specified must be set.
       <br/><br/>
       For more detailed information on this, refer to the 
-     <a href="./condor.html#collectors">Advanced Condor Configuration - Mulitple Collectors document</a>
+     <a href="./condor.html#collectors">Advanced HTCondor Configuration - Mulitple Collectors document</a>
   </td>
   </tr>
 <tr class="head"><td colspan="3"></td></tr>
@@ -341,7 +339,6 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   </td>
   <td>Stop 30 jobs every seconds<br/>
       This is needed to prevent glexec overload, when used.<br>
-      Works for Condor v7.3.1 and up only, but harmless for older versions
   </td>
   </tr>
 
@@ -410,8 +407,8 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
 <tr>
   <td>SHADOW_WORKLIFE = 0
   </td>
-  <td>This is a workaround to a Condor problem 
-      if SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE and Condor 
+  <td>This is a workaround to a HTCondor problem 
+      if SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE and HTCondor 
       version &lt;= 7.5.3<br/>
       See Condor ticket 
      <a href="https://condor-wiki.cs.wisc.edu/index.cgi/tktview?tn=1481">1481</a>
@@ -428,7 +425,6 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   </td>
   <td valign="top">
    SCHEDD Shared Ports<br/><br/>
-   Available only in Condor 7.5.3+.
    </td>
   </tr>
 
@@ -459,11 +455,9 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   </td>
   <td valign="top" rowspan="1">
     Atttributes for defining multiple schedds.<br/><br/>
-    The capability to define multiple SCHEDD daemons as a Condor attribute is 
-    available in Condor 7.5+.<br/>
     <br/>
-    Effective with Condor 7.7.5+, a JOB_QUEUE_LOG attribute was added.  When multiple schedds are used, each additional
-    schedd must specify the unique location for that file.<br/>
+    When multiple schedds are used, each additional
+    schedd must specify the unique location for the log file using JOB_QUEUE_LOG.<br/>
      <br/>
     The execute, lock and spool directories for each schedd must be created manually.<br/>
      <br/>
@@ -508,8 +502,6 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   </td>
   <td valign="top" rowspan="1">
     Atttributes for defining multiple schedds.<br/><br/>
-    The capability to define multiple SCHEDD daemons as a Condor attribute is 
-    available in Condor 7.5+.<br/>
     <br/>
     Effective with Condor 7.7.5+, a JOB_QUEUE_LOG attribute was added.  When multiple schedds are used, each additional
     schedd must specify the unique location for that file.<br/>
@@ -550,11 +542,10 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
      SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"<br/>
   </td>
   <td valign="top">Condor-G attributes<br/>
-    <br/>The GRIDMANAGER_PROXY_REFRESH_TIME attribute was introduced in Condor 7.7.5 as a
-         configurable attribute with a default of 6 hours.
-         This forces Condor-G to re-delegate the proxy as soon as the
-         Frontend provides one, defaulting to 1 week, since we do not
-         expect proxies with longer lifetimes
+    <br/>The GRIDMANAGER_PROXY_REFRESH_TIME attribute forces Condor-G 
+         to re-delegate the proxy as soon as the Frontend provides one,
+         defaulting to 1 week, since we do not expect proxies with longer 
+         lifetimes.
   </td>
 </tr>
 <tr>
@@ -603,7 +594,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>
 </html>

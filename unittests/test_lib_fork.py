@@ -1,14 +1,23 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for glideinwms/lib/fork..py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
 
 from __future__ import absolute_import
 from __future__ import print_function
-import xmlrunner
-import time
-import mock
 import select
+import time
 import os
+import xmlrunner
 import unittest2 as unittest
-from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.unittests.unittest_utils import FakeLogger
 from glideinwms.unittests.unittest_utils import create_temp_file
 from glideinwms.lib.fork import ForkResultError
@@ -22,13 +31,16 @@ import glideinwms.lib.logSupport
 
 LOG_FILE = create_temp_file()
 
+
 def global_log_setup():
-    fd = open(LOG_FILE,'w', 0)
+    fd = open(LOG_FILE, 'w', 0)
     glideinwms.lib.logSupport.log = FakeLogger(fd)
+
 
 def global_log_cleanup():
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
+
 
 def sleep_fn(sleep_tm=None):
     if not sleep_tm:
@@ -37,13 +49,12 @@ def sleep_fn(sleep_tm=None):
     return str(sleep_tm)
 
 
-
-
 class TestForkResultError(unittest.TestCase):
 
     def test___init__(self):
         try:
-            fork_result_error = ForkResultError(nr_errors=1, good_results=None, failed=1)
+            fork_result_error = ForkResultError(
+                nr_errors=1, good_results=None, failed=1)
         except ForkResultError as err:
             self.assertEqual('', str(err))
             self.assertEqual('', str(fork_result_error))
@@ -86,7 +97,6 @@ class TestFetchForkResultList(unittest.TestCase):
         result = fetch_fork_result_list(pipe_ids)
         self.assertTrue(expected, result)
         global_log_cleanup()
-    
 
 
 class TestFetchReadyForkResultList(unittest.TestCase):
@@ -128,7 +138,7 @@ class TestForkManager(unittest.TestCase):
 
     def tear_down(self):
         global_log_cleanup()
-   
+
     def load_forks(self, num_forks=None, sleep_val=None):
         if not num_forks:
             num_forks = self.default_forks
@@ -144,12 +154,10 @@ class TestForkManager(unittest.TestCase):
     def test___init__(self):
         self.assertTrue(isinstance(self.fork_manager, ForkManager))
 
-
     def test_add_fork_and_len(self):
         num_forks = 10
         self.load_forks(num_forks)
         self.assertEqual(num_forks, len(self.fork_manager))
-
 
     def test_fork_and_collect(self):
         expected = self.load_forks()
@@ -164,50 +172,61 @@ class TestForkManager(unittest.TestCase):
 
     def test_bounded_fork_and_collect_use_epoll(self):
         #
-        #the following 3 tests must be run in order
-        #which may be an artifact of different test runners
+        # the following 3 tests must be run in order
+        # which may be an artifact of different test runners
         #
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
+        results = self.fork_manager.bounded_fork_and_collect(
+            max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
         fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
         self.assertTrue("Active forks =" in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
-        self.assertFalse("'module' object has no attribute 'epoll'" in log_contents)
-        self.assertFalse("'module' object has no attribute 'poll'" in log_contents)
+        self.assertFalse(
+            "'module' object has no attribute 'epoll'" in log_contents)
+        self.assertFalse(
+            "'module' object has no attribute 'poll'" in log_contents)
 
     def test_bounded_fork_and_collect_use_poll(self):
         #
-        #force select.epoll to throw in import error so select.poll is used
+        # force select.epoll to throw in import error so select.poll is used
         #
         del select.epoll
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
+        results = self.fork_manager.bounded_fork_and_collect(
+            max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
         fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
         self.assertTrue("Active forks =" in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
-        self.assertTrue("'module' object has no attribute 'epoll'" in log_contents)
-        self.assertFalse("'module' object has no attribute 'poll'" in log_contents)
+        self.assertTrue(
+            "'module' object has no attribute 'epoll'" in log_contents)
+        self.assertFalse(
+            "'module' object has no attribute 'poll'" in log_contents)
 
     def test_bounded_fork_and_collect_use_select(self):
         #
-        #force select.poll to throw an import error
-        #depends on select.epoll being removed by previous test
+        # force select.poll to throw an import error
+        # depends on select.epoll being removed by previous test
         #
         del select.poll
         expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(max_forks=50, log_progress=True, sleep_time=0.1)
+        results = self.fork_manager.bounded_fork_and_collect(
+            max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
         fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
         self.assertTrue("Active forks = " in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
-        self.assertTrue("'module' object has no attribute 'epoll'" in log_contents)
-        self.assertTrue("'module' object has no attribute 'poll'" in log_contents)
+        self.assertTrue(
+            "'module' object has no attribute 'epoll'" in log_contents)
+        self.assertTrue(
+            "'module' object has no attribute 'poll'" in log_contents)
+
 
 if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
-
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(
+            output='unittests-reports'))

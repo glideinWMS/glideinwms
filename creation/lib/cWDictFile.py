@@ -11,6 +11,7 @@ from __future__ import print_function
 #
 
 import os, os.path  # string
+import re
 import shutil
 import copy
 import socket
@@ -277,11 +278,9 @@ class DictFile:
         return "%s \t%s" % (key, self.vals[key])
 
     def parse_val(self, line):
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
-        if len(arr) == 0:
-            return  # empty line
         if len(arr[0]) == 0:
             return  # empty key
 
@@ -420,7 +419,7 @@ class DescriptionDictFile(DictFileTwoKeys):
         return "%s \t%s" % (self.vals[key], key)
 
     def parse_val(self, line):
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr) == 0:
@@ -440,7 +439,7 @@ class GridMapDict(DictFileTwoKeys):
         return '"%s" %s' % (key, self.vals[key])
 
     def parse_val(self, line):
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr=line.split()
         if len(arr) == 0:
@@ -474,11 +473,9 @@ class SHA1DictFile(DictFile):
         return "%s  %s"%(self.vals[key], key)
 
     def parse_val(self, line):
-        if line[0]=='#':
+        if not line or line[0]=='#':
             return # ignore comments
         arr=line.split(None, 1)
-        if len(arr)==0:
-            return # empty line
         if len(arr)!=2:
             raise RuntimeError("Not a valid SHA1 line: '%s'"%line)
 
@@ -510,11 +507,9 @@ class SummarySHA1DictFile(DictFile):
         return "%s  %s  %s"%(self.vals[key][0], self.vals[key][1], key)
 
     def parse_val(self, line):
-        if line[0]=='#':
+        if not line or line[0]=='#':
             return # ignore comments
         arr=line.split(None, 2)
-        if len(arr)==0:
-            return # empty line
         if len(arr)!=3:
             raise RuntimeError("Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line))
 
@@ -610,11 +605,9 @@ class SimpleFileDictFile(DictFile):
         :param line: line to be parsed
         :return: None
         """
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
-        if len(arr) == 0:
-            return  # empty line
         if len(arr[0]) == 0:
             return  # empty key - this can never happen
 
@@ -841,11 +834,9 @@ class ReprDictFileInterface:
         return "%s \t%s"%(key, repr(self.vals[key]))
 
     def parse_val(self, line):
-        if line[0]=='#':
+        if not line or line[0]=='#':
             return # ignore comments
         arr=line.split(None, 1)
-        if len(arr)==0:
-            return # empty line
         if len(arr[0])==0:
             return # empty key
 
@@ -973,9 +964,7 @@ class VarsDictFile(DictFile):
                                                        self.vals[key][3], self.vals[key][4], self.vals[key][5])
 
     def parse_val(self, line):
-        if len(line) == 0:
-            return  #ignore emoty lines
-        if line[0] == '#':
+        if not line or line[0] == '#':
             return  # ignore comments
         arr=line.split(None, 6)
         if len(arr) == 0:
@@ -1652,63 +1641,99 @@ class MonitorFileDicts:
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
 
+
 #########################################################
 #
 # Common functions
 #
 #########################################################
 
-#####################################################
-# Validate HTCondor endpoint (node) string
-# this can be a node, node:port, node:port-range
-# or a shared port synful string host:port?sock=some_string$ID
-# or schedd_name@host:port[?sock=some_string]
-def validate_node(nodestr,allow_prange=False):
+# Some valid addresses to test validate_node with (using fermicloudui to avoid DNS errors):
+# ['fermicloudui.fnal.gov:9618-9620', 'fermicloudui.fnal.gov:9618?sock=collector30-40',
+# 'fermicloudui.fnal.gov:9618-9630', 'fermicloudui.fnal.gov:9618?sock=collector30-50',
+# 'fermicloudui.fnal.gov:9618?sock=collector10-20', 'fermicloudui.fnal.gov:9618?sock=collector',
+# 'fermicloudui.fnal.gov:9618?sock=collector30-40', 'fermicloudui.fnal.gov:9618?sock=collector30',
+# 'fermicloudui.fnal.gov:9618?sock=collector', 'fermicloudui.fnal.gov:9618?sock=collector&key1=val1',
+# 'name@fermicloudui.fnal.gov:9618?sock=schedd', 'fermicloudui.fnal.gov:9618?sock=my5alpha0num',
+# 'fermicloudui.fnal.gov:9618?key1=val1&sock=collector&key2=val2']
+
+def validate_node(nodestr, allow_range=False):
+    """Validate HTCondor endpoint (node) string
+    this can be a node, node:port, node:port-range
+    or a shared port sinful string node[:port]?[var=val&]sock=collectorN1[-N2][&var=val]
+    or a schedd schedd_name@node:port[?sock=collector&var=val]
+    'sock' cannot appear more than once
+    ranges can be either in ports or in 'sock', not in both at the same time
+
+    @param nodestr: endpoint (node) string
+    @param allow_range: True if a port range is allowed (e.g. for secondary collectors or CCBs)
+    @return: raise RuntimeError if the validation fails
+    """
+    # check that ; and , are not in the node string
+    if ',' in nodestr or ';' in nodestr:
+        raise RuntimeError("End-point name can not contain list separators (,;): '%s'" % nodestr)
     eparr = nodestr.split('?')
     if len(eparr) > 2:
-        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+        raise RuntimeError("Too many ? in the end-point name: '%s'" % nodestr)
+    found_range = False
     if len(eparr) == 2:
-        if not eparr[1].startswith("sock="):
-            raise RuntimeError("Unrecognized HTCondor sinful string: %s" % nodestr)
-        # check that ; and , are not in the endpoint ID (they are not before ?)
-        if ',' in eparr[1] or ';' in eparr[1]:
-            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
+        # Validate sinful string
+        ss_arr = eparr[1].split('&')
+        sock_found = False
+        for i in ss_arr:
+            if i.startswith('sock='):
+                if sock_found:
+                    raise RuntimeError("Only one 'sock' element allowed in end-point's sinful string: '%s'" % nodestr)
+                sock_found = True
+                match = re.match(r'(^\w*[a-zA-Z_]+)(\d+)?(?:-(\d+))?$', i[5:])
+                if match is None:
+                    raise RuntimeError("Invalid 'sock=' value in in the end-point's sinful string: '%s'" % nodestr)
+                if match.groups()[2] is not None:
+                    # Check the sock range
+                    if not allow_range:
+                        raise RuntimeError("'sock' range not allowed for this end-point: '%s'" % nodestr)
+                    found_range = True
+                    try:
+                        if int(match.groups()[1]) >= int(match.groups()[2]):
+                            raise RuntimeError("In the end-point, left value in the sock range must be lower than the right one: '%s'" % nodestr)
+                    except (TypeError, ValueError):
+                        # match.group can be None (or not an integer?)
+                        raise RuntimeError("Invalid 'sock' value in in the end-point's sinful string: '%s'" % nodestr)
     narr = eparr[0].split(':')
     if len(narr) > 2:
-        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
-    if len(narr)>1:
+        raise RuntimeError("Too many : in the end-point name: '%s'" % nodestr)
+    if len(narr) > 1:
         # have ports, validate them
         ports = narr[1]
         parr = ports.split('-')
         if len(parr) > 2:
-            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
-        if len(parr) > 1:
-            if not allow_prange:
-                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
-            pmin = parr[0]
-            pmax = parr[1]
-        else:
-            pmin = parr[0]
-            pmax = parr[0]
+            raise RuntimeError("Too many - in the end-point ports: '%s'" % nodestr)
         try:
-            pmini = int(pmin)
-            pmaxi = int(pmax)
-        except ValueError as e:
-            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
-        if pmini>pmaxi:
-            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
-
-        if pmini<1:
-            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
-        if pmaxi>65535:
-            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
-
+            pleft = int(parr[0])
+            if len(parr) > 1:
+                # found port range
+                if not allow_range:
+                    raise RuntimeError("Port range not allowed for this end-point: '%s'" % nodestr)
+                if found_range:
+                    raise RuntimeError("Cannot have both port range and 'sock' range in end-point: '%s'" % nodestr)
+                pright = int(parr[1])
+                if pleft >= pright:
+                    raise RuntimeError("Left port must be lower than right port in end-point port range: '%s'" %
+                                       nodestr)
+            else:
+                pright = pleft
+        except ValueError:
+            raise RuntimeError("End-point ports are not integer: '%s'" % nodestr)
+        if pleft < 1:
+            raise RuntimeError("Ports cannot be less than 1 for end-point ports: '%s'" % nodestr)
+        if pright > 65535:
+            raise RuntimeError("Ports cannot be more than 64k for end-point ports: '%s'" % nodestr)
     # split needed to handle the multiple schedd naming convention
     nodename = narr[0].split("@")[-1]
     try:
         socket.getaddrinfo(nodename, None)
     except:
         raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
-
     # OK, all looks good
     return
+

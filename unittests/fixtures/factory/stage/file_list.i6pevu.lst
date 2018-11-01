@@ -1,0 +1,30 @@
+# File: file_list.i6pevu.lst
+#
+# Outfile 	InFile         	Cache/exec 	Period 	Prefix 	Condition 	ConfigOut
+#########################################################################################
+error_gen.sh 	error_gen.i6pevu.sh 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+error_augment.sh 	error_augment.i6pevu.sh 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+setup_script.sh 	setup_script.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+constants.cfg 	constants.i6pdq1.cfg 	regular 	0 	GLIDEIN_PS_ 	TRUE 	CONSTS_FILE
+condor_vars.lst 	condor_vars.i6pdq1.lst 	regular 	0 	GLIDEIN_PS_ 	TRUE 	CONDOR_VARS_FILE
+untar.cfg 	untar.i6pdq1.cfg 	regular 	0 	GLIDEIN_PS_ 	TRUE 	UNTAR_CFG_FILE
+grid-mapfile 	grid-mapfile.i6pdq1 	regular 	0 	GLIDEIN_PS_ 	TRUE 	GRIDMAP
+parse_starterlog.awk 	parse_starterlog.i6pevu.awk 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+advertise_failure.helper 	advertise_failure.i6pevu.helper 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_config 	condor_config.i6pevu 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_config.multi_schedd.include 	condor_config.multi_schedd.i6pevu.include 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_config.dedicated_starter.include 	condor_config.dedicated_starter.i6pevu.include 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_config.check.include 	condor_config.check.i6pevu.include 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_config.monitor.include 	condor_config.monitor.i6pevu.include 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+glidein_lib.sh 	glidein_lib.i6pevu.sh 	regular 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+cat_consts.sh 	cat_consts.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_platform_select.sh 	condor_platform_select.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_bin_default-default-default.tgz 	condor_bin_0.i6pevu.tgz 	untar 	0 	GLIDEIN_PS_ 	CONDOR_PLATFORM_default-default-default 	CONDOR_DIR
+condor_bin_8.6.5-rhel6-x86_64.tgz 	condor_bin_1.i6pevu.tgz 	untar 	0 	GLIDEIN_PS_ 	CONDOR_PLATFORM_8.6.5-rhel6-x86_64 	CONDOR_DIR
+condor_bin_8.6.5-rhel7-x86_64.tgz 	condor_bin_2.i6pevu.tgz 	untar 	0 	GLIDEIN_PS_ 	CONDOR_PLATFORM_8.6.5-rhel7-x86_64 	CONDOR_DIR
+collector_setup.sh 	collector_setup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+create_temp_mapfile.sh 	create_temp_mapfile.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+setup_x509.sh 	setup_x509.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+condor_startup.sh 	condor_startup.i6pevu.sh 	exec 	0 	GLIDEIN_PS_ 	TRUE 	FALSE
+check_wn_drainstate.sh 	check_wn_drainstate.i6pevu.sh 	exec 	60 	NOPREFIX 	TRUE 	FALSE
+mjf_setparams.sh 	mjf_setparams.i6pevu.sh 	exec 	1800 	MJF_ 	TRUE 	FALSE

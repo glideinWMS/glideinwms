@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Glidein Frontend - Troubleshooting</title>
+  <title>GlideinWMS - Glidein Frontend - Troubleshooting</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -24,7 +24,6 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
                 <li> <a href="../recipes/index.html">Recipes</a></li>
@@ -53,7 +52,6 @@
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
         <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
-        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
     </map>
 
     <h2>Glidein Frontend</h2>
@@ -85,7 +83,7 @@
 <u>Related Information:</u><br/><br/>
 Factory troubleshooting:
 <ul>
-<li> <a href="../factory/troubleshooting.html#idle_jobs">Jobs stay idle (factory)</a></li>
+<li> <a href="../factory/troubleshooting.html#idle_jobs">Jobs stay idle (Factory)</a></li>
 <li> <a href="../factory/troubleshooting.html#idle_glideins">Glideins stay idle</a></li>
 <li> <a href="../factory/troubleshooting.html#no_resource">Resource not registered</a></li>
 <li> <a href="../factory/troubleshooting.html#no_start">Jobs don't start</a></li>
@@ -94,7 +92,7 @@ Factory troubleshooting:
 
 <!--  Verifying all services communicating -->
 <div class="section">
-<h2><a name="verification">Verifying all glideinWMS services are communicating.</a></h2>
+<h2><a name="verification">Verifying all GlideinWMS services are communicating.</a></h2>
     <p>
     One mean of verifying that all the GlideinWMS services are commnunicating
     correctly is to perform the following on the User Pool (Collector).
@@ -141,7 +139,7 @@ WMS Pool/Factory and the User Pool. NOTE: You do require at least one entry poin
         Also, make sure that this cert has authorization to run a job by running a command such as
         (all on one line - NOTE: You need to have globus-gram-client-tools installed): 
         <blockquote>
-            X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
+            X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in Factory config&gt;
         </blockquote>
         Note that /tmp/x509up_u&lt;UID&gt; is the typical location for x509/kerberos proxy certificates, but use 
         the proper location if the place of your server certificate varies.
@@ -160,7 +158,7 @@ WMS Pool/Factory and the User Pool. NOTE: You do require at least one entry poin
     </p>
    </div>
 
-    <!--  Failed to talk to factory pool / WMS Collector -->
+    <!--  Failed to talk to Factory pool / WMS Collector -->
     <div class="section">
     <h2><a name="wmscollectorfailure">Failed to talk to factory_pool (WMS Pool Collector)</a></h2>
     This is a failure to communicate with the WMS Pool (Collector) and Factory services.
@@ -190,7 +188,7 @@ Error: Couldn't contact the condor_collector on cms-xen21.fnal.gov
 <li>Verify the WMS Pool is running.
 <li>Verify the IP/NODE is correct for the WMS Pool.<br/>
     If it is incorrect, the frontend.xml should be corrected and
-    a frontend reconfig executed.
+    a Frontend reconfig executed.
     <blockquote>
     &lt;frontend .... &gt;<br/>
     &lt;match .... &gt;
@@ -255,7 +253,7 @@ code 1:Error: communication error<br/>
 <li>Verify the User Pool is running.<br/>
 <li>Verify the IP/NODE is correct for the User Pool.<br/>
     If it is incorrect, the frontend.xml should be corrected and
-    a frontend reconfig executed.
+    a Frontend reconfig executed.
     <blockquote>
     &lt;frontend .... &gt;<br/>
     &lt;match .... &gt;
@@ -326,30 +324,30 @@ code 1:Error: communication error<br/>
     <b>Symptoms:</b>User job stays idle and there are no glideins submitted that correspond to your job.<br/>
 
     <p>
-    This step involves the interaction of the VO Frontend and WMS Factory.  Hence, there are two separate facilities to see why no glideins are being created.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> page if none of these suggestions help.
+    This step involves the interaction of the VO Frontend, the WMS Factory and the Glideins.  Hence, there are two separate facilities to see why no glideins are being created.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> page if none of suggestions below help.
     </p>
 
     <h3>Frontend unable to map your job to any entry point</h3>
-    <b>Symptoms</b>:  User job stays idle and there is no information in the frontend logs about glideins required to run your job.<br/>
+    <b>Symptoms</b>:  User job stays idle and there is no information in the Frontend logs about glideins required to run your job.<br/>
     <b>Useful files:</b>
     GLIDEINWMS_VOFRONTEND_HOME/log/*<br/>
     GLIDEINWMS_VOFRONTEND_HOME/group_&lt;GROUP_NAME&gt;/log/* <br/>
     <b>Debugging Steps:</b>
     <p>
-    Check if the VO frontend is running. If not start it.
+    Check if the VO Frontend is running. If not start it.
     </p><p>
-    Glidein Frontend processes periodically query for user jobs in the user schedd. Once you have submitted the job, the VO Frontend should notice it during its next queering cycle. Once the frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS Pool collector for that corresponding entry point. You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector fqdn&gt;&rdquo;
+    Glidein Frontend processes periodically query for user jobs in the user schedd. Once you have submitted the job, the VO Frontend should notice it during its next quering cycle. Once the Frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS Pool collector for that corresponding entry point. You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector fqdn&gt;&rdquo;
     </p><p>
 
-    Check for error messages in logs located in GLIDEINWMS_VOFRONTEND_HOME/log.  Assuming that you have named frontend main group as &ldquo;main&rdquo;, check the log files in GLIDEINWMS_VOFRONTEND_HOME/group_main/log. 
+    Check for error messages in logs located in GLIDEINWMS_VOFRONTEND_HOME/log.  Assuming that you have named Frontend main group as &ldquo;main&rdquo;, check the log files in GLIDEINWMS_VOFRONTEND_HOME/group_main/log. 
         <blockquote>
         [2009-12-07T15:16:25-05:00 12398] For ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Idle 19 (effective 19 old 19) Running 0 (max 10000)<br/>
         [2009-12-07T15:16:25-05:00 12398] Glideins for ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Total 0 Idle 0 Running 0<br/>
         [2009-12-07T15:16:25-05:00 12398] Advertize ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Request idle 11 max_run 22
         </blockquote>
-    You should notice something like above in the logs corresponding to your job. If the frontend does not identify any entry that can run your job, then either the the desired entry is not configured in the glidein factory or the requirements you have expressed in your jobs are not correct.
+    You should notice something like above in the logs corresponding to your job. If the Frontend does not identify any entry that can run your job, then either the the desired entry is not configured in the glidein Factory or the requirements you have expressed in your jobs are not correct.
     </p><p>
-    Also, check the security classad to make sure the proxy/cert for the frontend is correct.  It should be chmod 600 and owned by the frontend user.<br/>
+    Also, check the security classad to make sure the proxy/cert for the Frontend is correct.  It should be chmod 600 and owned by the Frontend user.<br/>
 
     
     If using VOMS, try to query the information to verify:
@@ -358,23 +356,23 @@ code 1:Error: communication error<br/>
     </blockquote>
     </p>
 
-<p>The symptoms of this issue are a break in communication between the VO frontend and the factory.  In this case, the problem may also be a problem with the factory.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> guide for more details.
+<p>The symptoms of this issue are a break in communication between the VO Frontend and the Factory.  In this case, the problem may also be a problem with the Factory.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> guide for more details.
 </p>
 </div>
 <div class="section">
-<h3>Found an untrusted factory </h3>
+<h3>Found an untrusted Factory </h3>
 <b>Symptoms:</b>  You will receive an error similar to:
 <blockquote>
 <i>info log:</i><br/>
-[2010-09-29T09:07:24-05:00 26824] WARNING: Found an untrusted factory ress_ITB_GRATIA_TEST_2@v2_4_3@factory_service at cms-xen21.fnal.gov; ignoring.<br/>
+[2010-09-29T09:07:24-05:00 26824] WARNING: Found an untrusted Factory ress_ITB_GRATIA_TEST_2@v2_4_3@factory_service at cms-xen21.fnal.gov; ignoring.<br/>
 <i>debug log:</i><br/>
-[2010-09-29T09:07:24-05:00 26824] Found an untrusted factory ress_ITB_GRATIA_TEST_2@v2_4_3@factory_service at cms-xen21.fnal.gov; identity mismatch ' weigand@cms-xen21.fnal.gov'!='factory@cms-xen21.fnal.gov ' 
+[2010-09-29T09:07:24-05:00 26824] Found an untrusted Factory ress_ITB_GRATIA_TEST_2@v2_4_3@factory_service at cms-xen21.fnal.gov; identity mismatch ' weigand@cms-xen21.fnal.gov'!='factory@cms-xen21.fnal.gov ' 
 </blockquote>
 <b>Debugging Steps</b>:
 <p>
-    Verify the frontend config:<br/>
+    Verify the Frontend config:<br/>
     &lt;frontend &gt; &lt;collector ... <b>factory_identity="..."</b>&gt;<br/>
-    The frontend config's security element security_name attribute does not match the factory config's frontend element name attribute. 
+    The Frontend config's security element security_name attribute does not match the Factory config's Frontend element name attribute. 
     <br/>
     You can find the authenticated identity by:
     <blockquote>
@@ -383,11 +381,27 @@ code 1:Error: communication error<br/>
 </p>
    </div>
 
+<div class="section">
+<h3>Frontend Web server down or unreachable </h3>
+<b>Symptoms:</b>  Glideins do not report. Everything seems OK, no special error visible in the Frontend. Errors would be visible in the Glidein logs, in the Facotry
+<b>Debugging Steps</b>:
+<p>
+It is worth to test quickly the Web server. It serves both the monitoring pages and the stage area used by the Glideins.
+Check that the following pages are available (the staging area should be available from everywhere Glideins are running, so check the pages also from outside the Firewall):
+<ul>
+	<li>monitoring pages: http://FRONTEND_HOST_NAME/vofrontend/monitor/ </li>
+	<li>staging area (most files have a hash in the file name):  http://FRONTEND_HOST_NAME/vofrontend/stage/nodes.blacklist</li>
+</ul>
+If the pages are not reachable check that your web server is running and that no firewall (host or network) is blocking those pages.
+</p>
+   </div>
+
+  
 
     <div class="section">
     <h2><a name="admin_tools">Administrative tools</a></h2>
     <p>
-    glideinWMS comes with a set of administrative tools that you can use when troubleshooting problems.
+    GlideinWMS comes with a set of administrative tools that you can use when troubleshooting problems.
     </p>
     <p>
     All tools are located in a common area:
@@ -399,9 +413,9 @@ code 1:Error: communication error<br/>
     There are two tools that can be used to talk to the glideins:
     <ul>
       <li><b>fetch_glidein_log</b> - This tool will fetch the log from a glidein. It is a wrapper around 
-             <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_fetchlog.html">condor_fetchlog</a>.</li>
+             <a href="http://research.cs.wisc.edu/htcondor/manual/current/condor_fetchlog.html">condor_fetchlog</a>.</li>
       <li><b>glidein_off</b> - This tool will turn off one or more glideins. It is a wrapper around 
-             <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_off.html">condor_off</a>.</li>
+             <a href="http://research.cs.wisc.edu/htcondor/manual/current/condor_off.html">condor_off</a>.</li>
     </ul>
     Additionally, there is a general purpuse tool, called <br><b>enter_frontend_env</b><br> that simply sets the
     environment so that it matches the one used by the Frontend daemons. You can then use all HTCondor commands directly,
@@ -427,7 +441,7 @@ code 1:Error: communication error<br/>
     You can furthermore use:
     <ul>
       <li><b>remove_requested_glideins</b> - 
-              This tool will request the removal of glideins requested by the frontend.<br>
+              This tool will request the removal of glideins requested by the Frontend.<br>
               This comes handy when/if you find out that you had major configuration problem in the previous
               Frontend configuration. By default, a reconfig will only request glideins of new type,
               but will not remove any old ones.<br><br>
@@ -445,9 +459,9 @@ code 1:Error: communication error<br/>
 This section describe tools available to manually operate glideins
 
 <h3>manual_glidein_startup</h3>
-This tool queries the factory and frontend classads in the wms collector and generates glidein_startup.sh command along with arguments. This is useful from a VO or a site perceptive for debugging purposes to manually launch a glidein and have the HTCondor Startd report to the VO collector.
+This tool queries the Factory and Frontend classads in the wms collector and generates glidein_startup.sh command along with arguments. This is useful from a VO or a site perceptive for debugging purposes to manually launch a glidein and have the HTCondor Startd report to the VO collector.
 
-Although all the required information is derieved from the factory and frontend classads, user still needs to set the X509_USER_PROXY environment variable. glidein_startup.sh uses this proxy for the condor daemons to talk to the VO collector. 
+Although all the required information is derieved from the Factory and Frontend classads, user still needs to set the X509_USER_PROXY environment variable. glidein_startup.sh uses this proxy for the condor daemons to talk to the VO collector. 
 
 <pre>
 <b>[prompt]$ manual_glidein_startup --help</b>
@@ -485,7 +499,7 @@ Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
 Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
-glideinWMS email support: glideinwms-support at fnal.gov
+GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 
 </div>

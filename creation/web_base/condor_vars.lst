@@ -1,8 +1,22 @@
-# VarName		Type	Default		CondorName			Req.	Export 	UserJobEnvName
-#                       S=Quote - = No Default	+ = VarName				Condor	- = Do not export
-#												+ = Use VarName
-#												@ = Use CondorName
+# VarName   Type      Default         CondorName   Req.  ExportCondor    UserJobEnvName
+#           S=Quote   - = No Default  + = VarName                        - = Do not export
+#                                                                        + = Use VarName
+#                                                                        @ = Use CondorName
 #################################################################################################################
+
+# Singularity variables
+# GLIDEIN_Singularity_Use (DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED)
+# GLIDEIN_SINGULARITY_REQUIRE (NEVER, OPTIONAL, PREFERRED, REQUIRED, REQUIRED_GWMS)
+GLIDEIN_SINGULARITY_REQUIRE S   -               +   N   Y   -
+GLIDEIN_Singularity_Use     S   DISABLE_GWMS    +   N   Y   -
+GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   Y   -
+GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   Y   -
+SINGULARITY_IMAGES_DICT                 S   -   +   N   Y   -
+GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
+GLIDEIN_REQUIRED_OS         S   any             +   N   Y   -
+REQUIRED_OS                 S   any             +   N   Y   -
+GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -
+
 
 # User modifiable variables
 GLIDEIN_Start		C	True		+				N	N	-
