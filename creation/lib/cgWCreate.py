@@ -245,7 +245,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
         # self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
-        self.add("gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####",
+        self.add("gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####"
                  ","
                  "shutdown-script=/usr/bin/killall -QUIT condor_master; sleep 5")
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
