@@ -741,7 +741,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     in trying to provision glideins when it sees idle user jobs.<br>
     <ul>
      <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
-    aggressive the provisioning requests should be.<br>
+     aggressive the provisioning requests should be.<br>
      The number specified in <b>max</b> is the highest number of idle/pending 
      glideins that the resource associated with any Factory entry will ever see.</li>
      <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
@@ -761,16 +761,17 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          for each entry associated to the group (even if there are no jobs idle). Keep in mind that if you use this <b>min</b>
          attribute and you also set idle_glideins_lifetime, then you might have old idle glideins removed and immeditely
          resubmitted. </li>
-        <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
+     <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
         Glidein can expire () and die when not used, anyway you can trigger early removal.
+        Early removal is controlled by 4 attributes (type, requests_tracking, margin, wait) and is disabled bt default (type="NO").
+        <b>type</b> selects what to remove: NO (default) no removal, IDLE only Idle glideins -not submitted-,
+        WAIT also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed).
         When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
             then the Glideins in excess are removed.
-        If <b>requests_tracking</b> is off but <b>type</b> is different from NO, then it removes glideins when there are
-            no pending job requests for this group.
-        <b>type</b> selects what to remove: NO (default) no removal, IDLE only Idle glideins -not submitted-,
-        WAIT also glideins waiting in the remote queues, ALL also running glideins.
-        <b>wait</b> waits for N cycles without requests (or below the margin) before triggering the removal.</li>
-      </ul>
+        If <b>requests_tracking</b> is False (default) then it removes glideins when there are no pending job requests for this group 
+        Either ways <b>type</b> still controls what to remove (and the default NO means no removal).
+        <b>wait</b> adds a delay, waits for N cycles without requests (or below the margin) before triggering the removal.</li>
+    </ul>
     </P></li>
 
     <LI><P>
