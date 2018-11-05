@@ -20,7 +20,6 @@ import glob
 import string
 import re
 import pwd
-import binascii
 import base64
 import tempfile
 from itertools import groupby
@@ -1274,7 +1273,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         raise RuntimeError(msg)
 
     if username != MY_USERNAME:
-        # Use privsep
         # need to push all the relevant env variables through
         for var in os.environ:
             if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or

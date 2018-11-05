@@ -41,8 +41,6 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(l
 # Adding in the capability to use the built in Python logging Module
 # This will allow us to log anything, anywhere
 #
-# Note:  We may need to create a custom class later if we need to handle
-#        logging with privilege separation
 
 def alternate_log(msg):
     """

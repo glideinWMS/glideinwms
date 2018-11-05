@@ -81,7 +81,6 @@ class WMSCollector(Condor):
     self.frontend      = None     # VOFrontend object
     self.factory       = None     # Factory object
     self.usercollector = None     # User collector object
-    self.privsep       = None     # Privilege Separation object
 
   #--------------------------------
   def get_frontend(self):
@@ -95,11 +94,6 @@ class WMSCollector(Condor):
   def get_usercollector(self):
     if self.usercollector == None:
       self.usercollector = UserCollector.UserCollector(self.inifile, valid_options)
-  #--------------------------------
-  def get_privsep(self):
-    if self.privilege_separation() == "y":
-      from . import PrivilegeSeparation
-      self.privsep = PrivilegeSeparation.PrivilegeSeparation(self.condor_location(), self.factory, [self.frontend,], self.frontend_users())
   #--------------------------------
   def frontend_users(self):
     mydict = {}
@@ -120,7 +114,6 @@ class WMSCollector(Condor):
   def install(self):
     self.get_factory()
     self.get_frontend()
-    self.get_privsep()
     common.logit("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
     self.validate()
@@ -134,7 +127,6 @@ class WMSCollector(Condor):
     if self.not_validated:
       self.get_factory()
       self.get_frontend()
-      self.get_privsep()
       self.verify_no_conflicts()
       self.install_vdtclient()
       self.install_certificates()
@@ -146,12 +138,9 @@ class WMSCollector(Condor):
     self.validate()
     common.logit("Configuring Condor")
     self.get_condor_config_data()
-    self.condor_config_privsep_data()
     self.__create_condor_mapfile__(self.condor_mapfile_users())
     self.__create_condor_config__()
     self.__create_initd_script__()
-    if self.privsep != None:
-      self.privsep.update()
     common.logit("Configuration complete")
 
   #--------------------------------
@@ -167,17 +156,6 @@ class WMSCollector(Condor):
     users.append(["VOFrontend", self.frontend.x509_gsi_dn(), self.frontend.service_name()])
     users.append(["WMSCollector", self.x509_gsi_dn(), self.username()])
     return users
-
-  #-----------------------------
-  def condor_config_privsep_data(self):
-    if self.privilege_separation() == "n":
-      return  # no privilege separation in effect
-    if self.privsep == None:
-      common.logerr("""System error: privilege separation is in effect but there
-the PrivilegeSeparation class has not been instantiated""")
-    type = "00_gwms_general"
-    self.condor_config_data[type] += self.privsep.condor_config_data()
-
 
   #--------------------------------
   def verify_no_conflicts(self):
