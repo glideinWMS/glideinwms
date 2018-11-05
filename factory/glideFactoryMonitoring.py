@@ -60,7 +60,7 @@ class MonitoringConfig:
 
     def config_log(self, log_dir, max_days, min_days, max_mbs):
         self.log_dir = log_dir
-        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
+        cleaner = cleanupSupport.DirCleanupWSpace(
                       None, log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))

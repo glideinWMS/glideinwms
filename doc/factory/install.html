@@ -196,7 +196,7 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
     </tr>
     <tr>
         <td>Factory</td>
-        <td>The Factory will always be installed as a non-prvileged user, whether or not privilege separation is being used.</td>
+        <td>The Factory will always be installed as a non-privileged user.</td>
     </tr>
     <tr>
         <td>One user per Fontend (See notes)</td>
@@ -216,10 +216,9 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
             <li>WMS Pool cert/Proxy DN</li>
             <li>Glidein Frontend Proxy DN (cannot use a cert here)</li>
         </ul>
-        <p><strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs.  
+        <p><strong>Note 1:</strong> In some places, the installer will also ask for nicknames to go with the DNs.
          These nicknames are the HTCondor UID used in its configuration and mapfile. 
-         The name given doesn't 
-         matter, EXCEPT if you are using privilege separation. Then on the WMS Pool the nickname for 
+         The name given doesn't matter. Then on the WMS Pool the nickname for
         each Glidein Frontend must be the UNIX username that you created for that Frontend. <br>
         <strong>Note 2:</strong> The installer will ask if these are trusted HTCondor Daemons.  Answer 'y'.<p> 
     
