@@ -1248,7 +1248,7 @@ class glideinFrontendElement:
                          'WAIT': 1,
                          'IDLE': 2,
                          'ALL': 3,
-                         'UNREG': 4  # Mentioned in glideinFrontendIntrface.py - not documented
+                         'UNREG': 4,  # Mentioned in glideinFrontendIntrface.py - not documented
                          'DISABLE': -1
                          }
         remove_excess_str_auto = self.choose_remove_excess_type(count_jobs, count_status, glideid)
