@@ -1234,7 +1234,7 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
     def decide_removal_type(self, count_jobs, count_status, glideid):
-        """Picks the max removal type
+        """Picks the max removal type (unless disable is requested)
         - if it was requested explicitly, send that one
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
@@ -1249,11 +1249,15 @@ class glideinFrontendElement:
                          'IDLE': 2,
                          'ALL': 3,
                          'UNREG': 4  # Mentioned in glideinFrontendIntrface.py - not documented
+                         'DISABLE': -1
                          }
         remove_excess_str_auto = self.choose_remove_excess_type(count_jobs, count_status, glideid)
         remove_excess_str_config = self.check_removal_type_config(glideid)
         remove_excess_str_auto_nr = remove_levels[remove_excess_str_auto]
         remove_excess_str_config_nr = remove_levels[remove_excess_str_config]
+        if remove_excess_str_config_nr < 0:
+            # disable all removals
+            return 'NO', 0
         if remove_excess_str_auto_nr > remove_excess_str_config_nr:
             return remove_excess_str_auto, 0
         # Config request >= automatic removal
@@ -1265,15 +1269,17 @@ class glideinFrontendElement:
 
     def check_removal_type_config(self, glideid):
         """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
-            "ALL", "IDLE", "WAIT", or "NO"
+            "ALL", "IDLE", "WAIT", "NO" or "DISABLE" (disable also automatic removal)
 
         @param glideid: ID of the glidein
-        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+        @return: remove excess string, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
         """
         # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == 'NO':
             # No special semoval requested, leave things unchanged
             return 'NO'
+        if self.removal_type == 'DISABLE':
+            return 'DISABLE'
         # Cannot compare the current requests w/ the available glideins (factory status not provided to the FE)
         # If tracking is enabled, always request removal and send the margin. The factory will decide
         if self.removal_requests_tracking:
