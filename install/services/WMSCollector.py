@@ -21,7 +21,8 @@ from .Configuration import ConfigurationError
 wmscollector_options = [ 
 "install_type",
 "hostname", 
-"username", 
+"username",
+"privilege_separation",
 "service_name", 
 "condor_location", 
 "x509_cert_dir",
