@@ -66,6 +66,7 @@ def parse_opts():
 def backup_dir(output_filename, source_dir):
     """ Backup the directory "source_dir" into "output_filename"
     """
+    logging.info("Backing up %s into %s" % (source_dir, output_filename))
     with closing(tarfile.open(output_filename, "w:gz")) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
 
@@ -90,6 +91,7 @@ def chown_dir(path, uid, gid, fuid, test):
         owner of the file is fuid.
         If "test: is set don't chown but just print a message
     """
+    mychown(os.path.dirname(path), uid, gid, fuid, test)
     mychown(path, uid, gid, fuid, test)
     for dirpath, dirnames, filenames in os.walk(path):
         for dname in dirnames:
@@ -100,11 +102,14 @@ def chown_dir(path, uid, gid, fuid, test):
             pass
 
 
-def fix_jobqueue(jobqueue_file, user, test):
+def fix_jobqueue(jobqueue_file, user, options):
     """ Replace the username in the condor job_queue file to user
     """
 
-    if test:
+    if options.backup:
+        backup_name = os.path.dirname(jobqueue_file).split('/')[-2] + '_' + os.path.basename(jobqueue_file)
+        backup_dir(backup_name + '.tar.gz', jobqueue_file)
+    if options.test:
         logging.info("Test mode: not fixing %s" % jobqueue_file)
     else:
         cmd = 'sed -i.bk -e \'s/103 \([-0-9.]*\) Owner ".*"/103 \\1 Owner "\'%s\'"/\' %s' % (user, jobqueue_file)
@@ -138,14 +143,15 @@ def main():
     spooldir = htcondor.param['SPOOL']
     if not 'JOBQUEUE' in htcondor.param:
         jobqueue_file = os.path.join(spooldir, 'job_queue.log')
-    fix_jobqueue(jobqueue_file, options.user, options.test)
-    fix_jobqueue(jobqueue_file, options.user, False)
+    fix_jobqueue(jobqueue_file, options.user, options)
     for i in xrange(1,9):
         try:
+            #jobqueue_file = htcondor.param['SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
             jobqueue_file = htcondor.param['SCHEDD.SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
         except KeyError:
             logging.warning("Cannot find 'SCHEDD.SCHEDDGLIDEINS%s.JOB_QUEUE_LOG'. Skipping it." % i)
-        fix_jobqueue(jobqueue_file, options.user, options.test)
+            continue
+        fix_jobqueue(jobqueue_file, options.user, options)
 
 
 if __name__ == '__main__':
