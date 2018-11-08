@@ -146,8 +146,7 @@ def main():
     fix_jobqueue(jobqueue_file, options.user, options)
     for i in xrange(1,9):
         try:
-            #jobqueue_file = htcondor.param['SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
-            jobqueue_file = htcondor.param['SCHEDD.SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
+            jobqueue_file = htcondor.param['SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
         except KeyError:
             logging.warning("Cannot find 'SCHEDD.SCHEDDGLIDEINS%s.JOB_QUEUE_LOG'. Skipping it." % i)
             continue
