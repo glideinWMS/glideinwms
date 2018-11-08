@@ -462,6 +462,8 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0755 %s*" % (self.dir))
             except glideinwms.lib.subprocessSupport.CalledProcessError as e:
                 raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
+            except:
+                raise RuntimeError("Failed to create %s dir (user %s): Unknown error" % (self.dir_name, self.user))
         return True
 
     def delete_dir(self):
@@ -479,6 +481,9 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 glideinwms.lib.subprocessSupport.iexe_cmd("/bin/rm -fr %s" % (self.dir))
             except glideinwms.lib.subprocessSupport.CalledProcessError as e:
                 raise RuntimeError("Failed to remove %s dir (user %s): %s"%(self.dir_name, self.user, e))
+            except:
+                raise RuntimeError("Failed to remove %s dir (user %s): Unknown error" % (self.dir_name, self.user))
+
 
 class chmodClientDirSupport(clientDirSupport):
     def __init__(self, user, dir, chmod, dir_name):
@@ -511,6 +516,8 @@ class chmodClientDirSupport(clientDirSupport):
                 glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0%o%s" % self.chmod, self.dir)
             except glideinwms.lib.subprocessSupport.CalledProcessError as e:
                 raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
+            except:
+                raise RuntimeError("Failed to create %s dir (user %s): Unknown error" % (self.dir_name, self.user))
         return True
 
 
