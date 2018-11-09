@@ -181,12 +181,10 @@ class DirCleanupCredentials(DirCleanup):
     Used to cleanup old credential files saved to disk by the factory for glidein submission (based on ctime).
     """
     def __init__(self,
-                 username, 
                  dirname,
                  fname_expression, # regular expression, used with re.match
                  maxlife): # max lifetime after which it is deleted
         DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log=True, should_log_warnings=True)
-        self.username = username
         
     def cleanup(self, in_use_creds):
         count_removes = 0

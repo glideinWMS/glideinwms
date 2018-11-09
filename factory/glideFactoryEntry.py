@@ -97,7 +97,6 @@ class Entry:
         self.log = logging.getLogger(self.name)
 
         cleaner = cleanupSupport.DirCleanupWSpace(
-            None,
             self.logDir,
             "(condor_activity_.*\.log\..*\.ftstpk)",
             glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
@@ -165,7 +164,6 @@ class Entry:
             user_log_dir = self.gflFactoryConfig.get_client_log_dir(self.name,
                                                                     username)
             cleaner = cleanupSupport.DirCleanupWSpace(
-                username,
                 user_log_dir,
                 "(job\..*\.out)|(job\..*\.err)",
                 glideFactoryLib.days2sec(float(self.glideinDescript.data['JobLogRetentionMaxDays'])),
@@ -174,7 +172,6 @@ class Entry:
             cleanupSupport.cleaners.add_cleaner(cleaner)
 
             cleaner = cleanupSupport.DirCleanupWSpace(
-                username,
                 user_log_dir,
                 "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
                 glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
