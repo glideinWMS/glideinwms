@@ -806,7 +806,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
 %config(noreplace) %{_sysconfdir}/condor/config.d/01_gwms_factory_collectors.config
 %config(noreplace) %{_sysconfdir}/condor/config.d/02_gwms_factory_schedds.config
-%config(noreplace) %{_sysconfdir}/condor/privsep_config
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins2
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins3
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins4

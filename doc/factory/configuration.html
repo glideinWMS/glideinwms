@@ -1194,6 +1194,64 @@ of glidein pools will be presented.
 </div>
 
 <div class="section">
+<H3 CLASS="western">
+<A NAME="private_net"></A>Migration process for the removal of dependency of condor_root_switchboard</H3>
+
+<P> GlideinWMS will stop supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs will run under a single user (gfactory) to eliminate
+    the need of switchboard and setuid/user-switching. Thus, all Glideins will run using the Factory user, no more separated users per-VO.
+    For the log and secure files, the same directory structure remains the same, only the ownership will change.
+</P>
+<P> The transition for the new jobs is clear, but for the old glideins that are still running, there is a process which will ease the
+    migration process for this purpose. This process implies the execution of a script which will change the ownership of
+
+    The options of the script can be checked:
+
+    <blockquote>
+    sudo python factory/tools/fact_chown.py --user=gfactory --group=gfactory --test --backup
+    </blockquote>
+
+    To the migration process, please follow the following steps:
+
+    1. Stop Factory and stop condor
+    2. Run the script fact_chown.py located in factory/tools of your GWMS installation with the option --test (make sure the backups are not
+       created if *--back* is not being passed.
+    3. Run again the script with *--test* and *--backup* to have backup of everything
+    4. Run the script with no options (This way you will make the changes and not backups)
+    *Note*: Points 3 and 4 can be merged, but it's better to do it separately so one can check what is gonna be changed
+    5. Restart condor and Factory and check the changes
+</P>
+
+<P> After executing this steps, you should see your jobs changed user in condor_q and the onwership of the
+    **/var/log/gwms-factory/client/user_username/glidein_gfactory_instance/** and
+    **/var/lib/gwms-factory/client-proxies/<USER_DIRS>** have changed to Factory user.
+</P>
+
+<H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
+<p>
+    <BR/>
+    The detailed description of CCB is
+    beyond the scope of this manual and you should refer to the HTCondor
+    documentation available
+    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">here</A>.
+    , where you will find only the parameters needed to enable it in the
+    glideins.
+    </p><p>To use HTCondor with CCB, you need to specify:
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
+
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;USE_CCB&quot;
+    value=&quot;True&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+
+    </div>
+<P>
+and you are done. Just make sure you follow the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">suggested scalability guidelines described in the HTCondor manual</A>.</P>
+</div>
+
+<div class="section">
 <H3 CLASS="western"><A NAME="singularity"></A>Integration with Singularity</H3>
 <UL>
     <LI><P STYLE="margin-bottom: 0in">An entry can control the use of Singularity by setting GLIDEIN_SINGULARITY_REQUIRE to NEVER (Singularity is not supported),
