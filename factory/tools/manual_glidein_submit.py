@@ -175,6 +175,7 @@ def main():
         params['Report_Failed'] = 'NEVER'
 
         # Now that we have everything submit the pilot!
+        logging.getLogger().setLevel(logging.DEBUG)
         submitGlideins(entry_name, client_name, int(nr_glideins), idle_lifetime,
                        frontend_name, credentials, client_web, params,
                        status_sf, log=logging, factoryConfig=factory_config)
