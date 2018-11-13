@@ -307,18 +307,15 @@ class TestCondorJDLDictFile(unittest.TestCase):
 class TestClientDirSupport(unittest.TestCase):
     @unittest.skip('for now')
     def test___init__(self):
-        # client_dir_support = clientDirSupport(user, dir, dir_name, privsep_mkdir)
         assert False  # TODO: implement your test here
 
     @unittest.skip('for now')
     def test_create_dir(self):
-        # client_dir_support = clientDirSupport(user, dir, dir_name, privsep_mkdir)
         # self.assertEqual(expected, client_dir_support.create_dir(fail_if_exists))
         assert False  # TODO: implement your test here
 
     @unittest.skip('for now')
     def test_delete_dir(self):
-        # client_dir_support = clientDirSupport(user, dir, dir_name, privsep_mkdir)
         # self.assertEqual(expected, client_dir_support.delete_dir())
         assert False  # TODO: implement your test here
 

@@ -84,8 +84,6 @@ def wmscollector(service,action,inifile):
     else:
         common.logerr("Invalid command line option for this service: %s" % action)
     user = obj.username()
-    if obj.privilege_separation() == "y":
-        user = 'root'
     run_command(service, user, obj.hostname(), cmd)
 
 

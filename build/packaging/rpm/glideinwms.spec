@@ -411,7 +411,6 @@ install -m 0644 install/templates/11_gwms_secondary_collectors.config $RPM_BUILD
 install -m 0644 install/templates/90_gwms_dns.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d/
 install -m 0644 install/templates/01_gwms_metrics.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/ganglia.d/
 install -m 0644 install/templates/condor_mapfile $RPM_BUILD_ROOT%{_sysconfdir}/condor/certs/
-install -m 0644 install/templates/privsep_config $RPM_BUILD_ROOT%{_sysconfdir}/condor/
 
 # Install condor schedd dirs
 # This should be consistent with 02_gwms_factory_schedds.config and 02_gwms_schedds.config
@@ -807,7 +806,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
 %config(noreplace) %{_sysconfdir}/condor/config.d/01_gwms_factory_collectors.config
 %config(noreplace) %{_sysconfdir}/condor/config.d/02_gwms_factory_schedds.config
-%config(noreplace) %{_sysconfdir}/condor/privsep_config
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins2
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins3
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins4

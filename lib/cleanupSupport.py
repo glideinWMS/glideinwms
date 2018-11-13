@@ -5,7 +5,6 @@ import time
 import re
 import pwd
 from . import logSupport
-from . import condorPrivsep
 from .pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -163,7 +162,7 @@ class DirCleanupWSpace(DirCleanup):
             if ((update_time < treshold_time) or
                 ((update_time < min_treshold_time) and (used_space > self.maxspace))):
                 try:
-                    self.delete_file(fpath)
+                    os.unlink(fpath)
                     count_removes += 1
                     count_removes_bytes += fsize
                     used_space -= fsize
@@ -175,40 +174,17 @@ class DirCleanupWSpace(DirCleanup):
             if self.should_log:
                 logSupport.log.info("Removed %i files for %.2fMB." % (count_removes, count_removes_bytes / (1024.0 * 1024.0)))
 
-class PrivsepDirCleanupWSpace(DirCleanupWSpace):
-    def __init__(self,
-                 username, # if None, no privsep
-                 dirname,
-                 fname_expression, # regular expression, used with re.match
-                 maxlife, # max lifetime after which it is deleted
-                 minlife, maxspace, # max space allowed for the sum of files, unless they are too young
-                 should_log=True, should_log_warnings=True):
-        DirCleanupWSpace.__init__(self, dirname, fname_expression,
-                                  maxlife, minlife, maxspace,
-                                  should_log=True, should_log_warnings=True)
-        self.username = username
-
-    def delete_file(self, fpath):
-        if (self.username is not None) and (self.username != MY_USERNAME):
-            # use privsep
-            # do not use rmtree as we do not want root privileges
-            condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', fpath], stdout_fname=None)
-        else:
-            # use the native method, if possible
-            os.unlink(fpath)
 
 
-class PrivsepDirCleanupCredentials(DirCleanup):
+class DirCleanupCredentials(DirCleanup):
     """
     Used to cleanup old credential files saved to disk by the factory for glidein submission (based on ctime).
     """
     def __init__(self,
-                 username, 
                  dirname,
                  fname_expression, # regular expression, used with re.match
                  maxlife): # max lifetime after which it is deleted
         DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log=True, should_log_warnings=True)
-        self.username = username
         
     def cleanup(self, in_use_creds):
         count_removes = 0
@@ -225,7 +201,7 @@ class PrivsepDirCleanupCredentials(DirCleanup):
 
             if last_access_time < threshold_time and fpath not in in_use_creds:
                 try:
-                    self.delete_file(fpath)
+                    os.unlink(fpath)
                     count_removes += 1
                 except:
                     logSupport.log.warning("Could not remove credential %s" % fpath)
@@ -234,12 +210,3 @@ class PrivsepDirCleanupCredentials(DirCleanup):
             logSupport.log.info("Removed %i credential files." % count_removes)
         else:            
             logSupport.log.info("No old credential files were removed.")
-
-    def delete_file(self, fpath):
-        if (self.username is not None) and (self.username != MY_USERNAME):
-            # use privsep
-            # do not use rmtree as we do not want root privileges
-            condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', "-f", fpath], stdout_fname=None)
-        else:
-            # use the native method, if possible
-            os.unlink(fpath)
