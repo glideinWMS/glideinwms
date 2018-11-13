@@ -1457,6 +1457,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
     try:
         glideinDescript = glideFactoryConfig.GlideinDescript()
         jobDescript = glideFactoryConfig.JobDescript(entry_name)
+        jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
         # The parameter list to be added to the arguments for glidein_startup.sh
@@ -1487,12 +1488,15 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
         slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        max_walltime = jobAttributes.data.get("GLIDEIN_Max_Walltime")
         proxy_url = jobDescript.data.get("ProxyURL", None)
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
         exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
         exe_env.append('GLIDEIN_SLOTS_LAYOUT=%s' % slots_layout)
+        if max_walltime:
+            exe_env.append('GLIDEIN_MAX_WALLTIME=%s' % max_walltime)
 
         submit_time = timeConversion.get_time_in_format(time_format="%Y%m%d")
         exe_env.append('GLIDEIN_LOGNR=%s' % str(submit_time))
