@@ -138,6 +138,10 @@ class EntrySetElement(EntryElement):
 #            val = [ x[attrname] for x in self.get_child_list(u'entries') ]
         return val
 
+    def get_subentries(self):
+         return self.get_child_list(u'entries')
+
+
     def getName(self):
         """ The name for entry sets is actaully called alias """
         return self[u'alias']

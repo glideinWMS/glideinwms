@@ -674,7 +674,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
       work_dir = "OSG"
       ress_id  = {'type':'RESS','server':self.glidein.ress_host(),'name':condor_id}
-      entry_el = {'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
+      entry_el = {'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'condor',
         'work_dir':work_dir,'site_name':site_name,'glexec_path':def_glexec_bin,
         'is_ids':[ress_id]}
 
@@ -796,7 +796,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
       self.config_entries_list[entry_name]={'gatekeeper': gatekeeper_name,
                                             'rsl': rsl_name,
-                                            'gridtype': 'gt2',
+                                            'gridtype': 'condor',
                                             'work_dir': work_dir,
                                             'site_name': site_name,
                                             'glexec_path': glexec_path,

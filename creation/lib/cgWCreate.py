@@ -121,6 +121,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         glidein_name = conf[u'glidein_name']
         gridtype = entry[u'gridtype']
         gatekeeper = entry[u'gatekeeper']
+        entry_enabled = entry[u'enabled']
         if u'rsl' in entry:
             rsl = entry[u'rsl']
         else:
@@ -155,20 +156,20 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # set up the grid specific attributes
         if gridtype == 'ec2':
-            self.populate_ec2_grid(submit_attrs)
+            self.populate_ec2_grid()
         if gridtype == 'gce':
-            self.populate_gce_grid(submit_attrs)
+            self.populate_gce_grid()
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
             # next we add the Condor-C additions
-            self.populate_condorc_grid(submit_attrs)
+            self.populate_condorc_grid()
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
-            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
+            self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -191,10 +192,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype):
-        if gridtype == 'gt2' or gridtype == 'gt5':
-            if "project_id" in auth_method or ((rsl is not None) and rsl != ""):
-                self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
+    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled):
+        if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
+            raise RuntimeError(" The grid type '%s' is no longer supported. Review the entry attributes" % gridtype)
         elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
@@ -215,11 +215,11 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_error ", "False")
 
 
-    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+    def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
         input_files = []
         encrypt_input_files = []
 
-        self.populate_standard_grid(rsl, auth_method, gridtype)
+        self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
 
         input_files.append('$ENV(X509_USER_PROXY)')
         encrypt_input_files.append('$ENV(X509_USER_PROXY)')
@@ -234,12 +234,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
 
-    def populate_condorc_grid(self, submit_attrs):
+    def populate_condorc_grid(self):
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
 
-    def populate_gce_grid(self, submit_attrs):
+    def populate_gce_grid(self):
         self.add("gce_image", "$ENV(IMAGE_ID)")
         self.add("gce_machine_type", "$ENV(INSTANCE_TYPE)")
         # self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
@@ -249,7 +249,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
 
-    def populate_ec2_grid(self, submit_attrs):
+    def populate_ec2_grid(self):
         self.add("ec2_ami_id", "$ENV(IMAGE_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
