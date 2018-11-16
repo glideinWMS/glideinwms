@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from __future__ import print_function
 
 import os
@@ -63,6 +65,7 @@ def parse_opts():
     return options
 
 
+# pylint: disable=no-member
 def backup_dir(output_filename, source_dir):
     """ Backup the directory "source_dir" into "output_filename"
     """
@@ -96,10 +99,8 @@ def chown_dir(path, uid, gid, fuid, test):
     for dirpath, dirnames, filenames in os.walk(path):
         for dname in dirnames:
             mychown(os.path.join(dirpath, dname), uid, gid, fuid, test)
-            pass
         for fname in filenames:
             mychown(os.path.join(dirpath, fname), uid, gid, fuid, test)
-            pass
 
 
 def fix_jobqueue(jobqueue_file, user, options):
@@ -128,7 +129,7 @@ def main():
     uid = pwd.getpwnam(options.user).pw_uid
     gid = grp.getgrnam(options.group)[2]
 
-    dir_dicts = [ conf.get_client_log_dirs(), conf.get_client_proxy_dirs() ]
+    dir_dicts = [conf.get_client_log_dirs(), conf.get_client_proxy_dirs()]
 
     for client_dir_dict in dir_dicts:
         for fe_user, fe_client_dir in client_dir_dict.items():
@@ -144,7 +145,7 @@ def main():
     if not 'JOBQUEUE' in htcondor.param:
         jobqueue_file = os.path.join(spooldir, 'job_queue.log')
     fix_jobqueue(jobqueue_file, options.user, options)
-    for i in xrange(1,9):
+    for i in xrange(1, 9):
         try:
             jobqueue_file = htcondor.param['SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
         except KeyError:
