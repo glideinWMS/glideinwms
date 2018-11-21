@@ -19,7 +19,7 @@ class ExeError(RuntimeError):
 
 class Release:
 
-    def __init__(self, ver, srcDir, relDir, rc, rpmRel):
+    def __init__(self, ver, srcDir, relDir, rc, rpmRel, rpmVer):
 
         self.version = self.createTarballVersionString(ver, rc)
         self.sourceDir = srcDir
@@ -31,7 +31,10 @@ class Release:
         try:
             # RPM related info
             self.rpmRelease = self.createRPMReleaseNVR(rpmRel, rc)
-            self.rpmVersion = self.versionToRPMVersion(ver)
+            if rpmVer:
+                self.rpmVersion = rpmVer
+            else:
+                self.rpmVersion = self.versionToRPMVersion(ver)
             self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
             self.rpmOSVersion = self.getElVersion()
             self.srpmFile = os.path.join(
@@ -486,6 +489,7 @@ class PackageExcludes:
             'creation/web_base/validate_node.sh',
         ]
 
+
 ############################################################
 #
 # P R I V A T E, do not use
@@ -502,6 +506,7 @@ def create_dir(dir, mode=0o755, errorIfExists=False):
             raise
     except Exception:
             raise
+
 
 # can throw ExeError
 def execute_cmd(cmd, stdin_data=None):
