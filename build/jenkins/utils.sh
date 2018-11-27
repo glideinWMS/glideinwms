@@ -23,6 +23,7 @@ setup_python_venv() {
         TESTFIXTURES="testfixtures==5.4.0"
         # htcondor is not pip for python 2.6 (will be found from the RPM)
         HTCONDOR=
+        COVERAGE=coverage
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -34,6 +35,7 @@ setup_python_venv() {
         TESTFIXTURES="testfixtures"
         # Installing the pip version, in case the RPM is not installed
         HTCONDOR=htcondor
+        COVERAGE='coverage==4.5.2'
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -68,7 +70,7 @@ setup_python_venv() {
     # 2. openssl-devel
     # 3. swig
     # pep8 has been replaced by pycodestyle
-    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
+    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
     pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR}"
