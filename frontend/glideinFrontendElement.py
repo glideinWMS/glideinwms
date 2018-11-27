@@ -560,7 +560,7 @@ class glideinFrontendElement:
 
             glidein_el = self.glidein_dict[glideid]
             glidein_in_downtime = \
-                glidein_el['attrs'].get('GLIDEIN_In_Downtime') == 'True'
+                str(glidein_el['attrs'].get('GLIDEIN_In_Downtime')) == 'True'
 
             count_jobs = {}   # straight match
             prop_jobs = {}    # proportional subset for this entry
