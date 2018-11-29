@@ -580,10 +580,10 @@ class glideinFrontendElement:
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
             if (self.glexec != 'NEVER'):
-                if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
+                if (str(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')) == 'True'):
                         prop_jobs['Idle']=prop_jobs['VomsIdle']
                         logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')=="True"):
+                elif (str(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')) == 'True'):
                         prop_jobs['Idle']=prop_jobs['ProxyIdle']
                         logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
 
