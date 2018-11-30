@@ -6,6 +6,7 @@ import xmlrunner
 
 from glideinwms.frontend import gwms_renew_proxies as proxy
 
+
 class TestVo(unittest.TestCase):
 
     def assertVomsAttr(self, vo, vo_name, cmd):
@@ -28,7 +29,7 @@ class TestVo(unittest.TestCase):
         vo_name = 'glideinwms'
         self.assertRaises(ValueError, proxy.VO, vo_name, vo_name)
 
+
 if __name__ == '__main__':
     ofl = 'unittests-reports'
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
-

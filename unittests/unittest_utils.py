@@ -24,13 +24,28 @@ will be defined instead.
 if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "lib"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "frontend"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory/tools"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "frontend"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "factory/tools"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "install"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "install/services"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "poolwatcher"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "install/services"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "poolwatcher"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools/lib"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "tools/lib"))
 else:
     sys.path.append(os.path.join(unittest_dir, "../lib"))
     sys.path.append(os.path.join(unittest_dir, "../factory"))
@@ -41,6 +56,7 @@ else:
     sys.path.append(os.path.join(unittest_dir, "../poolwatcher"))
     sys.path.append(os.path.join(unittest_dir, "../tools"))
     sys.path.append(os.path.join(unittest_dir, "../tools/lib"))
+
 
 def runTest(cls):
     """
@@ -55,6 +71,7 @@ def runTest(cls):
     testRunner = unittest.TextTestRunner(verbosity=2)
     result = testRunner.run(testSuite)
     return not result.wasSuccessful()
+
 
 def runAllTests():
     """
@@ -76,6 +93,7 @@ def runAllTests():
     for test in modules:
         test.main()
 
+
 class FakeLogger:
     """
     Super simple logger for the unittests
@@ -88,9 +106,9 @@ class FakeLogger:
     def debug(self, msg, *args):
         """
         Pass a debug message to stderr.
-        
+
         Prints out msg % args.
-        
+
         @param msg: A message string.
         @param args: Arguments which should be evaluated into the message.
         """
@@ -99,7 +117,7 @@ class FakeLogger:
     def info(self, msg, *args):
         """
         Pass an info-level message to stderr.
-        
+
         @see: debug
         """
         print(str(msg) % args, file=self.file)
@@ -128,6 +146,7 @@ class FakeLogger:
         """
         print(str(msg) % args, file=self.file)
 
+
 def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
                      text_access=True, write_path_to_file=True):
     fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix,
@@ -137,9 +156,11 @@ def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
     os.close(fd)
     return path
 
+
 def create_random_string(length=8):
     char_set = string.ascii_uppercase + string.digits
     return ''.join(random.choice(char_set) for x in range(length))
+
 
 if __name__ == "__main__":
     runAllTests()

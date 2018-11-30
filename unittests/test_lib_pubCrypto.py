@@ -32,7 +32,7 @@ class TestPubCrypto(unittest.TestCase):
         self.cr_pub = self.cr.PubRSAKey()
         self.cr.save(self.privkey_file)
         self.cr_pub.save(self.pubkey_file)
-    
+
     def tearDown(self):
         os.remove(self.privkey_file)
         os.remove(self.pubkey_file)

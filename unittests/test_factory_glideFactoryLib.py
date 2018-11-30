@@ -299,7 +299,7 @@ class TestClientWeb(unittest.TestCase):
         #     client_group_descript,
         #     client_group_sign,
         #     factoryConfig)
-        assert False #TODO: implement your test here
+        assert False  # TODO: implement your test here
 
     @unittest.skip('for now')
     def test_get_glidein_args(self):
@@ -314,7 +314,7 @@ class TestClientWeb(unittest.TestCase):
         #     client_group_sign,
         #     factoryConfig)
         # self.assertEqual(expected, client_web.get_glidein_args())
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestKeepIdleGlideins(unittest.TestCase):
@@ -336,7 +336,7 @@ class TestKeepIdleGlideins(unittest.TestCase):
         #         params,
         #         log,
         #         factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestCleanGlideinQueue(unittest.TestCase):
@@ -353,16 +353,16 @@ class TestCleanGlideinQueue(unittest.TestCase):
         #         frontend_name,
         #         log,
         #         factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestSanitizeGlideins(unittest.TestCase):
     @unittest.skip('for now')
     def test_sanitize_glideins(self):
-       #  self.assertEqual(
-       #      expected, sanitizeGlideins(
-       #          condorq, log, factoryConfig))
-       assert False # TODO: implement your test here
+        #  self.assertEqual(
+        #      expected, sanitizeGlideins(
+        #          condorq, log, factoryConfig))
+        assert False  # TODO: implement your test here
 
 
 class TestLogStats(unittest.TestCase):
@@ -377,14 +377,14 @@ class TestLogStats(unittest.TestCase):
         #         proxy_security_class,
         #         log,
         #         factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestLogWorkRequest(unittest.TestCase):
     @unittest.skip('for now')
     def test_log_work_request(self):
         # self.assertEqual(
-       #      expected,
+        #      expected,
         #     logWorkRequest(
         #         client_int_name,
         #         client_security_name,
@@ -395,49 +395,49 @@ class TestLogWorkRequest(unittest.TestCase):
         #         fraction,
         #         log,
         #         factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestGetStatusGlideidx(unittest.TestCase):
     @unittest.skip('for now')
     def test_get_status_glideidx(self):
         # self.assertEqual(expected, get_status_glideidx(el))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestHashStatus(unittest.TestCase):
     @unittest.skip('for now')
     def test_hash_status(self):
         # self.assertEqual(expected, hash_status(el))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestSumIdleCount(unittest.TestCase):
     @unittest.skip('for now')
     def test_sum_idle_count(self):
         # self.assertEqual(expected, sum_idle_count(qc_status))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestHashStatusStale(unittest.TestCase):
     @unittest.skip('for now')
     def test_hash_status_stale(self):
         # self.assertEqual(expected, hash_statusStale(el))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestDiffList(unittest.TestCase):
     @unittest.skip('for now')
     def test_diff_list(self):
         # self.assertEqual(expected, diffList(base_list, subtract_list))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractStaleSimple(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_stale_simple(self):
         # self.assertEqual(expected, extractStaleSimple(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractUnrecoverableHeldSimple(unittest.TestCase):
@@ -446,7 +446,7 @@ class TestExtractUnrecoverableHeldSimple(unittest.TestCase):
         # self.assertEqual(
         #     expected, extractUnrecoverableHeldSimple(
         #         q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractUnrecoverableHeldForceX(unittest.TestCase):
@@ -455,7 +455,7 @@ class TestExtractUnrecoverableHeldForceX(unittest.TestCase):
         # self.assertEqual(
         #     expected, extractUnrecoverableHeldForceX(
         #         q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractRecoverableHeldSimple(unittest.TestCase):
@@ -464,7 +464,7 @@ class TestExtractRecoverableHeldSimple(unittest.TestCase):
         # self.assertEqual(
         #     expected, extractRecoverableHeldSimple(
         #         q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractRecoverableHeldSimpleWithinLimits(unittest.TestCase):
@@ -475,84 +475,84 @@ class TestExtractRecoverableHeldSimpleWithinLimits(unittest.TestCase):
         #     extractRecoverableHeldSimpleWithinLimits(
         #         q,
         #         factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractHeldSimple(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_held_simple(self):
         # self.assertEqual(expected, extractHeldSimple(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractIdleSimple(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_idle_simple(self):
         #self.assertEqual(expected, extractIdleSimple(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractIdleUnsubmitted(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_idle_unsubmitted(self):
         # self.assertEqual(expected, extractIdleUnsubmitted(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractIdleQueued(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_idle_queued(self):
         # self.assertEqual(expected, extractIdleQueued(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractNonRunSimple(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_non_run_simple(self):
         # self.assertEqual(expected, extractNonRunSimple(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractRunSimple(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_run_simple(self):
         # self.assertEqual(expected, extractRunSimple(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractRunStale(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_run_stale(self):
         # self.assertEqual(expected, extractRunStale(q, factoryConfig))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestGroupUnclaimed(unittest.TestCase):
     @unittest.skip('for now')
     def test_group_unclaimed(self):
         # self.assertEqual(expected, group_unclaimed(el_list))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestScheddName2str(unittest.TestCase):
     @unittest.skip('for now')
     def test_schedd_name2str(self):
         # self.assertEqual(expected, schedd_name2str(schedd_name))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExtractJobId(unittest.TestCase):
     @unittest.skip('for now')
     def test_extract_job_id(self):
         # self.assertEqual(expected, extractJobId(submit_out))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestEscapeParam(unittest.TestCase):
     @unittest.skip('for now')
     def test_escape_param(self):
         # self.assertEqual(expected, escapeParam(param_str))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestExecuteSubmit(unittest.TestCase):
@@ -567,7 +567,7 @@ class TestExecuteSubmit(unittest.TestCase):
         #         schedd,
         #         exe_env,
         #         submitFile))
-        assert False # TODO: implement your test here
+        assert False  # TODO: implement your test here
 
 
 class TestPickSubmitFile(unittest.TestCase):

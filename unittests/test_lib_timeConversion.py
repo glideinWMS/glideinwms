@@ -29,7 +29,7 @@ from glideinwms.lib.timeConversion import getTZval
 
 
 #
-#define these globally for convenience
+# define these globally for convenience
 #
 now = 1518767040
 now_dst = 1521186240
@@ -80,8 +80,8 @@ class TestTimeFunctions(unittest.TestCase):
         self.assertEqual(now, extractISO8601_Local(iso_local))
         self.assertEqual(now_dst, extractISO8601_Local(iso_local_dst))
 
-    #use hypothesis to test hundreds of times between unix epoch and
-    #unix 4-byte time overflow that get and extract are symmetric
+    # use hypothesis to test hundreds of times between unix epoch and
+    # unix 4-byte time overflow that get and extract are symmetric
     @hypothesis.given(st.floats(min_value=0, max_value=2147483647.0))
     def test_ISO8601_Local__symmetric(self, flt_time):
         t = long(flt_time)
@@ -103,8 +103,8 @@ class TestTimeFunctions(unittest.TestCase):
     def test_extract_rf_c2822__local(self):
         self.assertEqual(now, extractRFC2822_Local(rfc_2822_local))
 
-    #use hypothesis to test hundreds of times between unix epoch and
-    #unix 4-byte time overflow that get and extract are symmetric
+    # use hypothesis to test hundreds of times between unix epoch and
+    # unix 4-byte time overflow that get and extract are symmetric
     @hypothesis.given(st.floats(min_value=0, max_value=2147483647.0))
     def test_rf_c2822_local_symmetric(self, flt_time):
         t = long(flt_time)
@@ -129,5 +129,8 @@ class TestTimeFunctions(unittest.TestCase):
         self.assertNotEqual(tzval_dst, getTZval(now_dst))
         self.assertNotEqual(tzval, getTZval(now))
 
+
 if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(
+            output='unittests-reports'))
