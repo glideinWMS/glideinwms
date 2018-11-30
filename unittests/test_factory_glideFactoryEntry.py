@@ -5,6 +5,7 @@ import unittest2 as unittest
 import xmlrunner
 import os
 import mock
+import sys
 
 import glideinwms.factory.glideFactoryEntry
 import glideinwms.factory.glideFactoryLib
@@ -21,6 +22,8 @@ from glideinwms.factory.glideFactoryEntry import dump_obj
 # from glideinwms.factory.glideFactoryEntry import termsignal
 from glideinwms.factory.glideFactoryConfig import GlideinDescript
 from glideinwms.factory.glideFactoryConfig import FrontendDescript
+
+
 
 
 class TestEntry(unittest.TestCase):
@@ -76,7 +79,10 @@ class TestEntry(unittest.TestCase):
                     'PerFrontendMaxHeld': '',
                     'PerFrontendMaxIdle': ''}
 
-        self.assertEqual(expected, self.entry.getGlideinConfiguredLimits())
+        
+        tested = self.entry.getGlideinConfiguredLimits()
+
+        self.assertEqual(expected, tested)
 
     def test_getGlideinExpectedCores(self):
         expected = 1
@@ -243,7 +249,12 @@ class TestEntry(unittest.TestCase):
         self.entry.writeStats()
 
     def test_dump_obj(self):
+        save_obj = sys.stdout
+        sys.stdout =  open("dump.data","w")
         dump_obj(self.entry)
+        sys.stdout = save_obj
+        self.assertTrue(os.path.exists("./dump.data"))
+        os.remove("dump.data")
 
 
 class TestX509Proxies(unittest.TestCase):
