@@ -113,65 +113,65 @@ class TestFrontendDicts(unittest.TestCase):
 class TestPopulateGroupDescript(unittest.TestCase):
     @unittest.skip('for now')
     def test_populate_group_descript(self):
-        self.assertEqual(
-            expected,
-            populate_group_descript(
-                work_dir,
-                group_descript_dict,
-                sub_name,
-                sub_params))
-        # assert False TODO: implement your test here
+        #self.assertEqual(
+        #    expected,
+        #    populate_group_descript(
+        #        work_dir,
+        #        group_descript_dict,
+        #        sub_name,
+        #        sub_params))
+        assert False #TODO: implement your test here
 
 
 class TestGetPoolList(unittest.TestCase):
     @unittest.skip('for now')
     def test_get_pool_list(self):
-        self.assertEqual(expected, get_pool_list(credential))
-        # assert False TODO: implement your test here
+        #self.assertEqual(expected, get_pool_list(credential))
+        assert False #TODO: implement your test here
 
 
 class TestPopulateCommonDescript(unittest.TestCase):
     @unittest.skip('for now')
     def test_populate_common_descript(self):
-        self.assertEqual(
-            expected, populate_common_descript(
-                descript_dict, params))
-        # assert False TODO: implement your test here
+        #self.assertEqual(
+        #    expected, populate_common_descript(
+        #        descript_dict, params))
+        assert False #TODO: implement your test here
 
 
 class TestCalcGlideinCollectors(unittest.TestCase):
     @unittest.skip('for now')
     def test_calc_glidein_collectors(self):
-        self.assertEqual(expected, calc_glidein_collectors(collectors))
-        # assert False TODO: implement your test here
+        #self.assertEqual(expected, calc_glidein_collectors(collectors))
+        assert False #TODO: implement your test here
 
 
 class TestCalcGlideinCcbs(unittest.TestCase):
     @unittest.skip('for now')
     def test_calc_glidein_ccbs(self):
-        self.assertEqual(expected, calc_glidein_ccbs(collectors))
-        # assert False TODO: implement your test here
+        #self.assertEqual(expected, calc_glidein_ccbs(collectors))
+        assert False #TODO: implement your test here
 
 
 class TestPopulateMainSecurity(unittest.TestCase):
     @unittest.skip('for now')
     def test_populate_main_security(self):
-        self.assertEqual(
-            expected, populate_main_security(
-                client_security, params))
-        # assert False TODO: implement your test here
+        #self.assertEqual(
+        #    expected, populate_main_security(
+        #        client_security, params))
+        assert False #TODO: implement your test here
 
 
 class TestPopulateGroupSecurity(unittest.TestCase):
     @unittest.skip('for now')
     def test_populate_group_security(self):
-        self.assertEqual(
-            expected,
-            populate_group_security(
-                client_security,
-                params,
-                sub_params))
-        # assert False TODO: implement your test here
+        #self.assertEqual(
+        #    expected,
+        #    populate_group_security(
+        #        client_security,
+        #        params,
+        #        sub_params))
+        assert False #TODO: implement your test here
 
 
 if __name__ == '__main__':

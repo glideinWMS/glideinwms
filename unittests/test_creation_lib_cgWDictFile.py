@@ -602,12 +602,6 @@ class TestGlideinDicts(unittest.TestCase):
     def test___init__(self):
         self.assertTrue(isinstance(self.gd, glideinDicts))
 
-    @unittest.skip('broken')
-    def test_get_sub_name_from_sub_stage_dir(self):
-        dk = self.gd.get_summary_signature().keys
-        for sign_key in dk.keys:
-            subname = self.gd.get_sub_name_from_sub_stage_dir(sign_key)
-            print ("subname %s key %s" % (subname, sign_key))
 
     def test_new_MainDicts(self):
         ngd = self.gd.new_MainDicts()
