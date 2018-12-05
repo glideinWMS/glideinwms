@@ -111,7 +111,7 @@ class TestPopulateFactoryDescript(unittest.TestCase):
         #        active_sub_list,
         #        disabled_sub_list,
         #        conf))
-        # assert False #TODO: implement your test here
+        assert False #TODO: implement your test here
 
 
 class TestPopulateJobDescript(unittest.TestCase):
