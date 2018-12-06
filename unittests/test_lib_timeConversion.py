@@ -59,7 +59,7 @@ class TestTimeFunctions(unittest.TestCase):
         self.assertEqual(human, getHuman(now))
 
     def test_extract_human(self):
-        self.assertEqual(now, extractHuman(human))
+        self.assertEqual(float(now), float(extractHuman(human)))
 
     def test_get_is_o8601__ut_c(self):
         self.assertEqual(iso_utc, getISO8601_UTC(now))
