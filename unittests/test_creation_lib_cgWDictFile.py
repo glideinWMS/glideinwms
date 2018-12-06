@@ -46,7 +46,7 @@ XML = 'fixtures/factory/glideinWMS.xml'
 XML_ENTRY = 'fixtures/factory/config.d/Dev_Sites.xml'
 XML_ENTRY2 = 'fixtures/factory/config.d/Dev_Sites2.xml'
 
-
+# pylint: disable=maybe-no-member
 # class TestMonitorGroupDictFile(unittest.TestCase):
 class TestcgWDictFile(unittest.TestCase):
 
