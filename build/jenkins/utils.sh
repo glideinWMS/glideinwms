@@ -22,8 +22,8 @@ setup_python_venv() {
         AUTOPEP8="autopep8==1.3"
         TESTFIXTURES="testfixtures==5.4.0"
         # htcondor is not pip for python 2.6 (will be found from the RPM)
-        HTCONDOR=
-        COVERAGE=coverage
+        HTCONDOR=" "
+        COVERAGE="coverage"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -34,7 +34,7 @@ setup_python_venv() {
         AUTOPEP8="autopep8"
         TESTFIXTURES="testfixtures"
         # Installing the pip version, in case the RPM is not installed
-        HTCONDOR=htcondor
+        HTCONDOR="htcondor"
         COVERAGE='coverage==4.5.2'
     fi
 
