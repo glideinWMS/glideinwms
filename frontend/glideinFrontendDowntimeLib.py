@@ -209,9 +209,9 @@ def endDowntime(fname, end_time=None):
                 cur_start_time = 0
                 cur_end_time = 0
                 if arr[0] != 'None':
-                    cur_start_time = timeConversion.extractISO8601_Local( arr[0])
+                    cur_start_time = timeConversion.extractISO8601_Local(arr[0])
                 if arr[1] != 'None':
-                    cur_end_time   = timeConversion.extractISO8601_Local( arr[1])
+                    cur_end_time   = timeConversion.extractISO8601_Local(arr[1])
                 # open period -> close
                 if arr[1] == 'None' or ((cur_start_time < long(time.time())) and (cur_end_time > end_time)):
                     outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
