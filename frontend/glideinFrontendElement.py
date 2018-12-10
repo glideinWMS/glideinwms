@@ -560,7 +560,7 @@ class glideinFrontendElement:
 
             glidein_el = self.glidein_dict[glideid]
             glidein_in_downtime = \
-                glidein_el['attrs'].get('GLIDEIN_In_Downtime', False) == 'True'
+                glidein_el['attrs'].get('GLIDEIN_In_Downtime', False) == True
 
             count_jobs = {}   # straight match
             prop_jobs = {}    # proportional subset for this entry
@@ -580,10 +580,10 @@ class glideinFrontendElement:
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
             if (self.glexec != 'NEVER'):
-                if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS', False) == 'True'):
+                if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS', False) == True):
                         prop_jobs['Idle']=prop_jobs['VomsIdle']
                         logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE', False) == 'True'):
+                elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE', False) == True):
                         prop_jobs['Idle']=prop_jobs['ProxyIdle']
                         logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
 
