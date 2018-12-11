@@ -6,6 +6,7 @@ import tempfile
 import unittest2 as unittest
 import xmlrunner
 
+# pylint: disable=no-member
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
 from glideinwms.unittests.unittest_utils import runTest
