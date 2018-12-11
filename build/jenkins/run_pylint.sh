@@ -187,16 +187,16 @@ process_branch() {
 
 init_results_mail () {
     local mail_file=$1
-    echo -n > $mail_file
+    echo -n > "$mail_file"
 }
 
 init_results_logging() {
     local mail_file=$1
-    cat >> $mail_file << TABLE_START
+    cat >> "$mail_file" << TABLE_START
 <body>
 
   <p>
-`print_python_info $mail_file`
+  $(print_python_info "$mail_file")
   </p>
 <table style="$HTML_TABLE">
   <thead style="$HTML_THEAD">
@@ -223,14 +223,14 @@ log_branch_results() {
     unset PYLINT_ERROR_FILES_COUNT
     unset PYLINT_ERROR_COUNT
     unset PEP8_ERROR_COUNT
-    source $branch_results
+    . "$branch_results"
 
     class=$GIT_CHECKOUT
     if [ "$class" = "PASSED" ]; then
         [ ${PYLINT_ERROR_COUNT:-1} -gt 0 ] && class="FAILED"
     fi
     if [ "$class" = "PASSED" ]; then
-        cat >> $mail_file << TABLE_ROW_PASSED
+        cat >> "$mail_file" << TABLE_ROW_PASSED
 <tr style="$HTML_TR">
     <th style="$HTML_TH">$GIT_BRANCH</th>
     <td style="$HTML_TD_PASSED">${FILES_CHECKED_COUNT:-NA}</td>
@@ -240,7 +240,7 @@ log_branch_results() {
 </tr>
 TABLE_ROW_PASSED
     else
-        cat >> $mail_file << TABLE_ROW_FAILED
+        cat >> "$mail_file" << TABLE_ROW_FAILED
 <tr style="$HTML_TR">
     <th style="$HTML_TH">$GIT_BRANCH</th>
     <td style="$HTML_TD_FAILED">${FILES_CHECKED_COUNT:-NA}</td>
@@ -255,7 +255,7 @@ TABLE_ROW_FAILED
 
 finalize_results_logging() {
     local mail_file=$1
-    cat >> $mail_file << TABLE_END
+    cat >> "$mail_file" << TABLE_END
     </tbody>
 </table>
 </body>
@@ -295,19 +295,19 @@ if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
 fi
 
 git_branches="$1"
-WORKSPACE=`pwd`
-export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
+WORKSPACE=$(pwd)
+export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
 
 
 
-if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
+if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
     echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
-    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
 
-if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
+if ! . "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ; then
     echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
     echo "exiting"
     exit 1
@@ -316,7 +316,7 @@ fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
-     setup_python_venv $WORKSPACE
+     setup_python_venv "$WORKSPACE"
 fi
 
 # Jenkins will reuse the workspace on the slave node if it is available
@@ -324,35 +324,35 @@ fi
 # logs for same build together to make it easier to attach to the email
 # notifications or for violations. $BUILD_NUMBER is only available when
 # running this script from the jenkins environment
-LOG_DIR=$WORKSPACE/$BUILD_NUMBER
-[ -d $LOG_DIR ] || mkdir -p $LOG_DIR
+LOG_DIR="$WORKSPACE/$BUILD_NUMBER"
+[ -d "$LOG_DIR" ] || mkdir -p "$LOG_DIR"
 
-PYLINT_LOG=$LOG_DIR/pylint.log
-PEP8_LOG=$LOG_DIR/pep8.log
-RESULTS=$LOG_DIR/results.log
-RESULTS_MAIL=$LOG_DIR/mail.results
+PYLINT_LOG="$LOG_DIR"/pylint.log
+PEP8_LOG="$LOG_DIR"/pep8.log
+RESULTS="$LOG_DIR"/results.log
+RESULTS_MAIL="$LOG_DIR"/mail.results
 
 
-init_results_mail $RESULTS_MAIL
-init_results_logging $RESULTS_MAIL
+init_results_mail "$RESULTS_MAIL"
+init_results_logging "$RESULTS_MAIL"
 
 if [ $# -eq 0 ]; then
-    process_branch $PYLINT_LOG $PEP8_LOG $RESULTS $gb
-    log_branch_results $RESULTS_MAIL $RESULTS
+    process_branch "$PYLINT_LOG" "$PEP8_LOG" "$RESULTS" "$gb"
+    log_branch_results "$RESULTS_MAIL" "$RESULTS"
 fi
 
-for gb in `echo $git_branches | sed -e 's/,/ /g'`
+for gb in $(echo "$git_branches" | sed -e 's/,/ /g')
 do
     if [ -n "$gb" ]; then
-        gb_escape=`echo $gb | sed -e 's|/|_|g'`
+        gb_escape=$(echo "$gb" | sed -e 's|/|_|g')
         pylint_log="$PYLINT_LOG.$gb_escape"
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch $pylint_log ${pep8_log} $results $gb
-    log_branch_results $RESULTS_MAIL $results
+    process_branch "$pylint_log" "$pep8_log" "$results" "$gb"
+    log_branch_results "$RESULTS_MAIL" "$results"
 done
 
-finalize_results_logging $RESULTS_MAIL
+finalize_results_logging "$RESULTS_MAIL"
 
 #mail_results $RESULTS_MAIL "Pylint/PEP8 Validation Results"
