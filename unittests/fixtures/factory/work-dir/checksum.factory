@@ -5,7 +5,6 @@
 cd59fc1720cd5485e50342613827f824  ./LICENSE.txt
 f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
-a83bb6f1f38444fba9d8894870f0989b  ./creation/add_entry
 e7e6bafcc24e77c27751313ea0022908  ./creation/create_condor_tarball
 89a50d27dfe320e18b80325d0dae863f  ./creation/create_frontend
 0110dd4e1e90ce4f12d7374854e97db0  ./creation/create_glidein
