@@ -22,18 +22,18 @@ class DowntimeFile:
         return rtn
 
     # add a scheduled downtime
-    def addPeriod( self, start_time, end_time, create_if_empty=True ):
+    def addPeriod(self, start_time, end_time, create_if_empty=True):
         return addPeriod(self.fname, start_time, end_time, create_if_empty)
 
     # start a downtime that we don't know when it will end    # if start_time==None, use current time
-    def startDowntime( self, start_time=None, end_time=None, create_if_empty=True):
+    def startDowntime(self, start_time=None, end_time=None, create_if_empty=True):
         if start_time is None:
             start_time=long(time.time())
-        return self.addPeriod( start_time, end_time, create_if_empty )
+        return self.addPeriod(start_time, end_time, create_if_empty)
 
     # end a downtime (not a scheduled one)    # if end_time==None, use current time
-    def endDowntime( self, end_time=None ):
-        return endDowntime( self.fname, end_time )
+    def endDowntime(self, end_time=None):
+        return endDowntime( self.fname, end_time)
 
 
     def printDowntime(self, check_time=None):
@@ -41,7 +41,7 @@ class DowntimeFile:
 
     # return a list of downtime periods (utimes) a value of None idicates "forever" for example: [(1215339200,1215439170),(1215439271,None)]
     def read(self, raise_on_error=False):
-        return read(         self.fname, raise_on_error)
+        return read(self.fname, raise_on_error)
 
 
 #############################
@@ -82,15 +82,15 @@ def read(fname, raise_on_error=False):
             # Start End Entry Security_Class Comment
             if len(arr) < 2:
                 if raise_on_error:
-                    raise ValueError( "%s:%i: Expected pair, got '%s'"%( fname, lnr, line ) )
+                    raise ValueError("%s:%i: Expected pair, got '%s'"%(fname, lnr, line))
                 else:
                     continue # ignore malformed lines
 
             try:
-                start_time = timeConversion.extractISO8601_Local( arr[0] )
+                start_time = timeConversion.extractISO8601_Local(arr[0])
             except ValueError as e:
                 if raise_on_error:
-                    raise ValueError( "%s:%i: 1st element: %s"%( fname, lnr, e ) )
+                    raise ValueError("%s:%i: 1st element: %s"%(fname, lnr, e))
                 else:
                     continue #ignore errors
 
@@ -101,20 +101,20 @@ def read(fname, raise_on_error=False):
                     end_time = timeConversion.extractISO8601_Local(arr[1])
             except ValueError as e:
                 if raise_on_error:
-                    raise ValueError( "%s:%i: 2nd element: %s"%(fname, lnr, e) )
+                    raise ValueError("%s:%i: 2nd element: %s"%(fname, lnr, e))
                 else:
                     continue #ignore errors
 
-            out.append(  (start_time, end_time)  )
+            out.append((start_time, end_time))
         return out # out is a list
 
 
 # if check_time==None, use current time
-def checkDowntime( fname, check_time=None ):
+def checkDowntime(fname, check_time=None):
         if check_time is None:
             check_time = long(time.time())
 
-        time_list = read( fname )
+        time_list = read(fname)
 
         for time_tuple in time_list:
 
@@ -134,7 +134,7 @@ def checkDowntime( fname, check_time=None ):
 def addPeriod( fname, start_time, end_time,  create_if_empty=True):
         exists = os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
-            raise IOError( "[Errno 2] No such file or directory: '%s'"%fname )
+            raise IOError("[Errno 2] No such file or directory: '%s'"%fname)
        
         fd = open(fname, 'a+')
         try:
@@ -144,9 +144,9 @@ def addPeriod( fname, start_time, end_time,  create_if_empty=True):
                 fd.write("#%-29s %-30s\n"%("Start", "End"))
 
             if end_time is not None:
-                fd.write("%-30s %-20s\n" % ( timeConversion.getISO8601_Local(start_time), timeConversion.getISO8601_Local(end_time) ))
+                fd.write("%-30s %-20s\n" % (timeConversion.getISO8601_Local(start_time), timeConversion.getISO8601_Local(end_time)))
             else:
-                fd.write("%-30s %-30s\n" % ( timeConversion.getISO8601_Local(start_time), "None" ))
+                fd.write("%-30s %-30s\n" % (timeConversion.getISO8601_Local(start_time), "None"))
 
         finally:
             fd.close()
@@ -155,7 +155,7 @@ def addPeriod( fname, start_time, end_time,  create_if_empty=True):
 
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
-def endDowntime( fname, end_time=None ):
+def endDowntime(fname, end_time=None):
 
         if end_time is None:
             end_time = long(time.time())
@@ -166,7 +166,7 @@ def endDowntime( fname, end_time=None ):
             return 0 # no file -> nothing to end
 
         try:
-            fcntl.flock( fd, fcntl.LOCK_EX | fcntl.LOCK_NB  )
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             # read the old info
             inlines = fd.readlines()
 
@@ -209,16 +209,16 @@ def endDowntime( fname, end_time=None ):
                 cur_start_time = 0
                 cur_end_time = 0
                 if arr[0] != 'None':
-                    cur_start_time = timeConversion.extractISO8601_Local( arr[0] )
+                    cur_start_time = timeConversion.extractISO8601_Local(arr[0])
                 if arr[1] != 'None':
-                    cur_end_time   = timeConversion.extractISO8601_Local( arr[1] )
+                    cur_end_time   = timeConversion.extractISO8601_Local(arr[1])
                 # open period -> close
-                if arr[1] == 'None' or (  (cur_start_time < long(time.time())) and (cur_end_time > end_time)  ): 
-                    outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)) )
+                if arr[1] == 'None' or ((cur_start_time < long(time.time())) and (cur_end_time > end_time)):
+                    outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
                     outlines.append("\n")
                     closed_nr += 1
                 else:
-                    outlines.append( long_line ) # closed just pass on
+                    outlines.append(long_line) # closed just pass on
 
                 #Keep parsing file, since there may be multiple downtimes
                 #pass # end for
@@ -233,11 +233,11 @@ def endDowntime( fname, end_time=None ):
         return closed_nr
 
 
-def printDowntime( fname, check_time=None ):
+def printDowntime(fname, check_time=None):
         if check_time is None:
             check_time = long(time.time())
 
-        time_list=read( fname )
+        time_list=read(fname)
 
         for time_tuple in time_list:
             if check_time < time_tuple[0]:

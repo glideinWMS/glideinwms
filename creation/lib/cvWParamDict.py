@@ -587,7 +587,7 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
             match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
             ma_arr.append(('GLEXEC_BIN', 's'))
         elif (glidein_glexec_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False) is False)' % match_expr
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr

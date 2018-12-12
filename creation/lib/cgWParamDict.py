@@ -490,8 +490,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", restrictions[u'require_voms_proxy'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", restrictions[u'require_glidein_glexec_use'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", bool(restrictions[u'require_voms_proxy']), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", bool(restrictions[u'require_glidein_glexec_use']), allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain", entry[u'trust_domain'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry[u'auth_method'], allow_overwrite=True)
             if u'rsl' in entry:
