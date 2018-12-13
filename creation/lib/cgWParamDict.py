@@ -523,7 +523,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts['mongroup'].add_extended(monitorgroup[u'group_name'], allow_overwrite=True)
 
         # populate complex files
-        populate_job_descript(self.work_dir, self.dicts['job_descript'],
+        populate_job_descript(self.work_dir, self.dicts['job_descript'], self.conf.num_factories,
                               self.sub_name, entry, schedd)
 
         # Now that we have the EntrySet fill the condor_jdl for its entries
@@ -899,7 +899,7 @@ def populate_factory_descript(work_dir, glidein_dict,
 
 
 #######################
-def populate_job_descript(work_dir, job_descript_dict,
+def populate_job_descript(work_dir, job_descript_dict, num_factories,
                           sub_name, entry, schedd):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
@@ -918,6 +918,7 @@ def populate_job_descript(work_dir, job_descript_dict,
 
     config = entry.get_child(u'config')
     max_jobs = config.get_child(u'max_jobs')
+    num_factories = int(max_jobs.get('num_factories', num_factories))  # prefer entry settings
 
     job_descript_dict.add('EntryName', sub_name)
     job_descript_dict.add('GridType', entry[u'gridtype'])
@@ -939,13 +940,13 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('Verbosity', entry[u'verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
     per_entry = max_jobs.get_child(u'per_entry')
-    job_descript_dict.add('PerEntryMaxGlideins', per_entry[u'glideins'])
-    job_descript_dict.add('PerEntryMaxIdle', per_entry[u'idle'])
-    job_descript_dict.add('PerEntryMaxHeld', per_entry[u'held'])
+    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])/num_factories)
+    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])/num_factories)
+    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])/num_factories)
     def_per_fe = max_jobs.get_child(u'default_per_frontend')
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', def_per_fe[u'glideins'])
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', def_per_fe[u'idle'])
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', def_per_fe[u'held'])
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])/num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])/num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])/num_factories)
     submit = config.get_child(u'submit')
     job_descript_dict.add('MaxSubmitRate', submit[u'max_per_cycle'])
     job_descript_dict.add('SubmitCluster', submit[u'cluster_size'])
@@ -972,9 +973,9 @@ def populate_job_descript(work_dir, job_descript_dict,
     max_glideins_frontend = ""
     for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
         frontend_name = per_fe[u'name']
-        max_held_frontend += frontend_name + ";" + per_fe[u'held'] + ","
-        max_idle_frontend += frontend_name + ";" + per_fe[u'idle'] + ","
-        max_glideins_frontend += frontend_name + ";" + per_fe[u'glideins'] + ","
+        max_held_frontend += frontend_name + ";" + int(per_fe[u'held'])/num_factories + ","
+        max_idle_frontend += frontend_name + ";" + int(per_fe[u'idle'])/num_factories + ","
+        max_glideins_frontend += frontend_name + ";" + int(per_fe[u'glideins'])/num_factories + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
