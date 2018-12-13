@@ -13,11 +13,12 @@
 from __future__ import print_function
 import os
 import sys
+import signal
 import logging
 import os.path
-# import subprocess
 import tempfile
-import signal
+import datetime
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
@@ -81,6 +82,14 @@ def logReconfig(msg):
     logSupport.log = logging.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
 
+
+def removeOldFiles(dirtosearch, days):
+    for dirpath, dirnames, filenames in os.walk(dirtosearch):
+        for file in filenames:
+            curpath = os.path.join(dirpath, file)
+            file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(curpath))
+            if datetime.datetime.now() - file_modified > datetime.timedelta(days=days):
+                os.remove(curpath)
 
 def main(conf, update_scripts, update_def_cfg, comment=""):
     old_glidein_dicts_obj = None
@@ -175,7 +184,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 
 if __name__ == '__main__':
     exit_code = 0
-    usage = "usage: reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-force_delete] [-xslt_plugin_dir xdir] | -help }"
+    usage = "usage: reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no -remove_older_than NN [-force_delete] [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
 
     if len(argv) == 1:
@@ -192,6 +201,7 @@ if __name__ == '__main__':
     xml = ''
     comment = ''
     update_def_cfg = 'no'
+    older_than = -1
 
     xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
 
@@ -216,6 +226,8 @@ if __name__ == '__main__':
             xslt_plugin_dir = argv[i+1]
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
+        if argv[i] == '-remove_older_than':
+            older_than = argv[i + 1]
         if argv[i] == '-help':
             print2(usage)
             sys.exit(1)
@@ -244,6 +256,16 @@ if __name__ == '__main__':
 
         if not (update_def_cfg in ('yes', 'no')):
             raise UsageError("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
+
+        try:
+            older_than = int(older_than)
+            stage_dir = conf.get_stage_dir()
+            if older_than > 0:
+                if older_than < 30:
+                     raise UsageError("You can only rmeove files older than 30 days (-remove_older_than must be greated than 30)")
+                removeOldFiles(stage_dir, older_than)
+        except ValueError as ve:
+            raise UsageError("-remove_older_than must be a number. Error is: '%s'" % str(ve))
 
         try:
             # This is the current running version, saved in the glidein work dir
