@@ -39,6 +39,19 @@ class FactAttrElement(xmlConfig.AttrElement):
             raise RuntimeError(self.err_str('published attribute must either be "parameter" or "const"'))
         if not is_publish and (not is_const or not is_param):
             raise RuntimeError(self.err_str('unpublished attribute must be "const" "parameter"'))
+        self.check_overwrite_soundeness()
+
+    def check_overwrite_soundeness(self):
+        """ If the attribute is defined in the global attributes section then
+            check that the "const" key is True/False for both
+        """
+        config = self.get_config_node()
+        attrs = config.get_child(u'attrs')
+        for att in attrs.get_children():
+            if att[u'name'] == self[u'name'] and att[u'const'] != self[u'const']:
+                entry = self.parent.parent.getName()
+                raise RuntimeError(("Entry %s: attribute %s is also defined in the global section, but it has const=\"%s\" there. "
+                                    "Please make sure the 'const' value is the same." % (entry, self[u'name'], att[u'const'])))
 
 
 xmlConfig.register_tag_classes({u'attr': FactAttrElement})
