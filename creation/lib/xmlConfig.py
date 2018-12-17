@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import copy
 import os
 
@@ -53,7 +54,7 @@ class Handler(xml.sax.ContentHandler):
                 el = DictElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
                 for k in attrs.keys():
                     el.attrs[k] = attrs[k]
-        
+
         if name == DOCUMENT_ROOT:
             self.root = el
         else:
@@ -95,7 +96,7 @@ class Element(object):
         """ Get the node containing the whole configuration
         """
         # Need to import it here to avoid import loops
-        from factoryXmlConfig import Config
+        from .factoryXmlConfig import Config
         config_node = None
         current = self
         while(current is not None and hasattr(current, 'parent')):
