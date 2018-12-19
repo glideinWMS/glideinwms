@@ -51,11 +51,12 @@ def fork_in_bg(function_torun, *args):
         os.close(r)
         try:
             out = function_torun(*args)
-            os.write(w, cPickle.dumps(out))
         except:
+            out = {}
             logSupport.log.warning("Forked process '%s' failed" % str(function_torun))
             logSupport.log.exception("Forked process '%s' failed" % str(function_torun))
         finally:
+            os.write(w, cPickle.dumps(out))
             os.close(w)
             # Exit, immediately. Don't want any cleanup, since I was created
             # just for performing the work
