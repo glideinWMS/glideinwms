@@ -267,8 +267,13 @@ class condorQStats:
         self.expected_cores = cores  # This comes from GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS, actual cores received may differ
 
     def logSchedd(self, client_name, qc_status, qc_status_sf):
-        """ qc_status is a dictionary of condor_status:nr_jobs
+        """ Create or update a dictionary with aggregated HTCondor stats
+
+            client_name is the client requesting the glideins
+            qc_status is a dictionary of condor_status:nr_jobs
             qc_status_sf is a dictionary of submit_file:qc_status
+            OUTPUT: self.data[client_name]['Status'] is the status for all Glideins
+                    self.data[client_name]['StatusEntries'] is the Glidein status by Entry
         """
         if client_name in self.data:
             t_el = self.data[client_name]

@@ -1020,7 +1020,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             client_int_name = work[work_key]['internals']["ClientName"]
             client_int_req = work[work_key]['internals']["ReqName"]
         except:
-            entry.log.warning("Request %s not did not provide the client and/or request name. Skipping request" % work_key)
+            entry.log.warning("Request %s did not provide the client and/or request name. Skipping request" % work_key)
             continue
 
         if not glideFactoryLib.is_str_safe(client_int_name):

@@ -361,6 +361,13 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     groupwork_done = {}
     done_something = 0
 
+    # Forcing do_advertise to True to advertise all entries all the time
+    # This sends updates also for entries not currently used
+    # TODO: check if this is causing too much load
+    # Since glideins only decrease for entries not receiving requests, a more efficient way
+    # could be to advertise entries that had non 0 # of glideins at the previous round
+    do_advertize = True
+
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
