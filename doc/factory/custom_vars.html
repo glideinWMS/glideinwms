@@ -370,7 +370,7 @@ by the VO Factory clients.</P>
         <td> Expr (Bool) </td>
         <td> False </td>
         <TD>
-            Specifies whether preemption is allowed to occur on this glidein.
+            Specifies whether preemption is allowed to occur on this glidein. N.B.: starting from 3.4.3 glideins in the factory queues are removed 12 hours after they hit the walltime. This is done with periodic remove expression, and happens even if <b>PREEMPT</b> is false.
         </TD>
     </tr>
     <tr>
@@ -381,7 +381,8 @@ by the VO Factory clients.</P>
             This value affects the condor value "MaxJobRetirementtime"
             and is an integer value representing the number of seconds 
             a preempted job will be allowed to run before being evicted.
-            This only affects behaviour if PREEMPT=True.
+            This only affects behaviour if PREEMPT=True. After 12 hours
+            a glidein is removed from the factory queue anyway.
         </td>
     </tr>
    <tr>
@@ -1661,6 +1662,8 @@ If cannot find one, it will shutdown.
 </li>
 </ul>
 Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
+
+N.B.: 12 hours after the walltime a glidein is removed from the factory queue no matter what using a periodic remove expression. This is done to prevent <i>staleness of glideins</i>, glideins that appears running in the factory condor queue indefnitely, but are no longer in the CE queue.
 </div>
 
 <div class="section">
