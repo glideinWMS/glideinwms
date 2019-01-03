@@ -6,6 +6,7 @@ import sys
 import tempfile
 import random
 import string
+import platform
 import unittest2 as unittest
 
 # We assume that this module is in the unittest directory
@@ -94,7 +95,7 @@ def runAllTests():
         test.main()
 
 
-class FakeLogger:
+class FakeLogger(object):
     """
     Super simple logger for the unittests
     """
@@ -146,6 +147,29 @@ class FakeLogger:
         """
         print(str(msg) % args, file=self.file)
 
+
+class TestImportError(Exception):
+    """
+    Error handler for import errors in this test suite
+    If import of package listed in handled_import_errors fails, print
+    out hopefully informative message and exit 0
+    """
+    def __init__(self, err_msg="Error"):
+        handled_import_errors = ["M2Crypto"]
+        sys_ = platform.system()
+        if sys_ != 'Linux':
+            err_msg += """.  Platform %s is not well tested/supported """ % sys_
+        for imp_lib in handled_import_errors:
+            if imp_lib in err_msg:
+                if sys_ == 'Darwin':
+                    err_msg += """.  Hint: try brew install or conda install %s first.""" % imp_lib
+                elif sys_ == 'Linux':
+                    err_msg += """.  Hint: try yum install or apt-get install %s first.""" % imp_lib
+                else:
+                    err_msg += """.  %s python package must be present.""" % imp_lib
+                print ("%s" % err_msg)
+                sys.exit(0)
+        raise Exception(err_msg)
 
 def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
                      text_access=True, write_path_to_file=True):

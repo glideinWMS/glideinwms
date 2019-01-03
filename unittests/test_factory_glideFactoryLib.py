@@ -4,7 +4,12 @@ from __future__ import print_function
 import unittest2 as unittest
 import xmlrunner
 
-import glideinwms.factory.glideFactoryLib
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    import glideinwms.factory.glideFactoryLib
+except ImportError as err:
+    raise TestImportError(str(err))
+
 from glideinwms.unittests.unittest_utils import FakeLogger
 from glideinwms.factory.glideFactoryLib import FactoryConfig
 from glideinwms.factory.glideFactoryLib import secClass2Name

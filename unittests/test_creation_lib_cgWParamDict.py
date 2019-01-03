@@ -16,7 +16,12 @@ import unittest2 as unittest
 import xmlrunner
 
 
-from glideinwms.creation.lib import cgWParamDict
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib import cgWParamDict
+except ImportError as err:
+    raise TestImportError(str(err))
+
 from glideinwms.creation.lib import factoryXmlConfig
 from glideinwms.creation.lib.cgWParamDict import add_file_unparsed
 from glideinwms.creation.lib.cgWParamDict import add_attr_unparsed

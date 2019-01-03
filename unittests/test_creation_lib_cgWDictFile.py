@@ -10,7 +10,12 @@ import xmlrunner
 
 # from glideinwms.creation.lib.cgWDictFile import MonitorGroupDictFile
 # from glideinwms.creation.lib.cgWDictFile import InfoSysDictFile
-from glideinwms.creation.lib.cgWDictFile import CondorJDLDictFile
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cgWDictFile import CondorJDLDictFile
+except ImportError as err:
+    raise TestImportError(str(err))
+
 from glideinwms.creation.lib.cgWDictFile import get_common_dicts
 from glideinwms.creation.lib.cgWDictFile import get_main_dicts
 from glideinwms.creation.lib.cgWDictFile import get_entry_dicts

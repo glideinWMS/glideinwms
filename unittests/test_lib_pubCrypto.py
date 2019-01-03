@@ -17,8 +17,13 @@ import unittest2 as unittest
 import xmlrunner
 
 
-from glideinwms.lib.pubCrypto import PubRSAKey
-from glideinwms.lib.pubCrypto import RSAKey
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.pubCrypto import PubRSAKey
+    from glideinwms.lib.pubCrypto import RSAKey
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class TestPubCrypto(unittest.TestCase):

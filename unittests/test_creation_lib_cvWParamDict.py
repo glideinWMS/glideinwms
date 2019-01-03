@@ -11,7 +11,12 @@ import xmlrunner
 # path for us.
 from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.creation.lib.cvWParamDict import populate_group_descript
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cvWParamDict import populate_group_descript
+except ImportError as err:
+    raise TestImportError(str(err))
+
 from glideinwms.creation.lib.cvWParamDict import apply_group_glexec_policy
 from glideinwms.creation.lib.cvWParamDict import apply_group_singularity_policy
 from glideinwms.creation.lib.cvWParamDict import apply_multicore_policy

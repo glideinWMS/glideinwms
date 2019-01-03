@@ -17,7 +17,12 @@ from __future__ import print_function
 import unittest2 as unittest
 import xmlrunner
 
-from glideinwms.creation.lib.cWDictFile import validate_node
+
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import validate_node
+except ImportError as err:
+    raise TestImportError(str(err))
 
 GOOD_NODES = ['fermicloudui.fnal.gov:9618-9620',
               'fermicloudui.fnal.gov:9618?sock=collector30-40',

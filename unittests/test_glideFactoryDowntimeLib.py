@@ -17,9 +17,9 @@ from glideinwms.unittests.unittest_utils import create_random_string
 from glideinwms.unittests.unittest_utils import FakeLogger
 
 from glideinwms.lib import condorMonitor
-from glideinwms.factory import glideFactoryDowntimeLib
-from glideinwms.frontend.glideinFrontendInterface import Credential
 from glideinwms.lib import logSupport
+from glideinwms.factory import glideFactoryDowntimeLib
+#from glideinwms.frontend.glideinFrontendInterface import Credential
 
 
 class TestDowntimes(unittest.TestCase):

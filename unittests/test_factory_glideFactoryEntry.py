@@ -7,13 +7,17 @@ import os
 import mock
 import sys
 
-import glideinwms.factory.glideFactoryEntry
-import glideinwms.factory.glideFactoryLib
 
 from glideinwms.unittests.unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    import glideinwms.factory.glideFactoryEntry
+    import glideinwms.factory.glideFactoryLib
+    from glideinwms.factory.glideFactoryEntry import Entry
+    from glideinwms.factory.glideFactoryEntry import dump_obj
+except ImportError as err:
+    raise TestImportError(str(err))
 
-from glideinwms.factory.glideFactoryEntry import Entry
-from glideinwms.factory.glideFactoryEntry import dump_obj
 # from glideinwms.factory.glideFactoryEntry import X509Proxies
 # from glideinwms.factory.glideFactoryEntry import check_and_perform_work
 # from glideinwms.factory.glideFactoryEntry import unit_work_v3
