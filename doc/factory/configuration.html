@@ -401,8 +401,8 @@ individual entry point configuration.
     <p><b>Recommended:</b> Where to create the glidein submit directory. 
     The default is the user home
     directory. Log directories can be configured independent of the base
-    directory using options mentioned above. Num factories is a scaling factor used to
-    scale down max glideins, max held, and max idle for the entries.
+    directory using options mentioned above. <b>num_factories</b> is a scaling factor used to
+    scale down <i>max_glideins, max_held</i>, and <i>max_idle</i> for the entries.
     </P>
     <LI>
         <a name="stage" />
@@ -810,7 +810,7 @@ override the global arguments if present.
         <div class="xml">
             &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<I>entry name</I>&quot;&gt;<br/>
             &lt;config&gt;<br/>
-            &lt;max_job num_factories="3"&gt;<br/>
+            &lt;max_jobs num_factories="3"&gt;<br/>
             &nbsp;&nbsp;&lt;per_entry held="1000" idle="2000" glideins="10000"/&gt;<br/>
             &nbsp;&nbsp;&lt;default_per_frontend held="50" idle="100" glideins="5000"/&gt;<br/>
             &nbsp;&nbsp;&lt;per_frontends&gt;<br/>
@@ -836,7 +836,7 @@ override the global arguments if present.
                  <li>&lt;default_per_frontend ... &gt; specifies default limits for each frontend-security class (for this entry).</li>
                  <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
              </ul>
-             All these limits are scaled down by the num_factories attributes (it can be specified here at the entry level, or in the global submit section)
+             All these limits are scaled down by the num_factories attributes (it can be specified here, at the entry level or in the global submit section)
            </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
