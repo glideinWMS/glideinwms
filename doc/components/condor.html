@@ -136,7 +136,10 @@ Related Links:
          SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
          DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
     </blockquote>
-    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect. 
+    <b>Very important:</b> Starting 3.4.1 and 3.4.2 all the daemons on the Frontend machine migrated to using the shared port daemon as explained below in this documentation.
+    We use now to use the standard port 9618 to be used by the collector, therefore hosts  with the Frontend and user collector will have that port already open.
+    If there are standalone submit hosts, they may have only port 9615 open, as indicated in the examples. In this case, please review the firewalls to make sure 9618 is open.
     </p>
 
 
