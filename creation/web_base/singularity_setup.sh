@@ -58,7 +58,7 @@ function no_singularity_fail_or_exit {
         "$error_gen" -error "singularity_setup.sh" "$var_name" "$2"
         exit 1
     elif [ "$1" = "PREFERRED" ]; then
-        warn "$2"
+        info_stdout "`date` Falling back to no Singularity, error: $2"
         no_use_singularity_config
     else
         warn "Unexpected gwms_singularity_status $1 in fail_or_exit (no REQUIRED or PREFERRED)"
