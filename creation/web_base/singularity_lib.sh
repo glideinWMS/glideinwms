@@ -300,7 +300,7 @@ function get_prop_bool {
     local val
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         val=0
-    elif [ "x$1" = "NONE" ]; then
+    elif [ "x$1" = "xNONE" ]; then
         val=$default
     else
         # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
@@ -355,7 +355,7 @@ function get_prop_str {
     #  For bad invocation, return 1
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         return 1
-    elif [ "x$1" = "NONE" ]; then
+    elif [ "x$1" = "xNONE" ]; then
         echo "$3"
         return 1
     fi
