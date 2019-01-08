@@ -79,7 +79,7 @@ def fetch_fork_result(r, pid):
     OSError if Bad file descriptor or file already closed or if waitpid syscall returns -1
     FetchError if a os.read error was encountered
     Possible errors from os.read (catched here):
-    - EOFError if the forked process failed an nothing was written to the pipe
+    - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string 
     - IOError failure for an I/O-related reason, e.g., “pipe file not found” or “disk full”.
     - OSError other system-related error
  
@@ -94,20 +94,22 @@ def fetch_fork_result(r, pid):
     """
 
     rin = ""
+    out = None
     try:
         s = os.read(r, 1024*1024)
         while s != "":  # "" means EOF
             rin += s
             s = os.read(r, 1024*1024)
-    except (OSError, IOError, EOFError) as err:
+        # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.' 
+        out = cPickle.loads(rin)
+    except (OSError, IOError, EOFError, cPickle.UnpicklingError) as err:
         etype, evalue, etraceback = sys.exc_info()
         # Adding message in case close/waitpid fail and preempt raise
         logSupport.log.exception('Re-raising exception during read: %s' % err)
-        raise FetchError, 'Exception during read, original exception and trace %s: %s' % (etype, evalue), etraceback
+        raise FetchError, 'Exception during read probably due to worker failure, original exception and trace %s: %s' % (etype, evalue), etraceback
     finally:
         os.close(r)
         os.waitpid(pid, 0)
-    out = cPickle.loads(rin)
     return out
 
 
