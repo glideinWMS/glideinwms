@@ -36,7 +36,7 @@ from glideinwms.unittests.unittest_utils import FakeLogger
 
 def compareLambdas(func1, func2):
     def strip_line_number(code):
-        r = re.match('\s*\d+\s+(.*)', code[0])
+        r = re.match(r'\s*\d+\s+(.*)', code[0])
         code[0] = r.group(1)
 
     def disassemble(func):
