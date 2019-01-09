@@ -80,7 +80,7 @@ def fetch_fork_result(r, pid):
     FetchError if a os.read error was encountered
     Possible errors from os.read (catched here):
     - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string 
-    - IOError failure for an I/O-related reason, e.g., “pipe file not found” or “disk full”.
+    - IOError failure for an I/O-related reason, e.g., "pipe file not found" or "disk full".
     - OSError other system-related error
  
     @type r: pipe
