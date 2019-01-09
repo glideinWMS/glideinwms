@@ -17,10 +17,15 @@ import unittest2 as unittest
 import xmlrunner
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
-import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig
-import glideinwms.frontend.glideinFrontendElement as glideinFrontendElement
-
 from glideinwms.unittests.unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig
+    import glideinwms.frontend.glideinFrontendElement as glideinFrontendElement
+except ImportError as err:
+    raise TestImportError(str(err))
+
+
 
 
 class FEElementTestCase(unittest.TestCase):

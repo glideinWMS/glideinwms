@@ -17,12 +17,12 @@ import os
 import copy
 import unittest2 as unittest
 import xmlrunner
-
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
 from glideinwms.unittests.unittest_utils import create_temp_file
-
-from glideinwms.creation.lib.cWDictFile import DictFile
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import DictFile
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestDictFile(unittest.TestCase):

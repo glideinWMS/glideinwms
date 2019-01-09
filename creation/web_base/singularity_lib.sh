@@ -58,6 +58,8 @@
 # Invocation
 # Additional options for the Singularity invocation
 # GLIDEIN_SINGULARITY_OPTS
+# NOTE: GLIDEIN_SINGULARITY_OPTS must be expansion/flattening safe because is passed as veriable and quoted strings inside it are not preserved
+
 
 # 0 = true
 # 1 = false
@@ -298,7 +300,7 @@ function get_prop_bool {
     local val
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         val=0
-    elif [ "x$1" = "NONE" ]; then
+    elif [ "x$1" = "xNONE" ]; then
         val=$default
     else
         # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
@@ -353,7 +355,7 @@ function get_prop_str {
     #  For bad invocation, return 1
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         return 1
-    elif [ "x$1" = "NONE" ]; then
+    elif [ "x$1" = "xNONE" ]; then
         echo "$3"
         return 1
     fi
@@ -556,6 +558,7 @@ function singularity_exec_simple {
     #  2 - Singularity image path
     #  3 ... - Command to execute and its arguments
     #  PWD, GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_OPTS
+    # NOTE: GLIDEIN_SINGULARITY_OPTS must be expansion/flattening safe (see above)
 
     # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
@@ -625,6 +628,7 @@ function singularity_test_exec {
     #  1 - Singularity image, default GWMS_SINGULARITY_IMAGE_DEFAULT
     #  2 - Singularity path, default GWMS_SINGULARITY_PATH_DEFAULT
     #  PWD (used by singularity_exec to bind it)
+    #  GLIDEIN_DEBUG_OUTPUT - to increase verbosity
     # Out:
     # Return:
     #  true - Singularity OK
@@ -634,6 +638,8 @@ function singularity_test_exec {
     local singularity_bin="${2:-$GWMS_SINGULARITY_PATH_DEFAULT}"
     [ -z "$singularity_image" ] || [ -z "$singularity_bin" ] &&
             { info "Singularity image or binary empty. Test failed "; false; return; }
+    # If verbose, make also Singularity verbose
+    [ -n "$GLIDEIN_DEBUG_OUTPUT" ] && export GLIDEIN_SINGULARITY_OPTS="-vvv -d $GLIDEIN_SINGULARITY_OPTS"
     if (singularity_exec_simple "$singularity_bin" "$singularity_image" \
             printenv | grep "$singularity_bin" 1>&2)
     then

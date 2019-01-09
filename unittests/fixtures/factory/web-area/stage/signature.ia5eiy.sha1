@@ -1,0 +1,9 @@
+# File: signature.ia5eiy.sha1
+#
+1c1d7dea37399d58f53b6c80b97d5dc42f6a8350  constants.ia5eiy.cfg
+cc1185fd9aacecf4ad3499de59d85b25ff6f93d2  condor_vars.ia5eiy.lst
+054817e58f0cdcd18e0c9322ff348a8c123daa53  untar.ia5eiy.cfg
+da39a3ee5e6b4b0d3255bfef95601890afd80709  grid-mapfile.ia5eiy
+579e30c07f02a7f5ec94969ff298d3ad4a1a10d4  file_list.ia5eiy.lst
+6f6d2dd05947828e6949b157c5a753d9017dcd85  after_file_list.ia5eiy.lst
+b975dfcdab36bd159b8c442390a9ddd2ba783885  description.ia5eiy.cfg
