@@ -1248,8 +1248,11 @@ class condorLogSummary:
                                 #but it can be removed in future versions
                                 'activation_claims': jobstats.get('activations_claims', 'unknown'),
                                 'glidein_duration': jobstats['glidein_duration'],
-                                'condor_duration': jobstats['condor_duration'],
-                                'condor_started': jobstats['condor_started'],
+                                # condor_duration could be missing if the glidein had problems and condor was not started
+                                # set it to 0
+                                # and ser condor_started to None if missing
+                                'condor_duration': jobstats.get('condor_duration', 0),
+                                'condor_started': jobstats.get('condor_started', None),
                                 'numjobs': jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
                             }
 
