@@ -35,7 +35,9 @@ process_branch() {
     PYLINT_RCFILE=/dev/null
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
 
-
+    # Some of the options in the following section depend more on the pylint version 
+    # than the Python version
+    # Make sure to check and be consistent w/ the venv setup in util.sh
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # PYLINT_IGNORE_LIST files for python 2.6 here
         # white-space seperated list of files to be skipped by pylint 
@@ -50,9 +52,10 @@ process_branch() {
     else
         #PYLINT_IGNORE_LIST files for python 2.7+ here
         PYLINT_IGNORE_LIST=""
-        # unsubscriptable-object considered to be buggy in recent
-        # pylint relases
+        # unsubscriptable-object considered to be buggy in recent pylint relases
         PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
+        # Starting pylint 1.4 external modules must be whitelisted
+        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"	
     fi
 
     # pep8 related variables
@@ -79,7 +82,7 @@ process_branch() {
 
     PEP8_OPTIONS="--ignore="
     # E111 indentation is not a multiple of four
-    PEP8_OPTIONS="$PEP8_OPTIONS,E111"
+    PEP8_OPTIONS="$PEP8_OPTIONS""E111"
     # E121 continuation line under-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
     # E123 closing bracket does not match indentation of opening bracket’s line
@@ -138,7 +141,7 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS -e F0401 ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
+          pylint $PYLINT_OPTIONS ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
       fi
       pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
     done
@@ -184,16 +187,16 @@ process_branch() {
 
 init_results_mail () {
     local mail_file=$1
-    echo -n > $mail_file
+    echo -n > "$mail_file"
 }
 
 init_results_logging() {
     local mail_file=$1
-    cat >> $mail_file << TABLE_START
+    cat >> "$mail_file" << TABLE_START
 <body>
 
   <p>
-`print_python_info $mail_file`
+  $(print_python_info "$mail_file")
   </p>
 <table style="$HTML_TABLE">
   <thead style="$HTML_THEAD">
@@ -220,14 +223,14 @@ log_branch_results() {
     unset PYLINT_ERROR_FILES_COUNT
     unset PYLINT_ERROR_COUNT
     unset PEP8_ERROR_COUNT
-    source $branch_results
+    . "$branch_results"
 
     class=$GIT_CHECKOUT
     if [ "$class" = "PASSED" ]; then
         [ ${PYLINT_ERROR_COUNT:-1} -gt 0 ] && class="FAILED"
     fi
     if [ "$class" = "PASSED" ]; then
-        cat >> $mail_file << TABLE_ROW_PASSED
+        cat >> "$mail_file" << TABLE_ROW_PASSED
 <tr style="$HTML_TR">
     <th style="$HTML_TH">$GIT_BRANCH</th>
     <td style="$HTML_TD_PASSED">${FILES_CHECKED_COUNT:-NA}</td>
@@ -237,7 +240,7 @@ log_branch_results() {
 </tr>
 TABLE_ROW_PASSED
     else
-        cat >> $mail_file << TABLE_ROW_FAILED
+        cat >> "$mail_file" << TABLE_ROW_FAILED
 <tr style="$HTML_TR">
     <th style="$HTML_TH">$GIT_BRANCH</th>
     <td style="$HTML_TD_FAILED">${FILES_CHECKED_COUNT:-NA}</td>
@@ -252,7 +255,7 @@ TABLE_ROW_FAILED
 
 finalize_results_logging() {
     local mail_file=$1
-    cat >> $mail_file << TABLE_END
+    cat >> "$mail_file" << TABLE_END
     </tbody>
 </table>
 </body>
@@ -280,47 +283,76 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 ###############################################################################
 
 
-git_branches="$1"
-WORKSPACE=`pwd`
-export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
+if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
+	echo "$0           Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
+	echo "$0 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (space separated list of branch names)"
+	echo "The source code (a clone of the GWMS git repository) is expected to be already in the ./glideinwms subdirectory of PWD (source dir)"
+	echo "The script will checkout one by one and run pylint and pycodestyle on all listed BRANCHES, in the listed order"
+        echo "At the end of the tests the last branch will be the one in the source directory."
+	echo "The script has no cleanup. Will leave directories and result files in the working directory (virtualenv,  log files, ...)"
+	echo "$0 -h        Print this message and exit"
+	exit 0
+fi
 
-source $GLIDEINWMS_SRC/build/jenkins/utils.sh
-setup_python_venv $WORKSPACE
+git_branches="$1"
+WORKSPACE=$(pwd)
+export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
+
+
+
+if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
+    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
+    echo "exiting"
+    exit 1
+fi
+
+if ! . "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ; then
+    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+    echo "exiting"
+    exit 1
+fi
+
+
+
+if [ "x$VIRTUAL_ENV" = "x" ]; then
+     setup_python_venv "$WORKSPACE"
+fi
 
 # Jenkins will reuse the workspace on the slave node if it is available
 # There is no reason for not using it, but we need to make sure we keep
 # logs for same build together to make it easier to attach to the email
 # notifications or for violations. $BUILD_NUMBER is only available when
 # running this script from the jenkins environment
-LOG_DIR=$WORKSPACE/$BUILD_NUMBER
-[ -d $LOG_DIR ] || mkdir -p $LOG_DIR
+LOG_DIR="$WORKSPACE/$BUILD_NUMBER"
+[ -d "$LOG_DIR" ] || mkdir -p "$LOG_DIR"
 
-PYLINT_LOG=$LOG_DIR/pylint.log
-PEP8_LOG=$LOG_DIR/pep8.log
-RESULTS=$LOG_DIR/results.log
-RESULTS_MAIL=$LOG_DIR/mail.results
+PYLINT_LOG="$LOG_DIR"/pylint.log
+PEP8_LOG="$LOG_DIR"/pep8.log
+RESULTS="$LOG_DIR"/results.log
+RESULTS_MAIL="$LOG_DIR"/mail.results
 
 
-init_results_mail $RESULTS_MAIL
-init_results_logging $RESULTS_MAIL
+init_results_mail "$RESULTS_MAIL"
+init_results_logging "$RESULTS_MAIL"
 
 if [ $# -eq 0 ]; then
-    process_branch $PYLINT_LOG $PEP8_LOG $RESULTS $gb
-    log_branch_results $RESULTS_MAIL $RESULTS
+    process_branch "$PYLINT_LOG" "$PEP8_LOG" "$RESULTS" "$gb"
+    log_branch_results "$RESULTS_MAIL" "$RESULTS"
 fi
 
-for gb in `echo $git_branches | sed -e 's/,/ /g'`
+for gb in $(echo "$git_branches" | sed -e 's/,/ /g')
 do
     if [ -n "$gb" ]; then
-        gb_escape=`echo $gb | sed -e 's|/|_|g'`
+        gb_escape=$(echo "$gb" | sed -e 's|/|_|g')
         pylint_log="$PYLINT_LOG.$gb_escape"
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch $pylint_log ${pep8_log} $results $gb
-    log_branch_results $RESULTS_MAIL $results
+    process_branch "$pylint_log" "$pep8_log" "$results" "$gb"
+    log_branch_results "$RESULTS_MAIL" "$results"
 done
 
-finalize_results_logging $RESULTS_MAIL
+finalize_results_logging "$RESULTS_MAIL"
 
 #mail_results $RESULTS_MAIL "Pylint/PEP8 Validation Results"

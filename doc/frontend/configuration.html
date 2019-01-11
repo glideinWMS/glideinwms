@@ -70,13 +70,14 @@
 <ol>
         <li><a href="#example">Example Configuration</a> </li>
         <li><a href="#management">Frontend Configuration</a> </li>
+        <li><a href="#attr_singularity">Singularity attributes</a> </li>
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
         <li><a href="#usercollector">Using multiple user pool collectors/HTCondor High Availability (HA) support</a> </li>
+        <li><a href="#singularity">Using Singularity</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
         <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
-        <li><a href="#attr_singularity">Using Singularity</a> </li>
 </ol>
 </div>
 <div class="related">
@@ -149,7 +150,7 @@ Click on any piece for a more detailed description.
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1" /&gt;</a><br/>
-        <a href="#attr_client_start">&lt;attr  name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_client_start">&lt;attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
@@ -201,7 +202,13 @@ Click on any piece for a more detailed description.
       <a href="#files">&lt;file absfname="/opt/script/testSW.sh" after_entry="True" after_group="False" const="True" executable="True" untar="False" wrapper="False" /&gt;</a><br/>
       <a href="#files">&lt;file absfname="/opt/script/testP.sh" after_entry="True" after_group="False" const="True" executable="True" period="1800" untar="False" wrapper="False" /&gt;</a><br/>
     </blockquote>
-    <a href="#files">&lt;/files&gt;</a><br/>     
+    <a href="#files">&lt;/files&gt;</a><br/>
+    <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
+    <blockquote>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
+    </blockquote>
+    <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#usercollector">&lt;collectors&gt;</a><br/>
     <blockquote>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
@@ -210,12 +217,6 @@ Click on any piece for a more detailed description.
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
-    <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
-    <blockquote>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
-    </blockquote>
-    <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
     <blockquote>
        <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
@@ -342,7 +343,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
          </ol>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
             element for each secondary port.</i></font><br/>
     </blockquote>
 
@@ -505,6 +506,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     This can be used to add custom scripts to the VO Frontend (either for all glideins for this frontend or only for a group).
     See <a href="#custom_code">below</a> or  the page dedicated to 
     <a href="../factory/custom_scripts.html">writing custom scripts</a> for more information.
+    A list of all the possible attributes and their values is in the  <a href="../factory/configuration.html#custom_code">custom_code section of the Factory configuration document</a>.
         </P></li>
 
     <LI><P>
@@ -567,44 +569,62 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
             </div>
-        This determines whether or not you want to mandate
-        the use of Singularity. Possible values are
-            DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - Default) or
-            NEVER (do not use Singularity) or
-            OPTIONAL (use Singularity if the site is configured with it) 
-            or REQUIRED (always use Singularity). 
-        If REQUIRED or OPTIONAL are used, the default wrapper script that we provide should be used, in other words
-a line like &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
-	    <br>
-        If REQUIRED or OPTIONAL are used, you have to have a valid pre_singularity setup, e.g. copy generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/, rename it
-and set SINGULARITY_IMAGE_DEFAULT6 and SINGULARITY_IMAGE_DEFAULT7 to the pathnames of your singularity images for El6 and El7 respectively in /cvmfs area.
-Then a line such as  &lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/(your vo)_pre_singularity_setup.sh</I>&quot; 
- after_entry=&quot;False&quot; executable=&quot;True&quot; period=&quot;0&quot; untar=&quot;False&quot; wrapper=&quot;False&quot;/&gt; should be added in &lt;files&gt; section of the Frontend or a group.
+        This determines whether or not you want to mandate the use of Singularity.
+        It affects both provisioning and the job on the site. Possible values are:
+        <ul>
+            <li>DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - this is the <d></d>efault) or
+            <li>NEVER (do not use Singularity) or
+            <li>OPTIONAL or PREFERRED (use Singularity if the site is configured with it)
+            <li>or REQUIRED (always require Singularity).
+            </li>
+        </ul>
+        If REQUIRED, PREFERRED or OPTIONAL are used (i.e. if the Glidein may use Singularity), further configuration steps are required to specify
+        a user-job-wrapper and a Singularity image.
+        The actual use of Singularity is negotiated with the Factory Entry.
+        See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
+            a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE
+            (the entry variable).    <br>
+            See the <a href="#singularity">section on how to use Singularity</a> below for more on how to specify the wrapper,
+            how to set the available images and select one.
+            And see the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for a reference information on all the variables and
+            more information about the format of the dictionary.
+            <br>
+            SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7 and SINGULARITY_IMAGE_DEFAULT are <b>deprecated</b>. These will be ignored in future versions.
+Currently these set the values of the 'rhel6', 'rhel7' and 'default' images respectively in SINGULARITY_IMAGES_DICT.
 	    <br>
         If you want to use your own wrapper script for singularity, you must first understand 
         <I>/var/lib/gwms-frontend/web-base/default_singularity_wrapper.sh</I>
         and make your custom script compatible with this setup script.
 	<br>
-        Users can specify the following 2 lines in their job submit file
+        The Frontend or a group can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH or custom options.
+        Again, you can fnid more in the <a href="../factory/configuration.html#singularity">Factory configuration document</a> and the
+        <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a>.
+    <br>
+        Users can specify one or more of the following 3 lines in their job submit file:
 	<ul>
 	  <li> If their jobs need a list of repositories, they must specify the list between double quotes, separated by commas, for example,
-	    <br>
+	    <blockquote>
           +CVMFSReposList = &quot;cms.cern.ch,atlas.cern.ch&quot;.
-	    <br>
+        </blockquote>
 	    If any of these cvmfs repositories is not availale, the user jobs will fail.
           </li>
-	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I>
-	    <br>
-          and use +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/&lt;path name to the image&gt;&quot;.
-	    <br>
-	    If users use this feature and if the singularity image is not in /cvmfs repository, the user job will error out.
+	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I> and use:
+	    <blockquote>
+          +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE&quot;.
+        </blockquote>
+	    If users use this feature and if the Singularity image is not in the path indicated in the /cvmfs repository, the user job will error out.
           </li>
 	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
-	    But if any default singularity image is not available, the user job will fail.
-	    Also, if the users specify REQUIRED_OS as rhel6 or rhel7, the corresponding version of default singularity image will be used.
-	    But if the corresponding version of default singularity image is not available, the user job will fail.
-	    If the users specify REQUIRED_OS as any, any default singularity image available will be used 
-            and the user job will fail if there is no default singularity image.
+        SINGULARITY_IMAGES_DICT will be searched for 'default', 'rhel7' and 'rhel6' images.
+          Users can select a specific image form SINGULARITY_IMAGES_DICT by using REQUIRED_OS:
+	    <blockquote>
+          +REQUIRED_OS = &quot;rhel6&quot;.
+        </blockquote>
+        If the users specify a value different from 'any' for <b>REQUIRED_OS</b> (e.g. rhel6, rhel7),
+        the corresponding version of default Singularity image (the one with matching name in the dictionary) will be used.
+	    Independently from how an image was selected, if the chosen Singularity image is not available, the user job will fail.
+        If the users specify <b>REQUIRED_OS</b> as 'any', the first available default Singularity image will be used
+        and the user job will fail only if there is no default Singularity image.
 	  </li>
 	</ul>
         </P></li>
@@ -722,7 +742,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     in trying to provision glideins when it sees idle user jobs.<br>
     <ul>
      <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
-    aggressive the provisioning requests should be.<br>
+     aggressive the provisioning requests should be.<br>
      The number specified in <b>max</b> is the highest number of idle/pending 
      glideins that the resource associated with any Factory entry will ever see.</li>
      <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
@@ -742,16 +762,18 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          for each entry associated to the group (even if there are no jobs idle). Keep in mind that if you use this <b>min</b>
          attribute and you also set idle_glideins_lifetime, then you might have old idle glideins removed and immeditely
          resubmitted. </li>
-        <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
-        Glidein can expire () and die when not used, anyway you can trigger early removal.
+     <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
+        Glidein can expire and die when not used, the Frontend also has an automatic glidein removal mechanism, anyway you can trigger early removal.
+        Early removal is controlled by 4 attributes (type, requests_tracking, margin, wait) and is disabled bt default (type="NO").
+        <b>type</b> selects what to remove: NO (default) no early removal, IDLE only Idle glideins -not submitted-,
+        WAIT also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed),
+	DISABLE disables also the automatic removal mechanism of the Frontend (Glidein expiration is still in place).
         When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
             then the Glideins in excess are removed.
-        If <b>requests_tracking</b> is off but <b>type</b> is different from NO, then it removes glideins when there are
-            no pending job requests for this group.
-        <b>type</b> selects what to remove: NO (default) no removal, IDLE only Idle glideins -not submitted-,
-        WAIT also glideins waiting in the remote queues, ALL also running glideins.
-        <b>wait</b> waits for N cycles without requests (or below the margin) before triggering the removal.</li>
-      </ul>
+        If <b>requests_tracking</b> is False (default) then it removes glideins when there are no pending job requests for this group 
+        Either ways <b>type</b> still controls what to remove (and the default NO means no removal).
+        <b>wait</b> adds a delay, waits for N cycles without requests (or below the margin) before triggering the removal.</li>
+    </ul>
     </P></li>
 
     <LI><P>
@@ -777,7 +799,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     When policy info is specified in both frontend.xml and through a policy file, information from both the sources is considered.
     <ul>
         <li>match_expr from frontend.xml is ANDed with match(job, glidein) from the policy file</li>
-        <li>job/factory query_expr from the frontend.xml is ANDed with respective job/factory's query_expr form the policy file</li>
+        <li>job/factory query_expr from the frontend.xml is ANDed with respective job/factory's query_expr from the policy file</li>
         <li>List of job/factory's match_attrs created by merging the list from both frontend.xml and policy file together</li>
     </ul>
 
@@ -921,37 +943,42 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     The configuration required for the Frontend to communicate with the secondary user pool collectors is shown below:
       <blockquote>
          &lt;collectors&gt;
-         &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
+            &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
                   node="User Pool Collector:<b>primary_port</b>"/&gt;</br>
-         &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
+            &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
                   node="User Pool Collector:<b>secondary_port</b>"/&gt;</br>
             <font color="blue"><i>
             If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
             element for each secondary port.</i></font><br/>
       </blockquote>
     For <b>redundancy</b> purposes, the user pool can be configured using the HTCondor High Availability feature. 
     Refer to the 
-    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.  Support to utilize this HTCondor feature is available in v2.6+.<br/>
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.<br/>
     The requires listing all the condor collectors, primary as well as secondary, grouped by <b>group</b> name.
-    HTCondor daemons started by the glideins will report back to one of the
-    secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
-    the primary collector is selected for that group. 
+    HTCondor daemons started by the glideins, will report back to <b>one</b> of the
+    secondary collectors in each <b>group</b>, chosen by random. If a <b>group</b> has no secondary collector, 
+    the primary collector is selected for that group.  Here there are examples of different configurations:
     <blockquote>
          &lt;collectors&gt;
         <ul>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
                   node="<b>User Pool Collector 1</b>:primary_port" <b>group="default"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
-                  node="<b>User Pool Collector 1</b>:secondary_port" <b>group="default"</b>/&gt;</br>
+                  node="<b>User Pool Collector 1</b>:secondary_port_range" <b>group="default"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
-                  node="<b>User Pool Collector 2</b>:primary_port" <b>group="1"</b>/&gt;</br>
+                  node="<b>User Pool Collector 2</b>" <b>group="1"</b>/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="True"
-                  node="<b>User Pool Collector 2</b>:secondary_port" <b>group="1"</b>/&gt;</br>
-            <font color="blue"><i>
-            If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
-            element for each secondary port.</i></font><br/>
+                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collectorID1-ID2" <b>group="1"</b>/&gt;</br>
+            <font color="blue">
+            <b>Important: </b> For the secondary collectors configuration, there are multiple options like port number or <i>port range</i> and
+            single collector (<b>sock=collectorX</b>), or sinful string that can be used for the sock range case
+                (<b>sock=collectorID1-ID2</b>) for <b>shared_port</b>b> option. This two last cases are further explained in
+             <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
+                It's very important to follow <b>this configuration pattern</b>. No coma or semicolon is allowed in the node specification.</font><br/>
+            If the secondary port numbers (or the numeric part at the end of the sock name) were assigned as contiguous range, only one additional <b>collector</b>
+            line is required specifying the <i>port range</i> (e.g.: 9640-9645) or <i>sock range</i> (e.g. collector1-16), otherwise you will need a collector
+                element for each secondary port or sock value.
        </ul>
       </blockquote>
     </li>
@@ -970,23 +997,30 @@ will use CCBs or not.<br><br>
 Only very specific setups need to change this section.
     <br><br>
     For <b>scalability</b> purposes, multiple CCB can be listed. For <b>availability</b> purposes divide them in multiple groups.
-Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
-        chosen at random from each distinct group (port ranges are expanded as different entries in the same group); 
-        will connect to all of them to listen for requests Communications and 
-        will start using the first one and fall back to the following ones in case of errors to send messages. 
-        Daemons on the same host using a shared port daemon will share the same CCBs.<br>
-        NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
-        any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
+    Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
+    chosen by HTCondor at random from each distinct group; 
+    When you configure a list of CCB servers to use, each daemon will register with all of the given CCB servers and include all of them in its sinful string (the information
+    given to others for how to contact it).
+    When a client tool or other daemon wishes to contact that daemon, it will try the CCB servers in random order until it gets a successful connection.
+    For more details, (<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_9Networking_includes.html#43687"> see the HTCondor manual</a>).
+    Daemons on the same host using a shared port daemon will share the same CCBs.<br>
+    NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
+    any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
     The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
       <blockquote>
          &lt;ccbs&gt;
          &lt;ccb DN="<i>certificate DN</i>"  
                   node="CCB Collector:<b>port</b>"/&gt;</br>
          &lt;ccb DN="<i>certificate DN</i>" 
-                  node="CCB Collector:<b>other_port</b>"/&gt;</br>
+                  node="CCB Collector:<b>port_range</b>"/&gt;</br>
+         &lt;ccb DN="<i>certificate DN</i>"
+                  node="CCB Collector:<b>other_port?sock=collectorID1-ID2</b>"/&gt;</br>
             <font color="blue">
-            Like in User Pool Collector configuration, here an optional port number, <i>port range</i> or sinful
-            string can be used. No comma or semicolon are allowed in the node specification.</font><br/>
+            <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration: a single host name, a <i>port range</i>,
+                sinful string (shared_port configuration) with a single collector ID (<b>sock=collectorX</b>), or with a "sock range" (<b>sock=collectorID1-ID2</b>).
+                For shared_port, the configuration is further explained in:
+                <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
+                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</font><br/>
       </blockquote>
     </li>
     <li>
@@ -1261,6 +1295,77 @@ One example follows:
 </div>
 </p>
 </div>
+
+<div class="section">
+<H2 CLASS="western"><A NAME="singularity"></A>Run jobs under Singularity</H2>
+
+    <P>As mentionsd <a href="#attr_singularity">above</a>, <b>GLIDEIN_Singularity_Use</b> determines whether or not you want to mandate the use of Singularity
+    (via GlideinWMS) and is used both for provisioning and to match and run once the Glidein is on the site.
+To use Singularity you have to set it to one of REQUIRED, PREFERRED or OPTIONAL, e.g.:
+<blockquote>&lt;attr name="GLIDEIN_Singularity_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="PREFERRED"/&gt;
+</blockquote>
+The Factory setting and the actual availability of singularity and an image will also affect the actual use of Singularity.
+    See the <a href="../factory/configuration.html#singularity">Factory configuration document</a>
+for a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE (the entry variable)
+    to decide wether the Glidein can run there and should use Singularity or not.
+</P>
+
+<p>To use Singularity you must also (in the general or group configuration):
+<ol>
+    <li>Use the default wrapper script that we provide (or a similar one). In other words a line like:
+<blockquote>&lt;file absfname="/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh" wrapper="True"/>
+</blockquote>
+    must be added in the &lt;files> section of the general or group parts of the Frontend configuration.
+NOTE: Remember to remove your previous VO wrapper if you had one, e.g. if you were using Singularity via OSG
+</li>
+<li>Specify an image. You can specify one single image or a dictionary of images, SINGULARITY_IMAGES_DICT, and pick one with the variable REQUIRED_OS (set in the job of in the Frontend group).
+If you use SINGULARITY_IMAGES_DICT and REQUIRED_OS, the value of REQUIRED_OS must be 'any' or one of the keys used in the dictionary.
+To specify the image dictionary you have a couple of options:
+<ul style="list-style-type:none">
+    <li><b>2a.</b> run a pre-singularity script like generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/,
+        (or a similar one you did for your VO). To do this add a line such as:
+        <blockquote>
+    &lt;file absfname="/var/lib/gwms-frontend/web-base/frontend/generic_pre_singularity_setup.sh" after_entry="False" executable="True" period="0" untar="False" wrapper="False"/>
+</blockquote>
+    in the &lt;files> section as before. This script sets a SINGULARITY_IMAGES_DICT with the OSG images in CVMFS for "rhel7" and "rhel6".
+        You can select one of them by setting <b>REQUIRED_OS</b> to one of the keys. "rhel7" is the default.
+    </li>
+        <li><b>2b.</b> You can set directly SINGULARITY_IMAGES_DICT in your group attributes adding a line like:
+<blockquote>
+            &lt;attr name="SINGULARITY_IMAGES_DICT" glidein_publish="True" job_publish="True" parameter="False" type="string" value="default:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el6,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el7"/>
+</blockquote>
+Then you can use REQUIRED_OS to select one of the images.
+        </li>
+    <li><b>2c.</b> You can ask the Factory to set SINGULARITY_IMAGES_DICT for you and use REQUIRED_OS to select the image.
+    </li>
+    <li><b>2d.</b> You set SingularityImage in the job submit file, e.g:
+<blockquote>
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE"
+</blockquote>
+    </li>
+</ul>
+    </li>
+</ol>
+    </p>
+
+Optionally, in the general or group configuration you can also:
+<ul>
+    <li>Specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH. These bind-mounts override the ones listed by the Factory in GLIDEIN_SINGULARITY_BINDPATH_DEFAULT.
+        If one or more of the specified paths does not exist on the node, it will be removed from the list. Here an example:
+<blockquote>
+&lt;attr name="GLIDEIN_SINGULARITY_BINDPATH" const="False" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="/vo_files,/src_path:/dst_path"/>.
+</blockquote>
+        See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the bind mounts.
+    </li>
+    <li>Specify additional options for the singularity command, using the attribute <b>GLIDEIN_SINGULARITY_OPTS</b>
+</li>
+</ul>
+
+The <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> contains a reference of all the
+    Singularity attributes used in the Frontend, Factory or Glidein.
+</div>
+
+
 
 <div class="section">
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend

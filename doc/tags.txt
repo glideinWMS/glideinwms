@@ -1,3 +1,16 @@
+v3_4_2  Controlling that Frontend is not using options incompatible w/ linked Factories
+        Use systemctl for loading/unloading on EL7
+
+v3_4_1  Improved Singularity support (improved negotiation, added bind path variables and GPU support)
+        Switch User collector child collectors to shared_port
+        Updated documentation: remove obsolete parts, verified all references.
+        Increased unit test coverage
+        Added the possibility to skip idle removal per entry
+        Improved how subentries are picked for metasites
+        Bug fix: Periodic scripts fails but report GLIDEIN_PS_OK=True
+        Bug fix: Fix entry_set configuration not to load temporary files and to work across upgrades
+        Big fix: fixed metasites monitoring
+
 v3_4    GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3
         Inform the admin in case multiple service reload is done in rapid succession
         Released glideinwms-switchdoard RPM to provide condor_root_switchboard
@@ -241,7 +254,7 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
         Several improvements to rpm packaging. Useful frontend tools are
           now available in the user path
         Support of version control for the factory configuration and splitting 
-          of entries configuration form the main factory configuration (entries.d)
+          of entries configuration from the main factory configuration (entries.d)
         Unique idle jobs matched by the frontend is now available in
           glideresource classads
           deloyment specific configuration and entry specific configuration.

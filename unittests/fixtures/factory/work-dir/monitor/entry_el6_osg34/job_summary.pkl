@@ -1,0 +1,11 @@
+(dp0
+S'schedd_name'
+p1
+S'schedd_glideins5@fermicloud322.fnal.gov'
+p2
+sS'joblist'
+p3
+(dp4
+sS'collector_name'
+p5
+Ns.

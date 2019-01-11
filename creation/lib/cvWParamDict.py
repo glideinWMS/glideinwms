@@ -16,8 +16,9 @@ import os, os.path, shutil, string
 from . import cvWDictFile, cWDictFile
 from . import cvWConsts, cWConsts
 from . import cvWCreate
-from .cWParamDict import is_true, add_file_unparsed
+from .cWParamDict import is_true, add_file_unparsed, has_file_wrapper, has_file_wrapper_params
 import shutil
+# import re - not used
 from glideinwms.lib import x509Support
 from .cvWParams import MatchPolicy
 
@@ -70,7 +71,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             add_file_unparsed(user_file, self.dicts, False)
 
         # start expr is special
-        start_expr=None
+        start_expr = None
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
@@ -86,12 +87,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         real_start_expr=params.match.start_expr
         if start_expr is not None:
-            if real_start_expr!='True':
-                real_start_expr="(%s)&&(%s)"%(real_start_expr, start_expr)
+            if real_start_expr != 'True':
+                real_start_expr = "(%s)&&(%s)"%(real_start_expr, start_expr)
             else:
-                real_start_expr=start_expr
+                real_start_expr = start_expr
             # since I removed the attributes, roll back into the match.start_expr
-            params.data['match']['start_expr']=real_start_expr
+            params.data['match']['start_expr'] = real_start_expr
         
         self.dicts['consts'].add('GLIDECLIENT_Start', real_start_expr)
         
@@ -103,7 +104,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.dicts['params'].add_extended('GLIDEIN_CCB', False, tmp_glidein_ccbs_string)
         populate_gridmap(params, self.dicts['gridmap'])
 
-        if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
+        if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE):  # gridmapfile is optional, so if not loaded, remove the placeholder
             self.dicts['preentry_file_list'].remove(cWConsts.GRIDMAP_FILE)
 
         # populate complex files
@@ -154,7 +155,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # populate security data
         populate_main_security(self.client_security, params)
 
-
     def find_parent_dir(self, search_path, name):
         """ Given a search path, determine if the given file exists
             somewhere in the path.
@@ -167,7 +167,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     return root
         raise RuntimeError("Unable to find %(file)s in %(dir)s path" % \
                            { "file": name,  "dir": search_path, })
-
 
     def reuse(self, other):
         """
@@ -182,7 +181,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         
         return cvWDictFile.frontendMainDicts.reuse(self, other)
 
-
     def save(self, set_readonly=True):
         cvWDictFile.frontendMainDicts.save(self, set_readonly)
         self.save_monitor()
@@ -191,7 +189,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # if the admin is changing the file and if it has errors
         if self.params.match['policy_file']:
             shutil.copy(self.params.match['policy_file'], self.work_dir)
-
 
     ########################################
     # INTERNAL
@@ -216,6 +213,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                                               self.params.security['classad_proxy'])
         return
 
+
 ################################################
 #
 # This Class contains the group dicts
@@ -226,16 +224,16 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self, params, sub_name,
                  summary_signature, workdir_name):
         cvWDictFile.frontendGroupDicts.__init__(self, params.work_dir, params.stage_dir, sub_name, summary_signature, workdir_name, simple_work_dir=False, base_log_dir=params.log_dir)
-        self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
+        self.monitor_dir = cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
-        self.params=params
-        self.client_security={}
+        self.params = params
+        self.client_security = {}
 
-    def populate(self,params=None):
+    def populate(self, params=None):
         if params is None:
-            params=self.params
+            params = self.params
 
-        sub_params=params.groups[self.sub_name]
+        sub_params = params.groups[self.sub_name]
 
         # put default files in place first
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
@@ -261,28 +259,28 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             add_file_unparsed(user_file, self.dicts, False)
 
         # start expr is special
-        start_expr=None
+        start_expr = None
 
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
             if attr_name in ('GLIDECLIENT_Group_Start', 'GLIDECLIENT_Start'):
                 if start_expr is None:
-                    start_expr=sub_params.attrs[attr_name].value
+                    start_expr = sub_params.attrs[attr_name].value
                 elif sub_params.attrs[attr_name].value is not None:
-                    start_expr="(%s)&&(%s)"%(start_expr, sub_params.attrs[attr_name].value)
+                    start_expr = "(%s)&&(%s)" % (start_expr, sub_params.attrs[attr_name].value)
                 # delete from the internal structure... will use it in match section
                 del sub_params.data['attrs'][attr_name]
             else:
                 add_attr_unparsed(attr_name, sub_params, self.dicts, self.sub_name)
 
-        real_start_expr=sub_params.match.start_expr
+        real_start_expr = sub_params.match.start_expr
         if start_expr is not None:
-            if real_start_expr!='True':
-                real_start_expr="(%s)&&(%s)"%(real_start_expr, start_expr)
+            if real_start_expr != 'True':
+                real_start_expr = "(%s)&&(%s)" % (real_start_expr, start_expr)
             else:
                 real_start_expr=start_expr
             # since I removed the attributes, roll back into the match.start_expr
-            sub_params.data['match']['start_expr']=real_start_expr
+            sub_params.data['match']['start_expr'] = real_start_expr
         
         self.dicts['consts'].add('GLIDECLIENT_Group_Start', real_start_expr)
 
@@ -298,12 +296,12 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
 
         # Apply group specific singularity policy
+        validate_singularity(self.dicts, sub_params, params, self.sub_name)
         apply_group_singularity_policy(self.dicts['group_descript'], sub_params, params)
 
         # populate security data
         populate_main_security(self.client_security, params)
         populate_group_security(self.client_security, params, sub_params)
-
 
     def reuse(self, other):
         """
@@ -313,22 +311,19 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         @type other: frontendMainDicts
         @param other: Object to reuse
         """
-
-        if self.monitor_dir!=other.monitor_dir:
-            print("WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
-        
+        if self.monitor_dir != other.monitor_dir:
+            print("WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir,
+                                                                                                  other.monitor_dir))
         return cvWDictFile.frontendGroupDicts.reuse(self, other)
 
-
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         cvWDictFile.frontendGroupDicts.save(self, set_readonly)
         self.save_client_security()
         # Create a local copy of the policy file so we are not impacted
         # if the admin is changing the file and if it has errors
         if self.params.groups[self.sub_name].match['policy_file']:
-            shutil.copy(
-                self.params.groups[self.sub_name].match['policy_file'],
-                self.work_dir)
+            shutil.copy(self.params.groups[self.sub_name].match['policy_file'],
+                        self.work_dir)
 
     ########################################
     # INTERNAL
@@ -394,7 +389,6 @@ class frontendDicts(cvWDictFile.frontendDicts):
 
     def local_populate(self, params):
         return  # nothing to do
-        
 
     ######################################
     # Redefine methods needed by parent
@@ -418,20 +412,34 @@ def add_attr_unparsed(attr_name, params, dicts, description):
     try:
         add_attr_unparsed_real(attr_name, params, dicts)
     except RuntimeError as e:
-        raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr_name, str(e)))
+        raise RuntimeError("Error parsing attr %s[%s]: %s" % (description, attr_name, str(e)))
+
+
+def validate_attribute(attr_name, attr_val):
+    """Check the attribute value is valid. Otherwise throw RuntimeError"""
+    if not attr_name or not attr_val:
+        return
+    # Consider adding a common one in cWParamDict
+    # Series of if/elif sections validating the attributes
+    if attr_name == "GLIDEIN_Singularity_Use":
+        if attr_val not in ('DISABLE_GWMS', 'NEVER', 'OPTIONAL', 'PREFERRED', 'REQUIRED'):
+            raise RuntimeError("Invalid value for GLIDEIN_Singularity_Use: %s not in DISABLE_GWMS, NEVER, OPTIONAL, PREFERRED, REQUIRED." %
+                               attr_val)
 
 
 def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj = params.attrs[attr_name]
     
     if attr_obj.value is None:
-        raise RuntimeError("Attribute '%s' does not have a value: %s"%(attr_name, attr_obj))
+        raise RuntimeError("Attribute '%s' does not have a value: %s" % (attr_name, attr_obj))
 
     is_parameter = is_true(attr_obj.parameter)
     # attr_obj.type=="expr" is now used for HTCondor expression
     is_expr = False
     attr_val = params.extract_attr_val(attr_obj)
-    
+
+    validate_attribute(attr_name, attr_val)
+
     if is_parameter:
         dicts['params'].add_extended(attr_name, is_expr, attr_val)
     else:
@@ -450,14 +458,15 @@ def add_attr_unparsed_real(attr_name, params, dicts):
                     ((attr_obj.type == "expr") and (attr_var_type == 'I')) or
                     ((attr_obj.type == "string") and (attr_var_type == 'I'))):
                     raise RuntimeError("Types not compatible (%s,%s)" % (attr_obj.type, attr_var_type))
-                attr_var_export=attr_var_el[4]
-                if do_glidein_publish and (attr_var_export=='N'):
+                attr_var_export = attr_var_el[4]
+                if do_glidein_publish and (attr_var_export == 'N'):
                     raise RuntimeError("Cannot force glidein publishing")
                 attr_var_job_publish = attr_var_el[5]
                 if do_job_publish and (attr_var_job_publish == '-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
-                dicts['vars'].add_extended(attr_name, attr_obj.type, None, None, False, do_glidein_publish, do_job_publish)
+                dicts['vars'].add_extended(attr_name, attr_obj.type, None, None, False,
+                                           do_glidein_publish, do_job_publish)
 
 
 ###################################
@@ -578,7 +587,7 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
             match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
             ma_arr.append(('GLEXEC_BIN', 's'))
         elif (glidein_glexec_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False) is False)' % match_expr
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
@@ -606,12 +615,19 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
     if (glidein_singularity_use):
         descript_dict.add('GLIDEIN_Singularity_Use', glidein_singularity_use)
 
-        if (glidein_singularity_use == 'REQUIRED'):
-            query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
-            match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+        if (glidein_singularity_use == 'REQUIRED'):  # avoid NEVER and undefiled (probably will not have Singularity)
+            #query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
+            #match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+            #ma_arr.append(('SINGULARITY_BIN', 's'))
+            # TODO: in the future remove legacy SINGULARITY_BIN support
+            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="NEVER") && (GLIDEIN_SINGULARITY_REQUIRE=!=UNDEFINED  || (SINGULARITY_BIN=!=UNDEFINED && SINGULARITY_BIN=!="NONE"))' % query_expr
+            match_expr = '(%s) and ((glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER") or (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE"))' % match_expr
             ma_arr.append(('SINGULARITY_BIN', 's'))
-        elif (glidein_singularity_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "False") == "False")' % match_expr
+            ma_arr.append(('GLIDEIN_SINGULARITY_REQUIRE', 's'))
+        elif (glidein_singularity_use == 'NEVER'):  # avoid REQUIRED, REQUIRED_GWMS
+            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED") && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED_GWMS")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER")[:8] != "REQUIRED")' % match_expr
+            ma_arr.append(('GLIDEIN_SINGULARITY_REQUIRE', 's'))
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
@@ -619,6 +635,29 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
 
         descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+
+def validate_singularity(descript_dict, sub_params, params, name):
+    """If Singularity is enabled in a group, there should be at least one user wrapper for that group
+
+    @param descript_dict: dictionaries with user files
+    @param sub_params: attributes in the group section of the XML file
+    @param params: attributes in the general section of the XML file
+    @param name: group name
+    @return:
+    """
+    glidein_singularity_use = ""
+    if 'GLIDEIN_Singularity_Use' in sub_params.attrs:
+        glidein_singularity_use = sub_params.attrs['GLIDEIN_Singularity_Use']['value']
+    elif 'GLIDEIN_Singularity_Use' in params.attrs:
+        glidein_singularity_use = params.attrs['GLIDEIN_Singularity_Use']['value']
+
+    if glidein_singularity_use in ['OPTIONAL', 'PREFERRED', 'REQUIRED', 'REQUIRED_GWMS']:
+        # Using Singularity, check that there is a wrapper
+        if not has_file_wrapper(descript_dict):  # Checks within the group files
+            if not has_file_wrapper_params(params.files):  # Check global files using the params (main file dict is not accessible)
+                raise RuntimeError("Error: group %s allows Singularity (%s) but has no wrapper file in the files list" %
+                                   (name, glidein_singularity_use))
 
 
 def apply_multicore_policy(descript_dict):
@@ -801,8 +840,12 @@ def calc_glidein_collectors(collectors):
         if el.group not in collector_nodes:
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
-            cWDictFile.validate_node(el.node, allow_prange=True)
-            collector_nodes[el.group]['secondary'].append(el.node)
+            if 'sock=' in el.node:
+                cWDictFile.validate_node(el.node,allow_range=True)
+                collector_nodes[el.group]['secondary'].append(el.node)
+            else:  # single port in secondary
+                cWDictFile.validate_node(el.node,allow_range=True)
+                collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
@@ -825,8 +868,15 @@ def calc_glidein_ccbs(collectors):
     for el in collectors:
         if el.group not in ccb_nodes:
             ccb_nodes[el.group] = []
-        cWDictFile.validate_node(el.node, allow_prange=True)
-        ccb_nodes[el.group].append(el.node)
+        if 'sock=' in el.node:
+           cWDictFile.validate_node(el.node, allow_range=True)
+           ccb_nodes[el.group].append(el.node)
+        elif '-' in el.node: #if ccb node has port range
+                cWDictFile.validate_node(el.node, allow_range=True)
+                ccb_nodes[el.group].append(el.node)
+        else:
+            cWDictFile.validate_node(el.node)
+            ccb_nodes[el.group].append(el.node)
 
     for group in ccb_nodes.keys():
         glidein_ccbs.append(string.join(ccb_nodes[group], ","))
@@ -839,7 +889,7 @@ def calc_glidein_ccbs(collectors):
 def populate_gridmap(params, gridmap_dict):
     collector_dns=[]
     for coll_list in (params.collectors, params.ccbs):
-        # Add both collectors and CCB DNs (if any). Duplicates are skipped 
+        # Add both collectors and CCB DNs (if any). Duplicates are skipped
         # The name is for both collector%i.
         for el in coll_list:
             dn=el.DN
@@ -853,6 +903,7 @@ def populate_gridmap(params, gridmap_dict):
     if params.security.proxy_DN is not None:
         if not (params.security.proxy_DN in collector_dns):
             gridmap_dict.add(params.security.proxy_DN, 'frontend')
+
 
 #####################################################
 # Populate security values
@@ -876,6 +927,7 @@ def populate_main_security(client_security, params):
         raise RuntimeError("Need at least one non-secondary pool collector")
     client_security['collector_nodes']=collector_nodes
     client_security['collector_DNs']=collector_dns
+
 
 def populate_group_security(client_security, params, sub_params):
     factory_dns=[]
@@ -921,6 +973,7 @@ def populate_group_security(client_security, params, sub_params):
                     pilot_dns.append(dn)
                 
     client_security['pilot_DNs']=pilot_dns
+
 
 #####################################################
 # Populate attrs

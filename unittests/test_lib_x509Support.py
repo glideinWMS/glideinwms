@@ -6,14 +6,18 @@ import glideinwms.lib.subprocessSupport
 import unittest2 as unittest
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import runTest
-from glideinwms.lib.x509Support import extract_DN
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.x509Support import extract_DN
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class TestExtractDN(unittest.TestCase):
 
     def test_extract_dn(self):
-        fname = '/etc/grid-security/hostcert.pem'
+        fname = 'fixtures/hostcert.pem'
         cmd = "openssl x509 -in %s -noout -subject" % fname
         out = glideinwms.lib.subprocessSupport.iexe_cmd(cmd)
         expected = ' '.join(out.split()[1:])

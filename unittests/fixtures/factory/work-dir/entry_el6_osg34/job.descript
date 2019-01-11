@@ -1,0 +1,33 @@
+# File: job.descript
+#
+EntryName 	el6_osg34
+GridType 	condor
+Gatekeeper 	fermicloud105.fnal.gov fermicloud105.fnal.gov:9619
+AuthMethod 	grid_proxy
+TrustDomain 	OSG
+GlobusRSL 	(queue=default)(jobtype=single)
+Schedd 	schedd_glideins5@fermicloud322.fnal.gov
+StartupDir 	OSG
+Verbosity 	fast
+DowntimesFile 	/var/lib/gwms-factory/work-dir/entry_el6_osg34/glideinWMS.downtimes
+PerEntryMaxGlideins 	10000
+PerEntryMaxIdle 	2000
+PerEntryMaxHeld 	1000
+DefaultPerFrontendMaxGlideins 	5000
+DefaultPerFrontendMaxIdle 	100
+DefaultPerFrontendMaxHeld 	50
+MaxSubmitRate 	100
+SubmitCluster 	10
+SubmitSlotsLayout 	fixed
+SubmitSleep 	0.2
+MaxRemoveRate 	5
+RemoveSleep 	0.2
+MaxReleaseRate 	20
+ReleaseSleep 	0.2
+RequireVomsProxy 	False
+RequireGlideinGlexecUse 	False
+PerFrontendMaxGlideins 	
+PerFrontendMaxHeld 	
+PerFrontendMaxIdle 	
+WhitelistMode 	Off
+AllowedVOs 	

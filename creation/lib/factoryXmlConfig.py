@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import os
 import xml.sax
 from . import xmlConfig
+import glideinwms.factory.glideFactorySelectionAlgorithms
 
 ENTRY_INDENT = 6
 CONFIG_DIR = 'config.d'
@@ -38,6 +39,23 @@ class FactAttrElement(xmlConfig.AttrElement):
             raise RuntimeError(self.err_str('published attribute must either be "parameter" or "const"'))
         if not is_publish and (not is_const or not is_param):
             raise RuntimeError(self.err_str('unpublished attribute must be "const" "parameter"'))
+        self.check_overwrite_soundness()
+
+    def check_overwrite_soundness(self):
+        """ If the attribute is defined in the global attributes section then
+            check that the "const" key is True/False for both
+        """
+        config = self.get_config_node()
+        try:
+            attrs = config.get_child(u'attrs')
+        except KeyError:
+            # No need to check if the configuration has no global attribute section
+            return
+        for att in attrs.get_children():
+            if att[u'name'] == self[u'name'] and att[u'const'] != self[u'const']:
+                entry = self.parent.parent.getName()
+                raise RuntimeError(("Entry %s: attribute %s is also defined in the global section, but it has const=\"%s\" there. "
+                                    "Please make sure the 'const' value is the same." % (entry, self[u'name'], att[u'const'])))
 
 
 xmlConfig.register_tag_classes({u'attr': FactAttrElement})
@@ -111,6 +129,11 @@ class EntrySetElement(EntryElement):
         self.check_missing(u'alias')
         self.check_boolean(u'enabled')
         self.validate_sub_elements()
+        algo_name = self.get_child(u'config').children.get('entry_selection', {}).get('algorithm_name')
+        if algo_name:
+            if not(getattr(glideinwms.factory.glideFactorySelectionAlgorithms, 'selectionAlgo' + algo_name, None)):
+                raise RuntimeError('Function name selectionAlgo%s not found in the glideFactorySelectionAlgorithms module' % algo_name)
+
 
     def select(self, entry):
         self.selected_entry = entry
@@ -131,6 +154,10 @@ class EntrySetElement(EntryElement):
             val = self.get_child_list(u'entries')[0][attrname]
 #            val = [ x[attrname] for x in self.get_child_list(u'entries') ]
         return val
+
+    def get_subentries(self):
+         return self.get_child_list(u'entries')
+
 
     def getName(self):
         """ The name for entry sets is actaully called alias """
@@ -221,6 +248,14 @@ class Config(xmlConfig.DictElement):
         else:
             self.web_url = self.get_child(u'stage')[u'web_base_url']
 
+    def set_num_factories(self):
+        if eval(self[u'factory_versioning']):
+            self.num_factories = os.path.join(self.get_child(u'submit')[u'num_factories'],
+                                        u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.num_factories = self.get_child(u'submit')[u'num_factories']
+        self.num_factories = int(self.num_factories)
+
     #######################
     #
     # FactoryXmlConfig getter functions
@@ -293,6 +328,7 @@ def parse(file):
     conf.set_client_log_dirs()
     conf.set_client_proxy_dirs()
     conf.set_web_url()
+    conf.set_num_factories()
 
     return conf
 

@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for DictFileTwoKeys class and friends from
+   glideinwms/creation/lib/cWDictfile
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import os
@@ -6,13 +19,12 @@ import copy
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.unittests.unittest_utils import create_temp_file
-
-from glideinwms.creation.lib.cWDictFile import DictFile
-from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestDictFileTwoKeys(unittest.TestCase):
@@ -50,7 +62,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
             self.dict_file.add("foo", "baz", allow_overwrite=False)
             assert False
         except RuntimeError:
-            self.assertTrue(True, "raised correctly")
+            assert True # "raised correctly"
             return
         assert False
 
@@ -254,5 +266,5 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ofl = 'unittests-reports'
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
+    OFL = 'unittests-reports'
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=OFL))

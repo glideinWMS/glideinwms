@@ -38,6 +38,7 @@ from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
 from glideinwms.creation.lib import xslt
 from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.creation.lib import check_config_frontend
 from glideinwms.frontend import glideinFrontendLib
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
@@ -176,8 +177,18 @@ if __name__ == '__main__':
     if xml == '':
         # to support upgrading from versions older than v2.5.3
         # the last arg is always the xml file
-        xml = argv[len(argv)-1]      
+        xml = argv[len(argv)-1]
 
+    # First check that the XML file options are compatible w/ the connected Factories versions
+    try:
+        msg = check_config_frontend.main(xml)
+    except RuntimeError as e:
+        for line in str(e).split('\n'):
+            print2(line)
+        sys.exit(1)
+    if msg:
+        print2(msg)
+ 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
         transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,

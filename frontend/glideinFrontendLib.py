@@ -927,7 +927,7 @@ def countGlideinsCondorStatus(status_dict):
      - may be different from job submitted by the factory (for multinode jobs - future)
      - is different from a slot (or schedd or vm)
     It defines GLIDEIN_MASTER_NAME which is the part after '@' in the slot name
-    Sets form different collectors are assumed disjunct
+    Sets from different collectors are assumed disjunct
     """
     count = 0
     for collector_name in status_dict:

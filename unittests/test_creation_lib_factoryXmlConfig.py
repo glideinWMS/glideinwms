@@ -1,12 +1,21 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for glideinwms/creation/factoryXmlConfig.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-#from glideinwms.unittests.unittest_utils import runTest
 
 from glideinwms.creation.lib.factoryXmlConfig import FactAttrElement
 from glideinwms.creation.lib.factoryXmlConfig import FactFileElement
@@ -31,6 +40,7 @@ class TestFactAttrElement(unittest.TestCase):
     def test_validate(self):
         for fact_attr_element in self.attr_el_list:
             fact_attr_element.validate()
+            self.assertTrue(isinstance(fact_attr_element, FactAttrElement))
 
 
 class TestFactFileElement(unittest.TestCase):
@@ -42,6 +52,8 @@ class TestFactFileElement(unittest.TestCase):
     def test_validate(self):
         for fact_file_element in self.files:
             fact_file_element.validate()
+            self.assertTrue(isinstance(fact_file_element, FactFileElement))
+
 
 class TestCondTarElement(unittest.TestCase):
 
@@ -56,11 +68,13 @@ class TestCondTarElement(unittest.TestCase):
             self.assertTrue(u'version' in cte)
             self.assertTrue(u'os' in cte)
             self.assertTrue(u'base_dir' in cte or u'tar_file' in cte)
+            self.assertTrue(isinstance(cte, CondTarElement))
             del cte[u'base_dir']
             try:
                 cte.validate()
             except RuntimeError as err:
                 pass
+
 
 class TestFrontendElement(unittest.TestCase):
 
@@ -74,6 +88,8 @@ class TestFrontendElement(unittest.TestCase):
             frontend_element.validate()
             self.assertTrue(u'name' in frontend_element)
             self.assertTrue(u'identity' in frontend_element)
+            self.assertTrue(isinstance(frontend_element, FrontendElement))
+
 
 class TestEntryElement(unittest.TestCase):
 
@@ -93,13 +109,15 @@ class TestEntryElement(unittest.TestCase):
             self.assertTrue(u'gatekeeper' in entry_element)
             self.assertTrue(u'auth_method' in entry_element)
             self.assertTrue(u'enabled' in entry_element)
+            self.assertTrue(isinstance(entry_element, EntryElement))
 
     def test_validate_sub_elements(self):
         for entry_element in self.eel:
             entry_element.validate_sub_elements()
 
+
 class TestEntrySetElement(unittest.TestCase):
- 
+
     def setUp(self):
         self.conf = parse(XML)
         self.esl = self.conf.get_child_list('entry_sets')
@@ -109,12 +127,16 @@ class TestEntrySetElement(unittest.TestCase):
     def test_validate_entry_sets(self):
         for entry_set_element in self.esl:
             entry_set_element.validate()
+            #self.assertTrue(isinstance(entry_set_element, EntrySetElement))
 
     def test_validate_entries(self):
         for entry_set_element in self.el:
             entry_set_element.validate()
+            #self.assertTrue(isinstance(entry_set_element, EntrySetElement))
 
 # pylint: disable=maybe-no-member
+
+
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
@@ -137,19 +159,19 @@ class TestConfig(unittest.TestCase):
 
     def test_get_log_dir(self):
         log_dir = self.config.get_log_dir()
-        self.assertEqual(u'/var/log/gwms-factory/server', log_dir)
+        self.assertEqual(u'fixtures/factory/log/server', log_dir)
 
     def test_get_monitor_dir(self):
         monitor_dir = self.config.get_monitor_dir()
-        self.assertEqual(u'/var/lib/gwms-factory/web-area/monitor', monitor_dir)
+        self.assertEqual(u'fixtures/factory/web-area/monitor', monitor_dir)
 
     def test_get_stage_dir(self):
         stage_dir = self.config.get_stage_dir()
-        self.assertEqual(u'/var/lib/gwms-factory/web-area/stage', stage_dir)
+        self.assertEqual(u'fixtures/factory/web-area/stage', stage_dir)
 
     def test_get_submit_dir(self):
         submit_dir = self.config.get_submit_dir()
-        self.assertEqual(u'/var/lib/gwms-factory/work-dir', submit_dir)
+        self.assertEqual(u'fixtures/factory/work-dir', submit_dir)
 
     def test_get_web_url(self):
         url = self.config.get_web_url()
@@ -180,7 +202,10 @@ class TestConfig(unittest.TestCase):
         self.config.validate()
 
 # pylint: enable=maybe-no-member
+
+
 class TestParse(unittest.TestCase):
+
     def test_parse(self):
         parse(XML)
         try:
@@ -188,5 +213,8 @@ class TestParse(unittest.TestCase):
         except RuntimeError:
             pass
 
+
 if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(
+            output='unittests-reports'))

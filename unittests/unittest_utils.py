@@ -6,7 +6,8 @@ import sys
 import tempfile
 import random
 import string
-import unittest
+import platform
+import unittest2 as unittest
 
 # We assume that this module is in the unittest directory
 module_globals = globals()
@@ -24,13 +25,28 @@ will be defined instead.
 if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "lib"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "frontend"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory/tools"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "frontend"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "factory/tools"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "install"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "install/services"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "poolwatcher"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "install/services"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "poolwatcher"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools"))
-    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools/lib"))
+    sys.path.append(
+        os.path.join(
+            os.environ["GLIDEINWMS_LOCATION"],
+            "tools/lib"))
 else:
     sys.path.append(os.path.join(unittest_dir, "../lib"))
     sys.path.append(os.path.join(unittest_dir, "../factory"))
@@ -41,6 +57,7 @@ else:
     sys.path.append(os.path.join(unittest_dir, "../poolwatcher"))
     sys.path.append(os.path.join(unittest_dir, "../tools"))
     sys.path.append(os.path.join(unittest_dir, "../tools/lib"))
+
 
 def runTest(cls):
     """
@@ -55,6 +72,7 @@ def runTest(cls):
     testRunner = unittest.TextTestRunner(verbosity=2)
     result = testRunner.run(testSuite)
     return not result.wasSuccessful()
+
 
 def runAllTests():
     """
@@ -76,7 +94,8 @@ def runAllTests():
     for test in modules:
         test.main()
 
-class FakeLogger:
+
+class FakeLogger(object):
     """
     Super simple logger for the unittests
     """
@@ -88,9 +107,9 @@ class FakeLogger:
     def debug(self, msg, *args):
         """
         Pass a debug message to stderr.
-        
+
         Prints out msg % args.
-        
+
         @param msg: A message string.
         @param args: Arguments which should be evaluated into the message.
         """
@@ -99,7 +118,7 @@ class FakeLogger:
     def info(self, msg, *args):
         """
         Pass an info-level message to stderr.
-        
+
         @see: debug
         """
         print(str(msg) % args, file=self.file)
@@ -128,6 +147,30 @@ class FakeLogger:
         """
         print(str(msg) % args, file=self.file)
 
+
+class TestImportError(Exception):
+    """
+    Error handler for import errors in this test suite
+    If import of package listed in handled_import_errors fails, print
+    out hopefully informative message and exit 0
+    """
+    def __init__(self, err_msg="Error"):
+        handled_import_errors = ["M2Crypto"]
+        sys_ = platform.system()
+        if sys_ != 'Linux':
+            err_msg += """.  Platform %s is not well tested/supported """ % sys_
+        for imp_lib in handled_import_errors:
+            if imp_lib in err_msg:
+                if sys_ == 'Darwin':
+                    err_msg += """.  Hint: try brew install or conda install %s first.""" % imp_lib
+                elif sys_ == 'Linux':
+                    err_msg += """.  Hint: try yum install or apt-get install %s first.""" % imp_lib
+                else:
+                    err_msg += """.  %s python package must be present.""" % imp_lib
+                print ("%s" % err_msg)
+                sys.exit(0)
+        raise Exception(err_msg)
+
 def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
                      text_access=True, write_path_to_file=True):
     fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix,
@@ -137,9 +180,11 @@ def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
     os.close(fd)
     return path
 
+
 def create_random_string(length=8):
     char_set = string.ascii_uppercase + string.digits
     return ''.join(random.choice(char_set) for x in range(length))
+
 
 if __name__ == "__main__":
     runAllTests()

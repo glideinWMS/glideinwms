@@ -130,7 +130,7 @@ for a more detailed description.
     </blockquote>
     <a href="#security">&lt;/security &gt;</a><br/>
     <a href="#stage">&lt;stage base_dir="/var/www/html/glidefactory/stage" use_symlink="True" web_base_url="http://factory.fnal.gov:9000/glidefactory/stage"/&gt;</a><br/>
-    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" /&gt;</a><br/>
+    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" num_factories="1" /&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
@@ -208,6 +208,7 @@ for a more detailed description.
     <a href="#factmoncollector">&lt;/monitoring_colectors&gt;</a><br/>
 </blockquote>
 <a href="#glidein">&lt;/glidein&gt;</a><br/>
+</div>
 </div>
 
 <div class="section">
@@ -394,13 +395,15 @@ individual entry point configuration.
         &lt;glidein&gt;&lt;submit base_dir=&quot;<I>directory</I>&quot;
         base_log_dir=&quot;<I>log directory</I>&quot;
         base_client_log_dir=&quot;<i>client log directory</I>&quot;
-
-        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;/&gt;
+        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;
+        num_factories=&quot;<I>1</I>&quot;/&gt;
         </div>
     <p><b>Recommended:</b> Where to create the glidein submit directory. 
     The default is the user home
     directory. Log directories can be configured independent of the base
-    directory using options mentioned above.</P>
+    directory using options mentioned above. <b>num_factories</b> is a scaling factor used to
+    scale down <i>max_glideins, max_held</i>, and <i>max_idle</i> for the entries.
+    </P>
     <LI>
         <a name="stage" />
         <div class="xml">
@@ -703,13 +706,31 @@ override the global arguments if present.
         work_dir=&quot;<I>WN dir</I>&quot;&gt;
         </div>
     <b>Recommended:</b> This argument defines where the glidein should run once
-    on the worker node.
+    on the worker node. <br/>
+    Options are: ".", Condor (CONDOR), OSG, TMPDIR, AUTO <br/>
+    <ul>
+        <li>
+            ".": run in pwd <br/>
+        </li>
+        <li>
+            Condor (CONDOR): will run in $_CONDOR_SCRATCH_DIR <br/>
+        </li>
+        <li>
+            OSG: will run in $OSG_WN_TMP <br/>
+        </li>
+        <li>
+            TMPDIR: will run in $TMPDIR <br/>
+        </li>
+        <li>
+            AUTO: will try to determine which direcotry has enogh space (at least 1 GB of free space). Directory checked are $_CONDOR_SCRATCH_DIR, $OSG_WN_TMP $TG_NODE_SCRATCH, $TG_CLUSTER_SCRATCH, $SCRATCH $TMPDIR, $TMP, $PWD (in this order) <br/>
+        </li>
+    </ul>
     <i>Note: Most OSG sites are known to crash if you use your
     starting directory to run. </i>  For those sites, it is good practice to
-    specify <tt>&quot;HTCondor&quot;</tt> if they are
+    specify <tt>&quot;Condor&quot;</tt> if they are
     running HTCondor as the underlying batch system, and
     <tt>&quot;OSG&quot;</tt>
-    else.  On EGEE sites, &quot;.&quot; is usually fine.
+    else.  On EGI sites, &quot;.&quot; is usually fine.
     </li>
     <LI>
         <div class="xml">
@@ -789,7 +810,7 @@ override the global arguments if present.
         <div class="xml">
             &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<I>entry name</I>&quot;&gt;<br/>
             &lt;config&gt;<br/>
-            &lt;max_jobs&gt;<br/>
+            &lt;max_jobs num_factories="3"&gt;<br/>
             &nbsp;&nbsp;&lt;per_entry held="1000" idle="2000" glideins="10000"/&gt;<br/>
             &nbsp;&nbsp;&lt;default_per_frontend held="50" idle="100" glideins="5000"/&gt;<br/>
             &nbsp;&nbsp;&lt;per_frontends&gt;<br/>
@@ -801,6 +822,7 @@ override the global arguments if present.
             &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br/>
             &nbsp;&nbsp;&lt;submit_attrs&gt;<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="RequestMemory" value="2000"/&gt;<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="+GlideinSkipIdleRemoval" value="True" all_grid_types="True"/&gt;<br/>
             &nbsp;&nbsp;&lt;/submit_attrs&gt;<br/>
             &lt;/submit&gt;<br/>
             &lt;/config&gt;
@@ -814,6 +836,7 @@ override the global arguments if present.
                  <li>&lt;default_per_frontend ... &gt; specifies default limits for each frontend-security class (for this entry).</li>
                  <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
              </ul>
+             All these limits are scaled down by the num_factories attributes (it can be specified here, at the entry level or in the global submit section)
            </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
@@ -840,8 +863,15 @@ sleep, self.jobDescript.data['SubmitSleep'], self.gflFactoryConfig.submit_sleep 
                add to the HTCondor submit file that the Factory uses to submit pilots
                to a site.  These attributes are only added when the 
                <a name="entry">gridtype</a> is "batch SOMETHING" (<a href="../recipes/batch.html">using BOSCO</a>) 
-               or "condor".  The attributes are ignored
-               for all other grid types.
+               or "condor" or "ec2" or "gce".  The attributes are ignored
+               for all other grid types unless the attribute 'all_grid_types' is set to true.
+               </li>
+               <li>
+                The following submit attribute can be added to disable the temporary removal of idle glideins:
+                <br/>
+<div class="xml">
+                 &lt;submit_attr name="+GlideinSkipIdleRemoval" value="True" all_grid_types="True"/&gt;
+</div>
                </li>
            </ul>
         </li>
@@ -1020,6 +1050,10 @@ it will count the running+idle glideins for each CE and send jobs to the one wit
 The submission file is added to the job condor submit file for accounting purposes (GlideinEntrySubmitFile ClassAd).
 </p>
 
+<p>
+The &lt;entry_selection&gt; parameter determines how the factory decides between the subentries of the metasite. By default the frontend requests are equally split among subentries until they are filled. Limits for the subentries correspond to the limits for the metasites divided by the number of subentries. More algorithms may be implemented in the future.
+<p>
+
 <div class="config">
 <a>
     ...<br>
@@ -1041,6 +1075,7 @@ The submission file is added to the job condor submit file for accounting purpos
               &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
               &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
+              &lt;entry_selection algorithm_name="Default" &gt;<br>
               &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br>
                  <blockquote>
                  &lt;submit_attrs&gt;<br>
@@ -1100,6 +1135,7 @@ trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
             &lt;restrictions require_glidein_glexec_use="False"<br>
+            &lt;entry_selection algorithm_name="Default" &gt;<br>
 require_voms_proxy="False"/&gt;<br>
             &lt;submit cluster_size="10" max_per_cycle="10" sleep="2"<br>
 slots_layout="fixed"&gt;<br>
@@ -1163,23 +1199,94 @@ of glidein pools will be presented.
 <div class="section">
 <H3 CLASS="western"><A NAME="singularity"></A>Integration with Singularity</H3>
 <UL>
-    <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity AND enforces the use of Singularity, you must have 
-&lt;attr name=&quot;GLIDEIN_SINGULARITY_REQUIRE&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;True&quot;/&gt; in &lt;attrs&gt;
-and SINGULARITY_BIN must be given the full path name of Singularity binary, for example,
-&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin/singularity&quot;/&gt; in &lt;attrs&gt;.
+    <LI><P STYLE="margin-bottom: 0in">An entry can control the use of Singularity by setting GLIDEIN_SINGULARITY_REQUIRE to NEVER (Singularity is not supported),
+        OPTIONAL or PREFERRED (capable of Singularity but it is not enforced),
+        REQUIRED (jobs must run with Singularity) or
+        REQUIRED_GWMS (jobs must run with Singularity and use the GWMS wrapper scripts). This last option is the only one that really
+enforces Singularity, but is not compatible with VOs that currently self-manage Singularity with custom scripts, like OSG and CMS.
+        The attribute can be set in the general or entry &lt;attrs&gt; section of the Factory configuration:
+&lt;attr name=&quot;GLIDEIN_SINGULARITY_REQUIRE&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;REQUIRED&quot;/&gt;.<br>
+    The value of GLIDEIN_SINGULARITY_REQUIRE is used by the Frontend to provision resources and by the Glidein to negotiate the use of Singularity with the jobs.
+An entry where Singularity is OPTIONAL or PREFERRED will allow to run without Singularity if the job prefers so or if Singularity fails.
+An entry requiring Singularity (REQUIRED, REQUIRED_GWMS) will not allow to run without Singularity and the Glidein will fail if Singularity
+fails (e.g. the singularity binary or the image are not found).
+    <LI><P STYLE="margin-bottom: 0in">If Singularity is allowed or required (all values of GLIDEIN_SINGULARITY_REQUIRE except NEVER), singularity is expected on all worker nodes of the entry. The Glidein will search a singularity binary
+in the PATH and then invoking Modules (if available).
+        SINGULARITY_BIN is now <b>deprecated</b>. It should not be used and will be ignored in future versions of GWMS.
+Currently, for compatibility with previous versions, any value of SINGULARITY_BIN different from 'NONE' sets
+GLIDEIN_SINGULARITY_REQUIRE to OPTIONAL (if not already set) and if the content is a valid path, is considered in the search for singularity.
+Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if not already set).
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If an entry is not capable of Singularity at all, make sure you don't have SINGULARITY_BIN in &lt;attrs&gt;.
-	Remember that SINGULARITY_BIN should NEVER be set in the Factory configuration if your site does not support the Singularity (or set it to the keyword NONE, uppercase).
+    <LI><P STYLE="margin-bottom: 0in">NOTE: For compatibility with previous versions and to ease the migration to the use of GWMS scripts,
+    GLIDEIN_SINGULARITY_REQUIRE=REQUIRED works only if Singularity is managed via GWMS.
+    GLIDEIN_Singularity_Use=GWMS_DISABLE in the Frontend configuration (default) allows VOs to manage Singularity independently
+    from GWMS. GLIDEIN_SINGULARITY_REQUIRE=REQUIRED_GWMS will not accept jobs where GLIDEIN_Singularity_Use=GWMS_DISABLE.
+    It is a stronger enforcement, but will not allow VOs managing Singularity on their own.
+    Jobs with GWMS_DISABLE will not trigger Glideins on entries with REQUIRED_GWMS, and the Glidein will fail at setup setup
+    if somehow this combination happens.
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If an entry is capable of Singularity BUT does not necessarily enforce the use of Singularity,
-you don't need to have GLIDEIN_SINGULARITY_REQUIRE in &lt;attrs&gt; but 
-SINGULARITY_BIN must be given the path of singularity binary(not including the filename), for example,
-&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/usr/bin&quot;/&gt;.
+    <LI><P STYLE="margin-bottom: 0in">The Factory can specify a dictionary of available Singularity images using SINGULARITY_IMAGES_DICT. This can be overridden by the Frontend, unless the attribute is declared constant (const="True").
+&lt;attr name=&quot;SINGULARITY_IMAGES_DICT&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest&quot;/&gt;.
     </P>
-    <LI><P STYLE="margin-bottom: 0in">If the value of SINGULARITY_BIN is not a valid, Singularity path (and is different from NONE),
-    then GlideinWMS will search on the node for the Singularity binary; first using $PATH, then trying to invoke module. For example,
-&lt;attr name=&quot;SINGULARITY_BIN&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;yes&quot;/&gt;.
+    <LI><P STYLE="margin-bottom: 0in">The Factory can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH_DEFAULT. This can be overridden by the Frontend, unless the attribute is declared constant (const="True").
+    If one or more of the specified paths does not exist on the node, it will be removed from the list.
+&lt;attr name=&quot;GLIDEIN_SINGULARITY_BINDPATH_DEFAULT&quot; const=&quot;False&quot; glidein_publish=&quot;True&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;string&quot; value=&quot;/cvmfs,/src_path:/dst_path&quot;/&gt;.
     </P>
+    <LI><P STYLE="margin-bottom: 0in">The use of Singularity is negotiated according to the table below, using GLIDEIN_SINGULARITY_REQUIRE (from the Factory) and GLIDEIN_Singularity_Use (from the Frontend), resulting in
+    DISABLE (do not use the GWMS Singularity mechanisms),
+    FAIL (do not provision on this entry, do not match with these Glideins or fail the Glidein),
+    NEVER (do not use Singularity),
+    PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found) or
+    REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
+    <b>The table below combines GLIDEIN_SINGULARITY_REQUIRE</b> values (first row, in bold) <b>and GLIDEIN_Singularity_Use</b> values (first column, in bold)
+    and the results are in the intersection. REQUIRED_GWMS is in the same column as REQUIRED and the only difference is with DISABLE_GWMS,
+    where is causes FAIL instead of DISABLE.
+        <table class="requirements">
+        <TR>
+            <TD> <P><B></B></P> </TD>
+            <TD> <P><B>NEVER</B></P> </TD>
+            <TD> <P><B>OPTIONAL</B></P> </TD>
+            <TD> <P><B>PREFERRED</B></P> </TD>
+            <TD> <P><B>REQUIRED (REQUIRED_GWMS)</B></P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>NEVER</b></P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>FAIL</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>OPTIONAL</b></P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>PREFERRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>PREFERRED</b></P> </TD>
+            <TD> <P>NEVER</P> </TD>
+            <TD> <P>PREFERRED</P> </TD>
+            <TD> <P>PREFERRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>REQUIRED</b></P> </TD>
+            <TD> <P>FAIL</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+            <TD> <P>REQUIRED</P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>DISABLE_GWMS</b></P> </TD>
+            <TD> <P>DISABLE</P> </TD>
+            <TD> <P>DISABLE</P> </TD>
+            <TD> <P>DISABLE</P> </TD>
+            <TD> <P>DISABLE (FAIL)</P> </TD>
+        </TR>
+</table>
+
+</P>
 </UL>
 
 <div class="section">
@@ -1583,7 +1690,7 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
         support comma values. This can drastically reduce the number of 
         condor_tarball entries needed in the configuration file.
         <br><br>
-        Consider an example below for default <tt>os as rhel5</tt> and <tt>default arch as
+        Consider an example below for default <tt>OS as rhel5</tt> and <tt>default arch as
         x86_64</tt>. If the Factory admin also wants <tt>os</tt> and <tt>arch</tt> information
         explicitly available, the configuration needs following entries to cover
         possible combinations.
@@ -1819,7 +1926,7 @@ daemons are started up.</P>
         <TR>
             <TD> <P><b>prefix</b></P></TD>
             <TD> <P>STARTD_CRON prefix, it is prepended to all HTCondor variables generated by the script (see documentation).
-                This is ignored from anything different form a periodic executable script.
+                This is ignored from anything different from a periodic executable script.
                 The default value is <it>GLIDEIN_PS_</it>, use <it>NOPREFIX</it> to have no prefix.
                 Be aware that if you choose not to have a prefix your HTCondor variables may collide with other scripts or
              variables.

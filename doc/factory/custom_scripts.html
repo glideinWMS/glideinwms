@@ -74,6 +74,7 @@
     <LI><A HREF="#glidein_config">Configuration file</A></li>
     <LI><A HREF="#condor_vars">HTCondor vars file</A></li>
     <LI><A HREF="#xml_output">Reporting script exit status</A></li>
+    <LI><A HREF="#periodic">Periodic scripts</A></li>
     <LI><A HREF="#order">Loading order</A></li>
     <LI><A HREF="#examples">Examples</A></li>
 </ol>
@@ -336,7 +337,7 @@ E.g. if you claim the script succeeded, you must also exit with a 0 exit code.</
       At the beginning is published to schedd then directly</li>
         <li>GLIDEIN_PS_FAILED_LAST - Name of the last script that failed execution</li>
         <li>GLIDEIN_PS_FAILED_LAST_REASON - String describing the last failure</li>
-        <li>GLIDEIN_PS_FAILED_LAST_END - End time (seconds form Epoch) of the last failure</li>
+        <li>GLIDEIN_PS_FAILED_LAST_END - End time (seconds from Epoch) of the last failure</li>
         <li>GLIDEIN_PS_LAST - File path of the last script</li>
         <li>GLIDEIN_PS_LAST_END - end time of the last script execution
             (0 for script_wrapper.sh invoked at startup)</li>

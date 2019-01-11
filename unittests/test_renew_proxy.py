@@ -1,8 +1,11 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import re
-import unittest
+import unittest2 as unittest
+import xmlrunner
+
 from glideinwms.frontend import gwms_renew_proxies as proxy
+
 
 class TestVo(unittest.TestCase):
 
@@ -26,5 +29,7 @@ class TestVo(unittest.TestCase):
         vo_name = 'glideinwms'
         self.assertRaises(ValueError, proxy.VO, vo_name, vo_name)
 
+
 if __name__ == '__main__':
-    unittest.main()
+    ofl = 'unittests-reports'
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))

@@ -135,7 +135,13 @@ function showPopUpSubEntries(hoveritem, entryName)
 {
     /* FIND THE HOVERED ENTRY INDEX IN statusEntries */
     for (row = 0; row < statusEntries.length; row++) {
-        if (statusEntries[row].parentNode.parentNode.parentNode.attributes["name"].nodeValue == entryName) {
+        try {
+            currentEntry = statusEntries[row].parentNode.parentNode.parentNode.attributes["name"].nodeValue;
+        } catch(e) {
+            /* IN CASE NO FRONTEND IS AVAILABLE */
+            currentEntry = ""
+        }
+        if (currentEntry == entryName) {
             break;
         }
     }
@@ -175,15 +181,17 @@ function showPopUpSubEntries(hoveritem, entryName)
         }
         tablese.appendChild(tr);
     }
+    scrollDiv = document.getElementById("scroll");
     hoverse.appendChild(tablese);
-    hoverse.style.top = document.getElementById("header").offsetTop + hoveritem.parentElement.offsetTop + 40 + "px";
+    hoverse.style.top = document.getElementById("header").offsetTop + hoveritem.parentElement.offsetTop - scrollDiv.scrollTop + 40 + "px";
     hoverse.style.left = 50 + "px";
     hoverse.style.visibility = "Visible";
 }
 
 function hidePopUpSubEntries()
 {
-    hoverse.style.visibility = "Hidden";
+    if (typeof(hoverse) != "undefined")
+        hoverse.style.visibility = "Hidden";
 }
 
 

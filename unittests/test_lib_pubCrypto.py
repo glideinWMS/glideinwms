@@ -1,16 +1,29 @@
 #!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   unit test for glideinwms/lib/pubCrypto.py
+#
+# Author:
+#   Dennis Box dbox@fnal.gov
+#
+
 from __future__ import absolute_import
 from __future__ import print_function
 import os
 import unittest2 as unittest
 import xmlrunner
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.lib.pubCrypto import PubRSAKey
-from glideinwms.lib.pubCrypto import RSAKey
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.pubCrypto import PubRSAKey
+    from glideinwms.lib.pubCrypto import RSAKey
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class TestPubCrypto(unittest.TestCase):
@@ -24,7 +37,7 @@ class TestPubCrypto(unittest.TestCase):
         self.cr_pub = self.cr.PubRSAKey()
         self.cr.save(self.privkey_file)
         self.cr_pub.save(self.pubkey_file)
-    
+
     def tearDown(self):
         os.remove(self.privkey_file)
         os.remove(self.pubkey_file)

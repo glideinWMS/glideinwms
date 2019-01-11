@@ -23,7 +23,7 @@
       </frontends>
    </security>
    <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://localhost/factory/stage"/>
-   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
+   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server" num_factories="1"/>
    <attrs>
       <!-- required: name, value -->
       <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
@@ -92,6 +92,7 @@
             <release max_per_cycle="20" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
             <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <entry_selection algorithm_name="Default" />
             <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
                <submit_attrs>
                   <!-- required: name -->

@@ -263,7 +263,7 @@ class Entry:
 
     def isClientBlacklisted(self, client_sec_name):
         """
-        Check ifthe frontend whitelist is enabled and client is not in
+        Check if the frontend whitelist is enabled and client is not in
         whitelist
 
         @rtype: boolean

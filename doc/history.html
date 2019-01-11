@@ -87,6 +87,27 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_4_2</b> released on October 26, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_2.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Controlling that Frontend is not using options incompatible w/ linked Factories</li>
+            <li>Use systemctl for loading/unloading on EL7</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_4_1</b> released on October 18, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_1.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Improved Singularity support (improved negotiation, added bind path variables and GPU support)</li>
+            <li>Switch User collector child collectors to shared_port</li>
+            <li>Updated documentation: remove obsolete parts, verified all references</li>
+            <li>Increased unit test coverage</li>
+            <li>Added the possibility to skip idle removal per entry</li>
+            <li>Improved how subentries are picked for metasites</li>
+            <li>Bug fix: Periodic scripts fails but report GLIDEIN_PS_OK=True</li>
+            <li>Bug fix: Fix entry_set configuration not to load temporary files and to work across upgrades</li>
+            <li>Big fix: fixed metasites monitoring</li>
+        </ul>
+      </li>
+      <li>
         <b>v3_4</b> released on June 4, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4.tgz">Tarball</a>)<br>
         <ul>
             <li>GlideinWMS 3.4 includes all features of previous stable series 3.2 and development series 3.3</li>
@@ -372,7 +393,7 @@ COLLECTOR.USE_SHARED_PORT=False
           <li>Support splitting of factory configuration into factory's
           deployment specific configuration and entry specific configuration.
           <li>Support of version control for the factory configuration and splitting 
-          of entries configuration form the main factory configuration (entries.d)
+          of entries configuration from the main factory configuration (entries.d)
           <li>Unique idle jobs matched by the frontend is now available in
           glideresource classads
           <li>Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the

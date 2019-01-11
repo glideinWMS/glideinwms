@@ -1,17 +1,31 @@
 #!/usr/bin/env python
+"""
+Project:
+   glideinWMS
+
+ Description:
+   unit test for SHA1DictFile and SummarySHA1DictFile classes in
+   glideinwms/creation/lib/cWDictFile.py
+
+ Author:
+   Dennis Box dbox@fnal.gov
+"""
+
+
 from __future__ import absolute_import
 from __future__ import print_function
+import copy
 import unittest2 as unittest
 import xmlrunner
-import copy
 
-# unittest_utils will handle putting the appropriate directories on the python
-# path for us.
-from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.creation.lib.cWDictFile import DictFile
-from glideinwms.creation.lib.cWDictFile import SHA1DictFile
-from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import SHA1DictFile
+    from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestSHA1DictFile(unittest.TestCase):
@@ -95,5 +109,5 @@ class TestSummarySHA1DictFile(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ofl = 'unittests-reports'
-    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=ofl))
+    OFL = 'unittests-reports'
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output=OFL))

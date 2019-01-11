@@ -11,20 +11,20 @@
 #   GLIDEIN_CPUS is set to 'auto' ('node') or 'slot'
 #
 
-glidein_config=$1
+glidein_config="$1"
 # is tmp_fname used? to remove?
-tmp_fname=${glidein_config}.$$.tmp
+tmp_fname="${glidein_config}.$$.tmp"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
-condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
 
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
 # Use GLIDEIN_CPUS if configured by the factory
-GLIDEIN_CPUS=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
+GLIDEIN_CPUS=`grep -i "^GLIDEIN_CPUS " "$glidein_config" | cut -d ' ' -f 2-`
 
 # 3.2.16 Meaning of "auto" chenged from "node" to "slot"
 # node and 0 mean the same thing - detect the hardware resources

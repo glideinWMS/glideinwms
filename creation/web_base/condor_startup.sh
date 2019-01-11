@@ -44,11 +44,11 @@ fi
 # pstr = variable representing an appendix
 pstr='"'
 
-config_file=$1
+config_file="$1"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$config_file" | cut -d ' ' -f 2-`"
 
-glidein_startup_pid=`grep -i "^GLIDEIN_STARTUP_PID " $config_file | awk '{print $2}'`
+glidein_startup_pid="`grep -i "^GLIDEIN_STARTUP_PID " "$config_file" | cut -d ' ' -f 2-`"
 # DO NOT USE PID FOR DAEMON NAMES
 # If site's batch system is HTCondor and USE_PID_NAMESPACES is set pid's
 # it does not play well with HTCondor daemon name creation
@@ -56,7 +56,7 @@ glidein_startup_pid=`grep -i "^GLIDEIN_STARTUP_PID " $config_file | awk '{print 
 let "random_name_str=($RANDOM+1000)*($RANDOM+2000)"
 
 # find out whether user wants to run job or run test
-debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
+debug_mode="`grep -i "^DEBUG_MODE " "$config_file" | cut -d ' ' -f 2-`"
 
 print_debug=0
 check_only=0
@@ -67,10 +67,10 @@ if [ "$debug_mode" -ne 0 ]; then
     fi
 fi
 
-adv_only=`grep -i "^GLIDEIN_ADVERTISE_ONLY " $config_file | awk '{print $2}'`
+adv_only=`grep -i "^GLIDEIN_ADVERTISE_ONLY " "$config_file" | cut -d ' ' -f 2-`
 
 if [ "$adv_only" -eq 1 ]; then
-    adv_destination=`grep -i "^GLIDEIN_ADVERTISE_DESTINATION " $config_file | awk '{print $2}'`
+    adv_destination=`grep -i "^GLIDEIN_ADVERTISE_DESTINATION " "$config_file" | cut -d ' ' -f 2-`
     if [ -z "${adv_destination}" ]; then
         adv_destination=VO
     fi
@@ -90,26 +90,27 @@ if [ "$print_debug" -ne 0 ]; then
     echo "-----------------------------------------------------" 1>&2
 fi
 
-main_stage_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
+main_stage_dir="`grep -i "^GLIDEIN_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`"
 
-description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
+description_file="`grep -i "^DESCRIPTION_FILE " "$config_file" | cut -d ' ' -f 2-`"
 
 
-in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -d ' ' -f 2-`"
 
 export CONDOR_CONFIG="${PWD}/condor_config"
 
-cp "$in_condor_config" $CONDOR_CONFIG
+cp "$in_condor_config" "$CONDOR_CONFIG"
 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
 
-wrapper_list=`grep -i "^WRAPPER_LIST " $config_file | awk '{print $2}'`
+wrapper_list="`grep -i "^WRAPPER_LIST " "$config_file" | cut -d ' ' -f 2-`"
 
 #
 # Create the job wrapper
 #
+# TODO: should it skip the wrapper if WRAPPER_LIST is empty?
 condor_job_wrapper="condor_job_wrapper.sh"
-cat > $condor_job_wrapper <<EOF
+cat > "$condor_job_wrapper" <<EOF
 #!/bin/bash
 
 # This script is started just before the user job
@@ -117,13 +118,13 @@ cat > $condor_job_wrapper <<EOF
 
 EOF
 
-for fname in `cat $wrapper_list`;
+for fname in `cat "$wrapper_list"`;
 do
-    cat "$fname" >> $condor_job_wrapper
+    cat "$fname" >> "$condor_job_wrapper"
 done
 
 
-echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> $CONDOR_CONFIG
+echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> "$CONDOR_CONFIG"
 
 
 # glidein_variables = list of additional variables startd is to publish
@@ -250,7 +251,7 @@ function cond_print_log {
     logname=$1
     shift
     # Use ls to allow fpath to include wild cards
-    files_to_zip="`ls -1 $@ 2>/dev/null`"
+    files_to_zip="`ls -1 "$@" 2>/dev/null`"
     
     if [ "$files_to_zip" != "" ]; then
         echo "$logname" 1>&2
@@ -377,7 +378,7 @@ rm -f condor_vars.lst.tmp
 touch condor_vars.lst.tmp
 for vid in GLIDECLIENT_GROUP_CONDOR_VARS_FILE GLIDECLIENT_CONDOR_VARS_FILE ENTRY_CONDOR_VARS_FILE CONDOR_VARS_FILE
 do
-    condor_vars=`grep -i "^$vid " $config_file | awk '{print $2}'`
+    condor_vars="`grep -i "^$vid " "$config_file" | cut -d ' ' -f 2-`"
     if [ -n "$condor_vars" ]; then
         grep -v "^#" "$condor_vars" >> condor_vars.lst.tmp
     fi
@@ -389,12 +390,12 @@ do
 done < condor_vars.lst.tmp
 
 
-cat >> $condor_job_wrapper <<EOF
+cat >> "$condor_job_wrapper" <<EOF
 
 # Condor job wrappers must replace its own image
-exec $GLIDEIN_WRAPPER_EXEC
+exec "$GLIDEIN_WRAPPER_EXEC"
 EOF
-chmod a+x $condor_job_wrapper
+chmod a+x "$condor_job_wrapper"
 
 
 now=`date +%s`
@@ -406,15 +407,15 @@ let "x509_duration=$X509_EXPIRE - $now - 300"
 
 # Get relevant attributes from glidein_config if they exist
 # if they do not, check condor config from vars population above
-max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
-job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
-graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown " $config_file | awk '{print $2}'`
+max_walltime=`grep -i "^GLIDEIN_Max_Walltime " "$config_file" | cut -d ' ' -f 2-`
+job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " "$config_file" | cut -d ' ' -f 2-`
+graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown " "$config_file" | cut -d ' ' -f 2-`
 # randomize the retire time, to smooth starts and terminations
-retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
-expose_x509=`grep -i "^GLIDEIN_Expose_X509 " $config_file | awk '{print $2}'`
+retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " "$config_file" | cut -d ' ' -f 2-`
+expose_x509=`grep -i "^GLIDEIN_Expose_X509 " "$config_file" | cut -d ' ' -f 2-`
 
 if [ -z "$expose_x509" ]; then
-    expose_x509=`grep -i "^GLIDEIN_Expose_X509=" $CONDOR_CONFIG | awk '{print $2}'`
+    expose_x509=`grep -i "^GLIDEIN_Expose_X509=" "$CONDOR_CONFIG" | awk -F"=" '{print $2}'`
     if [ -z "$expose_x509" ]; then
         expose_x509="false"
     fi
@@ -422,14 +423,14 @@ fi
 expose_x509=`echo $expose_x509 | tr '[:upper:]' '[:lower:]'`
 
 if [ -z "$graceful_shutdown" ]; then
-    graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
+    graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" "$CONDOR_CONFIG" | awk -F"=" '{print $2}'`
     if [ -z "$graceful_shutdown" ]; then
         echo "WARNING: graceful shutdown not defined in vars or glidein_config, using 120!" 1>&2
         graceful_shutdown=120
     fi
 fi
 if [ -z "$job_maxtime" ]; then
-    job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
+    job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time=" "$CONDOR_CONFIG" | awk -F"=" '{print $2}'`
     if [ -z "$job_maxtime" ]; then
         echo "WARNING: job max time not defined in vars or glidein_config, using 192600!" 1>&2
         job_maxtime=192600
@@ -456,7 +457,7 @@ min_glidein=600
 #   If GLIDEIN_Retire_Time is also specified, 
 #   it will be ignored and only the calculated value is used. 
 if [ -z "$max_walltime" ]; then
-    retire_time=`grep -i "^GLIDEIN_Retire_Time " $config_file | awk '{print $2}'`
+    retire_time=`grep -i "^GLIDEIN_Retire_Time " "$config_file" | cut -d ' ' -f 2-`
     if [ -z "$retire_time" ]; then
         retire_time=21600
         echo "used default retire time, $retire_time" 1>&2
@@ -607,7 +608,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-monitor_mode=`grep -i "^MONITOR_MODE " $config_file | awk '{print $2}'`
+monitor_mode=`grep -i "^MONITOR_MODE " "$config_file" | cut -d ' ' -f 2-`
 
 if [ "$monitor_mode" == "MULTI" ]; then
     use_multi_monitor=1
@@ -616,7 +617,7 @@ else
 fi
 
 # get the periodic scripts configuration
-condor_config_startd_cron_include=`grep -i "^GLIDEIN_condor_config_startd_cron_include " $config_file | awk '{print $2}'`
+condor_config_startd_cron_include="`grep -i "^GLIDEIN_condor_config_startd_cron_include " "$config_file" | cut -d ' ' -f 2-`"
 if [ -n "$condor_config_startd_cron_include" ]; then
     echo "adding periodic scripts (startd_cron) configuration from: $condor_config_startd_cron_include" 1>&2
     echo "# ---- start of startd_cron part ----" >> "$CONDOR_CONFIG"
@@ -686,7 +687,7 @@ EOF
         # Set number of CPUs (otherwise the physical number is used)
         echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         # set up the slots based on the slots_layout entry parameter
-        slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
+        slots_layout=`grep -i "^SLOTS_LAYOUT " "$config_file" | cut -d ' ' -f 2-`
         if [ "X$slots_layout" = "Xpartitionable" ]; then
             echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
             echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
@@ -702,7 +703,7 @@ EOF
 
 
         # check for resource slots
-        condor_config_resource_slots=`grep -i "^GLIDEIN_Resource_Slots " $config_file | awk '{print $2}'`
+        condor_config_resource_slots="`grep -i "^GLIDEIN_Resource_Slots " "$config_file" | cut -d ' ' -f 2-`"
         if [ -n "$condor_config_resource_slots" ]; then
             echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
             cat >> "$CONDOR_CONFIG" <<EOF
@@ -957,7 +958,7 @@ export LD_LIBRARY_PATH=$CONDOR_DIR/lib:$CONDOR_DIR/lib/condor:$LD_LIBRARY_PATH
 #
 
 if [ "$adv_only" -eq "1" ]; then
-    adv_type=`grep -i "^GLIDEIN_ADVERTISE_TYPE " $config_file | awk '{print $2}'`
+    adv_type=`grep -i "^GLIDEIN_ADVERTISE_TYPE " "$config_file" | cut -d ' ' -f 2-`
 
     chmod u+rx "${main_stage_dir}/advertise_failure.helper"
     "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}" "${adv_destination}"
@@ -1070,7 +1071,7 @@ if [ "$check_only" -eq 1 ]; then
         sleep $fetch_sleeptime
 
         # grab user proxy so we can authenticate ourselves to run condor_fetchlog
-        PROXY_FILE=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
+        PROXY_FILE="`grep -i "^X509_USER_PROXY " "$config_file" | cut -d ' ' -f 2-`"
 
         let "fetch_curTime  += $fetch_sleeptime" 
         FETCH_RESULTS=`X509_USER_PROXY=$PROXY_FILE $CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`

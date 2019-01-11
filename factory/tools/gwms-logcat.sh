@@ -29,7 +29,7 @@ $0 -l
   -l       list all entries (arguments are ignored)
   -a       list only entries that were active (has at least one job) - used with '-l', ignored otherwise
   -u USER  to use a different user (job owner) from the default frontend one
-  -r       Remote running jobs. pilot_launcher.log is fetched form the VM 
+  -r       Remote running jobs. pilot_launcher.log is fetched from the VM 
   -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
   -f URL   Forward the information (to a folder: file:///path/ via copy or a URL http:// via post)
 EOF

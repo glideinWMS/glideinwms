@@ -10,27 +10,27 @@
 #   unless the user insists on it
 #
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
+glidein_config="$1"
+tmp_fname="${glidein_config}.$$.tmp"
 
 function warn {
- echo `date` $@ 1>&2
+ echo `date` "$@" 1>&2
 }
 
 # import add_config_line function
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
 # not used - to remove
-# condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+# condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
 
-slots_layout=`grep '^SLOTS_LAYOUT ' $glidein_config | awk '{print $2}'`
+slots_layout=`grep '^SLOTS_LAYOUT ' "$glidein_config" | cut -d ' ' -f 2-`
 # fixed slot layout with resources added to the main slot can cause the startd to fail
 # if the number of resources is insufficient for the available slots
 # mainextra adds extra virtual cpus for the resource, so it is sure to fail with fixed slots
-condor_config_resource_slots=`grep -i "^GLIDEIN_Resource_Slots " $glidein_config | awk '{print $2}'`
+condor_config_resource_slots="`grep -i "^GLIDEIN_Resource_Slots " "$glidein_config" | cut -d ' ' -f 2-`"
 echo "$condor_config_resource_slots" | grep mainextra > /dev/null
 if [ "$?" -eq 0 ]; then
   # sure error with fixed: force partitionable
@@ -49,7 +49,7 @@ fi
 # 2. If mainextra ResourceSlot is defined then switch fixed to partitionable
 if [ "X$slots_layout" = "Xpartitionable" ]; then
   # only need to worry about the partitionable use case
-  num_cpus=`grep '^GLIDEIN_CPUS ' $glidein_config | awk '{print $2}'`
+  num_cpus=`grep '^GLIDEIN_CPUS ' "$glidein_config" | cut -d ' ' -f 2-`
   if [ -z "$num_cpus" ]; then
     # the default is single core
     # there could be virtual cpus (mainextra) or more real CPUs (due to RSL request) both not in GLIDEIN_CPUS
@@ -59,7 +59,7 @@ if [ "X$slots_layout" = "Xpartitionable" ]; then
   if [ "$num_cpus" == "1" ]; then
     # do not want single core partitionable slots
 
-    force_part=`grep '^FORCE_PARTITIONABLE ' $glidein_config | awk '{print $2}'`
+    force_part=`grep '^FORCE_PARTITIONABLE ' "$glidein_config" | cut -d ' ' -f 2-`
     if [ "X$force_part" = "XTrue" ]; then
       # unless forced to
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ForcedSinglePartitionable"

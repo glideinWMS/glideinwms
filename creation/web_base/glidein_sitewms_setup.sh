@@ -10,13 +10,13 @@
 #   This script will determine the glidein jobs info as in the site's wms
 #
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+glidein_config="$1"
+tmp_fname="${glidein_config}.$$.tmp"
+error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+condor_vars_file="`grep -i "^CONDOR_VARS_FILE " "$glidein_config" | cut -d ' ' -f 2-`"
 # import add_config_line and add_condor_vars_line functions
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+source "$add_config_line_source"
 
 UNKNOWN="Unknown"
 
