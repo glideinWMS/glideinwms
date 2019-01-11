@@ -78,10 +78,13 @@ class Monitoring_Output(object):
         if not (Monitoring_Output.out_list):
             from glideinwms.frontend import monitorXML
             from glideinwms.frontend import monitorRRD
+            from glideinwms.frontend import monitorInfluxDB
             monitorRRD_config = {}
             out = monitorRRD.Monitoring_Output({}, {})
             Monitoring_Output.out_list.append(out)
             out = monitorXML.Monitoring_Output({}, {})
+            Monitoring_Output.out_list.append(out)
+            out = monitorInfluxDB.Monitoring_Output({}, {})
             Monitoring_Output.out_list.append(out)
 
     @staticmethod
