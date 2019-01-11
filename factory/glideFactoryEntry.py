@@ -105,11 +105,11 @@ class Entry:
             float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2, 20))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
-        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig(log=self.log)
-        self.monitoringConfig.monitor_dir = self.monitorDir
-        self.monitoringConfig.my_name = "%s@%s" % (name, self.glideinDescript.data['GlideinName'])
+        glideFactoryMonitoring.Monitoring_Output.updateConfig("log", self.log)
+        glideFactoryMonitoring.Monitoring_Output.updateConfig("monitor_dir", self.monitorDir)
+        glideFactoryMonitoring.Monitoring_Output.updateConfig("my_name", "%s@%s" % (name, self.glideinDescript.data['GlideinName']))
 
-        self.monitoringConfig.config_log(
+        glideFactoryMonitoring.Monitoring_Output.config_log(
             self.logDir,
             float(self.glideinDescript.data['SummaryLogRetentionMaxDays']),
             float(self.glideinDescript.data['SummaryLogRetentionMinDays']),
@@ -157,7 +157,7 @@ class Entry:
         self.gflFactoryConfig.max_releases = int(self.jobDescript.data['MaxReleaseRate'])
         self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
         self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary(log=self.log)
-        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(log=self.log, base_dir=self.monitoringConfig.monitor_dir)
+        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(log=self.log, base_dir=glideFactoryMonitoring.Monitoring_Output.global_config["monitor_dir"])
         self.gflFactoryConfig.rrd_stats.base_dir = self.monitorDir
 
         # Add cleaners for the user log directories
@@ -198,7 +198,6 @@ class Entry:
         writen correctly. This should be called in every method for now.
         """
 
-        glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
         gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
@@ -709,7 +708,7 @@ class Entry:
         self.log.info("log_stats diff computed")
 
         self.log.info("Writing log_stats for %s" % self.name)
-        self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
+        self.gflFactoryConfig.log_stats.write_file()
         self.log.info("log_stats written")
 
         self.log.info("Writing glidein job info for %s" % self.name)
@@ -718,11 +717,11 @@ class Entry:
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
-        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
+        self.gflFactoryConfig.qc_stats.write_file()
         self.log.info("qc_stats written")
 
         self.log.info("Writing rrd_stats for %s" % self.name)
-        self.gflFactoryConfig.rrd_stats.writeFiles(monitoringConfig=self.monitoringConfig)
+        self.gflFactoryConfig.rrd_stats.writeFiles()
         self.log.info("rrd_stats written")
 
         return

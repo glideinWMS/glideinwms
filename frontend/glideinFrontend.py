@@ -538,7 +538,7 @@ def main(work_dir, action):
 
         groups = sorted(frontendDescript.data['Groups'].split(','))
 
-        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir, "monitor"), groups)
+        glideinFrontendMonitorAggregator.config_frontend(os.path.join(work_dir, "monitor"), groups)
     except:
         logSupport.log.exception("Exception occurred configuring monitoring: ")
         raise

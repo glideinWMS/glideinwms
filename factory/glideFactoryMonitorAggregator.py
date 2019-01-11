@@ -15,20 +15,15 @@ from __future__ import print_function
 
 import json
 import copy
-import time
-import string
 import pickle
 import os.path
 import tempfile
 import shutil
 import time
 
-from glideinwms.lib import timeConversion
-from glideinwms.lib import xmlParse, xmlFormat
-from glideinwms.lib import logSupport
+from glideinwms.lib import xmlParse, xmlFormat, logSupport
 from glideinwms.lib import rrdSupport
 from glideinwms.factory import glideFactoryMonitoring
-from glideinwms.factory import glideFactoryLib
 
 ############################################################
 #
@@ -53,8 +48,8 @@ class MonitorAggregatorConfig:
     def config_factory(self, monitor_dir, entries, log):
         self.monitor_dir=monitor_dir
         self.entries=entries
-        glideFactoryMonitoring.monitoringConfig.monitor_dir=monitor_dir
-        glideFactoryMonitoring.monitoringConfig.log = log
+        glideFactoryMonitoring.Monitoring_Output.global_config["monitor_dir"] =monitor_dir
+        glideFactoryMonitoring.Monitoring_Output.global_config["log"] = log
         self.log = log
 
 # global configuration of the module
@@ -397,50 +392,14 @@ def aggregateStatus(in_downtime):
                                                                                                                            "subtypes_params":{"class":{}}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</glideFactoryQStats>\n")
-    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
+    glideFactoryMonitoring.Monitoring_Output.write_file(monitorAggregatorConfig.status_relname, xml_str)
 
     # write json
-    glideFactoryMonitoring.monitoringConfig.write_completed_json(monitorAggregatorConfig.completed_data_relname.split('.')[0],updated,completed_data_tot)
+    glideFactoryMonitoring.Monitoring_Output.write_completed_json(monitorAggregatorConfig.completed_data_relname.split('.')[0],updated,completed_data_tot)
 
-    # Write rrds
-    glideFactoryMonitoring.monitoringConfig.establish_dir("total")
-    # Total rrd across all frontends and factories
-    for tp in global_total.keys():
-        # type - status or requested
-        if not (tp in status_attributes.keys()):
-            continue
-
-        tp_str=type_strings[tp]
-        attributes_tp=status_attributes[tp]
-
-        tp_el=global_total[tp]
-
-        for a in tp_el.keys():
-            if a in attributes_tp:
-                a_el=int(tp_el[a])
-                val_dict["%s%s"%(tp_str, a)]=a_el
-
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
-                                                            "GAUGE", updated, val_dict)
-
-    # Frontend total rrds across all factories
-    for fe in status_fe['frontends'].keys():
-        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s"%("frontend_"+fe))
-        for tp in status_fe['frontends'][fe].keys():
-            # type - status or requested
-            if not (tp in type_strings.keys()):
-                continue
-            tp_str=type_strings[tp]
-            attributes_tp=status_attributes[tp]
-
-            tp_el=status_fe['frontends'][fe][tp]
-
-            for a in tp_el.keys():
-                if a in attributes_tp:
-                    a_el=int(tp_el[a])
-                    val_dict["%s%s"%(tp_str, a)]=a_el
-        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes" % ("frontend_"+fe),
-                                                                "GAUGE", updated, val_dict)
+    # Write rrds HERE
+    for out in glideFactoryMonitoring.Monitoring_Output.out_list:
+        out.write_aggregateStatus()
 
     return status
 
@@ -650,7 +609,7 @@ def aggregateLogSummary():
                                       leading_tab=xmlFormat.DEFAULT_TAB) +
                '\n' +
                "</glideFactoryLogSummary>\n")
-    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname, xml_str)
+    glideFactoryMonitoring.Monitoring_Output.write_file(monitorAggregatorConfig.logsummary_relname, xml_str)
 
     # Write rrds
     writeLogSummaryRRDs("total", status["total"])
@@ -681,7 +640,7 @@ def writeLogSummaryRRDs(fe_dir, status_el):
 
     sdata=status_el['Current']
 
-    glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
+    glideFactoryMonitoring.Monitoring_Output.establish_dir(fe_dir)
     val_dict_counts={}
     val_dict_counts_desc={}
     val_dict_completed={}
@@ -735,26 +694,17 @@ def writeLogSummaryRRDs(fe_dir, status_el):
                     val_dict_wastetime['%s_%s'%(w, p)]=time_waste_mill_w[p]
 
     # write the data to disk
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi_hetero("%s/Log_Counts"%fe_dir,
-                                                            val_dict_counts_desc, updated, val_dict_counts)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed"%fe_dir,
-                                                            "ABSOLUTE", updated, val_dict_completed)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
-                                                            "ABSOLUTE", updated, val_dict_stats)
-    # Disable Waste RRDs... WasteTime much more useful
-    #glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
-    #                                                        "ABSOLUTE",updated,val_dict_waste)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
-                                                            "ABSOLUTE", updated, val_dict_wastetime)
+    for out in glideFactoryMonitoring.Monitoring_Output.out_list:
+        out.write_writeLogSummary()
 
-def aggregateRRDStats(log=logSupport.log):
+def aggregateStats(log=logSupport.log):
     """
     Create an aggregate of RRD stats, write it files
     """
 
     global monitorAggregatorConfig
     factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
-    rrdstats_relname = glideFactoryMonitoring.rrd_list
+    rrdstats_relname = glideFactoryMonitoring.Monitoring_Output.global_config["rrd_list"]
     tab = xmlFormat.DEFAULT_TAB
 
     for rrd in rrdstats_relname:
@@ -839,6 +789,10 @@ def aggregateRRDStats(log=logSupport.log):
 
 
         # write an aggregate XML file
+        updated = time.time()
+
+        for out in glideFactoryMonitoring.Monitoring_Output.out_list:
+            out.write_aggregateStats()
 
         # data from indivdual entries
         entry_str = tab + "<entries>\n"
@@ -893,19 +847,15 @@ def aggregateRRDStats(log=logSupport.log):
         data_str =  (tab + "<total>\n" + total_xml_str + frontend_xml_str +
                      tab + "</total>\n")
 
-        # putting it all together
-        updated = time.time()
+
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryRRDStats>\n' +
                    xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" + entry_str +
                    data_str + '</glideFactoryRRDStats>')
 
         try:
-            glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
+            glideFactoryMonitoring.Monitoring_Output.write_file(rrd_site(rrd), xml_str)
         except IOError:
             log.debug("write_file %s, IOError"%rrd_site(rrd))
 
     return
-
-
-

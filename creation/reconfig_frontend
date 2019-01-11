@@ -37,7 +37,7 @@ from glideinwms.creation.lib import cvWConsts,cWConsts
 from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
 from glideinwms.creation.lib import xslt
-from glideinwms.frontend import glideinFrontendMonitorAggregator
+from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendLib
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
@@ -112,13 +112,14 @@ def main(params, old_params, update_scripts, update_def_cfg):
     print2("...Active groups are:")
     for entry in frontend_dicts_obj.active_sub_list:
         print2("     %s"%entry)
-    print2("...Verifying rrd schema")
+    print2("...Verifying Monitoring Systems")
 
-    if not glideinFrontendMonitorAggregator.verifyRRD(fix_rrd):
-        if not fix_rrd:
-            print2("Run with -fix_rrd option to update errors")
-            print2("WARNING: back up your existing rrds before auto-fixing rrds")
-        sys.exit(1)
+    for out in glideinFrontendMonitoring.Monitoring_Output.out_list:
+        if (out.verify({"fix_rrd": fix_rrd})):
+            print2("ERROR: Monitoring System %s:" % out.config["name"])
+            print2(out.verifyError)
+            sys.exit(1)
+
     print2("...Work files are in %s" % frontend_dicts_obj.main_dicts.work_dir)
 
 

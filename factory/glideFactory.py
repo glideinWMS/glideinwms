@@ -71,7 +71,7 @@ def aggregate_stats(in_downtime):
         # protect and report
         logSupport.log.exception("aggregateLogStatus failed: ")
     try:
-        glideFactoryMonitorAggregator.aggregateRRDStats(log=logSupport.log)
+        glideFactoryMonitorAggregator.aggregateStats(log=logSupport.log)
     except:
         # protect and report
         logSupport.log.exception("aggregateRRDStats failed: ")
@@ -749,8 +749,8 @@ def main(startup_dir):
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
 
-    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'],
-               glideinDescript.data['FactoryName'])
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.Monitoring_Output.updateConfig("my_name", "%s@%s" % (glideinDescript.data['GlideinName'],
+               glideinDescript.data['FactoryName']))
 
     glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
     glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
