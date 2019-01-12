@@ -44,7 +44,7 @@ class Monitoring_Output(Monitoring_Output):
             ['localhost', 8086, 'root', 'root', 'frontend_stats'],
             ['fermicloud532.fnal.gov', 8086, 'frontend93824', 'd43h7487y4328', 'gwms_stats']]
         '''
-        self.db_credentials = [['fermicloud053.fnal.gov', 8086, 'frontend93824', 'd43h7487y4328', 'gwms_front_stats']]
+        self.db_credentials = []
 
         self.databases = []
 
@@ -72,17 +72,17 @@ class Monitoring_Output(Monitoring_Output):
                 currDBClient.write_points(json_data)
             except Exception, e:
                 # Error when submitting data
-                logSupport.log.warning("InfluxDB: Cannot submit dataset for %s. Error: %s" % (name, str(e)))
+                logSupport.log.warning("InfluxDB: Cannot submit dataset for %s. Error: %s" % (name, e.message))
 
 
-    def write_groupStats(self, data):
+    def write_groupStats(self, total, factories_data, states_data, updated):
         json_body = [];
 
         # States Data for Frontend
-        # data['states']
+        # states_data
         name = "Frontend.states."
 
-        for currState, value in data['states'].iteritems():
+        for currState, value in states_data.iteritems():
             for currAttribute, value2 in value.iteritems():
                 if (isinstance(value2, dict)):
                     for subElemKey, subElemValue in value2.iteritems():
@@ -97,10 +97,10 @@ class Monitoring_Output(Monitoring_Output):
 
 
         # States Data for Factories
-        # data['factories']
+        # factories_data
         name = "Frontend.states."
 
-        for currHost, value in data['factories'].iteritems():
+        for currHost, value in factories_data.iteritems():
             for currAttribute, value2 in value.iteritems():
                 if (isinstance(value2, dict)):
                     for subElemKey, subElemValue in value2.iteritems():
@@ -114,10 +114,10 @@ class Monitoring_Output(Monitoring_Output):
                         json_body.append({"measurement": name+"Status", "tags": {"Type": "Factory", "FactoryHost": currHost, "Host": self.hostname}, "fields": {currAttribute: value2}})
 
         # Totals Data for Frontend
-        # data['totals']
+        # total
         name = "Frontend.Totals"
 
-        for type, value in data['totals'].iteritems():
+        for type, value in total.iteritems():
             if (isinstance(value, dict)):
                 if value:
                     json_body.append({"measurement": name, "tags": {"Type": type, "Host": self.hostname}, "fields": value})
