@@ -63,7 +63,7 @@ check_only=0
 if [ "$debug_mode" -ne 0 ]; then
     print_debug=1
     if [ "$debug_mode" -eq 2 ]; then
-	    check_only=1
+        check_only=1
     fi
 fi
 
@@ -154,14 +154,14 @@ function set_var {
 
     var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
     if [ -z "$var_val" ]; then
-	if [ "$var_req" == "Y" ]; then
-	    # needed var, exit with error
-	    #echo "Cannot extract $var_name from '$config_file'" 1>&2
-	    STR="Cannot extract $var_name from '$config_file'"
-	    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
-	    exit 1
-	elif [ "$var_def" == "-" ]; then
-	    # no default, do not set
+        if [ "$var_req" == "Y" ]; then
+            # needed var, exit with error
+            #echo "Cannot extract $var_name from '$config_file'" 1>&2
+            STR="Cannot extract $var_name from '$config_file'"
+            "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
+            exit 1
+        elif [ "$var_def" == "-" ]; then
+            # no default, do not set
             return 0
         else
             eval var_val=$var_def
@@ -471,7 +471,7 @@ else
     if [ -z "$retire_spread" ]; then
         # Make sure that the default spread is enough so that we
         # dont drop below min_glidein (ie 600 seconds)
-	    let "default_spread=($min_glidein * 11) / 100"
+        let "default_spread=($min_glidein * 11) / 100"
     else
         let "default_spread=$retire_spread"
     fi
@@ -969,13 +969,13 @@ fi
 
 X509_BACKUP=$X509_USER_PROXY
 if [ "$expose_x509" == "true" ]; then
-	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
+    echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
 else
-	echo "Unsetting X509_USER_PROXY" 1>&2
-	unset X509_USER_PROXY
+    echo "Unsetting X509_USER_PROXY" 1>&2
+    unset X509_USER_PROXY
 fi
 
-##	start the monitoring condor master
+## start the monitoring condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
     # don't start if monitoring is disabled
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -1179,10 +1179,10 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 fi
 
 if [ "$ON_DIE" -eq 1 ]; then
-	
+
     #If we are explicitly killed, do not wait required time
     echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
-	
+
     condor_ret=0
     metrics+=" CondorKilled True"
 else
