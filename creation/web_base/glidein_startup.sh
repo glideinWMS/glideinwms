@@ -1791,7 +1791,7 @@ done
 # get last_script, as it is used by the fetch_file
 gs_id_work_dir="`get_work_dir main`"
 gs_id_descript_file="`get_descript_file main`"
-last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -d ' ' -f 2-`"
+last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -f 2-`"
 if [ $? -ne 0 ]; then
     warn "last_script not in description file ${gs_id_work_dir}/$gs_id_descript_file." 1>&2
     glidein_exit 1
