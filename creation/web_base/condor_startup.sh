@@ -94,7 +94,7 @@ main_stage_dir="`grep -i "^GLIDEIN_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`
 
 description_file="`grep -i "^DESCRIPTION_FILE " "$config_file" | cut -d ' ' -f 2-`"
 
-in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -f 2-`"
+in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -s -f 2-`"
 
 export CONDOR_CONFIG="${PWD}/condor_config"
 

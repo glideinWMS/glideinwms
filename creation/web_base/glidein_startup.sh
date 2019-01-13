@@ -1229,7 +1229,7 @@ function get_untar_subdir {
         glidein_exit 1
     fi
 
-    gus_dir="`grep -i "^$gus_fname " "$gus_config_file" | cut -d ' ' -f 2-`"
+    gus_dir="`grep -i "^$gus_fname " "$gus_config_file" | cut -s -f 2-`"
     if [ -z "$gus_dir" ]; then
         warn "Error, untar dir for '$gus_fname' cannot be empty." 1>&2
         glidein_exit 1
@@ -1741,7 +1741,7 @@ do
       warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
-  signature_file="`echo $signature_file_line|cut -d ' ' -f 2-`"
+  signature_file="`echo "$signature_file_line" | cut -s -f 2-`"
 
   # Fetch signature file
   gs_id_signature=`get_signature $gs_id`
@@ -1791,8 +1791,8 @@ done
 # get last_script, as it is used by the fetch_file
 gs_id_work_dir="`get_work_dir main`"
 gs_id_descript_file="`get_descript_file main`"
-last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -f 2-`"
-if [ $? -ne 0 ]; then
+last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -s -f 2-`"
+if [ -z "$last_script" ]; then
     warn "last_script not in description file ${gs_id_work_dir}/$gs_id_descript_file." 1>&2
     glidein_exit 1
 fi
@@ -1823,7 +1823,7 @@ do
   gs_id_descript_file=`get_descript_file $gs_id`
   
   # extract list file name
-  gs_file_list_line=`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`
+  gs_file_list_line="`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`"
   if [ $? -ne 0 ]; then
       if [ -z "$client_repository_group_url" ]; then
           if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
@@ -1834,7 +1834,8 @@ do
       warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
-  gs_file_list="`echo $gs_file_list_line |cut -d ' ' -f 2-`"
+  # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
+  gs_file_list="`echo "$gs_file_list_line" | cut -s -f 2 | sed -e 's/[[:space:]]*$//'`"
 
   # fetch list file
   fetch_file_regular "$gs_id" "$gs_file_list"
