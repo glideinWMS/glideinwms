@@ -53,8 +53,8 @@ class FactAttrElement(xmlConfig.AttrElement):
             return
         for att in attrs.get_children():
             if att[u'name'] == self[u'name'] and att[u'const'] != self[u'const']:
-                entry = self.parent.parent.getName()
-                raise RuntimeError(("Entry %s: attribute %s is also defined in the global section, but it has const=\"%s\" there. "
+                entry = "Global section" if isinstance(self.parent.parent, Config) else self.parent.parent.getName()
+                raise RuntimeError(("%s: attribute %s is already defined in the global section, but it is const=\"%s\". "
                                     "Please make sure the 'const' value is the same." % (entry, self[u'name'], att[u'const'])))
 
 
