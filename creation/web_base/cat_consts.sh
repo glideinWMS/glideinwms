@@ -46,7 +46,12 @@ if [ -n "$consts_file" ]; then
     while read line
     do
         # disable globbing but keep the splitting in $line
-        ( set -f; add_config_line $line )
+	# ( set -f; add_config_line $line )
+	# const file is space+tab separated but unquoted variable keeps only the splitting (not space safe for the value)
+	# var_name keeps lines w/ no separator
+	var_name="`echo "$line" | cut -f 1 | sed -e 's/[[:space:]]*$//'`"
+	var_value="`echo "$line" | cut -s -f 2- | sed -e 's/[[:space:]]*$//'`"
+        ( set -f; add_config_line $var_name "$var_value" )
         let ++nr_lines
     done < "$consts_file"
     echo "# --- End $dir_id constants       ---" >> "$glidein_config"
