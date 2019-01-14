@@ -540,7 +540,7 @@ function add_config_line {
             exit 1
         fi
         grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
-        # NOTE that parameters are flattened, if there are spaces they are separated
+        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
         echo "\$@" >> \$glidein_config
         rm -f \${glidein_config}.old
     fi
