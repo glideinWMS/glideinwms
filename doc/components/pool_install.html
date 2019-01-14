@@ -296,7 +296,7 @@ Install as: root
 
         <tr>
         <td>schedd_shared_port</td>
-        <td align="center">9615</td>
+        <td align="center">9618</td>
         <td>
         Specifies the port number to be used by the shared port daemon
         for schedds.
@@ -304,12 +304,10 @@ Install as: root
         <td>
         This can drastically reduce the number of ports used and thus improves
         scalability.</br>
-        The default port is 9615. But, for submit hosts separated from the Frontend, check the firewalls
-	because currently, the port is set now to 9618 and this must be open</br>
-        Leave this option blank if you do not wish to utilize this feature or
-        if is is not supported in the version of HTCondor being used.<br/>
-        For more information on use of the shared_port_daemon, see the
-        <a href="condor.html#schedds">GlideinWMS - Advanced HTCondor Configuration manual</a>.
+        The default port is 9618. If you install the user schedd on a separate host, 
+        this incoming TCP port remains to be open (it was 9615 for versions prior to 
+        GlideinWMS 3.4.1). For more detailed information on this, refer to the 
+        <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds using condor_shared_port feature</a>.
         </br>
         </td>
         </tr>
