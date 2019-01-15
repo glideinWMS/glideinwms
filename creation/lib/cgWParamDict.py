@@ -14,7 +14,6 @@ from __future__ import print_function
 import os, os.path, shutil, string
 import sys
 import glob
-from distutils.util import strtobool
 from . import cgWDictFile, cWDictFile
 from . import cgWCreate
 from . import cgWConsts, cWConsts
@@ -38,6 +37,17 @@ class UnconfiguredScheddError(Exception):
     def __str__(self):
         return repr(self.err_str)
 
+
+def str2bool(val):
+    """ Convert u"True" or u"False" to boolean or raise ValueError
+    """
+    if val not in [u"True", u"False"]:
+        # Not using ValueError intentionally: all config errors are RuntimeError
+        raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
+    elif val == u"True":
+        return True
+    else:
+        return False
 
 ################################################
 #
@@ -498,8 +508,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", bool(strtobool(restrictions[u'require_voms_proxy'])), allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", bool(strtobool(restrictions[u'require_glidein_glexec_use'])), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", bool(str2bool(restrictions[u'require_voms_proxy'])), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", bool(str2bool(restrictions[u'require_glidein_glexec_use'])), allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain", entry[u'trust_domain'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry[u'auth_method'], allow_overwrite=True)
             if u'rsl' in entry:
@@ -512,8 +522,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if u'proxy_url' in entry:
                 self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
 
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", bool(strtobool(restrictions[u'require_voms_proxy'])), None, False, True, True)
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", bool(strtobool(restrictions[u'require_glidein_glexec_use'])), None, False, True, True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", bool(str2bool(restrictions[u'require_voms_proxy'])), None, False, True, True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", bool(str2bool(restrictions[u'require_glidein_glexec_use'])), None, False, True, True)
 
         # populate infosys
         for infosys_ref in entry.get_child_list(u'infosys_refs'):
