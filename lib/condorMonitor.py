@@ -20,6 +20,7 @@ import string
 import copy
 import socket
 import xml.parsers.expat
+from itertools import groupby
 from . import condorExe
 from . import condorSecurity
 
@@ -720,14 +721,18 @@ class Summarize:
     #    hash_func  - if !=None, use this instead of the main one
     # Returns a dictionary of hash values
     #    Elements are counts (or more dictionaries if hash returns lists)
-    def count(self, constraint=None, hash_func=None):
+    def count(self, constraint=None, hash_func=None, flat_hash=False):
         data = self.query.fetch(constraint)
+        if flat_hash:
+            return fetch2count_flat(data, self.getHash(hash_func))
         return fetch2count(data, self.getHash(hash_func))
 
     # Use data pre-stored in query
     # Same output as count
-    def countStored(self, constraint_func=None, hash_func=None):
+    def countStored(self, constraint_func=None, hash_func=None, flat_hash=False):
         data = self.query.fetchStored(constraint_func)
+        if flat_hash:
+            return fetch2count_flat(data, self.getHash(hash_func))
         return fetch2count(data, self.getHash(hash_func))
 
     # Parameters, same as count
@@ -904,9 +909,29 @@ def xml2list(xml_data):
 
 def list2dict(list_data, attr_name):
     """
-    Convert a list to a dictionary and group the results based on
-    attributes specified by attr_name
+    Convert a list to a dictionary where the keys are tuples with the values of the attributes listed in attr_name
+
+    :param list_data: list of dictionaries to convert
+    :param attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
+    :return: dictionary of dictionaries
     """
+
+    # Original description: Convert a list to a dictionary and group the results based on
+    #     attributes specified by attr_name
+
+    # TODO: This function has a couple of quirks, check if is OK (MM)
+    # The way it is used, attr_name is the job cluster, process, which are both present in all jobs and unique,
+    # so the quirks should not cause problems
+    # 1. Type checking (of attr_name) probably should use isistance()
+    # 2. dict_name is a tuple including elements of attr_name translated to value in list_el
+    #  if them or the lowercase is a key in list_el
+    #  BUT from the value ( dict_data[dict_name] ) only exact match is excluded, not the lowercase version
+    # 3. keys (dict_name) may have different cardinality if one or some of the elements is not matching list_el keys
+    # 4. if 2 or more list_el have the same dict_name (same valies in attr_list attributes), the newest ones overwrite
+    #  the older ones without any warning
+    #  AND the original description mentions ... "and group the results" ... there is no grouping
+    # 5. 'Undefined' attributes are not added to the dict_el (dict elements may have different keys)
+    # 6. using '%s'%a_value != 'Undefined' and  str(list_el[a]) != 'Undefined' for the same. Use twice the better one
 
     if type(attr_name) in (type([]), type((1, 2))):
         attr_list = attr_name
@@ -1034,6 +1059,21 @@ def fetch2count(data, hash_func):
             count_el = 1
         cel[hid] = count_el
 
+    return count
+
+
+def fetch2count_flat(data, hash_func):
+    """Count the hash values returned from all the elements in data
+
+    :param data: data from a fetch()
+    :param hash_func: Hashing function
+                One argument: classad dictionary
+                Returns: flat hash value (for hashing functions returning also lists, use fetch2count
+                          if None, will not be counted
+    :return: a dictionary with a count of the hash values returned
+    """
+    data_list = sorted(hash_func(v) for v in data.values())
+    count = dict((key, len(list(group))) for key, group in groupby([ i for i in data_list if i is not None]))
     return count
 
 
