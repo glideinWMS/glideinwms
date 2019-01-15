@@ -14,6 +14,7 @@ from __future__ import print_function
 import os, os.path, shutil, string
 import sys
 import glob
+from distutils.util import strtobool
 from . import cgWDictFile, cWDictFile
 from . import cgWCreate
 from . import cgWConsts, cWConsts
@@ -497,8 +498,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", bool(restrictions[u'require_voms_proxy']), allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", bool(restrictions[u'require_glidein_glexec_use']), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", bool(strtobool(restrictions[u'require_voms_proxy'])), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", bool(strtobool(restrictions[u'require_glidein_glexec_use'])), allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain", entry[u'trust_domain'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry[u'auth_method'], allow_overwrite=True)
             if u'rsl' in entry:
