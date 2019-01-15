@@ -769,7 +769,7 @@ class condorLogSummary:
                                  'badput':1000}
             else:
                 #get waste_mill
-                enle_condor_duration = enle_stats['condor_duration']
+                enle_condor_duration = enle_stats.get('condor_duration')
                 if enle_condor_duration is None:
                     enle_condor_duration = 0 # assume failed
 
@@ -791,7 +791,7 @@ class condorLogSummary:
                         enle_validation_duration = enle_stats['validation_duration']
                     else:
                         enle_validation_duration = enle_difftime - enle_condor_duration
-                    enle_condor_stats = enle_stats['stats']
+                    enle_condor_stats = enle_stats.get('stats')
                     enle_jobs_duration = enle_condor_stats['Total']['secs']
                     enle_nr_jobs = enle_condor_stats['Total']['jobsnr']
                     enle_waste_mill = {'validation':1000.0 * enle_validation_duration / enle_glidein_duration,
@@ -849,13 +849,13 @@ class condorLogSummary:
         for w in time_waste_mill.keys():
             time_waste_mill_w = time_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
-                time_waste_mill_w[enle_waste_mill_w_range] = 0 # make sure all are intialized
+                time_waste_mill_w[enle_waste_mill_w_range] = 0 # make sure all are initialized
 
         for enle_job in entered_list.keys():
             enle = entered_list[enle_job]
             enle_waste_mill = enle['wastemill']
             enle_glidein_duration = enle['duration']
-            enle_condor_duration = enle['condor_duration']
+            enle_condor_duration = enle.get('condor_duration')
             enle_jobs_nr = enle['jobsnr']
             enle_jobs_duration = enle['jobs_duration']
             enle_condor_started = enle['condor_started']
@@ -1208,7 +1208,7 @@ class condorLogSummary:
         monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
     def write_job_info(self, scheddName, collectorName):
-        """ The method itereates over the stats_diff dictionary looking for
+        """ The method iterates over the stats_diff dictionary looking for
         completed jobs and then fills out a dictionary that contains the
         monitoring information needed for this job. Those info looks like:
 
@@ -1239,11 +1239,11 @@ class condorLogSummary:
                             jobstats = job[4]
                             #This is the dictionary that is going to be written out as a monitoring classad
                             jobinfo['joblist'][jobid] = {
-                                #activation_claims is a new key in 3.2.19. Using "get" For backward compatiobility,
+                                #activation_claims is a new key in 3.2.19. Using "get" For backward compatibility,
                                 #but it can be removed in future versions
                                 'activation_claims': jobstats.get('activations_claims', 'unknown'),
                                 'glidein_duration': jobstats['glidein_duration'],
-                                'condor_duration': jobstats['condor_duration'],
+                                'condor_duration': jobstats.get('condor_duration'),
                                 'condor_started': jobstats['condor_started'],
                                 'numjobs': jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
                             }

@@ -443,7 +443,7 @@ def extractLogData(fname):
         out["activations_claims"] = num_activations
     if condor_starting:
         if condor_duration is not None:
-            out['condor_duration']=condor_duration
-            out['stats']=slot_stats
+            out.get('condor_duration', condor_duration)
+            out.get('stats', slot_stats)
 
     return out
