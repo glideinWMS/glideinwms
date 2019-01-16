@@ -302,7 +302,7 @@ class condorQStats:
         self.updated = time.time()
 
     @staticmethod
-    def getEntryFromSubmitFile(self, submitFile):
+    def getEntryFromSubmitFile(submitFile):
         """ Extract the entry name from submit files that look like:
             'entry_T2_CH_CERN/job.CMSHTPC_T2_CH_CERN_ce301.condor'
         """
@@ -483,8 +483,9 @@ class condorQStats:
                                      subtypes_params={"class": {'subclass_params': {'Requested': {'dicts_params': {'Parameters': {'el_name': 'Parameter'}}}}}},
                                      indent_tab=indent_tab, leading_tab=leading_tab)
 
-    def get_total(self):
+    def get_total(self, history={'set_to_zero': False}):
         total = {'Status': None, 'Requested': None, 'ClientMonitor': None}
+        set_to_zero = False
 
         for f in self.data.keys():
             fe = self.data[f]
@@ -518,7 +519,9 @@ class condorQStats:
             if total[w] is None:
                 if w == 'Status':
                     total[w] = self.get_zero_data_element()[w]
-                del total[w]  # remove entry if not defined
+                    set_to_zero = True
+                else:
+                    del total[w]  # remove entry if not defined unless is 'Status'
             else:
                 tel = total[w]
                 for a in tel.keys():
@@ -530,8 +533,11 @@ class condorQStats:
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 
+        if set_to_zero != history['set_to_zero']:
+            if set_to_zero:
+                self.updated = time.time()
+            history['set_to_zero'] = set_to_zero
         return total
-
 
     def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         total = self.get_total()

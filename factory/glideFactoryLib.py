@@ -316,13 +316,14 @@ def getQClientNames(condorq, factoryConfig=None):
     """
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
+    schedd_attribute = factoryConfig.client_schedd_attribute
 
     def group_data_func(val):
         return val
 
     def group_key_func(val):
         try:
-            return val[factoryConfig.client_schedd_attribute]
+            return val[schedd_attribute]
         except KeyError:
             return None
 

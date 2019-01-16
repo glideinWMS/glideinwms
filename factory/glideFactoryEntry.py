@@ -1633,8 +1633,9 @@ def update_entries_stats(factory_in_downtime, entry_list):
     updated_entries = []
     for entry in entry_list:
 
-        if nothing_to_do:
-            continue
+        # Add a heuristic to improve efficiency. Rerurn if not changes in the entry
+        # if nothing_to_do:
+        #    continue
 
         entry.loadContext()
 
@@ -1645,49 +1646,16 @@ def update_entries_stats(factory_in_downtime, entry_list):
             # Protect and exit
             continue
 
-        qc_status = getQStatus(condorQ)
-        qc_status_sf = getQStatusSF(condorQ)
+        if condorQ is None or len(condorQ.stored_data) == 0:
+            # no glideins
+            continue
 
-        # Should log here or in perform_work  - NO REQUEST
-        glideFactoryLib.logWorkRequest(
-            client_int_name, client_security_name,
-            submit_credentials.security_class, idle_glideins,
-            max_glideins, remove_excess, work, log=entry.log, factoryConfig=entry.gflFactoryConfig
-        )
-
-        all_security_names.add((client_security_name, credential_security_class))
-
-        # Iv v2 this was:
-        # entry_condorQ = glideFactoryLib.getQProxSecClass(
-        #                    condorQ, client_int_name,
-        #                    submit_credentials.security_class,
-        #                    client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
-        #                    credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
-        #                    factoryConfig=entry.gflFactoryConfig)
-
-        # Sub-query selecting jobs in Factory schedd (still dictionary keyed by cluster, proc)
-        # for (client_schedd_attribute, credential_secclass_schedd_attribute, credential_id_schedd_attribute)
-        # ie (GlideinClient, GlideinSecurityClass, GlideinCredentialIdentifier)
-        entry_condorQ = glideFactoryLib.getQCredentials(
-            condorQ, client_int_name, submit_credentials,
-            entry.gflFactoryConfig.client_schedd_attribute,
-            entry.gflFactoryConfig.credential_secclass_schedd_attribute,
-            entry.gflFactoryConfig.credential_id_schedd_attribute)
-
-        # Map the identity to a frontend:sec_class for tracking totals
-        frontend_name = "%s:%s" % \
-                        (entry.frontendDescript.get_frontend_name(client_expected_identity),
-                         credential_security_class)
-
-        glideFactoryLib.logStats(condorQ, client_int_name,
-                                 client_security_name,
-                                 submit_credentials.security_class, log=entry.log,
-                                 factoryConfig=entry.gflFactoryConfig)
+        glideFactoryLib.logStatsAll(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
         updated_entries.append(entry)
 
+    return updated_entries
 
-    pass
 
 ###############################################################################
 # removed
