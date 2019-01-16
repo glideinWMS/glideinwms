@@ -970,10 +970,10 @@ function set_proxy_fullpath {
     # Set the X509_USER_PROXY path to full path to the file
     fullpath="`readlink -f $X509_USER_PROXY`"
     if [ $? -eq 0 ]; then
-        echo "Setting X509_USER_PROXY $X09_USER_PROXY to canonical path $fullpath" 1>&2
+        echo "Setting X509_USER_PROXY $X509_USER_PROXY to canonical path $fullpath" 1>&2
         export X509_USER_PROXY="$fullpath"
     else
-        echo "Unable to get canonical path for X509_USER_PROXY, using $X09_USER_PROXY" 1>&2
+        echo "Unable to get canonical path for X509_USER_PROXY, using $X509_USER_PROXY" 1>&2
     fi
 }
 

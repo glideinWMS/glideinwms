@@ -1126,31 +1126,28 @@ if [ -f "${main_condor_log}" ]; then
     echo "Total number of activations/claims: $numactivations"
 fi
 
-if [ 1 -eq 1 ]; then
-    ls -l log 1>&2
-    echo
-    cond_print_log MasterLog log/MasterLog
-    cond_print_log StartdLog log/StartdLog
-    cond_print_log StarterLog ${main_starter_log}
-    slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
-    for slotlog in $slotlogs
-    do
-        slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
-        cond_print_log StarterLog.${slotname} $slotlog
-    done
+ls -l log 1>&2
+echo
+cond_print_log MasterLog log/MasterLog
+cond_print_log StartdLog log/StartdLog
+cond_print_log StarterLog ${main_starter_log}
+slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
+for slotlog in $slotlogs
+do
+    slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
+    cond_print_log StarterLog.${slotname} $slotlog
+done
 
-    if [ "$use_multi_monitor" -ne 1 ]; then
-        if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-            cond_print_log MasterLog.monitor monitor/log/MasterLog
-            cond_print_log StartdLog.monitor monitor/log/StartdLog
-            cond_print_log StarterLog.monitor ${monitor_starter_log}
-        fi
-    else
+if [ "$use_multi_monitor" -ne 1 ]; then
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+        cond_print_log MasterLog.monitor monitor/log/MasterLog
+        cond_print_log StartdLog.monitor monitor/log/StartdLog
         cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
-
-    cond_print_log StartdHistoryLog log/StartdHistoryLog
+else
+    cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
+cond_print_log StartdHistoryLog log/StartdHistoryLog
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
