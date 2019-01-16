@@ -17,7 +17,7 @@ from __future__ import absolute_import
 #       not needed anymore (currently there is an extrnal structure and the poll object is a new one each time)
 import cPickle
 import os
-#import sys
+import sys
 import time
 import select
 import errno
@@ -25,6 +25,10 @@ from .pidSupport import register_sighandler, unregister_sighandler, termsignal
 from . import logSupport
 
 
+class FetchError(RuntimeError):
+    pass
+
+    
 class ForkResultError(RuntimeError):
     def __init__(self, nr_errors, good_results, failed=[]):
         RuntimeError.__init__(self, "Found %i errors" % nr_errors)
@@ -71,8 +75,14 @@ def fork_in_bg(function_torun, *args):
 def fetch_fork_result(r, pid):
     """
     Used with fork clients
-    Can raise OSError if Bad file descriptor or file already closed
-
+    Can raise:
+    OSError if Bad file descriptor or file already closed or if waitpid syscall returns -1
+    FetchError if a os.read error was encountered
+    Possible errors from os.read (catched here):
+    - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string 
+    - IOError failure for an I/O-related reason, e.g., "pipe file not found" or "disk full".
+    - OSError other system-related error
+ 
     @type r: pipe
     @param r: Input pipe
 
@@ -84,18 +94,22 @@ def fetch_fork_result(r, pid):
     """
 
     rin = ""
+    out = None
     try:
         s = os.read(r, 1024*1024)
         while s != "":  # "" means EOF
             rin += s
             s = os.read(r, 1024*1024)
-    except IOError as err:
-        logSupport.log.debug('exception %s' % err)
-        logSupport.log.exception('exception %s' % err)
+        # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.' 
+        out = cPickle.loads(rin)
+    except (OSError, IOError, EOFError, cPickle.UnpicklingError) as err:
+        etype, evalue, etraceback = sys.exc_info()
+        # Adding message in case close/waitpid fail and preempt raise
+        logSupport.log.exception('Re-raising exception during read: %s' % err)
+        raise FetchError, 'Exception during read probably due to worker failure, original exception and trace %s: %s' % (etype, evalue), etraceback
     finally:
         os.close(r)
         os.waitpid(pid, 0)
-    out = cPickle.loads(rin)
     return out
 
 
@@ -119,7 +133,8 @@ def fetch_fork_result_list(pipe_ids):
             # Collect the results
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
-        except (IOError, KeyError, OSError) as err:
+        except (KeyError, OSError, FetchError) as err:
+            # fetch_fork_result can raise OSError and FetchError
             errmsg = "Failed to extract info from child '%s' %s" % (str(key), err)
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)
@@ -224,10 +239,11 @@ def fetch_ready_fork_result_list(pipe_ids):
                 poll_obj.unregister(fd)  # Is this needed? the poll object is no more used, next time will be a new one
             work_info[key] = out
             count += 1
-        except (IOError, ValueError, KeyError, OSError) as err:
+        except (IOError, ValueError, KeyError, OSError, FetchError) as err:
             # KeyError: inconsistent dictionary or reverse dictionary
             # IOError: Error in poll_obj.unregister()
             # OSError: [Errno 9] Bad file descriptor - fetch_fork_result with wrong file descriptor
+            # FetchError: read error in fetch_fork_result 
             errmsg = ("Failed to extract info from child '%s': %s" % (str(key), err))
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)

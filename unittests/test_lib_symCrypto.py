@@ -20,7 +20,12 @@ import hypothesis
 import hypothesis.strategies as st
 
 
-from glideinwms.lib.symCrypto import SymKey
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.symCrypto import SymKey
+except ImportError as err:
+    raise TestImportError(str(err))
+
 from glideinwms.lib.symCrypto import MutableSymKey
 from glideinwms.lib.symCrypto import ParametryzedSymKey
 from glideinwms.lib.symCrypto import AutoSymKey

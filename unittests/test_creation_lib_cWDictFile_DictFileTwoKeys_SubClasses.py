@@ -19,8 +19,13 @@ import xmlrunner
 
 
 # from glideinwms.creation.lib.cWDictFile import DictFile
-from glideinwms.creation.lib.cWDictFile import DescriptionDictFile
-from glideinwms.creation.lib.cWDictFile import GridMapDict
+
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import DescriptionDictFile
+    from glideinwms.creation.lib.cWDictFile import GridMapDict
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestDescriptionDictFile(unittest.TestCase):

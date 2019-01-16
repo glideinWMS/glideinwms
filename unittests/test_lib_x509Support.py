@@ -6,7 +6,12 @@ import glideinwms.lib.subprocessSupport
 import unittest2 as unittest
 import xmlrunner
 
-from glideinwms.lib.x509Support import extract_DN
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.x509Support import extract_DN
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class TestExtractDN(unittest.TestCase):

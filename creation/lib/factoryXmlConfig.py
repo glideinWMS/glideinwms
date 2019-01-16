@@ -39,6 +39,23 @@ class FactAttrElement(xmlConfig.AttrElement):
             raise RuntimeError(self.err_str('published attribute must either be "parameter" or "const"'))
         if not is_publish and (not is_const or not is_param):
             raise RuntimeError(self.err_str('unpublished attribute must be "const" "parameter"'))
+        self.check_overwrite_soundness()
+
+    def check_overwrite_soundness(self):
+        """ If the attribute is defined in the global attributes section then
+            check that the "const" key is True/False for both
+        """
+        config = self.get_config_node()
+        try:
+            attrs = config.get_child(u'attrs')
+        except KeyError:
+            # No need to check if the configuration has no global attribute section
+            return
+        for att in attrs.get_children():
+            if att[u'name'] == self[u'name'] and att[u'const'] != self[u'const']:
+                entry = "Global section" if isinstance(self.parent.parent, Config) else self.parent.parent.getName()
+                raise RuntimeError(("%s: attribute %s is already defined in the global section, but it is const=\"%s\". "
+                                    "Please make sure the 'const' value is the same." % (entry, self[u'name'], att[u'const'])))
 
 
 xmlConfig.register_tag_classes({u'attr': FactAttrElement})
@@ -138,6 +155,10 @@ class EntrySetElement(EntryElement):
 #            val = [ x[attrname] for x in self.get_child_list(u'entries') ]
         return val
 
+    def get_subentries(self):
+         return self.get_child_list(u'entries')
+
+
     def getName(self):
         """ The name for entry sets is actaully called alias """
         return self[u'alias']
@@ -227,6 +248,14 @@ class Config(xmlConfig.DictElement):
         else:
             self.web_url = self.get_child(u'stage')[u'web_base_url']
 
+    def set_num_factories(self):
+        if eval(self[u'factory_versioning']):
+            self.num_factories = os.path.join(self.get_child(u'submit')[u'num_factories'],
+                                        u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.num_factories = self.get_child(u'submit')[u'num_factories']
+        self.num_factories = int(self.num_factories)
+
     #######################
     #
     # FactoryXmlConfig getter functions
@@ -299,6 +328,7 @@ def parse(file):
     conf.set_client_log_dirs()
     conf.set_client_proxy_dirs()
     conf.set_web_url()
+    conf.set_num_factories()
 
     return conf
 

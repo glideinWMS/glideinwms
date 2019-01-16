@@ -9,7 +9,12 @@ import os
 # path for us.
 from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.factory.glideFactoryConfig import FactoryConfig
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.factory.glideFactoryConfig import FactoryConfig
+except ImportError as err:
+    raise TestImportError(str(err))
+
 from glideinwms.factory.glideFactoryConfig import ConfigFile
 from glideinwms.factory.glideFactoryConfig import EntryConfigFile
 from glideinwms.factory.glideFactoryConfig import JoinConfigFile
