@@ -63,7 +63,7 @@ check_only=0
 if [ "$debug_mode" -ne 0 ]; then
     print_debug=1
     if [ "$debug_mode" -eq 2 ]; then
-	    check_only=1
+        check_only=1
     fi
 fi
 
@@ -94,8 +94,7 @@ main_stage_dir="`grep -i "^GLIDEIN_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`
 
 description_file="`grep -i "^DESCRIPTION_FILE " "$config_file" | cut -d ' ' -f 2-`"
 
-
-in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -d ' ' -f 2-`"
+in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -s -f 2-`"
 
 export CONDOR_CONFIG="${PWD}/condor_config"
 
@@ -154,14 +153,14 @@ function set_var {
 
     var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
     if [ -z "$var_val" ]; then
-	if [ "$var_req" == "Y" ]; then
-	    # needed var, exit with error
-	    #echo "Cannot extract $var_name from '$config_file'" 1>&2
-	    STR="Cannot extract $var_name from '$config_file'"
-	    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
-	    exit 1
-	elif [ "$var_def" == "-" ]; then
-	    # no default, do not set
+        if [ "$var_req" == "Y" ]; then
+            # needed var, exit with error
+            #echo "Cannot extract $var_name from '$config_file'" 1>&2
+            STR="Cannot extract $var_name from '$config_file'"
+            "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
+            exit 1
+        elif [ "$var_def" == "-" ]; then
+            # no default, do not set
             return 0
         else
             eval var_val=$var_def
@@ -471,7 +470,7 @@ else
     if [ -z "$retire_spread" ]; then
         # Make sure that the default spread is enough so that we
         # dont drop below min_glidein (ie 600 seconds)
-	    let "default_spread=($min_glidein * 11) / 100"
+        let "default_spread=($min_glidein * 11) / 100"
     else
         let "default_spread=$retire_spread"
     fi
@@ -969,13 +968,13 @@ fi
 
 X509_BACKUP=$X509_USER_PROXY
 if [ "$expose_x509" == "true" ]; then
-	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
+    echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
 else
-	echo "Unsetting X509_USER_PROXY" 1>&2
-	unset X509_USER_PROXY
+    echo "Unsetting X509_USER_PROXY" 1>&2
+    unset X509_USER_PROXY
 fi
 
-##	start the monitoring condor master
+## start the monitoring condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
     # don't start if monitoring is disabled
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -1127,31 +1126,28 @@ if [ -f "${main_condor_log}" ]; then
     echo "Total number of activations/claims: $numactivations"
 fi
 
-if [ 1 -eq 1 ]; then
-    ls -l log 1>&2
-    echo
-    cond_print_log MasterLog log/MasterLog
-    cond_print_log StartdLog log/StartdLog
-    cond_print_log StarterLog ${main_starter_log}
-    slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
-    for slotlog in $slotlogs
-    do
-        slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
-        cond_print_log StarterLog.${slotname} $slotlog
-    done
+ls -l log 1>&2
+echo
+cond_print_log MasterLog log/MasterLog
+cond_print_log StartdLog log/StartdLog
+cond_print_log StarterLog ${main_starter_log}
+slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
+for slotlog in $slotlogs
+do
+    slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
+    cond_print_log StarterLog.${slotname} $slotlog
+done
 
-    if [ "$use_multi_monitor" -ne 1 ]; then
-        if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-            cond_print_log MasterLog.monitor monitor/log/MasterLog
-            cond_print_log StartdLog.monitor monitor/log/StartdLog
-            cond_print_log StarterLog.monitor ${monitor_starter_log}
-        fi
-    else
+if [ "$use_multi_monitor" -ne 1 ]; then
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+        cond_print_log MasterLog.monitor monitor/log/MasterLog
+        cond_print_log StartdLog.monitor monitor/log/StartdLog
         cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
-
-    cond_print_log StartdHistoryLog log/StartdHistoryLog
+else
+    cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
+cond_print_log StartdHistoryLog log/StartdHistoryLog
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
@@ -1179,10 +1175,10 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 fi
 
 if [ "$ON_DIE" -eq 1 ]; then
-	
+
     #If we are explicitly killed, do not wait required time
     echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
-	
+
     condor_ret=0
     metrics+=" CondorKilled True"
 else
