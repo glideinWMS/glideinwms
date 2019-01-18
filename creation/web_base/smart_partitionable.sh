@@ -83,10 +83,10 @@ else
       # do not want fixed with main resource slots and more than one CPU (possible problem)
       # if the number of resources is insufficient for the available slots
       # NOTE: $num_cpus can be a string AUTO, SLOT, NODE or a number. 
-      # - "$num_cpus" > "1" catches strings and numbers w/o prefoxes
+      # - "$num_cpus" > "1" catches strings and numbers w/o prefixes
       # -  "$num_cpus" -gt "1" catches numbers with prefixed 0s, e.g. 03 -gt 1
       # conditions are separated to be safer and more clear:
-      #  tests show prcedence left to right, but documentation no: https://www.tldp.org/LDP/abs/html/opprecedence.html
+      #  tests show precedence left to right, but documentation no: https://www.tldp.org/LDP/abs/html/opprecedence.html
       # TODO: do a better detection: for all 
       add_config_line SLOTS_LAYOUT partitionable
       "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchResourceSlotToPartitionable"
