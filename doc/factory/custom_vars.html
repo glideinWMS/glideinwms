@@ -714,7 +714,7 @@ by the VO Factory clients.</P>
         <TD> Int</td>
         <TD> None </TD>
         <TD>
-            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor and Startd and jobs started by the glidein. If not GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE, glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">MEMORY</a></P>
+            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor Startd and jobs started by the glidein. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE (False or unset), the glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">MEMORY</a></P>
         </TD>
     </TR>
     <TR>
@@ -723,7 +723,7 @@ by the VO Factory clients.</P>
 
         <TD> False </TD>
         <TD>
-            <P>Used in conjunction with GLIDEIN_MaxMemMBs. See GLIDEIN_MaxMemMBs for the description.</P>
+            <P>Used in conjunction with GLIDEIN_MaxMemMBs. It is ignored if GLIDEIN_MaxMemMBs is set to any value. See GLIDEIN_MaxMemMBs for the description.</P>
         </TD>
     </TR>
     <TR>
