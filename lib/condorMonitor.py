@@ -919,8 +919,9 @@ def list2dict(list_data, attr_name):
     # Original description: Convert a list to a dictionary and group the results based on
     #     attributes specified by attr_name
 
-    # TODO: This function has a couple of quirks, check if is OK (MM)
-    # The way it is used, attr_name is the job cluster, process, which are both present in all jobs and unique,
+    # This function has a couple of quirks, but is OK because the ways it is used (MM)
+    # The way it is used, attr_name is the job cluster, process, which are both present in all jobs from condor_q and unique,
+    # or the Name that is always present and unique in condor_status
     # so the quirks should not cause problems
     # 1. Type checking (of attr_name) probably should use isistance()
     # 2. dict_name is a tuple including elements of attr_name translated to value in list_el

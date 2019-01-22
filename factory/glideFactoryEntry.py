@@ -550,11 +550,8 @@ class Entry:
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
+                # Summary stats to publish in GF and all GFC ClassAds
                 glidein_monitors['Total%s%s'%(w, a)] = current_qc_total[w][a]
-                # TODO: remove this and following 2 lines of comment if all OK
-                #   The content of glidein_monitors is already added to the EntryClassad, no need to duplicate as attribute
-                #   Being an attribute was publishing it also in glidefactoryclient, adding it there (was it desired?)
-                # self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
         stats = util.file_pickle_load(
