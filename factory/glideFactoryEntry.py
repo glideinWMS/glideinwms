@@ -384,9 +384,12 @@ class Entry:
 
     def queryQueuedGlideins(self):
         """
-        Query WMS schedd and get glideins info. Raise in case of failures.
+        Query WMS schedd (on Factory) and get glideins info. Re-raise in case of failures.
+        Return a loaded condorMonitor.CondorQ object using the entry attributes (name, schedd, ...).
+        Consists of a fetched dictionary w/ jobs (keyed by job cluster, ID) in .stored_data,
+        some query attributes and the ability to reload (load/fetch)
 
-        @rtype: condorMonitor.CondorQ
+        @rtype: condorMonitor.CondorQ already loaded
         @return: Information about the jobs in condor_schedd
         """
 
@@ -547,8 +550,8 @@ class Entry:
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
+                # Summary stats to publish in GF and all GFC ClassAds
                 glidein_monitors['Total%s%s'%(w, a)] = current_qc_total[w][a]
-                self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
         stats = util.file_pickle_load(
@@ -632,12 +635,13 @@ class Entry:
                     # report only numbers
                     if isinstance(client_qc_data[w][a], int):
                         client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
+            merged_monitors = glidein_monitors.copy()
+            merged_monitors.update(client_monitors)
 
             try:
                 fparams = current_qc_data[client_name]['Requested']['Parameters']
             except:
                 fparams = {}
-
             params = self.jobParams.data.copy()
             for p in fparams.keys():
                 # Can only overwrite existing params, not create new ones
@@ -646,7 +650,7 @@ class Entry:
 
             advertizer.add(client_internals["CompleteName"],
                            client_name, client_internals["ReqName"],
-                           params, client_monitors.copy(),
+                           params, merged_monitors,
                            self.limits_triggered)
 
         try:
@@ -864,7 +868,7 @@ class Entry:
         Load the post work state from the pickled info
 
         @type post_work_info: dict
-        @param post_work_info: Picked state after doing work
+        @param post_work_info: Pickled state after doing work
         """
 
         self.gflFactoryConfig.client_stats = state.get('client_stats')
@@ -976,6 +980,11 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
     @type entry: glideFactoryEntry.Entry
     @param entry: Entry object
+
+    @param work:
+
+    :return:
+
     """
 
     entry.loadContext()
@@ -1020,7 +1029,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             client_int_name = work[work_key]['internals']["ClientName"]
             client_int_req = work[work_key]['internals']["ReqName"]
         except:
-            entry.log.warning("Request %s not did not provide the client and/or request name. Skipping request" % work_key)
+            entry.log.warning("Request %s did not provide the client and/or request name. Skipping request" % work_key)
             continue
 
         if not glideFactoryLib.is_str_safe(client_int_name):
@@ -1122,10 +1131,19 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                  client_expected_identity, decrypted_params, params,
                  in_downtime, condorQ):
-    """
-    Perform a single work unit using the v2 protocol. When we stop supporting
-    v2 protocol, this function can be removed along with the places it is
-    called from.
+    """    Perform a single work unit using the v3 protocol.
+
+    :param entry:
+    :param work:
+    :param client_name: work_key (key used in the work request)
+    :param client_int_name: client name declared in the request
+    :param client_int_req: name of the request (declared in the request)
+    :param client_expected_identity:
+    :param decrypted_params:
+    :param params:
+    :param in_downtime:
+    :param condorQ: list of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins()
+    :return: Return dictionary w/ success, security_names and work_done
     """
 
     # Return dictionary. Only populate information to be passed at the end
@@ -1137,7 +1155,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     }
 
     #
-    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
+    # STEP: CHECK THAT GLIDEINS ARE WITHIN ALLOWED LIMITS
     #
     can_submit_glideins = entry.glideinsWithinLimits(condorQ)
 
@@ -1463,6 +1481,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     all_security_names.add((client_security_name, credential_security_class))
 
+    # Iv v2 this was:
     # entry_condorQ = glideFactoryLib.getQProxSecClass(
     #                    condorQ, client_int_name,
     #                    submit_credentials.security_class,
@@ -1470,6 +1489,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     #                    credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
     #                    factoryConfig=entry.gflFactoryConfig)
 
+    # Sub-query selecting jobs in Factory schedd (still dictionary keyed by cluster, proc)
+    # for (client_schedd_attribute, credential_secclass_schedd_attribute, credential_id_schedd_attribute)
+    # ie (GlideinClient, GlideinSecurityClass, GlideinCredentialIdentifier)
     entry_condorQ = glideFactoryLib.getQCredentials(
                         condorQ, client_int_name, submit_credentials,
                         entry.gflFactoryConfig.client_schedd_attribute,
@@ -1519,7 +1541,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     @param entry: Entry object
 
     @type condorQ: condorMonitor.CondorQ
-    @param condorQ: Information about the jobs in condor_schedd
+    @param condorQ: Information about the jobs in condor_schedd (entry values sub-query from glideFactoryLib.getQCredentials())
 
     @type client_int_name: string
     @param client_in_name: Internal name of the client
@@ -1567,7 +1589,8 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
         glideFactoryLogParser.dirSummaryTimingsOut(
             entry.gflFactoryConfig.get_client_log_dir(entry.name,
                                                       credential_username),
-            entry.logDir, client_int_name, credential_username)
+            entry.logDir, client_int_name, credential_username
+        )
 
     # should not need privsep for reading logs
     try: # the logParser class will throw an exception if the input file is bad
@@ -1598,6 +1621,37 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
         return 1
 
     return 0
+
+
+####################
+
+def update_entries_stats(factory_in_downtime, entry_list):
+
+    updated_entries = []
+    for entry in entry_list:
+
+        # Add a heuristic to improve efficiency. Rerurn if not changes in the entry
+        # if nothing_to_do:
+        #    continue
+
+        entry.loadContext()
+
+        # Query glidein queue
+        try:
+            condorQ = entry.queryQueuedGlideins()
+        except:
+            # Protect and exit
+            continue
+
+        if condorQ is None or len(condorQ.stored_data) == 0:
+            # no glideins
+            continue
+
+        glideFactoryLib.logStatsAll(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+
+        updated_entries.append(entry)
+
+    return updated_entries
 
 
 ###############################################################################
