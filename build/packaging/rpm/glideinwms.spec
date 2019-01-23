@@ -843,6 +843,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Tue Jan 22 2019  Marco Mambelli <marcom@fnal.gov> - 3.4.3-0.2.rc2
+- GlideinWMS v3.4.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_4_3/history.html
+
 * Fri Oct 26 2018  Marco Mambelli <marcom@fnal.gov> - 3.4.2-1
 - Controlling that Frontend is not using options incompatible w/ linked Factories
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_4_2/history.html

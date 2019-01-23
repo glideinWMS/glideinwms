@@ -87,9 +87,27 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_4_3</b> released on January XX, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_3.tgz">Tarball</a>)<br>
+        <b>v3_4_3</b> released on January 25, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_3.tgz">Tarball</a>)<br>
         <ul>
-            <li>Note: If schedds using the shared_port, review the firewalls as port changed from 9615 to the standard 9618</li>
+            <li>Add a scaling factor for all glideins limits in the entries</li>
+            <li>Comprehensive unit-test for the parsing of the Frontend configuration with collectors using shared port</li>
+            <li>Add the possibility to disable completely Glidein removal</li>
+            <li>Increase verbosity to help Singularity troubleshooting</li>
+            <li>Improve error messages in glideFactoryCredentials</li>
+            <li>Automatically remove glideins after walltime</li>
+            <li>Bug fix: Improve manual_submit_glidein</li>
+            <li>Bug fix: Improve the way condor_jdl dict is populated for metasites</li>
+            <li>Bug fix: Factory crashing with malformed HTCondor log (AttributeError: dirSummaryTimingsOut.data)</li>
+            <li>Bug fix: glidein_config parsing cutting the results at the first space</li>
+            <li>Bug fix: shell scripts improvements (condition smart_partionable.sh, variable splitting)</li>
+            <li>Bug fix: Frontend upgrade is failing if it is unable to determine the version of the Factory</li>
+            <li>Bug fix: Avoid glideFactoryEntryGroup processe leaks</li>
+            <li>Bug fix: Stale running and held glidein numbers reported in factory classads</li>
+            <li>Bug fix: Update documentation about ports requirement for Frontend's submit host</li>
+            <li>Bug fix: The factory seems to ignore the configuration values in the files in the config.d directory w/ entry configurations</li>
+            <li>Bug fix: Frontend not recognizing entries in downtime</li>
+            <li>Bug fix: Pylint tests improved (htcondor setup, remove external lins)</li>
+            <li>NOTE: If you update from 3.4 or earlier make sure to have open port 9618 also on standalone Frontends/subit hosts (was using 9615 before)</li>
         </ul>
       </li>
       <li>
