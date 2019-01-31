@@ -616,13 +616,10 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
         descript_dict.add('GLIDEIN_Singularity_Use', glidein_singularity_use)
 
         if (glidein_singularity_use == 'REQUIRED'):  # avoid NEVER and undefiled (probably will not have Singularity)
-            #query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
-            #match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
-            #ma_arr.append(('SINGULARITY_BIN', 's'))
-            # TODO: in the future remove legacy SINGULARITY_BIN support
-            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="NEVER") && (GLIDEIN_SINGULARITY_REQUIRE=!=UNDEFINED  || (SINGULARITY_BIN=!=UNDEFINED && SINGULARITY_BIN=!="NONE"))' % query_expr
-            match_expr = '(%s) and ((glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER") or (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE"))' % match_expr
-            ma_arr.append(('SINGULARITY_BIN', 's'))
+            # NOTE: 3.5 behavior is different from 3.4.x or earlier, the SINGULARITY_BIN meaning changes
+            #  SINGULARITY_BIN is no more used as flag to select Singularity, only for the binary selection
+            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="NEVER") && (GLIDEIN_SINGULARITY_REQUIRE=!=UNDEFINED)' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER")' % match_expr
             ma_arr.append(('GLIDEIN_SINGULARITY_REQUIRE', 's'))
         elif (glidein_singularity_use == 'NEVER'):  # avoid REQUIRED, REQUIRED_GWMS
             query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED") && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED_GWMS")' % query_expr
