@@ -9,9 +9,19 @@
 # This script starts the condor daemons expects a config file as a parameter
 #
 
+function trap_with_arg {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+
+
 #function to handle passing signals to the child processes
 function on_die {
-    echo "Condor startup received kill signal... shutting down condor processes"
+    condor_pid_tokill=`cat $PWD/condor_master2.pid 2> /dev/null`
+    echo "Condor startup received signal ... shutting down condor processes (and forwarding $1 to $condor_pid_tokill)"
+    [[ -n "$condor_pid_tokill" ]] && kill -s $1 $condor_pid_tokill
     $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
     ON_DIE=1
 }
@@ -1010,10 +1020,11 @@ fi
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
+condor_pid=
 trap 'ignore_signal' HUP
-trap 'on_die' TERM
-trap 'on_die' INT
-
+trap_with_arg on_die TERM INT QUIT
+#trap 'on_die' TERM
+#trap 'on_die' INT
 
 #### STARTS CONDOR ####
 if [ "$check_only" == "1" ]; then
@@ -1021,16 +1032,17 @@ if [ "$check_only" == "1" ]; then
     $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
 else
     $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
+    condor_pid=$!
     # Wait for a few seconds to make sure the pid file is created,
     # then wait on it for completion
-    sleep 5
+    sleep 5 & wait $!
     if [ -e "$PWD/condor_master2.pid" ]; then
         echo "=== Condor started in background, now waiting on process `cat $PWD/condor_master2.pid` ==="
         wait `cat $PWD/condor_master2.pid`
     fi
 fi
-
 condor_ret=$?
+condor_pid=
 
 if [ ${condor_ret} -eq 99 ]; then
     echo "Normal DAEMON_SHUTDOWN encountered" 1>&2

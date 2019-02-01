@@ -13,18 +13,26 @@ global_args="$@"
 
 export LANG=C
 
+function trap_with_arg {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+
+#function to handle passing signals to the child processes
 function on_die {
-        echo "Received kill signal... shutting down child processes" 1>&2
-        ON_DIE=1
-        kill %1
+    echo "Received kill signal... shutting down child processes (forwarding $1 signal)" 1>&2
+    ON_DIE=1
+    kill -s $1 %1
 }
 
 function ignore_signal {
-        echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
+    echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
 }
 
 function warn {
- echo `date` "$@" 1>&2
+    echo `date` "$@" 1>&2
 }
 
 function usage {
@@ -1861,8 +1869,9 @@ echo "=== Last script starting `date` ($last_startup_time) after validating for 
 echo
 ON_DIE=0
 trap 'ignore_signal' HUP
-trap 'on_die' TERM
-trap 'on_die' INT
+trap_with_arg 'on_die' TERM INT
+#trap 'on_die' TERM
+#trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
 $main_dir/error_augment.sh -init
 "${gs_id_work_dir}/$last_script" glidein_config &
