@@ -21,6 +21,7 @@ function trap_with_arg {
 }
 
 #function to handle passing signals to the child processes
+# no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
 function on_die {
     echo "Received kill signal... shutting down child processes (forwarding $1 signal)" 1>&2
     ON_DIE=1
@@ -28,7 +29,7 @@ function on_die {
 }
 
 function ignore_signal {
-    echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
+    echo "Ignoring SIGHUP signal... Use SIGTERM or SIGQUIT to kill processes" 1>&2
 }
 
 function warn {
@@ -1868,8 +1869,8 @@ let validation_time=$last_startup_time-$startup_time
 echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
 echo
 ON_DIE=0
-trap 'ignore_signal' HUP
-trap_with_arg 'on_die' TERM INT
+trap 'ignore_signal' SIGHUP
+trap_with_arg 'on_die' SIGTERM SIGINT SIGQUIT
 #trap 'on_die' TERM
 #trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
