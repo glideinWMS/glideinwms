@@ -668,7 +668,8 @@ def apply_multicore_policy(descript_dict):
     descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
     # Add GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS and GLIDEIN_NODES to the list of attrs queried in glidefactory classad
-    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's'), ('GLIDEIN_ESTIMATED_CPUS', 's'), ('GLIDEIN_NODES', 's')]
+    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's'), ('GLIDEIN_ESTIMATED_CPUS', 's'),
+                                                          ('GLIDEIN_NODES', 's')]
     descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
 
     # Add RequestCpus to the list of attrs queried in jobs classad

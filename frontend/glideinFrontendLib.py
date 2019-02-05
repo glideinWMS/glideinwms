@@ -197,8 +197,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         Third tuple  : Elements that can only run on this site
         Forth tuple  : The entry proportion glideins to be requested based
                        on unique subsets after considering multicore
-                       jobs, GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS (cores in glideins) 
-                       and GLIDEIN_NODES (number of nodes in multinode submissions)
+                       jobs, GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS (cores in glideins)
+                       GLIDEIN_NODES (number of nodes in multinode submissions)
         A special 'glidein name' of (None, None, None) is used for jobs
         that don't match any 'real glidein name' in all 4 tuples above
     """
@@ -1171,24 +1171,24 @@ def uniqueSets(in_sets):
         old_unique_list = []
         old_unique = set()
         new = []
-        #make a list of the elements common to i
-        #(current iteration of sets) and the existing
-        #sorted sets
+        # make a list of the elements common to i
+        # (current iteration of sets) and the existing
+        # sorted sets
         for k in sorted_sets:
-            #for now, old unique is a set with all elements of
-            #sorted_sets
+            # for now, old unique is a set with all elements of
+            # sorted_sets
             old_unique = old_unique | k
             common = k & i
             if common:
                 common_list.append(common)
             else:
                 pass
-        #figure out which elements in i
+        # figure out which elements in i
         # and which elements in old_uniques are unique
         for j in common_list:
             i = i - j
             old_unique = old_unique - j
-        #make a list of all the unique elements in sorted_sets
+        # make a list of all the unique elements in sorted_sets
         for k in sorted_sets:
             old_unique_list.append(k & old_unique)
         new_unique = i
@@ -1279,24 +1279,23 @@ def getGlideinCpusNum(glidein, estimate_cpus=True):
 def getGlideinNodesNum(glidein, estimate_nodes=True):
     """
     Given the glidein data structure, get the GLIDEIN_NODES configured.
-    If estimate_nodes is false translate keywords to numerical equivalent (auto/slot -> -1, node -> 0),
+    If estimate_nodes is false translate keywords to numerical equivalent (and raise ValueError if no valid keyword),
     otherwise estimate nodes.
-    If GLIDEIN_NODES is not configured or is set to auto/-1, ASSUME it to be 1
-    In the future there should be better guesses
+    If GLIDEIN_NODES is not configured, ASSUME it to be 1
+    Currently no keyword is allowed. estimate_nodes is there for future expansions.
     """
-    # TODO: better estimation of nodes available on resources (e.g. average of obtained ones, config parameters)
+    # TODO: Allow estimation of nodes available on resources? Could the Site decide for it?
 
     nodes = str(glidein['attrs'].get('GLIDEIN_NODES', 1))
     try:
-        glidein_nodes = int(cpus)
+        glidein_nodes = int(nodes)
         return max(glidein_nodes, 1)
     except ValueError:
         if estimate_nodes:
+            # Value must be a number, but protecting the numerical expressions
             return 1
         else:
-            nodes_upper = nodes.upper()
-            if nodes_upper == 'AUTO':
-                return -1
+            # There is no automatic discovery of th enumber of nodes
             raise ValueError
 
 
