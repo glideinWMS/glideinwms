@@ -65,16 +65,17 @@ function do_start_all {
     local initial_dir="$(pwd)"
     local startup_script="$GWMS_STARTUP_SCRIPT"
     if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
-        startup_script="$(basename "$startup_script")"
+        startup_script="./$(basename "$startup_script")"
     fi
     for i in `seq 1 $num_glideins`; do
         g_dir="glidein_dir$i"
         copy_all glidein_dir "$g_dir"
         echo "Starting glidein $i in $g_dir"
-        cd "$g_dir"
-        "$startup_script" -multirestart $i "$global_args" &
+        pushd "$g_dir"
+        chmod +x "$startup_script"
+        "$startup_script" -multirestart $i $global_args &
         GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
-        cd "$initial_dir"
+        popd
     done
 }
 
@@ -726,6 +727,14 @@ function get_prefix {
 EOF
 }
 
+function params_get_simple {
+    # Retrieve a simple parameter (no special characters in its value) from the param list
+    # 1:param, 2:param_list (quoted string w/ spaces)
+    [[ ${2} = *\ ${1}\ * ]] || return
+    local retval="${2##*\ ${1}\ }"
+    echo ${retval%%\ *}
+}
+
 ###################################
 # Put parameters into the config file
 function params2file {
@@ -779,7 +788,14 @@ function params2file {
 
 
 ################
-# Parse arguments
+# Parse and verify arguments
+
+# allow some parameters to change arguments
+# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
+tmp_par=`params_get_simple GLIDEIN_MULTIGLIDEIN "$params"`
+[ -n "$tmp_par" ] &&  multi_glidein=$tmp_par
+
+
 set_debug=1
 sleep_time=1199
 if [ "$operation_mode" = "nodebug" ]; then
