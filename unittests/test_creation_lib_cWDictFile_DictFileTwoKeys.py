@@ -20,9 +20,11 @@ import unittest2 as unittest
 import xmlrunner
 
 from glideinwms.unittests.unittest_utils import create_temp_file
-
-# from glideinwms.creation.lib.cWDictFile import DictFile
-from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestDictFileTwoKeys(unittest.TestCase):

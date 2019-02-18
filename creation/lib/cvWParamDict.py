@@ -587,7 +587,7 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
             match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
             ma_arr.append(('GLEXEC_BIN', 's'))
         elif (glidein_glexec_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False) is False)' % match_expr
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
@@ -663,12 +663,13 @@ def validate_singularity(descript_dict, sub_params, params, name):
 def apply_multicore_policy(descript_dict):
     match_expr = descript_dict['MatchExpr']
 
-    # Only consider sites that provide enough GLIDEIN_CPUS (GLIDEIN_ESTIMATED_CPUS) jobs to run
+    # Only consider sites that provide enough GLIDEIN_CPUS (GLIDEIN_ESTIMATED_CPUS) for jobs to run
     match_expr = '(%s) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))' % match_expr
     descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
-    # Add GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS to the list of attrs queried in glidefactory classad
-    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's'), ('GLIDEIN_ESTIMATED_CPUS', 's')]
+    # Add GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS and GLIDEIN_NODES to the list of attrs queried in glidefactory classad
+    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's'), ('GLIDEIN_ESTIMATED_CPUS', 's'),
+                                                          ('GLIDEIN_NODES', 's')]
     descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
 
     # Add RequestCpus to the list of attrs queried in jobs classad

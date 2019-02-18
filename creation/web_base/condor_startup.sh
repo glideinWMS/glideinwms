@@ -9,10 +9,31 @@
 # This script starts the condor daemons expects a config file as a parameter
 #
 
+function trap_with_arg {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+
 #function to handle passing signals to the child processes
+# no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
+#  The condor_master -k <file> sends a SIGTERM to the pid named in the file. This results in a graceful shutdown,
+# where daemons get a chance to do orderly cleanup. To do a fast shutdown, you would send a SIGQUIT to the
+# condor_master process, something like this:
+#  /bin/kill -s SIGQUIT `cat condor_master2.pid`
+# In either case, when the master receives the signal, it will immediately write a message to the log, then signal
+# all of its children. When each child exits, the master will send a SIGKILL to any remaining descendants.
+# Once all of the children exit, the master then exits.
 function on_die {
-    echo "Condor startup received kill signal... shutting down condor processes"
-    $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
+    condor_signal=$1
+    # Can receive SIGTERM SIGINT SIGQUIT, condor understands SIGTERM SIGQUIT. Send SIGQUIT for SIGQUIT, SIGTERM otherwise
+    [[ "$condor_signal" != SIGQUIT ]] && condor_signal=SIGTERM
+    condor_pid_tokill=$condor_pid
+    [[ -z "$condor_pid_tokill" ]] && condor_pid_tokill=`cat $PWD/condor_master2.pid 2> /dev/null`
+    echo "Condor startup received $1 signal ... shutting down condor processes (forwarding $condor_signal to $condor_pid_tokill)"
+    [[ -n "$condor_pid_tokill" ]] && kill -s $condor_signal $condor_pid_tokill
+    # $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
     ON_DIE=1
 }
 
@@ -63,7 +84,7 @@ check_only=0
 if [ "$debug_mode" -ne 0 ]; then
     print_debug=1
     if [ "$debug_mode" -eq 2 ]; then
-	    check_only=1
+        check_only=1
     fi
 fi
 
@@ -94,8 +115,7 @@ main_stage_dir="`grep -i "^GLIDEIN_WORK_DIR " "$config_file" | cut -d ' ' -f 2-`
 
 description_file="`grep -i "^DESCRIPTION_FILE " "$config_file" | cut -d ' ' -f 2-`"
 
-
-in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -d ' ' -f 2-`"
+in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' "${main_stage_dir}/${description_file}" | cut -s -f 2-`"
 
 export CONDOR_CONFIG="${PWD}/condor_config"
 
@@ -154,14 +174,14 @@ function set_var {
 
     var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
     if [ -z "$var_val" ]; then
-	if [ "$var_req" == "Y" ]; then
-	    # needed var, exit with error
-	    #echo "Cannot extract $var_name from '$config_file'" 1>&2
-	    STR="Cannot extract $var_name from '$config_file'"
-	    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
-	    exit 1
-	elif [ "$var_def" == "-" ]; then
-	    # no default, do not set
+        if [ "$var_req" == "Y" ]; then
+            # needed var, exit with error
+            #echo "Cannot extract $var_name from '$config_file'" 1>&2
+            STR="Cannot extract $var_name from '$config_file'"
+            "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
+            exit 1
+        elif [ "$var_def" == "-" ]; then
+            # no default, do not set
             return 0
         else
             eval var_val=$var_def
@@ -471,7 +491,7 @@ else
     if [ -z "$retire_spread" ]; then
         # Make sure that the default spread is enough so that we
         # dont drop below min_glidein (ie 600 seconds)
-	    let "default_spread=($min_glidein * 11) / 100"
+        let "default_spread=($min_glidein * 11) / 100"
     else
         let "default_spread=$retire_spread"
     fi
@@ -969,13 +989,13 @@ fi
 
 X509_BACKUP=$X509_USER_PROXY
 if [ "$expose_x509" == "true" ]; then
-	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
+    echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
 else
-	echo "Unsetting X509_USER_PROXY" 1>&2
-	unset X509_USER_PROXY
+    echo "Unsetting X509_USER_PROXY" 1>&2
+    unset X509_USER_PROXY
 fi
 
-##	start the monitoring condor master
+## start the monitoring condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
     # don't start if monitoring is disabled
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -1011,27 +1031,41 @@ fi
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
-trap 'ignore_signal' HUP
-trap 'on_die' TERM
-trap 'on_die' INT
-
+condor_pid=
+trap 'ignore_signal' SIGHUP
+trap_with_arg on_die SIGTERM SIGINT SIGQUIT
+#trap 'on_die' TERM
+#trap 'on_die' INT
 
 #### STARTS CONDOR ####
-if [ "$check_only" == "1" ]; then
+if [[ "$check_only" == "1" ]]; then
     echo "=== Condor started in test mode ==="
     $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
 else
     $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
+    condor_pid=$!
     # Wait for a few seconds to make sure the pid file is created,
+    sleep 5 & wait $!
+    # Wait more if the pid file was not created and the Glidein was not killed, see [#9639]
+    if [[ ! -e "$PWD/condor_master2.pid" ]] && [[ "$ON_DIE" -eq 0 ]]; then
+        echo "=== Condor started in background but the pid file is still missing, waiting 200 sec more ==="
+        sleep 200 & wait $!
+    fi
     # then wait on it for completion
-    sleep 5
-    if [ -e "$PWD/condor_master2.pid" ]; then
-        echo "=== Condor started in background, now waiting on process `cat $PWD/condor_master2.pid` ==="
-        wait `cat $PWD/condor_master2.pid`
+    if [[ -e "$PWD/condor_master2.pid" ]]; then
+        [[ "$condor_pid" -ne `cat "$PWD/condor_master2.pid"` ]] && echo "Background PID $condor_pid is different from PID file content `cat "$PWD/condor_master2.pid"`"
+        echo "=== Condor started in background, now waiting on process $condor_pid ==="
+        wait $condor_pid
+    else
+        # If ON_DIE == 1, condor has already been killed by a signal
+        if [[ "$ON_DIE" -eq 0 ]]; then
+            echo "=== Condor was started but the PID file is missing, killing process $condor_pid ==="
+            kill -s SIGQUIT $condor_pid
+        fi
     fi
 fi
-
 condor_ret=$?
+condor_pid=
 
 if [ ${condor_ret} -eq 99 ]; then
     echo "Normal DAEMON_SHUTDOWN encountered" 1>&2
@@ -1127,31 +1161,28 @@ if [ -f "${main_condor_log}" ]; then
     echo "Total number of activations/claims: $numactivations"
 fi
 
-if [ 1 -eq 1 ]; then
-    ls -l log 1>&2
-    echo
-    cond_print_log MasterLog log/MasterLog
-    cond_print_log StartdLog log/StartdLog
-    cond_print_log StarterLog ${main_starter_log}
-    slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
-    for slotlog in $slotlogs
-    do
-        slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
-        cond_print_log StarterLog.${slotname} $slotlog
-    done
+ls -l log 1>&2
+echo
+cond_print_log MasterLog log/MasterLog
+cond_print_log StartdLog log/StartdLog
+cond_print_log StarterLog ${main_starter_log}
+slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
+for slotlog in $slotlogs
+do
+    slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
+    cond_print_log StarterLog.${slotname} $slotlog
+done
 
-    if [ "$use_multi_monitor" -ne 1 ]; then
-        if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-            cond_print_log MasterLog.monitor monitor/log/MasterLog
-            cond_print_log StartdLog.monitor monitor/log/StartdLog
-            cond_print_log StarterLog.monitor ${monitor_starter_log}
-        fi
-    else
+if [ "$use_multi_monitor" -ne 1 ]; then
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+        cond_print_log MasterLog.monitor monitor/log/MasterLog
+        cond_print_log StartdLog.monitor monitor/log/StartdLog
         cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
-
-    cond_print_log StartdHistoryLog log/StartdHistoryLog
+else
+    cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
+cond_print_log StartdHistoryLog log/StartdHistoryLog
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
@@ -1179,10 +1210,10 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 fi
 
 if [ "$ON_DIE" -eq 1 ]; then
-	
+
     #If we are explicitly killed, do not wait required time
     echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
-	
+
     condor_ret=0
     metrics+=" CondorKilled True"
 else

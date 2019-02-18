@@ -92,6 +92,7 @@ Related Links:
     </p>
 </div>
 
+    <hr width="90%">
 <div class="section">
 <a name="schedds"><h2>Multiple Schedds in the Factory</h2></a>
 
@@ -125,17 +126,21 @@ Related Links:
     </p>
     <p>
     Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
-    will need to contain the following attributes. Port 9615 is the default port
+    will need to contain the following attributes. Port 9618 is the default port
     for the schedds.
     <blockquote>
          #--  Enable shared_port_daemon<br>
          SHADOW.USE_SHARED_PORT = True<br>
          SCHEDD.USE_SHARED_PORT = True<br>
          SHARED_PORT_MAX_WORKERS = 1000<br>
-         SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
+         SCHEDD.SHARED_PORT_ARGS = -p 9618<br>
          DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
     </blockquote>
-    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect. 
+    <b>Very important:</b> As explained below in this documentation, all HTCondor daemons on the Frontend (including User Collector and Schedd) use the <i>shared port</i> daemon       on port 9618, which must be open. For the secondary collectors, you may need to open the port range 9620 to 9660 depending on your configuration (i.e. if Glideins call 
+       back on those ports). If there are standalone submit hosts, they may have only port 9615 open, as indicated in the examples. In this case, please review the firewalls to        make sure 9618 is open.
+       The same range must be open also for the GlideinWMS versions prior to 3.4.1, as well as the port 9615.
+       Please note, if you install the user schedd on a separate host, incoming TCP port 9618 remains to be open (it was 9615 for GlideinWMS 3.4.0 and earlier).
     </p>
 
 
@@ -224,17 +229,12 @@ Processing schedd: SCHEDDJOBS2<br/>
 
 
 </blockquote>
-</p>
-<p>
+</div>
 
-
-</p>
-<p>
-</p>
+    <hr width="90%">
 
 <!---  Multiple Collectors for Scalability and explanation of Shared Port-------- -->
 <div class="section">
-<hr width="90%"><hr width="90%">
 <a name="collectors"><h2>Multiple Collectors for Scalability / Shared Port</h2></a>
     <p>
      For scalability purposes, this section will describe the steps (configuration) necessary to add additional
@@ -285,7 +285,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <h4></a>Separate Ports</h4>
     <p>
     Since GlideinWMS v3.4.1, shared_port is enabled by default for
-    secondary collectors and CCBs, having all the collector communication behind a single TCP port. This helps to have a
+    secondary collectors and CCBs, having all the collector communication behind a single TCP por (by default, port 9618). This helps to have a
     queue <b>per daemon</b>, instead of global queue. To carry out this, the following HTCondor attributes are required:
     </p>
     <blockquote>
@@ -294,7 +294,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
      SHARED_PORT_MAX_WORKERS = 1000
      SHARED_PORT_ARGS = -p <b>port_number</b>
      DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
-    <blockquote>
+    </blockquote>
     For the secondary collectors configuration, in this example we show an arbitrary value to uniquely identify each
         secondary collector, but all of the collector host are behind of a single TCP port.
     <blockquote>
@@ -309,8 +309,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
     <blockquote>
       ├─1675222 condor_shared_port -f -p 9618 <font color="blue">TCP single port</font></br>
       ├─1675223 condor_collector -f <font color="blue">primary</font></br>
-      ├─1675227 condor_negotiator -f
-      ├─1675229 condor_schedd -f
+      ├─1675227 condor_negotiator -f</br>
+      ├─1675229 condor_schedd -f</br>
       ├─1675230 condor_collector -f -f -local-name COLLECTOR1 -sock collector1 <font color="blue">secondary</font></br>
       ├─1675232 condor_collector -f -f -local-name COLLECTOR2 -sock collector2 <font color="blue">secondary</font></br>
       ├─1675234 condor_collector -f -f -local-name COLLECTOR3 -sock collector3 <font color="blue">secondary</font></br>
@@ -337,10 +337,12 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
         After these  changes have been made in your Condor configuration file, restart HTCondor to effect the change.
         You will see as many collector processes running as you defined.
         </p>
+</div>
+
+    <hr width="90%">
 
 <!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
-<hr width="90%"><hr width="90%">
 <a name="collectors_ha"><h2>Multiple Collectors for High Availability (HA)</h2></a>
     <p>
      For reliability purposes, you may want to utilize HTCondor's High Availability (HA) feature for 
@@ -357,6 +359,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
        so it is made aware of them.
     </p>
     <p/>
+</div>
+    <hr width="90%">
 
 <div class="section">
     <h2><a name="quill">Installing Quill</a></h2>

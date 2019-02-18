@@ -1,3 +1,26 @@
+v3_4_3  Add a scaling factor for all glideins limits in the entries
+        Comprehensive unit-test for the parsing of the Frontend configuration with collectors using shared port
+        Add the possibility to disable completely Glidein removal
+        Increase verbosity to help Singularity troubleshooting
+        Improve error messages in glideFactoryCredentials
+        Automatically remove glideins after walltime
+        Bug fix: Improve manual_submit_glidein
+        Bug fix: Improve the way condor_jdl dict is populated for metasites
+        Bug fix: Factory crashing with malformed HTCondor log (AttributeError: dirSummaryTimingsOut.data)
+        Bug fix: glidein_config parsing cutting the results at the first space
+        Bug fix: shell scripts improvements (condition smart_partionable.sh, variable splitting)
+        Bug fix: Frontend upgrade is failing if it is unable to determine the version of the Factory
+        Bug fix: Avoid glideFactoryEntryGroup processe leaks
+        Bug fix: Stale running and held glidein numbers reported in factory classads
+        Bug fix: Update documentation about ports requirement for Frontend's submit host
+        Bug fix: The factory seems to ignore the configuration values in the files in the config.d directory w/ entry configurations
+        Bug fix: Frontend not recognizing entries in downtime
+        Bug fix: Pylint tests improved (htcondor setup, remove external lins)
+        NOTE: If you update from 3.4 or earlier make sure to have open port 9618 also on standalone Frontends/subit hosts (was using 9615 before)
+
+v3_4_2  Controlling that Frontend is not using options incompatible w/ linked Factories
+        Use systemctl for loading/unloading on EL7
+
 v3_4_1  Improved Singularity support (improved negotiation, added bind path variables and GPU support)
         Switch User collector child collectors to shared_port
         Updated documentation: remove obsolete parts, verified all references.

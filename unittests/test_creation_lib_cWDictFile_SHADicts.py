@@ -19,8 +19,13 @@ import unittest2 as unittest
 import xmlrunner
 
 
-from glideinwms.creation.lib.cWDictFile import SHA1DictFile
-from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import SHA1DictFile
+    from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestSHA1DictFile(unittest.TestCase):

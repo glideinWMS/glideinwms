@@ -1,6 +1,6 @@
 #!/bin/sh
 
-function help_msg {
+help_msg() {
   #filename="$(basename $0)"
   cat << EOF
 $filename [options] TEST_FILES
@@ -15,9 +15,9 @@ Runs unit tests and exit the results to standard output. Failed tests will cause
 EOF
 }
 
-filename="$(basename $0)"
+filename=$(basename "$0")
 VERBOSE=yes
-COVERAGE=no
+RUN_COVERAGE=no
 
 while getopts ":hqac" option
 do
@@ -26,10 +26,10 @@ do
   h) help_msg; exit 0;;
   q) VERBOSE='';;
   a) LIST_FILES=yes;;
-  c) COVERAGE=yes;;
+  c) RUN_COVERAGE=yes;;
   : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;
   *) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
-  \?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
+  ##\?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   esac
 done
 
@@ -38,18 +38,19 @@ shift $((OPTIND-1))
 
 
 # Script setup
-WORKSPACE=`pwd`
-export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
+WORKSPACE=$(pwd)
+export GLIDEINWMS_SRC="$WORKSPACE/glideinwms"
 
 
-if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
+if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
     echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
-    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
-
-if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
+. "$GLIDEINWMS_SRC/build/jenkins/utils.sh" 
+ret=$?
+if [ $ret -ne 0 ] ; then
     echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
     echo "exiting"
     exit 1
@@ -57,10 +58,14 @@ fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
-    setup_python_venv $WORKSPACE
+    setup_python_venv "$WORKSPACE"
 fi
 
-cd $GLIDEINWMS_SRC/unittests
+if ! cd "$GLIDEINWMS_SRC"/unittests ; then
+    echo "cannot find  $GLIDEINWMS_SRC/unittests , exiting" 
+    exit 1
+fi
+
 SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install"
@@ -69,41 +74,47 @@ SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 
 
 # Example file lists (space separated list)
-files="test_frontend.py"
-files="test_frontend_element.py"
-files="test_frontend.py test_frontend_element.py"
+#files="test_frontend.py"
+#files="test_frontend_element.py"
+#files="test_frontend.py test_frontend_element.py"
 
 if [ -n "$LIST_FILES" ]; then
     files_list="$(ls test_*py)"
 else
-    files_list=$@
+    files_list="$*"
 fi
 
-[ "$COVERAGE" = "yes" ] && coverage erase
+[ "$RUN_COVERAGE" = "yes" ] && coverage erase
 
 for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
     if [ -n "$VERBOSE" ]; then
-        if [ "$COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $file || log_nonzero_rc "$file" $?
+        if [ "$RUN_COVERAGE" = "yes" ]; then
+            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
         else
-            ./$file || log_nonzero_rc "$file" $?
+            ./"$file" || log_nonzero_rc "$file" $?
         fi
     else
-        if [ "$COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $file 
+        if [ "$RUN_COVERAGE" = "yes" ]; then
+            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
         else
-            ./$file
+            ./"$file"
         fi
     fi
 done
 
 CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-BR_NO_SLASH=$(echo ${CURR_BRANCH} | sed -e 's/\//_/g')
+BR_NO_SLASH=$(echo "${CURR_BRANCH}" | sed -e 's/\//_/g')
 
-if [ "$COVERAGE" = "yes" ]; then
-    coverage report > ${WORKSPACE}/coverage.report.${BR_NO_SLASH}
-    coverage html
-    mv htmlcov ${WORKSPACE}/htmlcov.${BR_NO_SLASH}
+if [ "$RUN_COVERAGE" = "yes" ]; then
+    coverage report > "${WORKSPACE}/coverage.report.${BR_NO_SLASH}"
+    coverage html || echo "coverage html report failed"
+    if [ -d htmlcov ]; then
+    	mv htmlcov "${WORKSPACE}/htmlcov.${BR_NO_SLASH}"
+    else
+	echo "no html coverage report generated for $BR_NO_SLASH on $(hostname)"
+        which coverage || echo "coverage not installed"
+        coverage --version || echo "coverage not installed"
+    fi
 fi
 

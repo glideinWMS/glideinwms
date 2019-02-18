@@ -197,7 +197,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         Third tuple  : Elements that can only run on this site
         Forth tuple  : The entry proportion glideins to be requested based
                        on unique subsets after considering multicore
-                       jobs and GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS
+                       jobs, GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS (cores in glideins)
+                       GLIDEIN_NODES (number of nodes in multinode submissions)
         A special 'glidein name' of (None, None, None) is used for jobs
         that don't match any 'real glidein name' in all 4 tuples above
     """
@@ -333,16 +334,16 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                         # the first matched... add all jobs in the cluster
                         cluster_arr=[]
                         for jid in cq_dict_clusters_el[jh]:
-                            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+                            t = (jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
                             cluster_arr.append(t)
-                            schedd_count+=1
+                            schedd_count += 1
 
                         # Since all jobs are same figure out how many cpus
                         # are required for this cluster based on one job
                         cpu_schedd_count += job.get('RequestCpus', 1) * len(cq_dict_clusters_el[jh])
-                        first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
-                        all_jobs_clusters[first_t]=cluster_arr
-                        sjobs_arr+=[first_t]
+                        first_t = (first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        all_jobs_clusters[first_t] = cluster_arr
+                        sjobs_arr += [first_t]
                 except KeyError as e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -363,18 +364,18 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
             # END LOOP: for jh in cq_dict_clusters_el.keys()
 
-            jobs_arr+=sjobs_arr
+            jobs_arr += sjobs_arr
             del sjobs_arr
-            glidein_count+=schedd_count
-            cpu_count+=cpu_schedd_count
+            glidein_count += schedd_count
+            cpu_count += cpu_schedd_count
 
         # END LOOP: for scheddIdx in range(nr_schedds)
 
-        jobs=set(jobs_arr)
+        jobs = set(jobs_arr)
         del jobs_arr
         list_of_all_jobs.append(jobs)
-        out_glidein_counts[glidename]=glidein_count
-        out_cpu_counts[glidename]=cpu_count
+        out_glidein_counts[glidename] = glidein_count
+        out_cpu_counts[glidename] = cpu_count
 
     # END LOOP: for glidename in glidein_dict
 
@@ -390,78 +391,80 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     #   Now that we are done matching, we no longer
     #   need the clusters (needed for more efficient matching)
     #   convert all_jobs_clusters back to jobs_arr (list of jobs)
-    outvals=[]
-    for tuple in outvals_cl:
-        jobs_arr=[]
-        for ct in tuple[1]:
-            cluster_arr=all_jobs_clusters[ct]
-            jobs_arr+=cluster_arr
-        outvals.append((tuple[0], set(jobs_arr)))
-    jobs_arr=[]
+    outvals = []
+    for vtuple in outvals_cl:
+        jobs_arr = []
+        for ct in vtuple[1]:
+            cluster_arr = all_jobs_clusters[ct]
+            jobs_arr += cluster_arr
+        outvals.append((vtuple[0], set(jobs_arr)))
+    jobs_arr = []
     for ct in jrange_cl:
-        cluster_arr=all_jobs_clusters[ct]
-        jobs_arr+=cluster_arr
-    jrange=set(jobs_arr)
+        cluster_arr = all_jobs_clusters[ct]
+        jobs_arr += cluster_arr
+    jrange = set(jobs_arr)
 
-    count_unmatched=len(cq_jobs-jrange)
+    count_unmatched = len(cq_jobs-jrange)
 
-    #unique_to_site: keys are sites, elements are num of unique jobs
+    # unique_to_site: keys are sites, elements are num of unique jobs
     unique_to_site = {}
-    #each tuple is ([list of site_indexes],jobs associated with those sites)
-    #this loop necessary to avoid key error
-    for tuple in outvals:
-        for site_index in tuple[0]:
-            new_out_counts[site_index]=0.0
-            unique_to_site[site_index]=0
-    #for every tuple of([site_index],jobs), cycle through each site index
-    #new_out_counts[site_index] is the number of jobs over the number
-    #of indexes, may not be an integer.
-    for tuple in outvals:
-        for site_index in tuple[0]:
-            new_out_counts[site_index]=new_out_counts[site_index]+(1.0*len(tuple[1])/len(tuple[0]))
-        #if the site has jobs unique to it
-        if len(tuple[0])==1:
-            temp_sites=tuple[0]
-            unique_to_site[temp_sites.pop()]=len(tuple[1])
-    #create a list of all sites, list_of_sites[site_index]=site
-    list_of_sites=[]
-    i=0
+    # each tuple is ([list of site_indexes],jobs associated with those sites)
+    # this loop necessary to avoid key error
+    for vtuple in outvals:
+        for site_index in vtuple[0]:
+            new_out_counts[site_index] = 0.0
+            unique_to_site[site_index] = 0
+    # for every tuple of([site_index],jobs), cycle through each site index
+    # new_out_counts[site_index] is the number of jobs over the number
+    # of indexes, may not be an integer.
+    for vtuple in outvals:
+        for site_index in vtuple[0]:
+            new_out_counts[site_index] = new_out_counts[site_index]+(1.0*len(vtuple[1])/len(vtuple[0]))
+        # if the site has jobs unique to it
+        if len(vtuple[0]) == 1:
+            temp_sites = vtuple[0]
+            unique_to_site[temp_sites.pop()] = len(vtuple[1])
+    # create a list of all sites, list_of_sites[site_index]=site
+    list_of_sites = []
+    i = 0
     for glidename in glidein_dict:
         list_of_sites.append(0)
-        list_of_sites[i]=glidename
-        i=i+1
-    final_out_counts={}
-    final_out_cpu_counts={}
-    final_unique={}
+        list_of_sites[i] = glidename
+        i = i+1
+    final_out_counts = {}
+    final_out_cpu_counts = {}
+    final_unique = {}
     # new_out_counts to final_out_counts
     # unique_to_site to final_unique
     # keys go from site indexes to sites
     for glidename in glidein_dict:
-        final_out_counts[glidename]=0
-        final_out_cpu_counts[glidename]=0
-        final_unique[glidename]=0
+        final_out_counts[glidename] = 0
+        final_out_cpu_counts[glidename] = 0
+        final_unique[glidename] = 0
     for site_index in new_out_counts:
-        site=list_of_sites[site_index]
-        final_out_counts[site]=math.ceil(new_out_counts[site_index])
+        site = list_of_sites[site_index]
+        final_out_counts[site] = math.ceil(new_out_counts[site_index])
         if out_glidein_counts[site] > 0:
-            glidein_cpus = 1.0 * getGlideinCpusNum(glidein_dict[site])
+            glidein_cpus_nodes = 1.0 * getGlideinCpusNum(glidein_dict[site]) * getGlideinNodesNum(glidein_dict[site])
             # new_out_counts is based on 1 cpu jobs
             # For a site, out_glidein_counts translates to out_cpu_counts
             # Figure out corresponding out_cpu_counts for new_out_counts
             # Scale the number based on the total cpus required &
-            # that provided by the worker node on the site
+            # that provided by the individual submission on the site
+            # this is the cores on the worker node multiplied for the number
+            # of nodes in one submission if multi-node submissions are enabled
             
             prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index])/out_glidein_counts[site]
-            prop_out_count = prop_cpus/glidein_cpus
+            prop_out_count = prop_cpus/glidein_cpus_nodes
             final_out_cpu_counts[site] = math.ceil(prop_out_count)
 
-        final_unique[site]=unique_to_site[site_index]
+        final_unique[site] = unique_to_site[site_index]
 
-    out_glidein_counts[(None, None, None)]=count_unmatched
-    out_cpu_counts[(None, None, None)]=count_unmatched
-    final_out_counts[(None, None, None)]=count_unmatched
-    final_out_cpu_counts[(None, None, None)]=count_unmatched
-    final_unique[(None, None, None)]=count_unmatched
+    out_glidein_counts[(None, None, None)] = count_unmatched
+    out_cpu_counts[(None, None, None)] = count_unmatched
+    final_out_counts[(None, None, None)] = count_unmatched
+    final_out_cpu_counts[(None, None, None)] = count_unmatched
+    final_unique[(None, None, None)] = count_unmatched
     return (out_glidein_counts, final_out_counts,
             final_unique, final_out_cpu_counts)
 
@@ -1168,24 +1171,24 @@ def uniqueSets(in_sets):
         old_unique_list = []
         old_unique = set()
         new = []
-        #make a list of the elements common to i
-        #(current iteration of sets) and the existing
-        #sorted sets
+        # make a list of the elements common to i
+        # (current iteration of sets) and the existing
+        # sorted sets
         for k in sorted_sets:
-            #for now, old unique is a set with all elements of
-            #sorted_sets
+            # for now, old unique is a set with all elements of
+            # sorted_sets
             old_unique = old_unique | k
             common = k & i
             if common:
                 common_list.append(common)
             else:
                 pass
-        #figure out which elements in i
+        # figure out which elements in i
         # and which elements in old_uniques are unique
         for j in common_list:
             i = i - j
             old_unique = old_unique - j
-        #make a list of all the unique elements in sorted_sets
+        # make a list of all the unique elements in sorted_sets
         for k in sorted_sets:
             old_unique_list.append(k & old_unique)
         new_unique = i
@@ -1244,7 +1247,8 @@ def hashJob(condorq_el, condorq_match_list=None):
 def getGlideinCpusNum(glidein, estimate_cpus=True):
     """
     Given the glidein data structure, get the GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS configured.
-    If estimate_cpus is false translate keywords to numerical equivalent, otherwise estimate CPUs
+    If estimate_cpus is false translate keywords to numerical equivalent (auto/slot -> -1, node -> 0),
+    otherwise estimate CPUs
     If GLIDEIN_CPUS is not configured ASSUME it to be 1, if it is set to auto/slot/-1 or node/0,
     use GLIDEIN_ESTIMATED_CPUS if provided, otherwise ASSUME it to be 1
     In the future there should be better guesses
@@ -1269,6 +1273,29 @@ def getGlideinCpusNum(glidein, estimate_cpus=True):
                 return -1
             if cpus_upper == 'NODE':
                 return 0
+            raise ValueError
+
+
+def getGlideinNodesNum(glidein, estimate_nodes=True):
+    """
+    Given the glidein data structure, get the GLIDEIN_NODES configured.
+    If estimate_nodes is false translate keywords to numerical equivalent (and raise ValueError if no valid keyword),
+    otherwise estimate nodes.
+    If GLIDEIN_NODES is not configured, ASSUME it to be 1
+    Currently no keyword is allowed. estimate_nodes is there for future expansions.
+    """
+    # TODO: Allow estimation of nodes available on resources? Could the Site decide for it?
+
+    nodes = str(glidein['attrs'].get('GLIDEIN_NODES', 1))
+    try:
+        glidein_nodes = int(nodes)
+        return max(glidein_nodes, 1)
+    except ValueError:
+        if estimate_nodes:
+            # Value must be a number, but protecting the numerical expressions
+            return 1
+        else:
+            # There is no automatic discovery of th enumber of nodes
             raise ValueError
 
 
