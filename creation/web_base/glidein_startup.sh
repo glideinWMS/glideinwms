@@ -10,21 +10,73 @@
 IFS=$' \t\n'
 
 global_args="$@"
+# GWMS_STARTUP_SCRIPT=$0
+GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 
 export LANG=C
 
+function trap_with_arg {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+
+#function to handle passing signals to the child processes
+# no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
 function on_die {
-        echo "Received kill signal... shutting down child processes" 1>&2
-        ON_DIE=1
-        kill %1
+    echo "Received kill signal... shutting down child processes (forwarding $1 signal)" 1>&2
+    ON_DIE=1
+    kill -s $1 %1
+}
+
+GWMS_MULTIGLIDEIN_CHILDS=
+function on_die_multi {
+    echo "Multi-Glidein received signal... shutting down child glideins (forwarding $1 signal to $GWMS_MULTIGLIDEIN_CHILDS)" 1>&2
+    ON_DIE=1
+    for i in $GWMS_MULTIGLIDEIN_CHILDS; do
+        kill -s $1 $i
+    done
 }
 
 function ignore_signal {
-        echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
+    echo "Ignoring SIGHUP signal... Use SIGTERM or SIGQUIT to kill processes" 1>&2
 }
 
 function warn {
- echo `date` "$@" 1>&2
+    echo `date` "$@" 1>&2
+}
+
+# Functions to start multiple glideins
+function copy_all {
+   # 1:prefix, 2:directory
+   # should it copy also hidden files?
+   mkdir "$2"
+   for ii in `ls`; do
+       if [[ "$ii" = ${1}* ]]; then
+           continue
+       fi
+       cp -r "$ii" "$2"/
+   done
+}
+
+function do_start_all {
+    local num_glideins=$1
+    local initial_dir="$(pwd)"
+    local startup_script="$GWMS_STARTUP_SCRIPT"
+    if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
+        startup_script="./$(basename "$startup_script")"
+    fi
+    for i in `seq 1 $num_glideins`; do
+        g_dir="glidein_dir$i"
+        copy_all glidein_dir "$g_dir"
+        echo "Starting glidein $i in $g_dir"
+        pushd "$g_dir"
+        chmod +x "$startup_script"
+        "$startup_script" -multirestart $i $global_args &
+        GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
+        popd
+    done
 }
 
 function usage {
@@ -56,6 +108,8 @@ function usage {
     echo "  -clientdescriptgroup <fname>: client description file name for group"
     echo "  -slotslayout <type>         : how Condor will set up slots (fixed, partitionable)"
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
+    echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
+    echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
 }
@@ -93,7 +147,9 @@ do case "$1" in
     -clientdescriptgroup)   client_descript_group_file="$2";;
     -slotslayout)           slots_layout="$2";;
     -v)          operation_mode="$2";;
-        -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
+    -multiglidein)  multi_glidein="$2";;
+    -multirestart)  multi_glidein_restart="$2";;
+    -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
 shift
@@ -671,6 +727,14 @@ function get_prefix {
 EOF
 }
 
+function params_get_simple {
+    # Retrieve a simple parameter (no special characters in its value) from the param list
+    # 1:param, 2:param_list (quoted string w/ spaces)
+    [[ ${2} = *\ ${1}\ * ]] || return
+    local retval="${2##*\ ${1}\ }"
+    echo ${retval%%\ *}
+}
+
 ###################################
 # Put parameters into the config file
 function params2file {
@@ -724,7 +788,14 @@ function params2file {
 
 
 ################
-# Parse arguments
+# Parse and verify arguments
+
+# allow some parameters to change arguments
+# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
+tmp_par=`params_get_simple GLIDEIN_MULTIGLIDEIN "$params"`
+[ -n "$tmp_par" ] &&  multi_glidein=$tmp_par
+
+
 set_debug=1
 sleep_time=1199
 if [ "$operation_mode" = "nodebug" ]; then
@@ -922,6 +993,19 @@ if [ $set_debug -ne 0 ]; then
   echo "------- Initial environment ---------------"  1>&2
   env 1>&2
   echo "------- =================== ---------------" 1>&2
+fi
+
+# Before anything else, spawn multiple glideins and wait, if asked to do so
+if [[ -n "$multi_glidein" ]] && [[ -z "$multi_glidein_restart" ]] && [[ "$multi_glidein" -gt 1 ]]; then
+    # start multiple glideins
+    ON_DIE=0
+    trap 'ignore_signal' SIGHUP
+    trap_with_arg 'on_die_multi' SIGTERM SIGINT SIGQUIT
+    do_start_all $multi_glidein
+    # Wait for all glideins and exit 0
+    # TODO: Summarize exit codes and status from all child glideins
+    wait
+    exit 0
 fi
 
 ########################################
@@ -1860,9 +1944,10 @@ let validation_time=$last_startup_time-$startup_time
 echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
 echo
 ON_DIE=0
-trap 'ignore_signal' HUP
-trap 'on_die' TERM
-trap 'on_die' INT
+trap 'ignore_signal' SIGHUP
+trap_with_arg 'on_die' SIGTERM SIGINT SIGQUIT
+#trap 'on_die' TERM
+#trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
 $main_dir/error_augment.sh -init
 "${gs_id_work_dir}/$last_script" glidein_config &

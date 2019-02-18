@@ -984,8 +984,9 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         publish=&quot;True&quot;/&gt;
         </div>
         <b>Recommended:</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
-        Valid values are 1..N and "auto" or "0" which means to use all cores by using HTCondor's
-        core auto-detection.  The entry will default to 1 if not otherwise defined. 
+        Valid values are 1..N and "auto", "slot" or "node" (corresponding to 0, 0, -1) which means to use all cores on the slot
+         or on the node (see it on the <A HREF="custom_vars.html">configuration variables page</A> for more).
+         The entry will default to 1 if not otherwise defined.
     </li>
     </ul>
         <li>
