@@ -169,6 +169,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # BOSCO, aka batch *
             self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
             self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
+        else:
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
