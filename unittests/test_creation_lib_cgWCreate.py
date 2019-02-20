@@ -15,6 +15,7 @@ import unittest2 as unittest
 XML = 'fixtures/factory/glideinWMS.xml'
 
 
+# pylint: disable=maybe-no-member
 
 class TestGlideinSubmitDictFile(unittest.TestCase):
     def setUp(self):
@@ -43,7 +44,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
         except RuntimeError as err:
             pass
 
-
+# pylint: enable=maybe-no-member
 
 if __name__ == '__main__':
     unittest.main()
