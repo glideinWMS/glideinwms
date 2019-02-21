@@ -1540,6 +1540,8 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
+        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
+
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""
         # if client_web has been provided, get the arguments and add them to the string
@@ -1551,9 +1553,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             if not str(v).strip():
                 log.warning('Skipping empty job parameter (%s)' % k)
                 continue
+            exe_env.append('GLIDEIN_PARAM_%s=%s'% (k, str(v)))
             params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
-        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
         exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 
