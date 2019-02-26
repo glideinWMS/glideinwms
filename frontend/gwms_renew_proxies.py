@@ -12,6 +12,8 @@ import subprocess
 import sys
 import tempfile
 
+from glideinwms.lib import x509Support
+
 CONFIG = '/etc/gwms-frontend/proxies.ini'
 
 DEFAULTS = {'use_voms_server': 'false',
@@ -151,7 +153,11 @@ def main():
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
     with open(os.getenv('VOMS_USERCONF', '/etc/vomses'), 'r') as _:
         vo_info = re.findall(r'"(\w+)"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"', _.read(), re.IGNORECASE)
-        vomses = dict([(vo[0].lower(), {'name': vo[0], 'uri': vo[1] + ':' + vo[2], 'subject': vo[3]}) for vo in vo_info])
+        # VO names are case-sensitive but we don't expect users to get the case right in the proxies.ini
+        vo_name_map = {vo[0].lower(): vo[0] for vo in vo_info}
+        # A mapping between VO certificate subject DNs and VOMS URI of the form "<HOSTNAME>:<PORT>"
+        # We had to separate this out from the VO name because a VO could have multiple vomses entries
+        vo_uri_map = {vo[3]: vo[1] + ':' + vo[2] for vo in vo_info}
 
     retcode = 0
     # Proxy renewals
@@ -181,8 +187,7 @@ def main():
                 os.remove(proxy.tmp_output_fd.name)
                 continue
 
-            voms_info = vomses[proxy_config['vo'].lower()]
-            vo_attr = VO(voms_info['name'], proxy_config['fqan'])
+            vo_attr = VO(vo_name_map[proxy_config['vo'].lower()], proxy_config['fqan'])
 
             if proxy_config['use_voms_server'].lower() == 'true':
                 # we specify '-order' because some European CEs care about VOMS AC order
@@ -193,7 +198,8 @@ def main():
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']
-                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr, voms_info['uri'])
+                voms_ac_issuer = x509Support.extract_DN(vo_attr.cert)
+                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr, vo_uri_map[voms_ac_issuer])
         else:
             print("WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) +
                   "Valid configuration sections: 'FRONTEND' or 'PILOT'.")
