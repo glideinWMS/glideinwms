@@ -242,7 +242,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        sys.exit(main())
     except (ConfigError, ValueError) as exc:
         print("ERROR: " + str(exc))
         sys.exit(1)
