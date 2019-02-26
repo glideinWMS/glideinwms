@@ -66,6 +66,10 @@ class Proxy(object):
         """
         return _safe_int(self._voms_proxy_info('-actimeleft')[0])
 
+    def cleanup(self):
+        """Cleanup temporary proxy files
+        """
+        os.remove(self.tmp_output_fd.name)
 
 class VO(object):
     """Class for holding information related to VOMS attributes
@@ -187,13 +191,13 @@ def main():
         if proxy_section == 'FRONTEND':
             if has_time_left(proxy.timeleft()):
                 print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
-                os.remove(proxy.tmp_output_fd.name)
+                proxy.cleanup()
                 continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
             if has_time_left(proxy.timeleft()) and has_time_left(proxy.actimeleft()):
                 print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
-                os.remove(proxy.tmp_output_fd.name)
+                proxy.cleanup()
                 continue
 
             vo_attr = VO(vo_name_map[proxy_config['vo'].lower()], proxy_config['fqan'])
@@ -227,7 +231,7 @@ def main():
             retcode = 1
             # don't raise an exception here to continue renewing other proxies
             print("ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr))
-            os.remove(proxy.tmp_output_fd.name)
+            proxy.cleanup()
 
     return retcode
 
