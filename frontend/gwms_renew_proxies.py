@@ -214,8 +214,12 @@ def main():
                 try:
                     vo_attr.uri = vo_uri_map[x509Support.extract_DN(vo_attr.cert)]
                 except KeyError:
-                    raise ConfigError("Failed to find entry in {0} for {1}. ".format(vomses, vo_attr.cert) +
-                                      "Please verify your VO data installation.")
+                    retcode = 1
+                    print("ERROR: Failed to renew proxy {0}: ".format(proxy.output) +
+                          "Could not find entry in {0} for {1}. ".format(vomses, vo_attr.cert) +
+                          "Please verify your VO data installation.")
+                    proxy.cleanup()
+                    continue
                 stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr)
         else:
             print("WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) +
