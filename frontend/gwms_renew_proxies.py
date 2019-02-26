@@ -23,6 +23,12 @@ DEFAULTS = {'use_voms_server': 'false',
             'owner': 'frontend'}
 
 
+class ConfigError(BaseException):
+    """Catch-all class for errors in proxies.ini or system VO configuration
+    """
+    pass
+
+
 class Proxy(object):
     """Class for holding information related to the proxy
     """
@@ -140,9 +146,9 @@ def main():
 
     # Verify config sections
     if proxies.count('COMMON') != 1:
-        raise RuntimeError("there must be only one [COMMON] section in %s" % CONFIG)
+        raise ConfigError("there must be only one [COMMON] section in %s" % CONFIG)
     if len([x for x in proxies if x.startswith('PILOT')]) < 1:
-        raise RuntimeError("there must be at least one [PILOT] section in %s" % CONFIG)
+        raise ConfigError("there must be at least one [PILOT] section in %s" % CONFIG)
 
     # Proxies need to be owned by the 'frontend' user
     try:
@@ -222,6 +228,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (RuntimeError, ValueError) as exc:
+    except (ConfigError, ValueError) as exc:
         print("ERROR: " + str(exc))
         sys.exit(1)
