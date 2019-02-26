@@ -70,12 +70,13 @@ class Proxy(object):
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
-    def __init__(self, vo, fqan, cert=None, key=None):
+    def __init__(self, vo, fqan, cert=None, key=None, uri=None):
         """vo - name of the Virtual Organization. Case should match folder names in /etc/grid-security/vomsdir/
         fqan - VOMS attribute FQAN with format "/vo/command" (/osg/Role=NULL/Capability=NULL) or
                "command" (Role=NULL/Capability=NULL)
         cert - path to VOMS server certificate used to sign VOMS attributes (for use with voms_proxy_fake)
         key - path to key associated with the cert argument
+        uri - hostname and port of the VO's VOMS Admin Server, e.g. voms.opensciencegrid.org:15001
         """
         self.name = vo
         if fqan.startswith('/%s/Role=' % vo):
@@ -89,6 +90,7 @@ class VO(object):
         self.voms = ':'.join([vo, fqan])
         self.cert = cert
         self.key = key
+        self.uri = uri
 
 
 def _safe_int(string_var):
@@ -120,7 +122,7 @@ def voms_proxy_init(proxy, *args):
     return _run_command(cmd)
 
 
-def voms_proxy_fake(proxy, vo_info, voms_uri):
+def voms_proxy_fake(proxy, vo_info):
     """ Create a valid proxy without contacting a VOMS Admin server. VOMS attributes are created from user config.
     Returns stdout, stderr, and return code of voms-proxy-fake
     """
@@ -132,7 +134,7 @@ def voms_proxy_fake(proxy, vo_info, voms_uri):
            '-voms', vo_info.name,
            '-hostcert', vo_info.cert,
            '-hostkey', vo_info.key,
-           '-uri', voms_uri,
+           '-uri', vo_info.uri,
            '-fqan', vo_info.fqan]
     return _run_command(cmd)
 
@@ -157,7 +159,8 @@ def main():
         raise RuntimeError("missing 'frontend' user")
 
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
-    with open(os.getenv('VOMS_USERCONF', '/etc/vomses'), 'r') as _:
+    vomses = os.getenv('VOMS_USERCONF', '/etc/vomses')
+    with open(vomses, 'r') as _:
         vo_info = re.findall(r'"(\w+)"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"', _.read(), re.IGNORECASE)
         # VO names are case-sensitive but we don't expect users to get the case right in the proxies.ini
         vo_name_map = {vo[0].lower(): vo[0] for vo in vo_info}
@@ -204,8 +207,8 @@ def main():
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']
-                voms_ac_issuer = x509Support.extract_DN(vo_attr.cert)
-                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr, vo_uri_map[voms_ac_issuer])
+                vo_attr.uri = vo_uri_map[x509Support.extract_DN(vo_attr.cert)]
+                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr)
         else:
             print("WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) +
                   "Valid configuration sections: 'FRONTEND' or 'PILOT'.")
