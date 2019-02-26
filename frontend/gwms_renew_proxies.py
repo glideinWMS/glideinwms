@@ -70,7 +70,7 @@ class Proxy(object):
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
-    def __init__(self, vo, fqan, cert=None, key=None, uri=None):
+    def __init__(self, vo, fqan):
         """vo - name of the Virtual Organization. Case should match folder names in /etc/grid-security/vomsdir/
         fqan - VOMS attribute FQAN with format "/vo/command" (/osg/Role=NULL/Capability=NULL) or
                "command" (Role=NULL/Capability=NULL)
@@ -88,9 +88,9 @@ class VO(object):
         self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
         self.voms = ':'.join([vo, fqan])
-        self.cert = cert
-        self.key = key
-        self.uri = uri
+        self.cert = None
+        self.key = None
+        self.uri = None
 
 
 def _safe_int(string_var):
