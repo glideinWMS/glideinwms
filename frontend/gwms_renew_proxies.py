@@ -167,10 +167,10 @@ def main():
     with open(vomses, 'r') as _:
         vo_info = re.findall(r'"(\w+)"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"', _.read(), re.IGNORECASE)
         # VO names are case-sensitive but we don't expect users to get the case right in the proxies.ini
-        vo_name_map = {vo[0].lower(): vo[0] for vo in vo_info}
+        vo_name_map = dict([(vo[0].lower(), vo[0]) for vo in vo_info])
         # A mapping between VO certificate subject DNs and VOMS URI of the form "<HOSTNAME>:<PORT>"
         # We had to separate this out from the VO name because a VO could have multiple vomses entries
-        vo_uri_map = {vo[3]: vo[1] + ':' + vo[2] for vo in vo_info}
+        vo_uri_map = dict([(vo[3], vo[1] + ':' + vo[2]) for vo in vo_info])
 
     retcode = 0
     # Proxy renewals
