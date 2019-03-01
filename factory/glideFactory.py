@@ -561,7 +561,9 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         childs[group] = subprocess.Popen(command_list,
                                                          shell=False,
                                                          stdout=subprocess.PIPE,
-                                                         stderr=subprocess.PIPE)
+                                                         stderr=subprocess.PIPE,
+                                                         close_fds=True,
+                                                         preexec_fn=_set_rlimit)                                                         
 
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
