@@ -476,8 +476,15 @@ class condorQStats:
 
         return data1
 
-    def get_xml_data(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        data = self.get_data()
+    @staticmethod
+    def get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """
+        Return a string with the XML formatted statistic data
+        @param data: self.get_data()
+        @param indent_tab: indentation space
+        @param leading_tab: leading space
+        @return: XML string
+        """
         return xmlFormat.dict2string(data,
                                      dict_name="frontends", el_name="frontend",
                                      subtypes_params={"class": {'subclass_params': {'Requested': {'dicts_params': {'Parameters': {'el_name': 'Parameter'}}}}}},
@@ -539,8 +546,15 @@ class condorQStats:
             history['set_to_zero'] = set_to_zero
         return total
 
-    def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        total = self.get_total()
+    @staticmethod
+    def get_xml_total(total, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """
+        Return formatted XML for the total statistics
+        @param total: self.get_total()
+        @param indent_tab: indentation space
+        @param leading_tab: leading space
+        @return: XML string
+        """
         return xmlFormat.class2string(total,
                                       inst_name="total",
                                       indent_tab=indent_tab, leading_tab=leading_tab)
@@ -556,7 +570,13 @@ class condorQStats:
         xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='', params={'status':self.downtime}, leading_tab=leading_tab)
         return xml_downtime
 
-    def write_file(self, monitoringConfig=None):
+    def write_file(self, monitoringConfig=None, alt_stats=None):
+        """
+        Calculate a summary for the entry and write statistics to files
+        @param monitoringConfig: used to pass information from the Entry
+        @param alt_stats: an alternative condorQStats object to use if self has no data
+        @return:
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
@@ -566,18 +586,23 @@ class condorQStats:
             # files updated recently, no need to redo it
             return
 
+        # Retrieve and calculate data
+        data = self.get_data()
+
+        if not data and alt_stats is not None:
+            total_el = alt_stats.get_total()
+        else:
+            total_el = self.get_total()
+
         # write snapshot file
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryEntryQStats>\n' +
                    self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
                    self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                   self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                   self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_total(total_el, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
                    "</glideFactoryEntryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml", xml_str)
-
-        data = self.get_data()
-        total_el = self.get_total()
 
         # update RRDs
         type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}

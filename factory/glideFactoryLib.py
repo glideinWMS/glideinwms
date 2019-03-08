@@ -318,16 +318,13 @@ def getQClientNames(condorq, factoryConfig=None):
         factoryConfig = globals()['factoryConfig']
     schedd_attribute = factoryConfig.client_schedd_attribute
 
-    def group_data_func(val):
-        return val
-
     def group_key_func(val):
         try:
             return val[schedd_attribute]
         except KeyError:
             return None
 
-    client_condorQ = condorMonitor.Group(condorq, group_key_func, group_data_func)
+    client_condorQ = condorMonitor.NestedGroup(condorq, group_key_func)
     client_condorQ.schedd_name = condorq.schedd_name
     client_condorQ.factory_name = condorq.factory_name
     client_condorQ.glidein_name = condorq.glidein_name

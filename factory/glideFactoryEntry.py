@@ -722,7 +722,7 @@ class Entry:
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
-        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
+        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig, alt_stats=self.gflFactoryConfig.client_stats)
         self.log.info("qc_stats written")
 
         self.log.info("Writing rrd_stats for %s" % self.name)
@@ -994,6 +994,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         condorQ = entry.queryQueuedGlideins()
     except:
         # Protect and exit
+        entry.log.debug("condor_q failed in check_and_perform_work for %s" % entry.name)
         return 0
 
     # Consider downtimes and see if we can submit glideins
@@ -1626,6 +1627,14 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
 ####################
 
 def update_entries_stats(factory_in_downtime, entry_list):
+    """
+    Update client_stats for the entries in the list.
+    Used for entries with no job requests
+    NOTE: qc_stats cannot be updated because the frontend certificate information are missing
+    @param factory_in_downtime: True if the Facotry is in downtime
+    @param entry_list: list of entry names for the entries to update
+    @return: list of names of the entries that have been updated (subset of entry_list)
+    """
 
     updated_entries = []
     for entry in entry_list:
@@ -1641,10 +1650,12 @@ def update_entries_stats(factory_in_downtime, entry_list):
             condorQ = entry.queryQueuedGlideins()
         except:
             # Protect and exit
+            logSupport.log.warning("Failed condor_q for entry %s glideins, skipping stats update" % entry.name)
             continue
 
         if condorQ is None or len(condorQ.stored_data) == 0:
             # no glideins
+            logSupport.log.debug("No glideins for entry %s, skipping stats update" % entry.name)
             continue
 
         glideFactoryLib.logStatsAll(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
