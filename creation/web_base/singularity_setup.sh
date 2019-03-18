@@ -142,7 +142,6 @@ function combine_requirements {
         REQUIRED)
             if [ "$req_factory" = NEVER ]; then
                 res_str="VO mandates the use of Singularity Site requires not to use it"
-                #"$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "SINGULARITY_BIN" "attribute" "GLIDEIN_Singularity_Use"
                 echo "FAIL,$res_str"
                 return 1
             fi
@@ -162,21 +161,17 @@ function combine_requirements {
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 
-export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' $glidein_config | cut -d ' ' -f 2-`"
+export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | cut -d ' ' -f 2-`"
 
-# SINGULARITY_BIN is now undocumented (can still be used for compatibility or to force a path for Singularity)
-# TODO: future review use of SINGULARITY_BIN, remove to end legacy support
-# some hackery to deal with spaces in SINGULARITY_BIN
-temp_singularity_bin="`grep '^SINGULARITY_BIN ' $glidein_config | cut -d ' ' -f 2-`"
+# SINGULARITY_BIN is now different (from 3.4 or earlier). It allows to suggest a path (both in Factory and Frontend)
+# but no more controls whether Singularity should be used or not
+# undocumented (can still be used for compatibility or to force a path for Singularity)
+# TODO: this hackery to deal with spaces in SINGULARITY_BIN should no more be needed, check!
+temp_singularity_bin="`grep '^SINGULARITY_BIN ' "$glidein_config" | cut -d ' ' -f 2-`"
 singularity_bin="$(echo $temp_singularity_bin)"
 
-# only to suggest a path, but path is used otherwise
-#if [ -z "$singularity_bin" ]; then
-#    singularity_bin="NONE"
-#fi
-
 # Does frontend want to use singularity?
-use_singularity=`grep '^GLIDEIN_Singularity_Use ' $glidein_config | cut -d ' ' -f 2-`
+use_singularity=`grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$use_singularity" ]; then
     info_stdout "`date` GLIDEIN_Singularity_Use not configured. Defaulting to DISABLE_GWMS"
     # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to DISABLE_GWMS (2018-03-19 discussion)
@@ -184,7 +179,7 @@ if [ -z "$use_singularity" ]; then
 fi
 
 # Does entry require glidein to use singularity?
-require_singularity=`grep '^GLIDEIN_SINGULARITY_REQUIRE ' $glidein_config | cut -d ' ' -f 2-`
+require_singularity=`grep '^GLIDEIN_SINGULARITY_REQUIRE ' "$glidein_config" | cut -d ' ' -f 2-`
 if [ -z "$require_singularity" ]; then
     info_stdout "`date` GLIDEIN_SINGULARITY_REQUIRE not configured. Defaulting to OPTIONAL"
     require_singularity="OPTIONAL"
@@ -198,7 +193,7 @@ gwms_singularity="`combine_requirements $use_singularity $require_singularity`"
 gwms_singularity_ec=$?
 gwms_singularity_status="${gwms_singularity%%,*}"
 gwms_singularity_str="${gwms_singularity#*,}"
-info_dbg "Combining VO ($use_singularity) and entry ($require_singularity/$singularity_bin): $gwms_singularity_ec, $gwms_singularity_status, $gwms_singularity_str"
+info_dbg "Combining VO ($use_singularity) and entry ($require_singularity): $gwms_singularity_ec, $gwms_singularity_status, $gwms_singularity_str"
 if [ $gwms_singularity_ec -ne 0 ] && [ "${gwms_singularity_status}" != FAIL ]; then
     gwms_singularity_str="Detected inconsistent ec=1/status ${gwms_singularity_status} (${gwms_singularity_str}). Forcing failure."
     gwms_singularity_status=FAIL
@@ -265,21 +260,16 @@ info_stdout "`date` Searching and testing the singularity binary"
 
 # Look for binary and adapt if missing
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
-singularity_locate_bin "$singularity_bin"
+singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 
 if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
-    info "Singularity binary appears present and claims to be version $GWMS_SINGULARITY_VERSION"
+    info "Singularity binary appears present, claims to be version $GWMS_SINGULARITY_VERSION and tested with $GWMS_SINGULARITY_IMAGE"
 else
     # Adapt to missing binary
-    no_singularity_fail_or_exit $gwms_singularity_status "Unable to find singularity in PATH=$PATH"
+    no_singularity_fail_or_exit $gwms_singularity_status "Unable to find valid singularity in locations and PATH=$PATH"
 fi
 
-# Valid singularity binary found, "$HAS_SINGULARITY" = True (otherwise would have exited)
-# Test execution and adapt if failed
-if ! singularity_test_exec "$GWMS_SINGULARITY_IMAGE" "$GWMS_SINGULARITY_PATH" ; then
-    # HAS_SINGULARITY="False"
-    no_singularity_fail_or_exit $gwms_singularity_status "Simple singularity exec inside $GWMS_SINGULARITY_IMAGE failed."
-fi
+# Already tested w/ $GWMS_SINGULARITY_IMAGE image in singularity_locate_bin. No need to repeat the test here.
 
 # All tests passed, Singularity works w/ the default image
 advertise HAS_SINGULARITY "True" "C"
