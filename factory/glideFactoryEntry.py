@@ -96,8 +96,7 @@ class Entry:
                                               plog['compression'])
         self.log = logging.getLogger(self.name)
 
-        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-            None,
+        cleaner = cleanupSupport.DirCleanupWSpace(
             self.logDir,
             "(condor_activity_.*\.log\..*\.ftstpk)",
             glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
@@ -164,8 +163,7 @@ class Entry:
         for username in self.frontendDescript.get_all_usernames():
             user_log_dir = self.gflFactoryConfig.get_client_log_dir(self.name,
                                                                     username)
-            cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-                username,
+            cleaner = cleanupSupport.DirCleanupWSpace(
                 user_log_dir,
                 "(job\..*\.out)|(job\..*\.err)",
                 glideFactoryLib.days2sec(float(self.glideinDescript.data['JobLogRetentionMaxDays'])),
@@ -173,8 +171,7 @@ class Entry:
                 float(self.glideinDescript.data['JobLogRetentionMaxMBs']) * pow(2, 20))
             cleanupSupport.cleaners.add_cleaner(cleaner)
 
-            cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-                username,
+            cleaner = cleanupSupport.DirCleanupWSpace(
                 user_log_dir,
                 "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
                 glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
@@ -1600,7 +1597,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
             entry.logDir, client_int_name, credential_username
         )
 
-    # should not need privsep for reading logs
+    # We don't need privsep for reading logs
     try: # the logParser class will throw an exception if the input file is bad
         log_stats[credential_username + ":" + client_int_name].load()
     except Exception as e:

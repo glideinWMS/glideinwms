@@ -424,8 +424,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             for username in frontendDescript.get_all_usernames():
                 cred_base_user = os.path.join(cred_base_dir, "user_%s"%username)
                 cred_user_instance_dirname = os.path.join(cred_base_user, "glidein_%s" % glideinDescript.data['GlideinName'])
-                cred_cleaner = cleanupSupport.PrivsepDirCleanupCredentials(
-                    username, cred_user_instance_dirname,
+                cred_cleaner = cleanupSupport.DirCleanupCredentials(
+                    cred_user_instance_dirname,
                     "(credential_*)", remove_old_cred_age)
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 

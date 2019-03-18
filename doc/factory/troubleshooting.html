@@ -367,31 +367,6 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
         If the job is held, make sure the user schedd is running as root (if getting permission denied).  Run "condor_q -analyze" to see what is holding the process.   
     </p>
 </div>
-<div class="section">
-<h2><a name="switchboard">HTCondor Switchboard Failures</a></h2>
-		
-		<b>Symptoms:</b> Installation, upgrade or reconfig gives errors with the switchboard:
-		<blockquote>
-		    ERROR: Failed to create base clientlog dir (user xxx_cms):<br/>
-		Error running '/usr/local/glideins/v2_4_3_alpha_1/condor-wms/bin/../sbin/condor_root_switchboard mkdir 0 2'<br/>
-		code 256:["option 'user-uid' has an invalid uid in file: <stdin>:1\n"]<br/>
-		Reconfiguring the Factory [FAILED]
-		</blockquote>
-		<b>Debugging steps</b>: 
-		This indicates a problem with privilege separation.  Verify that the username in the security_class in the Factory config is listed in /etc/condor/privsep_config as a valid-target-uid.  Also, HTCondor requires specific permissions on directories for privsep, so similar errors can be triggered if the directory permissions are not set correctly (owner of the directories in the tree must be root or the designated owner).
-
-		<b>Symptoms:</b> Installation, upgrade or reconfig gives errors with the switchboard:
-		<blockquote>
-invalid caller gid (5111)<br/>
-Failed to create base clientlog dir (user Frontend):<br/>
-Unexpected Error running '/usr/bin/../sbin/condor_root_switchboard mkdir 0 4'.<br/>
-Details: Command '/usr/bin/../sbin/condor_root_switchboard mkdir 0 4' returned non-zero exit status 1: <br/>
-		Upgrading the Factory [FAILED]
-		</blockquote>
-		<b>Debugging steps</b>: 
-		This indicates a problem with privilege separation.  Verify that the username and the group under which the Factory runs are listed in /etc/condor/privsep_config as a valid-caller-uids/valid-caller-gids.  Also, HTCondor requires specific permissions on directories for privsep, so similar errors can be triggered if the directory permissions are not set correctly (owner/group owner of the directories in the tree must be root or the designated owner/group).
-</div>
-
 
 <div class="section">
 <h2><a name="find_user">Finding the user</a></h2>

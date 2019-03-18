@@ -340,6 +340,7 @@ class TestClientDirSupport(unittest.TestCase):
     def test___init__(self):
         self.assertTrue(isinstance(self.cds, clientDirSupport))
         self.assertTrue(isinstance(self.cdp, clientDirSupport))
+        # assert False  # TODO: implement your test here
 
     def test_create_dir(self):
         self.cds.create_dir(fail_if_exists=True)
@@ -349,27 +350,16 @@ class TestClientDirSupport(unittest.TestCase):
             assert False
         except BaseException:
             assert True
-
-    def test_create_priv_dir(self):
-        self.cdp.create_dir(fail_if_exists=True)
-        self.assertTrue(os.path.exists(self.dir))
-        try:
-            self.cdp.create_dir(fail_if_exists=True)
-            assert False
-        except BaseException:
-            assert True
+        # self.assertEqual(expected, client_dir_support.create_dir(fail_if_exists))
+        # assert False  # TODO: implement your test here
 
     def test_delete_dir(self):
         self.cds.create_dir()
         self.assertTrue(os.path.exists(self.dir))
         self.cds.delete_dir()
         self.assertFalse(os.path.exists(self.dir))
-
-    def test_delete_priv_dir(self):
-        self.cdp.create_dir()
-        self.assertTrue(os.path.exists(self.dir))
-        self.cdp.delete_dir()
-        self.assertFalse(os.path.exists(self.dir))
+        # self.assertEqual(expected, client_dir_support.delete_dir())
+        # assert False  # TODO: implement your test here
 
 
 class TestChmodClientDirSupport(unittest.TestCase):

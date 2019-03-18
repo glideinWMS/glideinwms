@@ -171,7 +171,6 @@ ecd0f9a7a6e2c158cd0d6603e0243474  ./install/templates/02_gwms_factory_dedicated_
 28a2eef45c7f1bee7f3633da34969e22  ./install/templates/03_gwms_local.config
 df6e3d1648010dcfba995df646a4021d  ./install/templates/11_gwms_secondary_collectors.config
 f4b906d8d88c68d50e17e891626508b7  ./install/templates/condor_mapfile
-6a5b4f6ccb112b94a5e11eef32d69955  ./install/templates/privsep_config
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 163386a501dc29f8aae4e0d063c73b1a  ./lib/classadSupport.py
 f20e57267fb87ae79c9066f8d7e96028  ./lib/cleanupSupport.py
@@ -179,8 +178,7 @@ f20e57267fb87ae79c9066f8d7e96028  ./lib/cleanupSupport.py
 0d097e5473bbd40f0785a909541e8e3a  ./lib/condorLogParser.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
 bc997a4cc32b9fd09489ad453dac490d  ./lib/condorMonitor.py
-9e7262b926853cdbbc97a99f11b6d4f2  ./lib/condorPrivsep.py
-e584fd90c02a3a4203396f3deca021a2  ./lib/condorSecurity.py
+e5gi304284fd90c02a3a4203396f3deca021a2  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 fb537b1b763a733eda24e21658043f6d  ./lib/exprParser.py
 aadf7d1f98bc092c395d3c41d5c4e859  ./lib/fork.py
