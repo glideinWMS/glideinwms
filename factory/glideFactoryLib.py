@@ -718,7 +718,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     @param frontend_name:
     @param log:
     @param factoryConfig:
-    @return: 1 if some glideins were removes, 0 otherwise
+    @return: 1 if some glideins were removed, 0 otherwise
     TODO: could return the number of glideins removed
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
