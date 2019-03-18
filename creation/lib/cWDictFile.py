@@ -1737,4 +1737,3 @@ def validate_node(nodestr, allow_range=False):
         raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
     # OK, all looks good
     return
-

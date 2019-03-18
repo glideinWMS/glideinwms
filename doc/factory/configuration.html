@@ -142,7 +142,7 @@ for a more detailed description.
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port" gridtype="condor" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
@@ -693,9 +693,9 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;
 
-        gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
+        gridtype=&quot;<I>grid type [default: condor]</I>&quot;&gt;
         </div>
-    <b>Optional:</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
+    <b>Optional:</b> The default condor is for HTCondor-CE Gatekeepers. Other values are ec2 or one of the batch types supported by HTCondor:
     batch pbs (for PBS and SLURM), batch lsf, batch sge, batch condor. 
     This tag can specify additional HTCondor Grid types.
     </li>
@@ -1061,13 +1061,13 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
     &lt;/entries&gt;<br>
     &lt;entry_sets&gt;<br>
         <blockquote>
-        &lt;entry_set alias="ITB_FC_CE3" enabled="True"&gt;<br>
+        &lt;entry_set alias="T2_US_UCSD" enabled="True"&gt;<br>
             <blockquote>
             &lt;config&gt;<br>
               <blockquote>
               &lt;max_jobs&gt;<br>
                  <blockquote>
-                 &lt;default_per_frontend glideins="5000" held="100" idle="400"/&gt;<br>
+                 &lt;default_per_frontend glideins="5000" held="50" idle="100"/&gt;<br>
                  &lt;per_entry glideins="10000" held="1000" idle="4000"/&gt;<br>
                  &lt;per_frontends&gt;<br>
                  &lt;/per_frontends&gt;<br>
@@ -1077,7 +1077,7 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
               &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
               &lt;entry_selection algorithm_name="Default" &gt;<br>
-              &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br>
+              &lt;submit cluster_size="10" max_per_cycle="25" sleep="2" slots_layout="partitionable"&gt;<br>
                  <blockquote>
                  &lt;submit_attrs&gt;<br>
                  &lt;/submit_attrs&gt;<br>
@@ -1090,12 +1090,12 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
            &lt;attrs&gt;<br>
               <blockquote>
               &lt;attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
-publish="True" type="string" value="default"/&gt;<br>
+                  publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
-publish="True" type="string" value="default"/&gt;<br>
+                  publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
-              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_GRATIA_TEST"/&gt;<br>
-              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS"/&gt;<br>
+              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="UCSD"/&gt;<br>
+              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS,ATLAS,Fermilab,LIGO,NWICG,HCCLONG"/&gt;<br>
               &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
               </blockquote>
            &lt;/attrs&gt;<br>
@@ -1107,13 +1107,9 @@ publish="True" type="string" value="default"/&gt;<br>
            &lt;/monitorgroups&gt;<br>
            &lt;entries&gt;<br>
                   <blockquote>
-                  &lt;entry name="ITB_FC_CE3_121" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2"
-rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins4@fermicloud092.fnal.gov" trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;entry name="CMSHTPC_T2_US_UCSD_gw2" auth_method="grid_proxy" comment="Created new multicore entry on 2016/03/29 -- Marty" enabled="True" gatekeeper="osg-gw-2.t2.ucsd.edu osg-gw-2.t2.ucsd.edu:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="Condor"&gt;<br>
                   &lt;/entry&gt;<br>
-                  &lt;entry name="ITB_FC_CE3_025" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2"<br>
-rsl="(queue=default)(jobtype=single)"<br>
-schedd_name="schedd_glideins4@fermicloud092.fnal.gov"<br>
-trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;entry name="CMSHTPC_T2_US_UCSD_gw4" auth_method="grid_proxy" comment="Created new multicore entry on 2016/03/29 -- Marty" enabled="True" gatekeeper="osg-gw-4.t2.ucsd.edu osg-gw-4.t2.ucsd.edu:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="Condor"&gt;<br>
                   &lt;/entry&gt;<br>
                   </blockquote>
           &lt;/entries&gt;<br>
