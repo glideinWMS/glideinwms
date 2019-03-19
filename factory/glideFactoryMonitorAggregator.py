@@ -325,11 +325,16 @@ def aggregateStatus(in_downtime):
                 # compare each to the list of fe's accumulated so far
                 if fe not in status_fe['frontends']:
                     status_fe['frontends'][fe] = {}
-                if fe not in nr_feentries:
-                    nr_feentries[fe] = 1  # already found one
+                    fe_first = True
                 else:
-                    nr_feentries[fe] += 1
+                    fe_first = False
+                # number of entries with this frontend
+                if fe not in nr_feentries:
+                    nr_feentries[fe] = 1  # first occurrence of frontend
+                else:
+                    nr_feentries[fe] += 1  # already found one
                 for w in entry_data['frontends'][fe]:
+                    # w is the entry name of the entry using the frontend
                     if w not in status_fe['frontends'][fe]:
                         status_fe['frontends'][fe][w] = {}
                     tela = status_fe['frontends'][fe][w]
@@ -353,13 +358,15 @@ def aggregateStatus(in_downtime):
                                 if a in tela:
                                     tela[a] += int(ela[a])
                                 else:
-                                    tela[a] = int(ela[a])
+                                    if fe_first:  # to avoid adding back attributes that were not in other frontends
+                                        tela[a] = int(ela[a])
                             except:
                                 pass  # not an int, not Downtime, so do nothing
                     # if any attribute from prev. frontends is not in the current one, remove from total
-                    for a in tela:
-                        if a not in ela:
-                            del tela[a]
+                    if not fe_first and w != 'Downtime':
+                        for a in tela:
+                            if a not in ela:
+                                del tela[a]
 
     for w in global_total:
         if global_total[w] is None:

@@ -970,7 +970,7 @@ class X509Proxies:
 
 
 ###############################################################################
-# Functions to serve work requests (invoked form glideFactoryEntryGroup
+# Functions to serve work requests (invoked from glideFactoryEntryGroup)
 ###############################################################################
 
 def check_and_perform_work(factory_in_downtime, entry, work):
@@ -1108,7 +1108,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         done_something += work_performed['work_done']
         all_security_names = all_security_names.union(work_performed['security_names'])
 
-    # sanitise glideins (if there was no work done, otherwise it is done in glidein submission)
+    # sanitize glideins (if there was no work done, otherwise it is done in glidein submission)
     if done_something == 0:
         entry.log.info("Sanitizing glideins for entry %s" % entry.name)
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log,
@@ -1117,8 +1117,8 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     # This is the only place where rrd_stats.getData(), updating RRD as side effect, is called for clients;
     # totals are updated aslo elsewhere
     # i.e. RRD stats and the content of XML files are not updated for clients w/o work requests
-    # TODO: should this change and rrd_stats.getData() be called for all clients anyway?
-    #  if yes, How to get secutiry names tuples (client_security_name, credential_security_class)? - mmb
+    # TODO: #22163, should this change and rrd_stats.getData() be called for all clients anyway?
+    #  if yes, How to get security names tuples (client_security_name, credential_security_class)? - mmb
     # entry.log.debug("Processed work requests: all_security_names = %s" % all_security_names)
     for sec_el in all_security_names:
         try:
@@ -1637,8 +1637,9 @@ def update_entries_stats(factory_in_downtime, entry_list):
     """
     Update client_stats for the entries in the list.
     Used for entries with no job requests
+    TODO: #22163, skip update when in downtime?
     NOTE: qc_stats cannot be updated because the frontend certificate information are missing
-    @param factory_in_downtime: True if the Facotry is in downtime
+    @param factory_in_downtime: True if the Facotry is in downtime, here for future needs (not used now)
     @param entry_list: list of entry names for the entries to update
     @return: list of names of the entries that have been updated (subset of entry_list)
     """
@@ -1646,7 +1647,7 @@ def update_entries_stats(factory_in_downtime, entry_list):
     updated_entries = []
     for entry in entry_list:
 
-        # Add a heuristic to improve efficiency. Rerurn if not changes in the entry
+        # Add a heuristic to improve efficiency. Skip if no changes in the entry
         # if nothing_to_do:
         #    continue
 
@@ -1669,12 +1670,13 @@ def update_entries_stats(factory_in_downtime, entry_list):
         entry.log.info("Sanitizing glideins for entry w/o work %s" % entry.name)
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
-        # TODO: RRD stats for individual clients are not updated here. Are updated only when work is done,
-        #  see check_and_perform_work. RRD for Entry Totals are still recalculared (ferom the partial RRD that
+        # TODO: #22163, RRD stats for individual clients are not updated here. Are updated only when work is done,
+        #  see check_and_perform_work. RRD for Entry Totals are still recalculated (from the partial RRD that
         #  were not updated) in the loop and XML files written.
-        #  should this change and rrd_stats.getData() be called for all clients anyway?
-        #  if yes, How to get secutiry names?
+        #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
+        #  if yes, How to get security names?
         #  see check_and_perform_work above for more.
+        #  These are questions to solve in #22163
         #  - mmb
 
         glideFactoryLib.logStatsAll(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
