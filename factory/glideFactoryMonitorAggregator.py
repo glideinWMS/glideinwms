@@ -15,20 +15,21 @@ from __future__ import print_function
 
 import json
 import copy
-import time
-import string
+# import time
+# import string
 import pickle
 import os.path
 import tempfile
 import shutil
 import time
 
-from glideinwms.lib import timeConversion
+# from glideinwms.lib import timeConversion
 from glideinwms.lib import xmlParse, xmlFormat
 from glideinwms.lib import logSupport
 from glideinwms.lib import rrdSupport
 from glideinwms.factory import glideFactoryMonitoring
-from glideinwms.factory import glideFactoryLib
+# from glideinwms.factory import glideFactoryLib
+
 
 ############################################################
 #
@@ -60,6 +61,7 @@ class MonitorAggregatorConfig:
 # global configuration of the module
 monitorAggregatorConfig = MonitorAggregatorConfig()
 
+
 def rrd_site(name):
     sname = name.split(".")[0]
     return "rrd_%s.xml" %sname
@@ -75,6 +77,7 @@ status_attributes = {'Status': ("Idle", "Running", "Held", "Wait", "Pending", "S
                      'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
                      'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
 type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
+
 
 ##############################################################################
 rrd_problems_found = False
@@ -93,8 +96,8 @@ def verifyHelper(filename, dict, fix_rrd=False):
     if not os.path.exists(filename):
         print("WARNING: %s missing, will be created on restart" % (filename))
         return
-    rrd_obj=rrdSupport.rrdSupport()
-    (missing, extra)=rrd_obj.verify_rrd(filename, dict)
+    rrd_obj = rrdSupport.rrdSupport()
+    (missing, extra) = rrd_obj.verify_rrd(filename, dict)
     for attr in extra:
         print("ERROR: %s has extra attribute %s" % (filename, attr))
         if fix_rrd:
@@ -103,7 +106,7 @@ def verifyHelper(filename, dict, fix_rrd=False):
         for attr in missing:
             print("ERROR: %s missing attribute %s" % (filename, attr))
         if len(missing) > 0:
-            rrd_problems_found=True
+            rrd_problems_found = True
     if fix_rrd and (len(missing) > 0):
         (f, tempfilename) = tempfile.mkstemp()
         (out, tempfilename2) = tempfile.mkstemp()
@@ -210,12 +213,12 @@ def verifyRRD(fix_rrd=False):
 
     completed_dict = glideFactoryMonitoring.getLogCompletedDefaults()
 
-    rrdict = {"Status_Attributes.rrd":status_dict,
-              "Log_Completed.rrd":completed_dict,
-              "Log_Completed_Stats.rrd":completed_stats_dict,
-              "Log_Completed_WasteTime.rrd":completed_waste_dict,
-              "Log_Counts.rrd":counts_dict,
-             }
+    rrdict = {"Status_Attributes.rrd": status_dict,
+              "Log_Completed.rrd": completed_dict,
+              "Log_Completed_Stats.rrd": completed_stats_dict,
+              "Log_Completed_WasteTime.rrd": completed_waste_dict,
+              "Log_Counts.rrd": counts_dict,
+              }
 
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:
@@ -242,146 +245,146 @@ def aggregateStatus(in_downtime):
 
     global monitorAggregatorConfig
 
-    avgEntries=('InfoAge',)
+    avgEntries = ('InfoAge',)
 
-    global_total={'Status':None,'Requested':None,'ClientMonitor':None}
-    status={'entries':{},'total':global_total}
-    status_fe={'frontends':{}} #analogous to above but for frontend totals
-    completed_data_tot={'entries':{}}
+    global_total = {'Status': None, 'Requested': None, 'ClientMonitor': None}
+    status = {'entries': {}, 'total': global_total}
+    status_fe = {'frontends': {}}  # analogous to above but for frontend totals
+    completed_data_tot = {'entries': {}}
 
     # initialize the RRD dictionary, so it gets created properly
-    val_dict={}
+    val_dict = {}
     for tp in global_total.keys():
         # type - status or requested
         if not (tp in status_attributes.keys()):
             continue
 
-        tp_str=type_strings[tp]
+        tp_str = type_strings[tp]
 
-        attributes_tp=status_attributes[tp]
+        attributes_tp = status_attributes[tp]
         for a in attributes_tp:
-            val_dict["%s%s"%(tp_str, a)]=None
+            val_dict["%s%s" % (tp_str, a)] = None
 
-    nr_entries=0
-    nr_feentries={} #dictionary for nr entries per fe
+    nr_entries = 0
+    nr_feentries = {}  # dictionary for nr entries per fe
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
-        status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
-                                  monitorAggregatorConfig.status_relname)
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+                                    monitorAggregatorConfig.status_relname)
         # load entry completed data file
-        completed_data_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
-                                  monitorAggregatorConfig.completed_data_relname)
+        completed_data_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+                                            monitorAggregatorConfig.completed_data_relname)
+        completed_data_fp = None
         try:
-            completed_data_fp=None
-            entry_data=xmlParse.xmlfile2dict(status_fname)
-            completed_data_fp=open(completed_data_fname)
-            completed_data=json.load(completed_data_fp)
+            # entry_data is a regular dictionary of nested dictionaries/lists returned form the XML parsed
+            entry_data = xmlParse.xmlfile2dict(status_fname)
+            completed_data_fp = open(completed_data_fname)
+            completed_data = json.load(completed_data_fp)
         except IOError:
-            continue # file not found, ignore
+            continue  # file not found, ignore
         finally:
             if completed_data_fp:
                 completed_data_fp.close()
 
         # update entry
-        status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}
+        status['entries'][entry] = {'downtime': entry_data['downtime'], 'frontends': entry_data['frontends']}
 
         # update completed data
-        completed_data_tot['entries'][entry]=completed_data['stats']
+        completed_data_tot['entries'][entry] = completed_data['stats']
 
         # update total
         if 'total' in entry_data:
-            nr_entries+=1
-            status['entries'][entry]['total']=entry_data['total']
+            nr_entries += 1
+            status['entries'][entry]['total'] = entry_data['total']
 
-            for w in global_total.keys():
-                tel=global_total[w]
+            for w in global_total:
+                tel = global_total[w]
                 if w not in entry_data['total']:
                     continue
-                el=entry_data['total'][w]
+                el = entry_data['total'][w]
                 if tel is None:
                     # new one, just copy over
-                    global_total[w]={}
-                    tel=global_total[w]
-                    for a in el.keys():
-                        tel[a]=int(el[a]) #coming from XML, everything is a string
+                    global_total[w] = {}
+                    tel = global_total[w]
+                    for a in el:
+                        tel[a] = int(el[a])  # coming from XML, everything is a string
                 else:
                     # successive, sum
-                    for a in el.keys():
+                    for a in el:
                         if a in tel:
-                            tel[a]+=int(el[a])
-
-                        # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tel.keys():
-                            if a not in el:
-                                del tel[a]
+                            tel[a] += int(el[a])
+                    # if any attribute from prev. frontends is not in the current one, remove from total
+                    for a in tel:
+                        if a not in el:
+                            del tel[a]
 
         # update frontends
         if 'frontends' in entry_data:
-            #loop on fe's in this entry
-            for fe in entry_data['frontends'].keys():
-                #compare each to the list of fe's accumulated so far
+            # loop on fe's in this entry
+            for fe in entry_data['frontends']:
+                # compare each to the list of fe's accumulated so far
                 if fe not in status_fe['frontends']:
-                    status_fe['frontends'][fe]={}
+                    status_fe['frontends'][fe] = {}
                 if fe not in nr_feentries:
-                    nr_feentries[fe]=1 #already found one
+                    nr_feentries[fe] = 1  # already found one
                 else:
-                    nr_feentries[fe]+=1
-                for w in entry_data['frontends'][fe].keys():
+                    nr_feentries[fe] += 1
+                for w in entry_data['frontends'][fe]:
                     if w not in status_fe['frontends'][fe]:
-                        status_fe['frontends'][fe][w]={}
-                    tela=status_fe['frontends'][fe][w]
-                    ela=entry_data['frontends'][fe][w]
-                    for a in ela.keys():
-                        #for the 'Downtime' field (only bool), do logical AND of all site downtimes
-                        # 'w' is frontend attribute name, ie 'ClientMonitor' or 'Downtime'
-                        # 'a' is sub-field, such as 'GlideIdle' or 'status'
-                        if w=='Downtime' and a=='status':
-                            ela_val=(ela[a]!='False') # Check if 'True' or 'False' but default to True if neither
-                            if a in tela:
-                                try:
-                                    tela[a]=tela[a] and ela_val
-                                except:
-                                    pass # just protect
-                            else:
-                                tela[a]=ela_val
-                        else:
+                        status_fe['frontends'][fe][w] = {}
+                    tela = status_fe['frontends'][fe][w]
+                    ela = entry_data['frontends'][fe][w]
+                    for a in ela:
+                        # for the 'Downtime' field (only bool), do logical AND of all site downtimes
+                        #  'w' is frontend attribute name, ie 'ClientMonitor' or 'Downtime'
+                        #  'a' is sub-field, such as 'GlideIdle' or 'status'
+                        if w == 'Downtime' and a == 'status':
+                            ela_val = (ela[a] != 'False')  # Check if 'True' or 'False' but default to True if neither
                             try:
-                                #if there already, sum
-                                if a in tela:
-                                    tela[a]+=int(ela[a])
-                                else:
-                                    tela[a]=int(ela[a])
+                                tela[a] = tela[a] and ela_val
+                            except KeyError:
+                                tela[a] = ela_val
                             except:
-                                pass #not an int, not Downtime, so do nothing
+                                pass  # just protect
+                        else:
+                            # All other fields could be numbers or something else
+                            try:
+                                # if there already, sum
+                                if a in tela:
+                                    tela[a] += int(ela[a])
+                                else:
+                                    tela[a] = int(ela[a])
+                            except:
+                                pass  # not an int, not Downtime, so do nothing
+                    # if any attribute from prev. frontends is not in the current one, remove from total
+                    for a in tela:
+                        if a not in ela:
+                            del tela[a]
 
-                        # if any attribute from prev. frontends are not in the current one, remove from total
-                        for a in tela.keys():
-                            if a not in ela:
-                                del tela[a]
-
-
-    for w in global_total.keys():
+    for w in global_total:
         if global_total[w] is None:
-            del global_total[w] # remove entry if not defined
+            del global_total[w]  # remove entry if not defined
         else:
-            tel=global_total[w]
-            for a in tel.keys():
+            tel = global_total[w]
+            for a in tel:
                 if a in avgEntries:
-                    tel[a]=tel[a]/nr_entries # since all entries must have this attr to be here, just divide by nr of entries
+                    # since all entries must have this attr to be here, just divide by nr of entries
+                    tel[a] = tel[a]/nr_entries
 
-    #do average for per-fe stat--'InfoAge' only
+    # do average for per-fe stat--'InfoAge' only
     for fe in status_fe['frontends'].keys():
         for w in status_fe['frontends'][fe].keys():
-            tel=status_fe['frontends'][fe][w]
+            tel = status_fe['frontends'][fe][w]
             for a in tel.keys():
                 if a in avgEntries and fe in nr_feentries:
-                    tel[a]=tel[a]/nr_feentries[fe] # divide per fe
+                    tel[a] = tel[a]/nr_feentries[fe]  # divide per fe
 
-
-    xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
+    xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='',
+                                         params={'status': str(in_downtime)},
+                                         leading_tab=xmlFormat.DEFAULT_TAB)
 
     # Write xml files
-    updated=time.time()
+    updated = time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<glideFactoryQStats>\n'+
              xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
@@ -405,40 +408,40 @@ def aggregateStatus(in_downtime):
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
     # Total rrd across all frontends and factories
-    for tp in global_total.keys():
+    for tp in global_total:
         # type - status or requested
         if not (tp in status_attributes.keys()):
             continue
 
-        tp_str=type_strings[tp]
-        attributes_tp=status_attributes[tp]
+        tp_str = type_strings[tp]
+        attributes_tp = status_attributes[tp]
 
-        tp_el=global_total[tp]
+        tp_el = global_total[tp]
 
         for a in tp_el.keys():
             if a in attributes_tp:
-                a_el=int(tp_el[a])
-                val_dict["%s%s"%(tp_str, a)]=a_el
+                a_el = int(tp_el[a])
+                val_dict["%s%s" % (tp_str, a)] = a_el
 
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
                                                             "GAUGE", updated, val_dict)
 
     # Frontend total rrds across all factories
     for fe in status_fe['frontends'].keys():
-        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s"%("frontend_"+fe))
+        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s" % ("frontend_"+fe))
         for tp in status_fe['frontends'][fe].keys():
             # type - status or requested
             if not (tp in type_strings.keys()):
                 continue
-            tp_str=type_strings[tp]
-            attributes_tp=status_attributes[tp]
+            tp_str = type_strings[tp]
+            attributes_tp = status_attributes[tp]
 
-            tp_el=status_fe['frontends'][fe][tp]
+            tp_el = status_fe['frontends'][fe][tp]
 
             for a in tp_el.keys():
                 if a in attributes_tp:
-                    a_el=int(tp_el[a])
-                    val_dict["%s%s"%(tp_str, a)]=a_el
+                    a_el = int(tp_el[a])
+                    val_dict["%s%s" % (tp_str, a)] = a_el
         glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes" % ("frontend_"+fe),
                                                                 "GAUGE", updated, val_dict)
 
@@ -676,6 +679,7 @@ def sumDictInt(indict, outdict):
 
             sumDictInt(indict[i], outdict[i])
 
+
 def writeLogSummaryRRDs(fe_dir, status_el):
     updated=time.time()
 
@@ -747,6 +751,7 @@ def writeLogSummaryRRDs(fe_dir, status_el):
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
                                                             "ABSOLUTE", updated, val_dict_wastetime)
 
+
 def aggregateRRDStats(log=logSupport.log):
     """
     Create an aggregate of RRD stats, write it files
@@ -754,7 +759,7 @@ def aggregateRRDStats(log=logSupport.log):
 
     global monitorAggregatorConfig
     factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
-    rrdstats_relname = glideFactoryMonitoring.rrd_list
+    rrdstats_relname = glideFactoryMonitoring.RRD_LIST
     tab = xmlFormat.DEFAULT_TAB
 
     for rrd in rrdstats_relname:
