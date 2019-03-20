@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_4_4_rc2
+# GLIDEINWMS_VERSION v3_4_4_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -43,7 +43,7 @@ fd9f860317c23d1520aae1669a0d72f8  ./creation/lib/cWParamDict.py
 21672dabcbc61d5d2fc346d4eb48ec49  ./creation/lib/cgWConsts.py
 8d3838ebb81a92edea770a221e99527e  ./creation/lib/cgWCreate.py
 6fbfd56e5087c652cf43268d2880c0f8  ./creation/lib/cgWDictFile.py
-27bd64c314510ea87584ddce939c1221  ./creation/lib/cgWParamDict.py
+127b79e6d799ac4450a53d53fe09c19e  ./creation/lib/cgWParamDict.py
 b25ca7ed356c0d8eb70fc423136373f8  ./creation/lib/cgWParams.py
 08af9ee9230d763dea382203faf4d401  ./creation/lib/check_config_frontend.py
 fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
@@ -150,7 +150,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 37a61e6e927099505bea8b5b727caf2d  ./factory/glideFactoryEntry.py
 627a7b691ba493ba91ffb186dd101b25  ./factory/glideFactoryEntryGroup.py
 54fd30a06634244f415a35fc0f564f0c  ./factory/glideFactoryInterface.py
-72a01634b33ff7ff22b6942e85b3e479  ./factory/glideFactoryLib.py
+16d63d1d479a7430d5b1d25445697fab  ./factory/glideFactoryLib.py
 5398d568f21710d6324080d3cd0bd549  ./factory/glideFactoryLogParser.py
 04f80d6e4e81eb72f23c3c99ab7044aa  ./factory/glideFactoryMonitorAggregator.py
 e0d6129c2f5a0d17af765f736a6c9099  ./factory/glideFactoryMonitoring.py
