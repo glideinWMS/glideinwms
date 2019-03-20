@@ -722,7 +722,7 @@ class Entry:
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
-        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
+        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig, alt_stats=self.gflFactoryConfig.client_stats)
         self.log.info("qc_stats written")
 
         self.log.info("Writing rrd_stats for %s" % self.name)
@@ -970,6 +970,8 @@ class X509Proxies:
 
 
 ###############################################################################
+# Functions to serve work requests (invoked from glideFactoryEntryGroup)
+###############################################################################
 
 def check_and_perform_work(factory_in_downtime, entry, work):
     """
@@ -994,6 +996,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         condorQ = entry.queryQueuedGlideins()
     except:
         # Protect and exit
+        entry.log.debug("Failed condor_q for entry %s, skipping stats update and work" % entry.name)
         return 0
 
     # Consider downtimes and see if we can submit glideins
@@ -1006,7 +1009,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     auth_method = entry.jobDescript.data['AuthMethod']
 
     #
-    # STEP: Process every work one at a time
+    # STEP: Process every work one at a time. This is done only for entries with work to do
     #
     for work_key in work:
         if not glideFactoryLib.is_str_safe(work_key):
@@ -1057,14 +1060,14 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             continue
 
         if entry.isClientBlacklisted(client_security_name):
-            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " % (client_security_name,
-                                                                                                   client_int_name))
+            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " %
+                              (client_security_name, client_int_name))
             in_downtime = True
 
         client_expected_identity = entry.frontendDescript.get_identity(client_security_name)
         if client_expected_identity is None:
-            entry.log.warning("Client %s (secid: %s) not in white list. Skipping request" % (client_int_name,
-                                                                                             client_security_name))
+            entry.log.warning("Client %s (secid: %s) not in white list. Skipping request" %
+                              (client_int_name, client_security_name))
             continue
 
         client_authenticated_identity = work[work_key]['internals']["AuthenticatedIdentity"]
@@ -1105,21 +1108,25 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         done_something += work_performed['work_done']
         all_security_names = all_security_names.union(work_performed['security_names'])
 
+    # sanitize glideins (if there was no work done, otherwise it is done in glidein submission)
     if done_something == 0:
         entry.log.info("Sanitizing glideins for entry %s" % entry.name)
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log,
                                          factoryConfig=entry.gflFactoryConfig)
 
-    # entry.log.info("all_security_names = %s" % all_security_names)
-
+    # This is the only place where rrd_stats.getData(), updating RRD as side effect, is called for clients;
+    # totals are updated aslo elsewhere
+    # i.e. RRD stats and the content of XML files are not updated for clients w/o work requests
+    # TODO: #22163, should this change and rrd_stats.getData() be called for all clients anyway?
+    #  if yes, How to get security names tuples (client_security_name, credential_security_class)? - mmb
+    # entry.log.debug("Processed work requests: all_security_names = %s" % all_security_names)
     for sec_el in all_security_names:
         try:
-            # glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
-            entry.gflFactoryConfig.rrd_stats.getData(
-                "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
+            # returned data is not used, function called only to trigger RRD update via side effect
+            entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
         except glideFactoryLib.condorExe.ExeError as e:
             # Never fail for monitoring. Just log
-            entry.log.exception("get_RRD_data failed with condor error: ")
+            entry.log.exception("get_RRD_data failed with HTCondor error: ")
         except:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with unknown error: ")
@@ -1626,11 +1633,20 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
 ####################
 
 def update_entries_stats(factory_in_downtime, entry_list):
+    """
+    Update client_stats for the entries in the list.
+    Used for entries with no job requests
+    TODO: #22163, skip update when in downtime?
+    NOTE: qc_stats cannot be updated because the frontend certificate information are missing
+    @param factory_in_downtime: True if the Factory is in downtime, here for future needs (not used now)
+    @param entry_list: list of entry names for the entries to update
+    @return: list of names of the entries that have been updated (subset of entry_list)
+    """
 
     updated_entries = []
     for entry in entry_list:
 
-        # Add a heuristic to improve efficiency. Rerurn if not changes in the entry
+        # Add a heuristic to improve efficiency. Skip if no changes in the entry
         # if nothing_to_do:
         #    continue
 
@@ -1641,11 +1657,27 @@ def update_entries_stats(factory_in_downtime, entry_list):
             condorQ = entry.queryQueuedGlideins()
         except:
             # Protect and exit
+            logSupport.log.warning("Failed condor_q for entry %s, skipping stats update" % entry.name)
             continue
 
         if condorQ is None or len(condorQ.stored_data) == 0:
             # no glideins
+            logSupport.log.debug("No glideins for entry %s, skipping stats update" % entry.name)
             continue
+
+        # Sanitizing glideins, e.g. removing unrecoverable held glideins
+        entry.log.info("Sanitizing glideins for entry w/o work %s" % entry.name)
+        glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+
+        # TODO: #22163, RRD stats for individual clients are not updated here. Are updated only when work is done,
+        #  see check_and_perform_work. RRD for Entry Totals are still recalculated (from the partial RRD that
+        #  were not updated) in the loop and XML files written.
+        #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
+        #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
+        #  if yes, How to get security names?
+        #  see check_and_perform_work above for more.
+        #  These are questions to solve in #22163
+        #  - mmb
 
         glideFactoryLib.logStatsAll(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
