@@ -1122,12 +1122,11 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     # entry.log.debug("Processed work requests: all_security_names = %s" % all_security_names)
     for sec_el in all_security_names:
         try:
-            # returned data is not used, called to trigger RRD update via side effect
-            entry.gflFactoryConfig.rrd_stats.getData(
-                "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
+            # returned data is not used, function called only to trigger RRD update via side effect
+            entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
         except glideFactoryLib.condorExe.ExeError as e:
             # Never fail for monitoring. Just log
-            entry.log.exception("get_RRD_data failed with condor error: ")
+            entry.log.exception("get_RRD_data failed with HTCondor error: ")
         except:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with unknown error: ")
@@ -1639,7 +1638,7 @@ def update_entries_stats(factory_in_downtime, entry_list):
     Used for entries with no job requests
     TODO: #22163, skip update when in downtime?
     NOTE: qc_stats cannot be updated because the frontend certificate information are missing
-    @param factory_in_downtime: True if the Facotry is in downtime, here for future needs (not used now)
+    @param factory_in_downtime: True if the Factory is in downtime, here for future needs (not used now)
     @param entry_list: list of entry names for the entries to update
     @return: list of names of the entries that have been updated (subset of entry_list)
     """
@@ -1673,6 +1672,7 @@ def update_entries_stats(factory_in_downtime, entry_list):
         # TODO: #22163, RRD stats for individual clients are not updated here. Are updated only when work is done,
         #  see check_and_perform_work. RRD for Entry Totals are still recalculated (from the partial RRD that
         #  were not updated) in the loop and XML files written.
+        #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
         #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
         #  if yes, How to get security names?
         #  see check_and_perform_work above for more.
