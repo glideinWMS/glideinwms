@@ -990,9 +990,9 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     max_glideins_frontend = ""
     for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
         frontend_name = per_fe[u'name']
-        max_held_frontend += frontend_name + ";" + int(per_fe[u'held'])/num_factories + ","
-        max_idle_frontend += frontend_name + ";" + int(per_fe[u'idle'])/num_factories + ","
-        max_glideins_frontend += frontend_name + ";" + int(per_fe[u'glideins'])/num_factories + ","
+        max_held_frontend += frontend_name + ";" + str(int(per_fe[u'held'])/num_factories) + ","
+        max_idle_frontend += frontend_name + ";" + str(int(per_fe[u'idle'])/num_factories) + ","
+        max_glideins_frontend += frontend_name + ";" + str(int(per_fe[u'glideins'])/num_factories) + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
