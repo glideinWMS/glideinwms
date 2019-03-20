@@ -957,13 +957,13 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     job_descript_dict.add('Verbosity', entry[u'verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
     per_entry = max_jobs.get_child(u'per_entry')
-    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])/num_factories)
-    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])/num_factories)
-    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])/num_factories)
+    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])//num_factories)
+    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])//num_factories)
+    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])//num_factories)
     def_per_fe = max_jobs.get_child(u'default_per_frontend')
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])/num_factories)
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])/num_factories)
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])/num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])//num_factories)
     submit = config.get_child(u'submit')
     job_descript_dict.add('MaxSubmitRate', submit[u'max_per_cycle'])
     job_descript_dict.add('SubmitCluster', submit[u'cluster_size'])
@@ -990,9 +990,9 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     max_glideins_frontend = ""
     for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
         frontend_name = per_fe[u'name']
-        max_held_frontend += frontend_name + ";" + str(int(per_fe[u'held'])/num_factories) + ","
-        max_idle_frontend += frontend_name + ";" + str(int(per_fe[u'idle'])/num_factories) + ","
-        max_glideins_frontend += frontend_name + ";" + str(int(per_fe[u'glideins'])/num_factories) + ","
+        max_held_frontend += frontend_name + ";" + str(int(per_fe[u'held'])//num_factories) + ","
+        max_idle_frontend += frontend_name + ";" + str(int(per_fe[u'idle'])//num_factories) + ","
+        max_glideins_frontend += frontend_name + ";" + str(int(per_fe[u'glideins'])//num_factories) + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
