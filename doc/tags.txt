@@ -1,3 +1,16 @@
+v3_4_4  Propagate to Factory and glidein submission attributes controlled by FE
+        Track jobs that spawn multiple nodes, e.g. HPC submission
+        Include OSG distributed unprivileged Singularity to the search path and do a full test of Singularity
+        Improved HTCondor configuration for schedd in Factory and Frontend
+        Bug fix: Factory GlideinMonitor* classads appear to be erased periodically
+        Bug fix: Glidein not killing condor processes
+        Bug fix: Error preventing the Frontend fo match jobs
+        Bug fix: Make sure metasite limits are respected
+        Bug fix: Convert per/frontend limits to integers before division
+        Bug fix: 'tochild' AttributeError in Factory
+        Bug fix: Pilot proxies could be generated with invalid VOMS ACs
+        NOTE: To use the new HTCondor configuration you need to reconfig or restart HTCondor after merging eventual .rpmnew files
+
 v3_4_3  Add a scaling factor for all glideins limits in the entries
         Comprehensive unit-test for the parsing of the Frontend configuration with collectors using shared port
         Add the possibility to disable completely Glidein removal
