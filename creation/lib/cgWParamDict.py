@@ -459,6 +459,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def save_final(self,set_readonly=True):
         sub_stage_dir = cgWConsts.get_entry_stage_dir("", self.sub_name)
 
+        # Let's remove the job.condor single entry file (in case the entry_set has the same name of an old entry)
+        if len(self.dicts['condor_jdl']) > 1:
+            fname = os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE)
+            if os.path.isfile(fname):
+                os.remove(fname)
+
         for cj in self.dicts['condor_jdl']:
             cj.finalize(self.summary_signature['main'][0], self.summary_signature[sub_stage_dir][0],
                         self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])

@@ -1419,7 +1419,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 if nr_submitted != 0:
                     time.sleep(factoryConfig.submit_sleep)
 
-                nr_to_submit = (nr_glideins - nr_submitted)
+                nr_to_submit = (nr_glideins_sf - nr_submitted)
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
 
