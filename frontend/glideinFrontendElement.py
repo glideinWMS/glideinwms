@@ -52,6 +52,7 @@ from glideinwms.frontend import glideinFrontendDowntimeLib
 #
 # Not a 1-to-1 implementation though... just straight minimum
 # to support auto initialization to 0
+# This can be deleted once we switch to python3
 
 class CounterWrapper:
     def __init__(self, dict_el):
@@ -241,16 +242,16 @@ class glideinFrontendElement:
         rc = 0
         pid_obj.register(self.parent_pid)
         try:
-            try:
-                # logSupport.log.info("Starting up")
-                rc = self.iterate()
-            except KeyboardInterrupt:
-                logSupport.log.info("Received signal...exit")
-                rc = 1
-            except:
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.exception("Unhandled exception, dying: %s" % tb)
-                rc = 2
+            # logSupport.log.info("Starting up")
+            rc = self.iterate()
+        except KeyboardInterrupt:
+            logSupport.log.info("Received signal...exit")
+            rc = 1
+        except:
+            # TODO is tb needed? Don't we print the exception twice?
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+            logSupport.log.exception("Unhandled exception, dying: %s" % tb)
+            rc = 2
         finally:
             pid_obj.relinquish()
 
@@ -448,10 +449,10 @@ class glideinFrontendElement:
         total_glideins = self.status_dict_types['Total']['abs']
         total_running_glideins = self.status_dict_types['Running']['abs']
         total_idle_glideins = self.status_dict_types['Idle']['abs']
-        total_failed_glideins = self.status_dict_types['Failed']['abs']
-        total_cores = self.status_dict_types['TotalCores']['abs']
-        total_running_cores = self.status_dict_types['RunningCores']['abs']
-        total_idle_cores = self.status_dict_types['IdleCores']['abs']
+#        total_failed_glideins = self.status_dict_types['Failed']['abs']
+#        total_cores = self.status_dict_types['TotalCores']['abs']
+#        total_running_cores = self.status_dict_types['RunningCores']['abs']
+#        total_idle_cores = self.status_dict_types['IdleCores']['abs']
 
         logSupport.log.info("Group glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i" % (
                                total_glideins, self.total_max_glideins,
@@ -1966,8 +1967,8 @@ if __name__ == '__main__':
         action = sys.argv[4]
     gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2],
                                  sys.argv[3], action)
-    rc = gfe.main()
+    rcm = gfe.main()
 
     # explicitly exit with 0
     # this allows for reliable checking
-    sys.exit(rc)
+    sys.exit(rcm)
