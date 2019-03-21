@@ -1057,7 +1057,7 @@ def doNestedGroup(indata, group_key_func, group_element_func=None):
 
     @param indata: data to group
     @param group_key_func: group_by function
-    @param group_element_func: how to handle the data in each groub (by default is a copy of the original one)
+    @param group_element_func: how to handle the data in each group (by default is a copy of the original one)
     @return: dictionary of dictionaries with grouped indata
     """
 

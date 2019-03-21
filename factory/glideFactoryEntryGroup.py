@@ -329,13 +329,12 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript,
     forkm_obj = ForkManager()
     # Only fork of child processes for entries that have corresponding
     # work to do, ie glideclient classads.
-    # TODO: coordinate w/ find_work(): all entries or only the ones w/ work to do?
-    # TODO: currently work contains all entries
-    # TODO: check if cleanup is still done correctly
-    # TODO: empry work entries were added to perform cleanup
+    # TODO: #22163, change in 3.5 coordinate w/ find_work():
+    #  change so that only the entries w/ work to do are returned in 'work'
+    #  currently work contains all entries
+    #  cleanup is still done correctly, handled also in the entries w/o work function (forked as single function)
     entries_without_work = []
     for ent in my_entries:
-        # TODO: here was hitting all entries,  if ent in work:
         if work.get(ent):
             entry = my_entries[ent]  # ent is the entry.name
             forkm_obj.add_fork(ent,
@@ -344,7 +343,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript,
         else:
             entries_without_work.append(ent)
     # Evaluate stats for entries without work only if these will be advertised
-    # TODO: check if this is causing too much load
+    # TODO: #22163, check if this is causing too much load
     # Since glideins only decrease for entries not receiving requests, a more efficient way
     # could be to advertise entries that had non 0 # of glideins at the previous round
     if do_advertize and len(entries_without_work) > 0:

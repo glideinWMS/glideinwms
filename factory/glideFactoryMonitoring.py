@@ -1457,12 +1457,12 @@ class FactoryStatusData:
         - and appends the total (self.total aka 'total/') to the list of clients (frontends)
 
         @param rrd:
-        @return:
+        @return: XML formatted string with stats data
         """
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
-        # this is invoked, to trigger the side effect, but the data is retrieved directly from self.data dict below
+        # this is invoked to trigger the side effect but the data is retrieved directly from self.data dict below
         get_data_total = self.getData(self.total)
         try:
             total_data = self.data[rrd][self.total]
@@ -1489,13 +1489,13 @@ class FactoryStatusData:
         return data_str
 
     def writeFiles(self,  monitoringConfig=None):
-        """writes an xml file for the data fetched from a given site.
+        """Write an xml file for the data fetched from a given site.
         Write rrd files
 
-        Triggers a side effect of updating the rrd for totals (via getXMLData/getData)
+        NOTE: writeFiles triggers the side effect of updating the rrd for totals (via getXMLData/getData)
 
         @param monitoringConfig:
-        @return:
+        @return: None
         """
 
         if monitoringConfig is None:
