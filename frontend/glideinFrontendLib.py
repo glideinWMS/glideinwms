@@ -234,7 +234,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         schedd=schedds[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
-        for jid in condorq_data.keys():
+        for jid in condorq_data:
           procid=jid[1]
           if procid>max_procid:
            max_procid=procid
@@ -254,7 +254,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
-        for jid in condorq_data.keys():
+        for jid in condorq_data:
             # For each job, hash the job using the attributes
             #  listed from xml under match_attrs
             # Jobs that hash to the same value should
@@ -380,9 +380,9 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     # END LOOP: for glidename in glidein_dict
 
     # Now split the list of sets into unique sets
-    # We will use this to count how many glideins each job matches against
-    # outvals_cl contains the new list of unique sets each element is a
-    # tuple: (set of glideins with the same jobs, set of jobs)
+    # We will use this to count how many Entries each job matches against
+    # outvals_cl contains the new list of unique sets:
+    #  each element is a tuple: (set of Entries with the same jobs, set of jobs)
     # jrange_cl contains the set of all the job clusters
     (outvals_cl, jrange_cl) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs

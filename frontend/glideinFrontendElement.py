@@ -82,7 +82,21 @@ class CounterWrapper:
 # Main class for the module
 
 class glideinFrontendElement:
+    """ Processing the Frontend group activity
+
+    Spawned by glideinFrontend.
+    Aware of the available Entries in the Factory and of the job requests from schedds
+    Send requests to the Factory: either to submit new glideins, or to remove them
+
+    """
     def __init__(self, parent_pid, work_dir, group_name, action):
+        """
+
+        :param parent_pid:
+        :param work_dir:
+        :param group_name:
+        :param action:
+        """
         self.parent_pid = parent_pid
         self.work_dir = work_dir
         self.group_name = group_name
@@ -241,16 +255,15 @@ class glideinFrontendElement:
         rc = 0
         pid_obj.register(self.parent_pid)
         try:
-            try:
-                # logSupport.log.info("Starting up")
-                rc = self.iterate()
-            except KeyboardInterrupt:
-                logSupport.log.info("Received signal...exit")
-                rc = 1
-            except:
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.exception("Unhandled exception, dying: %s" % tb)
-                rc = 2
+            # logSupport.log.info("Starting up")
+            rc = self.iterate()
+        except KeyboardInterrupt:
+            logSupport.log.info("Received signal...exit")
+            rc = 1
+        except:
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+            logSupport.log.exception("Unhandled exception, dying: %s" % tb)
+            rc = 2
         finally:
             pid_obj.relinquish()
 
@@ -258,7 +271,7 @@ class glideinFrontendElement:
 
 
     def iterate(self):
-        self.stats = {'group' : glideinFrontendMonitoring.groupStats()}
+        self.stats = {'group': glideinFrontendMonitoring.groupStats()}
 
         if 'X509Proxy' not in self.elementDescript.frontend_data:
             self.published_frontend_name = '%s.%s' % (self.frontend_name,
@@ -377,7 +390,7 @@ class glideinFrontendElement:
                 self.group_name, 'condor_queries')
         except RuntimeError as e:
             # expect all errors logged already
-            logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
+            logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. "
                                 "Unable to calculate required glideins, terminating loop.")
             return
         logSupport.log.info("All children terminated")
@@ -391,6 +404,7 @@ class glideinFrontendElement:
         for pkel in pipe_out:
             ptype, idx=pkel
             if ptype=='factory':
+                # one of the factories
                 pglobals_dict, pglidein_dict, pfactoryclients_dict = pipe_out[pkel]
                 self.globals_dict.update(pglobals_dict)
                 self.glidein_dict.update(pglidein_dict)
@@ -399,10 +413,11 @@ class glideinFrontendElement:
                 del pglidein_dict
                 del pfactoryclients_dict
             elif ptype=='schedd':
+                # one of the schedds
                 pcondorq_dict=pipe_out[pkel]
                 self.condorq_dict.update(pcondorq_dict)
                 del pcondorq_dict
-            # collector dealt with outside the loop
+            # collector dealt with outside the loop because there is only one
             # nothing else left
 
         (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[('collector', 0)]
@@ -448,10 +463,11 @@ class glideinFrontendElement:
         total_glideins = self.status_dict_types['Total']['abs']
         total_running_glideins = self.status_dict_types['Running']['abs']
         total_idle_glideins = self.status_dict_types['Idle']['abs']
-        total_failed_glideins = self.status_dict_types['Failed']['abs']
-        total_cores = self.status_dict_types['TotalCores']['abs']
-        total_running_cores = self.status_dict_types['RunningCores']['abs']
-        total_idle_cores = self.status_dict_types['IdleCores']['abs']
+        # not used
+        # total_failed_glideins = self.status_dict_types['Failed']['abs']
+        # total_cores = self.status_dict_types['TotalCores']['abs']
+        # total_running_cores = self.status_dict_types['RunningCores']['abs']
+        # total_idle_cores = self.status_dict_types['IdleCores']['abs']
 
         logSupport.log.info("Group glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i" % (
                                total_glideins, self.total_max_glideins,
@@ -549,6 +565,7 @@ class glideinFrontendElement:
         total_up_stats_arr = init_factory_stats_arr()
         total_down_stats_arr = init_factory_stats_arr()
 
+        # Going through all jobs, grouped by entry they can run on
         for glideid in glideid_list:
             if glideid == (None, None, None):
                 continue  # This is the special "Unmatched" entry
@@ -590,7 +607,7 @@ class glideinFrontendElement:
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
-            effective_oldidle = max(prop_jobs['OldIdle'] - count_status['Idle'], 0)
+            # not used -  effective_oldidle = max(prop_jobs['OldIdle'] - count_status['Idle'], 0)
 
             # Adjust the number of idle jobs in case the minimum running parameter is set
             if prop_mc_jobs['Idle'] < self.min_running:
@@ -727,7 +744,7 @@ class glideinFrontendElement:
                         if (creds_with_running - scaled) == 1:
                             # This is the last one. Assign remaining running
 
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = tr - (tr//creds_with_running)*scaled
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = tr - (tr//creds_with_running) * scaled
                             scaled += 1
                             break
                         else:
@@ -738,8 +755,9 @@ class glideinFrontendElement:
             for globalid in self.globals_dict:
                 if glideid[1].endswith(globalid):
                     globals_el = self.globals_dict[globalid]
-                    if ('PubKeyObj' in globals_el['attrs'] and 'PubKeyID' in globals_el['attrs']):
-                        key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
+                    if 'PubKeyObj' in globals_el['attrs'] and 'PubKeyID' in globals_el['attrs']:
+                        key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'],
+                                                          globals_el['attrs']['PubKeyObj'])
                     break
 
             trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain', 'Grid')
@@ -761,7 +779,8 @@ class glideinFrontendElement:
                                trust_domain=trust_domain,
                                auth_method=auth_method, ha_mode=self.ha_mode)
             else:
-                logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" % (request_name, factory_pool_node))
+                logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" %
+                                       (request_name, factory_pool_node))
 
             resource_classad = self.build_resource_classad(
                                    this_stats_arr, request_name,
@@ -789,9 +808,12 @@ class glideinFrontendElement:
 
         for ad_factname in ad_factnames:
                 logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
-                adname=advertizer.initialize_advertize_batch()+"_"+ad_factname # they will run in parallel, make sure they don't collide
-                g_ads=advertizer.do_global_advertize_one(ad_factname, adname=adname, create_files_only=True, reset_unique_id=False)
-                s_ads=advertizer.do_advertize_one(ad_factname, ad_file_id_cache, adname=adname, create_files_only=True, reset_unique_id=False)
+                # they will run in parallel, make sure they don't collide
+                adname = advertizer.initialize_advertize_batch()+"_"+ad_factname
+                g_ads = advertizer.do_global_advertize_one(ad_factname, adname=adname,
+                                                           create_files_only=True, reset_unique_id=False)
+                s_ads = advertizer.do_advertize_one(ad_factname, ad_file_id_cache,
+                                                    adname=adname, create_files_only=True, reset_unique_id=False)
                 pids.append(fork_in_bg(advertizer.do_advertize_batch_one, ad_factname, tuple(set(g_ads)|set(s_ads))))
 
         del ad_file_id_cache
@@ -802,8 +824,8 @@ class glideinFrontendElement:
 
         wait_for_pids(pids)
         logSupport.log.info("Done advertising")
-        servicePerformance.endPerfMetricEvent(
-            self.group_name, 'advertize_classads')
+        servicePerformance.endPerfMetricEvent(self.group_name, 'advertize_classads')
+
         return
 
     def populate_pubkey(self):
@@ -1034,11 +1056,24 @@ class glideinFrontendElement:
                                  global_total_idle_glideins,
                                  effective_idle, effective_oldidle,
                                  limits_triggered):
-        """
+        """Compute min idle glideins to request for this entry
+
         Compute min idle glideins to request for this entry after considering
         all the relevant limits and curbs.
-        Identify the limits and curbs triggered for advertizing the info
+        Identify the limits and curbs triggered for advertising the info in
         glideresource classad
+
+        :param count_status: dictionary with counters for glideins in the different state (from condor_q)
+        :param total_glideins: total number of glideins for the Entry
+        :param total_idle_glideins: number of idle glideins for the Entry
+        :param fe_total_glideins: total number of glideins for this Frontend at the Entry
+        :param fe_total_idle_glideins: number of idle glideins for this Frontend at the Entry
+        :param global_total_glideins: total number of glideins for all Entries
+        :param global_total_idle_glideins: number of idle glideins for all Entries
+        :param effective_idle:
+        :param effective_oldidle:
+        :param limits_triggered: dictionary used to return the limits triggered
+        :return:
         """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, do not request more
@@ -1056,7 +1091,7 @@ class glideinFrontendElement:
             # 1. Have all the running jobs I wanted
             # 2. Have enough idle vms/slots
             # 3. Reached the system-wide limit
-            glidein_min_idle=0
+            glidein_min_idle = 0
 
             # Modifies limits_triggered dict
             self.identify_limits_triggered(
@@ -1079,40 +1114,43 @@ class glideinFrontendElement:
                 self.global_total_max_vms_idle-global_total_idle_glideins)
 
             # since it takes a few cycles to stabilize, ask for only one third
-            glidein_min_idle=glidein_min_idle/3
+            # 3 was based on observation and tests: The factory can be still processing the previous request,
+            # previously requested glideins could be still idle in the site queue
+            glidein_min_idle = glidein_min_idle/3
             # do not reserve any more than the number of old idles
             # for reserve (/3)
             glidein_idle_reserve = min(effective_oldidle/3, self.reserve_idle)
 
-            glidein_min_idle+=glidein_idle_reserve
+            glidein_min_idle += glidein_idle_reserve
             glidein_min_idle = min(glidein_min_idle, self.max_idle)
 
+            # /2 each time you hit a limit, to do an exponential backoff
             if count_status['Idle'] >= self.curb_vms_idle:
-                glidein_min_idle/=2 # above first treshold, reduce
+                glidein_min_idle /= 2  # above first treshold, reduce
                 limits_triggered['CurbIdleGlideinsPerEntry'] = 'count=%i, curb=%i' % (count_status['Idle'], self.curb_vms_idle )
             if total_glideins >= self.total_curb_glideins:
-                glidein_min_idle/=2 # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global treshold, reduce further
                 limits_triggered['CurbTotalGlideinsPerGroup'] = 'count=%i, curb=%i' % (total_glideins, self.total_curb_glideins)
             if total_idle_glideins >= self.total_curb_vms_idle:
-                glidein_min_idle/=2 # above global treshold, reduce further
+                glidein_min_idle /= 2  # above global treshold, reduce further
                 limits_triggered['CurbIdleGlideinsPerGroup'] = 'count=%i, curb=%i' % (total_idle_glideins, self.total_curb_vms_idle)
-            if fe_total_glideins>=self.fe_total_curb_glideins:
-                glidein_min_idle/=2 # above global treshold, reduce further
+            if fe_total_glideins >= self.fe_total_curb_glideins:
+                glidein_min_idle /= 2  # above global treshold, reduce further
                 limits_triggered['CurbTotalGlideinsPerFrontend'] = 'count=%i, curb=%i' % (fe_total_glideins, self.fe_total_curb_glideins)
-            if fe_total_idle_glideins>=self.fe_total_curb_vms_idle:
-                glidein_min_idle/=2 # above global treshold, reduce further
+            if fe_total_idle_glideins >= self.fe_total_curb_vms_idle:
+                glidein_min_idle /= 2  # above global treshold, reduce further
                 limits_triggered['CurbIdleGlideinsPerFrontend'] = 'count=%i, curb=%i' % (fe_total_idle_glideins, self.fe_total_curb_vms_idle)
-            if global_total_glideins>=self.global_total_curb_glideins:
-                glidein_min_idle/=2 # above global treshold, reduce further
+            if global_total_glideins >= self.global_total_curb_glideins:
+                glidein_min_idle /= 2  # above global treshold, reduce further
                 limits_triggered['CurbTotalGlideinsGlobal'] = 'count=%i, curb=%i' % (global_total_glideins, self.global_total_curb_glideins)
-            if global_total_idle_glideins>=self.global_total_curb_vms_idle:
-                glidein_min_idle/=2 # above global treshold, reduce further
+            if global_total_idle_glideins >= self.global_total_curb_vms_idle:
+                glidein_min_idle /= 2  # above global treshold, reduce further
                 limits_triggered['CurbIdleGlideinsGlobal'] = 'count=%i, curb=%i' % (global_total_idle_glideins, self.global_total_curb_vms_idle)
 
-            if glidein_min_idle<1:
-                glidein_min_idle=1
+            if glidein_min_idle < 1:
+                glidein_min_idle = 1
         else:
-            # no idle, make sure the glideins know it
+            # no idle, make sure the Entries know it
             glidein_min_idle = 0
 
         return int(glidein_min_idle)
@@ -1182,7 +1220,6 @@ class glideinFrontendElement:
 
         return glidein_max_run
 
-
     def log_and_print_total_stats(self, total_up_stats_arr, total_down_stats_arr):
         # Log the totals
         for el in (('MatchedUp', total_up_stats_arr, True), ('MatchedDown', total_down_stats_arr, False)):
@@ -1239,11 +1276,17 @@ class glideinFrontendElement:
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
         If configured removal is selected, take into account also the margin
+
+        :param count_jobs:
+        :param count_status:
+        :param glideid:
+        :return:
         """
         if self.request_removal_wtype is not None:
-            # we are requesting the removal of glideins, and we have the explicit code to use
+            # we are requesting the removal of glideins via command line tool, and we have the explicit code to use
             return self.request_removal_wtype, 0
 
+        # removal within the Frontend
         remove_levels = {'NO': 0,
                          'WAIT': 1,
                          'IDLE': 2,
