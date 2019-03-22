@@ -314,7 +314,7 @@ def aggregateStatus(in_downtime):
                         if a in tel:
                             tel[a] += int(el[a])
                     # if any attribute from prev. frontends is not in the current one, remove from total
-                    for a in tel:
+                    for a in list(tel):  # making a copy of the keys because the dict is being modified
                         if a not in el:
                             del tel[a]
 
@@ -364,11 +364,11 @@ def aggregateStatus(in_downtime):
                                 pass  # not an int, not Downtime, so do nothing
                     # if any attribute from prev. frontends is not in the current one, remove from total
                     if not fe_first and w != 'Downtime':
-                        for a in tela:
+                        for a in list(tela):  # making a copy of the keys because the dict is being modified
                             if a not in ela:
                                 del tela[a]
 
-    for w in global_total:
+    for w in list(global_total):  # making a copy of the keys because the dict is being modified
         if global_total[w] is None:
             del global_total[w]  # remove entry if not defined
         else:
