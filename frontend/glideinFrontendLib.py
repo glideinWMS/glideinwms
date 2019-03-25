@@ -177,7 +177,7 @@ def getCondorQUsers(condorq_dict):
     return users_set
 
 
-def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
+def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_entries,
                condorq_match_list=None, match_policies=[]):
     """
     Get the number of jobs that match each glidein
@@ -202,7 +202,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         A special 'glidein name' of (None, None, None) is used for jobs
         that don't match any 'real glidein name' in all 4 tuples above
     """
-
+    logSupport.log.warning("MMM" + str(ignore_down_entries))
     out_glidein_counts={}
     out_cpu_counts={}
 
@@ -319,6 +319,9 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                     # Evaluate the Compiled object first.
                     # Evaluation order does not really matter.
                     match = eval(match_obj)
+                    # Do not match downtime entries
+                    if ignore_down_entries and glidein_dict[glidename]['attrs'].get('GLIDEIN_In_Downtime', False):
+                        match = False
                     for policy in match_policies:
                         if match == True:
                             # Policies are supposed to be ANDed
