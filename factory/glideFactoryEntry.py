@@ -321,7 +321,7 @@ class Entry:
 
     def isSecurityClassInDowntime(self, client_security_name, security_class):
         """
-        Check if the security class is in downtime
+        Check if the security class is in downtime in the Factory or in this Entry
 
         @rtype: boolean
         @return: True if the security class is in downtime
@@ -936,35 +936,36 @@ def dump_obj(obj):
     print("======= END: %s ======" % obj)
 
 
-###############################################################################
-
-class X509Proxies:
-
-    def __init__(self, frontendDescript, client_security_name):
-        self.frontendDescript=frontendDescript
-        self.client_security_name=client_security_name
-        self.usernames={}
-        self.fnames={}
-        self.count_fnames=0 # len of sum(fnames)
-        return
-
-    # Return None, if cannot convert
-    def get_username(self, x509_proxy_security_class):
-        if x509_proxy_security_class not in self.usernames:
-            # lookup only the first time
-            x509_proxy_username=self.frontendDescript.get_username(self.client_security_name, x509_proxy_security_class)
-            if x509_proxy_username is None:
-                # but don't cache misses
-                return None
-            self.usernames[x509_proxy_security_class]=x509_proxy_username
-        return self.usernames[x509_proxy_security_class][:]
-
-    def add_fname(self, x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname):
-        if x509_proxy_security_class not in self.fnames:
-            self.fnames[x509_proxy_security_class]={}
-        self.fnames[x509_proxy_security_class][x509_proxy_identifier]=x509_proxy_fname
-        self.count_fnames+=1
-
+# ###############################################################################
+# # TODO: NOT USED - to be removed
+#
+# class X509Proxies:
+#
+#     def __init__(self, frontendDescript, client_security_name):
+#         self.frontendDescript=frontendDescript
+#         self.client_security_name=client_security_name
+#         self.usernames={}
+#         self.fnames={}
+#         self.count_fnames=0  # len of sum(fnames)
+#         return
+#
+#     # Return None, if cannot convert
+#     def get_username(self, x509_proxy_security_class):
+#         if x509_proxy_security_class not in self.usernames:
+#             # lookup only the first time
+#             x509_proxy_username=self.frontendDescript.get_username(self.client_security_name, x509_proxy_security_class)
+#             if x509_proxy_username is None:
+#                 # but don't cache misses
+#                 return None
+#             self.usernames[x509_proxy_security_class]=x509_proxy_username
+#         return self.usernames[x509_proxy_security_class][:]
+#
+#     def add_fname(self, x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname):
+#         if x509_proxy_security_class not in self.fnames:
+#             self.fnames[x509_proxy_security_class]={}
+#         self.fnames[x509_proxy_security_class][x509_proxy_identifier]=x509_proxy_fname
+#         self.count_fnames+=1
+#
 
 ###############################################################################
 # Functions to serve work requests (invoked from glideFactoryEntryGroup)
@@ -980,7 +981,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     @type entry: glideFactoryEntry.Entry
     @param entry: Entry object
 
-    @param work:
+    @param work: all the work requests for the Entry
 
     :return:
 
@@ -1018,8 +1019,14 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         params = work[work_key]['params']
         decrypted_params = work[work_key]['params_decrypted']
 
+        # Skipping requests using v2 protocol - No more supported
+        if ('x509_proxy_0' in decrypted_params):
+            entry.log.warning("Request from client %s (secid: %s) using unsupported protocol v2 (x509_proxy_0 in message). "
+                              "Skipping." % (client_int_name, client_security_name))
+            continue
+
         # add default values if not defined
-        for k in entry.jobParams.data.keys():
+        for k in entry.jobParams.data:
             if k not in params:
                 params[k] = entry.jobParams.data[k]
 
@@ -1069,8 +1076,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
         client_authenticated_identity = work[work_key]['internals']["AuthenticatedIdentity"]
         if client_authenticated_identity != client_expected_identity:
-            # silently drop... like if we never read it in the first place
-            # this is compatible with what the frontend does
             entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. "
                               "Skipping for security reasons." % (client_int_name, client_security_name,
                                                                   client_authenticated_identity, client_expected_identity))
@@ -1081,12 +1086,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             'CompleteNameWithCredentialsId': work_key,
             'ReqName': client_int_req
         }
-
-        # Skipping requests using v2 protocol
-        if ('x509_proxy_0' in decrypted_params):
-            entry.log.warning("Request from client %s (secid: %s) using unsupported protocol v2 (x509_proxy_0 in message). "
-                              "Skipping." % (client_int_name, client_security_name))
-            continue
 
         #
         # STEP: Actually process the unit work using v3 protocol
@@ -1137,8 +1136,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                  in_downtime, condorQ):
     """    Perform a single work unit using the v3 protocol.
 
-    :param entry:
-    :param work:
+    :param entry: Entry
+    :param work: work requests
     :param client_name: work_key (key used in the work request)
     :param client_int_name: client name declared in the request
     :param client_int_req: name of the request (declared in the request)
@@ -1163,6 +1162,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     #
     can_submit_glideins = entry.glideinsWithinLimits(condorQ)
 
+    # TODO REV: check if auth_method is a string or list.
+    #  If string split at + and make list and use list below (in), otherwise there could be partial string matches
     auth_method = entry.jobDescript.data['AuthMethod']
     grid_type = entry.jobDescript.data['GridType']
     all_security_names = set()
@@ -1202,6 +1203,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             return return_dict
 
     # Check that security class maps to a username for submission
+    # The username is still used also in single user factory (for log dirs, ...)
     credential_username = entry.frontendDescript.get_username(
                               client_security_name, credential_security_class)
     if credential_username is None:
@@ -1304,7 +1306,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 if 'EntryVMType' in entry.jobDescript.data:
                     vm_type = entry.jobDescript.data['EntryVMType']
                 else:
-                    entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
+                    entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %
+                                      entry.name)
                     return return_dict
 
         submit_credentials.add_identity_credential('VMId', vm_id)
@@ -1313,30 +1316,33 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if 'cert_pair' in auth_method:
             public_cert_id = decrypted_params.get('PublicCert')
             submit_credentials.id = public_cert_id
-            if ((public_cert_id) and
-                (not submit_credentials.add_security_credential(
-                         'PublicCert',
-                         '%s_%s' % (client_int_name, public_cert_id))) ):
-                entry.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request." % (public_cert_id, client_int_name))
+            if (public_cert_id and
+                not submit_credentials.add_security_credential(
+                    'PublicCert',
+                    '%s_%s' % (client_int_name, public_cert_id))):
+                entry.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request." %
+                                  (public_cert_id, client_int_name))
                 return return_dict
 
             private_cert_id = decrypted_params.get('PrivateCert')
-            if ( (private_cert_id) and
-                 (submit_credentials.add_security_credential(
-                      'PrivateCert',
-                      '%s_%s' % (client_int_name, private_cert_id))) ):
-                entry.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
+            if (private_cert_id and
+                submit_credentials.add_security_credential(
+                    'PrivateCert',
+                    '%s_%s' % (client_int_name, private_cert_id))):
+                entry.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" %
+                                  (private_cert_id, client_int_name))
                 return return_dict
 
         elif 'key_pair' in auth_method:
             # Used by AWS & BOSCO so handle accordingly
             public_key_id = decrypted_params.get('PublicKey')
             submit_credentials.id = public_key_id
-            if ( (public_key_id) and
-                 (not submit_credentials.add_security_credential(
-                          'PublicKey',
-                          '%s_%s' % (client_int_name, public_key_id))) ):
-                entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
+            if (public_key_id and
+                not submit_credentials.add_security_credential(
+                    'PublicKey',
+                    '%s_%s' % (client_int_name, public_key_id))):
+                entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" %
+                                  (public_key_id, client_int_name))
                 return return_dict
 
             if grid_type == 'ec2':
@@ -1360,47 +1366,52 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                     else:
                         entry.log.warning(
                             "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
-                            (client_int_name, public_key_id, entry.name))
+                            (client_int_name, public_key_id, entry.name)
+                        )
                         return return_dict
 
             private_key_id = decrypted_params.get('PrivateKey')
-            if ( (private_key_id) and
-                 (not submit_credentials.add_security_credential(
-                          'PrivateKey',
-                          '%s_%s' % (client_int_name, private_key_id))) ):
-                entry.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
+            if (private_key_id and
+                not submit_credentials.add_security_credential(
+                    'PrivateKey',
+                    '%s_%s' % (client_int_name, private_key_id))):
+                entry.log.warning("Credential %s for the private key is not safe for client %s, skipping request" %
+                                  (private_key_id, client_int_name))
                 return return_dict
 
         elif 'auth_file' in auth_method:
             auth_file_id = decrypted_params.get('AuthFile')
             submit_credentials.id = auth_file_id
-            if ( (auth_file_id) and
-                 (not submit_credentials.add_security_credential(
-                          'AuthFile',
-                          '%s_%s' % (client_int_name, auth_file_id))) ):
-                entry.log.warning("Credential %s for the auth file is not safe for client %s, skipping request" % (auth_file_id, client_int_name))
+            if (auth_file_id and
+                not submit_credentials.add_security_credential(
+                    'AuthFile',
+                    '%s_%s' % (client_int_name, auth_file_id))):
+                entry.log.warning("Credential %s for the auth file is not safe for client %s, skipping request" %
+                                  (auth_file_id, client_int_name))
                 return return_dict
 
         elif 'username_password' in auth_method:
             username_id = decrypted_params.get('Username')
             submit_credentials.id = username_id
-            if ( (username_id) and
-                 (not submit_credentials.add_security_credential(
-                          'Username',
-                          '%s_%s' % (client_int_name, username_id))) ):
-                entry.log.warning("Credential %s for the username is not safe for client %s, skipping request" % (username_id, client_int_name))
+            if (username_id and
+                not submit_credentials.add_security_credential(
+                        'Username',
+                        '%s_%s' % (client_int_name, username_id))):
+                entry.log.warning("Credential %s for the username is not safe for client %s, skipping request" %
+                                  (username_id, client_int_name))
                 return return_dict
 
             password_id = decrypted_params.get('Password')
-            if ( (password_id) and
-                 (not submit_credentials.add_security_credential(
-                          'Password',
-                          '%s_%s' % (client_int_name, password_id))) ):
+            if (password_id and
+                not submit_credentials.add_security_credential(
+                        'Password',
+                        '%s_%s' % (client_int_name, password_id))):
                 entry.log.warning("Credential %s for the password is not safe for client %s, skipping request" % (password_id, client_int_name))
                 return return_dict
 
         else:
-            logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
+            logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." %
+                                   (entry.name, client_int_name))
             return return_dict
 
         submit_credentials.add_identity_credential('RemoteUsername', remote_username)
@@ -1426,20 +1437,23 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     try:
         idle_glideins = int(work['requests']['IdleGlideins'])
     except ValueError as e:
-        entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['IdleGlideins']))
+        entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" %
+                          (client_int_name, work['requests']['IdleGlideins']))
         return return_dict
 
     if 'MaxGlideins' in work['requests']:
         try:
             max_glideins = int(work['requests']['MaxGlideins'])
         except ValueError as e:
-            entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work['requests']['MaxGlideins']))
+            entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." %
+                              (client_int_name, work['requests']['MaxGlideins']))
             return return_dict
     else:
         try:
             max_glideins = int(work['requests']['MaxRunningGlideins'])
         except ValueError as e:
-            entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['MaxRunningGlideins']))
+            entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" %
+                              (client_int_name, work['requests']['MaxRunningGlideins']))
             return return_dict
 
     # If we got this far, it was because we were able to
@@ -1451,7 +1465,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     # We'll set idle glideins to zero if hit max or in downtime.
     if in_downtime or not can_submit_glideins:
-        idle_glideins=0
+        idle_glideins = 0
 
     try:
         client_web_url = work['web']['URL']
@@ -1503,9 +1517,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                         entry.gflFactoryConfig.credential_id_schedd_attribute)
 
     # Map the identity to a frontend:sec_class for tracking totals
-    frontend_name = "%s:%s" % \
-        (entry.frontendDescript.get_frontend_name(client_expected_identity),
-         credential_security_class)
+    frontend_name = "%s:%s" % (entry.frontendDescript.get_frontend_name(client_expected_identity),
+                               credential_security_class)
 
     # do one iteration for the credential set (maps to a single security class)
     #entry.gflFactoryConfig.client_internals[client_int_name] = \

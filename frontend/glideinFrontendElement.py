@@ -1848,9 +1848,9 @@ class glideinFrontendElement:
                         self.attr_dict,
                         self.condorq_match_list,
                         match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
-        t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+        t = glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
-        out=(c, p, h, pmc, t)
+        out = (c, p, h, pmc, t)
 
         return out
 
