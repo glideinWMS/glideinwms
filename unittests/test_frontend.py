@@ -123,7 +123,7 @@ class FETestCaseCount(FETestCaseBase):
                 "<string>",
                 "eval")
             match_counts = glideinFrontendLib.countMatch(
-                match_obj, self.condorq_dict, self.glidein_dict, {})
+                match_obj, self.condorq_dict, self.glidein_dict, {}, False)
             m_debug.assert_called_with(
                 "Failed to evaluate resource match in countMatch. Possibly match_expr has "
                 "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way.")
@@ -132,7 +132,7 @@ class FETestCaseCount(FETestCaseBase):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
             match_obj = compile('3/0', "<string>", "eval")
             match_counts = glideinFrontendLib.countMatch(
-                match_obj, self.condorq_dict, self.glidein_dict, {})
+                match_obj, self.condorq_dict, self.glidein_dict, {}, False)
             log_msg = m_debug.call_args[0]
 
             self.assertTrue(
@@ -145,7 +145,7 @@ class FETestCaseCount(FETestCaseBase):
         match_obj = compile(match_expr, "<string>", "eval")
         unmatched = (None, None, None)
         match_counts = glideinFrontendLib.countMatch(
-            match_obj, self.condorq_dict, self.glidein_dict, {})
+            match_obj, self.condorq_dict, self.glidein_dict, {}, False)
 
         straight_match = match_counts[0]
         # straight match
