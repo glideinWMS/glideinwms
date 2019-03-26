@@ -184,6 +184,27 @@ class FETestCaseCount(FETestCaseBase):
         self.assertEqual((straight_match[unmatched], prop_match[unmatched], only_match[unmatched], uniq_match[unmatched]),
                          (1, 1, 1, 1))
 
+
+    def test_countMatchDowntime(self):
+        self.glidein_dict[self.glidein_dict_k1]['attrs']['GLIDEIN_In_Downtime'] = True
+        # test_countMatch should give the same results unless we call countMatch with ignore_down_entries = False
+        self.test_countMatch()
+        match_expr = 'not job.has_key("DESIRED_Sites") or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
+        match_obj = compile(match_expr, "<string>", "eval")
+        unmatched = (None, None, None)
+        match_counts = glideinFrontendLib.countMatch(
+            match_obj, self.condorq_dict, self.glidein_dict, {}, False)
+
+        straight_match = match_counts[0]
+        # glidein 1 is not matching anymore. There are more unmatched now
+        self.assertEqual(
+            (straight_match[self.glidein_dict_k1],
+             straight_match[self.glidein_dict_k2],
+             straight_match[self.glidein_dict_k3]),
+             straight_match[unmatched]),
+            (0, 8, 4, 5))
+
+
     def test_countRealRunning_match(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
