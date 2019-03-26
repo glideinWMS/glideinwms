@@ -203,8 +203,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         that don't match any 'real glidein name' in all 4 tuples above
     """
 
-    out_glidein_counts={}
-    out_cpu_counts={}
+    out_glidein_counts = {}
+    out_cpu_counts = {}
 
     # new_out_counts
     # keys: are site indexes(numbers)
@@ -223,50 +223,50 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     #  (ClusterId*max_ProcId+ProcId)*len(schedds)+scheddIdx
     #
 
-    schedds=condorq_dict.keys()
-    nr_schedds=len(schedds)
+    schedds = condorq_dict.keys()
+    nr_schedds = len(schedds)
 
     # Find max ProcId by searching through condorq output for all schedds
     #   This is needed to linearize the dictionary as per above
     #   The max ProcId will be stored in procid_mul
-    max_procid=0
+    max_procid = 0
     for scheddIdx in range(nr_schedds):
         schedd=schedds[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
         for jid in condorq_data:
-          procid=jid[1]
-          if procid>max_procid:
-           max_procid=procid
-    procid_mul=long(max_procid+1)
+          procid = jid[1]
+          if procid > max_procid:
+           max_procid = procid
+    procid_mul = long(max_procid+1)
 
     # Group jobs into clusters of similar attributes
 
     # Results will be stored in the variables:
     #  cq_dict_clusters - dict of clusters (= list of job ids)
     #  cq_jobs - full set of job ids
-    cq_dict_clusters={}
-    cq_jobs=set()
+    cq_dict_clusters = {}
+    cq_jobs = set()
     for scheddIdx in range(nr_schedds):
         # For each schedd, look through all its job from condorq results
-        schedd=schedds[scheddIdx]
-        cq_dict_clusters[scheddIdx]={}
-        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
-        condorq=condorq_dict[schedd]
-        condorq_data=condorq.fetchStored()
+        schedd = schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx] = {}
+        cq_dict_clusters_el = cq_dict_clusters[scheddIdx]
+        condorq = condorq_dict[schedd]
+        condorq_data = condorq.fetchStored()
         for jid in condorq_data:
             # For each job, hash the job using the attributes
             #  listed from xml under match_attrs
             # Jobs that hash to the same value should
             #  be considered equivalent and part of the same
             #  cluster for matching purposes
-            jh=hashJob(condorq_data[jid], condorq_match_list)
+            jh = hashJob(condorq_data[jid], condorq_match_list)
             if jh not in cq_dict_clusters_el:
-                cq_dict_clusters_el[jh]=[]
+                cq_dict_clusters_el[jh] = []
             # Add the job to the correct cluster according to the
             #   linearization scheme above
             cq_dict_clusters_el[jh].append(jid)
-            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+            t = (jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
             # Add jobs
             cq_jobs.add(t)
 
@@ -279,16 +279,16 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     #                   indexes representing a job cluster each
     #  all_jobs_clusters: dictionary of cluster index -> list of jobs in
     #                     the cluster (represented each by its own index)
-    list_of_all_jobs=[]
-    all_jobs_clusters={}
+    list_of_all_jobs = []
+    all_jobs_clusters = {}
     
     for glidename in glidein_dict:
-        glidein=glidein_dict[glidename]
+        glidein = glidein_dict[glidename]
         # Number of glideins to request
-        glidein_count=0
+        glidein_count = 0
         # Number of cpus required by the jobs on a glidein
-        cpu_count=0
-        jobs_arr=[]
+        cpu_count = 0
+        jobs_arr = []
 
         # Clusters are organized by schedd,
         #  so loop through each schedd
@@ -296,15 +296,15 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
             #logSupport.log.debug("****** Loop schedds ******")
             # Now, go through each unique hash in the cluster
             # and match clusters individually
-            schedd=schedds[scheddIdx]
+            schedd = schedds[scheddIdx]
             cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
-            condorq=condorq_dict[schedd]
-            condorq_data=condorq.fetchStored()
+            condorq = condorq_dict[schedd]
+            condorq_data = condorq.fetchStored()
             # Number of jobs in this schedd to request glidein
-            schedd_count=0
+            schedd_count = 0
             # Number of cpus to request for jobs on this schedd
-            cpu_schedd_count=0
-            sjobs_arr=[]
+            cpu_schedd_count = 0
+            sjobs_arr = []
 
             missing_keys = set()
             tb_count = 0
@@ -312,8 +312,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
-                first_jid=cq_dict_clusters_el[jh][0]
-                job=condorq_data[first_jid]
+                first_jid = cq_dict_clusters_el[jh][0]
+                job = condorq_data[first_jid]
 
                 try:
                     # Evaluate the Compiled object first.
@@ -332,7 +332,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
                     if match == True:
                         # the first matched... add all jobs in the cluster
-                        cluster_arr=[]
+                        cluster_arr = []
                         for jid in cq_dict_clusters_el[jh]:
                             t = (jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
                             cluster_arr.append(t)
@@ -465,6 +465,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     final_out_counts[(None, None, None)] = count_unmatched
     final_out_cpu_counts[(None, None, None)] = count_unmatched
     final_unique[(None, None, None)] = count_unmatched
+    # Return tuple: count, prop, hereonly, prop_mc
     return (out_glidein_counts, final_out_counts,
             final_unique, final_out_cpu_counts)
 

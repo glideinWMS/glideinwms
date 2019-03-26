@@ -1784,11 +1784,11 @@ class glideinFrontendElement:
         """Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. """
 
-        # IS: Heauristics of 100 glideins per fork
+        # IS: Heuristics of 100 glideins per fork
         #     Based on times seen by CMS
         glideins_per_fork = 100
 
-        glidein_list=self.glidein_dict.keys()
+        glidein_list = self.glidein_dict.keys()
         # split the list in equal pieces
         # the result is a list of lists
         split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
@@ -1834,11 +1834,12 @@ class glideinFrontendElement:
 
 
     def subprocess_count_dt(self, dt):
-        """
-        # will make calculations in parallel,using multiple processes
-        @return: Tuple of 5 elements
+        """Make match calculations of glideins matching entries (invoked in parallel)
 
+        @param dt: index within the data dictionary
+        @return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
         """
+
         out = ()
 
         c, p, h, pmc = glideinFrontendLib.countMatch(
