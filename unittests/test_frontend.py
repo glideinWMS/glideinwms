@@ -193,7 +193,7 @@ class FETestCaseCount(FETestCaseBase):
         match_obj = compile(match_expr, "<string>", "eval")
         unmatched = (None, None, None)
         match_counts = glideinFrontendLib.countMatch(
-            match_obj, self.condorq_dict, self.glidein_dict, {}, False)
+            match_obj, self.condorq_dict, self.glidein_dict, {}, True)
 
         straight_match = match_counts[0]
         # glidein 1 is not matching anymore. There are more unmatched now

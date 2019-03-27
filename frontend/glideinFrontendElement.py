@@ -116,10 +116,10 @@ class glideinFrontendElement:
         self.factory_pools = self.elementDescript.merged_data['FactoryCollectors']
 
         # If the IgnoreDownEntries knob is set in the group use that, otherwise use the global one
-        if self.elementDescript.element_data['IgnoreDownEntries'] is not "":
+        if self.elementDescript.element_data.get('IgnoreDownEntries', "") is not "":
             self.ignore_down_entries = self.elementDescript.element_data['IgnoreDownEntries'] == "True"
         else:
-            self.ignore_down_entries = self.elementDescript.frontend_data['IgnoreDownEntries'] == "True"
+            self.ignore_down_entries = self.elementDescript.frontend_data.get('IgnoreDownEntries') == "True"
         self.min_running = int(self.elementDescript.element_data['MinRunningPerEntry'])
         self.max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
         self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
