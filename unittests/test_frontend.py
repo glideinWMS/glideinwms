@@ -200,7 +200,7 @@ class FETestCaseCount(FETestCaseBase):
         self.assertEqual(
             (straight_match[self.glidein_dict_k1],
              straight_match[self.glidein_dict_k2],
-             straight_match[self.glidein_dict_k3]),
+             straight_match[self.glidein_dict_k3],
              straight_match[unmatched]),
             (0, 8, 4, 5))
 
