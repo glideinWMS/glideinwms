@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_4_4_rc3
+# GLIDEINWMS_VERSION v3_4_4_rc4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -42,8 +42,8 @@ fd9f860317c23d1520aae1669a0d72f8  ./creation/lib/cWParamDict.py
 fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
 ddfe307190a97b77e4a57280b56865b9  ./creation/lib/cvWCreate.py
 003648b0c16bb7c6b0c3fb740b1e2168  ./creation/lib/cvWDictFile.py
-90d64907cd707e5794c62dde32a6e51b  ./creation/lib/cvWParamDict.py
-7aecf7402c1ea5ecf187ea0ae84d431f  ./creation/lib/cvWParams.py
+13fe4d5f0bdb2505ac9fd37dcda80ba2  ./creation/lib/cvWParamDict.py
+2ae526f92e36d8f067afc0cb79c6a476  ./creation/lib/cvWParams.py
 ee9cb6269677199508b96ce2b79007e3  ./creation/lib/factoryXmlConfig.py
 04e53ddf2dbb496884734149c0603a31  ./creation/lib/factory_defaults.xml
 7382aae30e1f14818c86b48c572be081  ./creation/lib/matchPolicy.py
@@ -125,9 +125,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 d5e69f6c688b88b3deb69cb3ededb3f1  ./frontend/glideinFrontend.py
 57547875e37fdd7be22e1e07715acb5d  ./frontend/glideinFrontendConfig.py
 cd061bd4239d5f1c9023135cef785d0c  ./frontend/glideinFrontendDowntimeLib.py
-02a21376a03aef0f9fda5552deac28ec  ./frontend/glideinFrontendElement.py
+37e9f1909f6ac5702d5118a83bdbd3ad  ./frontend/glideinFrontendElement.py
 0c30bfcbf40dd26f48ea332410ebbdaa  ./frontend/glideinFrontendInterface.py
-77fc004c614f9531c29bd29ea9e13ef4  ./frontend/glideinFrontendLib.py
+abb921c692a420a2ae0254c3b36a8e1e  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
 64df1882c71f9a213e0e8a1198e1baff  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py
