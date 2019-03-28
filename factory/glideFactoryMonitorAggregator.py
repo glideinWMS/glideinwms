@@ -292,6 +292,9 @@ def aggregateStatus(in_downtime):
         # update completed data
         completed_data_tot['entries'][entry] = completed_data['stats']
 
+        # to log when total dictionary is modified (in update total/frontend)
+        tmp_list_removed = []
+
         # update total
         if 'total' in entry_data:
             nr_entries += 1
@@ -317,6 +320,11 @@ def aggregateStatus(in_downtime):
                     for a in list(tel):  # making a copy of the keys because the dict is being modified
                         if a not in el:
                             del tel[a]
+                            tmp_list_removed.append(a)
+                    if tmp_list_removed:
+                        logSupport.log.debug("Elements removed from total status (%s: %s) because of %s: %s" %
+                                             (w, len(tel), entry, tmp_list_removed))
+                        tmp_list_removed = []
 
         # update frontends
         if 'frontends' in entry_data:
@@ -367,6 +375,11 @@ def aggregateStatus(in_downtime):
                         for a in list(tela):  # making a copy of the keys because the dict is being modified
                             if a not in ela:
                                 del tela[a]
+                                tmp_list_removed.append(a)
+                        if tmp_list_removed:
+                            logSupport.log.debug("Elements removed from Frontend %s total status (%s: %s) because of %s: %s" %
+                                                 (fe, w, len(tela), entry, tmp_list_removed))
+                            tmp_list_removed = []
 
     for w in list(global_total):  # making a copy of the keys because the dict is being modified
         if global_total[w] is None:
