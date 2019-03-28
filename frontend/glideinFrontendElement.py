@@ -115,6 +115,11 @@ class glideinFrontendElement:
         self.security_name = self.elementDescript.merged_data['SecurityName']
         self.factory_pools = self.elementDescript.merged_data['FactoryCollectors']
 
+        # If the IgnoreDownEntries knob is set in the group use that, otherwise use the global one
+        if self.elementDescript.element_data.get('IgnoreDownEntries', "") is not "":
+            self.ignore_down_entries = self.elementDescript.element_data['IgnoreDownEntries'] == "True"
+        else:
+            self.ignore_down_entries = self.elementDescript.frontend_data.get('IgnoreDownEntries') == "True"
         self.min_running = int(self.elementDescript.element_data['MinRunningPerEntry'])
         self.max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
         self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
@@ -1801,6 +1806,7 @@ class glideinFrontendElement:
                         self.condorq_dict_types[dt]['dict'],
                         self.glidein_dict,
                         self.attr_dict,
+                        self.ignore_down_entries,
                         self.condorq_match_list,
                         match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])

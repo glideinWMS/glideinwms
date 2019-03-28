@@ -513,7 +513,8 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LogDir', params.log_dir)
         frontend_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
-        
+
+        frontend_dict.add('IgnoreDownEntries', params.config.ignore_down_entries)
         frontend_dict.add('MaxIdleVMsTotal', params.config.idle_vms_total.max)
         frontend_dict.add('CurbIdleVMsTotal', params.config.idle_vms_total.curb)
         frontend_dict.add('MaxIdleVMsTotalGlobal', params.config.idle_vms_total_global.max)
@@ -535,6 +536,7 @@ def populate_group_descript(work_dir, group_descript_dict,        # will be modi
     group_descript_dict.add('MapFile', os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
     group_descript_dict.add('MapFileWPilots', os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
+    group_descript_dict.add('IgnoreDownEntries', sub_params.config.ignore_down_entries)
     group_descript_dict.add('MaxRunningPerEntry', sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('MinRunningPerEntry', sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add('FracRunningPerEntry', sub_params.config.running_glideins_per_entry.relative_to_queue)
