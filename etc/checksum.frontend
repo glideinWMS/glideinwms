@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_4_3
+# GLIDEINWMS_VERSION v3_4_4_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -21,7 +21,7 @@ f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-3d72cf6adef7b36c2f5d3a024bde17e4  ./build/packaging/rpm/glideinwms.spec
+6f785f3254a6a5d329c2c5ad49f023a7  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
@@ -42,7 +42,7 @@ fd9f860317c23d1520aae1669a0d72f8  ./creation/lib/cWParamDict.py
 fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
 ddfe307190a97b77e4a57280b56865b9  ./creation/lib/cvWCreate.py
 003648b0c16bb7c6b0c3fb740b1e2168  ./creation/lib/cvWDictFile.py
-03cd8dcd1a639924342a16f11b2da0a2  ./creation/lib/cvWParamDict.py
+90d64907cd707e5794c62dde32a6e51b  ./creation/lib/cvWParamDict.py
 7aecf7402c1ea5ecf187ea0ae84d431f  ./creation/lib/cvWParams.py
 ee9cb6269677199508b96ce2b79007e3  ./creation/lib/factoryXmlConfig.py
 04e53ddf2dbb496884734149c0603a31  ./creation/lib/factory_defaults.xml
@@ -71,7 +71,7 @@ f79af46f0f740ae3a9ca525c96381a0e  ./creation/web_base/check_wn_drainstate.sh
 5a58d9b077275b1e5832475f6fbdd4ec  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
-8e7423ae1d9c3d8624098bf13adaa3fb  ./creation/web_base/condor_vars.lst
+4f56ee1f81861ec317766757ffb85953  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
 ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
@@ -111,8 +111,8 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-d9f1bfd4e17834e81fcd69549d831d3e  ./creation/web_base/singularity_lib.sh
-6f4ad2c60cd63f4d5a5919a77bb43659  ./creation/web_base/singularity_setup.sh
+6ef9205226d65fe0f54ff838f76257f6  ./creation/web_base/singularity_lib.sh
+3db85aa71615600a39df968544d40244  ./creation/web_base/singularity_setup.sh
 73e36abceb940089bef39806443764a8  ./creation/web_base/smart_partitionable.sh
 0520ea85ffabd8885c773809dcaf1f79  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -125,14 +125,14 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 d5e69f6c688b88b3deb69cb3ededb3f1  ./frontend/glideinFrontend.py
 57547875e37fdd7be22e1e07715acb5d  ./frontend/glideinFrontendConfig.py
 cd061bd4239d5f1c9023135cef785d0c  ./frontend/glideinFrontendDowntimeLib.py
-49bcbc5b61fac9ed95508b6b728d0d8e  ./frontend/glideinFrontendElement.py
+02a21376a03aef0f9fda5552deac28ec  ./frontend/glideinFrontendElement.py
 0c30bfcbf40dd26f48ea332410ebbdaa  ./frontend/glideinFrontendInterface.py
-e4194ad79aa8a685fa014838205237a5  ./frontend/glideinFrontendLib.py
+77fc004c614f9531c29bd29ea9e13ef4  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
 64df1882c71f9a213e0e8a1198e1baff  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py
 707d33863d360b57057ec2595e6f401e  ./frontend/glideinFrontendPlugins.py
-2a5327854228019866700fe7a784a378  ./frontend/gwms_renew_proxies.py
+4773fa41e5ab50bfff461c2d7873b28b  ./frontend/gwms_renew_proxies.py
 5939db763ca77ae3c89a70f6374ed413  ./frontend/manageFrontendDowntimes.py
 fdbb766bde4ef0562efac10c4e0c3bfd  ./frontend/stopFrontend.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/__init__.py
@@ -173,7 +173,7 @@ f20e57267fb87ae79c9066f8d7e96028  ./lib/cleanupSupport.py
 5eadc5ca26ba1d8d3ba4e0694d17cb68  ./lib/condorExe.py
 ac866f6e60579ff39ab4a61d5625340e  ./lib/condorLogParser.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
-0a5e0b8aaf90ad4df298a570c356c4a8  ./lib/condorMonitor.py
+61beed5517d15226342720e749ef45b2  ./lib/condorMonitor.py
 9e7262b926853cdbbc97a99f11b6d4f2  ./lib/condorPrivsep.py
 e584fd90c02a3a4203396f3deca021a2  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py

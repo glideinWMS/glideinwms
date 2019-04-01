@@ -687,6 +687,7 @@ class SubQuery(BaseSubQuery):
 class Group(BaseSubQuery):
     """
     Sub Query class with grouping functionality
+    Each element has a value that is the summary of the values in a group
     """
 
     def __init__(self, query, group_key_func, group_data_func):
@@ -700,6 +701,27 @@ class Group(BaseSubQuery):
         """
         BaseSubQuery.__init__(
             self, query, lambda d: doGroup(d, group_key_func, group_data_func))
+
+
+class NestedGroup(BaseSubQuery):
+    """
+    Sub Query class with grouping functionality to create nested results
+    Each element is a dictionary with elements reduced from the original elements in the group
+    """
+
+    def __init__(self, query, group_key_func, group_element_func=None):
+        """
+        group_key_func  - Key extraction function
+                          One argument: classad dictionary
+                          Returns: value of the group key
+        group_element_func - Group extraction function
+                          One argument: list of tuples (key, classad dictionaries)
+                          Returns: a dictionary of classad dictionary
+                          If None, 'dict' is used
+        """
+
+        BaseSubQuery.__init__(
+            self, query, lambda d: doNestedGroup(d, group_key_func, group_element_func))
 
 
 class Summarize:
@@ -1001,8 +1023,10 @@ def applyConstraint(data, constraint_func):
 
 def doGroup(indata, group_key_func, group_data_func):
     """
-    Group the indata based on the keys that satisfy group_key_func
-    Return dict of groups that satisfy group_data_func
+    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    Return a dict of groups summarized by group_data_func
+    Each group returned by group_data_func must be a dictionary,
+    possibly similar to the original value of the indata elements
     """
 
     gdata = {}
@@ -1015,7 +1039,45 @@ def doGroup(indata, group_key_func, group_data_func):
 
     outdata = {}
     for k in gdata:
+        # value is a summary of the values
         outdata[k] = group_data_func(gdata[k])
+
+    return outdata
+
+
+def doNestedGroup(indata, group_key_func, group_element_func=None):
+    """
+    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    Return a dict of dictionaries created by group_element_func
+    Each each value of the dictionaries returned by group_element_func
+    must be a dictionary, possibly similar to the original value of the indata elements
+
+    If group_element_func is None (not provided), then the dictionaries in the groups are a copy of the
+    original dictionaries in indata
+
+    @param indata: data to group
+    @param group_key_func: group_by function
+    @param group_element_func: how to handle the data in each group (by default is a copy of the original one)
+    @return: dictionary of dictionaries with grouped indata
+    """
+
+    gdata = {}
+    for k, inel in indata.iteritems():
+        gkey = group_key_func(inel)
+        if gkey in gdata:
+            gdata[gkey].append((k, inel))
+        else:
+            gdata[gkey] = [(k, inel)]
+
+    outdata = {}
+    if group_element_func:
+        for k in gdata:
+            # dictionary produced using  original dictionary elements in the group
+            outdata[k] = group_element_func(gdata[k])
+    else:
+        for k in gdata:
+            # just grouping the original elements without changing them
+            outdata[k] = dict(gdata[k])
 
     return outdata
 

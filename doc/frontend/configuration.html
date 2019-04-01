@@ -684,7 +684,7 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
 
             <TD> <P><b>parameter</b></P> </TD>
             <TD> <P>Set to True if the attribute should 
- be passed as a parameter.  If set to False, the attribute will be put in the staging area to be accessed by the glidein startup scripts.  Always set this to True unless you know what you are doing.</P>
+ be passed as a parameter.  If set to False, the attribute will be put in the staging area to be accessed by the glidein startup scripts.  Always set this to True unless you know what you are doing. See Note below for more details</P>
             </TD>
         </TR>
         <TR>
@@ -714,9 +714,12 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
     </TABLE>
     <P>An example attribute would be:</P>
         <div class="xml" style="padding-left:30px;">
-        &lt;attrs&gt;&lt;attr name=&quot;GLIDEIN_Collector&quot; value=&quot;mymachine.mydomain&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldquo;Just a test attribute&rdquo;/&gt;
-
+        &lt;attrs&gt;&lt;attr name=&quot;GLIDEIN_Collector&quot; value=&quot;mymachine.mydomain&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldquo;Just a test attribute&rdquo;/&gt;
         </div>
+
+<P>Note: The attribute name "publish" is not available for the Frontend for the moment. It's for the Factory though, as indicated in the attributes section <a href="../factory/configuration.html">here</a>. Although, to pass the Frontend controlled values and make them available in the ClassAd and the glidein submission on the Factory, you can set the attribute parameter="True". These attributes will be distinguished in the glidein submit environment with the prefix <b>"GLIDEIN_PARAM_"</b>.
+</P>
+
 <P>The following group parameters are used to configure multiple
 Frontends. If only one group is specified, they apply to all
 Frontends. The objects specified are used for creating and monitoring

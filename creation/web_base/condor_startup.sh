@@ -9,10 +9,31 @@
 # This script starts the condor daemons expects a config file as a parameter
 #
 
+function trap_with_arg {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+
 #function to handle passing signals to the child processes
+# no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
+#  The condor_master -k <file> sends a SIGTERM to the pid named in the file. This results in a graceful shutdown,
+# where daemons get a chance to do orderly cleanup. To do a fast shutdown, you would send a SIGQUIT to the
+# condor_master process, something like this:
+#  /bin/kill -s SIGQUIT `cat condor_master2.pid`
+# In either case, when the master receives the signal, it will immediately write a message to the log, then signal
+# all of its children. When each child exits, the master will send a SIGKILL to any remaining descendants.
+# Once all of the children exit, the master then exits.
 function on_die {
-    echo "Condor startup received kill signal... shutting down condor processes"
-    $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
+    condor_signal=$1
+    # Can receive SIGTERM SIGINT SIGQUIT, condor understands SIGTERM SIGQUIT. Send SIGQUIT for SIGQUIT, SIGTERM otherwise
+    [[ "$condor_signal" != SIGQUIT ]] && condor_signal=SIGTERM
+    condor_pid_tokill=$condor_pid
+    [[ -z "$condor_pid_tokill" ]] && condor_pid_tokill=`cat $PWD/condor_master2.pid 2> /dev/null`
+    echo "Condor startup received $1 signal ... shutting down condor processes (forwarding $condor_signal to $condor_pid_tokill)"
+    [[ -n "$condor_pid_tokill" ]] && kill -s $condor_signal $condor_pid_tokill
+    # $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
     ON_DIE=1
 }
 
@@ -1013,27 +1034,41 @@ fi
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
-trap 'ignore_signal' HUP
-trap 'on_die' TERM
-trap 'on_die' INT
-
+condor_pid=
+trap 'ignore_signal' SIGHUP
+trap_with_arg on_die SIGTERM SIGINT SIGQUIT
+#trap 'on_die' TERM
+#trap 'on_die' INT
 
 #### STARTS CONDOR ####
-if [ "$check_only" == "1" ]; then
+if [[ "$check_only" == "1" ]]; then
     echo "=== Condor started in test mode ==="
     $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
 else
     $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
+    condor_pid=$!
     # Wait for a few seconds to make sure the pid file is created,
+    sleep 5 & wait $!
+    # Wait more if the pid file was not created and the Glidein was not killed, see [#9639]
+    if [[ ! -e "$PWD/condor_master2.pid" ]] && [[ "$ON_DIE" -eq 0 ]]; then
+        echo "=== Condor started in background but the pid file is still missing, waiting 200 sec more ==="
+        sleep 200 & wait $!
+    fi
     # then wait on it for completion
-    sleep 5
-    if [ -e "$PWD/condor_master2.pid" ]; then
-        echo "=== Condor started in background, now waiting on process `cat $PWD/condor_master2.pid` ==="
-        wait `cat $PWD/condor_master2.pid`
+    if [[ -e "$PWD/condor_master2.pid" ]]; then
+        [[ "$condor_pid" -ne `cat "$PWD/condor_master2.pid"` ]] && echo "Background PID $condor_pid is different from PID file content `cat "$PWD/condor_master2.pid"`"
+        echo "=== Condor started in background, now waiting on process $condor_pid ==="
+        wait $condor_pid
+    else
+        # If ON_DIE == 1, condor has already been killed by a signal
+        if [[ "$ON_DIE" -eq 0 ]]; then
+            echo "=== Condor was started but the PID file is missing, killing process $condor_pid ==="
+            kill -s SIGQUIT $condor_pid
+        fi
     fi
 fi
-
 condor_ret=$?
+condor_pid=
 
 if [ ${condor_ret} -eq 99 ]; then
     echo "Normal DAEMON_SHUTDOWN encountered" 1>&2

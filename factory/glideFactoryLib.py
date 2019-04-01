@@ -318,16 +318,13 @@ def getQClientNames(condorq, factoryConfig=None):
         factoryConfig = globals()['factoryConfig']
     schedd_attribute = factoryConfig.client_schedd_attribute
 
-    def group_data_func(val):
-        return val
-
     def group_key_func(val):
         try:
             return val[schedd_attribute]
         except KeyError:
             return None
 
-    client_condorQ = condorMonitor.Group(condorq, group_key_func, group_data_func)
+    client_condorQ = condorMonitor.NestedGroup(condorq, group_key_func)
     client_condorQ.schedd_name = condorq.schedd_name
     client_condorQ.factory_name = condorq.factory_name
     client_condorQ.glidein_name = condorq.glidein_name
@@ -721,7 +718,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     @param frontend_name:
     @param log:
     @param factoryConfig:
-    @return: 1 if some glideins were removes, 0 otherwise
+    @return: 1 if some glideins were removed, 0 otherwise
     TODO: could return the number of glideins removed
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
@@ -1422,7 +1419,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 if nr_submitted != 0:
                     time.sleep(factoryConfig.submit_sleep)
 
-                nr_to_submit = (nr_glideins - nr_submitted)
+                nr_to_submit = (nr_glideins_sf - nr_submitted)
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
 
@@ -1540,6 +1537,8 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
 
+        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
+
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""
         # if client_web has been provided, get the arguments and add them to the string
@@ -1551,9 +1550,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             if not str(v).strip():
                 log.warning('Skipping empty job parameter (%s)' % k)
                 continue
+            exe_env.append('GLIDEIN_PARAM_%s=%s'% (k, str(v)))
             params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
-        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
         exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 

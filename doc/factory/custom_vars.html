@@ -710,6 +710,21 @@ by the VO Factory clients.</P>
         </TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_NODES</b> </td>
+        <TD> Int</td>
+
+        <TD> 1 </TD>
+        <TD>
+            <P>Number of NODEs a Glidein is expected to be replicated on.
+                On some entries, especially HPC resources, each Glidein submission triggers the startup of the Glidein on multiple nodes.
+                The Frontend assumes that for each requested Glidein the entry will start it on GLIDEIN_NODES nodes, 1 by default.
+                The Frontend will work even if the estimate is not correct, anyway:
+                it will trigger requests for the entry only if the CPUs requested by the jobs are no more than GLIDEIN_ESTIMATED_CPUS and,
+                it will adjust the number of Glideins requested assuming GLIDEIN_NODES Glideins, each with GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS cores for each request to that entry.
+               GLIDEIN_NODES is not used by the Glidein.</P>
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_MaxMemMBs</b> </td>
         <TD> Int</td>
         <TD> None </TD>

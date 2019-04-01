@@ -117,6 +117,7 @@ GLIDEIN_Resource_Slots  C   -       +               N   N   -
 # this will be used for MaxJobRetirementTime of the main startd
 PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
 GLIDEIN_CPUS		C	1		+				N	N	@ 
+GLIDEIN_NODES		C	1		+				N	N	@
 HOLD_GRACE_TIME 	I	0	        +				N	Y	+
 
 
