@@ -1019,12 +1019,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         params = work[work_key]['params']
         decrypted_params = work[work_key]['params_decrypted']
 
-        # Skipping requests using v2 protocol - No more supported
-        if ('x509_proxy_0' in decrypted_params):
-            entry.log.warning("Request from client %s (secid: %s) using unsupported protocol v2 (x509_proxy_0 in message). "
-                              "Skipping." % (client_int_name, client_security_name))
-            continue
-
         # add default values if not defined
         for k in entry.jobParams.data:
             if k not in params:
@@ -1042,6 +1036,12 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         if not glideFactoryLib.is_str_safe(client_int_name):
             # may be used to write files... make sure it is reasonable
             entry.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
+            continue
+
+        # Skipping requests using v2 protocol - No more supported
+        if ('x509_proxy_0' in decrypted_params):
+            entry.log.warning("Request from client %s (secid: %s) using unsupported protocol v2 (x509_proxy_0 in message). "
+                              "Skipping." % (client_int_name, client_security_name))
             continue
 
         #
