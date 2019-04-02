@@ -914,26 +914,27 @@ class Entry:
         self.log.debug("current_stats_data = %s" % self.gflFactoryConfig.log_stats.current_stats_data)
         self.log.debug(marker)
 
+# TODO: NOT USED - to be removed - Unused debug method. Commented out
+#    def dump(self):
+#       # return
+#        stdout = sys.stdout
+#        #sys.stdout = self.log.debug_log
+#        dump_obj(self)
+#        sys.stdout = stdout
 
-    def dump(self):
-        return
-        stdout = sys.stdout
-        #sys.stdout = self.log.debug_log
-        dump_obj(self)
-        sys.stdout = stdout
 # end class Entry
 
-
-def dump_obj(obj):
-    import types
-    print(obj.__dict__)
-    print("======= START: %s ======" % obj)
-    for key in obj.__dict__:
-        if not isinstance(obj.__dict__[key], types.InstanceType):
-            print("%s = %s" % (key, obj.__dict__[key]))
-        else:
-            dump_obj(obj.__dict__[key])
-    print("======= END: %s ======" % obj)
+# TODO: NOT USED - to be removed - Was used only in Entry.dump that has been commented out
+# def dump_obj(obj):
+#     import types
+#     print(obj.__dict__)
+#     print("======= START: %s ======" % obj)
+#     for key in obj.__dict__:
+#         if not isinstance(obj.__dict__[key], types.InstanceType):
+#             print("%s = %s" % (key, obj.__dict__[key]))
+#         else:
+#             dump_obj(obj.__dict__[key])
+#     print("======= END: %s ======" % obj)
 
 
 # ###############################################################################
@@ -1012,7 +1013,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     for work_key in work:
         if not glideFactoryLib.is_str_safe(work_key):
             # may be used to write files... make sure it is reasonable
-            entry.log.warning("Request name '%s' not safe. Skipping request"%work_key)
+            entry.log.warning("Request name '%s' not safe. Skipping request" % work_key)
             continue
 
         # merge work and default params
@@ -1038,8 +1039,14 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             entry.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
             continue
 
+        # Retrieve client_security_name, used in logging and to check entry's whitelist
+        client_security_name = decrypted_params.get('SecurityName')
+        if client_security_name is None:
+            entry.log.warning("Client %s did not provide the security name, skipping request" % client_int_name)
+            continue
+
         # Skipping requests using v2 protocol - No more supported
-        if ('x509_proxy_0' in decrypted_params):
+        if 'x509_proxy_0' in decrypted_params:
             entry.log.warning("Request from client %s (secid: %s) using unsupported protocol v2 (x509_proxy_0 in message). "
                               "Skipping." % (client_int_name, client_security_name))
             continue
@@ -1058,11 +1065,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             continue
 
         # Check whether the frontend is in the whitelist of the entry
-        client_security_name = decrypted_params.get('SecurityName')
-        if client_security_name is None:
-            entry.log.warning("Client %s did not provide the security name, skipping request" % client_int_name)
-            continue
-
         if entry.isClientBlacklisted(client_security_name):
             entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " %
                               (client_security_name, client_int_name))
