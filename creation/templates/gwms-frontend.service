@@ -1,7 +1,5 @@
 [Unit]
 Description=GWMS Frontend Service
-Requires=condor.service
-After=condor.service
 Documentation="http://glideinwms.fnal.gov/doc.prd/frontend/index.html"
 
 [Service]
