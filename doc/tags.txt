@@ -3,6 +3,8 @@ v3_4_4  Propagate to Factory and glidein submission attributes controlled by FE
         Include OSG distributed unprivileged Singularity to the search path and do a full test of Singularity
         Improved HTCondor configuration for schedd in Factory and Frontend
         Added flag to Ignore entries in downtime when considering glideins matches
+        Add a bind mount for /etc/hosts in Singularity
+        Removed Frontend service dependency from HTCondor service
         Bug fix: Factory GlideinMonitor* classads appear to be erased periodically
         Bug fix: Glidein not killing condor processes
         Bug fix: Error preventing the Frontend fo match jobs

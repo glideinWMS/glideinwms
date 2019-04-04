@@ -87,12 +87,14 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_4_4</b> released on March 20, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_4.tgz">Tarball</a>)<br>
+        <b>v3_4_4</b> released on April 4, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_4.tgz">Tarball</a>)<br>
         <ul>
             <li>Propagate to Factory and glidein submission attributes controlled by FE</li>
             <li>Track jobs that spawn multiple nodes, e.g. HPC submission</li>
             <li>Include OSG distributed unprivileged Singularity to the search path and do a full test of Singularity</li>
             <li>Improved HTCondor configuration for schedd in Factory and Frontend</li>
+            <li>Add a bind mount for /etc/hosts in Singularity</li>
+            <li>Removed Frontend service dependency from HTCondor service</li>
             <li>Added flag to Ignore entries in downtime when considering glideins matches</li>
             <li>Bug fix: Factory GlideinMonitor* classads appear to be erased periodically</li>
             <li>Bug fix: Glidein not killing condor processes</li>
