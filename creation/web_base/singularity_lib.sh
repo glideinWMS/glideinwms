@@ -565,7 +565,7 @@ function singularity_exec_simple {
 
     # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
-    local singularity_binds="`singularity_get_binds e "/cvmfs"`"
+    local singularity_binds="`singularity_get_binds e "/cvmfs,/etc/hosts"`"
     local singularity_bin="$1"
     local singularity_image="$2"
     shift 2
