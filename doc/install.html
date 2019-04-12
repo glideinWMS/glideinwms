@@ -134,9 +134,7 @@ Install documents:
 	<p>
 	The configuration based installer does NOT modify any scripts that set a user environment upon log in, e.g.: .bashrc file, 
 	/etc/profile.d files, et al. Instead, an environment script is created for each service in its respective "home" location. If inclusion 
-	of these scripts is required at a location, it will need to be performed manually. The only exception to this is when privilege 
-	separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in HTCondor and 
-	cannot be changed. For each of the GlideinsWMS services, the scripts for setting the environment are:
+	of these scripts is required at a location, it will need to be performed manually.For each of the GlideinsWMS services, the scripts for setting the environment are:
 	<ul>
 	<li><b>wmscollector, usercollector, submit</b>: condor_location/condor.sh</li>
 	<li><b>Factory</b>: install_location/factory.sh</li>

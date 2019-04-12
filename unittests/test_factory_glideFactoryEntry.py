@@ -14,7 +14,8 @@ try:
     import glideinwms.factory.glideFactoryEntry
     import glideinwms.factory.glideFactoryLib
     from glideinwms.factory.glideFactoryEntry import Entry
-    from glideinwms.factory.glideFactoryEntry import dump_obj
+    # TODO - to remove - code commented in glideFactoryEntry.py because unused
+    # from glideinwms.factory.glideFactoryEntry import dump_obj
 except ImportError as err:
     raise TestImportError(str(err))
 
@@ -66,11 +67,12 @@ class TestEntry(unittest.TestCase):
         #self.assertEqual(expected, entry.advertise(downtime_flag))
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
-    def test_dump(self):
-        #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
-        #self.assertEqual(expected, entry.dump())
-        assert False  # TODO: implement your test here
+    # TODO - to remove - code commented in glideFactoryEntry.py because unused
+    # @unittest.skip('for now')
+    # def test_dump(self):
+    #     #entry = Entry(name, startup_dir, glidein_descript, frontend_descript)
+    #     #self.assertEqual(expected, entry.dump())
+    #     assert False  # TODO: implement your test here
 
     def test_getGlideinConfiguredLimits(self):
         expected = {'DefaultPerFrontendMaxGlideins': 5000,
@@ -83,7 +85,6 @@ class TestEntry(unittest.TestCase):
                     'PerFrontendMaxHeld': '',
                     'PerFrontendMaxIdle': ''}
 
-        
         tested = self.entry.getGlideinConfiguredLimits()
 
         self.assertEqual(expected, tested)
@@ -252,32 +253,34 @@ class TestEntry(unittest.TestCase):
         self.entry.gflFactoryConfig.qc_stats = mock.Mock()
         self.entry.writeStats()
 
-    def test_dump_obj(self):
-        save_obj = sys.stdout
-        sys.stdout =  open("dump.data","w")
-        dump_obj(self.entry)
-        sys.stdout = save_obj
-        self.assertTrue(os.path.exists("./dump.data"))
-        os.remove("dump.data")
+    # TODO - to remove - code commented in glideFactoryEntry.py because unused
+    # def test_dump_obj(self):
+    #     save_obj = sys.stdout
+    #     sys.stdout = open("dump.data","w")
+    #     dump_obj(self.entry)
+    #     sys.stdout = save_obj
+    #     self.assertTrue(os.path.exists("./dump.data"))
+    #     os.remove("dump.data")
 
 
-class TestX509Proxies(unittest.TestCase):
-    @unittest.skip('for now')
-    def test___init__(self):
-        #x509_proxies = X509Proxies(frontendDescript, client_security_name)
-        assert False  # TODO: implement your test here
-
-    @unittest.skip('for now')
-    def test_add_fname(self):
-        # x509_proxies = X509Proxies(frontendDescript, client_security_name)
-        #  self.assertEqual(expected, x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname))
-        assert False  # TODO: implement your test here
-
-    @unittest.skip('for now')
-    def test_get_username(self):
-        # x509_proxies = X509Proxies(frontendDescript, client_security_name)
-        # self.assertEqual(expected, x509_proxies.get_username(x509_proxy_security_class))
-        assert False  # TODO: implement your test here
+# TODO - to remove - code commented in glideFactoryEntry.py because unused
+# class TestX509Proxies(unittest.TestCase):
+#     @unittest.skip('for now')
+#     def test___init__(self):
+#         #x509_proxies = X509Proxies(frontendDescript, client_security_name)
+#         assert False  # TODO: implement your test here
+#
+#     @unittest.skip('for now')
+#     def test_add_fname(self):
+#         # x509_proxies = X509Proxies(frontendDescript, client_security_name)
+#         #  self.assertEqual(expected, x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname))
+#         assert False  # TODO: implement your test here
+#
+#     @unittest.skip('for now')
+#     def test_get_username(self):
+#         # x509_proxies = X509Proxies(frontendDescript, client_security_name)
+#         # self.assertEqual(expected, x509_proxies.get_username(x509_proxy_security_class))
+#         assert False  # TODO: implement your test here
 
 
 class TestCheckAndPerformWork(unittest.TestCase):

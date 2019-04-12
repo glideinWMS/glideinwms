@@ -142,7 +142,7 @@ for a more detailed description.
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port" gridtype="condor" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
@@ -458,10 +458,10 @@ individual entry point configuration.
         identity=&quot;username_usedby_factory@factory_hostname&quot;
         /&gt;</div>
 
-    <p><b>Recommended:</b> (Required for privilege separation) 
+    <p><b>Recommended:</b>
     This configures the Frontend. 
     <b>Frontend on the Frontend hosting machine
-    should have the  same name as mentioned in the 'name'. </b>Identity tells the
+    should have the same name as mentioned in the 'name'. </b>Identity tells the
     Factory the username under which the Factory should map the given
     Frontend to.
     <b>If this does not match the Frontend configuration, 
@@ -693,9 +693,9 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;
 
-        gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
+        gridtype=&quot;<I>grid type [default: condor]</I>&quot;&gt;
         </div>
-    <b>Optional:</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
+    <b>Optional:</b> The default condor is for HTCondor-CE Gatekeepers. Other values are ec2 or one of the batch types supported by HTCondor:
     batch pbs (for PBS and SLURM), batch lsf, batch sge, batch condor. 
     This tag can specify additional HTCondor Grid types.
     </li>
@@ -1061,13 +1061,13 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
     &lt;/entries&gt;<br>
     &lt;entry_sets&gt;<br>
         <blockquote>
-        &lt;entry_set alias="ITB_FC_CE3" enabled="True"&gt;<br>
+        &lt;entry_set alias="T2_US_UCSD" enabled="True"&gt;<br>
             <blockquote>
             &lt;config&gt;<br>
               <blockquote>
               &lt;max_jobs&gt;<br>
                  <blockquote>
-                 &lt;default_per_frontend glideins="5000" held="100" idle="400"/&gt;<br>
+                 &lt;default_per_frontend glideins="5000" held="50" idle="100"/&gt;<br>
                  &lt;per_entry glideins="10000" held="1000" idle="4000"/&gt;<br>
                  &lt;per_frontends&gt;<br>
                  &lt;/per_frontends&gt;<br>
@@ -1077,7 +1077,7 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
               &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
               &lt;entry_selection algorithm_name="Default" &gt;<br>
-              &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br>
+              &lt;submit cluster_size="10" max_per_cycle="25" sleep="2" slots_layout="partitionable"&gt;<br>
                  <blockquote>
                  &lt;submit_attrs&gt;<br>
                  &lt;/submit_attrs&gt;<br>
@@ -1090,12 +1090,12 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
            &lt;attrs&gt;<br>
               <blockquote>
               &lt;attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
-publish="True" type="string" value="default"/&gt;<br>
+                  publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
-publish="True" type="string" value="default"/&gt;<br>
+                  publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
-              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_GRATIA_TEST"/&gt;<br>
-              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS"/&gt;<br>
+              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="UCSD"/&gt;<br>
+              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS,ATLAS,Fermilab,LIGO,NWICG,HCCLONG"/&gt;<br>
               &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
               </blockquote>
            &lt;/attrs&gt;<br>
@@ -1107,13 +1107,9 @@ publish="True" type="string" value="default"/&gt;<br>
            &lt;/monitorgroups&gt;<br>
            &lt;entries&gt;<br>
                   <blockquote>
-                  &lt;entry name="ITB_FC_CE3_121" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2"
-rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins4@fermicloud092.fnal.gov" trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;entry name="CMSHTPC_T2_US_UCSD_gw2" auth_method="grid_proxy" comment="Created new multicore entry on 2016/03/29 -- Marty" enabled="True" gatekeeper="osg-gw-2.t2.ucsd.edu osg-gw-2.t2.ucsd.edu:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="Condor"&gt;<br>
                   &lt;/entry&gt;<br>
-                  &lt;entry name="ITB_FC_CE3_025" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2"<br>
-rsl="(queue=default)(jobtype=single)"<br>
-schedd_name="schedd_glideins4@fermicloud092.fnal.gov"<br>
-trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;entry name="CMSHTPC_T2_US_UCSD_gw4" auth_method="grid_proxy" comment="Created new multicore entry on 2016/03/29 -- Marty" enabled="True" gatekeeper="osg-gw-4.t2.ucsd.edu osg-gw-4.t2.ucsd.edu:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="Condor"&gt;<br>
                   &lt;/entry&gt;<br>
                   </blockquote>
           &lt;/entries&gt;<br>
@@ -1195,6 +1191,64 @@ on the local area network, you will need to do more fine tuning when
 deploying a larger one. In this section, the various advanced aspects
 of glidein pools will be presented. 
 </p>
+</div>
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="private_net"></A>Migration process for the removal of dependency of condor_root_switchboard</H3>
+
+<P> GlideinWMS will stop supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs will run under a single user (gfactory) to eliminate
+    the need of switchboard and setuid/user-switching. Thus, all Glideins will run using the Factory user, no more separated users per-VO.
+    For the log and secure files, the same directory structure remains the same, only the ownership will change.
+</P>
+<P> The transition for the new jobs is clear, but for the old glideins that are still running, there is a process which will ease the
+    migration process for this purpose. This process implies the execution of a script which will change the ownership of
+
+    The options of the script can be checked:
+
+    <blockquote>
+    sudo python factory/tools/fact_chown.py --user=gfactory --group=gfactory --test --backup
+    </blockquote>
+
+    To the migration process, please follow the following steps:
+
+    1. Stop Factory and stop condor
+    2. Run the script fact_chown.py located in factory/tools of your GWMS installation with the option --test (make sure the backups are not
+       created if *--back* is not being passed.
+    3. Run again the script with *--test* and *--backup* to have backup of everything
+    4. Run the script with no options (This way you will make the changes and not backups)
+    *Note*: Points 3 and 4 can be merged, but it's better to do it separately so one can check what is gonna be changed
+    5. Restart condor and Factory and check the changes
+</P>
+
+<P> After executing this steps, you should see your jobs changed user in condor_q and the onwership of the
+    **/var/log/gwms-factory/client/user_username/glidein_gfactory_instance/** and
+    **/var/lib/gwms-factory/client-proxies/<USER_DIRS>** have changed to Factory user.
+</P>
+
+<H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
+<p>
+    <BR/>
+    The detailed description of CCB is
+    beyond the scope of this manual and you should refer to the HTCondor
+    documentation available
+    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">here</A>.
+    , where you will find only the parameters needed to enable it in the
+    glideins.
+    </p><p>To use HTCondor with CCB, you need to specify:
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
+
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;USE_CCB&quot;
+    value=&quot;True&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+
+    </div>
+<P>
+and you are done. Just make sure you follow the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">suggested scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">

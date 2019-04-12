@@ -9,7 +9,6 @@ import optparse
 
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
-from glideinwms.lib import condorPrivsep
 
 from . import common
 from . import WMSCollector
@@ -46,8 +45,7 @@ factory_options = [ "hostname",
 ]
 
 wmscollector_options = [ "hostname", 
-"username", 
-"privilege_separation",
+"username",
 "condor_location",
 "frontend_users",
 "x509_cert_dir",
@@ -188,11 +186,8 @@ files and directories can be created correctly""" % self.username())
   def clean_directories(self):
     """ This method attempts to clean up all directories so a fresh install
         can be accomplished successfully.  
-        It is consoldiated in a single check so as to only ask once and
+        It is consolidated in a single check so as to only ask once and
         not for each directory.
-        When privilege separation is in effect, the condor_root_switchboard
-        must be used to clean out the client log and proxy files 
-        as the owners are different and permissions problems will occur.
     """
     instance_dir = "glidein_%(instance)s" % \
                      { "instance": self.glidein.instance_name(), }
@@ -221,10 +216,8 @@ files and directories can be created correctly""" % self.username())
       common.logit("""  %(type)s: %(dir)s""" % \
                         { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
-    if self.wms.privilege_separation() == "y":
-      self.delete_ps_directories(dirs)
-    else:
-      self.delete_nps_directories(dirs)
+
+    self.delete_nps_directories(dirs)
 
     #--- double check them --
     dirs = self.verify_directories_empty(dirs)
@@ -236,40 +229,8 @@ files and directories can be created correctly""" % self.username())
     return  # all directories are empty
 
   #------------------------------------
-  def delete_ps_directories(self, dirs):
-    """ Delete the contents of directories with privilege separation in effect."""
-    for type in dirs.keys():
-      if type not in ["client logs", "client proxies",]: 
-        common.remove_dir_path(dirs[type])
-        continue
-      #-- Factory create requires client logs/proxies directories be empty
-      #-- when privspep is in effect
-      condor_sbin = "%s/sbin" % self.wms.condor_location()
-      condor_bin  = "%s/bin"  % self.wms.condor_location()
-      condorExe.set_path(condor_bin, condor_sbin)
-      parent_dir = dirs[type]
-      subdirs = os.listdir(parent_dir)
-      for base_dir in subdirs:
-        if os.path.isdir("%s/%s" % (parent_dir, base_dir)): 
-          try:
-            condorPrivsep.rmtree(parent_dir, base_dir)
-          except Exception as e:
-            common.logerr("""Encountered a problem in executing condor_root_switchboard 
-to remove this client's sub-directories:
-  %(dir)s
-
-  %(error)s
-Check your /etc/condor/privsep.conf file to verify.
-You may need to configure/install your WMS Collector to resolve or correct
-the ini file for the %(type)s attribute.  Be careful now.
-""" % { "dir": parent_dir,
-        "type": type, 
-        "error": e, } )
-          common.logit("Files in %s deleted" % parent_dir) 
-
-  #------------------------------------
   def delete_nps_directories(self, dirs):  
-    """ Delete the contents of directories with privilege separation NOT in effect."""
+    """ Delete the contents of directories """
     for type in dirs.keys():
       if type in ["client logs", "client proxies",]: 
         common.remove_dir_contents(dirs[type])
@@ -325,26 +286,12 @@ the ini file for the %(type)s attribute.  Be careful now.
   #---------------------------------
   def validate_client_log_dir(self):
     common.logit("... validating client_log_dir: %s" % self.client_log_dir())
-    if self.wms.privilege_separation() == "y":
-      #-- done in WMS collector install if privilege separation is used --
-      if not os.path.isdir(self.client_log_dir()):
-        common.logerr("""Privilege separation is in effect. This should have been
-created by the WMS Collector installation or you did not start the service 
-or you changed the ini file and did not reinstall that service.""")
-    else:
-      common.make_directory(self.client_log_dir(), self.username(), 0o755)
+    common.make_directory(self.client_log_dir(), self.username(), 0o755)
 
   #---------------------------------
   def validate_client_proxy_dir(self):
     common.logit("... validating client_proxy_dir: %s" % self.client_proxy_dir())
-    if self.wms.privilege_separation() == "y":
-      #-- done in WMS collector install if privilege separation is used --
-      if not os.path.isdir(self.client_proxy_dir()):
-        common.logerr("""Privilege separation is in effect. This should have been
-created by the WMS Collector installation or you did not start the service 
-or you changed the ini file and did not reinstall that service.""")
-    else:
-      common.make_directory(self.client_proxy_dir(), self.username(), 0o755)
+    common.make_directory(self.client_proxy_dir(), self.username(), 0o755)
 
   #-----------------------
   def create_env_script(self):
@@ -727,7 +674,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
       work_dir = "OSG"
       ress_id  = {'type':'RESS','server':self.glidein.ress_host(),'name':condor_id}
-      entry_el = {'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
+      entry_el = {'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'condor',
         'work_dir':work_dir,'site_name':site_name,'glexec_path':def_glexec_bin,
         'is_ids':[ress_id]}
 
@@ -849,7 +796,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
       self.config_entries_list[entry_name]={'gatekeeper': gatekeeper_name,
                                             'rsl': rsl_name,
-                                            'gridtype': 'gt2',
+                                            'gridtype': 'condor',
                                             'work_dir': work_dir,
                                             'site_name': site_name,
                                             'glexec_path': glexec_path,
