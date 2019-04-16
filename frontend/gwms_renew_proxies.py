@@ -14,6 +14,7 @@ import sys
 import tempfile
 
 from glideinwms.lib import x509Support
+from glideinwms.lib.util import safe_boolcomp
 
 CONFIG = '/etc/gwms-frontend/proxies.ini'
 
@@ -205,7 +206,7 @@ def main():
 
             vo_attr = VO(vo_name_map[proxy_config['vo'].lower()], proxy_config['fqan'])
 
-            if proxy_config['use_voms_server'].lower() == 'true':
+            if safe_boolcomp(proxy_config['use_voms_server'], True):
                 # we specify '-order' because some European CEs care about VOMS AC order
                 # The '-order' option chokes if a Capability is specified but we want to make sure we request it
                 # in '-voms' because we're not sure if anything is looking for it
