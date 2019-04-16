@@ -27,6 +27,8 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(safe_boolcomp(True, False))
         self.assertFalse(safe_boolcomp("False", True))
         self.assertFalse(safe_boolcomp(False, True))
+        self.assertFalse(safe_boolcomp("foo", True))
+        self.assertFalse(safe_boolcomp("foo", False))
 
 if __name__ == '__main__':
     unittest.main(
