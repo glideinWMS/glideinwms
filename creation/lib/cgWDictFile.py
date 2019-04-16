@@ -19,16 +19,17 @@ import glideinwms.lib.subprocessSupport
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
+
 # values are (group_name)
 class MonitorGroupDictFile(cWDictFile.DictFile):
     def file_header(self, want_comments):
         if want_comments:
-            return ("<!-- This entry is part of following monitoring groups -->\n") + ("<monitorgroups>")
+            return "<!-- This entry is part of following monitoring groups -->\n" + "<monitorgroups>"
         else:
-            return ("<monitorgroups>")
+            return "<monitorgroups>"
 
     def file_footer(self, want_comments):
-        return ("</monitorgroups>")
+        return "</monitorgroups>"
 
     # key can be None
     # in that case it will be composed out of value
@@ -48,8 +49,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
         self.add(None, (group_name,))
 
     def format_val(self, key, want_comments):
-        return "  <monitorgroup group_name=\"%s\">"%(self.vals[key][0],)
-
+        return "  <monitorgroup group_name=\"%s\">" % (self.vals[key][0],)
 
     def parse_val(self, line):
         if len(line)==0:
@@ -66,6 +66,9 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
         return self.add(key, arr[:-1])
 
 
+# TODO CR190416: Factory operations would like to remove this
+#  this was used to retrieve information from IS like BDII
+#  ADD ticket
 # values are (Type,System,Ref)
 class InfoSysDictFile(cWDictFile.DictFile):
     def file_header(self, want_comments):
@@ -98,23 +101,25 @@ class InfoSysDictFile(cWDictFile.DictFile):
     def format_val(self, key, want_comments):
         return "%s \t%30s \t%s \t\t%s"%(self.vals[key][0], self.vals[key][1], self.vals[key][2], key)
 
-
     def parse_val(self, line):
-        if len(line)==0:
-            return #ignore emoty lines
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None, 3)
-        if len(arr)==0:
-            return # empty line
-        if len(arr)!=4:
-            raise RuntimeError("Not a valid var line (expected 4, found %i elements): '%s'"%(len(arr), line))
+        if len(line) == 0:
+            return  #ignore emoty lines
+        if line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 3)
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr) != 4:
+            raise RuntimeError("Not a valid var line (expected 4, found %i elements): '%s'" % (len(arr), line))
 
         key=arr[-1]
         return self.add(key, arr[:-1])
 
 
 class CondorJDLDictFile(cWDictFile.DictFile):
+    """
+    Creating the condor submit file
+    """
     def __init__(self,dir,fname,sort_keys=False,order_matters=False,jobs_in_cluster=None,
                  fname_idx=None):      # if none, use fname
         cWDictFile.DictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
@@ -124,14 +129,13 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         if self.jobs_in_cluster is None:
             return "Queue"
         else:
-            return "Queue %s"%self.jobs_in_cluster
+            return "Queue %s" % self.jobs_in_cluster
 
     def format_val(self, key, want_comments):
         if self.vals[key] == "##PRINT_KEY_ONLY##":
             return "%s" % key
         else:
-            return "%s = %s"%(key, self.vals[key])
-
+            return "%s = %s" % (key, self.vals[key])
 
     def parse_val(self, line):
         if line[0]=='#':
@@ -139,7 +143,6 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         arr=line.split(None, 2)
         if len(arr)==0:
             return # empty line
-
         if arr[0]=='Queue':
             # this is the final line
             if len(arr)==1:
@@ -155,9 +158,9 @@ class CondorJDLDictFile(cWDictFile.DictFile):
             return self.add(arr[0], arr[2])
 
     def is_equal(self,other,         # other must be of the same class
-                 compare_dir=False,compare_fname=False,
-                 compare_keys=None): # if None, use order_matters
-        if self.jobs_in_cluster==other.jobs_in_cluster:
+                 compare_dir=False,compare_fname = False,
+                 compare_keys=None):  # if None, use order_matters
+        if self.jobs_in_cluster == other.jobs_in_cluster:
             return cWDictFile.DictFile.is_equal(other, compare_dir, compare_fname, compare_keys)
         else:
             return False
@@ -341,14 +344,16 @@ def save_common_dicts(dicts,     # will update in place, too
     dicts['params'].save(set_readonly=set_readonly)
     dicts['attrs'].save(set_readonly=set_readonly)
 
+
 # must be invoked after all the entries have been saved
-def save_main_dicts(main_dicts, # will update in place, too
+def save_main_dicts(main_dicts,  # will update in place, too
                     set_readonly=True):
     main_dicts['glidein'].save(set_readonly=set_readonly)
     main_dicts['frontend_descript'].save(set_readonly=set_readonly)
     save_common_dicts(main_dicts, True, set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
-    summary_signature.add_from_file(key="main", filepath=main_dicts['signature'].get_filepath(), fname2=main_dicts['description'].get_fname(), allow_overwrite=True)
+    summary_signature.add_from_file(key="main", filepath=main_dicts['signature'].get_filepath(),
+                                    fname2=main_dicts['description'].get_fname(), allow_overwrite=True)
     summary_signature.save(set_readonly=set_readonly)
 
 
@@ -359,7 +364,10 @@ def save_entry_dicts(entry_dicts,                   # will update in place, too
     entry_dicts['infosys'].save(set_readonly=set_readonly)
     entry_dicts['job_descript'].save(set_readonly=set_readonly)
     save_common_dicts(entry_dicts, False, set_readonly=set_readonly)
-    summary_signature.add_from_file(key=cgWConsts.get_entry_stage_dir("", entry_name), filepath=entry_dicts['signature'].get_filepath(), fname2=entry_dicts['description'].get_fname(), allow_overwrite=True)
+    summary_signature.add_from_file(key=cgWConsts.get_entry_stage_dir("", entry_name),
+                                    filepath=entry_dicts['signature'].get_filepath(),
+                                    fname2=entry_dicts['description'].get_fname(), allow_overwrite=True)
+
 
 ################################################
 #
@@ -370,35 +378,37 @@ def save_entry_dicts(entry_dicts,                   # will update in place, too
 def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
     if dicts[key].is_equal(other_dicts[key], compare_dir=True, compare_fname=False, compare_keys=compare_keys):
         # if equal, just use the old one, and mark it as unchanged and readonly
-        dicts[key]=copy.deepcopy(other_dicts[key])
-        dicts[key].changed=False
+        dicts[key] = copy.deepcopy(other_dicts[key])
+        dicts[key].changed = False
         dicts[key].set_readonly(True)
         return True
     else:
         return False
 
+
 def reuse_file_dict(dicts, other_dicts, key):
     dicts[key].reuse(other_dicts[key])
     return reuse_simple_dict(dicts, other_dicts, key)
+
 
 def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
     # save the immutable ones
     # check simple dictionaries
     for k in ('consts', 'untar_cfg', 'vars'):
-        all_reused=reuse_simple_dict(dicts, other_dicts, k) and all_reused
+        all_reused = reuse_simple_dict(dicts, other_dicts, k) and all_reused
     # since the file names may have changed, refresh the file_list
     refresh_file_list(dicts, is_main)
     # check file-based dictionaries
     for k in ('file_list', 'after_file_list'):
         if k in dicts:
-            all_reused=reuse_file_dict(dicts, other_dicts, k) and all_reused
+            all_reused = reuse_file_dict(dicts, other_dicts, k) and all_reused
 
     if all_reused:
         # description and signature track other files
         # so they change iff the others change
         for k in ('description', 'signature'):
-            dicts[k]=copy.deepcopy(other_dicts[k])
-            dicts[k].changed=False
+            dicts[k] = copy.deepcopy(other_dicts[k])
+            dicts[k].changed = False
             dicts[k].set_readonly(True)
 
     # check the mutable ones
@@ -407,14 +417,16 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
 
     return all_reused
 
+
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts, 'glidein')
     reuse_simple_dict(main_dicts, other_main_dicts, 'frontend_descript')
     reuse_simple_dict(main_dicts, other_main_dicts, 'gridmap')
-    all_reused=reuse_common_dicts(main_dicts, other_main_dicts, True, True)
+    all_reused = reuse_common_dicts(main_dicts, other_main_dicts, True, True)
     # will not try to reuse the summary_signature... being in submit_dir
     # can be rewritten and it is not worth the pain to try to prevent it
     return all_reused
+
 
 def reuse_entry_dicts(entry_dicts, other_entry_dicts, entry_name):
     reuse_simple_dict(entry_dicts, other_entry_dicts, 'job_descript')
@@ -428,6 +440,7 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts, entry_name):
 #
 ################################################
 
+
 ################################################
 #
 # Support classes
@@ -436,27 +449,27 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts, entry_name):
 
 
 class clientDirSupport(cWDictFile.simpleDirSupport):
-    def __init__(self,user,dir,dir_name):
+    def __init__(self, user, dir, dir_name):
         cWDictFile.simpleDirSupport.__init__(self, dir, dir_name)
-        self.user=user
+        self.user = user
 
     def create_dir(self,fail_if_exists=True):
-        base_dir=os.path.dirname(self.dir)
+        base_dir = os.path.dirname(self.dir)
         if not os.path.isdir(base_dir):
-            raise RuntimeError("Missing base %s directory %s."%(self.dir_name, base_dir))
+            raise RuntimeError("Missing base %s directory %s." % (self.dir_name, base_dir))
 
         if os.path.isdir(self.dir):
             if fail_if_exists:
                 raise RuntimeError("Cannot create %s dir %s, already exists."%(self.dir_name, self.dir))
             else:
-                return False # already exists, nothing to do
+                return False  # already exists, nothing to do
 
-        if self.user==MY_USERNAME:
+        if self.user == MY_USERNAME:
             # keep it simple, if possible
             try:
                 os.mkdir(self.dir)
             except OSError as e:
-                raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
+                raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
         else:
             try:
                 # use the execute command
@@ -465,7 +478,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 # with condor 7.9.4 a permissions change is required
                 glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0755 %s*" % (self.dir))
             except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-                raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
+                raise RuntimeError("Failed to create %s dir (user %s): %s" % (self.dir_name, self.user, e))
             except:
                 raise RuntimeError("Failed to create %s dir (user %s): Unknown error" % (self.dir_name, self.user))
         return True
@@ -473,8 +486,11 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
     def delete_dir(self):
         base_dir=os.path.dirname(self.dir)
         if not os.path.isdir(base_dir):
-            raise RuntimeError("Missing base %s directory %s!"%(self.dir_name, base_dir))
+            raise RuntimeError("Missing base %s directory %s!" % (self.dir_name, base_dir))
 
+        # TODO CR190416: Now that there is no privsep this if seems superfluous
+        #  user is used for other things but all dirs are owned by the factory user
+        #  keep try ... except to protect from errors
         if self.user==MY_USERNAME:
             # keep it simple, if possible
             shutil.rmtree(self.dir)
@@ -484,7 +500,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 # do not use the rmtree one, as we do not need root privileges
                 glideinwms.lib.subprocessSupport.iexe_cmd("/bin/rm -fr %s" % (self.dir))
             except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-                raise RuntimeError("Failed to remove %s dir (user %s): %s"%(self.dir_name, self.user, e))
+                raise RuntimeError("Failed to remove %s dir (user %s): %s" % (self.dir_name, self.user, e))
             except:
                 raise RuntimeError("Failed to remove %s dir (user %s): Unknown error" % (self.dir_name, self.user))
 
@@ -505,12 +521,14 @@ class chmodClientDirSupport(clientDirSupport):
             else:
                 return False # already exists, nothing to do
 
+        # TODO CR190416: Now that there is no privsep this if seems superfluous
+        #  user is used for other things but all dirs are owned by the factory user
         if self.user==MY_USERNAME:
             # keep it simple, if possible
             try:
                 os.mkdir(self.dir, self.chmod)
             except OSError as e:
-                raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
+                raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
         else:
             try:
                 # use the execute command
@@ -542,12 +560,15 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
 
         self.add_dir_obj(clientDirSupport(user, dir, dir_name))
 
+
 class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
     def __init__(self, user_dirs, work_dir, symlink_base_subdir, dir_name):
         self.symlink_base_dir=os.path.join(work_dir, symlink_base_subdir)
         cWDictFile.multiSimpleDirSupport.__init__(self, (self.symlink_base_dir,), dir_name)
         for user in user_dirs.keys():
-            self.add_dir_obj(cWDictFile.symlinkSupport(user_dirs[user], os.path.join(self.symlink_base_dir, "user_%s"%user), dir_name))
+            self.add_dir_obj(cWDictFile.symlinkSupport(user_dirs[user], os.path.join(self.symlink_base_dir,
+                                                                                     "user_%s"%user), dir_name))
+
 
 ###########################################
 # Support classes used my Entry
@@ -559,6 +580,7 @@ class clientLogDirSupport(clientDirSupport):
 class clientProxiesDirSupport(chmodClientDirSupport):
     def __init__(self,user,proxies_dir,proxiesdir_name="clientproxies"):
         chmodClientDirSupport.__init__(self, user, proxies_dir, 0o700, proxiesdir_name)
+
 
 ################################################
 #
@@ -642,7 +664,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
         save_entry_dicts(self.dicts, self.sub_name, self.summary_signature, set_readonly=set_readonly)
 
     def save_final(self,set_readonly=True):
-        pass # nothing to do
+        pass  # nothing to do
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
@@ -668,6 +690,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
     def reuse_nocheck(self, other):
         reuse_entry_dicts(self.dicts, other.dicts, self.sub_name)
 
+
 ################################################
 #
 # This Class contains the main,the entry dicts
@@ -680,10 +703,10 @@ class glideinDicts(cWDictFile.fileDicts):
                  client_log_dirs,client_proxies_dirs,
                  entry_list=[],
                  workdir_name='submit'):
-        self.client_log_dirs=client_log_dirs
-        self.client_proxies_dirs=client_proxies_dirs
+        self.client_log_dirs = client_log_dirs
+        self.client_proxies_dirs = client_proxies_dirs
         cWDictFile.fileDicts.__init__(self, work_dir, stage_dir, entry_list, workdir_name,
-                                      False, # simple_work_dir=False
+                                      False,  # simple_work_dir=False
                                       log_dir)
 
     ###########
@@ -693,10 +716,12 @@ class glideinDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.work_dir, self.stage_dir, self.workdir_name, self.log_dir, self.client_log_dirs, self.client_proxies_dirs)
+        return glideinMainDicts(self.work_dir, self.stage_dir, self.workdir_name, self.log_dir,
+                                self.client_log_dirs, self.client_proxies_dirs)
 
     def new_SubDicts(self, sub_name):
-        return glideinEntryDicts(self.work_dir, self.stage_dir, sub_name, self.main_dicts.get_summary_signature(), self.workdir_name, self.log_dir, self.client_log_dirs, self.client_proxies_dirs)
+        return glideinEntryDicts(self.work_dir, self.stage_dir, sub_name, self.main_dicts.get_summary_signature(),
+                                 self.workdir_name, self.log_dir, self.client_log_dirs, self.client_proxies_dirs)
 
     def get_sub_name_from_sub_stage_dir(self, sign_key):
         return cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
