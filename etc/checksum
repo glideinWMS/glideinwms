@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_4_4
+# GLIDEINWMS_VERSION v3_4_5_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -44,13 +44,13 @@ fd9f860317c23d1520aae1669a0d72f8  ./creation/lib/cWParamDict.py
 8d3838ebb81a92edea770a221e99527e  ./creation/lib/cgWCreate.py
 6fbfd56e5087c652cf43268d2880c0f8  ./creation/lib/cgWDictFile.py
 db3ae6f0797d08f1399ae5192457f620  ./creation/lib/cgWParamDict.py
-b25ca7ed356c0d8eb70fc423136373f8  ./creation/lib/cgWParams.py
+9c720a179afb45e82d5a9ac3dc51e0bc  ./creation/lib/cgWParams.py
 08af9ee9230d763dea382203faf4d401  ./creation/lib/check_config_frontend.py
 fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
 ddfe307190a97b77e4a57280b56865b9  ./creation/lib/cvWCreate.py
 003648b0c16bb7c6b0c3fb740b1e2168  ./creation/lib/cvWDictFile.py
-13fe4d5f0bdb2505ac9fd37dcda80ba2  ./creation/lib/cvWParamDict.py
-2ae526f92e36d8f067afc0cb79c6a476  ./creation/lib/cvWParams.py
+00889673a6784984eb90516e76ea5337  ./creation/lib/cvWParamDict.py
+c9b0300da5738d55a350e5ff2d114d90  ./creation/lib/cvWParams.py
 ee9cb6269677199508b96ce2b79007e3  ./creation/lib/factoryXmlConfig.py
 04e53ddf2dbb496884734149c0603a31  ./creation/lib/factory_defaults.xml
 7382aae30e1f14818c86b48c572be081  ./creation/lib/matchPolicy.py
@@ -106,14 +106,14 @@ ac116f57a06af281ba6353b508eb3ec4  ./creation/web_base/factoryLogStatus.html
 22aaad455cdb9456b1a1ff977e9857cd  ./creation/web_base/factoryStatus.html
 1408915123896bc3326d6abe2cc5979d  ./creation/web_base/factoryStatusNow.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-75c82b04c4b4623d555c5c691e95df97  ./creation/web_base/frontend/default_singularity_wrapper.sh
+8cd0668ee1741c409249e1b81ee0aeae  ./creation/web_base/frontend/default_singularity_wrapper.sh
 323b5dd91f3df1c0aab5679cdbf1fb86  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
 a8a213f5c4387a8a027091f7100bd124  ./creation/web_base/frontend/images/frontendRRDGroupMatix.small.png
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/frontend/images/frontendStatus.small.png
 d837fdb994350b2fa4c85f2dcc3b2ccc  ./creation/web_base/frontend/index.html
-d39e3a1b506381402de406bdabca46c3  ./creation/web_base/frontend/singularity_script_example.sh
+adfe49c1e85059131c5529bb53dc6ed1  ./creation/web_base/frontend/singularity_script_example.sh
 2f0406bfb9085c8e8bcb31e7a5617882  ./creation/web_base/frontendGroupGraphStatusNow.html
 e026658daeb77f455a221f0a56adee7b  ./creation/web_base/frontendRRDBrowse.html
 ab693b0037de0864de7cde231d8f1863  ./creation/web_base/frontendRRDGroupMatrix.html
@@ -136,7 +136,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 7952a21b73f31c0795e51ec0cd135138  ./creation/web_base/setup_x509.sh
-4e404b310ab2972695fa1450df8ea50b  ./creation/web_base/singularity_lib.sh
+26879f207be4156f85e28fc0b98b1a9a  ./creation/web_base/singularity_lib.sh
 3db85aa71615600a39df968544d40244  ./creation/web_base/singularity_setup.sh
 73e36abceb940089bef39806443764a8  ./creation/web_base/smart_partitionable.sh
 0520ea85ffabd8885c773809dcaf1f79  ./creation/web_base/update_proxy.py
@@ -185,14 +185,14 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 d5e69f6c688b88b3deb69cb3ededb3f1  ./frontend/glideinFrontend.py
 57547875e37fdd7be22e1e07715acb5d  ./frontend/glideinFrontendConfig.py
 cd061bd4239d5f1c9023135cef785d0c  ./frontend/glideinFrontendDowntimeLib.py
-37e9f1909f6ac5702d5118a83bdbd3ad  ./frontend/glideinFrontendElement.py
+31bcdd2acb522b50537d1545751a6cdd  ./frontend/glideinFrontendElement.py
 0c30bfcbf40dd26f48ea332410ebbdaa  ./frontend/glideinFrontendInterface.py
-abb921c692a420a2ae0254c3b36a8e1e  ./frontend/glideinFrontendLib.py
+d6b193215f7f5451c6a9a9c48ad26fea  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
 64df1882c71f9a213e0e8a1198e1baff  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py
 707d33863d360b57057ec2595e6f401e  ./frontend/glideinFrontendPlugins.py
-4773fa41e5ab50bfff461c2d7873b28b  ./frontend/gwms_renew_proxies.py
+a0ccd76515a7facf427a433136fff9c8  ./frontend/gwms_renew_proxies.py
 5939db763ca77ae3c89a70f6374ed413  ./frontend/manageFrontendDowntimes.py
 fdbb766bde4ef0562efac10c4e0c3bfd  ./frontend/stopFrontend.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/__init__.py
@@ -253,7 +253,7 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 1d40f3069895417bcd2f6acab01b7817  ./lib/symCrypto.py
 ad3182067d3adbfb8a4c9e92b16ba1c2  ./lib/tarSupport.py
 411936aadbc8909170ec980b35d205a3  ./lib/timeConversion.py
-e35842508b4a78d18e806f91f6c9321c  ./lib/util.py
+39acd5f9edbdea4e312a7b419a316d81  ./lib/util.py
 1da1078c2a95b7e7870363862049c034  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
