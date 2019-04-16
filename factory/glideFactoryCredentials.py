@@ -20,8 +20,6 @@ from . import glideFactoryInterface
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
 
-MY_USERNAME = pwd.getpwuid(os.getuid())[0]
-
 
 # defining new exception so that we can catch only the credential errors here
 # and let the "real" errors propagate up
@@ -34,7 +32,7 @@ class SubmitCredentials:
     Data class containing all information needed to submit a glidein.
     """
     def __init__(self, username, security_class):
-        self.username = username  # are we using privsep or not
+        self.username = username
         self.security_class = security_class  # Seems redundant info
         self.id = None  # id used for tracking the submit credentials
         self.cred_dir = ''  # location of credentials
@@ -89,7 +87,13 @@ class SubmitCredentials:
 
 def update_credential_file(username, client_id, credential_data, request_clientname):
     """
-    Updates the credential file.
+    Updates the credential file
+
+    :param username: credentials' username
+    :param client_id: id used for tracking the submit credentials
+    :param credential_data: the credentials to be advertised
+    :param request_clientname: client name passed by frontend
+    :return:the credential file updated
     """
 
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
@@ -97,7 +101,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     fname = os.path.join(proxy_dir, fname_short)
     fname_compressed = "%s_compressed" % fname
 
-    msg = "no privsep, updating directly credential file %s" % fname
+    msg = "updating credential file %s" % fname
     logSupport.log.debug(msg)
 
     safe_update(fname, credential_data)

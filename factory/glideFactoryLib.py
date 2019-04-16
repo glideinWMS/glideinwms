@@ -30,11 +30,9 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
-
-import glideinwms.factory.glideFactorySelectionAlgorithms
-import glideinwms.lib.subprocessSupport
+from glideinwms.lib import subprocessSuport
 from glideinwms.factory import glideFactoryConfig
-
+from glideinwms.factory. import glideFactorySelectionAlgorithms
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -1201,7 +1199,7 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # same as the factory username
     try:
         submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                                            child_env=env_list2dict(exe_env))
+                                        child_env=env_list2dict(exe_env))
 
     except condorExe.ExeError as e:
         submit_out = []

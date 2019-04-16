@@ -72,7 +72,6 @@
     <li><a href="#idle_glideins">Glideins Stay Idle</a></li>
     <li><a href="#no_resource">Resource Not Registered</a></li>
     <li><a href="#no_start">Jobs Do Not Start</a></li>
-    <li><a href="#switchboard">HTCondor Switchboard</a></li>
     <li><a href="#find_user">Finding the User</a></li>
 </ol>
 </div>
@@ -367,7 +366,6 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
         If the job is held, make sure the user schedd is running as root (if getting permission denied).  Run "condor_q -analyze" to see what is holding the process.   
     </p>
 </div>
-
 <div class="section">
 <h2><a name="find_user">Finding the user</a></h2>
 		
@@ -397,11 +395,11 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
 	    are automatically included in the glidein logs sent back to the Factory.  GlideinWMS provides tools for viewing these HTCondor logs in 
 	    glideinWMS/factory/tools/:
 	    <ul>
-	    	<li>cat_logs.py <i>glidien_log</i></li>
-	    	<li>cat_MasterLog.py <i>glidien_log</i></li>
-	    	<li>cat_StartdLog.py <i>glidien_log</i></li>
-	    	<li>cat_StarterLog.py <i>glidien_log</i></li>
-	    	<li>cat_StartdHistoryLog.py <i>glidien_log</i></li>
+                <li>cat_logs.py <i>glidein_log</i></li>
+                <li>cat_MasterLog.py <i>glidein_log</i></li>
+                <li>cat_StartdLog.py <i>glidein_log</i></li>
+                <li>cat_StarterLog.py <i>glidein_log</i></li>
+                <li>cat_StartdHistoryLog.py <i>glidein_log</i></li>
 	    </ul>
 		The Startd and StartdHistory log will contain the DN of the user, just search for x509UserProxyFQAN. 
 		</p>
@@ -415,6 +413,12 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
 		<br/>  
                 If gLExec is enabled on the site, you can also look in the <a href="http://vdt.cs.wisc.edu/components/glexec.html">gLExec</a> logs.
 		</p>
+
+            <h4>HTCondor Switchboard no longer used</h4>
+                <p>
+             Switchboard is no longer supported. If you are running an older factory version, please consult <a href="http://glideinwms.fnal.gov/doc.v3_4_3/factory/troubleshooting.html">3.4.3 manual</a>
+                </p>
+
 	</div>
 
 

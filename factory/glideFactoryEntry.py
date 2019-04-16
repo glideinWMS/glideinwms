@@ -58,7 +58,7 @@ class Entry:
 
         @type frontend_descript: dict
         @param frontend_descript: Security mappings for frontend identities,
-        security classes, and usernames for privsep
+        and security classes
         """
         self.limits_triggered={}
         self.name = name
@@ -1566,7 +1566,6 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
                                                       credential_username),
             entry.logDir, client_int_name, credential_username)
 
-    # We don't need privsep for reading logs
     try: # the logParser class will throw an exception if the input file is bad
         log_stats[credential_username + ":" + client_int_name].load()
     except Exception as e:

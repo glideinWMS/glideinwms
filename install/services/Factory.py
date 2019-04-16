@@ -217,7 +217,7 @@ files and directories can be created correctly""" % self.username())
                         { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
 
-    self.delete_nps_directories(dirs)
+    self.delete_directories(dirs)
 
     #--- double check them --
     dirs = self.verify_directories_empty(dirs)
@@ -229,7 +229,7 @@ files and directories can be created correctly""" % self.username())
     return  # all directories are empty
 
   #------------------------------------
-  def delete_nps_directories(self, dirs):  
+  def delete_directories(self, dirs):
     """ Delete the contents of directories """
     for type in dirs.keys():
       if type in ["client logs", "client proxies",]: 
@@ -239,8 +239,7 @@ files and directories can be created correctly""" % self.username())
 
   #-----------------------------
   def verify_directories_empty(self, dirs):
-    """ This method checks to see if certain directories are empty when
-        privilege separation is NOT in effect. 
+    """ This method checks to see if certain directories are empty
         Returns: a dictionary of directories to be deleted.
     """
     #--- check them --

@@ -17,8 +17,6 @@ import pwd
 import shutil
 import glideinwms.lib.subprocessSupport
 
-MY_USERNAME=pwd.getpwuid(os.getuid())[0]
-
 # values are (group_name)
 class MonitorGroupDictFile(cWDictFile.DictFile):
     def file_header(self, want_comments):
@@ -436,7 +434,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         cWDictFile.simpleDirSupport.__init__(self, dir, dir_name)
         self.user=user
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         base_dir=os.path.dirname(self.dir)
         if not os.path.isdir(base_dir):
             raise RuntimeError("Missing base %s directory %s."%(self.dir_name, base_dir))
@@ -447,23 +445,13 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             else:
                 return False # already exists, nothing to do
 
-        if self.user==MY_USERNAME:
-            # keep it simple, if possible
-            try:
-                os.mkdir(self.dir)
-            except OSError as e:
-                raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
-        else:
-            try:
-                # use the execute command
-                # do not use the mkdir one, as we do not need root privileges
-                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/mkdir %s*" % (self.dir))
-                # with condor 7.9.4 a permissions change is required
-                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0755 %s*" % (self.dir))
-            except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-                raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to create %s dir (user %s): Unknown error" % (self.dir_name, self.user))
+        # keep it simple, if possible
+        try:
+            os.mkdir(self.dir))
+            # with condor 7.9.4 a permissions change is required
+            os.chmod(self.dir, 0o755)
+        except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+            raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
         return True
 
     def delete_dir(self):
@@ -471,18 +459,10 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         if not os.path.isdir(base_dir):
             raise RuntimeError("Missing base %s directory %s!"%(self.dir_name, base_dir))
 
-        if self.user==MY_USERNAME:
-            # keep it simple, if possible
-            shutil.rmtree(self.dir)
-        else:
-            try:
-                # use the execute command
-                # do not use the rmtree one, as we do not need root privileges
-                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/rm -fr %s" % (self.dir))
-            except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-                raise RuntimeError("Failed to remove %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to remove %s dir (user %s): Unknown error" % (self.dir_name, self.user))
+        try:
+            os.rm(self.dir)
+        except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+            raise RuntimeError("Failed to remove %s dir (user %s): %s"%(self.dir_name, self.user, e))
 
 
 class chmodClientDirSupport(clientDirSupport):
@@ -501,23 +481,12 @@ class chmodClientDirSupport(clientDirSupport):
             else:
                 return False # already exists, nothing to do
 
-        if self.user==MY_USERNAME:
-            # keep it simple, if possible
-            try:
-                os.mkdir(self.dir, self.chmod)
-            except OSError as e:
-                raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
-        else:
-            try:
-                # use the execute command
-                # do not use the mkdir one, as we do not need root privileges
-                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/mkdir %s*" % (self.dir))
-                # with condor 7.9.4 a permissions change is required
-                glideinwms.lib.subprocessSupport.iexe_cmd("/bin/chmod 0%o%s" % self.chmod, self.dir)
-            except glideinwms.lib.subprocessSupport.CalledProcessError as e:
-                raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
-            except:
-                raise RuntimeError("Failed to create %s dir (user %s): Unknown error" % (self.dir_name, self.user))
+        try:
+            os.mkdir(self.dir)
+            # with condor 7.9.4 a permissions change is required
+            os.chmod(self.dir, self.chmod)
+        except glideinwms.lib.subprocessSupport.CalledProcessError as e:
+            raise RuntimeError("Failed to create %s dir (user %s): %s"%(self.dir_name, self.user, e))
         return True
 
 
