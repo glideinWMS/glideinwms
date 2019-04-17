@@ -1810,6 +1810,10 @@ class glideinFrontendElement:
                         self.ignore_down_entries,
                         self.condorq_match_list,
                         match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
+# This is the line to enable if you want the frontend to dump data structures during countMatch
+# You can then use the profile_frontend.py script to execute the countMatch function with real data
+# Data will be saved into /tmp/frontend_dump/ . Make sure to create the dir beforehand.
+#                        group_name=self.group_name)
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out=(c, p, h, pmc, t)

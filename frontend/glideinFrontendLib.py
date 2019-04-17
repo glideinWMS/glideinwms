@@ -13,6 +13,8 @@
 #   Igor Sfiligoi (Sept 19th 2006)
 #
 
+import os
+import pickle
 import os.path
 import string
 import math
@@ -177,9 +179,26 @@ def getCondorQUsers(condorq_dict):
 
     return users_set
 
+# This function has been used for profiling reasons (to get a better result with cProfile)
+#Keeping it around just in case we need it again in the future
+#def countMatchInnerLoop(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job):
+#    cluster_arr=[]
+#    schedd_count = 0
+#    cpu_schedd_count = 0
+#    for jid in cq_dict_clusters_el[jh]:
+#        cluster_arr.append(jid[2])
+#        schedd_count+=1
+#
+#    # Since all jobs are same figure out how many cpus
+#    # are required for this cluster based on one job
+#    cpu_schedd_count += job.get('RequestCpus', 1) * len(cq_dict_clusters_el[jh])
+#    first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+#    all_jobs_clusters[first_t]=cluster_arr
+#    sjobs_arr+=[first_t]
+#    return schedd_count, cpu_schedd_count, first_t
 
 def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_entries,
-               condorq_match_list=None, match_policies=[]):
+               condorq_match_list=None, match_policies=[], group_name=None):
     """
     Get the number of jobs that match each glidein
     
@@ -203,6 +222,26 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
         A special 'glidein name' of (None, None, None) is used for jobs
         that don't match any 'real glidein name' in all 4 tuples above
     """
+
+    # The following lines are executed only if the corresponding line is uncommented in glideinFrontendElement.subprocess_count_dt
+    # This is intended for experts/developers only, that's why we do not have a corresponding parameter in the configuration file
+    # This was used to save real data from the CMS frontend and improve the speed of this function
+    # See https://cdcvs.fnal.gov/redmine/issues/20302
+    if group_name:
+        mydir = "/tmp/frontend_dump/" + group_name
+        try:
+            os.mkdir(mydir)
+        except:
+            pass
+        with open(mydir+'/glidein_dict.pickle', 'w') as fd:
+            pickle.dump(glidein_dict, fd)
+        with open(mydir+'/attr_dict.pickle', 'w') as fd:
+            pickle.dump(attr_dict, fd)
+        with open(mydir+'/condorq_match_list.pickle', 'w') as fd:
+            pickle.dump(condorq_match_list, fd)
+        for schedd in condorq_dict.keys():
+            pickle.dump(condorq_dict[schedd].fetchStored(), open(mydir+'/condorq_dict_%s.pickle' % schedd, 'w'))
+
     out_glidein_counts={}
     out_cpu_counts={}
 
@@ -265,8 +304,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
                 cq_dict_clusters_el[jh]=[]
             # Add the job to the correct cluster according to the
             #   linearization scheme above
-            cq_dict_clusters_el[jh].append(jid)
             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+            cq_dict_clusters_el[jh].append((jid[0], jid[1], t))
             # Add jobs
             cq_jobs.add(t)
 
@@ -313,7 +352,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
-                job=condorq_data[first_jid]
+                job=condorq_data[(first_jid[0], first_jid[1])]
 
                 try:
                     # Do not match downtime entries
@@ -335,11 +374,15 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
                                 break
 
                     if match == True:
+                        # The lines inside this if can be replaced with those three for profiling
+#                        sc, csc, first_t = do_match(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job)
+#                        schedd_count += sc
+#                        cpu_schedd_count += csc
+
                         # the first matched... add all jobs in the cluster
                         cluster_arr=[]
                         for jid in cq_dict_clusters_el[jh]:
-                            t = (jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
-                            cluster_arr.append(t)
+                            cluster_arr.append(jid[2])
                             schedd_count += 1
 
                         # Since all jobs are same figure out how many cpus
