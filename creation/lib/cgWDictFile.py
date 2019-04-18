@@ -447,7 +447,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
 
         # keep it simple, if possible
         try:
-            os.mkdir(self.dir))
+            os.mkdir(self.dir)
             # with condor 7.9.4 a permissions change is required
             os.chmod(self.dir, 0o755)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:

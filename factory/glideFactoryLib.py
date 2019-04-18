@@ -32,7 +32,7 @@ from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
 from glideinwms.lib import subprocessSuport
 from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory. import glideFactorySelectionAlgorithms
+from glideinwms.factory import glideFactorySelectionAlgorithms
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
