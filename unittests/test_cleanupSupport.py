@@ -124,7 +124,7 @@ class TestCleanupSupport(unittest.TestCase):
         the other files created.  Fail if any were deleted.
         """
         cleaner = cleanupSupport.DirCleanupWSpace(
-            None, self.cleanup_dir, ".*\%s" %
+            self.cleanup_dir, ".*\%s" %
             self.cleanup_extension, 0, 0, 0)
         cleaner.cleanup()
         num_cleanup_files_left = self.check_for_cleanup_files()

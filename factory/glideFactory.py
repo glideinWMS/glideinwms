@@ -401,7 +401,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
         logSupport.log.info("EntryGroup startup times: %s" % childs_uptime)
 
         for group in childs:
-            #childs[entry_name].tochild.close()
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
             for fd in (childs[group].stdout.fileno(),
@@ -562,12 +561,13 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         childs[group] = subprocess.Popen(command_list,
                                                          shell=False,
                                                          stdout=subprocess.PIPE,
-                                                         stderr=subprocess.PIPE)
+                                                         stderr=subprocess.PIPE,
+                                                         close_fds=True,
+                                                         preexec_fn=_set_rlimit)                                                         
 
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
                         childs_uptime[group].append(time.time())
-                        childs[group].tochild.close()
                         for fd in (childs[group].stdout.fileno(),
                                    childs[group].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)

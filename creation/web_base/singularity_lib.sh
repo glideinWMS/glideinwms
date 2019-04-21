@@ -56,8 +56,13 @@
 # GWMS will not do other checks, check your user mount points
 
 # Invocation
+# SINGULARITY_BIN path where the singularity binary is located. Can be specified by Factory and/or Frontend and
+#   will be used before the other possible locations
 # Additional options for the Singularity invocation
 # GLIDEIN_SINGULARITY_OPTS
+# NOTE: GLIDEIN_SINGULARITY_OPTS must be expansion/flattening safe because is passed as veriable and quoted strings inside it are not preserved
+
+OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/el67-x86_64/bin/singularity"
 
 # 0 = true
 # 1 = false
@@ -298,7 +303,7 @@ function get_prop_bool {
     local val
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         val=0
-    elif [ "x$1" = "NONE" ]; then
+    elif [ "x$1" = "xNONE" ]; then
         val=$default
     else
         # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
@@ -353,7 +358,7 @@ function get_prop_str {
     #  For bad invocation, return 1
     if [ $# -lt 2 ] || [ $# -gt 3 ]; then
         return 1
-    elif [ "x$1" = "NONE" ]; then
+    elif [ "x$1" = "xNONE" ]; then
         echo "$3"
         return 1
     fi
@@ -556,10 +561,11 @@ function singularity_exec_simple {
     #  2 - Singularity image path
     #  3 ... - Command to execute and its arguments
     #  PWD, GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_OPTS
+    # NOTE: GLIDEIN_SINGULARITY_OPTS must be expansion/flattening safe (see above)
 
     # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
-    local singularity_binds="`singularity_get_binds e "/cvmfs"`"
+    local singularity_binds="`singularity_get_binds e "/cvmfs,/etc/hosts,/etc/localtime"`"
     local singularity_bin="$1"
     local singularity_image="$2"
     shift 2
@@ -625,6 +631,7 @@ function singularity_test_exec {
     #  1 - Singularity image, default GWMS_SINGULARITY_IMAGE_DEFAULT
     #  2 - Singularity path, default GWMS_SINGULARITY_PATH_DEFAULT
     #  PWD (used by singularity_exec to bind it)
+    #  GLIDEIN_DEBUG_OUTPUT - to increase verbosity
     # Out:
     # Return:
     #  true - Singularity OK
@@ -634,6 +641,8 @@ function singularity_test_exec {
     local singularity_bin="${2:-$GWMS_SINGULARITY_PATH_DEFAULT}"
     [ -z "$singularity_image" ] || [ -z "$singularity_bin" ] &&
             { info "Singularity image or binary empty. Test failed "; false; return; }
+    # If verbose, make also Singularity verbose
+    [ -n "$GLIDEIN_DEBUG_OUTPUT" ] && export GLIDEIN_SINGULARITY_OPTS="-vvv -d $GLIDEIN_SINGULARITY_OPTS"
     if (singularity_exec_simple "$singularity_bin" "$singularity_image" \
             printenv | grep "$singularity_bin" 1>&2)
     then
@@ -673,9 +682,10 @@ function singularity_get_platform {
 
 
 function singularity_locate_bin {
-    # Find Singularity path
+    # Find Singularity path, check the version and validate w/ the image (if an image is passed)
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
+    #   2 - s_image, if provided will be used to test Singularity (as additional test)
     #   LMOD_CMD, optional if in the environment
     # Out (E - exported):
     #   E PATH - Singularity path may be added
@@ -688,54 +698,97 @@ function singularity_locate_bin {
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
     local s_location="$1"
+    local s_image="$2"
+    # bread_crumbs meaning:  test:TF singularity --version succeded but image invocation failed
+    #     test: -> singularity --version failed,  test:TT -> both singularity --version and image invocation succeded
+    local bread_crumbs=""
+    HAS_SINGULARITY="False"
+
     if [ -n "$s_location" ]; then
-        s_location_msg="at $s_location,"
-        if [  -d "$s_location" ] && [ -x "${s_location}/singularity" ]; then
-            export PATH="$s_location:$PATH"
-        else
+        s_location_msg=" at $s_location,"
+        bread_crumbs+=" s_bin:"
+        if [ ! -d "$s_location" ] || [ ! -x "${s_location}/singularity" ]; then
             if [ "x$s_location" = "xNONE" ]; then
-                warn "SINGULARITY_BIN = NONE means that singularity is not supported!"
-            else
-                info "Suggested path $1 (SINGULARITY_BIN?) is not a directory or does not contain singularity!"
-                info "will try to proceed with auto-discover but this misconfiguration may cause errors later!"
+                warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
+            fi
+            info "Suggested path $1 (SINGULARITY_BIN?) is not a directory or does not contain singularity!"
+            info "will try to proceed with auto-discover but this misconfiguration may cause errors later!"
+        else
+            # 1. Look first in the path suggested, separate from $PATH
+            GWMS_SINGULARITY_VERSION=$("$s_location"/singularity --version 2>/dev/null)
+            if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
+                GWMS_SINGULARITY_PATH="$s_location/singularity"
+                if [ -n "$s_image" ] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
+                    GWMS_SINGULARITY_VERSION=
+                    bread_crumbs+="TF"
+                fi
+            fi
+            if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
+                HAS_SINGULARITY="True"
+                #GWMS_SINGULARITY_PATH="$s_location/singularity"
+                # Add $LOCATION to $PATH
+                # info " ... prepending $LOCATION to PATH"
+                # export PATH="$LOCATION:$PATH"
+                singularity_in="SINGULARITY_BIN"
+                bread_crumbs+="TT"
             fi
         fi
     fi
-
-    HAS_SINGULARITY="False"
-    if [ "x$s_location" != "xNONE" ]; then
-        # should never end up here if NONE, singularity_locate_bin should not have been invoked
-        # 1. Look first in the path suggested
-        GWMS_SINGULARITY_VERSION=$("$s_location"/singularity --version 2>/dev/null)
-        if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
+    if [ "$HAS_SINGULARITY" != "True" ]; then
+        # 2. Look in $PATH
+        GWMS_SINGULARITY_VERSION=$(singularity --version 2>/dev/null)
+        if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
+            GWMS_SINGULARITY_PATH="$(which singularity 2>/dev/null)"
+            bread_crumbs+=" path($GWMS_SINGULARITY_PATH):"
+            if [ -n "$s_image" ] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
+                GWMS_SINGULARITY_VERSION=
+                bread_crumbs+="TF"
+            fi
+        fi
+        if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
             HAS_SINGULARITY="True"
-            GWMS_SINGULARITY_PATH="$s_location/singularity"
-            # Add $LOCATION to $PATH
-            # info " ... prepending $LOCATION to PATH"
-            # export PATH="$LOCATION:$PATH"
-            singularity_in="SINGULARITY_BIN"
+            #GWMS_SINGULARITY_PATH="$(which singularity 2>/dev/null)"
+            singularity_in="PATH"
+            bread_crumbs+="TT"
         else
-            # 2. Look in $PATH
-            GWMS_SINGULARITY_VERSION=$(singularity --version 2>/dev/null)
-            if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
+            # 3. Look in the default OSG location
+            GWMS_SINGULARITY_VERSION=$("$OSG_SINGULARITY_BINARY_DEFAULT" --version 2>/dev/null)
+            if [ -n "$GWMS_SINGULARITY_VERSION"  ]; then
+                GWMS_SINGULARITY_PATH="$OSG_SINGULARITY_BINARY_DEFAULT"
+                bread_crumbs+=" osg:"
+                if [ -n "$s_image" ] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
+                    GWMS_SINGULARITY_VERSION=
+                    bread_crumbs+="TF"
+                fi
+            fi
+            if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
                 HAS_SINGULARITY="True"
-                GWMS_SINGULARITY_PATH="$(which singularity 2>/dev/null)"
-                singularity_in="PATH"
+                singularity_in="OSG"
+                bread_crumbs+="TT"
             else
-                # 3. Invoke module
+                # 4. Invoke module
                 # some sites requires us to do a module load first - not sure if we always want to do that
                 GWMS_SINGULARITY_VERSION=$(module load singularity >/dev/null 2>&1; singularity --version 2>/dev/null)
-                if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
-                    HAS_SINGULARITY="True"
+                if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
                     GWMS_SINGULARITY_PATH=$(module load singularity >/dev/null 2>&1; which singularity)
-                    singularity_in="module"
+                    bread_crumbs+=" module($GWMS_SINGULARITY_PATH):"
+                    if [ -n "$s_image" ] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
+                        GWMS_SINGULARITY_VERSION=
+                        bread_crumbs+="TF"
+                    fi
                 elif [[ "x$LMOD_CMD" == x/cvmfs/* ]]; then
                     warn "Singularity not found in module. OSG OASIS module from module-init.sh used. May override a system module."
+                fi
+                if [ -n "$GWMS_SINGULARITY_VERSION" ]; then
+                    HAS_SINGULARITY="True"
+                    singularity_in="module"
+                    bread_crumbs+="TT"
                 fi
             fi
         fi
     fi
-    # Execution test '&& singularity_test_exec' left to later
+    # Execution test done w/ default image
+    info_dbg "Has singularity $HAS_SINGULARITY (last $singularity_in). Tests: $bread_crumbs"
     if [ "$HAS_SINGULARITY" = "True" ]; then
         # one last check - make sure we could determine the path to singularity
         if [ "x$GWMS_SINGULARITY_PATH" = "x" ]; then

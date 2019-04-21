@@ -1,7 +1,7 @@
 #!/bin/sh
 
 log_nonzero_rc() {
-    echo "`date` ERROR: $1 failed with non zero exit code ($2)" 1>&2
+    echo "$(date) ERROR: $1 failed with non zero exit code ($2)" 1>&2
 }
 
 
@@ -10,7 +10,7 @@ setup_python_venv() {
         echo "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
         exit 1
     fi
-    WORKSPACE=${1:-`pwd`}
+    WORKSPACE=${1:-$(pwd)}
 
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # Get latest packages that work with python 2.6
@@ -20,6 +20,10 @@ setup_python_venv() {
         ASTROID='astroid==1.2.1'
         HYPOTHESIS="hypothesislegacysupport"
         AUTOPEP8="autopep8==1.3"
+        TESTFIXTURES="testfixtures==5.4.0"
+        # htcondor is not pip for python 2.6 (will be found from the RPM)
+        HTCONDOR=" "
+        COVERAGE="coverage"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -28,31 +32,35 @@ setup_python_venv() {
         ASTROID='astroid==1.6.0'
         HYPOTHESIS="hypothesis"
         AUTOPEP8="autopep8"
+        TESTFIXTURES="testfixtures"
+        # Installing the pip version, in case the RPM is not installed
+        HTCONDOR="htcondor"
+        COVERAGE='coverage==4.5.2'
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
-    VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
+    #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
     VENV=$WORKSPACE/venv-$PY_VER
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
-        mkdir $WORKSPACE
+        mkdir "$WORKSPACE"
     fi
 
     echo "SETTING UP VIRTUAL ENVIRONMENT ..."
-    if [ -f $WORKSPACE/$VIRTUALENV_TARBALL ]; then
-        rm $WORKSPACE/$VIRTUALENV_TARBALL
+    if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
+        rm "$WORKSPACE/$VIRTUALENV_TARBALL"
     fi
-    curl -L -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
-    tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
+    curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
+    tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL"
 
     #if we download the venv tarball everytime we should remake the venv
     #every time
-    rm -rf $VENV
-    $WORKSPACE/${VIRTUALENV_VER}/virtualenv.py --system-site-packages $VENV
+    rm -rf "$VENV"
+    "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
 
-    source $VENV/bin/activate
+    . "$VENV"/bin/activate
 
     export PYTHONPATH="$PWD:$PYTHONPATH"
 
@@ -62,15 +70,16 @@ setup_python_venv() {
     # 2. openssl-devel
     # 3. swig
     # pep8 has been replaced by pycodestyle
-    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 coverage" 
+    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
     pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
-    pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8}"
+    pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
+    pip_packages="$pip_packages ${HTCONDOR}"
 
 
     for package in $pip_packages; do
         echo "Installing $package ..."
         status="DONE"
-        pip install --quiet $package
+        pip install --quiet "$package"
         if [ $? -ne 0 ]; then
             status="FAILED"
         fi
@@ -84,9 +93,9 @@ setup_python_venv() {
     ## PYTHONPATH for glideinwms source code
     # pythonpath for pre-packaged only
     if [ -n "$PYTHONPATH" ]; then
-        export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}
+        export PYTHONPATH="${PYTHONPATH}:${GLIDEINWMS_SRC}"
     else
-        export PYTHONPATH=${GLIDEINWMS_SRC}
+        export PYTHONPATH="${GLIDEINWMS_SRC}"
     fi
 
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/lib
@@ -104,11 +113,11 @@ print_python_info() {
         bo="<b>"
         bc="</b>"
     fi
-    echo "${bo}HOSTNAME:${bc} `hostname -f`$br"
-    echo "${bo}LINUX DISTRO:${bc} `lsb_release -d`$br"
-    echo "${bo}PYTHON LOCATION:${bc} `which python`$br"
-    echo "${bo}PYLINT:${bc} `pylint --version`$br"
-    echo "${bo}PEP8:${bc} `pycodestyle --version`$br"
+    echo "${bo}HOSTNAME:${bc} $(hostname -f)$br"
+    echo "${bo}LINUX DISTRO:${bc} $(lsb_release -d)$br"
+    echo "${bo}PYTHON LOCATION:${bc} $(which python)$br"
+    echo "${bo}PYLINT:${bc} $(pylint --version)$br"
+    echo "${bo}PEP8:${bc} $(pycodestyle --version)$br"
 }
 
 
@@ -121,6 +130,6 @@ Subject: $subject;
 Content-Type: text/html;
 MIME-VERSION: 1.0;
 ;
-`cat $contents`
+$(cat $contents)
 " | sendmail -t
 }

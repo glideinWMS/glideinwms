@@ -23,7 +23,7 @@ import re
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
-from glideinwms.lib import pubCrypto, symCrypto
+from glideinwms.lib import symCrypto
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager

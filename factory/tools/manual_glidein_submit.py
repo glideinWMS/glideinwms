@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import sys
 import pprint
+import socket
 import logging
 import argparse
 
@@ -33,8 +34,7 @@ def parse_opts():
 
     parser.add_argument(
         '--wms-collector', type=str, action='store', dest='wms_collector',
-        default='gfactory-1.t2.ucsd.edu',
-        help='COLLECTOR_HOST for WMS Collector (default: gfactory-1.t2.ucsd.edu)')
+        help='COLLECTOR_HOST for WMS Collector (default: current hostname)')
 
     parser.add_argument(
         '--req-name', type=str, action='store', dest='req_name',
@@ -53,11 +53,17 @@ def parse_opts():
 
     if options.req_name is None:
         logging.error('Missing required option "--req-name"')
+        logging.error(('Example copmmand to find the request name for user fecmsglobal:\n"condor_status -any -const \'MyType=="glideclient" && '
+                      'regexp("^fecmsglobal@.*$", AuthenticatedIdentity)\' -af Name | head -n 1"'))
         sys.exit(1)
 
     if options.entry_name is None:
         logging.error('Missing required option "--entry-name"')
         sys.exit(1)
+
+    if options.wms_collector is None:
+        options.wms_collector = socket.gethostname()
+        logging.info('Using %s as collector' % options.wms_collector)
 
     # Initialize logging
     if options.debug:
@@ -81,7 +87,7 @@ def log_debug(msg, header=''):
 def main():
     """ The main module
     """
-    # Move to the working direcotry
+    # Move to the working directory
     try:
         if "GLIDEIN_FACTORY_DIR" in os.environ:
             os.chdir(os.environ["GLIDEIN_FACTORY_DIR"])
@@ -109,7 +115,7 @@ def main():
     factory_config.submit_dir = '/var/lib/gwms-factory/work-dir'
     constraint_gc = '(MyType=="glideclient") && (Name=="%s")' % (req_name)
 
-    ads_gc = collector.query(htcondor.AdTypes.Master, constraint_gc)
+    ads_gc = collector.query(htcondor.AdTypes.Any, constraint_gc)
     if not ads_gc:
         logging.error("Cannot find glideclient classad using constraint %s",
                       constraint_gc)
@@ -155,19 +161,21 @@ def main():
         if not credentials.add_security_credential('SubmitProxy', credfname):
             fname = os.path.join(credentials.cred_dir,
                                  'credential_%s' % credfname)
-            logging.info("Problems getting credential file using credentials.add_security_credential. Check file %s permissions", fname)
+            logging.info(("Problems getting credential file using credentials.add_security_credential."
+                         " Check file %s permissions"), fname)
 
         # Set the arguments
         params['CONDOR_VERSION'] = 'default'
         params['CONDOR_OS'] = 'default'
         params['CONDOR_ARCH'] = 'default'
         params['GLIDECLIENT_ReqNode'] = escapeParam(ad_gc['GlideinParamGLIDECLIENT_ReqNode'])
-        params['GLIDECLIENT_Rank'] = ad_gc['GlideinParamGLIDECLIENT_Rank']
+        params['GLIDECLIENT_Rank'] = ad_gc.get('GlideinParamGLIDECLIENT_Rank', "1")
         params['GLIDEIN_Collector'] = escapeParam(ad_gc['GlideinParamGLIDEIN_Collector'])
         params['USE_MATCH_AUTH'] = ad_gc['GlideinParamUSE_MATCH_AUTH']
         params['Report_Failed'] = 'NEVER'
 
         # Now that we have everything submit the pilot!
+        logging.getLogger().setLevel(logging.DEBUG)
         submitGlideins(entry_name, client_name, int(nr_glideins), idle_lifetime,
                        frontend_name, credentials, client_web, params,
                        status_sf, log=logging, factoryConfig=factory_config)
@@ -175,4 +183,10 @@ def main():
         return 0
 
 if __name__ == '__main__':
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except IOError as ioe:
+        if ioe.errno==13:  # Permission denied when accessing the credential
+            logging.error("Try to run the command as gfactory. Error: %s" % ioe)
+        else:
+            raise

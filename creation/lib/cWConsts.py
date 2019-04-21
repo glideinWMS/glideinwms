@@ -22,7 +22,7 @@ def get_timestr(when=time.time()):
              string.printable[start_time_tuple[2]]+      #day
              string.printable[start_time_tuple[3]]+      #hour
              string.printable[start_time_tuple[4]]+      #minute
-	     string.printable[start_time_tuple[5]])      #first minute digit 
+             string.printable[start_time_tuple[5]])      #first minute digit 
     return timestr
 
 TIMESTR=get_timestr()

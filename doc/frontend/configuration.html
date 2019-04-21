@@ -506,6 +506,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     This can be used to add custom scripts to the VO Frontend (either for all glideins for this frontend or only for a group).
     See <a href="#custom_code">below</a> or  the page dedicated to 
     <a href="../factory/custom_scripts.html">writing custom scripts</a> for more information.
+    A list of all the possible attributes and their values is in the  <a href="../factory/configuration.html#custom_code">custom_code section of the Factory configuration document</a>.
         </P></li>
 
     <LI><P>
@@ -683,7 +684,7 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
 
             <TD> <P><b>parameter</b></P> </TD>
             <TD> <P>Set to True if the attribute should 
- be passed as a parameter.  If set to False, the attribute will be put in the staging area to be accessed by the glidein startup scripts.  Always set this to True unless you know what you are doing.</P>
+ be passed as a parameter.  If set to False, the attribute will be put in the staging area to be accessed by the glidein startup scripts.  Always set this to True unless you know what you are doing. See Note below for more details</P>
             </TD>
         </TR>
         <TR>
@@ -713,9 +714,12 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
     </TABLE>
     <P>An example attribute would be:</P>
         <div class="xml" style="padding-left:30px;">
-        &lt;attrs&gt;&lt;attr name=&quot;GLIDEIN_Collector&quot; value=&quot;mymachine.mydomain&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldquo;Just a test attribute&rdquo;/&gt;
-
+        &lt;attrs&gt;&lt;attr name=&quot;GLIDEIN_Collector&quot; value=&quot;mymachine.mydomain&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldquo;Just a test attribute&rdquo;/&gt;
         </div>
+
+<P>Note: The attribute name "publish" is not available for the Frontend for the moment. It's for the Factory though, as indicated in the attributes section <a href="../factory/configuration.html">here</a>. Although, to pass the Frontend controlled values and make them available in the ClassAd and the glidein submission on the Factory, you can set the attribute parameter="True". These attributes will be distinguished in the glidein submit environment with the prefix <b>"GLIDEIN_PARAM_"</b>.
+</P>
+
 <P>The following group parameters are used to configure multiple
 Frontends. If only one group is specified, they apply to all
 Frontends. The objects specified are used for creating and monitoring
@@ -741,7 +745,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     in trying to provision glideins when it sees idle user jobs.<br>
     <ul>
      <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
-    aggressive the provisioning requests should be.<br>
+     aggressive the provisioning requests should be.<br>
      The number specified in <b>max</b> is the highest number of idle/pending 
      glideins that the resource associated with any Factory entry will ever see.</li>
      <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
@@ -761,16 +765,18 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          for each entry associated to the group (even if there are no jobs idle). Keep in mind that if you use this <b>min</b>
          attribute and you also set idle_glideins_lifetime, then you might have old idle glideins removed and immeditely
          resubmitted. </li>
-        <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
-        Glidein can expire () and die when not used, anyway you can trigger early removal.
+     <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
+        Glidein can expire and die when not used, the Frontend also has an automatic glidein removal mechanism, anyway you can trigger early removal.
+        Early removal is controlled by 4 attributes (type, requests_tracking, margin, wait) and is disabled bt default (type="NO").
+        <b>type</b> selects what to remove: NO (default) no early removal, IDLE only Idle glideins -not submitted-,
+        WAIT also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed),
+	DISABLE disables also the automatic removal mechanism of the Frontend (Glidein expiration is still in place).
         When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
             then the Glideins in excess are removed.
-        If <b>requests_tracking</b> is off but <b>type</b> is different from NO, then it removes glideins when there are
-            no pending job requests for this group.
-        <b>type</b> selects what to remove: NO (default) no removal, IDLE only Idle glideins -not submitted-,
-        WAIT also glideins waiting in the remote queues, ALL also running glideins.
-        <b>wait</b> waits for N cycles without requests (or below the margin) before triggering the removal.</li>
-      </ul>
+        If <b>requests_tracking</b> is False (default) then it removes glideins when there are no pending job requests for this group 
+        Either ways <b>type</b> still controls what to remove (and the default NO means no removal).
+        <b>wait</b> adds a delay, waits for N cycles without requests (or below the margin) before triggering the removal.</li>
+    </ul>
     </P></li>
 
     <LI><P>
@@ -983,7 +989,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="ccbcollector" />
         <div class="xml">
-        &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" group="Group name" /&gt;
+        &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" group="<i>Group name</i>" /&gt;
         </div>
         List of <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">
 HTCondor Connection Brokering, or CCB,</a> servers. These are collector daemons that allow communications with HTCondor daemons behind a firewall.

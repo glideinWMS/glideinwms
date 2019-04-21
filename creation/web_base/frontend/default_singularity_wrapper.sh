@@ -178,7 +178,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Binding different mounts (they will be removed if not existent on the host)
     # OSG: checks also in image, may not work if not expanded. And Singularity will not fail if missing, only give a warning
     #  if [ -e $MNTPOINT/. -a -e $OSG_SINGULARITY_IMAGE/$MNTPOINT ]; then
-    GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs"
+    GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
 
     # CVMFS access inside container (default, but optional)
     if [ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]; then
