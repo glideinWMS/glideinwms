@@ -21,6 +21,7 @@ import imp
 import string
 import socket
 from glideinwms.lib import xmlParse
+from glideinwms.lib.util import safe_boolcomp
 # from glideinwms.lib import condorExe  # not used
 from . import cWParams
 from .matchPolicy import MatchPolicy
@@ -302,7 +303,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         frontendVersioning = False
         if 'frontend_versioning' in self.data and \
-               self.data['frontend_versioning'].lower() == 'true':
+               safe_boolcomp(self.data['frontend_versioning'], True):
             frontendVersioning = True
         self.stage_dir=self.buildDir(frontendVersioning, self.stage.base_dir)
         self.monitor_dir=self.buildDir(frontendVersioning, self.monitor.base_dir)
@@ -373,7 +374,7 @@ class VOFrontendParams(cWParams.CommonParams):
                     pel['security_class']="group_%s"%group_name
 
         # verify and populate HA
-        if self.high_availability['enabled'].lower() == 'true':
+        if safe_boolcomp(self.high_availability['enabled'], True):
             if (len(self.high_availability['ha_frontends']) == 1):
                 haf = self.high_availability['ha_frontends'][0]
                 if not haf['frontend_name']:

@@ -33,6 +33,7 @@ sys.path.append(os.path.join(sys.path[0], "../.."))
 from glideinwms.lib import symCrypto, pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import servicePerformance
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
@@ -584,7 +585,7 @@ class glideinFrontendElement:
 
             glidein_el = self.glidein_dict[glideid]
             glidein_in_downtime = \
-                glidein_el['attrs'].get('GLIDEIN_In_Downtime', False) is True
+                safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_In_Downtime', False), True)
 
             count_jobs = {}   # straight match
             prop_jobs = {}    # proportional subset for this entry
@@ -604,10 +605,10 @@ class glideinFrontendElement:
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
             if (self.glexec != 'NEVER'):
-                if (str.lower(str(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')))=="true"):
+                if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
                         prop_jobs['Idle']=prop_jobs['VomsIdle']
                         logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif (str.lower(str(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')))=="true"):
+                elif safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE'), True):
                         prop_jobs['Idle']=prop_jobs['ProxyIdle']
                         logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
 

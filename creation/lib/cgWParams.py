@@ -22,6 +22,7 @@ import types
 import traceback
 from glideinwms.lib import xmlParse
 from glideinwms.lib import condorExe
+from glideinwms.lib.util import safe_boolcomp
 from . import cWParams
 
 
@@ -260,7 +261,7 @@ class GlideinParams(cWParams.CommonParams):
 
         factoryVersioning = False
         if 'factory_versioning' in self.data and \
-               self.data['factory_versioning'].lower() == 'true':
+               safe_boolcomp(self.data['factory_versioning'], True):
             factoryVersioning = True
 
         self.stage_dir=self.buildDir(factoryVersioning, self.stage.base_dir)

@@ -19,6 +19,7 @@ import math
 import sys
 import traceback
 
+from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import condorMonitor, logSupport
 
 #############################################################################################
@@ -317,7 +318,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
 
                 try:
                     # Do not match downtime entries
-                    if ignore_down_entries and glidein_dict[glidename]['attrs'].get('GLIDEIN_In_Downtime', False):
+                    if ignore_down_entries and safe_boolcomp(glidein_dict[glidename]['attrs'].get('GLIDEIN_In_Downtime', False), True):
                         match = False
                     else:
                         # Evaluate the Compiled object first.
@@ -1312,7 +1313,7 @@ def getHAMode(frontend_data):
 
     mode = 'master'
     ha = getHASettings(frontend_data)
-    if ha and (ha.get('enabled').lower() == 'true'):
+    if ha and (safe_boolcomp(ha.get('enabled'), True)):
         mode = 'slave'
     return mode
 
