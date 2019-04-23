@@ -31,8 +31,9 @@ from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
 from glideinwms.lib import subprocessSupport
+
+import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory import glideFactorySelectionAlgorithms
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
