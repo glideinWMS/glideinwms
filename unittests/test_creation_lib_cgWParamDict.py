@@ -21,8 +21,9 @@ try:
     from glideinwms.creation.lib import cgWParamDict
 except ImportError as err:
     raise TestImportError(str(err))
-
 from glideinwms.creation.lib import factoryXmlConfig
+from glideinwms.creation.lib.cWParamDict import has_file_wrapper
+from glideinwms.creation.lib.cWParamDict import has_file_wrapper_params
 from glideinwms.creation.lib.cgWParamDict import add_file_unparsed
 from glideinwms.creation.lib.cgWParamDict import add_attr_unparsed
 from glideinwms.creation.lib.cgWParamDict import add_attr_unparsed_real
@@ -73,6 +74,13 @@ class TestGlideinDicts(unittest.TestCase):
     def test_MainDicts_populate(self):
         nmd = self.cgpd.new_MainDicts()
         nmd.populate()
+
+    def test_reuse(self):
+        nmd = self.cgpd.new_MainDicts()
+        nmd2 = self.cgpd.main_dicts.reuse(nmd)
+
+    def test_has_file_wrapper(self):
+        self.assertEqual(False, has_file_wrapper(self.cgpd.main_dicts))
 
 
 class TestAddFileUnparsed(unittest.TestCase):

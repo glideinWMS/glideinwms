@@ -12,6 +12,7 @@ Project:
 
 
 from __future__ import absolute_import
+import os
 import mock
 import unittest2 as unittest
 import xmlrunner
@@ -23,7 +24,7 @@ from glideinwms.unittests.unittest_utils import TestImportError
 from glideinwms.lib.fork import ForkManager
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendInterface
-from glideinwms.creation.lib.cWParamDict import is_true
+from glideinwms.lib.util import safe_boolcomp
 
 try:
     import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig
@@ -67,7 +68,7 @@ def bounded_fork_and_collect_side_effect():
 
 class FEElementTestCase(unittest.TestCase):
     def setUp(self):
-        self.verbose = True
+        self.debug_output = os.environ.get('DEBUG_OUTPUT')
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
         condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript(
@@ -228,8 +229,11 @@ class FEElementTestCase(unittest.TestCase):
         glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
         mockery.info = log_info_side_effect
 
-        # ForkManager mocked, return data loaded from side effects
-        # we load True, False, 'True', 'False' , 'TRUE' etc
+        # ForkManager mocked inside iterate_one, return data loaded from
+        # fork_and_collect_side_effect
+        # data loaded includes both legal True, False, 'True', 'False' , 'TRUE' etc
+        # and obviously bad data 1, 0, etc
+
         with mock.patch.object(ForkManager, 'fork_and_collect',
                                return_value=fork_and_collect_side_effect()):
             with mock.patch.object(ForkManager, 'bounded_fork_and_collect',
@@ -256,46 +260,52 @@ class FEElementTestCase(unittest.TestCase):
                 glideid_str = "%s@%s" % (str(elm[1]), str(elm[0]))
                 gdata = self.gfe.glidein_dict[elm]['attrs']
                 glideids.append(glideid_str)
-                in_downtime[glideid_str] = is_true(gdata.get('GLIDEIN_In_Downtime'))
-                req_voms[glideid_str] = is_true(gdata.get('GLIDEIN_REQUIRE_VOMS'))
-                req_glexec[glideid_str] = is_true( gdata.get(
-                    'GLIDEIN_REQUIRE_GLEXEC_USE'))
+                in_downtime[glideid_str] = safe_boolcomp(
+                    gdata.get('GLIDEIN_In_Downtime'), True)
+                req_voms[glideid_str] = safe_boolcomp(
+                    gdata.get('GLIDEIN_REQUIRE_VOMS'), True)
+                req_glexec[glideid_str] = safe_boolcomp(
+                    gdata.get('GLIDEIN_REQUIRE_GLEXEC_USE'), True)
+
         # run through the info log
         # if GLIDEIN_REQUIRE_VOMS was set to True, 'True', 'tRUE' etc for an entry:
         #    'Voms Proxy Required,' will appear in previous line of log
         # elif GLIDEIN_REQUIRE_GLEXEC_USE was set:
         #     'Proxy required (GLEXEC)' will appear in log
         idx = 0
-        for lgn in LOG_DATA:
-            parts = lgn.split()
-            isgid = parts[-1]
-            if isgid in glideids:
+        for lgln in LOG_DATA:
+            parts = lgln.split()
+            gid = parts[-1]
+            if gid in glideids:
                 upordown = parts[-2]
-                state = "glideid:%s in_downtime:%s req_voms:%s req_glexec:%s log_data:%s" %\
-                    (isgid,
-                     in_downtime[isgid],
-                        req_voms[isgid],
-                        req_glexec[isgid],
-                        LOG_DATA[idx - 1])
-                rvs = str(req_voms[isgid]).lower()
-                rglx = str(req_glexec[isgid]).lower()
+                fmt_str = "glideid:%s in_downtime:%s req_voms:%s "
+                fmt_str += "req_glexec:%s\nlog_data:%s"
+                state = fmt_str % (gid,
+                                   in_downtime[gid],
+                                   req_voms[gid],
+                                   req_glexec[gid],
+                                   LOG_DATA[idx - 1])
+                if self.debug_output:
+                    print('%s' % state)
+                use_voms = req_voms[gid]
+                use_glexec = req_glexec[gid]
 
-                if in_downtime[isgid]:
+                if in_downtime[gid]:
                     self.assertTrue(
                         upordown == 'Down', "%s logs this as %s" %
-                        (isgid, upordown))
+                        (gid, upordown))
                 else:
                     self.assertTrue(
                         upordown == 'Up', "%s logs this as %s" %
-                        (isgid, upordown))
+                        (gid, upordown))
 
-                if rvs == 'true':
+                if use_voms:
                     self.assertTrue(
                         'Voms proxy required,' in LOG_DATA[idx - 1], state)
                 else:
                     self.assertFalse(
                         'Voms proxy required,' in LOG_DATA[idx - 1], state)
-                    if rglx == 'true':
+                    if use_glexec:
                         self.assertTrue(
                             'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
                     else:
