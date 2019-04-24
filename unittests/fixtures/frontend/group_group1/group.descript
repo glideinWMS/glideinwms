@@ -27,3 +27,4 @@ RemovalType         NO
 RemovalWait         0
 RemovalRequestsTracking     False
 RemovalMargin       0
+IdleLifetime  100

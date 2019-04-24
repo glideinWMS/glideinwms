@@ -15,21 +15,59 @@ from __future__ import absolute_import
 import mock
 import unittest2 as unittest
 import xmlrunner
+import jsonpickle
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
 from glideinwms.unittests.unittest_utils import FakeLogger
 from glideinwms.unittests.unittest_utils import TestImportError
+from glideinwms.lib.fork import ForkManager
+from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.creation.lib.cWParamDict import is_true
+
 try:
     import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig
     import glideinwms.frontend.glideinFrontendElement as glideinFrontendElement
 except ImportError as err:
     raise TestImportError(str(err))
 
+LOG_DATA = []
+# keep logSupport.log.info data in an array so we can search it later
 
+
+def log_info_side_effect(*args, **kwargs):
+    LOG_DATA.append(args[0])
+
+
+def fork_and_collect_side_effect():
+    with open('fixtures/frontend/pipe_out.iterate_one', 'r') as fd:
+        json_str = fd.read()
+        pipe_out_objs = jsonpickle.decode(json_str, keys=True)
+    for key in pipe_out_objs:
+        try:
+            keyobj = eval(key)
+            pipe_out_objs[keyobj] = pipe_out_objs.pop(key)
+        except BaseException:
+            pass
+    return pipe_out_objs
+
+
+def bounded_fork_and_collect_side_effect():
+    with open('fixtures/frontend/pipe_out.do_match', 'r') as fd:
+        json_str = fd.read()
+        pipe_out_objs = jsonpickle.decode(json_str, keys=True)
+    for key in pipe_out_objs:
+        try:
+            keyobj = eval(key)
+            pipe_out_objs[keyobj] = pipe_out_objs.pop(key)
+        except BaseException:
+            pass
+    return pipe_out_objs
 
 
 class FEElementTestCase(unittest.TestCase):
     def setUp(self):
+        self.verbose = True
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
         condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
         self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript(
@@ -167,6 +205,104 @@ class FEElementTestCase(unittest.TestCase):
             self.gfe.compute_glidein_max_run({'Idle': 0}, 0, 0), 0)
         self.assertEqual(self.gfe.compute_glidein_max_run(
             {'Idle': 0}, 100, 100), 100)
+
+    def test_some_iterate_one_artifacts(self):
+        """
+        Mock our way into glideinFrontendElement:iterate_one() to test if
+             glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_REQUIRE_VOMS']
+                and
+             glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_REQUIRE_GLEXEC_USE']
+                and
+             glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_In_Downtime']
+
+             are being evaluated correctly
+        """
+
+        self.gfe.stats = {'group': glideinFrontendMonitoring.groupStats()}
+        self.gfe.published_frontend_name = '%s.XPVO_%s' % (
+            self.gfe.frontend_name, self.gfe.group_name)
+        mockery = mock.MagicMock()
+        self.gfe.x509_proxy_plugin = mockery
+        # keep logSupport.log.info in an array to search through later to
+        # evaluate success
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
+        mockery.info = log_info_side_effect
+
+        # ForkManager mocked, return data loaded from side effects
+        # we load True, False, 'True', 'False' , 'TRUE' etc
+        with mock.patch.object(ForkManager, 'fork_and_collect',
+                               return_value=fork_and_collect_side_effect()):
+            with mock.patch.object(ForkManager, 'bounded_fork_and_collect',
+                                   return_value=bounded_fork_and_collect_side_effect()):
+                # also need to mock advertisers so they don't fork off jobs
+                # it has nothing to do with what is being tested here
+                with mock.patch.object(glideinFrontendInterface, 'MultiAdvertizeWork'):
+                    with mock.patch('glideinFrontendInterface.ResourceClassadAdvertiser.advertiseAllClassads',
+                                    return_value=None):
+                        with mock.patch.object(glideinFrontendInterface, 'ResourceClassadAdvertiser'):
+                            # finally run iterate_one and collect the log data
+                            self.gfe.iterate_one()
+
+        # go through glideinFrontendElement data structures
+        # collecting data to match against log output
+        glideid_list = sorted(
+            self.gfe.condorq_dict_types['Idle']['count'].keys())
+        glideids = []
+        in_downtime = {}
+        req_voms = {}
+        req_glexec = {}
+        for elm in glideid_list:
+            if elm and elm[0]:
+                glideid_str = "%s@%s" % (str(elm[1]), str(elm[0]))
+                gdata = self.gfe.glidein_dict[elm]['attrs']
+                glideids.append(glideid_str)
+                in_downtime[glideid_str] = is_true(gdata.get('GLIDEIN_In_Downtime'))
+                req_voms[glideid_str] = is_true(gdata.get('GLIDEIN_REQUIRE_VOMS'))
+                req_glexec[glideid_str] = is_true( gdata.get(
+                    'GLIDEIN_REQUIRE_GLEXEC_USE'))
+        # run through the info log
+        # if GLIDEIN_REQUIRE_VOMS was set to True, 'True', 'tRUE' etc for an entry:
+        #    'Voms Proxy Required,' will appear in previous line of log
+        # elif GLIDEIN_REQUIRE_GLEXEC_USE was set:
+        #     'Proxy required (GLEXEC)' will appear in log
+        idx = 0
+        for lgn in LOG_DATA:
+            parts = lgn.split()
+            isgid = parts[-1]
+            if isgid in glideids:
+                upordown = parts[-2]
+                state = "glideid:%s in_downtime:%s req_voms:%s req_glexec:%s log_data:%s" %\
+                    (isgid,
+                     in_downtime[isgid],
+                        req_voms[isgid],
+                        req_glexec[isgid],
+                        LOG_DATA[idx - 1])
+                rvs = str(req_voms[isgid]).lower()
+                rglx = str(req_glexec[isgid]).lower()
+
+                if in_downtime[isgid]:
+                    self.assertTrue(
+                        upordown == 'Down', "%s logs this as %s" %
+                        (isgid, upordown))
+                else:
+                    self.assertTrue(
+                        upordown == 'Up', "%s logs this as %s" %
+                        (isgid, upordown))
+
+                if rvs == 'true':
+                    self.assertTrue(
+                        'Voms proxy required,' in LOG_DATA[idx - 1], state)
+                else:
+                    self.assertFalse(
+                        'Voms proxy required,' in LOG_DATA[idx - 1], state)
+                    if rglx == 'true':
+                        self.assertTrue(
+                            'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
+                    else:
+                        self.assertFalse(
+                            'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
+
+            idx += 1
 
 
 if __name__ == '__main__':
