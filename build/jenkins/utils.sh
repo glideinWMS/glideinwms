@@ -24,6 +24,7 @@ setup_python_venv() {
         # htcondor is not pip for python 2.6 (will be found from the RPM)
         HTCONDOR=" "
         COVERAGE="coverage"
+        JSONPICKLE="jsonpickle==0.9"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -36,6 +37,7 @@ setup_python_venv() {
         # Installing the pip version, in case the RPM is not installed
         HTCONDOR="htcondor"
         COVERAGE='coverage==4.5.2'
+        JSONPICKLE="jsonpickle"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -73,7 +75,7 @@ setup_python_venv() {
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
     pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-    pip_packages="$pip_packages ${HTCONDOR}"
+    pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
 
     for package in $pip_packages; do
