@@ -66,14 +66,9 @@ setup_python_venv() {
 
     export PYTHONPATH="$PWD:$PYTHONPATH"
 
-    # Install dependancies first so we don't get uncompatible ones
-    # Following RPMs need to be installed on the machine:
-    # 1. rrdtool-devel
-    # 2. openssl-devel
-    # 3. swig
     # pep8 has been replaced by pycodestyle
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
-    pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
+    pip_packages="$pip_packages pyyaml mock xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
