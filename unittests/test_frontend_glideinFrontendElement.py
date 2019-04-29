@@ -13,7 +13,6 @@ from glideinwms.unittests.unittest_utils import runTest
 from glideinwms.frontend import glideinFrontendMonitoring
 import glideinwms.lib.condorMonitor as condorMonitor
 import glideinwms.lib.condorExe as condorExe
-import glideinwms.lib.fork as fork
 from glideinwms.frontend.glideinFrontendElement import CounterWrapper
 from glideinwms.frontend.glideinFrontendElement import glideinFrontendElement
 from glideinwms.frontend.glideinFrontendElement import write_stats
@@ -23,14 +22,25 @@ from glideinwms.frontend.glideinFrontendElement import log_factory_header
 from glideinwms.unittests.unittest_utils import FakeLogger
 
 
-def condor_side_effect(*args, **kwargs):
-    if 'condor_q' in args[0]:
-        fnm = 'cq.fixture'
-    elif 'schedd' in args[0].lower():
-        fnm = 'cs.schedd.fixture'
-    else:
-        fnm = 'cs.fixture'
+LOG_DATA = []
+def log_side_effect(*args, **kwargs):
+    LOG_DATA.append(args[0])
 
+def condor_q_side_effect():
+        fnm = 'cs.schedd.fixture'
+        return readit(fnm)
+    
+def condor_status_side_effect():
+    fnm = 'cs.fixture'
+    return readit(fnm)
+
+
+#    elif 'schedd' in args[0].lower():
+#        fnm = 'cs.schedd.fixture'
+#    else:
+#        fnm = 'cs.fixture'
+
+def readit(fnm):
     fdd = open(fnm)
     lines = fdd.readlines()
     fdd.close()
@@ -59,13 +69,18 @@ class TestCounterWrapper(unittest.TestCase):
         self.cw.__delitem__('a')
         self.assertFalse(self.cw.__contains__('a'))
         self.assertTrue(self.cw.__contains__('c'))
+        del self.cw['c']
+        self.assertFalse('c' in self.cw)
 
     def test___getitem__(self):
         self.assertEqual('b', self.cw.__getitem__('a'))
+        self.assertEqual('d', self.cw['c'])
 
     def test___setitem__(self):
         self.cw.__setitem__('e', 'f')
         self.assertTrue(self.cw.__contains__('e'))
+        self.cw['g'] = 'h'
+        self.assertTrue('g' in self.cw)
 
     def test_has_key(self):
         self.assertTrue('a' in self.cw)
@@ -75,29 +90,25 @@ class TestCounterWrapper(unittest.TestCase):
 class TestGlideinFrontendElement(unittest.TestCase):
 
     def setUp(self):
-        forkm_inst_mock = mock.create_autospec(
-            'glideinwms.lib.fork.ForkManager', instance=True)
-        forkm_class_mock = mock.Mock(return_value=forkm_inst_mock)
-        with mock.patch('glideinwms.lib.fork.ForkManager') as forkm_class_mock:
-            parent_pid = 0
-            work_dir = 'fixtures/frontend'
-            group_name = 'group1'
-            action = 'yada yada'
-            condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
-            condorMonitor.LocalScheddCache.iGetEnv = mock.Mock()
-            condorExe.exe_cmd = mock.Mock()
-            condorExe.exe_cmd.side_effect = condor_side_effect
-            glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
-            self.gfe = glideinFrontendElement(
-                os.getpid(), work_dir, group_name, action)
-            self.gfe.frontend_name = 'Frontend-master-v1_0'
-            self.gfe.configure()
-            init_factory_stats_arr()
-            self.verbose = os.environ.get('DEBUG_OUTPUT')
-            self.gfe.get_condor_q = mock.Mock()
-            self.gfe.get_condor_q.side_effect = condor_side_effect
-            self.gfe.get_condor_status = mock.Mock()
-            self.gfe.get_condor_status.side_effect = condor_side_effect
+        parent_pid = 0
+        work_dir = 'fixtures/frontend'
+        group_name = 'group1'
+        action = 'yada yada'
+        condorMonitor.USE_HTCONDOR_PYTHON_BINDINGS = False
+        condorMonitor.LocalScheddCache.iGetEnv = mock.Mock()
+        #condorExe.exe_cmd = mock.Mock()
+        #condorExe.exe_cmd.side_effect = condor_side_effect
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        self.gfe = glideinFrontendElement(
+        os.getpid(), work_dir, group_name, action)
+        self.gfe.frontend_name = 'Frontend-master-v1_0'
+        #self.gfe.configure()
+        init_factory_stats_arr()
+        self.verbose = os.environ.get('DEBUG_OUTPUT')
+        self.gfe.get_condor_q = mock.Mock()
+        self.gfe.get_condor_q.side_effect = condor_q_side_effect
+        self.gfe.get_condor_status = mock.Mock()
+        self.gfe.get_condor_status.side_effect = condor_status_side_effect
 
     def test___init__(self):
         if self.verbose:
@@ -107,6 +118,12 @@ class TestGlideinFrontendElement(unittest.TestCase):
         self.assertTrue(isinstance(self.gfe, glideinFrontendElement))
 
     def test_configure(self):
+        v='CONDOR_CONFIG'
+        b_cc = os.environ.get(v) 
+        v='_CONDOR_CERTIFICATE_MAPFILE'
+        b_ccm  = os.environ.get(v) 
+        v='X509_USER_PROXY'
+        b_xup  = os.environ.get(v) 
         self.gfe.configure()
         if self.verbose:
             print('\nc.glideinFrontendElement=%s' % self.gfe)
@@ -114,15 +131,31 @@ class TestGlideinFrontendElement(unittest.TestCase):
             print(
                 '\nc.glideinFrontendElement.attr_dict=%s' %
                 self.gfe.attr_dict)
+        v='CONDOR_CONFIG'
+        a_cc = os.environ.get(v) 
+        v='_CONDOR_CERTIFICATE_MAPFILE'
+        a_ccm  = os.environ.get(v) 
+        v='X509_USER_PROXY'
+        a_xup  = os.environ.get(v) 
+        self.assertNotEqual(b_cc, a_cc)
+        self.assertNotEqual(b_ccm, a_ccm)
+        self.assertNotEqual(b_xup, a_xup)
 
     def test_set_glidein_config_limits(self):
         self.gfe.set_glidein_config_limits()
 
     def test_init_factory_stats_arr(self):
-        init_factory_stats_arr()
+        arr = init_factory_stats_arr()
+        for ind in range(16):
+            self.assertEqual(arr[ind],0)
 
     def test_log_factory_header(self):
+        mockery = mock.MagicMock()
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
+        mockery.info.side_effect = log_side_effect
         log_factory_header()
+        self.assertEqual(len(LOG_DATA),2)
+
 
     @unittest.skip('for now')
     def test_build_resource_classad(self):
@@ -161,35 +194,14 @@ class TestGlideinFrontendElement(unittest.TestCase):
         assert False  # TODO: implement your test here
 
     def test_deadvertiseAllClassads(self):
+        self.gfe.configure()
         self.gfe.deadvertiseAllClassads()
 
-    @unittest.skip('for now')
+    @unittest.skip('hhmmm')
     def test_do_match(self):
         self.gfe.do_match()
 
-    @unittest.skip('hhmmm')
-    def test_get_condor_q(self):
-        cq = self.gfe.get_condor_q('schedd1')
-        self.assertItemsEqual(
-            cq['schedd1'].fetchStored().keys(), [
-                (29, x) for x in xrange(
-                    0, 9)])
-        if self.verbose:
-            print('---beg--test_get_condorq-------------------------------')
-            print('cq=%s' % cq)
-            print('dir cq=%s' % dir(cq))
-            print('---end--test_get_condorq-------------------------------')
 
-    @unittest.skip('hhmmm')
-    def test_get_status(self):
-        status_dict, fe_counts, global_counts, status_schedd_dict = self.gfe.get_condor_status()
-        if self.verbose:
-            print('---beg--test_get_status-------------------------------')
-            print('status_dict=%s' % status_dict)
-            print('fe_counts=%s' % fe_counts)
-            print('global_counts=%s' % global_counts)
-            print('status_schedd_dict=%s' % status_schedd_dict)
-            print('----end-test_get_status-------------------------------')
 
     @unittest.skip('for now')
     def test_identify_bad_schedds(self):
@@ -205,55 +217,16 @@ class TestGlideinFrontendElement(unittest.TestCase):
 
     @unittest.skip('for now')
     def test_iterate(self):
+        self.gfe.configure()
         self.gfe.action = 'run'
         self.gfe.query_factory = mock.Mock()
         self.gfe.query_factory.side_effect = query_factory_side_effect
         self.gfe.iterate()
-        print('after iteration self.gfe=%s' % self.gfe)
-        print('dir self.gfe=%s' % dir(self.gfe))
+        #print('after iteration self.gfe=%s' % self.gfe)
+        #print('dir self.gfe=%s' % dir(self.gfe))
         print('after iteration self.gfe.stats=%s' % dir(self.gfe.stats))
-        print('after iteration self.gfe.stats.items=%s' % self.gfe.stats.items)
-        print(
-            'after iteration self.gfe.stats.values=%s' %
-            self.gfe.stats.values)
+        print('after iteration self.gfe.stats["group"].data=%s' % self.gfe.stats['group'].data)
 
-    @unittest.skip('see test_frontend_element.py to see how to mock this')
-    def test_iterate_one(self):
-        self.gfe.stats = {'group': glideinFrontendMonitoring.groupStats()}
-        self.gfe.published_frontend_name = '%s.XPVO_%s' % (self.gfe.frontend_name,
-                                                           self.gfe.group_name)
-        #from glideinwms.lib.fork import fork_in_bg, wait_for_pids
-        #from glideinwms.lib.fork import ForkManager
-
-        forkm_inst_mock = mock.create_autospec(
-            'glideinwms.lib.fork.ForkManager', instance=True)
-        fork_you_mock = mock.MagicMock()
-        with mock.patch('glideinwms.lib.fork') as fork_you_mock:
-            fork_you_mock.ForkManager.return_value = fork_you_mock
-            fork_you_mock.ForkManager.fork_and_collect.return_value = {}
-            self.gfe.iterate_one()
-
-        # test 'GLIDEIN_In_Downtime'
-        for glidein_el in self.gfe.glidein_dict:
-            pass
-            # if is_true(glidein_el.get('attrs').get('GLIDEIN_In_Downtime')):
-            # check output of line 700
-            # self.stats['group'].logFactDown(glideid_str, glidein_in_downtime)
-            # with fakelogger
-
-        # test 'GLIDEIN_REQUIRE_VOMS'
-        for glidein_el in self.gfe.glidein_dict:
-            pass
-            # if is_true(glidein_el.get('attrs').get('GLIDEIN_REQUIRE_VOMS')):
-            # check output of line 623 logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-        # test 'GLIDEIN_REQUIRE_GLEXEC_USE'
-        for glidein_el in self.gfe.glidein_dict:
-            pass
-            # if is_true(glidein_el.get('attrs').get('GLIDEIN_REQUIRE_GLEXEC_USE')):
-            # check output of line 623 logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-        # or could check self.condorq_dict_types['Idle']['prop'][glideid] = self.condorq_dict_types[dt]['prop'][glideid]
-        # where dt = 'VomsIdle' if GLIDEIN_REQUIRE_VOMS or dt = 'ProxyIdle' if
-        # GLIDEIN_REQUIRE_GLEXEC_USE
 
     @unittest.skip('for now')
     def test_log_and_print_total_stats(self):
