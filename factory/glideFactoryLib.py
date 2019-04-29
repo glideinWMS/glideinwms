@@ -462,11 +462,9 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         return fname
 
     # old file exists, check if same content
-    fl = open(fname, 'r')
-    try:
+    with open(fname, 'r') as fl:
         old_data = fl.read()
-    finally:
-         fl.close()
+    
     if proxy_data == old_data:
         # nothing changed, done
         return fname
