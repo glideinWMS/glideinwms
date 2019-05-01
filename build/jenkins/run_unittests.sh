@@ -90,13 +90,13 @@ for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
     if [ -n "$VERBOSE" ]; then
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
+            coverage run  --timid --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
         else
             ./"$file" || log_nonzero_rc "$file" $?
         fi
     else
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
+            coverage run  --timid --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
         else
             ./"$file"
         fi
