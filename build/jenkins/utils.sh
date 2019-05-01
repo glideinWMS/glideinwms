@@ -30,7 +30,7 @@ setup_python_venv() {
         PY_VER="2.7"
         VIRTUALENV_VER=virtualenv-16.0.0
         PYLINT='pylint==1.8.4'
-        ASTROID='astroid==1.5.0'
+        ASTROID='astroid==1.6.0'
         HYPOTHESIS="hypothesis"
         AUTOPEP8="autopep8"
         TESTFIXTURES="testfixtures"
