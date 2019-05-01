@@ -129,7 +129,7 @@ process_branch() {
 
 
     # get list of python scripts without .py extension
-    scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
       #can't seem to get --ignore or --ignore-modules to work, so do it this way
@@ -150,8 +150,9 @@ process_branch() {
     files_checked=`echo $scripts`
 
     #now do all the .py files
-    shopt -s globstar
-    for file in **/*.py
+    #shopt -s globstar
+    py_files=$(find . -readable -type f -name '*\.py')
+    for file in $py_files
     do
       files_checked="$files_checked $file"
       PYLINT_SKIP="False"
