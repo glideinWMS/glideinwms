@@ -183,12 +183,13 @@ process_branch () {
     if [ -n "$SEQUENTIAL" ]; then
         #shopt -s globstar
         OUTPUT1=""
+        futurize_ret1=0
         for i in $pyfiles; do
             OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
-            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
             if [ $? -ne 0 ]; then
                 futurize_ret1=$?
             fi
+            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
         done
     else
         OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${pyfiles} 2>&1)"
