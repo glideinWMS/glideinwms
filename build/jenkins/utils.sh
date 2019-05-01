@@ -69,7 +69,7 @@ setup_python_venv() {
     # Install dependancies first so we don't get uncompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
-    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
+    pip_packages="${PYLINT} ${ASTROID} pycodestyle unittest2 ${COVERAGE}" 
     pip_packages="$pip_packages pyyaml mock xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
