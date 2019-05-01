@@ -107,8 +107,10 @@ CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BR_NO_SLASH=$(echo "${CURR_BRANCH}" | sed -e 's/\//_/g')
 
 if [ "$RUN_COVERAGE" = "yes" ]; then
+    DATE=$(date "+%Y-%m-%d %H:%M:%S")
+    TITLE="Glideinwms Coverage Report for branch $CURR_BRANCH on $DATE"
     coverage report > "${WORKSPACE}/coverage.report.${BR_NO_SLASH}"
-    coverage html || echo "coverage html report failed"
+    coverage html --title "$TITLE" || echo "coverage html report failed"
     if [ -d htmlcov ]; then
     	mv htmlcov "${WORKSPACE}/htmlcov.${BR_NO_SLASH}"
     else
