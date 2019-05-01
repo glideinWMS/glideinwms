@@ -188,8 +188,9 @@ process_branch () {
             OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
             if [ $? -ne 0 ]; then
                 futurize_ret1=$?
+            else
+                OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
             fi
-            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
         done
     else
         OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${pyfiles} 2>&1)"
