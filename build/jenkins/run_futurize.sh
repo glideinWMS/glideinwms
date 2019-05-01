@@ -198,7 +198,7 @@ process_branch () {
     fi
 
     # get list of python scripts without .py extension
-    scripts=$(find . -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    scripts=$(find . -readable -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     if [ -n "$SEQUENTIAL" ]; then
         OUTPUT2=""
         for i in ${scripts}; do
