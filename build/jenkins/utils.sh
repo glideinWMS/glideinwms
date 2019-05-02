@@ -25,6 +25,7 @@ setup_python_venv() {
         HTCONDOR=" "
         COVERAGE="coverage"
         JSONPICKLE="jsonpickle==0.9"
+        PYCODESTYLE="pycodestyle==2.4.0"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -38,6 +39,7 @@ setup_python_venv() {
         HTCONDOR="htcondor"
         COVERAGE='coverage==4.5.2'
         JSONPICKLE="jsonpickle"
+        PYCODESTYLE="pycodestyle"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -69,7 +71,7 @@ setup_python_venv() {
     # Install dependancies first so we don't get uncompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
-    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
+    pip_packages="${ASTROID} ${PYLINT} ${PYCODESTYLE}  unittest2 ${COVERAGE}" 
     pip_packages="$pip_packages pyyaml mock xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
