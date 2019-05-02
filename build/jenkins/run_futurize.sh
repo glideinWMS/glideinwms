@@ -179,26 +179,23 @@ process_branch () {
     echo "Now running test"
     echo ""
 
-    pyfiles=$(find .  -name '*\.py' -readable -print)
     if [ -n "$SEQUENTIAL" ]; then
-        #shopt -s globstar
+        shopt -s globstar
         OUTPUT1=""
-        futurize_ret1=0
-        for i in $pyfiles; do
+        for i in **/*.py; do
             OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
+            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
             if [ $? -ne 0 ]; then
                 futurize_ret1=$?
-            else
-                OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
             fi
         done
     else
-        OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${pyfiles} 2>&1)"
+        OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
         futurize_ret1=$?
     fi
 
     # get list of python scripts without .py extension
-    scripts=$(find . -readable -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    scripts=`find . -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
     if [ -n "$SEQUENTIAL" ]; then
         OUTPUT2=""
         for i in ${scripts}; do
