@@ -33,17 +33,50 @@ except ImportError as err:
     raise TestImportError(str(err))
 
 LOG_DATA = []
-# keep logSupport.log.info data in an array so we can search it later
-
-
 def log_info_side_effect(*args, **kwargs):
+    """
+    keep logSupport.log.info data in an array so we can search it later
+    """
     LOG_DATA.append(args[0])
 
 
+def uni_to_str_JSON(obj):
+    """
+    on some machines jsonpickle.decode() returns unicode strings
+    and on others it returns ascii strings from the same data.
+    The objects being tested here expect python strings, so convert them
+    if necessary.  I am sure there is a better way to do this.
+    """
+    if isinstance(obj, dict):
+        newobj = {}
+        for key, value in obj.iteritems():
+            keyobj = uni_to_str_JSON(key)
+            newobj[keyobj] = uni_to_str_JSON(value)
+    elif isinstance(obj, list):
+        newobj = []
+        for value in obj:
+            newobj.append(uni_to_str_JSON(value))
+    elif isinstance(obj, tuple):
+        newobj = ()
+        for value in obj:
+            newobj = newobj + (uni_to_str_JSON(value),)
+    elif isinstance(obj, unicode):
+        newobj = str(obj)
+    else:
+        newobj = obj
+
+    return newobj
+
+
 def fork_and_collect_side_effect():
+    """ 
+    populate data structures in 
+    glideinFrontendElement::iterate_one from
+    json artifact in fixtures
+    """
     with open('fixtures/frontend/pipe_out.iterate_one', 'r') as fd:
         json_str = fd.read()
-        pipe_out_objs = jsonpickle.decode(json_str, keys=True)
+        pipe_out_objs = uni_to_str_JSON(jsonpickle.decode(json_str, keys=True))
     for key in pipe_out_objs:
         try:
             keyobj = eval(key)
@@ -54,9 +87,13 @@ def fork_and_collect_side_effect():
 
 
 def bounded_fork_and_collect_side_effect():
+    """ 
+    populate data structures in glideinFrontendElement::do_match
+    from json artifact in fixtures
+    """
     with open('fixtures/frontend/pipe_out.do_match', 'r') as fd:
         json_str = fd.read()
-        pipe_out_objs = jsonpickle.decode(json_str, keys=True)
+        pipe_out_objs = uni_to_str_JSON(jsonpickle.decode(json_str, keys=True))
     for key in pipe_out_objs:
         try:
             keyobj = eval(key)
