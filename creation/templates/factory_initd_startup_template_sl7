@@ -64,7 +64,9 @@ RPM_INSTALL=%(rpm_install)s
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
 if [ -z "$RPM_INSTALL" ]; then
-    if [ "$SCRIPT_NAME" = "/etc/init.d/gwms-factory" ]; then
+    if [[ "$SCRIPT_NAME" = "/etc/init.d/gwms-factory" ]]; then
+        RPM_INSTALL=True
+    elif [[ "$SCRIPT_NAME" = "/var/lib/gwms-factory/work-dir/factory_startup" ]] && [[ -e "/etc/gwms-factory/glideinWMS.xml" ]]; then
         RPM_INSTALL=True
     else
         RPM_INSTALL=False
