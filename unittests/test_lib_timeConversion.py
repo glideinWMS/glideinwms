@@ -49,6 +49,11 @@ tz_wrong = 'US/Eastern'
 
 class TestTimeFunctions(unittest.TestCase):
 
+    def setUp(self):
+        os.environ['TZ'] = tz
+        time.tzset()
+
+
     def test_get_seconds(self):
         self.assertEqual(expected, getSeconds(now))
 
