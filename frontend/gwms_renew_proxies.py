@@ -116,6 +116,25 @@ def _run_command(command):
     return stdout, stderr, proc.returncode
 
 
+def parse_vomses(vomses_contents):
+    """Parse a vomses file with the the following format per line:
+
+    "<VO ALIAS> " "<VOMS ADMIN HOSTNAME>" "<VOMS ADMIN PORT>" "<VOMS CERT DN>" "<VO NAME>"
+
+    And return two mappings:
+
+    1. Case insensitive VO name to their canonical versions
+    2. VO certificate DN to URI, i.e. HOSTNAME:PORT
+    """
+    vo_info = re.findall(r'"[\w\.]+"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"\s+"([\w\.]+)"', vomses_contents, re.IGNORECASE)
+    # VO names are case-sensitive but we don't expect users to get the case right in proxies.ini
+    vo_names = dict([(vo[3].lower(), vo[3]) for vo in vo_info])
+    # A mapping between VO certificate subject DNs and VOMS URI of the form "<HOSTNAME>:<PORT>"
+    # We had to separate this out from the VO name because a VO could have multiple vomses entries
+    vo_uris = dict([(vo[2], vo[0] + ':' + vo[1]) for vo in vo_info])
+    return vo_names, vo_uris
+
+
 def voms_proxy_init(proxy, *args):
     """Create a proxy using voms-proxy-init. Without any additional args, it generates a proxy without VOMS attributes.
     Returns stdout, stderr, and return code of voms-proxy-init
@@ -167,14 +186,7 @@ def main():
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
     vomses = os.getenv('VOMS_USERCONF', '/etc/vomses')
     with open(vomses, 'r') as _:
-        # "<VO ALIAS> " "<VOMS ADMIN HOSTNAME>" "<VOMS ADMIN PORT>" "<VOMS CERT DN>" "<VO NAME>"
-        # "osg" "voms.grid.iu.edu" "15027" "/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=voms.grid.iu.edu" "osg"
-        vo_info = re.findall(r'"\w+"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"\s+"(\w+)"', _.read(), re.IGNORECASE)
-        # VO names are case-sensitive but we don't expect users to get the case right in the proxies.ini
-        vo_name_map = dict([(vo[3].lower(), vo[3]) for vo in vo_info])
-        # A mapping between VO certificate subject DNs and VOMS URI of the form "<HOSTNAME>:<PORT>"
-        # We had to separate this out from the VO name because a VO could have multiple vomses entries
-        vo_uri_map = dict([(vo[2], vo[0] + ':' + vo[1]) for vo in vo_info])
+        vo_name_map, vo_uri_map = parse_vomses(_)
 
     retcode = 0
     # Proxy renewals
