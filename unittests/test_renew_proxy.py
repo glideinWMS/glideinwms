@@ -33,26 +33,27 @@ class TestUtils(unittest.TestCase):
             self.assertEqual(uri_map[dn], uri)
 
 class TestVo(unittest.TestCase):
+    """Test the VOMS attributes class
+    """
+
+    def setUp(self):
+        self.vo_name = 'glideinwms'
+        self.cmd = '/Role=NULL/Capability=NULL'
 
     def assertVomsAttr(self, vo, vo_name, cmd):
         self.assertEqual(vo.fqan, '/%s%s' % (vo_name, cmd))
         self.assertEqual(vo.voms, '%s:/%s%s' % (vo_name, vo_name, cmd))
 
     def test_fqan_vo_prefix(self):
-        vo_name = 'glideinwms'
-        cmd = '/Role=NULL/Capability=NULL'
-        vo = proxy.VO(vo_name, '/%s%s' % (vo_name, cmd))
-        self.assertVomsAttr(vo, vo_name, cmd)
+        vo = proxy.VO(self.vo_name, '/%s%s' % (self.vo_name, self.cmd))
+        self.assertVomsAttr(vo, self.vo_name, self.cmd)
 
     def test_fqan_without_vo_prefix(self):
-        vo_name = 'glideinwms'
-        cmd = '/Role=NULL/Capability=NULL'
-        vo = proxy.VO(vo_name, cmd)
-        self.assertVomsAttr(vo, vo_name, cmd)
+        vo = proxy.VO(self.vo_name, self.cmd)
+        self.assertVomsAttr(vo, self.vo_name, self.cmd)
 
     def test_fqan_malformed(self):
-        vo_name = 'glideinwms'
-        self.assertRaises(ValueError, proxy.VO, vo_name, vo_name)
+        self.assertRaises(ValueError, proxy.VO, self.vo_name, self.vo_name)
 
 
 if __name__ == '__main__':
