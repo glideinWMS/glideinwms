@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import re
+import mock
 import unittest2 as unittest
 import xmlrunner
 
@@ -12,6 +12,13 @@ VOMSES = '''
 "osg" "voms1.opensciencegrid.org" "15027" "/DC=org/DC=incommon/C=US/ST=WI/L=Madison/O=University of Wisconsin-Madison/OU=OCIS/CN=voms1.opensciencegrid.org" "osg"
 "xenon.biggrid.nl" "voms.grid.sara.nl" "30008" "/O=dutchgrid/O=hosts/OU=sara.nl/CN=voms.grid.sara.nl" "xenon.biggrid.nl"
 '''
+
+
+# FIXME: Refactor _run_command to accept **kwargs instead
+def get_opt_val(cmd, opt_name):
+    """Given a command as a list, return the value of opt_name.
+    """
+    return cmd[cmd.index(opt_name)+1]
 
 
 class TestUtils(unittest.TestCase):
@@ -31,6 +38,33 @@ class TestUtils(unittest.TestCase):
                         ('/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=glow-voms.cs.wisc.edu',
                          'glow-voms.cs.wisc.edu:15001')]:
             self.assertEqual(uri_map[dn], uri)
+
+    @mock.patch('frontend.gwms_renew_proxies._run_command')
+    def test_voms_proxy_init(self, mock_run_command):
+        mock_proxy = mock.MagicMock()
+        proxy.voms_proxy_init(mock_proxy)
+        mock_run_command.assert_called_once()
+        for option in ('-voms', '-order'):
+            self.assertNotIn(option, mock_run_command.call_args[0][0])
+
+    @mock.patch('frontend.gwms_renew_proxies._run_command')
+    def test_voms_proxy_init_with_voms(self, mock_run_command):
+        mock_proxy = mock.MagicMock()
+        mock_voms_attr = mock.Mock()
+        mock_voms_attr.name = 'VoName'
+
+        for role, expected_val in [('NULL', 'name'), ('pilot', 'voms')]:
+            mock_voms_attr.fqan = '/Role={0}/Capability=NULL'.format(role)
+            mock_voms_attr.voms = '/{0}{1}'.format(mock_voms_attr.name, mock_voms_attr.fqan)
+            proxy.voms_proxy_init(mock_proxy, mock_voms_attr)
+
+            command = mock_run_command.call_args[0][0]
+            voms_opt = '-voms'
+            order_opt = '-order'
+            self.assertIn(voms_opt, command)
+            self.assertEqual(get_opt_val(command, voms_opt), getattr(mock_voms_attr, expected_val))
+            self.assertIn(order_opt, command)
+            self.assertFalse('/Capability=' in get_opt_val(command, order_opt))
 
 class TestVo(unittest.TestCase):
     """Test the VOMS attributes class

@@ -135,15 +135,31 @@ def parse_vomses(vomses_contents):
     return vo_names, vo_uris
 
 
-def voms_proxy_init(proxy, *args):
-    """Create a proxy using voms-proxy-init. Without any additional args, it generates a proxy without VOMS attributes.
+def voms_proxy_init(proxy, voms_attr=None):
+    """Create a proxy using voms-proxy-init, using the proxy information and optionally VOMS attribute.
     Returns stdout, stderr, and return code of voms-proxy-init
     """
     cmd = ['voms-proxy-init', '--debug',
            '-cert', proxy.cert,
            '-key', proxy.key,
            '-out', proxy.tmp_output_fd.name,
-           '-valid', '%s:00' % proxy.lifetime] + list(args)
+           '-valid', '%s:00' % proxy.lifetime]
+
+    if voms_attr:
+        # Some VOMS servers don't support capability/role/group selection so we just use the VO name when making
+        # the request. We don't handle this in the VO class because voms-proxy-fake requires the full VO name
+        # and command string.
+        if voms_attr.voms.endswith('/Role=NULL/Capability=NULL'):
+            voms = voms_attr.name
+        else:
+            voms = voms_attr.voms
+            # We specify '-order' because some European CEs care about VOMS AC order
+            # The '-order' option chokes if a Capability is specified but we want to make sure we request it
+            # in '-voms' because we're not sure if anything is looking for it
+        fqan = re.sub(r'\/Capability=\w+$', '', voms_attr.fqan)
+        cmd += ['-voms', voms,
+                '-order', fqan]
+
     return _run_command(cmd)
 
 
@@ -219,18 +235,7 @@ def main():
             vo_attr = VO(vo_name_map[proxy_config['vo'].lower()], proxy_config['fqan'])
 
             if safe_boolcomp(proxy_config['use_voms_server'], True):
-                # Some VOMS servers don't support capability/role/group selection so we just use the VO name when making
-                # the request. We don't handle this in the VO class because voms-proxy-fake requires the full VO name
-                # and command string.
-                if vo_attr.voms.endswith('/Role=NULL/Capability=NULL'):
-                    voms = vo_attr.name
-                else:
-                    voms = vo_attr.voms
-                # we specify '-order' because some European CEs care about VOMS AC order
-                # The '-order' option chokes if a Capability is specified but we want to make sure we request it
-                # in '-voms' because we're not sure if anything is looking for it
-                fqan = re.sub(r'\/Capability=\w+$', '', vo_attr.fqan)
-                stdout, stderr, client_rc = voms_proxy_init(proxy, '-voms', voms, '-order', fqan)
+                stdout, stderr, client_rc = voms_proxy_init(proxy, vo_attr)
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']
