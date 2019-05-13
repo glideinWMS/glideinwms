@@ -765,16 +765,16 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          for each entry associated to the group (even if there are no jobs idle). Keep in mind that if you use this <b>min</b>
          attribute and you also set idle_glideins_lifetime, then you might have old idle glideins removed and immeditely
          resubmitted. </li>
-     <li>The <b>glideins_removal</b> element is used to used to remove glideins when they are not used.
-        Glidein can expire and die when not used, the Frontend also has an automatic glidein removal mechanism, anyway you can trigger early removal.
+     <li>The <b>glideins_removal</b> element is used to control the removal of glideins when they are not used.
+        Glideins can expire and die when not used; the Frontend also has an automatic glidein removal mechanism, anyway you can trigger an early removal or stop all removals.
         Early removal is controlled by 4 attributes (type, requests_tracking, margin, wait) and is disabled bt default (type="NO").
         <b>type</b> selects what to remove: NO (default) no early removal, IDLE only Idle glideins -not submitted-,
         WAIT also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed),
 	DISABLE disables also the automatic removal mechanism of the Frontend (Glidein expiration is still in place).
         When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
             then the Glideins in excess are removed.
-        If <b>requests_tracking</b> is False (default) then it removes glideins when there are no pending job requests for this group 
-        Either ways <b>type</b> still controls what to remove (and the default NO means no removal).
+        If <b>requests_tracking</b> is False (default) then the Frontend removes glideins when there are no pending job requests for this group 
+        Either ways <b>type</b> still controls what to remove (and the default NO means no early removal).
         <b>wait</b> adds a delay, waits for N cycles without requests (or below the margin) before triggering the removal.</li>
     </ul>
     </P></li>
