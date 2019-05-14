@@ -139,7 +139,9 @@ def voms_proxy_init(proxy, voms_attr=None):
     """Create a proxy using voms-proxy-init, using the proxy information and optionally VOMS attribute.
     Returns stdout, stderr, and return code of voms-proxy-init
     """
-    cmd = ['voms-proxy-init', '--debug',
+    cmd = ['voms-proxy-init',
+           '-debug',
+           '-old',
            '-cert', proxy.cert,
            '-key', proxy.key,
            '-out', proxy.tmp_output_fd.name,
