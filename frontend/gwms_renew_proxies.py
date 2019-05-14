@@ -117,7 +117,7 @@ def _run_command(command):
 
 
 def parse_vomses(vomses_contents):
-    """Parse a vomses file with the the following format per line:
+    """Parse the contents of a vomses file with the the following format per line:
 
     "<VO ALIAS> " "<VOMS ADMIN HOSTNAME>" "<VOMS ADMIN PORT>" "<VOMS CERT DN>" "<VO NAME>"
 
@@ -202,7 +202,7 @@ def main():
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
     vomses = os.getenv('VOMS_USERCONF', '/etc/vomses')
     with open(vomses, 'r') as _:
-        vo_name_map, vo_uri_map = parse_vomses(_)
+        vo_name_map, vo_uri_map = parse_vomses(_.read())
 
     retcode = 0
     # Proxy renewals
