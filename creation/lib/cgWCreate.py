@@ -162,14 +162,15 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
             self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -196,9 +197,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled):
+    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name):
         if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
-            raise RuntimeError(" The grid type '%s' is no longer supported. Review the entry attributes" % gridtype)
+            raise RuntimeError(" The grid type '%s' is no longer supported. Review the attributes of the entry %s " % (gridtype, entry_name))
         elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
@@ -222,8 +223,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
         input_files = []
         encrypt_input_files = []
-
-        self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled)
 
         input_files.append('$ENV(X509_USER_PROXY)')
         encrypt_input_files.append('$ENV(X509_USER_PROXY)')
