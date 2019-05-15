@@ -371,7 +371,7 @@ by the VO Factory clients.</P>
         <td> Expr (Bool) </td>
         <td> False </td>
         <TD>
-            Specifies whether preemption is allowed to occur on this glidein.
+            Specifies whether preemption is allowed to occur on this glidein. N.B.: Starting from 3.4.3, glideins in the Factory queues are removed 12 hours after they hit the walltime. This is done with periodic remove expression, and happens even if <b>PREEMPT</b> is false.
         </TD>
     </tr>
     <tr>
@@ -380,9 +380,10 @@ by the VO Factory clients.</P>
         <td> 10000000 </td>
         <td>
             This value affects the condor value "MaxJobRetirementtime"
-            and is an integer value representing the number of seconds 
+            and it's an integer value representing the number of seconds 
             a preempted job will be allowed to run before being evicted.
-            This only affects behaviour if PREEMPT=True.
+            This only affects behaviour if PREEMPT=True. After 12 hours,
+            a glidein is removed from the factory queue anyway.
         </td>
     </tr>
    <tr>
@@ -709,11 +710,26 @@ by the VO Factory clients.</P>
         </TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_NODES</b> </td>
+        <TD> Int</td>
+
+        <TD> 1 </TD>
+        <TD>
+            <P>Number of NODEs a Glidein is expected to be replicated on.
+                On some entries, especially HPC resources, each Glidein submission triggers the startup of the Glidein on multiple nodes.
+                The Frontend assumes that for each requested Glidein the entry will start it on GLIDEIN_NODES nodes, 1 by default.
+                The Frontend will work even if the estimate is not correct, anyway:
+                it will trigger requests for the entry only if the CPUs requested by the jobs are no more than GLIDEIN_ESTIMATED_CPUS and,
+                it will adjust the number of Glideins requested assuming GLIDEIN_NODES Glideins, each with GLIDEIN_CPUS/GLIDEIN_ESTIMATED_CPUS cores for each request to that entry.
+               GLIDEIN_NODES is not used by the Glidein.</P>
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_MaxMemMBs</b> </td>
         <TD> Int</td>
         <TD> None </TD>
         <TD>
-            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor and Startd and jobs started by the glidein. If not GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE, glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">MEMORY</a></P>
+            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor Startd and jobs started by the glidein. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE (False or unset), the glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">MEMORY</a></P>
         </TD>
     </TR>
     <TR>
@@ -722,7 +738,7 @@ by the VO Factory clients.</P>
 
         <TD> False </TD>
         <TD>
-            <P>Used in conjunction with GLIDEIN_MaxMemMBs. See GLIDEIN_MaxMemMBs for the description.</P>
+            <P>Used in conjunction with GLIDEIN_MaxMemMBs. It is ignored if GLIDEIN_MaxMemMBs is set to any value. See GLIDEIN_MaxMemMBs for the description.</P>
         </TD>
     </TR>
     <TR>
@@ -1837,6 +1853,8 @@ If cannot find one, it will shutdown.
 </li>
 </ul>
 Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
+
+N.B.: 12 hours after the walltime, a glidein is removed from the factory queue no matter what is using a periodic remove expression. This is done to prevent <i>staleness of glideins</i> which are the glideins that appears running in the factory condor queue indefinitely, but are no longer in the CE queue.
 </div>
 
 <div class="section">

@@ -3,6 +3,7 @@
 """Automatical renewal of proxies necessary for a glideinWMS frontend
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 import ConfigParser
 import os
@@ -12,6 +13,9 @@ import subprocess
 import sys
 import tempfile
 
+from glideinwms.lib import x509Support
+from glideinwms.lib.util import safe_boolcomp
+
 CONFIG = '/etc/gwms-frontend/proxies.ini'
 
 DEFAULTS = {'use_voms_server': 'false',
@@ -19,6 +23,12 @@ DEFAULTS = {'use_voms_server': 'false',
             'frequency': '1',
             'lifetime': '24',
             'owner': 'frontend'}
+
+
+class ConfigError(BaseException):
+    """Catch-all class for errors in proxies.ini or system VO configuration
+    """
+    pass
 
 
 class Proxy(object):
@@ -58,16 +68,21 @@ class Proxy(object):
         """
         return _safe_int(self._voms_proxy_info('-actimeleft')[0])
 
+    def cleanup(self):
+        """Cleanup temporary proxy files
+        """
+        os.remove(self.tmp_output_fd.name)
 
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
-    def __init__(self, vo, fqan, cert=None, key=None):
+    def __init__(self, vo, fqan):
         """vo - name of the Virtual Organization. Case should match folder names in /etc/grid-security/vomsdir/
         fqan - VOMS attribute FQAN with format "/vo/command" (/osg/Role=NULL/Capability=NULL) or
                "command" (Role=NULL/Capability=NULL)
         cert - path to VOMS server certificate used to sign VOMS attributes (for use with voms_proxy_fake)
         key - path to key associated with the cert argument
+        uri - hostname and port of the VO's VOMS Admin Server, e.g. voms.opensciencegrid.org:15001
         """
         self.name = vo
         if fqan.startswith('/%s/Role=' % vo):
@@ -79,8 +94,9 @@ class VO(object):
         self.fqan = fqan
         # intended argument for -voms option "vo:command" format, see voms-proxy-init man page
         self.voms = ':'.join([vo, fqan])
-        self.cert = cert
-        self.key = key
+        self.cert = None
+        self.key = None
+        self.uri = None
 
 
 def _safe_int(string_var):
@@ -112,7 +128,7 @@ def voms_proxy_init(proxy, *args):
     return _run_command(cmd)
 
 
-def voms_proxy_fake(proxy, vo_info, voms_uri):
+def voms_proxy_fake(proxy, vo_info):
     """ Create a valid proxy without contacting a VOMS Admin server. VOMS attributes are created from user config.
     Returns stdout, stderr, and return code of voms-proxy-fake
     """
@@ -124,7 +140,7 @@ def voms_proxy_fake(proxy, vo_info, voms_uri):
            '-voms', vo_info.name,
            '-hostcert', vo_info.cert,
            '-hostkey', vo_info.key,
-           '-uri', voms_uri,
+           '-uri', vo_info.uri,
            '-fqan', vo_info.fqan]
     return _run_command(cmd)
 
@@ -138,9 +154,9 @@ def main():
 
     # Verify config sections
     if proxies.count('COMMON') != 1:
-        raise RuntimeError("there must be only one [COMMON] section in %s" % CONFIG)
+        raise ConfigError("there must be only one [COMMON] section in %s" % CONFIG)
     if len([x for x in proxies if x.startswith('PILOT')]) < 1:
-        raise RuntimeError("there must be at least one [PILOT] section in %s" % CONFIG)
+        raise ConfigError("there must be at least one [PILOT] section in %s" % CONFIG)
 
     # Proxies need to be owned by the 'frontend' user
     try:
@@ -149,9 +165,16 @@ def main():
         raise RuntimeError("missing 'frontend' user")
 
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
-    with open(os.getenv('VOMS_USERCONF', '/etc/vomses'), 'r') as _:
-        vo_info = re.findall(r'"(\w+)"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"', _.read(), re.IGNORECASE)
-        vomses = dict([(vo[0].lower(), {'name': vo[0], 'uri': vo[1] + ':' + vo[2], 'subject': vo[3]}) for vo in vo_info])
+    vomses = os.getenv('VOMS_USERCONF', '/etc/vomses')
+    with open(vomses, 'r') as _:
+        # "<VO ALIAS> " "<VOMS ADMIN HOSTNAME>" "<VOMS ADMIN PORT>" "<VOMS CERT DN>" "<VO NAME>"
+        # "osg" "voms.grid.iu.edu" "15027" "/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=voms.grid.iu.edu" "osg"
+        vo_info = re.findall(r'"\w+"\s+"([^"]+)"\s+"(\d+)"\s+"([^"]+)"\s+"(\w+)"', _.read(), re.IGNORECASE)
+        # VO names are case-sensitive but we don't expect users to get the case right in the proxies.ini
+        vo_name_map = dict([(vo[3].lower(), vo[3]) for vo in vo_info])
+        # A mapping between VO certificate subject DNs and VOMS URI of the form "<HOSTNAME>:<PORT>"
+        # We had to separate this out from the VO name because a VO could have multiple vomses entries
+        vo_uri_map = dict([(vo[2], vo[0] + ':' + vo[1]) for vo in vo_info])
 
     retcode = 0
     # Proxy renewals
@@ -172,19 +195,18 @@ def main():
         if proxy_section == 'FRONTEND':
             if has_time_left(proxy.timeleft()):
                 print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
-                os.remove(proxy.tmp_output_fd.name)
+                proxy.cleanup()
                 continue
             stdout, stderr, client_rc = voms_proxy_init(proxy)
         elif proxy_section.startswith('PILOT'):
             if has_time_left(proxy.timeleft()) and has_time_left(proxy.actimeleft()):
                 print('Skipping renewal of %s: time remaining within the specified frequency' % proxy.output)
-                os.remove(proxy.tmp_output_fd.name)
+                proxy.cleanup()
                 continue
 
-            voms_info = vomses[proxy_config['vo'].lower()]
-            vo_attr = VO(voms_info['name'], proxy_config['fqan'])
+            vo_attr = VO(vo_name_map[proxy_config['vo'].lower()], proxy_config['fqan'])
 
-            if proxy_config['use_voms_server'].lower() == 'true':
+            if safe_boolcomp(proxy_config['use_voms_server'], True):
                 # we specify '-order' because some European CEs care about VOMS AC order
                 # The '-order' option chokes if a Capability is specified but we want to make sure we request it
                 # in '-voms' because we're not sure if anything is looking for it
@@ -193,7 +215,16 @@ def main():
             else:
                 vo_attr.cert = proxy_config['vo_cert']
                 vo_attr.key = proxy_config['vo_key']
-                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr, voms_info['uri'])
+                try:
+                    vo_attr.uri = vo_uri_map[x509Support.extract_DN(vo_attr.cert)]
+                except KeyError:
+                    retcode = 1
+                    print("ERROR: Failed to renew proxy {0}: ".format(proxy.output) +
+                          "Could not find entry in {0} for {1}. ".format(vomses, vo_attr.cert) +
+                          "Please verify your VO data installation.")
+                    proxy.cleanup()
+                    continue
+                stdout, stderr, client_rc = voms_proxy_fake(proxy, vo_attr)
         else:
             print("WARNING: Unrecognized configuration section %s found in %s.\n" % (proxy, CONFIG) +
                   "Valid configuration sections: 'FRONTEND' or 'PILOT'.")
@@ -208,14 +239,14 @@ def main():
             retcode = 1
             # don't raise an exception here to continue renewing other proxies
             print("ERROR: Failed to renew proxy %s:\n%s%s" % (proxy.output, stdout, stderr))
-            os.remove(proxy.tmp_output_fd.name)
+            proxy.cleanup()
 
     return retcode
 
 
 if __name__ == "__main__":
     try:
-        main()
-    except (RuntimeError, ValueError) as exc:
+        sys.exit(main())
+    except (ConfigError, ValueError) as exc:
         print("ERROR: " + str(exc))
         sys.exit(1)

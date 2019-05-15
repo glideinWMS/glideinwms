@@ -33,6 +33,7 @@ sys.path.append(os.path.join(sys.path[0], "../.."))
 from glideinwms.lib import symCrypto, pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import servicePerformance
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
@@ -115,6 +116,11 @@ class glideinFrontendElement:
         self.security_name = self.elementDescript.merged_data['SecurityName']
         self.factory_pools = self.elementDescript.merged_data['FactoryCollectors']
 
+        # If the IgnoreDownEntries knob is set in the group use that, otherwise use the global one
+        if self.elementDescript.element_data.get('IgnoreDownEntries', "") is not "":
+            self.ignore_down_entries = self.elementDescript.element_data['IgnoreDownEntries'] == "True"
+        else:
+            self.ignore_down_entries = self.elementDescript.frontend_data.get('IgnoreDownEntries') == "True"
         self.min_running = int(self.elementDescript.element_data['MinRunningPerEntry'])
         self.max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
         self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
@@ -560,7 +566,7 @@ class glideinFrontendElement:
 
             glidein_el = self.glidein_dict[glideid]
             glidein_in_downtime = \
-                glidein_el['attrs'].get('GLIDEIN_In_Downtime') == 'True'
+                safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_In_Downtime', False), True)
 
             count_jobs = {}   # straight match
             prop_jobs = {}    # proportional subset for this entry
@@ -580,10 +586,10 @@ class glideinFrontendElement:
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
             if (self.glexec != 'NEVER'):
-                if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
+                if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
                         prop_jobs['Idle']=prop_jobs['VomsIdle']
                         logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')=="True"):
+                elif safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE'), True):
                         prop_jobs['Idle']=prop_jobs['ProxyIdle']
                         logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
 
@@ -1234,7 +1240,7 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
     def decide_removal_type(self, count_jobs, count_status, glideid):
-        """Picks the max removal type
+        """Picks the max removal type (unless disable is requested)
         - if it was requested explicitly, send that one
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
@@ -1248,12 +1254,16 @@ class glideinFrontendElement:
                          'WAIT': 1,
                          'IDLE': 2,
                          'ALL': 3,
-                         'UNREG': 4  # Mentioned in glideinFrontendIntrface.py - not documented
+                         'UNREG': 4,  # Mentioned in glideinFrontendIntrface.py - not documented
+                         'DISABLE': -1
                          }
         remove_excess_str_auto = self.choose_remove_excess_type(count_jobs, count_status, glideid)
         remove_excess_str_config = self.check_removal_type_config(glideid)
         remove_excess_str_auto_nr = remove_levels[remove_excess_str_auto]
         remove_excess_str_config_nr = remove_levels[remove_excess_str_config]
+        if remove_excess_str_config_nr < 0:
+            # disable all removals
+            return 'NO', 0
         if remove_excess_str_auto_nr > remove_excess_str_config_nr:
             return remove_excess_str_auto, 0
         # Config request >= automatic removal
@@ -1265,15 +1275,17 @@ class glideinFrontendElement:
 
     def check_removal_type_config(self, glideid):
         """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
-            "ALL", "IDLE", "WAIT", or "NO"
+            "ALL", "IDLE", "WAIT", "NO" or "DISABLE" (disable also automatic removal)
 
         @param glideid: ID of the glidein
-        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+        @return: remove excess string, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
         """
         # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == 'NO':
             # No special semoval requested, leave things unchanged
             return 'NO'
+        if self.removal_type == 'DISABLE':
+            return 'DISABLE'
         # Cannot compare the current requests w/ the available glideins (factory status not provided to the FE)
         # If tracking is enabled, always request removal and send the margin. The factory will decide
         if self.removal_requests_tracking:
@@ -1795,8 +1807,14 @@ class glideinFrontendElement:
                         self.condorq_dict_types[dt]['dict'],
                         self.glidein_dict,
                         self.attr_dict,
+                        self.ignore_down_entries,
                         self.condorq_match_list,
-                        match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
+                        match_policies=self.elementDescript.merged_data['MatchPolicyModules'],
+# This is the line to enable if you want the frontend to dump data structures during countMatch
+# You can then use the profile_frontend.py script to execute the countMatch function with real data
+# Data will be saved into /tmp/frontend_dump/ . Make sure to create the dir beforehand.
+#                        group_name=self.group_name
+                        )
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out=(c, p, h, pmc, t)

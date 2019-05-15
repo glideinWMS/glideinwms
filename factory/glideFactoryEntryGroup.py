@@ -34,7 +34,7 @@ import cPickle
 import select
 import logging
 
-STARTUP_DIR=sys.path[0]
+STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import logSupport
@@ -61,10 +61,12 @@ from glideinwms.factory import glideFactoryDowntimeLib
 ENTRY_MEM_REQ_BYTES = 500000000 * 2
 ############################################################
 
+
 class EntryGroup:
 
     def __init__(self):
         pass
+
 
 ############################################################
 def check_parent(parent_pid, glideinDescript, my_entries):
@@ -209,23 +211,51 @@ def get_work_count(work):
         count += len(work[entry])
     return count
 
-###############################
 
 def forked_check_and_perform_work(factory_in_downtime, entry, work):
-    work_done = glideFactoryEntry.check_and_perform_work(
-                    factory_in_downtime, entry, work[entry.name])
+    """
+    Do the work assigned to an entry (glidein requests)
+    @param factory_in_downtime: flag, True if the Factory is in downtime
+    @param entry: entry object (glideFactoryEntry.Entry)
+    @param work: work requests for the entry
+    @return: dictionary with entry state + work_done
+    """
+    work_done = glideFactoryEntry.check_and_perform_work(factory_in_downtime, entry, work)
     
     # entry object now has updated info in the child process
     # This info is required for monitoring and advertising
-    # Compile the return info from th  updated entry object 
+    # Compile the return info from the updated entry object
     # Can't dumps the entry object directly, so need to extract
     # the info required.
     return_dict = compile_pickle_data(entry, work_done)
     return return_dict
 
-###############################
 
-def find_and_perform_work(factory_in_downtime, glideinDescript,
+def forked_update_entries_stats(factory_in_downtime, entries_list):
+    """Update statistics for entries that have no work to do
+
+    :param factory_in_downtime:
+    :param entries_list:
+    :return:
+    """
+    entries_updated = glideFactoryEntry.update_entries_stats(factory_in_downtime, entries_list)
+
+    # entry objects now have updated info in the child process
+    # This info is required for monitoring and advertising
+    # Compile the return info from the updated entry object
+    # Can't dumps the entry object directly, so need to extract
+    # the info required.
+    # Making the entries pickle-friendly
+
+    return_dict = {'entries': [(e.name, e.getState()) for e in entries_updated]}
+    # should set also e['work_done'] = 0 ?
+    return return_dict
+
+
+##############################################
+# Functions managing the Entries life-cycle
+
+def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript,
                           frontendDescript, group_name, my_entries):
     """
     For all entries in this group, find work requests from the WMS collector,
@@ -245,7 +275,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     @param group_name: Name of the group
 
     @type my_entries: dict
-    @param my_entries: Dictionary of entry objects keyed on entry name
+    @param my_entries: Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
 
     @return: Dictionary of work to do keyed on entry name
     @rtype: dict
@@ -258,16 +288,20 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # Find work to perform. Work is a dict work[entry_name][frontend]
     # We may or may not be able to perform all the work but that will be
     # checked later per entry
+    # work includes all entries, empty value for entries w/ no work to do
+    # to allow cleanup, ... (remove held glideins, ...)
 
-    work = {}
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)
-    # TODO: If we return here check if we need to do cleanup of held glideins?
-    #       So far only de-advertising is confirmed to trigger not cleanup
+
+    # Request from a Frontend group to an entry
     work_count = get_work_count(work)
     if (work_count == 0):
         logSupport.log.info("No work found")
-        return groupwork_done
+        if do_advertize:
+            logSupport.log.info("Continuing to update monitoring info")
+        else:
+            return groupwork_done
 
     logSupport.log.info("Found %s total tasks to work on" % work_count)
 
@@ -294,15 +328,30 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
     forkm_obj = ForkManager()
     # Only fork of child processes for entries that have corresponding
-    # work todo, ie glideclient classads.
-    for ent in work:
-        entry = my_entries[ent]
-
-        forkm_obj.add_fork(entry.name,
-                           forked_check_and_perform_work,
-                           factory_in_downtime, entry, work)
+    # work to do, ie glideclient classads.
+    # TODO: #22163, change in 3.5 coordinate w/ find_work():
+    #  change so that only the entries w/ work to do are returned in 'work'
+    #  currently work contains all entries
+    #  cleanup is still done correctly, handled also in the entries w/o work function (forked as single function)
+    entries_without_work = []
+    for ent in my_entries:
+        if work.get(ent):
+            entry = my_entries[ent]  # ent is the entry.name
+            forkm_obj.add_fork(ent,
+                               forked_check_and_perform_work,
+                               factory_in_downtime, entry, work[ent])
+        else:
+            entries_without_work.append(ent)
+    # Evaluate stats for entries without work only if these will be advertised
+    # TODO: #22163, check if this is causing too much load
+    # Since glideins only decrease for entries not receiving requests, a more efficient way
+    # could be to advertise entries that had non 0 # of glideins at the previous round
+    if do_advertize and len(entries_without_work) > 0:
+        forkm_obj.add_fork('GWMS_ENTRIES_WITHOUT_WORK',
+                           forked_update_entries_stats,
+                           factory_in_downtime, [my_entries[i] for i in entries_without_work])
+    t_begin = time.time()
     try:
-        t_begin = time.time()
         post_work_info = forkm_obj.bounded_fork_and_collect(parallel_workers)
         t_end = time.time() - t_begin
     except RuntimeError:
@@ -320,22 +369,22 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         if ((entry in post_work_info) and (len(post_work_info[entry]) > 0)):
             groupwork_done[entry] = {'work_done': post_work_info[entry]['work_done']}
             (my_entries[entry]).setState(post_work_info[entry])
-
         else:
             logSupport.log.debug("No work found for entry %s from any frontends" % entry)
+
+    if 'GWMS_ENTRIES_WITHOUT_WORK' in post_work_info and len(post_work_info['GWMS_ENTRIES_WITHOUT_WORK']['entries']) > 0:
+        for entry, entry_state in post_work_info['GWMS_ENTRIES_WITHOUT_WORK']['entries']:
+            (my_entries[entry]).setState(entry_state)
 
     if work_info_read_err:
         logSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
         logSupport.log.warning("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
 
-
     return groupwork_done
 
-############################################################
 
 def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                 frontendDescript, group_name, my_entries):
-    
     """
     One iteration of the entry group
 
@@ -355,7 +404,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     @param group_name: Name of the group
 
     @type my_entries: dict
-    @param my_entries: Dictionary of entry objects keyed on entry name
+    @param my_entries: Dictionary of entry objects (glideFactoryEntry.Entry) keyed on entry name
     """
 
     groupwork_done = {}
@@ -365,7 +414,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         entry.initIteration(factory_in_downtime)
 
     try:
-        groupwork_done = find_and_perform_work(factory_in_downtime,
+        groupwork_done = find_and_perform_work(do_advertize, factory_in_downtime,
                                                glideinDescript,
                                                frontendDescript,
                                                group_name, my_entries)
@@ -379,7 +428,8 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
     gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
-    logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads as needed" % (gf_filename, gfc_filename))
+    logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads as needed" %
+                        (gf_filename, gfc_filename))
 
     entries_to_advertise = []
     for entry in my_entries.values():
@@ -413,6 +463,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
 
     return done_something
 
+
 ############################################################
 def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
             frontendDescript, group_name, my_entries):
@@ -443,8 +494,8 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     @param my_entries: Dictionary of entry objects keyed on entry name
     """
 
-    is_first=1
-    count=0
+    is_first = True  # In first iteration
+    count = 0
 
     # Record the starttime so we know when to disable the use of old pub key
     starttime = time.time()
@@ -555,18 +606,18 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                     for ent in post_writestats_info[i]:
                         (my_entries[ent]).setState(post_writestats_info[i][ent])
             except KeyboardInterrupt:
-                raise # this is an exit signal, pass through
+                raise  # this is an exit signal, pass through
             except:
                 # never fail for stats reasons!
                 logSupport.log.exception("Error writing stats: ")
         except KeyboardInterrupt:
-            raise # this is an exit signal, pass through
+            raise  # this is an exit signal, pass through
         except:
             if is_first:
                 raise
             else:
-                # if not the first pass, just warn
-                logSupport.log.exception("Exception occurred: ")
+                # If not the first pass, just warn
+                logSupport.log.exception("Exception occurred in the main loop of Factory Group %s: " % group_name)
 
         cleanupSupport.cleaners.wait_for_cleanup()
 
@@ -578,7 +629,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         time.sleep(iteration_sleep_time)
 
         count = (count+1) % advertize_rate
-        is_first = 0
+        is_first = False  # Entering following iterations
 
 
 ############################################################

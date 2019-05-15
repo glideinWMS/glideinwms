@@ -261,7 +261,7 @@ class Entry:
 
     def isClientBlacklisted(self, client_sec_name):
         """
-        Check ifthe frontend whitelist is enabled and client is not in
+        Check if the frontend whitelist is enabled and client is not in
         whitelist
 
         @rtype: boolean
@@ -381,9 +381,12 @@ class Entry:
 
     def queryQueuedGlideins(self):
         """
-        Query WMS schedd and get glideins info. Raise in case of failures.
+        Query WMS schedd (on Factory) and get glideins info. Re-raise in case of failures.
+        Return a loaded condorMonitor.CondorQ object using the entry attributes (name, schedd, ...).
+        Consists of a fetched dictionary w/ jobs (keyed by job cluster, ID) in .stored_data,
+        some query attributes and the ability to reload (load/fetch)
 
-        @rtype: condorMonitor.CondorQ
+        @rtype: condorMonitor.CondorQ already loaded
         @return: Information about the jobs in condor_schedd
         """
 
@@ -544,8 +547,8 @@ class Entry:
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
+                # Summary stats to publish in GF and all GFC ClassAds
                 glidein_monitors['Total%s%s'%(w, a)] = current_qc_total[w][a]
-                self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
         stats = util.file_pickle_load(
@@ -629,12 +632,13 @@ class Entry:
                     # report only numbers
                     if isinstance(client_qc_data[w][a], int):
                         client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
+            merged_monitors = glidein_monitors.copy()
+            merged_monitors.update(client_monitors)
 
             try:
                 fparams = current_qc_data[client_name]['Requested']['Parameters']
             except:
                 fparams = {}
-
             params = self.jobParams.data.copy()
             for p in fparams.keys():
                 # Can only overwrite existing params, not create new ones
@@ -643,7 +647,7 @@ class Entry:
 
             advertizer.add(client_internals["CompleteName"],
                            client_name, client_internals["ReqName"],
-                           params, client_monitors.copy(),
+                           params, merged_monitors,
                            self.limits_triggered)
 
         try:
@@ -715,7 +719,7 @@ class Entry:
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
-        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
+        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig, alt_stats=self.gflFactoryConfig.client_stats)
         self.log.info("qc_stats written")
 
         self.log.info("Writing rrd_stats for %s" % self.name)
@@ -861,7 +865,7 @@ class Entry:
         Load the post work state from the pickled info
 
         @type post_work_info: dict
-        @param post_work_info: Picked state after doing work
+        @param post_work_info: Pickled state after doing work
         """
 
         self.gflFactoryConfig.client_stats = state.get('client_stats')
@@ -963,6 +967,8 @@ class X509Proxies:
 
 
 ###############################################################################
+# Functions to serve work requests (invoked from glideFactoryEntryGroup)
+###############################################################################
 
 def check_and_perform_work(factory_in_downtime, entry, work):
     """
@@ -973,6 +979,11 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
     @type entry: glideFactoryEntry.Entry
     @param entry: Entry object
+
+    @param work:
+
+    :return:
+
     """
 
     entry.loadContext()
@@ -982,6 +993,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         condorQ = entry.queryQueuedGlideins()
     except:
         # Protect and exit
+        entry.log.debug("Failed condor_q for entry %s, skipping stats update and work" % entry.name)
         return 0
 
     # Consider downtimes and see if we can submit glideins
@@ -994,7 +1006,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
     auth_method = entry.jobDescript.data['AuthMethod']
 
     #
-    # STEP: Process every work one at a time
+    # STEP: Process every work one at a time. This is done only for entries with work to do
     #
     for work_key in work:
         if not glideFactoryLib.is_str_safe(work_key):
@@ -1017,7 +1029,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             client_int_name = work[work_key]['internals']["ClientName"]
             client_int_req = work[work_key]['internals']["ReqName"]
         except:
-            entry.log.warning("Request %s not did not provide the client and/or request name. Skipping request" % work_key)
+            entry.log.warning("Request %s did not provide the client and/or request name. Skipping request" % work_key)
             continue
 
         if not glideFactoryLib.is_str_safe(client_int_name):
@@ -1045,14 +1057,14 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             continue
 
         if entry.isClientBlacklisted(client_security_name):
-            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " % (client_security_name,
-                                                                                                   client_int_name))
+            entry.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " %
+                              (client_security_name, client_int_name))
             in_downtime = True
 
         client_expected_identity = entry.frontendDescript.get_identity(client_security_name)
         if client_expected_identity is None:
-            entry.log.warning("Client %s (secid: %s) not in white list. Skipping request" % (client_int_name,
-                                                                                             client_security_name))
+            entry.log.warning("Client %s (secid: %s) not in white list. Skipping request" %
+                              (client_int_name, client_security_name))
             continue
 
         client_authenticated_identity = work[work_key]['internals']["AuthenticatedIdentity"]
@@ -1093,21 +1105,25 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         done_something += work_performed['work_done']
         all_security_names = all_security_names.union(work_performed['security_names'])
 
+    # sanitize glideins (if there was no work done, otherwise it is done in glidein submission)
     if done_something == 0:
         entry.log.info("Sanitizing glideins for entry %s" % entry.name)
         glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log,
                                          factoryConfig=entry.gflFactoryConfig)
 
-    # entry.log.info("all_security_names = %s" % all_security_names)
-
+    # This is the only place where rrd_stats.getData(), updating RRD as side effect, is called for clients;
+    # totals are updated aslo elsewhere
+    # i.e. RRD stats and the content of XML files are not updated for clients w/o work requests
+    # TODO: #22163, should this change and rrd_stats.getData() be called for all clients anyway?
+    #  if yes, How to get security names tuples (client_security_name, credential_security_class)? - mmb
+    # entry.log.debug("Processed work requests: all_security_names = %s" % all_security_names)
     for sec_el in all_security_names:
         try:
-            # glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
-            entry.gflFactoryConfig.rrd_stats.getData(
-                "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
+            # returned data is not used, function called only to trigger RRD update via side effect
+            entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
         except glideFactoryLib.condorExe.ExeError as e:
             # Never fail for monitoring. Just log
-            entry.log.exception("get_RRD_data failed with condor error: ")
+            entry.log.exception("get_RRD_data failed with HTCondor error: ")
         except:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with unknown error: ")
@@ -1119,10 +1135,19 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                  client_expected_identity, decrypted_params, params,
                  in_downtime, condorQ):
-    """
-    Perform a single work unit using the v2 protocol. When we stop supporting
-    v2 protocol, this function can be removed along with the places it is
-    called from.
+    """    Perform a single work unit using the v3 protocol.
+
+    :param entry:
+    :param work:
+    :param client_name: work_key (key used in the work request)
+    :param client_int_name: client name declared in the request
+    :param client_int_req: name of the request (declared in the request)
+    :param client_expected_identity:
+    :param decrypted_params:
+    :param params:
+    :param in_downtime:
+    :param condorQ: list of HTCondor jobs for this entry as returned by entry.queryQueuedGlideins()
+    :return: Return dictionary w/ success, security_names and work_done
     """
 
     # Return dictionary. Only populate information to be passed at the end
@@ -1134,7 +1159,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     }
 
     #
-    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
+    # STEP: CHECK THAT GLIDEINS ARE WITHIN ALLOWED LIMITS
     #
     can_submit_glideins = entry.glideinsWithinLimits(condorQ)
 
@@ -1460,6 +1485,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     all_security_names.add((client_security_name, credential_security_class))
 
+    # Iv v2 this was:
     # entry_condorQ = glideFactoryLib.getQProxSecClass(
     #                    condorQ, client_int_name,
     #                    submit_credentials.security_class,
@@ -1467,6 +1493,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     #                    credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
     #                    factoryConfig=entry.gflFactoryConfig)
 
+    # Sub-query selecting jobs in Factory schedd (still dictionary keyed by cluster, proc)
+    # for (client_schedd_attribute, credential_secclass_schedd_attribute, credential_id_schedd_attribute)
+    # ie (GlideinClient, GlideinSecurityClass, GlideinCredentialIdentifier)
     entry_condorQ = glideFactoryLib.getQCredentials(
                         condorQ, client_int_name, submit_credentials,
                         entry.gflFactoryConfig.client_schedd_attribute,
@@ -1516,7 +1545,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     @param entry: Entry object
 
     @type condorQ: condorMonitor.CondorQ
-    @param condorQ: Information about the jobs in condor_schedd
+    @param condorQ: Information about the jobs in condor_schedd (entry values sub-query from glideFactoryLib.getQCredentials())
 
     @type client_int_name: string
     @param client_in_name: Internal name of the client
@@ -1564,7 +1593,8 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
         glideFactoryLogParser.dirSummaryTimingsOut(
             entry.gflFactoryConfig.get_client_log_dir(entry.name,
                                                       credential_username),
-            entry.logDir, client_int_name, credential_username)
+            entry.logDir, client_int_name, credential_username
+        )
 
     # We don't need privsep for reading logs
     try: # the logParser class will throw an exception if the input file is bad
@@ -1595,6 +1625,62 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
         return 1
 
     return 0
+
+
+####################
+
+def update_entries_stats(factory_in_downtime, entry_list):
+    """
+    Update client_stats for the entries in the list.
+    Used for entries with no job requests
+    TODO: #22163, skip update when in downtime?
+    NOTE: qc_stats cannot be updated because the frontend certificate information are missing
+    @param factory_in_downtime: True if the Factory is in downtime, here for future needs (not used now)
+    @param entry_list: list of entry names for the entries to update
+    @return: list of names of the entries that have been updated (subset of entry_list)
+    """
+
+    updated_entries = []
+    for entry in entry_list:
+
+        # Add a heuristic to improve efficiency. Skip if no changes in the entry
+        # if nothing_to_do:
+        #    continue
+
+        entry.loadContext()
+
+        # Query glidein queue
+        try:
+            condorQ = entry.queryQueuedGlideins()
+        except:
+            # Protect and exit
+            logSupport.log.warning("Failed condor_q for entry %s, skipping stats update" % entry.name)
+            continue
+
+        if condorQ is None or len(condorQ.stored_data) == 0:
+            # no glideins
+            logSupport.log.debug("No glideins for entry %s, skipping stats update" % entry.name)
+            continue
+
+        # Sanitizing glideins, e.g. removing unrecoverable held glideins
+        entry.log.info("Sanitizing glideins for entry w/o work %s" % entry.name)
+        glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+
+        # TODO: #22163, RRD stats for individual clients are not updated here. Are updated only when work is done,
+        #  see check_and_perform_work. RRD for Entry Totals are still recalculated (from the partial RRD that
+        #  were not updated) in the loop and XML files written.
+        #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
+        #  should this behavior change and rrd_stats.getData() be called for all clients anyway?
+        #  if yes, How to get security names?
+        #  see check_and_perform_work above for more.
+        #  These are questions to solve in #22163
+        #  - mmb
+
+        glideFactoryLib.logStatsAll(condorQ, log=entry.log, factoryConfig=entry.gflFactoryConfig)
+
+        updated_entries.append(entry)
+
+    return updated_entries
 
 
 ###############################################################################

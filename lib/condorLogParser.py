@@ -1035,9 +1035,9 @@ def rawJobId2Nr(str):
     Return (-1,-1) in case of error
     """
     arr=str.split(".")
-    if len(arr)>=2:
+    try:
         return (int(arr[0]), int(arr[1]))
-    else:
+    except (IndexError, ValueError):
         return (-1, -1) #invalid
 
 def rawTime2cTime(instr, year):

@@ -28,7 +28,7 @@ from glideinwms.factory import glideFactoryLib
 from glideinwms.lib import util
 
 # list of rrd files that each site has
-rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
+RRD_LIST = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
 
 ############################################################
 #
@@ -267,8 +267,13 @@ class condorQStats:
         self.expected_cores = cores  # This comes from GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS, actual cores received may differ
 
     def logSchedd(self, client_name, qc_status, qc_status_sf):
-        """ qc_status is a dictionary of condor_status:nr_jobs
+        """ Create or update a dictionary with aggregated HTCondor stats
+
+            client_name is the client requesting the glideins
+            qc_status is a dictionary of condor_status:nr_jobs
             qc_status_sf is a dictionary of submit_file:qc_status
+            OUTPUT: self.data[client_name]['Status'] is the status for all Glideins
+                    self.data[client_name]['StatusEntries'] is the Glidein status by Entry
         """
         if client_name in self.data:
             t_el = self.data[client_name]
@@ -296,7 +301,8 @@ class condorQStats:
                 self.aggregateStates(qc_status_sf[sf], elsf)
         self.updated = time.time()
 
-    def getEntryFromSubmitFile(self, submitFile):
+    @staticmethod
+    def getEntryFromSubmitFile(submitFile):
         """ Extract the entry name from submit files that look like:
             'entry_T2_CH_CERN/job.CMSHTPC_T2_CH_CERN_ce301.condor'
         """
@@ -305,12 +311,26 @@ class condorQStats:
         m = re.match(r'^[^\.]+\.([^\.]+)\.[^\.]+$', submitFile)
         return m.group(1) if m else ""
 
+    def get_zero_data_element(self):
+        """
+        Return a dictionary with the keys defined in self.attributes, and all values to 0
+
+        :return: data element w/ all 0 values
+        """
+        empty_data = {}
+        for k in self.attributes:
+            empty_data[k] = {}
+            for kk in self.attributes[k]:
+                empty_data[k][kk] = 0
+        return empty_data
+
     def aggregateStates(self, qc_status, el):
         """ For each status in the condor_q count status dictionary (qc_status)
             add the count to the el dictionary (whose keys are state like 'Idle'
             instead of its number: 1)
         """
         # Listing pairs with jobs counting as 1. Avoid duplicates with the list below
+        # These numbers must be consistent w/ the one used to build qc_status
         status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"),
                         (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"),
                         (1100, "IdleOther"), (4010, "StageOut"))
@@ -323,6 +343,7 @@ class condorQStats:
                 el[status] += qc_status[nr]
 
         # Listing pairs counting the cores (expected_cores). Avoid duplicates with the list above
+        # These numbers must be consistent w/ the one used to build qc_status
         status_pairs = ((2, "RunningCores"),)
         for p in status_pairs:
             nr, status = p
@@ -381,8 +402,8 @@ class condorQStats:
     def logClientMonitor(self, client_name, client_monitor, client_internals,
                          fraction=1.0):
         """
-        client_monitor is a dictinary of monitoring info (GlideinMonitor... from glideclient ClassAd)
-        client_internals is a dictinary of internals  (from glideclient ClassAd)
+        client_monitor is a dictionary of monitoring info (GlideinMonitor... from glideclient ClassAd)
+        client_internals is a dictionary of internals  (from glideclient ClassAd)
         If fraction is specified it will be used to extract partial info
 
         At the moment, it looks only for
@@ -455,20 +476,28 @@ class condorQStats:
 
         return data1
 
-    def get_xml_data(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        data = self.get_data()
+    @staticmethod
+    def get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """
+        Return a string with the XML formatted statistic data
+        @param data: self.get_data()
+        @param indent_tab: indentation space
+        @param leading_tab: leading space
+        @return: XML string
+        """
         return xmlFormat.dict2string(data,
                                      dict_name="frontends", el_name="frontend",
                                      subtypes_params={"class": {'subclass_params': {'Requested': {'dicts_params': {'Parameters': {'el_name': 'Parameter'}}}}}},
                                      indent_tab=indent_tab, leading_tab=leading_tab)
 
-    def get_total(self):
-        total = {'Status':None, 'Requested':None, 'ClientMonitor':None}
+    def get_total(self, history={'set_to_zero': False}):
+        total = {'Status': None, 'Requested': None, 'ClientMonitor': None}
+        set_to_zero = False
 
         for f in self.data.keys():
             fe = self.data[f]
             for w in fe.keys():
-                if w in total: # ignore eventual not supported classes
+                if w in total:  # ignore eventual not supported classes
                     el = fe[w]
                     tel = total[w]
 
@@ -477,12 +506,12 @@ class condorQStats:
                         total[w] = {}
                         tel = total[w]
                         for a in el.keys():
-                            if isinstance(el[a], int): # copy only numbers
+                            if isinstance(el[a], int):  # copy only numbers
                                 tel[a] = el[a]
                     else:
                         # successive, sum
                         for a in el.keys():
-                            if isinstance(el[a], int): # consider only numbers
+                            if isinstance(el[a], int):  # consider only numbers
                                 if a in tel:
                                     tel[a] += el[a]
                             # if other frontends did't have this attribute, ignore
@@ -495,7 +524,11 @@ class condorQStats:
 
         for w in total.keys():
             if total[w] is None:
-                del total[w]  # remove entry if not defined
+                if w == 'Status':
+                    total[w] = self.get_zero_data_element()[w]
+                    set_to_zero = True
+                else:
+                    del total[w]  # remove entry if not defined unless is 'Status'
             else:
                 tel = total[w]
                 for a in tel.keys():
@@ -507,10 +540,21 @@ class condorQStats:
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 
+        if set_to_zero != history['set_to_zero']:
+            if set_to_zero:
+                self.updated = time.time()
+            history['set_to_zero'] = set_to_zero
         return total
 
-    def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        total = self.get_total()
+    @staticmethod
+    def get_xml_total(total, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """
+        Return formatted XML for the total statistics
+        @param total: self.get_total()
+        @param indent_tab: indentation space
+        @param leading_tab: leading space
+        @return: XML string
+        """
         return xmlFormat.class2string(total,
                                       inst_name="total",
                                       indent_tab=indent_tab, leading_tab=leading_tab)
@@ -526,7 +570,13 @@ class condorQStats:
         xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='', params={'status':self.downtime}, leading_tab=leading_tab)
         return xml_downtime
 
-    def write_file(self, monitoringConfig=None):
+    def write_file(self, monitoringConfig=None, alt_stats=None):
+        """
+        Calculate a summary for the entry and write statistics to files
+        @param monitoringConfig: used to pass information from the Entry
+        @param alt_stats: an alternative condorQStats object to use if self has no data
+        @return:
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
@@ -536,18 +586,23 @@ class condorQStats:
             # files updated recently, no need to redo it
             return
 
+        # Retrieve and calculate data
+        data = self.get_data()
+
+        if not data and alt_stats is not None:
+            total_el = alt_stats.get_total()
+        else:
+            total_el = self.get_total()
+
         # write snapshot file
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryEntryQStats>\n' +
                    self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
                    self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                   self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                   self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_total(total_el, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
                    "</glideFactoryEntryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml", xml_str)
-
-        data = self.get_data()
-        total_el = self.get_total()
 
         # update RRDs
         type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
@@ -581,7 +636,7 @@ class condorQStats:
                 for a in fe_el_tp.keys():
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
-                        if not isinstance(a_el, dict): # ignore subdictionaries
+                        if not isinstance(a_el, dict):  # ignore subdictionaries
                             val_dict["%s%s" % (tp_str, a)] = a_el
 
             monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir,
@@ -1243,8 +1298,11 @@ class condorLogSummary:
                                 #but it can be removed in future versions
                                 'activation_claims': jobstats.get('activations_claims', 'unknown'),
                                 'glidein_duration': jobstats['glidein_duration'],
-                                'condor_duration': jobstats['condor_duration'],
-                                'condor_started': jobstats['condor_started'],
+                                # condor_duration could be missing if the glidein had problems and condor was not started
+                                # set it to 0
+                                # and ser condor_started to None if missing
+                                'condor_duration': jobstats.get('condor_duration', 0),
+                                'condor_started': jobstats.get('condor_started', None),
                                 'numjobs': jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
                             }
 
@@ -1266,12 +1324,12 @@ class FactoryStatusData:
     """this class handles the data obtained from the rrd files"""
     def __init__(self, log=logSupport.log, base_dir=None):
         self.data = {}
-        for rrd in rrd_list:
+        for rrd in RRD_LIST:
             self.data[rrd] = {}
         # KEL why are we setting time here and not just getting the current time (like in Descript2XML)
         self.updated = time.time()
         self.tab = xmlFormat.DEFAULT_TAB
-        self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
+        self.resolution = (7200, 86400, 604800)  # 2hr, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
         if base_dir is None:
@@ -1290,7 +1348,7 @@ class FactoryStatusData:
         [1] returns the names of the datasets.  These names are listed in the key.
         [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
 
-        #use rrdtool to fetch data
+        # use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
         try:
             fetched = baseRRDSupport.fetch_rrd(pathway + rrd_file, 'AVERAGE', resolution=res, start=start, end=end)
@@ -1299,20 +1357,20 @@ class FactoryStatusData:
             self.log.debug("Failed to load %s" % (pathway + rrd_file))
             return {}
 
-        #converts fetched from tuples to lists
+        # converts fetched from tuples to lists
         fetched_names = list(fetched[1])
 
-        fetched_data_raw = fetched[2][:-1] # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
+        fetched_data_raw = fetched[2][:-1]  # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
         fetched_data = []
         for data in fetched_data_raw:
             fetched_data.append(list(data))
 
-        #creates a dictionary to be filled with lists of data
+        # creates a dictionary to be filled with lists of data
         data_sets = {}
         for name in fetched_names:
             data_sets[name] = []
 
-        #check to make sure the data exists
+        # check to make sure the data exists
         all_empty = True
         for data_set in data_sets:
             index = fetched_names.index(data_set)
@@ -1339,7 +1397,15 @@ class FactoryStatusData:
             return
 
     def getData(self, input_val, monitoringConfig=None):
-        """returns the data fetched by rrdtool in a xml readable format"""
+        """Return the data fetched by rrdtool as a dictionary
+
+        This also modifies the rrd data dictionary for the client (input_val) in all RRD files
+        and appends the client to the list of frontends
+
+        Where this side effect is used:
+        - totals are updated in Entry.writeStats (writing the XML)
+        - frontend data in check_and_perform_work
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
@@ -1353,7 +1419,7 @@ class FactoryStatusData:
             if client not in self.frontends:
                 self.frontends.append(client)
 
-        for rrd in rrd_list:
+        for rrd in RRD_LIST:
             self.data[rrd][client] = {}
             for res_raw in self.resolution:
                 # calculate the best resolution
@@ -1384,10 +1450,19 @@ class FactoryStatusData:
         return self.data
 
     def getXMLData(self, rrd):
-        "writes an xml file for the data fetched from a given site."
+        """Return a XML formatted string the specific RRD file for the data fetched from a given site (all clients+total).
+
+        This also has side effects in the getData(self.total) invocation:
+        - modifies the rrd data dictionary (all RRDs) for the total for this entry
+        - and appends the total (self.total aka 'total/') to the list of clients (frontends)
+
+        @param rrd:
+        @return: XML formatted string with stats data
+        """
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
+        # this is invoked to trigger the side effect but the data is retrieved directly from self.data dict below
         get_data_total = self.getData(self.total)
         try:
             total_data = self.data[rrd][self.total]
@@ -1414,11 +1489,19 @@ class FactoryStatusData:
         return data_str
 
     def writeFiles(self,  monitoringConfig=None):
+        """Write an xml file for the data fetched from a given site.
+        Write rrd files
+
+        NOTE: writeFiles triggers the side effect of updating the rrd for totals (via getXMLData/getData)
+
+        @param monitoringConfig:
+        @return: None
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
 
-        for rrd in rrd_list:
+        for rrd in RRD_LIST:
             file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
             xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                        '<glideFactoryEntryRRDStats>\n' +

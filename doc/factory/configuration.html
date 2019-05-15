@@ -130,7 +130,7 @@ for a more detailed description.
     </blockquote>
     <a href="#security">&lt;/security &gt;</a><br/>
     <a href="#stage">&lt;stage base_dir="/var/www/html/glidefactory/stage" use_symlink="True" web_base_url="http://factory.fnal.gov:9000/glidefactory/stage"/&gt;</a><br/>
-    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" /&gt;</a><br/>
+    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" num_factories="1" /&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
@@ -395,13 +395,15 @@ individual entry point configuration.
         &lt;glidein&gt;&lt;submit base_dir=&quot;<I>directory</I>&quot;
         base_log_dir=&quot;<I>log directory</I>&quot;
         base_client_log_dir=&quot;<i>client log directory</I>&quot;
-
-        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;/&gt;
+        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;
+        num_factories=&quot;<I>1</I>&quot;/&gt;
         </div>
     <p><b>Recommended:</b> Where to create the glidein submit directory. 
     The default is the user home
     directory. Log directories can be configured independent of the base
-    directory using options mentioned above.</P>
+    directory using options mentioned above. <b>num_factories</b> is a scaling factor used to
+    scale down <i>max_glideins, max_held</i>, and <i>max_idle</i> for the entries.
+    </P>
     <LI>
         <a name="stage" />
         <div class="xml">
@@ -808,7 +810,7 @@ override the global arguments if present.
         <div class="xml">
             &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<I>entry name</I>&quot;&gt;<br/>
             &lt;config&gt;<br/>
-            &lt;max_jobs&gt;<br/>
+            &lt;max_jobs num_factories="3"&gt;<br/>
             &nbsp;&nbsp;&lt;per_entry held="1000" idle="2000" glideins="10000"/&gt;<br/>
             &nbsp;&nbsp;&lt;default_per_frontend held="50" idle="100" glideins="5000"/&gt;<br/>
             &nbsp;&nbsp;&lt;per_frontends&gt;<br/>
@@ -834,6 +836,7 @@ override the global arguments if present.
                  <li>&lt;default_per_frontend ... &gt; specifies default limits for each frontend-security class (for this entry).</li>
                  <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
              </ul>
+             All these limits are scaled down by the num_factories attributes (it can be specified here, at the entry level or in the global submit section)
            </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
@@ -981,8 +984,9 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         publish=&quot;True&quot;/&gt;
         </div>
         <b>Recommended:</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
-        Valid values are 1..N and "auto" or "0" which means to use all cores by using HTCondor's
-        core auto-detection.  The entry will default to 1 if not otherwise defined. 
+        Valid values are 1..N and "auto", "slot" or "node" (corresponding to 0, 0, -1) which means to use all cores on the slot
+         or on the node (see it on the <A HREF="custom_vars.html">configuration variables page</A> for more).
+         The entry will default to 1 if not otherwise defined.
     </li>
     </ul>
         <li>

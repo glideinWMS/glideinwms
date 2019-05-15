@@ -226,8 +226,12 @@ def load_main_dicts(main_dicts): # update in place
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
+    #print "\ndebug %s main_dicts['summary_signature']['main'][1] = %s" % (__file__, main_dicts['summary_signature']['main'][1]) 
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
+    #print "\ndebug %s main_dicts.items() = %s" % (__file__, main_dicts.items()) 
+    #print "\ndebug %s main_dicts['description'].keys2 = %s" % (__file__, main_dicts['description'].keys2) 
+    #print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description'])) 
     main_dicts['after_file_list'].load(fname=main_dicts['description'].vals2['after_file_list'])
     load_common_dicts(main_dicts, main_dicts['description'])
 
