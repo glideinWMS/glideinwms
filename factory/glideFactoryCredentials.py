@@ -21,7 +21,7 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
-
+SUPPORTED_AUTH_METHODS = ['grid_proxy', 'cert_pair', 'key_pair', 'auth_file', 'username_password']
 
 # defining new exception so that we can catch only the credential errors here
 # and let the "real" errors propagate up
@@ -34,7 +34,7 @@ class SubmitCredentials:
     Data class containing all information needed to submit a glidein.
     """
     def __init__(self, username, security_class):
-        self.username = username  # are we using privsep or not
+        self.username = username
         self.security_class = security_class  # Seems redundant info
         self.id = None  # id used for tracking the submit credentials
         self.cred_dir = ''  # location of credentials
@@ -89,7 +89,13 @@ class SubmitCredentials:
 
 def update_credential_file(username, client_id, credential_data, request_clientname):
     """
-    Updates the credential file.
+    Updates the credential file
+
+    :param username: credentials' username
+    :param client_id: id used for tracking the submit credentials
+    :param credential_data: the credentials to be advertised
+    :param request_clientname: client name passed by frontend
+    :return:the credential file updated
     """
 
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
@@ -97,7 +103,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     fname = os.path.join(proxy_dir, fname_short)
     fname_compressed = "%s_compressed" % fname
 
-    msg = "no privsep, updating directly credential file %s" % fname
+    msg = "updating credential file %s" % fname
     logSupport.log.debug(msg)
 
     safe_update(fname, credential_data)
@@ -251,27 +257,29 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     @raise CredentialError: if the credentials in params don't match what is defined for the auth method
     """
 
+    auth_method_list = auth_method.split('+')
+    if not set(auth_method_list) & set(SUPPORTED_AUTH_METHODS):
+        logSupport.log.warning("None of the supported auth methods %s in provided auth methods: %s" %
+                               (SUPPORTED_AUTH_METHODS, auth_method_list))
+        return
+
     params_keys = set(params.keys())
     relevant_keys = set(['SubmitProxy', 'GlideinProxy', 'Username', 'Password',
                          'PublicCert', 'PrivateCert', 'PublicKey', 'PrivateKey',
-                         'VMId', 'VMType', 'x509_proxy_0', 'AuthFile'])
+                         'VMId', 'VMType', 'AuthFile'])
 
-    if 'grid_proxy' in auth_method.split('+'):
-        if 'x509_proxy_0' in params:
-            # v2+ protocol
-            valid_keys = set(['x509_proxy_0'])
-            invalid_keys = relevant_keys.difference(valid_keys)
-            if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from client %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-        elif 'SubmitProxy' in params:
+    if 'grid_proxy' in auth_method_list:
+        if 'SubmitProxy' in params:
             # v3+ protocol
             valid_keys = set(['SubmitProxy'])
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
+                                      (client_int_name, entry_name))
         else:
             # No proxy sent
-            raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" % (client_int_name, entry_name))
+            raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" %
+                                  (client_int_name, entry_name))
 
     else:
         # Only v3+ protocol supports non grid entries
@@ -279,55 +287,63 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
         if 'GlideinProxy' not in params:
             raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
 
-        if 'cert_pair' in auth_method :
+        if 'cert_pair' in auth_method_list:
             # Validate both the public and private certs were passed
             if not (('PublicCert' in params) and ('PrivateCert' in params)):
                 # if not ('PublicCert' in params and 'PrivateCert' in params):
                 # cert pair is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping " %
+                                      (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'PublicCert', 'PrivateCert', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
+                                      (client_int_name, entry_name))
 
-        elif 'key_pair' in auth_method:
+        elif 'key_pair' in auth_method_list:
             # Validate both the public and private keys were passed
             if not (('PublicKey' in params) and ('PrivateKey' in params)):
                 # key pair is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping " %
+                                      (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'PublicKey', 'PrivateKey', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
+                                      (client_int_name, entry_name))
 
-        elif 'auth_file' in auth_method:
+        elif 'auth_file' in auth_method_list:
             # Validate auth_file is passed
             if not ('AuthFile' in params):
                 # auth_file is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping " %
+                                      (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'AuthFile', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
+                                      (client_int_name, entry_name))
                     
-        elif 'username_password' in auth_method:
+        elif 'username_password' in auth_method_list:
             # Validate username and password keys were passed
             if not (('Username' in params) and ('Password' in params)):
                 # username and password is required, cannot service request
-                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping " % (client_int_name, entry_name))
+                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping " %
+                                      (client_int_name, entry_name))
             # Verify no other credentials were passed
             valid_keys = set(['GlideinProxy', 'Username', 'Password', 'VMId', 'VMType'])
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
-                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))  
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
+                                      (client_int_name, entry_name))
     
         else:
-            # undefined authentication method
-            pass
-            
+            # should never get here, unsupported main authentication method is checked at the beginning
+            raise CredentialError("Inconsistency between SUPPORTED_AUTH_METHODS and check_security_credentials")
+
     # No invalid credentials found
     return 
 

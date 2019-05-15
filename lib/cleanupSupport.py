@@ -7,8 +7,6 @@ import pwd
 from . import logSupport
 from .pidSupport import register_sighandler, unregister_sighandler
 
-MY_USERNAME = pwd.getpwuid(os.getuid())[0]
-
 class Cleanup:
     def __init__(self):
         self.cleanup_objects = []

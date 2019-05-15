@@ -30,11 +30,10 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
+from glideinwms.lib import subprocessSupport
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
-import glideinwms.lib.subprocessSupport
 from glideinwms.factory import glideFactoryConfig
-
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -463,11 +462,9 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         return fname
 
     # old file exists, check if same content
-    fl = open(fname, 'r')
-    try:
+    with open(fname, 'r') as fl:
         old_data = fl.read()
-    finally:
-         fl.close()
+    
     if proxy_data == old_data:
         # nothing changed, done
         return fname
@@ -1289,7 +1286,7 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # same as the factory username
     try:
         submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                                            child_env=env_list2dict(exe_env))
+                                        child_env=env_list2dict(exe_env))
 
     except condorExe.ExeError as e:
         submit_out = []
