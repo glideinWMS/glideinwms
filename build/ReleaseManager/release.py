@@ -14,12 +14,12 @@ def usage():
     print("Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)")
     print("         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz")
     print("         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm")
-    print("release.py --version=3_2_11 --rc=4 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=4 --rpm-version=3.2.11")
+    print("release.py --release-version=3_2_11 --rc=4 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=4 --rpm-version=3.2.11")
     print("")
     print("Example: Final Release v3.2.11")
     print("         Generate tarball: glideinWMS_v3_2_11*.tgz")
     print("         Generate rpms   : glideinWMS-*-v3.2.11-3-*.rpm")
-    print("release.py --version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3 --rpm-version=3.2.11")
+    print("release.py --release-version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3 --rpm-version=3.2.11")
     print("")
 
 
