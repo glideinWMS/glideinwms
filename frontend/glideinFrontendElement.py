@@ -813,6 +813,7 @@ class glideinFrontendElement:
         return
 
     def populate_pubkey(self):
+        bad_id_list = []
         for globalid, globals_el in self.globals_dict.iteritems():
             try:
                 globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
@@ -821,8 +822,13 @@ class glideinFrontendElement:
                 # if key needed, will handle the error later on
                 logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
                 logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
-                # but remove it also from the dictionary
-                del self.globals_dict[globalid]
+                # but mark it for removal from the dictionary
+                bad_id_list.append(globalid)
+
+        for badid in bad_id_list:
+            logSupport.log.warning("Factory Globals removing:'%s': invalid RSA key" % badid)
+            del self.globals_dict[badid]
+
 
     def identify_bad_schedds(self):
         """
