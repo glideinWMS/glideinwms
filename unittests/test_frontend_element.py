@@ -169,13 +169,20 @@ class FEElementTestCase(unittest.TestCase):
             {'Idle': 0}, 100, 100), 100)
 
     def test_populate_pubkey(self):
+        """ test that good public keys get populated
+            and bad public keys get removed
+        """
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = mock.Mock()
         self.gfe.globals_dict = {'bad_id':{'attrs':{'PubKeyValue':0}},
-                                 'good_id':{'attrs':{'PubKeyValue':0}}
+                                 'good_id':{'attrs':{'PubKeyValue':"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw7Cq5VGe3w2kNZOvu41W\n3jB8N6GHbilV2pPEdOpu2sVOBnzsfg3l+9hY1cFMcWsIc7/hbyp8y5vuJAE6yXGq\nJ0MZZC8upOioTLzS7gFPQsdaJBO4bVsv4W6GNO92HqT0ll8At+VbmkZzRC5ThZXk\nj6bEfuxfRbUogReOKZyEp8wZK9jx8DXx/dLrx+gxqMLofGx5GRVXJd5pb9SgwzQU\nxrPi9H8rCQdxECP1bQ9M1YYDwqJcrsDsukqQR6TS53QLmV3rW3olc3zpoUc3aX77\niaKdn8c0FxkvE9emSBXyzaF2NTyKRZofDW6KyuIB1XP9PanRa6UztQqwcoyymf6B\nCwIDAQAB\n-----END PUBLIC KEY-----\n"}}
                                 }
         self.gfe.populate_pubkey()
-        self.assertTrue('bad_id' not in self.gfe.globals_dict)
-        self.assertTrue('good_id' in self.gfe.globals_dict)
-        self.assertTrue('PubKeyObj' in self.gfe.globals_dict['good_id']['attrs'])
+        self.assertTrue('bad_id' not in self.gfe.globals_dict,
+                'Bad public key was not removed')
+        self.assertTrue('good_id' in self.gfe.globals_dict,
+                'good public key was removed when it shouldnt have been')
+        self.assertTrue('PubKeyObj' in self.gfe.globals_dict['good_id']['attrs'],
+                'public key object not populated when it should have been')
 
 
 if __name__ == '__main__':
