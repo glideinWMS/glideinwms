@@ -97,10 +97,16 @@ def chown_dir(path, uid, gid, fuid, test):
     mychown(os.path.dirname(path), uid, gid, fuid, test)
     mychown(path, uid, gid, fuid, test)
     for dirpath, dirnames, filenames in os.walk(path):
-        for dname in dirnames:
-            mychown(os.path.join(dirpath, dname), uid, gid, fuid, test)
-        for fname in filenames:
-            mychown(os.path.join(dirpath, fname), uid, gid, fuid, test)
+        try:
+            target = None
+            for dname in dirnames:
+                target = os.path.join(dirpath, dname)
+                mychown(target, uid, gid, fuid, test)
+            for fname in filenames:
+                target = os.path.join(dirpath, fname)
+                mychown(target, uid, gid, fuid, test)
+        except OSError:
+            logging.warning("Cannot chown %s since the file does not exist anymore" % target)
 
 
 def fix_jobqueue(jobqueue_file, user, options):
@@ -144,6 +150,8 @@ def main():
     spooldir = htcondor.param['SPOOL']
     if not 'JOBQUEUE' in htcondor.param:
         jobqueue_file = os.path.join(spooldir, 'job_queue.log')
+    else:
+        jobqueue_file = htcondor.param['JOBQUEUE']
     fix_jobqueue(jobqueue_file, options.user, options)
     for i in xrange(1, 9):
         try:
