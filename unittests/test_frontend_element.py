@@ -168,6 +168,15 @@ class FEElementTestCase(unittest.TestCase):
         self.assertEqual(self.gfe.compute_glidein_max_run(
             {'Idle': 0}, 100, 100), 100)
 
+    def test_populate_pubkey(self):
+        self.gfe.globals_dict = {'bad_id':{'attrs':{'PubKeyValue':0}},
+                                 'good_id':{'attrs':{'PubKeyValue':0}}
+                                }
+        self.gfe.populate_pubkey()
+        self.assertTrue('bad_id' not in self.gfe.globals_dict)
+        self.assertTrue('good_id' in self.gfe.globals_dict)
+        self.assertTrue('PubKeyObj' in self.gfe.globals_dict['good_id']['attrs'])
+
 
 if __name__ == '__main__':
     unittest.main(
