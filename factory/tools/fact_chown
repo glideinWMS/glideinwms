@@ -135,6 +135,7 @@ def main():
     uid = pwd.getpwnam(options.user).pw_uid
     gid = grp.getgrnam(options.group)[2]
 
+    # pylint: disable=maybe-no-member
     dir_dicts = [conf.get_client_log_dirs(), conf.get_client_proxy_dirs()]
 
     for client_dir_dict in dir_dicts:
