@@ -332,12 +332,10 @@ class TestClientDirSupport(unittest.TestCase):
         self.dir = d.name
         d.close()
         self.dir_name = 'client_dir'
-        self.priv_dir_name = 'priv_dir'
         self.cds = clientDirSupport(self.user, self.dir, self.dir_name)
 
     def test___init__(self):
         self.assertTrue(isinstance(self.cds, clientDirSupport))
-        self.assertTrue(isinstance(self.cdp, clientDirSupport))
 
     def test_create_dir(self):
         self.cds.create_dir(fail_if_exists=True)
