@@ -202,7 +202,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
     @return: sym_key_obj - the object containing the symmetric key used for decryption
     @return: frontend_sec_name - the frontend security name, used for determining
-    the username to use when privilege separation is enabled.
+    the username to use.
     """
 
     # we can get classads from multiple frontends, each with their own

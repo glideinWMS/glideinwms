@@ -3,7 +3,6 @@
 #
 # Description:
 #  This file is specialized in updating a proxy file
-#   in privsep mode
 #
 # All information is passed via the environment;
 #  so it has no arguments
