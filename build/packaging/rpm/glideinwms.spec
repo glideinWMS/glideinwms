@@ -181,6 +181,7 @@ Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= 8.4.0
 Requires: fetch-crl
 Requires: python-rrdtool
+Requires: python-argparse
 Requires: python-ldap
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
