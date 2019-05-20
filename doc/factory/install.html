@@ -192,17 +192,16 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
     </tr>
     <tr>
         <td>WMS Pool - HTCondor User</td>
-        <td>If privilege separation is not used, then install as the same user as the Factory</td>
+        <td>As privilege separation is no longer used, then install as the same user as the Factory</td>
     </tr>
     <tr>
         <td>Factory</td>
-        <td>The Factory will always be installed as a non-prvileged user, whether or not privilege separation is being used.</td>
+        <td>The Factory will always be installed as a non-privileged user.</td>
     </tr>
     <tr>
         <td>One user per Fontend (See notes)</td>
         <td>
-            If you are using privilege separation, you will need a user for each Frontend that will be communicating with the Factory.  Otherwise,
-            no new users need to be created for the Frontends.
+            You don't need any more to create users for the Frontends.
         </td>
     </tr>
     </table>
@@ -216,10 +215,9 @@ Followed by: <a href="../components/collector_install.html">User Pool Collector<
             <li>WMS Pool cert/Proxy DN</li>
             <li>Glidein Frontend Proxy DN (cannot use a cert here)</li>
         </ul>
-        <p><strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs.  
+        <p><strong>Note 1:</strong> In some places, the installer will also ask for nicknames to go with the DNs.
          These nicknames are the HTCondor UID used in its configuration and mapfile. 
-         The name given doesn't 
-         matter, EXCEPT if you are using privilege separation. Then on the WMS Pool the nickname for 
+         The name given doesn't matter. Then on the WMS Pool the nickname for
         each Glidein Frontend must be the UNIX username that you created for that Frontend. <br>
         <strong>Note 2:</strong> The installer will ask if these are trusted HTCondor Daemons.  Answer 'y'.<p> 
     
@@ -304,13 +302,6 @@ Unless you want to force your users to find and hard code the location.
         <td>UNIX user account that this services will run under. <b>DO NOT use "root".</b> </td>
         <td>
             For security purposes, this value should always be a non-root user.<br/>
-            <b>However</b>, if privilege separation is used 
-            (see the <b>privilege_separation</b> option), the manage-glideins 
-            script itself will need to be run as root (see above), since
-            the HTCondor switchboard requires some files to be 
-            owned by root and some files to
-            be owned by the non-superuser <b>username</b> for privilege separation
-            to work correctly.
         </td>
         </tr>
 
@@ -345,25 +336,12 @@ Unless you want to force your users to find and hard code the location.
         </tr>
 
         <tr>
-        <td> <a name="privilege_separation"/> privilege_separation</td>
-        <td align="center">y</td>
-        <td>See the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.6/3_8Security.html#SECTION004813000000000000000">HTCondor Privilege Separation  Documentation</a> for more information</td>
-        <td>Valid values:<br/>
-            * <b>y</b> - privilege separation is used<br/>
-            * <b>n</b> - privilege separation is not used <br/>
-        </td>
-        </tr>
-
-        <tr>
         <td>frontend_users </td>
         <td>frontend_service_name : unix_account </td>
         <td>Maps the vofrontend's service name to the UNIX account that has been created for it.  Only one Frontend service can be specified on install. 
         </td>
         <td>The format is: <b>service_name : unix account </b><br/>
-        If <b>privilege_separation</b> is specified, this must specify
-        the unique UNIX user account you set up for that Frontend service.</br>
-        If <b>privilege_separation</b> is <b>not</b> specified, this must be the
-        Factory username.</br>
+        This must be the Factory username.</br>
         </td>
         </tr>
 
@@ -491,9 +469,6 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	</p>
 <br/>
 
-    <p>If you are <b>using privilege separation</b>, please control the content of the PrivSep configuration file (/etc/condor/privsep_config) and make sure that the callers and targets are colon separated lists including respectively all the users (and default groups). The Factory runs under and the ones representing the Frontend. This should match the security_classes section in the Factory configuration (glideinWMS.xml).
-    </p>
-
     <p>The installer allows you to automatically start the HTCondor daemons.  To start them on your own, source the condor env script and execute:</p>
     <blockquote>/path/to/condor/location/condor start</blockquote>
     
@@ -601,14 +576,7 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
             <td>User settable location for all client (VOFrontend) log and 
                 proxy files.</td>
     <td>
-         <b><a href="#privilege_separation">If privilege separation is used</a>,</b><br/>
-              * then the entire path (inclusive of this directory) must be 
-                 root-writable-only (0755 and owned by root).<br/>
-              * these directories cannot be sub-directories of the Factory's 
-                <b>install_location</b> or <b>logs_dir</b>.<br/>
-            <br/>
-        <b><a href="#privilege_separation">If privilege separation is not used</a>,</b><br/>
-              * then the directory can be independent, or nested as a subdirectory, of the Factory's
+            <br> The directory can be independent, or nested as a subdirectory, of the Factory's
                 <b>install_location</b> or <b>logs_dir</b>.<br/>
             <br/>
               If the above requirements are satisfied, the install script will create

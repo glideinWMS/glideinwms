@@ -114,7 +114,7 @@ class GlideinParams(cWParams.CommonParams):
 
         self.entry_defaults = cWParams.commentedOrderedDict()
         self.entry_defaults["gatekeeper"] = (None, 'gatekeeper', 'Grid gatekeeper/resource', None)
-        self.entry_defaults["gridtype"] = ('gt2', 'grid_type', 'Condor Grid type', None)
+        self.entry_defaults["gridtype"] = ('condor', 'grid_type', 'Condor Grid type', None)
         self.entry_defaults["trust_domain"] = ('OSG', 'trust_domain', 'Entry trust domain', None)
         self.entry_defaults["auth_method"] = ('grid_proxy', 'auth_method', 'Type of auth method this entry supports', None)
         self.entry_defaults["vm_id"] = (None, 'vm_id', 'VM id this entry supports', None)

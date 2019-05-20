@@ -130,7 +130,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR, True)
         print2("...Updated the glidein_startup.sh file in the staging area")
 
-        # copy privsep helper executables
+        # copy helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
 
     if update_def_cfg == 'yes' or update_scripts == 'yes':

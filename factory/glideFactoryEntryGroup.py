@@ -129,7 +129,7 @@ def find_work(factory_in_downtime, glideinDescript,
     @param glideinDescript: Factory glidein config values
 
     @type frontendDescript: dict
-    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames for privsep
+    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames
 
     @type group_name: string
     @param group_name: Name of the group
@@ -269,7 +269,7 @@ def find_and_perform_work(do_advertize, factory_in_downtime, glideinDescript,
     @param glideinDescript: Factory glidein config values
 
     @type frontendDescript: dict
-    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames for privsep
+    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames
 
     @type group_name: string
     @param group_name: Name of the group
@@ -398,7 +398,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     @param glideinDescript: Factory glidein config values
 
     @type frontendDescript: dict
-    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames for privsep
+    @param frontendDescript: Security mappings for frontend identities, security classes, and usernames
 
     @type group_name: string
     @param group_name: Name of the group

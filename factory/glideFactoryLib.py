@@ -20,22 +20,20 @@ import glob
 import string
 import re
 import pwd
-import binascii
 import base64
 import tempfile
 from itertools import groupby
 
 from glideinwms.lib import condorExe
-from glideinwms.lib import condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
+from glideinwms.lib import subprocessSupport
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
-
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -453,66 +451,48 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     fname_short = 'x509_%s.proxy' % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 
-    if username != MY_USERNAME:
-        # use privsep
-        # all args go through the environment, so they are protected
-        update_proxy_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
-        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if var in os.environ:
-                update_proxy_env.append('%s=%s' % (var, os.environ[var]))
-
-        try:
-            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
-        except condorPrivsep.ExeError as e:
-            raise RuntimeError("Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
-        except:
-            raise RuntimeError("Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
-        return fname
-    else:
-        # do it natively when you can
-        if not os.path.isfile(fname):
-            # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
-            try:
-                os.write(fd, proxy_data)
-            finally:
-                os.close(fd)
-            return fname
-
-        # old file exists, check if same content
-        fl = open(fname, 'r')
-        try:
-            old_data = fl.read()
-        finally:
-            fl.close()
-        if proxy_data == old_data:
-            # nothing changed, done
-            return fname
-
-        #
-        # proxy changed, neeed to update
-        #
-
-        # remove any previous backup file
-        try:
-            os.remove(fname + ".old")
-        except:
-            pass # just protect
-
-        # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+    # We have no longer privilege separation so we do it natively
+    if not os.path.isfile(fname):
+        # new file, create
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, proxy_data)
         finally:
             os.close(fd)
-
-        # move the old file to a tmp and the new one into the official name
-        try:
-            os.rename(fname, fname + ".old")
-        except:
-            pass # just protect
-        os.rename(fname + ".new", fname)
         return fname
+
+    # old file exists, check if same content
+    with open(fname, 'r') as fl:
+        old_data = fl.read()
+    
+    if proxy_data == old_data:
+        # nothing changed, done
+        return fname
+
+    #
+    # proxy changed, neeed to update
+      #
+
+    # remove any previous backup file
+    try:
+        os.remove(fname + ".old")
+    except:
+       pass # just protect
+
+    # create new file
+    fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+    try:
+        os.write(fd, proxy_data)
+    finally:
+        os.close(fd)
+
+    # move the old file to a tmp and the new one into the official name
+    try:
+        os.rename(fname, fname + ".old")
+    except:
+       pass # just protect
+    os.rename(fname + ".new", fname)
+    return fname
 
     # end of update_x509_proxy_file
     # should never reach this point
@@ -1304,36 +1284,20 @@ def escapeParam(param_str):
 def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # check to see if the username for the proxy is
 # same as the factory username
-    if username != MY_USERNAME:  # Use privsep
-        try:
-            args = ["condor_submit", "-name", schedd, submitFile]
-            submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir,
-                                                      "condor_submit", args, env=exe_env)
-            log.debug(str(submit_out))
-        except condorPrivsep.ExeError as e:
-            submit_out = []
-            msg = "condor_submit failed (user %s): %s" % (username, str(e))
-            log.error(msg)
-            raise RuntimeError(msg)
-        except:
-            submit_out = []
-            msg = "condor_submit failed (user %s): Unknown privsep error" % username
-            log.error(msg)
-            raise RuntimeError(msg)
-    else:  # Do not use privsep
-        try:
-            submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                                            child_env=env_list2dict(exe_env))
-        except condorExe.ExeError as e:
-            submit_out = []
-            msg = "condor_submit failed: %s" % str(e)
-            log.error(msg)
-            raise RuntimeError(msg)
-        except Exception as e:
-            submit_out = []
-            msg = "condor_submit failed: Unknown error: %s" % str(e)
-            log.error(msg)
-            raise RuntimeError(msg)
+    try:
+        submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
+                                        child_env=env_list2dict(exe_env))
+
+    except condorExe.ExeError as e:
+        submit_out = []
+        msg = "condor_submit failed: %s" % str(e)
+        log.error(msg)
+        raise RuntimeError(msg)
+    except Exception as e:
+        submit_out = []
+        msg = "condor_submit failed: Unknown error: %s" % str(e)
+        log.error(msg)
+        raise RuntimeError(msg)
     return submit_out
 
 
@@ -1394,7 +1358,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         raise RuntimeError(msg)
 
     if username != MY_USERNAME:
-        # Use privsep
         # need to push all the relevant env variables through
         for var in os.environ:
             if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
@@ -1402,7 +1365,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 try:
                     entry_env.append('%s=%s' % (var, os.environ[var]))
                 except KeyError:
-                    msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
+                    msg = """KeyError: '%s' not found in execution environment!!""" % (var)
                     log.warning(msg)
     try:
         submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
@@ -1716,7 +1679,7 @@ email_logs = False
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 
-            # we add this here because the macros will be expanded when used in the gt2 submission
+            # TODO: we might review this part as we added this here because the macros were been expanded when used in the gt2 submission
             # we don't add the macros to the arguments for the EC2 submission since condor will never
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"

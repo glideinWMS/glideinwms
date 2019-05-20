@@ -124,9 +124,8 @@ contains monitoring information that may be used by either the Factory or Fronte
 			<li>Entry information
 				<ul>
 					<li>ReqEntryName = &quot;entry_name&quot;</li>
-					<li>GLIDEIN_GridType = &quot;gt2&quot;</li>
-					<li>GLIDEIN_GlobusRSL = &quot;&#40;queue=default&#41;&quot;</li>
-					<li>GLIDEIN_Gatekeeper = &quot;entry.domain.name&frasl;jobmanager-condor&quot;</li>
+                                        <li>GLIDEIN_GridType = &quot;condor&quot;</li>
+                                        <li>GLIDEIN_Gatekeeper = &quot;entry.domain.name entry.domain.name:port&quot;</li>
 				</ul>
 			</li>
 			<li>Frontend information
@@ -206,13 +205,13 @@ ReqEntryName = "entry"
 ReqClientName = " frontend-instance.main"
 ReqClientReqName = " entry@glidein@factory "
 GLEXEC_JOB = "True"
-GLIDEIN_GridType = "gt2"
+GLIDEIN_GridType = "condor"
 GLEXEC_BIN = "NONE"
 USE_CCB = "True"
 GCB_ORDER = "NONE"
 GLIDEIN_Site = "entry"
 GLIDEIN_GlobusRSL = "(queue=default)"
-GLIDEIN_Gatekeeper = "node.domain.name/jobmanager-condor"
+GLIDEIN_Gatekeeper = "node.domain.name node.domain.name:port"
 GlideinParamUSE_MATCH_AUTH = "True"
 GlideinParamGLIDEIN_Collector = "user_collector_node.domain.name"
 GlideinMonitorClientMonitorGlideRunning = 0

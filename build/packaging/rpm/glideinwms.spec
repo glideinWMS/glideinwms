@@ -181,6 +181,7 @@ Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= 8.4.0
 Requires: fetch-crl
 Requires: python-rrdtool
+Requires: python-argparse
 Requires: python-ldap
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
@@ -411,7 +412,6 @@ install -m 0644 install/templates/11_gwms_secondary_collectors.config $RPM_BUILD
 install -m 0644 install/templates/90_gwms_dns.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d/
 install -m 0644 install/templates/01_gwms_metrics.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/ganglia.d/
 install -m 0644 install/templates/condor_mapfile $RPM_BUILD_ROOT%{_sysconfdir}/condor/certs/
-install -m 0644 install/templates/privsep_config $RPM_BUILD_ROOT%{_sysconfdir}/condor/
 
 # Install condor schedd dirs
 # This should be consistent with 02_gwms_factory_schedds.config and 02_gwms_schedds.config
@@ -666,6 +666,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
 %attr(755,root,root) %{_bindir}/find_StartdLogs
 %attr(755,root,root) %{_bindir}/find_logs
+%attr(755,root,root) %{_bindir}/fact_chown
 %attr(755,root,root) %{_bindir}/gwms-logcat.sh
 %attr(755,root,root) %{_bindir}/manual_glidein_submit
 %attr(755,root,root) %{_sbindir}/checkFactory.py
@@ -693,14 +694,14 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/reconfig_glidein
 %attr(755,root,root) %{_sbindir}/clone_glidein
 %attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
-%attr(-, root, root) %{_localstatedir}/lib/gwms-factory/client-proxies
+%attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/client-proxies
 %attr(-, gfactory, gfactory) %{factory_web_dir}
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
 %attr(-, gfactory, gfactory) %{factory_dir}
 %attr(-, gfactory, gfactory) %dir %{condor_dir}
-%attr(-, root, root) %dir %{_localstatedir}/log/gwms-factory
-%attr(-, root, root) %dir %{_localstatedir}/log/gwms-factory/client
+%attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory
+%attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory/client
 %attr(-, gfactory, gfactory) %{_localstatedir}/log/gwms-factory/server
 %{python_sitelib}/glideinwms/creation/lib/cgWConsts.py
 %{python_sitelib}/glideinwms/creation/lib/cgWConsts.pyc
@@ -807,7 +808,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
 %config(noreplace) %{_sysconfdir}/condor/config.d/01_gwms_factory_collectors.config
 %config(noreplace) %{_sysconfdir}/condor/config.d/02_gwms_factory_schedds.config
-%config(noreplace) %{_sysconfdir}/condor/privsep_config
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins2
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins3
 %attr(-, condor, condor) %{_localstatedir}/lib/condor/schedd_glideins4
