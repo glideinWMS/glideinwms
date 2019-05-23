@@ -1,9 +1,31 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_5_testsb
+# GLIDEINWMS_VERSION v3_5_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
+631fde7409e65190563d88a1b1ca4e42  ./build/ReleaseManager/ReleaseManagerLib.py
+f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
+bc64a9bef89ad31152ae8d2b139bbb7a  ./build/ReleaseManager/osg-release.sh
+330c7fe280c31752d684a16ef46584c9  ./build/ReleaseManager/release.py
+5266903b688a0ac13777c12715329cf1  ./build/jenkins/pylintrc
+953939a9869ba8689cb7f6d36e455733  ./build/jenkins/run_autopep8.sh
+336e51e58462eae7e706098606e9ceec  ./build/jenkins/run_coverage.sh
+ca43f38c0bf89210ceb4079dd3e3ceca  ./build/jenkins/run_futurize.sh
+a716b9dbe8ba2127b59b08799e80ab7f  ./build/jenkins/run_pylint.sh
+9b6b99d61512a704a88fd7dbe3f74686  ./build/jenkins/utils.sh
+0d3cb8ad73989679bdfe5bc42e767e4f  ./build/packaging/rpm/chksum.sh
+f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
+f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
+074df59b616bd607ee3056f13d4b80e4  ./build/packaging/rpm/frontend.xml
+80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
+80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup_sl7
+6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
+aa6ed77451d892553ee68678f54b9a8c  ./build/packaging/rpm/glideinwms.spec
+6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
+93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
+3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
+2af0555b1cc795fd420bd09d52950d64  ./build/packaging/rpm/gwms-frontend.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 231264d2191650a0137c6ea2df57b31b  ./creation/clone_glidein
@@ -89,11 +111,12 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 26879f207be4156f85e28fc0b98b1a9a  ./creation/web_base/singularity_lib.sh
+3db85aa71615600a39df968544d40244  ./creation/web_base/singularity_setup.sh
 73e36abceb940089bef39806443764a8  ./creation/web_base/smart_partitionable.sh
-0520ea85ffabd8885c773809dcaf1f79  ./creation/web_base/update_proxy.py
+054187e1390c6c812aeed1cad8c0d917  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 786012a22c50b121e3f4c5d88e0c3b32  ./factory/glideFactoryConfig.py
-bc3aeba5d3444df7b404bed5609748c4  ./factory/glideFactoryCredentials.py
+d9294db7c2369f4376242b2e249806ab  ./factory/glideFactoryCredentials.py
 54fd30a06634244f415a35fc0f564f0c  ./factory/glideFactoryInterface.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
