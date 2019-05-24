@@ -6,6 +6,7 @@ process_branch() {
     local pep8_log=$2
     local results=$3
     local git_branch=$4
+    local git_flag=$5
 
     echo "===================================================================="
     echo "GIT BRANCH: $git_branch"
@@ -18,7 +19,7 @@ process_branch() {
     echo "GIT_BRANCH=\"$git_branch\"" >> $results
     if [ -n "$git_branch" ]; then
         cd $GLIDEINWMS_SRC
-        git checkout $git_branch
+        git checkout $git_flag $git_branch
         checkout_rc=$?
         git pull
         cd $WORKSPACE
@@ -129,7 +130,7 @@ process_branch() {
 
 
     # get list of python scripts without .py extension
-    scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
       #can't seem to get --ignore or --ignore-modules to work, so do it this way
@@ -150,8 +151,9 @@ process_branch() {
     files_checked=`echo $scripts`
 
     #now do all the .py files
-    shopt -s globstar
-    for file in **/*.py
+    #shopt -s globstar
+    py_files=$(find . -readable -type f -name '*\.py')
+    for file in $py_files
     do
       files_checked="$files_checked $file"
       PYLINT_SKIP="False"
@@ -349,7 +351,7 @@ do
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch "$pylint_log" "$pep8_log" "$results" "$gb"
+    process_branch "$pylint_log" "$pep8_log" "$results" "$gb" "-f"
     log_branch_results "$RESULTS_MAIL" "$results"
 done
 
