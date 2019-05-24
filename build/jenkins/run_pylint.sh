@@ -287,7 +287,7 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 
 print_help() {
     echo
-    ech  "Usage:"
+    echo  "Usage:"
 	echo "$1          Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
 	echo "$1 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (comma separated list of branch names)"
     echo "$1 -f BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES, doing a git checkout -f (force) for "
