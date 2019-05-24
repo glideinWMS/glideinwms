@@ -78,16 +78,27 @@ setup_python_venv() {
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
-
+    failed_packages=""
     for package in $pip_packages; do
         echo "Installing $package ..."
         status="DONE"
         pip install --quiet "$package"
         if [ $? -ne 0 ]; then
             status="FAILED"
+            failed_packages="$failed_packages $package"
         fi
         echo "Installing $package ... $status"
     done
+    #try again if anything failed to install, sometimes its order
+    for package in $failed_packages; do
+        echo "REINSTALLING $package"
+        pip install $package
+        if [ $? -ne 0 ]; then
+            echo ERROR $package could not be installed.  Exiting
+            return 1
+        fi
+    done
+
     #pip install M2Crypto==0.20.2
 
     ## Need this because some strange control sequences when using default TERM=xterm

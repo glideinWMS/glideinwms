@@ -6,6 +6,7 @@ process_branch() {
     local pep8_log=$2
     local results=$3
     local git_branch=$4
+    local git_flag=$5
 
     echo "===================================================================="
     echo "GIT BRANCH: $git_branch"
@@ -18,7 +19,7 @@ process_branch() {
     echo "GIT_BRANCH=\"$git_branch\"" >> $results
     if [ -n "$git_branch" ]; then
         cd $GLIDEINWMS_SRC
-        git checkout $git_branch
+        git checkout $git_flag $git_branch
         checkout_rc=$?
         git pull
         cd $WORKSPACE
@@ -350,7 +351,7 @@ do
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch "$pylint_log" "$pep8_log" "$results" "$gb"
+    process_branch "$pylint_log" "$pep8_log" "$results" "$gb" "-f"
     log_branch_results "$RESULTS_MAIL" "$results"
 done
 
