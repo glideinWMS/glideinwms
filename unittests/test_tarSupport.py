@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Project:
+    glideinWMS
+Purpose:
+    unit test of glideinwms/lib/tarSupport.py
+Author:
+    Anthony Tiradani <tiradani@fnal.gov>
+"""
 from __future__ import absolute_import
 import os
 import sys

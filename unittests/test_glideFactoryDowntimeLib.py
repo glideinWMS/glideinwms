@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Project:
+    glideinwms
+Purpose:
+    unit test for glideinwms/factory/glideFactoryDowntimeLib.py
+Author:
+    Doug Strain <dstrain@fnal.gov>
+"""
 from __future__ import absolute_import
 import os
 import sys
