@@ -20,6 +20,7 @@ LOG_DIR       Directory including log files (it will be created if not existing)
   -d          print diffs about the refactoring
   -i          run in place without checking out a branch (see above)
   -s          run sequequentially invoking futurize separately for each file
+  -f          force git checkout of branch when processing multiple branches
 EOF
 }
 
@@ -27,7 +28,7 @@ FUTURIZE_STAGE='-1'
 DIFF_OPTION='--no-diffs'
 filename="$(basename $0)"
 
-while getopts ":hvldi12s" option
+while getopts ":hvldif12s" option
 do
   case "${option}"
   in
@@ -36,6 +37,7 @@ do
   l) LIST_FILES=yes;;
   d) DIFF_OPTION='';;
   i) INPLACE=yes;;
+  f) GITFLAG='-f';;
   1) FUTURIZE_STAGE='-1';;
   2) FUTURIZE_STAGE='-2';;
   s) SEQUENTIAL=yes;;
@@ -53,6 +55,10 @@ shift $((OPTIND-1))
 if [ -n "$INPLACE" ]; then
   branch_names=''
   Log_Dir="$1"
+  if [ -n "$GITFLAG" ]; then
+      echo "WARNING Using -f and -i together not allowed, exiting"
+      exit 1
+  fi
 else
   branch_names=$1
   Log_Dir="$2"
@@ -153,7 +159,7 @@ process_branch () {
         echo "Now checking out branch $1"
         echo ""
 
-        git checkout -f "$1"
+        git checkout "$GITFLAG" "$1"
 
         if [ $? -ne 0 ]; then
             echo "~~~~~~"
