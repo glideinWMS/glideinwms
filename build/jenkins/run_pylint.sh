@@ -6,7 +6,6 @@ process_branch() {
     local pep8_log=$2
     local results=$3
     local git_branch=$4
-    local git_flag=$5
 
     echo "===================================================================="
     echo "GIT BRANCH: $git_branch"
@@ -19,7 +18,7 @@ process_branch() {
     echo "GIT_BRANCH=\"$git_branch\"" >> $results
     if [ -n "$git_branch" ]; then
         cd $GLIDEINWMS_SRC
-        git checkout $git_flag $git_branch
+        git checkout $GIT_FLAG $git_branch
         checkout_rc=$?
         git pull
         cd $WORKSPACE
@@ -285,18 +284,44 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 ###############################################################################
 
 
-if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
-	echo "$0           Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
-	echo "$0 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (space separated list of branch names)"
+
+print_help() {
+    echo
+    echo  "Usage:"
+	echo "$1          Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
+	echo "$1 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (comma separated list of branch names)"
+    echo "$1 -f BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES, doing a git checkout -f (force) for "
+    echo "          each new branch."
+    echo
+    echo "                    IF YOU USE -f INTERACTIVELY IT WILL ERASE UN CHECKED IN EDITS so be warned."
+    echo
 	echo "The source code (a clone of the GWMS git repository) is expected to be already in the ./glideinwms subdirectory of PWD (source dir)"
 	echo "The script will checkout one by one and run pylint and pycodestyle on all listed BRANCHES, in the listed order"
         echo "At the end of the tests the last branch will be the one in the source directory."
 	echo "The script has no cleanup. Will leave directories and result files in the working directory (virtualenv,  log files, ...)"
-	echo "$0 -h        Print this message and exit"
+	echo "$1 -h        Print this message and exit"
 	exit 0
+}
+
+if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
+    print_help $0
 fi
 
-git_branches="$1"
+GIT_FLAG=''
+if [ "x$1" = "x-f" ]; then
+    GIT_FLAG='-f'
+    if [ "x$2" = "x-h" ]; then
+        print_help $0
+    elif [ "x$2" = "x" ]; then
+        echo "Running on the current branch with -f not allowed."
+        exit 1
+    else
+       git_branches="$2"
+    fi
+else
+    git_branches="$1"
+fi
+
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
 
@@ -351,7 +376,7 @@ do
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch "$pylint_log" "$pep8_log" "$results" "$gb" "-f"
+    process_branch "$pylint_log" "$pep8_log" "$results" "$gb" 
     log_branch_results "$RESULTS_MAIL" "$results"
 done
 
