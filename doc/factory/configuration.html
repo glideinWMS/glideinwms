@@ -1204,8 +1204,8 @@ of glidein pools will be presented.
 
 <P> The transition for the new jobs is clear. But either for upgrading an existing Factory version (even if there are no glideins)
     or for the old glideins that are still running, there is a process which will ease the
-    migration process for this purpose. This process implies the execution of a script which will change the ownership of the log and security
-    file directories.    
+    migration process for this purpose. This process implies the execution of a script which: 1. will change the ownership of the log and security
+    file directories; 2. will run a sed command on the condor job_queue files to change ownership of jobs inside condor.
 
     First of all, to check what the script does, you can execute like:    
 
@@ -1213,14 +1213,15 @@ of glidein pools will be presented.
     sudo python factory/tools/fact_chown.py --user=gfactory --group=gfactory --test --backup
     </blockquote>
 
-    This execution should we show you how the script works without making changes.
+    This execution should show you how the script works without making changes. It will also create a back up of the files it is going to modify in
+    the current working directory. Please, if you create the backup now, make sure both condor and the factory are not running, otherwise the back up might be
+    out of date.
     If you know what you are doing and, you would like actually to do the migration, please follow the following steps:
 
     1. Stop Factory and *stop condor*. This step is very important, condor must not run when the script is being executed!.
     2. Run the script fact_chown.py located in factory/tools of your GWMS installation, indicating the user and the group which the directories 
        and their content will take the ownership. 
-       Add also the flag *--backup* to have backup of everything. Likewise, make sure the backups are not
-       created if *--back* is not being passed. In this case, you don't have to use *--test* flag. Example (with backups)
+       Add also the flag *--backup* to have backup of everything (or not if you are happy with a backup created previously). Example with backups (notice the absence of --test):
     
        <blockquote>
        sudo python factory/tools/fact_chown.py --user=gfactory --group=gfactory --backup
