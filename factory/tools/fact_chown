@@ -37,6 +37,16 @@ def parse_opts():
         help='Back up the directories into the cwd before chwon everything')
 
     parser.add_argument(
+        '--skipchown', action='store_true', dest='skipchown',
+        default=False,
+        help='Do not change ownership of logfiles directories and logfiles')
+
+    parser.add_argument(
+        '--skipfixqueue', action='store_true', dest='skipfixqueue',
+        default=False,
+        help='Do not fix condor job_queue files')
+
+    parser.add_argument(
         '--debug', action='store_true', dest='debug',
         default=False,
         help='Enable debug logging')
@@ -119,8 +129,11 @@ def fix_jobqueue(jobqueue_file, user, options):
     if options.test:
         logging.info("Test mode: not fixing %s" % jobqueue_file)
     else:
+        logging.info("Fixing %s" % jobqueue_file)
         cmd = 'sed -i.bk -e \'s/103 \([-0-9.]*\) Owner ".*"/103 \\1 Owner "\'%s\'"/\' %s' % (user, jobqueue_file)
+        logging.debug("Executing: %s" % cmd)
         subprocess.call(cmd, shell=True)
+        logging.info("Please open %s and check that owner is %s on lines like '103 040087.-1 Owner \"%s\"'" % (jobqueue_file, user, user))
 
 
 def main():
@@ -138,29 +151,31 @@ def main():
     # pylint: disable=maybe-no-member
     dir_dicts = [conf.get_client_log_dirs(), conf.get_client_proxy_dirs()]
 
-    for client_dir_dict in dir_dicts:
-        for fe_user, fe_client_dir in client_dir_dict.items():
-            logging.info('Working on %s: changing ownership from %s to %s' % (fe_client_dir, fe_user, options.user))
-            if options.backup:
-                logging.info('Backing it up in the current directory first')
-                backup_dir(fe_user + '.tar.gz', fe_client_dir)
-            fuid = pwd.getpwnam(fe_user).pw_uid
-            chown_dir(fe_client_dir, uid, gid, fuid, options.test)
+    if not options.skipchown:
+        for client_dir_dict in dir_dicts:
+            for fe_user, fe_client_dir in client_dir_dict.items():
+                logging.info('Working on %s: changing ownership from %s to %s' % (fe_client_dir, fe_user, options.user))
+                if options.backup:
+                    logging.info('Backing it up in the current directory first')
+                    backup_dir(fe_user + '.tar.gz', fe_client_dir)
+                fuid = pwd.getpwnam(fe_user).pw_uid
+                chown_dir(fe_client_dir, uid, gid, fuid, options.test)
 
     # Condor side
-    spooldir = htcondor.param['SPOOL']
-    if not 'JOBQUEUE' in htcondor.param:
-        jobqueue_file = os.path.join(spooldir, 'job_queue.log')
-    else:
-        jobqueue_file = htcondor.param['JOBQUEUE']
-    fix_jobqueue(jobqueue_file, options.user, options)
-    for i in xrange(1, 9):
-        try:
-            jobqueue_file = htcondor.param['SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
-        except KeyError:
-            logging.warning("Cannot find 'SCHEDDGLIDEINS%s.JOB_QUEUE_LOG'. Skipping it." % i)
-            continue
+    if not options.skipfixqueue:
+        spooldir = htcondor.param['SPOOL']
+        if not 'JOBQUEUE' in htcondor.param:
+            jobqueue_file = os.path.join(spooldir, 'job_queue.log')
+        else:
+            jobqueue_file = htcondor.param['JOBQUEUE']
         fix_jobqueue(jobqueue_file, options.user, options)
+        for i in xrange(1, 10):
+            try:
+                jobqueue_file = htcondor.param['SCHEDDGLIDEINS%s.JOB_QUEUE_LOG' % i]
+            except KeyError:
+                logging.warning("Cannot find 'SCHEDDGLIDEINS%s.JOB_QUEUE_LOG'. Skipping it." % i)
+                continue
+            fix_jobqueue(jobqueue_file, options.user, options)
 
 
 if __name__ == '__main__':
