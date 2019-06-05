@@ -1197,12 +1197,12 @@ of glidein pools will be presented.
 <H3 CLASS="western">
 <A NAME="private_net"></A>Migration process for the removal of dependency of condor_root_switchboard</H3>
 
-<P> GlideinWMS stopped supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs run under a single user (gfactory) to eliminate
-    the need of switchboard and setuid/user-switching. Thus, all Glideins will run using the Factory user (no more separated users per-VO).
+<P> Starting v3.5, GlideinWMS stopped supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs run under a single user (gfactory) to eliminate
+    the need of switchboard and setuid/user-switching. Thus, all glideins will run using the Factory user (no more separated users per-VO).
     For the log and secure files, the same directory structure remains the same, only the ownership will change.
 </P>
 
-<P> The transition for the new jobs is clear. But either for upgrading an existing Factory version (even if there are no glideins)
+<P> The transition for the new jobs is clear. But either for upgrading an existing Factory version from v3.4.x or ealier (even if there are no glideins)
     or for the old glideins that are still running, there is a process which will ease the
     migration process for this purpose. This process implies the execution of a script which:<BR/>
     1. Will change the ownership of the log and security file directories<BR/>
@@ -1220,16 +1220,16 @@ of glidein pools will be presented.
 
     If you know what you are doing and, you would like actually to do the migration, please follow the following steps:<BR/>
 
-    1. Stop Factory and *stop condor*. (This step is very important condor must not run when the script is being executed!)<BR/>
+    1. Stop Factory and <b>stop condor</b>. (This step is very important condor must not run when the script is being executed!)<BR/>
     2. Run the script fact_chown indicating the user and the group which the directories and their content will take the ownership. 
-       Add also the flag *--backup* to have backup of everything (or not if you are happy with a backup created previously). 
+       Add also the flag <b>--backup</b> to have backup of everything (or not if you are happy with a backup created previously). 
        Example with backups (notice the absence of --test):
     
        <blockquote>
         sudo fact_chown --user=gfactory --group=gfactory --backup
        </blockquote>
     
-    3. Restart condor and Factory and check the changes<BR/>
+    3. Start condor and Factory and check the changes<BR/>
 <P>
 </P>
     Remember:<BR/>
@@ -1247,7 +1247,7 @@ of glidein pools will be presented.
     - /var/lib/gwms-factory/client-proxies/<USER_DIRS> <BR/>
 </P>
 
-<P> To *revert* to a previous version of GlideinWMS, you need to restore the job_queue files and change back the permissions of the log directories. As commented previously, those operations need to be performed with both condor and GlideinWMS stoppped. <BR/>
+<P> To <b>revert</b> to a previous version of GlideinWMS, you need to restore the job_queue files and change back the permissions of the log directories. As commented previously, those operations need to be performed with both condor and GlideinWMS stoppped. <BR/>
     - To restore the job_queue condor files: untar all the schedd_glideins1_job_queue.log.tar.gz files, and move the job_queue.log file into its original location. You can print it when you run the fact_chown script (you can also run it with --test and --skipchown)<BR/>
     - To restore the directory permissions for the logfiles, you can run the following command: <BR/>
 
