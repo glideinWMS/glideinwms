@@ -1197,33 +1197,63 @@ of glidein pools will be presented.
 <H3 CLASS="western">
 <A NAME="private_net"></A>Migration process for the removal of dependency of condor_root_switchboard</H3>
 
-<P> GlideinWMS stopped supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs run under a single user (gfactory) to eliminate
-    the need of switchboard and setuid/user-switching. Thus, all Glideins will run using the Factory user, no more separated users per-VO.
+<P> Starting v3.5, GlideinWMS stopped supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs run under a single user (gfactory) to eliminate
+    the need of switchboard and setuid/user-switching. Thus, all glideins will run using the Factory user (no more separated users per-VO).
     For the log and secure files, the same directory structure remains the same, only the ownership will change.
 </P>
-<P> The transition for the new jobs is clear, but for the old glideins that are still running, there is a process which will ease the
-    migration process for this purpose. This process implies the execution of a script which will change the ownership of
 
-    The options of the script can be checked:
+<P> The transition for the new jobs is clear. But either for upgrading an existing Factory version from v3.4.x or ealier (even if there are no glideins)
+    or for the old glideins that are still running, there is a process which will ease the
+    migration process for this purpose. This process implies the execution of a script which:<BR/>
+    1. Will change the ownership of the log and security file directories<BR/>
+    2. Will run a sed command on the condor job_queue files to change ownership of jobs inside condor<BR/>
+
+    First of all, to check what the script does, you must be located in factory/tools of your GWMS installation and execute like (add --debug for a more verbose output):
 
     <blockquote>
-    sudo python factory/tools/fact_chown.py --user=gfactory --group=gfactory --test --backup
+    sudo fact_chown --user=gfactory --group=gfactory --test --backup
     </blockquote>
 
-    To the migration process, please follow the following steps:
+    This execution should show you how the script works without making changes. It will also create a backup of the files that is going to modify in
+    the current working directory. Please, notice that if you create the backup now, make sure that both condor and the factory are not running. Otherwise the 
+    backup might be out of date.<BR/>
 
-    1. Stop Factory and stop condor
-    2. Run the script fact_chown.py located in factory/tools of your GWMS installation with the option --test (make sure the backups are not
-       created if *--back* is not being passed.
-    3. Run again the script with *--test* and *--backup* to have backup of everything
-    4. Run the script with no options (This way you will make the changes and not backups)
-    *Note*: Points 3 and 4 can be merged, but it's better to do it separately so one can check what is gonna be changed
-    5. Restart condor and Factory and check the changes
+    If you know what you are doing and, you would like actually to do the migration, please follow the following steps:<BR/>
+
+    1. Stop Factory and <b>stop condor</b>. (This step is very important condor must not run when the script is being executed!)<BR/>
+    2. Run the script fact_chown indicating the user and the group which the directories and their content will take the ownership. 
+       Add also the flag <b>--backup</b> to have backup of everything (or not if you are happy with a backup created previously). 
+       Example with backups (notice the absence of --test):
+    
+       <blockquote>
+        sudo fact_chown --user=gfactory --group=gfactory --backup
+       </blockquote>
+    
+    3. Start condor and Factory and check the changes<BR/>
+<P>
+</P>
+    Remember:<BR/>
+    - Run the script with no options if you don't want to have backups.<BR/>
+    - If you see the permissions have changed but not the ownership, make sure you have executed the script with condor stopped.<BR/>
+    - If pilots go held after executing the script, make sure that you have executed the steps as indicated before. If condor was running during 
+      the script execution: stop condor, run the script again and release the jobs.<BR/>
 </P>
 
-<P> After executing this steps, you should see your jobs changed user in condor_q and the onwership of the
-    **/var/log/gwms-factory/client/user_username/glidein_gfactory_instance/** and
-    **/var/lib/gwms-factory/client-proxies/<USER_DIRS>** have changed to Factory user.
+<P> After executing these steps, you should see your jobs changed user in condor_q to the new owner. Also, the onwership to Factory user (gfactory) of: <BR/>
+    - Log files directories in /var/log/gwms-factory/client/<BR/>
+    - Security files directory in /var/lib/gwms-factory/client-proxies/<BR/>
+    - All files and folders in the corresponding folder's tree indicated before:<BR/>
+    - /var/log/gwms-factory/client/<user_username>/glidein_gfactory_instance/<BR/>
+    - /var/lib/gwms-factory/client-proxies/<USER_DIRS> <BR/>
+</P>
+
+<P> To <b>revert</b> to a previous version of GlideinWMS, you need to restore the job_queue files and change back the permissions of the log directories. As commented previously, those operations need to be performed with both condor and GlideinWMS stoppped. <BR/>
+    - To restore the job_queue condor files: untar all the schedd_glideins1_job_queue.log.tar.gz files, and move the job_queue.log file into its original location. You can print it when you run the fact_chown script (you can also run it with --test and --skipchown)<BR/>
+    - To restore the directory permissions for the logfiles, you can run the following command: <BR/>
+
+      <blockquote>
+       for dir in /var/log/gwms-factory/client/user_fe*; do USERARR=(${dir//_/ }); USER=${USERARR[1]}; chown -R $USER:$USER $dir; done
+       </blockquote>
 </P>
 
 <H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
