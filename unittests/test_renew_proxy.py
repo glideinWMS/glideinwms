@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Project:
+    glideinWMS
+Purpose:
+    unit test of glideinwms/frontend/gwms_renew_proxies.py
+Author:
+    Brian Lin <brianhlin@gmail.com>
+"""
 
 import mock
 import unittest2 as unittest

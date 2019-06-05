@@ -364,7 +364,6 @@ class StageFiles:
                                        (validate_algo, None)) # just get the hash value... will validate later
 
         self.signature_descript=BaseSignatureDescript(base_URL, self.stage_descript.data['signature'], validate_algo, (validate_algo, signature_hash))
-        
         if self.stage_descript.hash_value!=self.signature_descript.data[descript_fname]:
             raise IOError("Descript file %s signature invalid, expected'%s' got '%s'"%(descript_fname, self.signature_descript.data[descript_fname], self.stage_descript.hash_value))
 

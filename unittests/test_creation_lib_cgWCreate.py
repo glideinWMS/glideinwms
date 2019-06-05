@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+"""
+   Project: glideinwms
+   File: test_creation_lib_cgWCreate.py
+   Purpose: unit test of glideinwms/creation/lib/cgWCreate.py
+   Author: Dennis Box, dbox@fnal.gov
+"""
 import glideinwms.creation.lib.cgWCreate
 from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 

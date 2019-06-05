@@ -66,8 +66,6 @@ setup_python_venv() {
 
     export PYTHONPATH="$PWD:$PYTHONPATH"
 
-    # Install dependancies first so we don't get uncompatible ones
-    # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
     pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
     pip_packages="$pip_packages pyyaml mock xmlrunner future importlib argparse"
