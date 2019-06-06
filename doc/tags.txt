@@ -1,3 +1,13 @@
+v3_5    Removed support for Globus GRAM (GT2/GT5)
+        Removed dependency on condor_root_switchboard
+        Improved release scripts release.py and osg-release.sh (better help and error messages)
+        Added unit tests
+        Improved Frontend scalability (from CMS scale tests)
+        Remove use of deprecated sets module
+        Bug fix: Incorrect exception handling glideinFrontendElement.py::populate_pubkey
+        Bug fix: Entries in downtime setting seems not to work correctly
+        Bug fix: GlideinWMS proxy renewal service broken for Xenon
+
 v3_4_5  Add a bind mount for /etc/localtime in Singularity
         Bug fix: Strings evaluated as boolean (New error preventing the Frontend fo match jobs)
 

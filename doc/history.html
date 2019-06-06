@@ -797,24 +797,38 @@ COLLECTOR.USE_SHARED_PORT=False
 
     <a name="development"></a>
     <h3>Development Series</h3>
-    This is work in progress, so some pieces may be broken and 
-    the documentation out of sync. 
-    But it is a good place to look for what is going on.<br>
+    This is work in progress, so some pieces may be not so tested yet and the documentation out of sync. 
+    But it passed all out tests and is a good place to look for what is going on.<br>
     <ul>
+      <li>
+        <b>v3_5</b> released on June 7, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_5.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Spawned off branch 3_4_x. Includes all features and bug fixes released in v3_4_5</li>
+	    <li>Removed support for Globus GRAM (GT2/GT5)</li>
+            <li>Removed dependency on condor_root_switchboard</li>
+            <li>Improved release scripts release.py and osg-release.sh (better help and error messages)</li>
+            <li>Added unit tests</li>
+            <li>Improved Frontend scalability (from CMS scale tests)</li>
+            <li>Remove use of deprecated sets module</li>
+            <li>Bug fix: Incorrect exception handling glideinFrontendElement.py::populate_pubkey</li>
+            <li>Bug fix: Entries in downtime setting seems not to work correctly</li>
+            <li>Bug fix: GlideinWMS proxy renewal service broken for Xenon</li>
+        </ul>
+      </li>
       <li>
         <b>v3_3_3</b> released on April 17, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_3_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_3.tgz">Tarball</a>)<br>
         <ul>
-            <li>Includes all features and bug fixes released in v3_2_22_2
+            <li>Includes all features and bug fixes released in v3_2_22_2</li>
         </ul>
       </li>
       <li>
         <b>v3_3_2</b> released on March 24, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_3_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">Tarball</a>)<br>
         <ul>
-          <li>Allow multiple remote directories for BOSCO submissions
-          <li>Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM
-          <li>Documented vm_id_fname and vm_type_fname
-          <li>Includes all features and bug fixes released in v3_2_18
-          <li>Includes some important features and bug fixes planned for v3_2_19 (fix of AWS submission)
+          <li>Allow multiple remote directories for BOSCO submissions</li>
+          <li>Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM</li>
+          <li>Documented vm_id_fname and vm_type_fname</li>
+          <li>Includes all features and bug fixes released in v3_2_18</li>
+          <li>Includes some important features and bug fixes planned for v3_2_19 (fix of AWS submission)</li>
         </ul>
       </li>
       <li>
