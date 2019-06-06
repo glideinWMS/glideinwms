@@ -66,6 +66,8 @@ SCRIPT_NAME="`readlink -f $0`"
 if [ -z "$RPM_INSTALL" ]; then
     if [ "$SCRIPT_NAME" = "/etc/init.d/gwms-frontend" ]; then
         RPM_INSTALL=True
+    elif [[ "$SCRIPT_NAME" = "/var/lib/gwms-frontend/vofrontend/frontend_startup" ]] && [[ -e "/etc/gwms-frontend/frontend.xml" ]]; then
+        RPM_INSTALL=True
     else
         RPM_INSTALL=False
     fi
