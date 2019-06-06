@@ -1,0 +1,6 @@
+<glidein>
+   <condor_tarballs>
+      <condor_tarball arch="__CONDOR_ARCH__" base_dir="/var/lib/gwms-factory/condor/__CONDOR_DIR__" os="__CONDOR_OS__" version="__CONDOR_VERSION__"/>
+      <condor_tarball arch="__CONDOR_ARCH2__" base_dir="/var/lib/gwms-factory/condor/__CONDOR_DIR2__" os="__CONDOR_OS2__" version="__CONDOR_VERSION2__"/>
+   </condor_tarballs>
+</glidein>

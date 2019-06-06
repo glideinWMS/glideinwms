@@ -1,0 +1,241 @@
+;===================================================================
+;                              GIP
+;===================================================================
+
+[GIP]
+
+; ========= These settings must be changed ==============
+
+;; This setting indicates the batch system that GIP should query
+;; and advertise
+;; This should be the name of the batch system in lowercase
+batch = condor
+;; Options include: pbs, lsf, sge, or condor
+
+; ========= These settings can be left as is for the standard install ========
+
+;; This setting indicates whether GIP should advertise a gsiftp server
+;; in addition to a srm server, if you don't have a srm server, this should
+;; be enabled
+;; Valid options are True or False
+advertise_gsiftp = TRUE
+
+;; This should be the hostname of the gsiftp server that gip will advertise
+gsiftp_host = DEFAULT
+
+;; This setting indicates whether GIP should query the gums server.
+;; Valid options are True or False
+advertise_gums = FALSE
+
+
+;===================================================================
+;                          Subclusters
+;===================================================================
+
+; For each subcluster, add a new subcluster section.
+; Each subcluster name must be unique for the entire grid, so make sure to not
+; pick anything generic like "MAIN".  Each subcluster section must start with
+; the words "Subcluster", and cannot be named "CHANGEME".
+
+; There should be one subcluster section per set of homogeneous nodes in the
+; cluster.
+
+; This data is used for our statistics collections in the OSG, so it's important
+; to keep it up to date.  This is important for WLCG sites as it will be used
+; to determine your progress toward your MoU commitments!
+
+; If you have many similar subclusters, then feel free to collapse them into
+; larger, approximately-correct groups.
+
+; See example below:
+
+[Subcluster OneNode]
+name = OneNode
+node_count = 1
+ram_mb = 1024
+cpu_model = QEMU Virtual CPU version (cpu64-rhel6)
+cpu_vendor = INTEL
+cpu_speed_mhz = 3000
+cpu_platform = x86_64
+cpus_per_node = 1
+cores_per_node = 1
+#inbound_network = FALSE
+inbound_network = TRUE
+outbound_network = TRUE
+max_wall_time=1440
+allowed_vos = fermilab, osg
+
+
+;[Subcluster CHANGEME]
+; should be the name of the subcluster
+;name = SUBCLUSTER_NAME
+; number of homogeneous nodes in the subcluster
+;node_count = NUMBER_OF_NODE
+; Megabytes of RAM per node.
+;ram_mb = MB_OF_RAM
+; CPU model, as taken from /proc/cpuinfo.  Please, no abbreviations!
+;cpu_model = CPU_MODEL_FROM_/proc/cpuinfo
+; Should be something like:
+; cpu_model = Dual-Core AMD Opteron(tm) Processor 2216
+; Vendor's name -- AMD or Intel?
+;cpu_vendor = VENDOR_AMD_OR_INTEL
+; Approximate speed, in MHZ, of the chips
+;cpu_speed_mhz = CLOCK_SPEED_MHZ
+; Must be an integer.  Example: cpu_speed_mhz = 2400
+; Platform; x86_64 or i686
+;cpu_platform = x86_64_OR_i686
+
+; Number of CPUs (physical chips) per node
+;cpus_per_node = #_PHYSICAL_CHIPS_PER_NODE
+; Number of cores per node.
+;cores_per_node = #_CORES_PER_NODE
+; For a dual-socket quad-core, you would put cpus_per_node=2 and
+; cores_per_node=8
+
+; Set to true or false depending on inbound connectivity.  That is, external
+; hosts can contact the worker nodes in this subcluster based on their hostname.
+;inbound_network = FALSE
+; Set to true or false depending on outbound connectivity.  Set to true if the
+; worker nodes in this subcluster can communicate with the external internet.
+;outbound_network = TRUE
+
+; Non-mandatory attributes
+; The amount of swap per host in MB
+;  swap_mb = 4000
+; The per-core SpecInt 2000 score.  This is usually computed for you.
+;  SI00 = 2000
+; The per-core SpecFloat 2000 score.  This is usually computed for you
+;  SF00 = 2000
+; A list of VOs that are allowed to submit to this subcluster.  Leave blank
+; to allow all VOs to submit.
+;allowed_vos = vo1, vo2
+; The maximum wall-clock time a job is allowed to run on this subcluster,
+; in minutes.  Leave blank or set to 0 to indicate no wall time limit on jobs.
+;max_wall_time = 1440
+; The queue which jobs should be submitted to in order to run on this resource.
+; Equivalent to the HTCondor grid universe classad attribute "remote_queue"
+;queue = blue
+; Transformation attributes which the HTCondor job router should apply to
+; incoming jobs so they can run on this resource, as per
+; http://research.cs.wisc.edu/htcondor/manual/v8.3/5_4HTCondor_Job.html
+; These are in HTCondor classad syntax, and should be used sparingly.
+;extra_transforms = [ set_WantRHEL6 = 1; ]
+
+; Mandatory for WLCG reporting
+; The per-core HEPSPEC score.  See your VO representative for more information.
+;  HEPSPEC = 8
+; The conversion factor from HEPSPEC to SI2K is accepted to be 250.
+
+; Here's a full example.  Remember, globally unique names!
+; [Subcluster Dell Nodes UNL]
+; name = Dell Nodes UNL
+; node_count = 53
+; ram_mb = 4110
+; swap_mb = 4000
+; cpu_model = Dual-Core AMD Opteron(tm) Processor 2216
+; cpu_vendor = AMD
+; cpu_speed_mhz = 2400
+; cpus_per_node = 2
+; cores_per_node = 4
+; inbound_network = FALSE
+; outbound_network = TRUE
+; allowed_vos = osg, cms
+; max_wall_time = 1440
+
+
+;===================================================================
+;                             SE
+;===================================================================
+
+; For each storage element, add a new SE section.
+; Each SE name must be unique for the entire grid, so make sure to not
+; pick anything generic like "MAIN".  Each SE section must start with
+; the words "SE", and cannot be named "CHANGEME".
+
+; There are two main configuration types; one for dCache, one for BestMan
+
+; Don't forget to change the section name!  One section per SE at the site.
+;[SE CHANGEME]
+
+; The first part of this section shows options which are mandatory for all SEs.
+; dCache and BestMan-specific portions are shown afterward.
+
+; Set to False to turn off this SE
+;enabled = True
+
+; Name of the SE; set to be the same as the OIM registered name
+;name = SE_CHANGEME
+; The endpoint of the SE.  It MUST have the hostname, port, and the server
+; location (/srm/v2/server in this case).  It MUST NOT have the ?SFN= string.
+;srm_endpoint = httpg://srm.example.com:8443/srm/v2/server
+; dCache endpoint template: httpg://srm.example.com:8443/srm/managerv2
+
+; How to collect data; the most generic implementation is called "static" 
+; provider_implementation = static
+; WLCG sites with a SE *must* use bestman, dcache, or dcache19
+; Implementation and version of your SRM SE; usually dcache or bestman
+;implementation = bestman
+; Version refers to the SE version, not the SRM version.
+;version = 2.2.1.foo
+; dCache example: version = 1.9.1
+; Default paths for all of your VOs; VONAME is replaced with the VO's name.
+;default_path = /mnt/bestman/home/VONAME
+; Set a specific path for VOs which don't use the default path.
+; Comma-separated list of VO:PATH pairs.  Not required.
+; vo_dirs=cms:/mnt/bestman/cms, dzero:/mnt/bestman2/atlas
+
+; If your SE provides a POSIX-like mount on your worker nodes, uncomment
+; the following line:
+; mount_point = /,/
+; POSIX-like file systems include Lustre, NFS, HDFS, xrootdfs
+; dCache site should not uncomment the line
+; The value of `mount_point` should be two paths; first, the path where the
+; file system is mounted on the worker nodes, followed by the exported directory
+; of the file system.  If you mount your file system on the worker nodes with
+; the following command:
+;    mount -t nfs nfs.example.com:/exported/dir /mnt/nfs
+; then mount_point should look like this:
+;    mount_point = /mnt/nfs,/exported/dir
+
+; By default, all VOs are advertised as having access to your SE. If you want only a subset of 
+; VOs to be advertised, list them as a comma separated list in the allowed_vos setting 
+; allowed_vos = 
+
+; For BestMan-based SEs, uncomment and fill in the following.
+;  provider_implementation = bestman
+;  implementation = bestman
+
+; Set to TRUE if the bestman provide can use 'df' on the directory referenced
+; above to get the freespace information.  If set to false, it probably won't
+; detect the correct info.
+;  use_df = True
+
+; For dCache-based SEs, uncomment and fill in the following
+; How to collect data; set to 'dcache' for dcache 1.8 (additional config req'd
+; for this case), 'dcache19' for dcache 1.9, or 'static' for default values.
+; provider_implementation = dcache19
+;  implementation = dcache
+;  If you use the dcache provider, see 
+; http://twiki.grid.iu.edu/bin/view/InformationServices/DcacheGip
+; If you use the dcache19 provider, you must fill in the location of your
+; dCache's information provider:
+;  infoprovider_endpoint = http://dcache.example.com:2288/info
+; SE implementation name; leave as 'dcache'
+
+; Here are working configs for BestMan and dCache
+; [SE dCache]
+; name = T2_Nebraska_Storage
+; srm_endpoint = httpg://srm.unl.edu:8443/srm/managerv2
+; provider_implementation = static
+; implementation = dcache
+; version = 1.8.0-15p6
+; default_path = /pnfs/unl.edu/data4/VONAME
+
+; [SE Hadoop]
+; name = T2_Nebraska_Hadoop
+; srm_endpoint = httpg://dcache07.unl.edu:8443/srm/v2/server
+; provider_implementation = bestman
+; implementation = bestman
+; version = 2.2.1.2.e1
+; default_path = /user/VONAME
+

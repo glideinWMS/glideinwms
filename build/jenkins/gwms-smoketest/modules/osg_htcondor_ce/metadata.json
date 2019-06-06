@@ -1,0 +1,16 @@
+{
+  "license": "Apache License, Version 2.0",
+  "dependencies": [
+
+  ],
+  "source": "",
+  "version": "0.0.1",
+  "types": [
+
+  ],
+  "description": "",
+  "summary": "",
+  "author": "Dennis D. Box, dbox@fnal.gov",
+  "name": "gwms-osg_htcondor_ce",
+  "project_page": "https://cdcvs.fnal.gov/redmine/projects/jobsub/wiki"
+}

@@ -1,0 +1,181 @@
+##############################################################################
+#
+# lcmaps.db
+# 
+# This file is used to configure lcmaps, but it might be slightly
+# confusing at first glance because it's configured differently when
+# you use glexec (usually on worker nodes) and when you configure
+# services to use lcmaps for mapping users. 
+#
+# In general, you need to modify up to three portions of this file
+# unless you are doing unusual advanced configurations.
+# 
+# 1) The gumsclient module definition (in Section 1)
+#    This is where you configure the GUMS host you are using. This is
+#    true for both glexec and lcmaps for a service.
+# 2) The glexectracking module (in Section 1)
+#    If you are using glexec, uncomment the glexectracking module
+#    definition and edit appropriately. You should always uncomment
+#    this for glexec but should always leave it commented if you haven't
+#    installed glexec. 
+# 3) glexec mapping policy (in Section 2)
+#    You should select the proper policy for glexec, if you are using glexec.
+#    Most sites will use the first policy. 
+# 
+##############################################################################
+
+#-----------------------------------------------------------------------------
+#
+# Section 1: Module definitions
+# 
+# These generally should not be modified, except for the GUMS host in
+# gumsclient.
+#
+#-----------------------------------------------------------------------------
+
+
+#gridmapfile = "lcmaps_localaccount.mod"
+#              "-gridmap /etc/grid-security/grid-mapfile"
+#banfile = "lcmaps_ban_dn.mod"
+#          "-banmapfile /etc/grid-security/ban-mapfile"
+#banvomsfile = "lcmaps_ban_fqan.mod"
+#              "-banmapfile /etc/grid-security/ban-voms-mapfile"
+#vomsmapfile = "lcmaps_voms_localaccount.mod"
+#              "-gridmap /etc/grid-security/voms-mapfile"
+#defaultmapfile = "lcmaps_voms_localaccount2.mod"
+#                 "-gridmap /usr/share/osg/voms-mapfile-default"
+#
+#verifyproxynokey = "lcmaps_verify_proxy2.mod"
+#          "--allow-limited-proxy"
+#          "--discard_private_key_absence"
+#          " -certdir /etc/grid-security/certificates"
+#
+#gumsclient = "lcmaps_gums_client.mod"
+#             "-resourcetype ce"
+#             "-actiontype execute-now"
+#             "-capath /etc/grid-security/certificates"
+#             "-cert   /etc/grid-security/hostcert.pem"
+#             "-key    /etc/grid-security/hostkey.pem"
+#             "--cert-owner root"
+# Change this URL to your GUMS server
+#             "--endpoint https://gums-crit.fnal.gov:8443/gums/services/GUMSXACMLAuthorizationServicePort"
+# Uncomment this to set a different expected host certificate name for server
+#            "--override-expected-hostname overridegumsname.yourdomain"
+
+# Uncomment the first two lines in order to enable glexec tracking
+#glexectracking = "lcmaps_glexec_tracking.mod"
+#         "-exec /usr/sbin/glexec_monitor"
+# Uncomment if your procd is located in a non-standard directory
+#         "-procddir /usr"
+# Uncomment to write tracking info to glexec_monitor.log in the given dir
+#     otherwise the default is to use syslog
+#         "-logdir /var/log/glexec"
+# Uncomment to change the default logging level for the glexec_monitor
+#   Level 0: none, 1: errors, 2: warnings, 3: notices, 4: info, 5: debug
+#   The notices level is used for usage tracking; info is commonly useful.
+#   Default is lcmaps_debug_level from glexec.conf.
+#         "-log-level 4"
+# Uncomment to change the syslog facility.  Default is LOG_DAEMON
+#	  "-log-facility LOG_DAEMON"
+# Uncomment to use local time in the file log (doesn't apply to syslog)
+#         "-datetime-local"
+# Uncomment to change the minimum tracking group id
+#         "-min-gid 65000"
+# Uncomment to change the maximum tracking group id
+#         "-max-gid 65049"
+# Uncomment to not kill processes still running after the main process finishes
+#         "-dont-kill-leftovers"
+
+gridmapfile = "lcmaps_localaccount.mod"
+              "-gridmap /etc/grid-security/grid-mapfile"
+banfile = "lcmaps_ban_dn.mod"
+          "-banmapfile /etc/grid-security/ban-mapfile"
+banvomsfile = "lcmaps_ban_fqan.mod"
+              "-banmapfile /etc/grid-security/ban-voms-mapfile"
+vomsmapfile = "lcmaps_voms_localaccount.mod"
+              "-gridmap /etc/grid-security/voms-mapfile"
+# Uncomment to consider all VOMS FQANs of a proxy instead of just the first
+              "-all-fqans"
+defaultmapfile = "lcmaps_voms_localaccount2.mod"
+                 "-gridmap /usr/share/osg/voms-mapfile-default"
+# Uncomment to consider all VOMS FQANs of a proxy instead of just the first
+                 "-all-fqans"
+
+verifyproxy = "lcmaps_verify_proxy.mod"
+          "--allow-limited-proxy"
+          " -certdir /etc/grid-security/certificates"
+
+verifyproxynokey = "lcmaps_verify_proxy2.mod"
+          "--allow-limited-proxy"
+          "--discard_private_key_absence"
+          " -certdir /etc/grid-security/certificates"
+
+# lcmaps policies require at least two modules, so these are here to
+#   fill in if only one module is needed.  "good | bad" has no effect.
+good        = "lcmaps_dummy_good.mod"
+bad         = "lcmaps_dummy_bad.mod"
+
+#-----------------------------------------------------------------------------
+#
+# Mapping policies
+#
+# Each of these define how lcmaps is used in different scenarios. 
+#
+# For the authorize_only mapping, the default policy is generally good
+# but we have supplied a couple of options in comments.
+#
+# We've left the various glexec policies commented out--you need to
+# choose one of the three policies (because otherwise it causes a
+# package dependency problem). Most sites will use the first policy
+# (verify proxy, gums client, glexectracking). There is no need to
+# uncomment the glexec policies if you are not using glexec.
+#
+#-----------------------------------------------------------------------------
+
+#
+# Mapping policy: authorize_only
+# Purpose: Used for the programs that only want authorization and don't
+# 	want lcmaps to do anything else for them.  This is good for most
+#	applications that use globus as their interface to lcmaps.
+#
+
+## If the default policy isn't what you want, pick another one.  Make
+## sure that only one authorize_only policy is uncommented--the other
+## policies should be commented out. For example, if you want policy #2,
+## put a hash mark before the first "gumsclient" line and remove the hash
+## mark on two lines: just before "gridmapfile" and just before the next
+## "gumsclient". 
+
+authorize_only:
+
+## Policy 1: GUMS (most common, default)
+#gumsclient -> good | bad
+
+## Policy 2: grid-mapfile
+#gridmapfile -> good | bad
+
+## Policy 3: voms-mapfiles with banfiles, proxy verification and grid-mapfile
+verifyproxynokey -> banfile
+banfile -> banvomsfile | bad
+banvomsfile -> gridmapfile | bad
+gridmapfile -> good | vomsmapfile
+vomsmapfile -> good | defaultmapfile
+defaultmapfile -> good | bad
+
+
+#
+# Mapping policy: glexec
+# Purpose:        Used for glexec on the worker nodes.
+#
+#glexec:
+
+## If you use glexec, pick an appropriate policy from the ones below.
+## Make sure that only one policy is uncommented.
+
+## Policy 1: GUMS (most common)
+#verifyproxy -> gumsclient
+#gumsclient -> glexectracking
+
+## Policy 2: grid-mapfile
+#verifyproxy -> gridmapfile
+#gridmapfile -> glexectracking

@@ -1,0 +1,10 @@
+GSI "<%= scope.lookupvar('vofrontend::vars::dn_rt') %>/CN=<%= scope.lookupvar('vofrontend::vars::fact_fqdn') %>" factory
+GSI "<%= scope.lookupvar('vofrontend::vars::dn_rt') %>/CN=<%= scope.lookupvar('vofrontend::vars::vofe_fqdn') %>" frontend
+GSI "<%= scope.lookupvar('vofrontend::vars::vofe_dn') %>" vofrontend_service
+GSI "<%= scope.lookupvar('vofrontend::vars::dn_rt') %>/CN=fermicloud046.fnal.gov" htcondor_ce_el6_osg33
+GSI "<%= scope.lookupvar('vofrontend::vars::dn_rt') %>/CN=fermicloud105.fnal.gov" htcondor_ce_el6_osg34
+GSI "<%= scope.lookupvar('vofrontend::vars::dn_rt') %>/CN=fermicloud127.fnal.gov" htcondor_ce_el7_osg33 
+GSI "<%= scope.lookupvar('vofrontend::vars::dn_rt') %>/CN=fermicloud378.fnal.gov" htcondor_ce_el7_osg34
+GSI (.*) anonymous
+FS (.*) \1
+

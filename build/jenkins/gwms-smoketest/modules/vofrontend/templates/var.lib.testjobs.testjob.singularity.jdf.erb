@@ -1,0 +1,62 @@
+##### use 'ce' and 'os' as variables below #####
+# ce currently [ el6_osg33, el6_osg34, el7_osg33, el7_osg34 ]
+ce = compute_element
+# os in [ 'default', 'rhel6', 'rhel7 ] will try to run singularity on ce
+os = desired_op_sys
+#### variables affect these condor/gwms settings #####
++DESIRED_Sites = "$(ce)"
++Desired_OS = "$(os)"
++REQUIRED_OS = "$(os)" 
+# $(ce).sh must exist, copy systeminfo.sh to $(ce.sh) if needed
+executable = $(ce).sh
+output = joboutput/$(ce).$(os).out.$(cluster).$(process)
+error = joboutput/$(ce).$(os).err.$(cluster).$(process)
+log = joboutput/$(ce).$(os).log.$(cluster).$(process)
+##### singularity #########
+# these can be tweaked to use custom images in /cvmfs/opensciencegrid.org/ 
+# if they are commented out +REQUIRED_OS above does the all the
+# singularity image selection based on values of $ce and $os 
+#
+#SINGULARITY_IMAGE_NULL = ""
+#SINGULARITY_IMAGE_6 = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"
+#SINGULARITY_IMAGE_7 = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
+#SINGULARITY_JOB = ((TARGET.HAS_SINGULARITY) && ($(SINGULARITY_IMAGE) =!= $(SINGULARITY_IMAGE_NULL)))
+#SINGULARITY_IMAGE = ("$(os)" =?= "rhel6") ? $(SINGULARITY_IMAGE_6) : (("$(os)" =?= "rhel7") ? $(SINGULARITY_IMAGE_7) : $(SINGULARITY_IMAGE_NULL))
+#+SingularityImage = $(SINGULARITY_IMAGE)
+#+SingularityJob = $(SINGULARITY_JOB)
+#+SingularityBindCVMFS = $(SINGULARITY_JOB)
+
+#### 'constants' ###########
+universe = vanilla
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+x509userproxy=/tmp/grid_proxy
+Requirements = stringListMember(GLIDEIN_Site,DESIRED_Sites) && (Arch == "INTEL" || Arch == "X86_64") 
++SingularityJob = True
+
+####  now change ce and os to get what we want #######
+ce = el6_osg33
+os = rhel6
+queue 
+os = sl6
+queue
+
+ce = el6_osg34
+os = rhel6
+queue 
+os = rhel7
+queue
+
+ce = el7_osg33
+os = rhel6
+queue 
+os = rhel7
+queue
+
+ce = el7_osg34
+os = rhel6
+queue 
+os = rhel7
+queue
+os = sl7
+queue

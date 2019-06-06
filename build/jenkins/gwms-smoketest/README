@@ -1,0 +1,7 @@
+The files in this directory implement automated installation and testing
+of glideinwms factory and frontend on fermicloud.fnal.gov
+
+Documentation:
+https://cdcvs.fnal.gov/redmine/projects/glideinwms/wiki/GlideinwmsTesting
+smoke_test.sh --help 
+deploy_glideinwms.sh --help

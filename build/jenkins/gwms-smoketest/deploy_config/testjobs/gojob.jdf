@@ -1,0 +1,28 @@
+universe = vanilla
+
+executable = /home/testuserparag/testjobs/info-from-go.sh
+
+initialdir = /home/testuserparag/testjobs/joboutput
+output = out.$(cluster).$(process)
+error = err.$(cluster).$(process)
+log = log.$(cluster).$(process)
+
+should_transfer_files = YES
+
+# Input files
+transfer_input_files = globusonline://parag:paragtest:/grid/data/parag/data
+#transfer_input_files = /grid/data/parag/data
+
+# Output sandbox transfer
+when_to_transfer_output = ON_EXIT_OR_EVICT
+output_destination = globusonline://parag:paragtest:/grid/data/parag/uploaded_data-fnalgrid
+transfer_output_files = data_to_upload
+#transfer_output_remaps = "data_to_upload = globusonline://parag:paragtest:/grid/data/parag/uploaded_data"
+
+x509userproxy=/home/testuserparag/testjobs/x509up_u11017.fermilab
+
++DESIRED_Sites = "GR7x2"
+
+Requirements = (stringListMember(GLIDEIN_Site,DESIRED_Sites)) && (Disk > 0 && (Arch == "INTEL" || Arch == "X86_64"))
+
+queue

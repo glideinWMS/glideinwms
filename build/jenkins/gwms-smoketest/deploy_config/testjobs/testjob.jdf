@@ -1,0 +1,28 @@
+universe = vanilla
+
+executable = system-info.sh
+output = joboutput/out.$(cluster).$(process)
+error = joboutput/err.$(cluster).$(process)
+log = joboutput/log.$(cluster).$(process)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+
+#x509userproxy=/local/home/testuser/security/grid_proxy
+
+Requirements = (stringListMember(GLIDEIN_Site,DESIRED_Sites)) && (Disk > 0 && (Arch == "INTEL" || Arch == "X86_64"))
+
++DESIRED_Sites = "CMS_ITB_1"
+queue 5
+
++DESIRED_Sites = "CMS_ITB_4"
+queue 5
+
+#+DESIRED_Sites = "Fermicloud_PP"
+#queue 4
+
+#+DESIRED_Sites = "BOSCO_TEST_carver"
+#queue 10
+
+#+DESIRED_Sites = "Fermicloud-MultiSlots"
+#queue 10

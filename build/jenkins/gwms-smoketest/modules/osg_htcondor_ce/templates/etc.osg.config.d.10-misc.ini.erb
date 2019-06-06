@@ -1,0 +1,37 @@
+;===================================================================
+;                              Misc Services
+;===================================================================
+
+
+[Misc Services]
+; Should osg-configure edit /etc/lcmaps.db to configure authorization?
+; Set this to False if you've made manual changes to /etc/lcmaps.db that you
+; would like osg-configure to preserve
+edit_lcmaps_db = False
+;edit_lcmaps_db = True
+
+; This setting should be set to one of the following: vomsmap, xacml, gridmap
+; to indicate whether a voms-mapfile, gums with xacml, or gridmap files should be used
+;
+; By default, this is set to vomsmap. Using gums with xacml requires a gums_host to be
+; specified. However, gums is deprecated in OSG 3.4.
+authorization_method = vomsmap
+
+; Should vomsmap authorization look at all FQANs in a VOMS proxy or just the
+; first? Default is just the first
+;all_fqans = False
+
+; This setting should be set to the host used for gums host.
+; If your site is not using a gums host, you can set this to DEFAULT
+;gums_host = DEFAULT
+
+; Some OSG services (e.g., GUMS, RSV, OSG Info Services) require special service
+; certificate-key pairs.  The service certificate and key files must be owned by
+; the user that runs the corresponding service (e.g., "tomcat" for GUMS and OSG
+; Info Services, or "rsv" for RSV).  It is best to obtain separate service
+; certificates for this purpose.  However, if you want osg-configure to copy
+; your host certificate-key pair for each service certificate-key pair that does
+; not exist, set copy_host_cert_for_service_certs to True; otherwise, it
+; defaults to False.  NOTE: Having multiple copies of a private key owned by
+; separate users decreases the security of the private key.
+;copy_host_cert_for_service_certs = False

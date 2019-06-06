@@ -1,0 +1,16 @@
+{
+  "license": "Apache License, Version 2.0",
+  "dependencies": [
+
+  ],
+  "source": "built with selected files from old GCOS puppetrepo-jobsub and a tutorial at https://www.digitalocean.com/community/tutorials/how-to-create-a-puppet-module-to-automate-wordpress-installation-on-ubuntu-14-04 ",
+  "version": "0.0.1",
+  "types": [
+
+  ],
+  "description": "Install and configure a jobsub server in a Hurry. Configuration is variables in manifest/vars.pp",
+  "summary": "install and configure an osg client on a fermicloud node in a hurry",
+  "author": "Dennis D. Box, dbox@fnal.gov",
+  "name": "gwms-osg_client",
+  "project_page": "https://cdcvs.fnal.gov/redmine/projects/jobsub/wiki"
+}

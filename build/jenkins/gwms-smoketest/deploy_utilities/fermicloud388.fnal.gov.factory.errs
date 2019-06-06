@@ -1,0 +1,26 @@
+-------------------------------------------------------
+glideinwms-factory.noarch 3.4.5-1.osg34.el7 @osg 
+condor.x86_64 8.8.2-1.osgup.el7 @osg-upcoming
+-------------------------------------------------------
+-------------------------------------------------------
+gwms errors for fermicloud388.fnal.gov
+-------------------------------------------------------
+condor errors for fermicloud388.fnal.gov
+/var/log/condor/SchedLog.schedd_glideins4:06/06/19 15:20:28 (pid:7072) my_popenv: Failed to exec in child, errno=2 (No such file or directory)
+/var/log/condor/SchedLog.schedd_glideins4:06/06/19 15:20:28 (pid:7072) Failed to execute /usr/sbin/condor_shadow.std, ignoring
+/var/log/condor/SchedLog.schedd_glideins4:06/06/19 15:20:28 (pid:7072) Loaded 0 job factories, 0 were paused, 0 failed to load
+/var/log/condor/SchedLog:06/06/19 15:20:28 (pid:7068) my_popenv: Failed to exec in child, errno=2 (No such file or directory)
+/var/log/condor/SchedLog:06/06/19 15:20:28 (pid:7068) Failed to execute /usr/sbin/condor_shadow.std, ignoring
+/var/log/condor/SchedLog:06/06/19 15:20:28 (pid:7068) Loaded 0 job factories, 0 were paused, 0 failed to load
+/var/log/condor/MasterLog:06/06/19 15:20:25 SharedPortEndpoint: failed to open /var/log/condor/shared_port_ad: No such file or directory
+/var/log/condor/ScheddRestartReport:0 reconnects failed
+/var/log/condor/SchedLog.schedd_glideins5:06/06/19 15:20:28 (pid:7075) my_popenv: Failed to exec in child, errno=2 (No such file or directory)
+/var/log/condor/SchedLog.schedd_glideins5:06/06/19 15:20:28 (pid:7075) Failed to execute /usr/sbin/condor_shadow.std, ignoring
+/var/log/condor/SchedLog.schedd_glideins5:06/06/19 15:20:28 (pid:7075) Loaded 0 job factories, 0 were paused, 0 failed to load
+/var/log/condor/SchedLog.schedd_glideins3:06/06/19 15:20:28 (pid:7070) my_popenv: Failed to exec in child, errno=2 (No such file or directory)
+/var/log/condor/SchedLog.schedd_glideins3:06/06/19 15:20:28 (pid:7070) Failed to execute /usr/sbin/condor_shadow.std, ignoring
+/var/log/condor/SchedLog.schedd_glideins3:06/06/19 15:20:28 (pid:7070) Loaded 0 job factories, 0 were paused, 0 failed to load
+/var/log/condor/SchedLog.schedd_glideins2:06/06/19 15:20:28 (pid:7069) my_popenv: Failed to exec in child, errno=2 (No such file or directory)
+/var/log/condor/SchedLog.schedd_glideins2:06/06/19 15:20:28 (pid:7069) Failed to execute /usr/sbin/condor_shadow.std, ignoring
+/var/log/condor/SchedLog.schedd_glideins2:06/06/19 15:20:28 (pid:7069) Loaded 0 job factories, 0 were paused, 0 failed to load
+-------------------------------------------------------

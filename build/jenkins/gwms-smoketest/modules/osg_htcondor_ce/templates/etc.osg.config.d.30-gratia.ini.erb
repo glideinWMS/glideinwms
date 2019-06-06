@@ -1,0 +1,51 @@
+;===================================================================
+;                         Gratia
+;===================================================================
+
+[Gratia]
+
+; Default gratia servers
+; 
+; Please don't change these unless you have good reason to do so
+
+; Variables for osg itb probes, CE installations should use the 
+; jobmanager probe
+itb-jobmanager-gratia = jobmanager:gratia-osg-itb.opensciencegrid.org:80
+itb-gridftp-gratia = gridftp:gratia-osg-itb.opensciencegrid.org:80
+
+
+; Variables for osg production probes, CE installations should use the 
+; jobmanager probe
+osg-jobmanager-gratia = jobmanager:gratia-osg-prod.opensciencegrid.org:80
+osg-gridftp-gratia = gridftp:gratia-osg-transfer.opensciencegrid.org:80
+    
+
+; The enable option indicates whether gratia should be enabled or 
+; disabled.  It should be set to True or False
+;
+; You generally want Gratia enabled for any CE installation, in 
+; addition SE installations may want to enable gratia to use 
+; the gratia gridftp reporting
+enabled = FALSE
+
+
+; This setting specifies the resource that gratia will use to report
+; accounting information, on a CE if you leave this blank, gratia will
+; use the resource setting from the Site Information section
+;
+resource = DEFAULT
+
+; This setting indicates which probes should be enabled for gratia
+; The list should be given as probe_name1:host1:port1, probe_name2:host2:port2 
+; where probe_name is either jobmanager or gridftp
+; host is a fully qualified domain name
+; port is the port that the server is listening on
+; CEs should have entries for jobmanager probe
+; SEs should use gridftp if they would like to enable gridftp transfer
+; accounting 
+;
+; for convenience admins can use %(osg-jobmanager-gratia)s, and
+; %(osg-gridftp-gratia)s for production sites
+; and %(itb-jobmanager-gratia)s, and %(itb-gridftp-gratia)s for ITB sites
+probes = DEFAULT
+

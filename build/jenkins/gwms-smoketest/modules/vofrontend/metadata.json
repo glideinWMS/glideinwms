@@ -1,0 +1,16 @@
+{
+  "license": "Apache License, Version 2.0",
+  "dependencies": [
+
+  ],
+  "source": "",
+  "version": "0.0.1",
+  "types": [
+
+  ],
+  "description": "Install and configure a gwms vofrontend in a Hurry. Configuration is variables in manifest/vars.pp",
+  "summary": "install and configure a gwms vofrontend on a fermicloud node in a hurry",
+  "author": "Dennis D. Box, dbox@fnal.gov",
+  "name": "gwms-vofrontend",
+  "project_page": "https://glideinwms.fnal.gov"
+}

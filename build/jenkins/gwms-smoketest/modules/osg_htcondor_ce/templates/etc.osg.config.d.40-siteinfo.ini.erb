@@ -1,0 +1,83 @@
+;===================================================================
+;                       Site Information
+;===================================================================
+
+[Site Information]
+; The group option indicates the group that the OSG site should be listed in,
+; for production sites this should be OSG, for vtb or itb testing it should be
+; OSG-ITB
+; 
+; YOU WILL NEED TO CHANGE THIS
+group = OSG-ITB
+
+; The host_name setting should give the host name of the CE  that is being 
+; configured, this setting must be a valid dns name that resolves
+; 
+; YOU WILL NEED TO CHANGE THIS
+host_name = <%= scope.lookupvar('::fqdn') %>
+resource = MMTEST-FC1-CE1
+resource_group = MMTEST-FC1
+sponsor = uscms
+contact = Marco Mambelli
+email = marcom@fnal.gov
+city = Batavia
+country = USA
+longitude = 88
+latitude = 42
+
+
+
+; The resource setting should be set to the same value as used in the OIM 
+; registration at the goc 
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+
+; The resource_group setting should be set to the same value as used in the OIM 
+; registration at the goc 
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The sponsor setting should list the sponsors for your cluster, if your cluster
+; has multiple sponsors, you can separate them using commas or specify the 
+; percentage using the following format 'osg, atlas, cms' or 
+; 'osg:10, atlas:45, cms:45'  
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The site_policy setting should give an url that lists your site's usage
+; policy 
+site_policy = UNAVAILABLE
+
+; The contact setting should give the name of the admin/technical contact
+; for the cluster
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The email setting should give the email address for the technical contact
+; for the cluster 
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The city setting should give the city that the cluster is located in
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The country setting should give the country that the cluster is located in
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The longitude setting should give the longitude for the cluster's location
+; if you are in the US, this should be negative
+; accepted values are between -180 and 180
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The latitude setting should give the latitude for the cluster's location
+; accepted values are between -90 and 90
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; This option has been deprecated and should not be used.  It has been replaced 
+; by the resource and resource_group settings
+; site_name = UNAVAILABLE

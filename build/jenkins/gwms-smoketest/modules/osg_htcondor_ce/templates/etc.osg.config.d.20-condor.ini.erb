@@ -1,0 +1,26 @@
+;===================================================================
+;                             Condor
+;===================================================================
+
+
+[Condor]
+; This section has settings for configuring your CE for an HTCondor job manager
+
+; The enabled setting indicates whether you want your CE to use an HTCondor job
+; manager.
+; valid answers are True or False
+enabled = TRUE
+
+; The condor_location setting should give the location of condor install directory.
+; If you are using an RPM installation of HTCondor, set this to DEFAULT.
+; Otherwise, set this to the root directory of the HTCondor install,
+; such that $CONDOR_LOCATION/bin contains the condor binaries.
+condor_location = DEFAULT
+
+; The condor_config setting should give the location of condor config file.
+; If you are using an RPM installation of HTCondor, or wish osg-configure to
+; detect the correct value, set this to DEFAULT.
+; On an RPM install of HTCondor, this file is located at /etc/condor/condor_config.
+; On a tarball install of HTCondor, this file is typically located at
+; $CONDOR_LOCATION/etc/condor_config.
+condor_config = DEFAULT

@@ -1,0 +1,75 @@
+<glidein>
+    <entries>
+      <entry name="el7_osg34" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud378.fnal.gov fermicloud378.fnal.gov:9619" gridtype="condor" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100"/>
+               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="__CONDOR_ARCH2__"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="__CONDOR_OS2__"/>
+            <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="__CONDOR_VERSION2__"/>
+            <attr name="GLIDEIN_SINGULARITY_REQUIRE" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="PREFERRED"/> 
+            <attr name="SINGULARITY_BIN" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="/usr/bin"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="el7_osg34"/>
+            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="OSG"/>
+            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+      <entry name="el7_osg33" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud127.fnal.gov fermicloud127.fnal.gov:9619" gridtype="condor" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100"/>
+               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <per_frontends>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable">
+               <submit_attrs>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="__CONDOR_ARCH2__"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="__CONDOR_OS2__"/>
+            <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="__CONDOR_VERSION2__"/>
+            <attr name="GLIDEIN_SINGULARITY_REQUIRE" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="PREFERRED"/> 
+            <attr name="SINGULARITY_BIN" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="/usr/bin"/>
+            <attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="2"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="el7_osg33"/>
+            <attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="OSG"/>
+            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+   </entries>
+</glidein>

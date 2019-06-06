@@ -1,0 +1,23 @@
+;===================================================================
+;                         Info Services
+;===================================================================
+;
+[Info Services]
+
+; The enable option indicates whether the OSG info services should be enabled or
+; disabled.  It should be set to True or False
+;
+; You generally want OSG info services enabled for any CE installation
+enabled = TRUE
+
+; This setting indicates which servers HTCondor-CE information
+; should be sent to. These servers should be running a
+; condor-ce-collector daemon. Set this to a comma-separated
+; list of hostname:port combinations. The default collector port
+; 9619 will be used if not specified. You can also use one of these
+; special values:
+; 'PRODUCTION' : OSG production servers
+; 'ITB'        : OSG testing servers
+; 'DEFAULT'    : OSG testing servers if this is an ITB site,
+;                production otherwise
+ce_collectors = <%= scope.lookupvar('::fqdn') %>

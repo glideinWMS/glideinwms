@@ -1,0 +1,30 @@
+;===================================================================
+;                            Gateway
+;===================================================================
+
+
+[Gateway]
+; This section has settings for selecting and configuring the daemon
+; on your CE that sends jobs to other job managers on your CE,
+; called the job gateway (or just gateway). As of Nov. 2006, this is
+; HTCondor-CE (from the htcondor-ce package).
+;
+; In addition to enabling the gateways on a CE, these settings are
+; used to tell other services, such as the various job managers and
+; RSV, which gateways are being used.
+;
+; This setting configures the services that use the gateway to
+; use HTCondor-CE. The following things will happen if this is
+; set to True:
+;   - RSV will be configured to use HTCondor-CE (via Condor-G) to
+;     run remote probes.
+;   - RSV will be configured to run probes that test the
+;     functionality of condor-ce.
+;   - HTCondor-CE will be configured to work with the job managers
+;     that are enabled in the other config files.
+htcondor_gateway_enabled = True
+
+
+; This is the value of the environment variable PATH that gets
+; set for jobs; it will get added to osg-job-environment.conf
+job_envvar_path=/bin:/usr/bin:/sbin:/usr/sbin

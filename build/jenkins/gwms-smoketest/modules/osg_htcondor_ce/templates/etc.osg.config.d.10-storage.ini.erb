@@ -1,0 +1,63 @@
+;===================================================================
+;                            Storage 
+;===================================================================
+
+[Storage]
+;
+; Several of these values are constrained and need to be set in a way
+; that is consistent with one of the OSG storage models
+;
+; Please refer to the OSG release documentation for an indepth explanation 
+; of the various storage models and the requirements for them
+
+; If you have a SE available for your cluster and wish to make it available 
+; to incoming jobs, set se_available to True, otherwise set it to False
+se_available = FALSE
+
+; If you indicated that you have an se available at your cluster, set default_se to
+; the hostname of this SE, otherwise set default_se to UNAVAILABLE
+default_se = UNAVAILABLE
+
+; The grid_dir setting should point to the directory which holds the files 
+; from the OSG worker node package, it should be visible on all of the computer
+; nodes (read access is required, worker nodes don't need to be able to write) 
+; 
+; For RPM installations, /etc/osg/wn-client is the correct location
+grid_dir = /etc/osg/wn-client/
+
+; The app_dir setting should point to the directory which contains the VO 
+; specific applications, this should be visible on both the CE and worker nodes
+; but only the CE needs to have write access to this directory
+;
+; This corresponds to the OSG_APP environment variable in jobs. Set
+; this to UNSET to explicitly unset it
+; 
+; YOU WILL NEED TO CHANGE THIS
+app_dir = /opt/osg/app
+data_dir = /opt/osg/data
+worker_node_temp = /tmp
+
+; The data_dir setting should point to a directory that can be used to store 
+; and stage data in and out of the cluster.  This directory should be readable
+; and writable on both the CE and worker nodes
+; 
+; as scratch space on compute nodes, it should allow read and write access on the 
+; worker nodes but can be local to each worker node
+; 
+; If you have setup your job manager to dynamically set this for jobs, set this 
+; to UNAVAILABLE.  However, you must make sure that this variable is set when
+; OSG jobs run otherwise jobs will most likely fail
+; 
+; YOU WILL NEED TO CHANGE THIS
+
+; The site_read setting should be the location or url to a directory that can 
+; be read to stage in data, this is an url if you are using a SE 
+; 
+; YOU WILL NEED TO CHANGE THIS
+site_read = UNAVAILABLE
+
+; The site_write setting should be the location or url to a directory that can 
+; be write to stage out data, this is an url if you are using a SE 
+; 
+; YOU WILL NEED TO CHANGE THIS
+site_write = UNAVAILABLE
