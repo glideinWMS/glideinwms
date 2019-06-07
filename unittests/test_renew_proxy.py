@@ -39,7 +39,7 @@ class TestUtils(unittest.TestCase):
                          'glow-voms.cs.wisc.edu:15001')]:
             self.assertEqual(uri_map[dn], uri)
 
-    @mock.patch('frontend.gwms_renew_proxies._run_command')
+    @mock.patch('glideinwms.frontend.gwms_renew_proxies._run_command')
     def test_voms_proxy_init(self, mock_run_command):
         mock_proxy = mock.MagicMock()
         proxy.voms_proxy_init(mock_proxy)
@@ -47,7 +47,7 @@ class TestUtils(unittest.TestCase):
         for option in ('-voms', '-order'):
             self.assertNotIn(option, mock_run_command.call_args[0][0])
 
-    @mock.patch('frontend.gwms_renew_proxies._run_command')
+    @mock.patch('glideinwms.frontend.gwms_renew_proxies._run_command')
     def test_voms_proxy_init_with_voms(self, mock_run_command):
         mock_proxy = mock.MagicMock()
         mock_voms_attr = mock.Mock()
