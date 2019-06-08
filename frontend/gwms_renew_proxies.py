@@ -73,6 +73,7 @@ class Proxy(object):
         """
         os.remove(self.tmp_output_fd.name)
 
+
 class VO(object):
     """Class for holding information related to VOMS attributes
     """
