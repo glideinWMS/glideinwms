@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_5_rc2
+# GLIDEINWMS_VERSION v3_5
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -11,9 +11,9 @@ bc64a9bef89ad31152ae8d2b139bbb7a  ./build/ReleaseManager/osg-release.sh
 5266903b688a0ac13777c12715329cf1  ./build/jenkins/pylintrc
 953939a9869ba8689cb7f6d36e455733  ./build/jenkins/run_autopep8.sh
 336e51e58462eae7e706098606e9ceec  ./build/jenkins/run_coverage.sh
-ca43f38c0bf89210ceb4079dd3e3ceca  ./build/jenkins/run_futurize.sh
-a716b9dbe8ba2127b59b08799e80ab7f  ./build/jenkins/run_pylint.sh
-e53a88d32f868207ef81c54637a8e39c  ./build/jenkins/utils.sh
+1008608b8062d72d7994467dc4295c33  ./build/jenkins/run_futurize.sh
+c0491a494e3d62aa89b5d9ab77612314  ./build/jenkins/run_pylint.sh
+2ac6fe4075953887b71b4568af2a1d20  ./build/jenkins/utils.sh
 0d3cb8ad73989679bdfe5bc42e767e4f  ./build/packaging/rpm/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/factory_startup_sl7
@@ -21,7 +21,7 @@ f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/frontend_startup_sl7
 6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
-65f0c3e769558a7e2966198917078013  ./build/packaging/rpm/glideinwms.spec
+8d5a3e58a4309e7c828bf3e9318eace0  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 93f22759bb6a1b49c5d511426553b115  ./build/packaging/rpm/gwms-factory.sysconfig
 3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
@@ -192,7 +192,7 @@ ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
 64df1882c71f9a213e0e8a1198e1baff  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py
 707d33863d360b57057ec2595e6f401e  ./frontend/glideinFrontendPlugins.py
-09aa13f0f9bf9dfeca53cc0b18f1f712  ./frontend/gwms_renew_proxies.py
+fc22a780071d1f7a59eb68d93ef81549  ./frontend/gwms_renew_proxies.py
 5939db763ca77ae3c89a70f6374ed413  ./frontend/manageFrontendDowntimes.py
 fdbb766bde4ef0562efac10c4e0c3bfd  ./frontend/stopFrontend.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/__init__.py
