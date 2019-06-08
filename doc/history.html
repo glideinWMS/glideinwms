@@ -813,6 +813,10 @@ COLLECTOR.USE_SHARED_PORT=False
             <li>Bug fix: Incorrect exception handling glideinFrontendElement.py::populate_pubkey</li>
             <li>Bug fix: Entries in downtime setting seems not to work correctly</li>
             <li>Bug fix: GlideinWMS proxy renewal service broken for Xenon</li>
+	    <li>NOTE: v3_5 and v3_4 are fully interoperable. I.e. You can mic v3_5 and v3_4_x Factories and Frontends in your system</li>
+	    <li>NOTE-FACTORY: The v3.5 Factory is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to: 
+          1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. 
+	  For detailed instructions see: <a href="http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user">http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user</a></li>
         </ul>
       </li>
       <li>

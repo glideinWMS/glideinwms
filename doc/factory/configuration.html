@@ -71,6 +71,8 @@
         <LI><A HREF="#example_configuration">Example Configuration</A>
         <LI><A HREF="#args">Configuration File</A>
         <LI><A HREF="#metasites">Grouping entries into metasites</A>
+        <li><a href="#single_user">Single user (upgrade to 3.5)</a> </li>
+        <li><a href="#singularity">Singularity</a> </li>
         <li><a href="#glexec">glExec</a> </li>
         <li><a href="#private_net">Private Networks</a> </li>
         <li><a href="#security">Security</a> </li>
@@ -1195,7 +1197,7 @@ of glidein pools will be presented.
 
 <div class="section">
 <H3 CLASS="western">
-<A NAME="private_net"></A>Migration process for the removal of dependency of condor_root_switchboard</H3>
+<A NAME="single_user"></A>Migration process for the removal of dependency of condor_root_switchboard (Upgrade to v3.5)</H3>
 
 <P> Starting v3.5, GlideinWMS stopped supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs run under a single user (gfactory) to eliminate
     the need of switchboard and setuid/user-switching. Thus, all glideins will run using the Factory user (no more separated users per-VO).
