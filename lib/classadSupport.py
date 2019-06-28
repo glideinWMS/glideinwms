@@ -12,13 +12,15 @@ from __future__ import absolute_import
 import os
 import time
 import string
-from . import logSupport
-from . import condorManager
+from glideinwms.lib import logSupport
+from glideinwms.lib import condorManager
 
 
 ###############################################################################
 # Generic Classad Structure
 ###############################################################################
+# TODO: Use Classad class from Python bindings
+# TODO: Next month review -> migration to python bindings
 
 class Classad(object):
     """
@@ -124,7 +126,6 @@ class ClassadAdvertiser:
     It contains a dictionary of classads keyed by the classad name and 
     functions to do advertisement and invalidation of classads
     """
-
 
     def __init__(self, pool=None, multi_support=False, tcp_support=False):
         """
@@ -232,7 +233,7 @@ class ClassadAdvertiser:
         @param fname: File name containing classad(s)
         """
 
-        if (fname) and (fname != ""):
+        if fname:
             try:
                 exe_condor_advertise(fname, self.adAdvertiseCmd, self.pool,
                                      is_multi=self.multiAdvertiseSupport,
@@ -240,7 +241,7 @@ class ClassadAdvertiser:
             finally:
                 os.remove(fname)
         else:
-            raise RuntimeError('Failed advertising %s classads' % self.adType)
+            raise RuntimeError('Failed advertising %s classads. Invalid Ad file name %s.' % (self.adType, fname))
 
 
     def advertiseClassads(self, ads=None):
@@ -251,7 +252,7 @@ class ClassadAdvertiser:
         @param ads: classad names to advertise
         """
 
-        if (ads is None) or (len(ads) == 0) :
+        if (ads is None) or (len(ads) == 0):
             logSupport.log.info("There are 0 classads to advertise")
             return
 
@@ -291,7 +292,7 @@ class ClassadAdvertiser:
         """
         Invalidate the classad from the pool
         
-        @type type: string 
+        @type type: string (classad name/key in self.classads)
         @param type: Name of the classad
         """
 
