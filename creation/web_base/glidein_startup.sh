@@ -49,7 +49,7 @@ function warn {
 
 # Functions to start multiple glideins
 function copy_all {
-   # 1:prefix, 2:directory
+   # 1:prefix (of the files to skip), 2:directory
    # should it copy also hidden files?
    mkdir "$2"
    for ii in `ls`; do
@@ -61,22 +61,31 @@ function copy_all {
 }
 
 function do_start_all {
+    # 1:number of glideins
+    # GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set. command to start all Glideins at once (multirestart 0)
+    # GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set, command to start the individual Glideins
     local num_glideins=$1
     local initial_dir="$(pwd)"
     local startup_script="$GWMS_STARTUP_SCRIPT"
-    if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
-        startup_script="./$(basename "$startup_script")"
-    fi
-    for i in `seq 1 $num_glideins`; do
-        g_dir="glidein_dir$i"
-        copy_all glidein_dir "$g_dir"
-        echo "Starting glidein $i in $g_dir"
-        pushd "$g_dir"
-        chmod +x "$startup_script"
-        "$startup_script" -multirestart $i $global_args &
+    if [[ -n "$GLIDEIN_MULTIGLIDEIN_LAUNCHALL" ]]; then
+        echo "Starting multi-glidein using launcher: $GLIDEIN_MULTIGLIDEIN_LAUNCHALL"
+        "$GLIDEIN_MULTIGLIDEIN_LAUNCHALL" "$startup_script" -multirestart 0 $global_args &
         GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
-        popd
-    done
+    else
+        if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
+            startup_script="./$(basename "$startup_script")"
+        fi
+        for i in `seq 1 $num_glideins`; do
+            g_dir="glidein_dir$i"
+            copy_all glidein_dir "$g_dir"
+            echo "Starting glidein $i in $g_dir ${GLIDEIN_MULTIGLIDEIN_LAUNCHER:+"with launcher $GLIDEIN_MULTIGLIDEIN_LAUNCHER"}"
+            pushd "$g_dir"
+            chmod +x "$startup_script"
+            "$GLIDEIN_MULTIGLIDEIN_LAUNCHER" "$startup_script" -multirestart $i $global_args &
+            GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
+            popd
+        done
+    fi
 }
 
 function usage {

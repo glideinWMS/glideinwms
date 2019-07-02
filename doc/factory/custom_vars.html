@@ -897,10 +897,69 @@ They cannot be changed by an administrator in any other way.
 </TABLE>
 </div>
 <div class="section">
+<H3><A NAME="factory_frontend_vars"></A>Frontend Client Variables</H3>
+<P>The third set of values comes from the Glidein Factory or Frontend
+configuration. While a client can set any number of variables, the ones
+described below are the most often used. The value set in the factory can be overridden by the Frontend.</P>
+<TABLE class="attributes">
+    <TR class="head">
+        <td> <b>Name</b> </td>
+
+        <td> <b>Type</b> </td>
+        <td> <b>Description</b> </td>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
+
+        <TD> Int </TD>
+        <TD>
+            <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
+                (similar to multinode submission, but is all on one node).
+                Unlsess GLIDEIN_MULTIGLIDEIN_LAUNCHALL is set, then a single invocation
+                is used, expecting the system to handle the spawning.</P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
+
+        <TD> String </TD>
+        <TD>
+            <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
+                Defines a launcher program that is added at the
+            beginning of the command line when each multiple Glidein instance is started.
+            NOTE: parameter and job_publish should be both True for this attribute.</P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
+
+        <TD> String </TD>
+        <TD>
+            <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
+                followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute. </P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Collector</b> </td>
+
+        <TD> Expr (List) </TD>
+        <TD>
+            <P>List of Collector URIs used by the VO Condor pool (like
+                &ldquo;cc.cms.edu:9620,cc.cms.edu:9621&rdquo;).</P>
+                <P>One of the URIs in the list will be selected and used as
+                <B>HEAD_NODE</B> in the condor_config.</P>
+        </TD>
+
+    </TR>
+</TABLE>
+</div>
+
+<div class="section">
 <H3><A NAME="frontend_vars"></A>Frontend Client Variables</H3>
 <P>The third set of values comes from the Glidein Frontend
 clients. While a client can set any number of variables, the ones
-described below ar the most often used.</P>
+described below are the most often used.</P>
 <TABLE class="attributes">
     <TR class="head">
         <td> <b>Name</b> </td>
