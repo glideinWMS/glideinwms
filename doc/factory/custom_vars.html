@@ -1151,7 +1151,14 @@ described below are the most often used.</P>
             <p>CLAIM_WORKLIFE for dynamically partitionable slots. Defaults to 3600. This controls how frequently the dynamically partionable slots will coalesce.
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Custom_Start</b> </td>
+        <td> Expr (Bool) </TD>
 
+        <TD>
+            <p>Default to true. An expression that gets appended to the start expression of the startd daemons that the pilots starts on the worker node. Any frontend validation script can modify this and customize the set of user jobs that are matching. This is useful in order to have only a certain set of user jobs (e.g.: only montecarlo jobs) mathing pilots at particular resources (e.g.: sites with slow network/disk)
+        </TD>
+    </TR>
 </TABLE>
 </div>
 
