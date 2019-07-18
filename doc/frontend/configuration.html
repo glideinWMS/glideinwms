@@ -739,18 +739,17 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="group_config" />
         <div class="xml">
-        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;config&gt;
+            &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;config ignore_down_entries=&quot;<I>boolean</I>&quot; &gt;
         </div>
-    The parameters listed here regulate how aggressive should the frontend be
-    in trying to provision glideins when it sees idle user jobs.<br>
-    <ul>
-     <li><b>ignore_down_entries</b> determines the behavior of the frontend when one of the factory entry is in downtime, i.e.,
-         the GLIDEIN_In_Downtime attribute is set for the entry. If ignore_down_entries is false, then the entry is considered
+        <br>The attribute <b>ignore_down_entries</b> determines the behavior of frontend groups when one of the factory entries is in downtime, i.e.,
+         the GLIDEIN_In_Downtime attribute is set for the entry. If ignore_down_entries is False or missing entirely, then the entry is considered
          for accounting purposes. This means that if there are 100 user jobs, and two entries A and B, and A is in downtime,
          then the frontend will request 50 idle jobs for B (and 50 will go in the downtime category).
          If ignore_down_entries is True instead, then A will be ignored and the frontend will request 100 jobs for B.
-         The attribute can be set either in the global or the group section (group values overwrite global ones). The default value is False.
-     </li>
+         This attribute can be set both in the global section and here in the group section. Group values overwrite global ones. If not set in the global section and here, the default value is False.
+         <br><br>The elements listed here are parameters for a group section that regulate how aggressive this group should be
+         in trying to provision glideins when it sees idle user jobs.<br>
+    <ul>
      <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how
          aggressive the provisioning requests should be.<br>
          The number specified in <b>max</b> is the highest number of idle/pending
@@ -921,9 +920,15 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="global_config" />
         <div class="xml">
-        &lt;frontend&gt;&lt;config&gt;
+        &lt;frontend&gt;&lt;config ignore_down_entries=&quot;<I>boolean</I>&quot;&gt;
         </div>
-    The parameters listed here regulate the throttling of the provisioning requests.<br>
+        <br>The attribute <b>ignore_down_entries</b> in this element determines the default behavior of frontend groups when one of the factory entries is in downtime, i.e.,
+         the GLIDEIN_In_Downtime attribute is set for the entry. If ignore_down_entries is False or missing entirely, the entry is considered
+         for accounting purposes. This means that if there are 100 user jobs, and two entries A and B, and A is in downtime,
+         then  by default frontend groups will request 50 idle jobs for B (and 50 will go in the downtime category).
+         If ignore_down_entries is True instead, then A will be ignored and the frontend will request 100 jobs for B.
+         This attribute can be set either here in the global section or in group sections. Group values override global ones. The default value in this section is False.
+         <br><br>The elements listed here are parameters for this section that regulate the global throttling of the provisioning requests.<br>
     <ul>
      <li>The first two elements are used to throttle requests if the glideins (and startds in general)
          are not matched to the user jobs, either due to a mismatch in policy or system overload (counted as number of slots)<br>
