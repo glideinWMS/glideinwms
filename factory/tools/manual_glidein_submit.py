@@ -190,7 +190,7 @@ def main():
 
         # Now that we have everything submit the pilot!
         logging.getLogger().setLevel(logging.DEBUG)
-        res = submitGlideins(entry_name, "test.test", int(nr_glideins), idle_lifetime,
+        submitGlideins(entry_name, "test.test", int(nr_glideins), idle_lifetime,
                        "test:test", credentials, client_web, params,
                        status_sf, log=logging.getLogger(), factoryConfig=factory_config)
 
