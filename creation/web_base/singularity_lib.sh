@@ -60,7 +60,9 @@
 #   will be used before the other possible locations
 # Additional options for the Singularity invocation
 # GLIDEIN_SINGULARITY_OPTS
-# NOTE: GLIDEIN_SINGULARITY_OPTS must be expansion/flattening safe because is passed as veriable and quoted strings inside it are not preserved
+# GLIDEIN_SINGULARITY_GLOBAL_OPTS
+# NOTE: GLIDEIN_SINGULARITY_OPTS and GLIDEIN_SINGULARITY_GLOBAL_OPTS must be expansion/flattening safe because
+#       is passed as veriable and quoted strings inside it are not preserved
 
 OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/el67-x86_64/bin/singularity"
 
@@ -560,8 +562,8 @@ function singularity_exec_simple {
     #  1 - singularity bin
     #  2 - Singularity image path
     #  3 ... - Command to execute and its arguments
-    #  PWD, GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_OPTS
-    # NOTE: GLIDEIN_SINGULARITY_OPTS must be expansion/flattening safe (see above)
+    #  PWD, GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_OPTS, GLIDEIN_SINGULARITY_GLOBAL_OPTS
+    # NOTE: GLIDEIN_SINGULARITY_OPTS and GLIDEIN_SINGULARITY_GLOBAL_OPTS must be expansion/flattening safe (see above)
 
     # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
@@ -569,7 +571,8 @@ function singularity_exec_simple {
     local singularity_bin="$1"
     local singularity_image="$2"
     shift 2
-    singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" "$GLIDEIN_SINGULARITY_OPTS" "" "${@}"
+    singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" "$GLIDEIN_SINGULARITY_OPTS" \
+                     "$GLIDEIN_SINGULARITY_GLOBAL_OPTS" "" "${@}"
 }
 
 
@@ -581,7 +584,8 @@ function singularity_exec {
     #  2 - Singularity image path (constraints checked outside)
     #  3 - Singularity binds (constraints checked outside)
     #  4 - Singularity extra options (NOTE: this is not quoted, so spaces will be interpreted as separators)
-    #  5 - Execution options: exec (exec singularity)
+    #  5 - Singularity global options, before the exec command (NOTE: this is not quoted, so spaces will be interpreted as separators)
+    #  6 - Execution options: exec (exec singularity)
     #  PWD
     # Out:
     # Return:
@@ -591,30 +595,31 @@ function singularity_exec {
     local singularity_image="$2"
     local singularity_binds="$3"
     local singularity_extra_opts="$4"
-    local execution_opt="$5"
+    local singularity_global_opts="$5"
+    local execution_opt="$6"
     [ -z "$singularity_image" ] || [ -z "$singularity_bin" ] && { warn "Singularity image or binary empty. Failing to run Singularity "; false; return; }
     shift 5
 
     # Make sure that ALL invocation strings and debug printout are same/consistent
     # Quote all the path strings ($PWD, $singularity_bin, ...) to deal with a path that contains whitespaces
     # CMS is not using "--home $PWD:/srv", OSG is
-    info_dbg  "$execution_opt \"$singularity_bin\" exec --home \"$PWD\":/srv --pwd /srv --ipc --pid " \
-            "${singularity_binds:+"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
+    info_dbg  "$execution_opt \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
+            "--ipc --pid -c ${singularity_binds:+"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
             "\"$singularity_image\"" "${@}"
     local error
     if [[ ",$execution_opt," = *",exec,"* ]]; then
-        exec "$singularity_bin" exec --home "$PWD":/srv --pwd /srv --ipc --pid \
-            ${singularity_binds:+"--bind" "$singularity_binds"} $singularity_extra_opts \
+        exec "$singularity_bin" $singularity_global_opts exec --home "$PWD":/srv --pwd /srv \
+            --ipc --pid -c ${singularity_binds:+"--bind" "$singularity_binds"} $singularity_extra_opts \
             "$singularity_image" "${@}"
         error=$?
-        [ -n "$_CONDOR_WRAPPER_ERROR_FILE" ] && echo "Failed to exec singularity ($error): exec \"$singularity_bin\" exec --home \"$PWD\":/srv --pwd /srv " \
-            "${singularity_binds:+"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
+        [ -n "$_CONDOR_WRAPPER_ERROR_FILE" ] && echo "Failed to exec singularity ($error): exec \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
+            "--ipc --pid -c ${singularity_binds:+"--bind" "\"$singularity_binds\""} $singularity_extra_opts" \
             "\"$singularity_image\"" "${@}" >> $_CONDOR_WRAPPER_ERROR_FILE
         warn "exec of singularity failed: exit code $error"
         return $error
     else
-        "$singularity_bin" exec --home "$PWD":/srv --pwd /srv --ipc --pid \
-            ${singularity_binds:+"--bind" "$singularity_binds"} $singularity_extra_opts \
+        "$singularity_bin" $singularity_global_opts exec --home "$PWD":/srv --pwd /srv \
+            --ipc --pid -c ${singularity_binds:+"--bind" "$singularity_binds"} $singularity_extra_opts \
             "$singularity_image" "${@}"
         return $?
     fi
@@ -635,16 +640,19 @@ function singularity_test_exec {
     # Out:
     # Return:
     #  true - Singularity OK
-    #  false - Singularity not working or empty bin/image
+    #  false - Test failing. Singularity not working or empty bin/image
     # E.g. if ! singularity_test_exec "$GWMS_SINGULARITY_IMAGE" "$GWMS_SINGULARITY_PATH" ; then
     local singularity_image="${1:-$GWMS_SINGULARITY_IMAGE_DEFAULT}"
     local singularity_bin="${2:-$GWMS_SINGULARITY_PATH_DEFAULT}"
     [ -z "$singularity_image" ] || [ -z "$singularity_bin" ] &&
             { info "Singularity image or binary empty. Test failed "; false; return; }
     # If verbose, make also Singularity verbose
-    [ -n "$GLIDEIN_DEBUG_OUTPUT" ] && export GLIDEIN_SINGULARITY_OPTS="-vvv -d $GLIDEIN_SINGULARITY_OPTS"
+    [ -n "$GLIDEIN_DEBUG_OUTPUT" ] && export GLIDEIN_SINGULARITY_GLOBAL_OPTS="-vvv -d $GLIDEIN_SINGULARITY_GLOBAL_OPTS"
+    # A previous test was working only in some singularity versions: printenv | grep "$singularity_bin"
+    # true will be successful also with a binary named singularity that is not really singularity as long as it
+    # returns true. Acceptable risk
     if (singularity_exec_simple "$singularity_bin" "$singularity_image" \
-            printenv | grep "$singularity_bin" 1>&2)
+            true 1>&2)
     then
         info "Singularity at $singularity_bin appears to work"
         true
