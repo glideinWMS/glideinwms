@@ -1,0 +1,70 @@
+---
+layout: default
+---
+
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>GlideinWMS</h2>
+	<ul class="subcomponents">
+	     <li> <a href="../index.html">Overview</a></li>
+	     <li> <a href="../download.html">Download</a></li>
+	     <li> <a href="../documentation.html">Documentation</a></li>
+         <li> <a href="../install.html">Install</a></li>
+	     <li> <a href="../history.html">History</a></li>
+	     <li class="last"> <a href="../license.html">License</a></li>
+	</ul>
+        <h3>FAQ</h3>
+	</div>
+<div class="related">
+Related links:
+<ul>
+<li> <a href="../frontend/troubleshooting.html">Frontend Troubleshooting</a></li>
+<li> <a href="../factory/troubleshooting.html">Factory Troubleshooting</a></li>
+</ul>
+</div>
+<div class="section">
+
+<ul>
+  <li><b>How to request support</b><br/>
+  GlideinWMS support email: glideinwms-support at fnal.gov
+  </li>
+  <li><b>How to setup GSI in GlideinWMS</b><br/>
+      Refer to <a href="../components/gsi.html">GSI setup reference guide</a>
+  </li>
+
+  <li><b>How to add global configuration parameter to Glidein Factory entries</b><br/>
+      To add a configuration parameter that affects all the Factory entries, add an &lt;attr ...&gt; &lt;/attr&gt; tag to /glidein/attrs section
+  </li>
+  <li><b>How to add local configuration parameter to Glidein Factory entries</b><br/>
+      To add a configuration parameter to a specific Factory entry, add an &lt;attr ...&gt; &lt;/attr&gt; tag to /glidein/entries/entry/attrs section
+  </li>
+
+  <li><b>How to configure GlideinWMS to retrieve core files produced by user jobs</b><br/>
+      In the Factory configuration in the &lt;entry&gt; tag, the rsl attribute
+      should contain condor_submit=('+Coresize' 'Unlimited').<br/>
+      Example (all on one line):<br>
+      <blockquote>
+    rsl="(condor_submit=('+Coresize' 'Unlimited'))(queue=default)(jobtype=single)"
+      </blockquote>
+
+      In the condor_submit file of the user job add:
+      <blockquote>
+      +coresize = unlimited
+      </blockquote>
+      <b>NOTE:</b> The coresize for the actual user job will be set to the available
+            disk space, not unlimited. Also, you can make this change to global
+            parameter or local parameter.
+  </li>
+  <li><b>How does GlideinWMS support Cloud VMs</b><br/>
+  Refer the <a href='https://github.com/holzman/gwms-cloud-vms'>gwms-cloud-vms</a> project page for more details.
+  </li>
+</ul>
+</div>

@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS Custom Script Exit Status Output Format</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./configuration.html">Configuration</a></li>
+        <li>Custom script exit status output format</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> Configuration</li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Custom Script Exit Status Output Format</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#basics">Script inclusion</A></li>
+    <LI><A HREF="#error_types">Loading order</A></li>
+    <LI><A HREF="#examples">Examples</A></li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+        <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+</ul>
+</div>
+<div class="section">
+ 
+<H2>Description</H2>
+<P>
+This document describes syntax and semantic of the 
+custom script exit status output. 
+</P>
+<P>
+For information about custom scripts and 
+helper scripts for generating the output, 
+consult the <A HREF="custom_scripts.html">Custom Script page</A>.
+</P>
+</div>
+
+<div class="section">
+<H2><A NAME="basics"></A>Format basics</H2>
+<P>
+The custom script exit status is stored in a file called
+<BLOCKQUOTE>
+otrb_output.xml
+</BLOCKQUOTE>
+</P>
+<P>
+The output format is an
+<A HREF="http://en.wikipedia.org/wiki/XML">XML document</A>
+and is a subset of the proposed common OSG test format</A>.
+</P>
+<P>
+The document is encapsulated in the <b>&lt;OSGTestResult&gt;</b> tag.
+</P>
+<P>
+The <b>&lt;OSGTestResult&gt;</b> tag must have two attributes:<UL>
+ <li><b>version</b> - Must be &quot;4.3.1&quot;.
+ <li><b>id</b> - The name of the testing script.
+</UL>
+</P>
+<P>
+There are two sections in the document:
+<ul>
+<li>The required <A HREF="#sec_result">result section</A>
+<li>An optional <A HREF="#sec_detail">detail section</A>
+</ul>
+</P>
+</div>
+
+<div class="subsection">
+<H3><A NAME="sec_result"></A>The result section</H3>
+<P>
+The result section is required and is encapsulated by the <b>&lt;result&gt;</b> tag.
+</P>
+<P>To be finished.</P>
+</div>
+
+<div class="subsection">
+<H3><A NAME="sec_detail"></A>The detail section</H3>
+<P>
+The detail section is optional, and when present, is encapsulated by the <b>&lt;detail&gt;</b> tag.
+</P>
+<P>It can contain arbitrary text and is meant to be human readable only.</P>
+<P>All machine readable information should have already been provided in the 
+ <A HREF="#sec_result">result section</A>.</P>
+</div>
+
+<div class="section">
+<H2><A NAME="error_types"></A>Standard error types</H2>
+<P>
+All failed scripts should have one of the following failure types:
+<ul>
+<LI> <B>WN_Resource</B> - Something is wrong with the worker node. Example reasons to use this failure mode is missing libraries, disk full, etc.
+<LI> <B>Network</B> - Something went wrong when I tried to use the network.
+<LI> <B>Config</B> - The glidein config file is missing an attribute that we expected was there.
+<LI> <B>VO_Config</B> - The glidein config file is missing an attribute that we expected were put there by one of the VO provided scripts that ran before.
+<LI> <B>Corruption</B> - Catch all cathegory for when things make no sense.
+<LI> <B>VO_Proxy</B> - The VO-provided proxy does not meet our requirements.
+</ul>
+</P>
+<P>To be finished.</P>
+</div>
+
+<H2><A NAME="examples"></A>Examples</H2>
+<P>This is an example of a successful invocation. As expected there is only the result section.</P>
+<PRE>
+ &lt;OSGTestResult id=&quot;cat_consts.sh&quot; version=&quot;4.3.1&quot;&gt;
+   &lt;result&gt;
+     &lt;status&gt;OK&lt;/status&gt;
+     &lt;metric name=&quot;NrAttributes&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;30&lt;/metric&gt;
+   &lt;/result&gt;
+ &lt;/OSGTestResult&gt;
+</PRE>
+<P>
+This instead is an example of a failed invocation and includes a result section.</P>
+<PRE>
+ &lt;OSGTestResult id=&quot;glexec_test.sh&quot; version=&quot;4.3.1&quot;&gt;
+   &lt;result&gt;
+     &lt;status&gt;ERROR&lt;/status&gt;
+     &lt;metric name=&quot;failure&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;WN_RESOURCE&lt;/metric&gt;
+     &lt;metric name=&quot;GLEXEC_BIN&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;/bin/glexec&lt;/metric&gt;
+   &lt;/result&gt;
+   &lt;detail&gt;
+     The glexec binary does not exist.
+
+     Looked in /bin/glexec.
+   &lt;/detail&gt;
+ &lt;/OSGTestResult&gt;
+</PRE>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</div>
+</body>
+</html>

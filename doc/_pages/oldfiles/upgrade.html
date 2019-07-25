@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">
+  <link rel="stylesheet" type="text/css" href="../css/styles.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="./index.html">Home</a></li>
+        <li>Upgrade</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="./index.html">Home</a></li>
+	        <li> <a href="./download.html">Download</a></li>
+	        <li> <a href="./frontend/index.html">Glidein Frontend</a></li>
+        	<li> <a href="./factory/index.html">WMS Factory</a></li>
+        	<li> <a href="./components/index.html" >Components</a></li>
+                <li> <a href="./recipes/index.html">Recipes</a></li>
+	        <li> <a href="./components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="./images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
+    </map>
+
+
+    <h2>GlideinWMS</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./download.html">Download</a></li>
+	     <li> <a href="./documentation.html">Documentation</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./history.html">History</a></li>
+	     <li> <a href="./license.html">License</a></li>
+	</ul>
+        <h3>Upgrade Guide</h3>
+	</div>
+    <div class="jump">
+    <u>Jump to:</u>
+    <ol>
+        <li><a href="#frontend">Upgrade a Frontend</a></li>
+        <li><a href="#factory">Upgrade a Factory</a></li>
+    </ol>
+    </div>
+    <div class="related">
+    Related Links:
+    <ul>
+        <li>
+            <a href="install.html">Installation Overview</a>
+        </li>
+        <li>
+            <a href="download.html">Download Overview</a>
+        </li>
+        <li>
+            <a href="history.html">Releases history</a>
+        </li>
+    </ul>
+    </div>
+
+
+<div class="section">
+    <a name="intro" />
+    <p>Note: If you installed the component using the RPMs, you must upgrade using RPMs as described in the OSG guides (see
+    <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">Frontend RPM installation</a>,
+    <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">Factory RPM installation</a>).
+    This document refers to the TAR files installation.
+    </p>
+    <h3>General upgrade instructions for a Frontend </h3>
+    <p>
+        These instructions assume that you are only upgrading the Glidein Frontend.
+        If you need to upgrade more components, it may involve additional
+        steps.
+    </p>
+        <ol>
+            <li>Back up your glideinwms (binaries/source) and frontstage (working directory) areas for the existing installation.</li>
+            <li>Download the GlideinWMS tarball and replace the old version with it.</li>
+            <li>Make sure you have correct HTCondor in your path. This is important!</li>
+            <li>cd frontstage/frontend_Frontend_dir. this is the directory where you have frontend_startup script</li>
+            <li>./frontend_startup upgrade ../instance_v3_0.cfg/frontend.xml</li>
+        </ol>
+	<p>
+        <i>Note that the path names (glideinwms, frontstage, frontend_Frontend_dir, instance_v3_0) may be slightly different in each case based on your configuration.</i><br/>
+		In case you have done any special configuration to glideinWMS/creation/web_base/condor_vars.lst, you need to
+		redo them for the existing code base.
+	</p>
+	<p>
+	    Alternatively, you can also try backing up files, untar-ing the new version, then copy the instance directory to the new
+	    version.  Make the required changes and run create_frontend to reconfigure.  Then, follow the post-installation tasks in the manual.
+	</p>
+	<p>
+	    <b>Warning:</b> Check the revision history before doing this. Not all versions are compatible.
+	</p>
+</div>
+
+<div class="section">
+
+	<h3><a name="factory"></a>General upgrade instructions for a Factory</h3>
+	<p>
+		These instructions assume that you are only upgrading the Glidein Factory.
+        If you need to upgrade more components, it may involve additional
+        steps.  Upgrading a Factory can be done in two ways:
+	</p><ul>
+	<li>Installing the new GlideinWMS code in a separate directory, and create a new configuration
+	    tree.<br/>
+	    The configuration file (glieinWMS.xml) of the existing configuration tree may be used as a
+	    base for the new one; only the <i>glidein_ name</i> needs to be changed.
+	    See the <a href="factory/configuration.html">configuration page</a> for more defaults.
+	</li><li>Overwrite the GlideinWMS installation and run: factory_startup upgrade config.xml.<br>
+	    If getting the code from GIT, git pull origin <i>branch</i> (or master) will update the code.<br>
+	    Running 'upgrade' overwrites all files in the glidein submit directories including rewriting the configuration file.
+	    If you use 'reconfig', this will only upgrade the files with Factory configuration information so
+	    some of the scripts may not get updated.
+	</li></ul>
+	<p>Which option you choose is really up to you; the second one is easier, but the first one is cleaner and easier
+	to revert back.</p>
+
+	<p>
+	    <b>Warning:</b> Check the revision history before doing this. Not all versions are compatible.  For example, changes to a
+	    Factory configuration file may not allow you to reuse an old glideinWMS.xml.
+	</p>
+    <h3>Upgrading from v1+ or v2+ to v3+</h3>
+    <p>We do not support upgrading from v1+ or v2+ to v3+. There are too many changes
+    between these versions and reinstallation of ALL services is required.</p>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</body>
+</html>

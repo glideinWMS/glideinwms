@@ -1,0 +1,1409 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Glidein Frontend</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Frontend</a></li>
+        <li>Configuration</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px" alt="GlideinWMS diagram"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" alt="main" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" alt="collector" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" alt="factory" href="../factory/index.html" />
+    </map>
+
+    <h2>Glidein Frontend</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./install.html">Install</a></li>
+	     <li> Configuration</li>
+	     <li> <a href="./design.html">Design</a></li>
+         <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Configuration</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#example">Example Configuration</a> </li>
+        <li><a href="#management">Frontend Configuration</a> </li>
+        <li><a href="#attr_singularity">Singularity attributes</a> </li>
+        <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
+        <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
+        <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
+        <li><a href="#usercollector">Using multiple user pool collectors/HTCondor High Availability (HA) support</a> </li>
+        <li><a href="#singularity">Using Singularity</a> </li>
+        <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
+        <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
+</ol>
+</div>
+<div class="related">
+Related Information:
+<ul>
+<li> <a href="./install.html">Install</a></li>
+<li> <a href="./troubleshooting.html">Troubleshooting</a></li>
+</ul>
+</div>
+<div class="section">
+    <a name="example"></a>
+<h2>Example Configuration</h2>
+
+Below is an example Frontend configuration xml file.
+Click on any piece for a more detailed description.
+
+<div class="config">
+    <a href="#frontend">&lt;frontend downtimes_file="frontenddowntime" advertise_delay="5" frontend_name="vofrontend-v2_4" loop_delay="60"&gt;</a><br/>
+    <blockquote>
+    <a href="#">&lt;log_retention &gt;</a><br/>
+    <blockquote>
+        <a href="#">&lt;process_logs &gt;</a><br/>
+        <blockquote>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" backup_count="5" compression="gz" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" backup_count="5" /&gt;</a><br/>
+        </blockquote>
+        <a href="#">&lt;/process_logs &gt;</a><br/>
+    </blockquote>
+    <a href="#">&lt;/log_retention &gt;</a><br/>
+        <a href="#group_match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
+        <blockquote>
+            <a href="#group_match">&lt;factory query_expr="True"&gt;</a><br/>
+            <blockquote>
+                <a href="#group_match_attr">&lt;match_attrs /&gt;</a><br/>
+                <a href="#wmscollector">&lt;collectors&gt;</a><br/>
+                <blockquote>
+                    <a href="#wmscollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=factory-server.fnal.gov" comment="" factory_identity="factoryuser@factory-server.fnal.gov" my_identity="frontenduser@frontend-server.fnal.gov" node="factory-server.fnal.gov:8618" /&gt;</a><br/>
+                </blockquote>
+                <a href="#wmscollector">&lt;/collectors&gt;</a><br/>
+            </blockquote>
+            <a href="#group_match">&lt;/factory&gt;</a><br/>
+            <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)"&gt;</a><br/>
+            <blockquote>
+                <a href="#group_match">&lt;match_attrs /&gt;</a><br/>
+                <a href="#schedd">&lt;schedds&gt;</a><br/>
+                <blockquote>
+                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="userpool.fnal.gov" /&gt;</a><br/>
+                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="schedd_jobs1@userpool.fnal.gov" /&gt;</a><br/>
+                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="schedd_jobs2@userpool.fnal.gov" /&gt;</a><br/>
+                </blockquote>
+                <a href="#schedd">&lt;/schedds&gt;</a><br/>
+            </blockquote>
+            <a href="#job_query">&lt;/job&gt;</a><br/>
+        </blockquote>
+        <a href="#group_match">&lt;/match&gt;</a><br/>
+        <br/>
+        <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
+        <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/><br/>
+        <a href="#security">&lt;security classad_proxy="/etc/grid-security/vocert.pem" proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov" proxy_selection_plugin="ProxyAll" security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a><br/>
+        <blockquote>
+        <a href="#credentials">&lt;credentials&gt;</a><br/>
+        <blockquote>
+            <a href="#credentials">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" type="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" /&gt;</a><br/>
+        </blockquote>
+        <a href="#credentials">&lt;/credentials&gt;</a><br/>
+        <a href="#security">&lt;/security&gt;</a><br/>
+    </blockquote>
+    <a href="#stage">&lt;stage base_dir="/var/www/html/vofrontend/stage" use_symlink="True" web_base_url="http://frontend-server.fnal.gov:9000/vofrontend/stage" /&gt;</a><br/>
+    <a href="#work">&lt;work base_dir="/opt/vofrontend" base_log_dir="/opt/vofrontend/logs" /&gt;</a><br/>
+    <a href="#attrs">&lt;attrs&gt;</a><br/>
+    <blockquote>
+        <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1" /&gt;</a><br/>
+        <a href="#attr_client_start">&lt;attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
+        <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+    </blockquote>
+    <a href="#attrs">&lt;/attrs&gt;</a><br/>
+    <a href="#group">&lt;groups&gt;</a><br/>
+    <blockquote>
+        <a href="#group">&lt;group name="main" enabled="True"&gt;</a><br/>
+        <blockquote>
+            <a href="#group_config">&lt;config&gt;</a><br/>
+            <blockquote>
+                <a href="#group_config">&lt;idle_glideins_per_entry max="100" reserve="5" /&gt;</a><br/>
+                <a href="#group_config">&lt;idle_vms_per_entry curb="20" max="100" /&gt;</a><br/>
+                <a href="#group_config">&lt;idle_vms_total curb="500" max="1000" /&gt;</a><br/>
+                <a href="#group_config">&lt;running_glideins_per_entry max="2000" relative_to_queue="1.15" min="0" /&gt;</a><br/>
+                <a href="#group_config">&lt;running_glideins_total curb="30000" max="40000" /&gt;</a><br/>
+                <a href="#group_config">&lt;glideins_removal margin="0" requests_tracking="False" type="ALL" wait="0"/&gt;</a><br/>
+            </blockquote>
+            <a href="#group_config">&lt;/config&gt;</a><br/>
+            <a href="#group_match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
+            <blockquote>
+                <a href="#group_factory">&lt;factory query_expr="True"&gt;</a><br/>
+                <blockquote>
+                    <a href="#group_factory">&lt;match_attrs /&gt;</a><br/>
+                    <a href="#group_factory">&lt;collectors /&gt;</a><br/>
+                </blockquote>
+                <a href="#group_factory">&lt;/factory&gt;</a><br/>
+                <a href="#group_job">&lt;job query_expr="True"&gt;</a><br/>
+                <blockquote>
+                    <a href="#group_job">&lt;match_attrs /&gt;</a><br/>
+                    <a href="#group_job">&lt;schedds /&gt;</a><br/>
+                </blockquote>
+                <a href="#group_job">&lt;/job&gt;</a><br/>
+            <a href="#group_match">&lt;/match&gt;</a><br/>
+            </blockquote>
+            <a href="#group_security_proxies">&lt;security&gt;</a><br/>
+                <blockquote>
+                    <a href="#group_security_proxies">&lt;credentials /&gt;</a><br/>
+                </blockquote>
+            <a href="#">&lt;/security&gt;</a><br/>
+            <a href="#group_attrs">&lt;attrs /&gt;</a><br/>
+            <a href="#files">&lt;files /&gt;</a><br/>
+        </blockquote>
+        <a href="#">&lt;/group&gt;</a><br/>
+    </blockquote>
+    <a href="#">&lt;/groups&gt;</a><br/>
+    <a href="#files">&lt;files&gt;</a><br/>
+    <blockquote>
+      <a href="#files">&lt;file absfname="/opt/script/testSW.sh" after_entry="True" after_group="False" const="True" executable="True" untar="False" wrapper="False" /&gt;</a><br/>
+      <a href="#files">&lt;file absfname="/opt/script/testP.sh" after_entry="True" after_group="False" const="True" executable="True" period="1800" untar="False" wrapper="False" /&gt;</a><br/>
+    </blockquote>
+    <a href="#files">&lt;/files&gt;</a><br/>
+    <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
+    <blockquote>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
+    </blockquote>
+    <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
+    <a href="#usercollector">&lt;collectors&gt;</a><br/>
+    <blockquote>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
+    </blockquote>
+    <a href="#usercollector">&lt;/collectors&gt;</a><br/>
+    <a href="#global_config">&lt;config&gt;</a><br/>
+    <blockquote>
+       <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
+       <a href="#global_config">&lt;idle_vms_total_global curb="1000" max="1500" /&gt;</a><br/>
+       <a href="#global_config">&lt;running_glideins_total curb="35000" max="45000" /&gt;</a><br/>
+       <a href="#global_config">&lt;running_glideins_total_global curb="50000" max="60000" /&gt;</a><br/>
+    </blockquote>
+    <a href="#global_config">&lt;/config&gt;</a><br/>
+
+
+    <a href="#high_availability">&lt;high_availability check_interval="300" enabled="False"&gt;</a></br>
+      <blockquote>
+      <a href="#high_availability">&lt;ha_frontends&gt;</a></br>
+         <blockquote>
+         <a href="#high_availability">&lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;</a></br>
+         </blockquote>
+      <a href="#high_availability">&lt;/ha_frontends&gt;</a></br>
+      </blockquote>
+    <a href="#high_availability">&lt;/high_availability&gt;</a></br>
+
+
+
+</blockquote>
+    <a href="#">&lt;/frontend&gt;</a><br/>
+</div>
+
+
+</div>
+<div class="section">
+
+<H2 CLASS="western"><A NAME="management"></A>The Glidein Frontend
+Configuration</H2>
+<P>The Glidein Frontend configuration involves creating the configuration
+directory and files and then creating the daemons. As in the Glidein
+Factory set up, an XML file is converted into a configuration tree by
+a configuration tool.</P>
+<P>For the installer to create the Glidein Frontend instance from the
+configuration directory and grid mapfile, the following objects can
+be defined:</P>
+<UL>
+
+    <LI><P>
+        <a name="frontend" />
+        <div class="xml">
+        &lt;frontend frontend_name=&quot;<I>your name</I>&quot;
+        downtimes_file=&quot;<I>a file name</I>&quot;
+        advertise_delay=&quot;<I>seconds</I>&quot;
+        loop_delay=&quot;<I>nr</I>&quot; &gt;
+	advertise_with_tcp=&quot;<I>True|False</I>&quot; 
+	advertise_with_multiple=&quot;<I>True|False</I>&quot;&gt;
+        </div>
+    The frontend_name is a combination of the Frontend
+    and instance names specified during installation. It is used to
+    create Glidein Frontend instance directory and files.  The downtimes_file is a name of the internal file used by downtime feature,
+    any legitimate file name that indicates the purpose will be sufficient. The delay
+    parameters define how active the Glidein Frontend should be. 
+Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the Factory, and advertise_with_multiple can enable the condor_advertise -multiple option present in HTCondor 7.5.4 and up. 
+    </P></li>
+    <LI>
+        <a name="process_logs" />
+        <div class="xml">
+            &lt;frontend&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log 
+            max_days=&quot;<I>max days</I>&quot;
+            min_days=&quot;<I>min days</I>&quot;
+            max_bytes=&quot;<I>max bytes</I>&quot;
+            backup_count=&quot;<I>backup count</I>&quot;
+            type=&quot;<I>ALL</I>&quot;
+            compression=&quot;<I>gz</I>&quot;/&gt;
+        </div>
+    <p>
+    The admin can configure one or more logs with any combination of following log message types: 
+    <ul>
+      <li>INFO:  Informational messages about the state of the system. </li>
+      <li>DEBUG:  Debug message. These are additional informational messages that describe code execution in detail.</li>
+      <li>ERR:  Error messages. These may include tracebacks. </li>
+      <li>WARN:  Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
+    </ul>
+    The extension is added to the log name to create separate logs.
+    <br><br>
+    <b>Log Retention and Rotation Policy:</b>
+    <br><br>
+    Log files are rotated based on a time and size of the log files as follows:
+    <ul>
+        <li>If the log file size reaches <i>max_bytes</i> it will be rotated (NOTE: the value will be truncated and 0 means no rotation).</li>
+        <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days it will be rotated.</li>
+        <li><i>min_days</i> is not used and is there for backwards compatibility.</li>
+        <li>Rotated files may be compressed. Supported compressions are Gzip "gz" and Zip "zip". Default is no compression (empty string).</li> 
+        <li>After rotation, recent number of <i>backup_count</i> files will be kept and older ones are deleted. Defaults to 5.</li>
+    </ul>
+    </p>
+    </li>
+    
+    <LI><P>
+        <a name="wmscollector" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;match&gt;&lt;factory&gt;&lt;collectors&gt;&lt;collector
+        my_identity=&quot;<I>joe@collector1.myorg.com</I>&quot; 
+        node=&quot;<i>collector1.myorg.com</I>&quot;
+
+        factory_identity=&quot;<I>gfactory@gfactory1.my.org</I>&quot;
+        DN=&quot;<I>/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org</I>&quot;/&gt;
+        </div>
+    This shows what WMS Collector the Glidein Frontend will map to. It is the
+    mapped name for the identity of the ClassAd. It also tells what
+    should be the identity used by the Frontend itself and the expected
+    identity of the Factory.  These attributes must be configured correctly,
+    or else the Factory will drop requests from the Frontend, citing security
+    concerns.
+    <br><br>
+    To configure the WMS collector for multiple (secondary) ports, refer to the 
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>.
+    <br/>
+    The configuration required for the Frontend to communicate with the secondary WMS collectors is shown below:
+    <blockquote>
+         &lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org" comment="Primary collector"<br/>
+        <ol>
+                  factory_identity="gfactory@gfactory1.my.org"  my_identity="joe@collector1.myorg.com"</br>
+                  node="collector1.myorg.com:<b>primary_port</b>"/&gt;</br>
+        </ol>
+         &lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org" comment="Secondary collector(s)"</br>
+         <ol>
+                  factory_identity="gfactory@gfactory1.my.org" my_identity="joe@collector1.myorg.com"</br>
+                  node="collector1.myorg.com:<b>secondary_port</b>"/&gt;
+         </ol>
+            <font color="blue"><i>
+            If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
+            element for each secondary port.</i></font><br/>
+    </blockquote>
+
+    </li>
+
+    <LI><P>
+        <a name="job_query" />
+        <div class="xml">
+
+        &lt;frontend&gt;&lt;match&gt;&lt;job 
+        query_expr=&quot;<I>expression</I>&quot; &gt;
+        </div>
+    A <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_q.html">
+    HTCondor constraint</A> to be used with condor_q when looking for user 
+    jobs.  (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs). If you
+    want to consider all user jobs, this can be set to TRUE. 
+    </P></li>
+
+    <LI><P>
+        <a name="schedd" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;match&gt;&lt;job&gt;&lt;schedds&gt;&lt;schedd fullname=&quot;<I>schedd name</I>&quot; /&gt;
+        </div>
+    When you provide the user pool collector to the installer, it will find
+    all the available schedds. You can specify which schedds to monitor
+    here for user jobs. The schedd fullname is the name under which
+    schedd is registered with the user pool collector.&nbsp; 
+    </P></li>
+
+    <LI><P>
+        <a name="monitor" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;monitor 
+        base_dir=&quot;<I>web_dir</I>&quot;
+        flot_dir=&quot;<I>web_dir</I>&quot;
+        javascriptRRD_dir=&quot;<I>web_dir</I>&quot;
+
+        jquery_dir=&quot;<I>web_dir</I>&quot; /&gt;
+        </div>
+    The <STRONG>base_dir</STRONG> defines where the web
+    monitoring is. The other entries point to where javascriptRRD, Flot
+    and JQuery libraries are located. 
+    </P></li>
+    <LI>
+        <a name="monitor_footer" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;monitor_footer display_txt=&quot;<I>Legal Disclaimer</I>&quot; 
+        href_link=&quot;<I>/site/disclaimer.html</I>&quot;  &gt;
+        </div>
+    <p>OPTIONAL:  If the display text and link are configured, the monitoring pages will display the text/link at the 
+    bottom of the page.</P></li>
+    <LI><P>
+        <a name="security" />
+        <div class="xml">
+
+        &lt;frontend&gt;&lt;security 
+        proxy_DN=&quot;<I>/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org</I>&quot;
+        classad_proxy=&quot;<I>proxy_dir</I>&quot;
+        proxy_selection_plugin=&quot;<I>ProxyAll</I>&quot;
+        security_name=&quot;<I>vofrontend1</I>&quot;&gt;
+
+        </div>
+    Grid proxy to use is located in the classad_proxy directory and you must
+    specify the full path to the proxy. security_name signifies the name
+    under which the Frontend is registered with the factory. 
+    </P></li>
+    <LI><P>
+        <a name="proxies" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
+        type=&quot;<i>grid_proxy</I>&quot;
+        absfname=&quot;<I>proxyfile</I>&quot;
+        [keyabsfname=&quot;<I>keyfile</I>&quot;]
+        [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
+        security_class=&quot;<I>frontend</I>&quot;
+        trust_domain=&quot;<I>id</I>&quot;
+        [creation_script=&quot;<I>creationcommand</I>&quot;]
+        [update_frequency=&quot;<I>time_left</I>&quot;]
+        [remote_username=&quot;<I>username</I>&quot;]
+        [vm_id=&quot;<I>id</I>&quot;]
+        [vm_type=&quot;<I>type</I>&quot;]
+        [pool_idx_len=&quot;<I>5</I>&quot;]
+        [pool_idx_list=&quot;<I>2,4-6,10</I>&quot;]
+        /&gt;
+        </div>
+    This section lists credentials used by the whole Frontend.  You can
+    have multiple credentials listed here and they are used by all groups.
+    The type (authentication method in the Factory's entry) can be one of the following:
+    <ul>
+        <li><b>grid_proxy</b>: A x509 proxy stored in the <i>absfname</i> location.</li>
+        <li><b>cert_pair</b>: A x509 certificate pair with the cert in the <i>absfname</i> location and the certkey in the <i>keyabsfname</i> location.</li>
+        <li><b>key_pair</b>: A key pair stored with the public key in <i>absfname</i> location and the private key in <i>keyabsfname</i> location.</li>
+        <li><b>username_password</b>: A username/password combination with the username stored in a text at the <i>absfname</i> location and a password stored in a text file in the <i>keyabsfname</i> location.</li>
+        <li><b>auth_file</b>: Auth file or token stored as text at the <i>absfname</i> location.</li>
+    </ul>
+    In addition, if you have a cloud (non-grid type) entry, you may also be required to specify the identity credentials VM id and VM type.  
+    If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods (types) above.  For example,
+    type="cert_pair+vm_id+vm_type".
+    <br/><br/>
+    Pool index length and list allows the admin to configure a list of credentials without having to list each one of them.  The files must all be identical except
+    for the numbers at the end.  The index length value adds leading zeros.  For example, if you have: absfname=&quotpath/foo&quot pool_idx_len=&quot4&quot  pool_idx_list=&quot2,4-6&quot
+    then you should have files foo0002, foo0004, foo0005, foo0006 in path/.
+    <br/><br/>
+    Security class determines what user the credential is associated with
+    on the Factory side.  The trust domain determines which entries this
+    credential will be used on.  The credential will only be submitted to 
+    sites that match this trust domain.  Coordinate with your Factory operator
+    in order to properly determine these values.
+    <br/><br/>
+    The attribute <i>pilotabsfname</i> is required for non-grid types.  
+    This specifies a proxy (distinct from the credentials used to actually 
+    submit) that is used for the pilot to connect back to the user pool.
+    For instance, Amazon key pairs can be used to connect to cloud resources,
+    but an actual x509 proxy will be needed for the glidein on the cloud 
+    to connect to the HTCondor user pool.
+    <br/><br/>
+        The attributes <i>creation_script</i> and <i>update_frequency</i> are optional attributes used to renew the credential.
+        During the Frontend loop, the script <i>creationcommand</i> is invoked when <i>time_left</i> seconds or less are left to the credential.
+    <br/><br/>
+        The attribute <i>remote_username</i> is an optional attribute used with key pair authentication method.
+        If specified it replaces the user name specified in the Factory entry using the USERNAME@HOST:PORT string of the <i>gatekeeper</i> attribute.
+        The username has to be specified in at least one of these two places.
+    </P></li>
+    <LI><P>
+        <a name="stage" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;stage
+        base_dir=&quot;<I>web_dir</I>&quot;
+        web_base_url=&quot;<I>URL</I>&quot; /&gt;
+
+        </div>
+    The location of the web server directories. It is
+    the staging area where the files needed to run you job are located
+    (i.e. condor). You may need to change this according to your
+    requirements. 
+    </P></li>
+    <LI><P>
+        <a name="work"></a>
+        <div class="xml">
+        &lt;frontend&gt;&lt;work
+        base_dir=&quot;<I>directory</I>&quot; /&gt;
+        </div>
+
+        This defines the path to the Glidein Frontend directory. 
+    </P></li>
+        <LI><P>
+            <a name="files"></a>
+                <div class="xml">
+                &lt;frontend&gt;&lt;files&gt;&lt;file
+                absfname=&quot;<I>filepath</I>&quot;
+                relfname=&quot;<I>filename</I>&quot;
+                prefix=&quot;<I>cron_prefix</I>&quot;
+
+                executable=&quot;<I>boolean</I>&quot;
+                after_group=&quot;<I>boolean</I>&quot;
+                period=&quot;<I>seconds(int)</I>&quot; /&gt;
+                </div>
+        The file parameters are used to specify the location, the download/execution order and attributes
+        of additional files. The system (VO Frontend) is already transferring some files, e.g. grid mapfile.
+    This can be used to add custom scripts to the VO Frontend (either for all glideins for this frontend or only for a group).
+    See <a href="#custom_code">below</a> or  the page dedicated to 
+    <a href="../factory/custom_scripts.html">writing custom scripts</a> for more information.
+    A list of all the possible attributes and their values is in the  <a href="../factory/configuration.html#custom_code">custom_code section of the Factory configuration document</a>.
+        </P></li>
+
+    <LI><P>
+        <a name="attrs"></a>
+        <div class="xml">
+        &lt;frontend&gt;&lt;attrs&gt;&lt;attr
+        name=&quot;<I>attr_name</I>&quot;
+        value=&quot;<I>value</I>&quot;
+        parameter=&quot;True&quot;
+
+        type=&quot;string&quot;
+        glidein_publish=&quot;<I>boolean</I>&quot;
+        job_publish=&quot;<I>boolean</I>&quot; &gt;
+        </div>
+    The following three attributes are required to be set
+    in the Frontend requests and/or published for jobs. Others can be
+    specified as well. 
+        </P>
+
+    <UL>
+        <LI><P>
+        <a name="attrs_collector" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_Collector&quot; &gt;
+            </div>
+        The contains the name of the pool collector, i.e.
+        mymachine.mydomain.</P></li>
+        <LI><P>
+
+        <a name="attr_expose" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_Expose_Grid_Env&quot; &gt;
+            </div>
+        This determines if you want to expose the user to
+        the grid environment.</P></li>
+        <LI><P>
+        <a name="attr_match" />
+            <div class="xml">
+            &lt;attr name=&quot;USE_MATCH_AUTH&quot; &gt;
+
+            </div>
+        This determines whether or not you want to use match
+        authentication. You specify the match expression in a 
+        group section of the config file.</P></li>
+        <LI><P>
+        <a name="attr_glexec" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_Glexec_Use&quot; &gt;
+            </div>
+        This determines whether or not you want to mandate
+        the use of GLEXEC. Possible values are 
+            NEVER (do not use GLEXEC) or
+            OPTIONAL (use GLEXEC if the site is configured with it) 
+            or REQUIRED (Always use GLEXEC). 
+        Mandating the use of GLEXEC also enforces the
+        Factory to submit jobs to sites that have GLEXEC configured.
+        </P></li>
+        <LI><P>
+        <a name="attr_singularity" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
+            </div>
+        This determines whether or not you want to mandate the use of Singularity.
+        It affects both provisioning and the job on the site. Possible values are:
+        <ul>
+            <li>DISABLE_GWMS (disable GWMS Singularity machinery, not to interfere with independent VO setups - this is the <d></d>efault) or
+            <li>NEVER (do not use Singularity) or
+            <li>OPTIONAL or PREFERRED (use Singularity if the site is configured with it)
+            <li>or REQUIRED (always require Singularity).
+            </li>
+        </ul>
+        If REQUIRED, PREFERRED or OPTIONAL are used (i.e. if the Glidein may use Singularity), further configuration steps are required to specify
+        a user-job-wrapper and a Singularity image.
+        The actual use of Singularity is negotiated with the Factory Entry.
+        See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
+            a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE
+            (the entry variable).    <br>
+            See the <a href="#singularity">section on how to use Singularity</a> below for more on how to specify the wrapper,
+            how to set the available images and select one.
+            And see the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for a reference information on all the variables and
+            more information about the format of the dictionary.
+            <br>
+            SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7 and SINGULARITY_IMAGE_DEFAULT are <b>deprecated</b>. These will be ignored in future versions.
+Currently these set the values of the 'rhel6', 'rhel7' and 'default' images respectively in SINGULARITY_IMAGES_DICT.
+	    <br>
+        If you want to use your own wrapper script for singularity, you must first understand 
+        <I>/var/lib/gwms-frontend/web-base/default_singularity_wrapper.sh</I>
+        and make your custom script compatible with this setup script.
+	<br>
+        The Frontend or a group can specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH or custom options.
+        Again, you can fnid more in the <a href="../factory/configuration.html#singularity">Factory configuration document</a> and the
+        <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a>.
+    <br>
+        Users can specify one or more of the following 3 lines in their job submit file:
+	<ul>
+	  <li> If their jobs need a list of repositories, they must specify the list between double quotes, separated by commas, for example,
+	    <blockquote>
+          +CVMFSReposList = &quot;cms.cern.ch,atlas.cern.ch&quot;.
+        </blockquote>
+	    If any of these cvmfs repositories is not availale, the user jobs will fail.
+          </li>
+	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I> and use:
+	    <blockquote>
+          +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE&quot;.
+        </blockquote>
+	    If users use this feature and if the Singularity image is not in the path indicated in the /cvmfs repository, the user job will error out.
+          </li>
+	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
+        SINGULARITY_IMAGES_DICT will be searched for 'default', 'rhel7' and 'rhel6' images.
+          Users can select a specific image form SINGULARITY_IMAGES_DICT by using REQUIRED_OS:
+	    <blockquote>
+          +REQUIRED_OS = &quot;rhel6&quot;.
+        </blockquote>
+        If the users specify a value different from 'any' for <b>REQUIRED_OS</b> (e.g. rhel6, rhel7),
+        the corresponding version of default Singularity image (the one with matching name in the dictionary) will be used.
+	    Independently from how an image was selected, if the chosen Singularity image is not available, the user job will fail.
+        If the users specify <b>REQUIRED_OS</b> as 'any', the first available default Singularity image will be used
+        and the user job will fail only if there is no default Singularity image.
+	  </li>
+	</ul>
+        </P></li>
+
+        <LI><P>
+        <a name="attr_client_rank" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDECLIENT_Rank&quot; &gt;
+            </div>
+        This is a condor expression that allows the ranking and prioritization
+        of jobs.  This attribute is propagated to condor_vars.lst.
+
+        </P></li>
+        <LI><P>
+        <a name="attr_client_start" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDECLIENT_Start&quot; &gt;
+            </div>
+            This is a condor expression that determines whether a glidein job
+            will start on a resource.  It is used for resource management by
+            HTCondor.
+        </P></li>
+        <LI><P>
+        <a name="attr_maxmem_estimate" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_MaxMemMBs_Estimate&quot; &gt;
+            </div>
+            If set to TRUE, glidein will estimate the MEMORY that condor daemon
+            can use based on memory/core or memory/cpu. Estimation only
+            happens if the GLIDEIN_MaxMemMBs_Estimate is not configured by the
+            Factory for the entry.
+        </P></li>
+    </UL></LI>
+</UL>
+    <P>Other attributes can be specified as well. They are used by the
+    VO Frontend matchmaking and job matchmaking. The format is similar
+    to the attributes on the Factory config file. The table below
+    describes the &lt;attrs ... &gt; tag in more detail. 
+    </P>
+    <p>Refer to description of <a href="../factory/custom_vars.html">Custom HTCondor Variables</a> section for the list of available variables.
+    <table class="requirements">
+        <TR class="head">
+            <TD> <P><B>Attribute Name</B></P> </TD>
+
+            <TD> <P><B>Attribute Description</B></P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>name</b></P> </TD>
+            <TD> <P>Name of the attribute</P> </TD>
+
+        </TR>
+        <TR>
+            <TD> <P><b>value</b></P> </TD>
+            <TD> <P>Value of the attribute</P> </TD>
+        </TR>
+        <TR>
+
+            <TD> <P><b>parameter</b></P> </TD>
+            <TD> <P>Set to True if the attribute should 
+ be passed as a parameter.  If set to False, the attribute will be put in the staging area to be accessed by the glidein startup scripts.  Always set this to True unless you know what you are doing. See Note below for more details</P>
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>glidein_publish</b></P> </TD>
+
+            <TD> <P>If set to True, the attribute will be available in the condor_startd's ClassAd. Used only if parameter is True.</P>
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>job_publish</b></P> </TD>
+            <TD> <P>If set to True, the attribute will be available in the user job's environment. Used only if parameter is True.</P>
+
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>comment</b></P> </TD>
+            <TD> <P>You can specify description of the attribute here.</P>
+            </TD>
+
+        </TR>
+        <TR>
+            <TD> <P><b>type</b></P> </TD>
+            <TD> <P>Type of the attribute. Supported types are 'int', 'string' and 'expr'. Type expr is equivalent to condor constant/expression in condor_vars.lst</P>
+            </TD>
+        </TR>
+
+    </TABLE>
+    <P>An example attribute would be:</P>
+        <div class="xml" style="padding-left:30px;">
+        &lt;attrs&gt;&lt;attr name=&quot;GLIDEIN_Collector&quot; value=&quot;mymachine.mydomain&quot; job_publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldquo;Just a test attribute&rdquo;/&gt;
+        </div>
+
+<P>Note: The attribute name "publish" is not available for the Frontend for the moment. It's for the Factory though, as indicated in the attributes section <a href="../factory/configuration.html">here</a>. Although, to pass the Frontend controlled values and make them available in the ClassAd and the glidein submission on the Factory, you can set the attribute parameter="True". These attributes will be distinguished in the glidein submit environment with the prefix <b>"GLIDEIN_PARAM_"</b>.
+</P>
+
+<P>The following group parameters are used to configure multiple
+Frontends. If only one group is specified, they apply to all
+Frontends. The objects specified are used for creating and monitoring
+glideins.  Groups are used to group users with similar requirements, such as proxies, criteria for matching job requirements with sites, and configuration of glideins.
+</P>
+<UL>
+    <LI><P>
+        <a name="group" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group
+        name=&quot;<I>name</I>&quot;
+        enabled=&quot;<I>boolean</I>&quot; &gt;
+
+        </div>
+    This specifies the name of the group and whether it is enabled. 
+    </P></li>
+    <LI><P>
+        <a name="group_config" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;config&gt;
+        </div>
+    The parameters listed here regulate how aggressive should the frontend be
+    in trying to provision glideins when it sees idle user jobs.<br>
+    <ul>
+     <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
+     aggressive the provisioning requests should be.<br>
+     The number specified in <b>max</b> is the highest number of idle/pending 
+     glideins that the resource associated with any Factory entry will ever see.</li>
+     <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
+         state in the Factory queue before they are automatically removed (through a periodic_remove expression)</li>
+     <li>The next two are used to throttle the requests, if the provisioned glideins (counted as number of slots) 
+         are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
+         <b>idle_vms_per_entry</b> throttles based on a per Factory entry basis (e.g. Grid site), <br>while
+         <b>idle_vms_total</b> throttles based on the states of all the glideins provisioned by this group.<br>
+         The Frontend will stop requesting more glideins if/when <b>max</b> is reached.
+         If/when <b>curb</b> is reached/exceeded, the number of glideins requested in each provisioning request 
+         is cut in half.</li>
+     <li>The next two elements are used to put an upper bound on how many glideins will the Frontend try to provision.<br>
+         Similarly to the previoues two, 
+         <b>running_glideins_per_entry</b> will throttle the provisioning requests based on per Factory entry basis, <br>while
+         <b>running_glideins_total</b> throttles based on number of all the glideins provisioned by this group.
+         The <b>min</b> attribute of <b>running_glideins_per_entry</b> is the minimum number of glidens that are kept running
+         for each entry associated to the group (even if there are no jobs idle). Keep in mind that if you use this <b>min</b>
+         attribute and you also set idle_glideins_lifetime, then you might have old idle glideins removed and immeditely
+         resubmitted. </li>
+     <li>The <b>glideins_removal</b> element is used to control the removal of glideins when they are not used.
+        Glideins can expire and die when not used; the Frontend also has an automatic glidein removal mechanism, anyway you can trigger an early removal or stop all removals.
+        Early removal is controlled by 4 attributes (type, requests_tracking, margin, wait) and is disabled bt default (type="NO").
+        <b>type</b> selects what to remove: NO (default) no early removal, IDLE only Idle glideins -not submitted-,
+        WAIT also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed),
+	DISABLE disables also the automatic removal mechanism of the Frontend (Glidein expiration is still in place).
+        When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
+            then the Glideins in excess are removed.
+        If <b>requests_tracking</b> is False (default) then the Frontend removes glideins when there are no pending job requests for this group 
+        Either ways <b>type</b> still controls what to remove (and the default NO means no early removal).
+        <b>wait</b> adds a delay, waits for N cycles without requests (or below the margin) before triggering the removal.</li>
+    </ul>
+    </P></li>
+
+    <LI><P>
+        <a name="group_match" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match
+        match_expr=&quot;<I>expr</I>&quot; start_expr=&quot;<I>expr</I>&quot; policy_file=&quot;/path/to/python-policy-file&quot;&gt;
+        </div>
+    The match_expr is Python boolean expression is used to match glideins
+    to jobs. The glidein and job dictionaries are used in the
+    expression, i.e. <tt>glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
+    in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))</tt>. If you want
+    to match all, just specify True.  
+    All HTCondor attributes used in this expression should be listed
+    below in the match_attrs section.<br/>
+
+    The start_expr is a HTCondor expression that will be evaluated
+    to match glideins to jobs.  This should be a valid HTCondor ClassAd
+    expression, i.e. <tt>(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)</tt>.
+    <br/><br/>
+
+    policy_file lets you optionally configure Frontend or group's policy that includes factory_query_expr, factory_match_attrs, job_query_expr, job_match_attrs and the match_expr without having to enter similar information in the frontend.xml.
+    When policy info is specified in both frontend.xml and through a policy file, information from both the sources is considered.
+    <ul>
+        <li>match_expr from frontend.xml is ANDed with match(job, glidein) from the policy file</li>
+        <li>job/factory query_expr from the frontend.xml is ANDed with respective job/factory's query_expr from the policy file</li>
+        <li>List of job/factory's match_attrs created by merging the list from both frontend.xml and policy file together</li>
+    </ul>
+
+    Note that there are two expressions.  The "match_expr" will be 
+    evaluated when matching glidein (pilot) requests to entries.
+    This will determine which sites glideins are submitted to.
+    The "start_expr" is evaluated when jobs are matched to pilots.
+    This will determine, once glidein pilots are up and running,
+    which jobs will run on them.
+    The examples above in this section start pilots only on sites (GLIDEIN_Site value) that 
+    are included in the DESIRED_Sites list of one of the queued jobs (match_expr) and 
+    start a job only on a pilot running on a site that is listed in the 
+    DESIRED_Sites list (start_expr).
+    <br/><br/>
+    <a href="#match_example">More on match expressions</a>
+    </P></li>
+
+    <LI><P>
+        <a name="group_factory" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory query_expr=&quot;<I>expr</I>&quot; &gt;
+        </div>
+        This is a HTCondor ClassAd expression to select Factory entry points.
+        The expression will be evaluated by HTCondor and should be a 
+        valid HTCondor expression.<br/>
+        One example to select from entries that list CMS as a supported VO 
+        could be <tt>query_expr='stringListMember("CMS",GLIDEIN_Supported_VOs) &amp;&amp; (GLIDEIN_Job_Max_Time=!=UNDEFINED)'</tt><br/>
+        See the HTCondor manual for more on valid expressions and functions.<br/>
+        Note that if you specify a Factory constraint in the global 
+        default section as well as in the group Factory tag
+        (such as <tt> &lt;factory query_expr='EXPR1'&gt;...  
+            &lt;group&gt; &lt;factory query_expr='EXPR2'&gt; &lt;/group&gt;</tt>)
+        then the Frontend will "AND" the expressions to create a
+        combination (such as, <i>EXPR1 && EXPR2</i>).
+    </P></li>
+
+    <LI><P>
+        <a name="group_match_attr" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
+        </div>
+
+        A list of glidein Factory attributes used in the
+        Factory match expression.   Each match attribute
+        should be a HTCondor ClassAd attribute that is listed 
+        in the above    match_expr.
+        <a href="#match_example">More on match expressions</a>
+    </P></li>
+    <LI><P>
+        <a name="group_job" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job
+        query_expr=&quot;<I>expr</I>&quot; &gt;
+        </div>
+        This is a HTCondor ClassAd expression to select valid user jobs
+        to find glideins for.  It will be evaluated by HTCondor and
+        should be a valid HTCondor expression.  
+        For instance, <tt>query_expr="(JobUniverse==5)"</tt> will
+        select only vanilla universe jobs.<br/>
+
+        <a href="#match_example">More on match expressions</a>
+    </P></li>
+    <LI><P>
+        <a name="group_job_match" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
+
+        </div>
+        A list of glidein Factory attributes used in the
+        Factory match expression.   Each match attribute
+        should be a HTCondor ClassAd attribute that is listed 
+        in the above match_expr.
+        <a href="#match_example">More on match expressions</a>
+    </P></li>
+    <LI><P>
+        <a name="group_security_proxies" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
+        type=&quot;<i>grid_proxy</i>&quot;
+        absfname=&quot;<I>proxyfile</I>&quot;
+        [keyabsfname=&quot;<I>keyfile</I>&quot;]
+        [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
+        security_class=&quot;<I>classname</I>&quot; 
+        trust_domain=&quot;<I>id</I>&quot; 
+        [vm_id=&quot;<I>id</I>&quot;]
+        [vm_type=&quot;<I>type</I>&quot;]
+        /&gt;
+
+        </div>
+        Group-specific credentials can be defined that will be passed to the Factory in addition to any <a href="#credentials">globally defined credentials</a>.
+    </P></li>
+     <LI><P>
+        <a name="group_attrs" />
+        <div class="xml">
+        &lt;frontend&gt&lt;groups&gt;&lt;group&gt;
+        &lt;attrs&gt;&lt;attr name=&quot;<I>attr_name</I>&quot;
+        value=&quot;<I>value</I>&quot;
+        parameter=&quot;True&quot;
+
+        type=&quot;string&quot;
+        glidein_publish=&quot;<I>boolean</I>&quot;
+        job_publish=&quot;<I>boolean</I>&quot; &gt;
+        </div>
+    Each group can have its own set of attributes, with the same semantics
+    as the <A HREF="#attrs">attrs</A> section in the global area.<br><br>
+    If an attribute is defined twice with the same name, the group one prevails.
+    </P>
+   </LI>
+    <LI><P>
+        <a name="global_config" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;config&gt;
+        </div>
+    The parameters listed here regulate the throttling of the provisioning requests.<br>
+    <ul>
+     <li>The first two elements are used to throttle requests if the glideins (and startds in general) 
+         are not matched to the user jobs, either due to a mismatch in policy or system overload (counted as number of slots)<br>
+         <b>idle_vms_total</b> throttles based on the glideins provisioned by this Frontend, <br>while
+         <b>idle_vms_total_global</b> throttles based on all the startds visible to the Frontend.<br>
+         The Frontend will stop requesting more glideins if/when <b>max</b> is reached.
+         If/when <b>curb</b> is reached/exceeded, the number of glideins requested in each provisioning request 
+         is cut in half.
+     <li>The last two elements are used to put an upper bound on how many glideins will the Frontend try to provision.<br>
+         Similarly to the previoues two, 
+         <b>running_glideins_total</b> will throttle the provisioning requests based on the number of glideins provisioned by this Frontend, <br>while
+         <b>running_glideins_total_global</b> throttles based on the number of all the startds visible to the Frontend.
+      </ul>
+    </P></LI>
+    <LI><P>
+        <a name="usercollector" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"/&gt;
+        </div>
+        List of user pool collector(s) where condor_startd started by glideins
+        should report to as an available resource.  
+        This is where the user jobs will be matched with glidein resources.
+    <br><br>
+    For <b>scalability</b> purposes, multiple (secondary) user pool collectors can be used. 
+    Refer to the 
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.<br/>
+    The configuration required for the Frontend to communicate with the secondary user pool collectors is shown below:
+      <blockquote>
+         &lt;collectors&gt;
+            &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
+                  node="User Pool Collector:<b>primary_port</b>"/&gt;</br>
+            &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
+                  node="User Pool Collector:<b>secondary_port</b>"/&gt;</br>
+            <font color="blue"><i>
+            If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
+            is required specifying the <i>port range</i> (e.g.: 9640-9645) otherwise you will need a collector
+            element for each secondary port.</i></font><br/>
+      </blockquote>
+    For <b>redundancy</b> purposes, the user pool can be configured using the HTCondor High Availability feature. 
+    Refer to the 
+    <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a> for details for the HTCondor configuration.<br/>
+    The requires listing all the condor collectors, primary as well as secondary, grouped by <b>group</b> name.
+    HTCondor daemons started by the glideins, will report back to <b>one</b> of the
+    secondary collectors in each <b>group</b>, chosen by random. If a <b>group</b> has no secondary collector, 
+    the primary collector is selected for that group.  Here there are examples of different configurations:
+    <blockquote>
+         &lt;collectors&gt;
+        <ul>
+         &lt;collector DN="<i>certificate DN</i>"  secondary="False"
+                  node="<b>User Pool Collector 1</b>:primary_port" <b>group="default"</b>/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>" secondary="True"
+                  node="<b>User Pool Collector 1</b>:secondary_port_range" <b>group="default"</b>/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>"  secondary="False"
+                  node="<b>User Pool Collector 2</b>" <b>group="1"</b>/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>" secondary="True"
+                  node="<b>User Pool Collector 2</b>:secondary_port?sock=collectorID1-ID2" <b>group="1"</b>/&gt;</br>
+            <font color="blue">
+            <b>Important: </b> For the secondary collectors configuration, there are multiple options like port number or <i>port range</i> and
+            single collector (<b>sock=collectorX</b>), or sinful string that can be used for the sock range case
+                (<b>sock=collectorID1-ID2</b>) for <b>shared_port</b>b> option. This two last cases are further explained in
+             <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
+                It's very important to follow <b>this configuration pattern</b>. No coma or semicolon is allowed in the node specification.</font><br/>
+            If the secondary port numbers (or the numeric part at the end of the sock name) were assigned as contiguous range, only one additional <b>collector</b>
+            line is required specifying the <i>port range</i> (e.g.: 9640-9645) or <i>sock range</i> (e.g. collector1-16), otherwise you will need a collector
+                element for each secondary port or sock value.
+       </ul>
+      </blockquote>
+    </li>
+
+    <LI><P>
+        <a name="ccbcollector" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" group="<i>Group name</i>" /&gt;
+        </div>
+        List of <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">
+HTCondor Connection Brokering, or CCB,</a> servers. These are collector daemons that allow communications with HTCondor daemons behind a firewall.
+See the  <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor manual</a> 
+for more information on CCB. A switch in the entry section of the Factory configuration determines wether the daemons started by Glideins on that entry
+will use CCBs or not.<br><br>
+<b>Normally this section is empty and the main User Pool Collector acts also as CCB if needed</b>.
+Only very specific setups need to change this section.
+    <br><br>
+    For <b>scalability</b> purposes, multiple CCB can be listed. For <b>availability</b> purposes divide them in multiple groups.
+    Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
+    chosen by HTCondor at random from each distinct group; 
+    When you configure a list of CCB servers to use, each daemon will register with all of the given CCB servers and include all of them in its sinful string (the information
+    given to others for how to contact it).
+    When a client tool or other daemon wishes to contact that daemon, it will try the CCB servers in random order until it gets a successful connection.
+    For more details, (<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_9Networking_includes.html#43687"> see the HTCondor manual</a>).
+    Daemons on the same host using a shared port daemon will share the same CCBs.<br>
+    NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
+    any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
+    The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
+      <blockquote>
+         &lt;ccbs&gt;
+         &lt;ccb DN="<i>certificate DN</i>"  
+                  node="CCB Collector:<b>port</b>"/&gt;</br>
+         &lt;ccb DN="<i>certificate DN</i>" 
+                  node="CCB Collector:<b>port_range</b>"/&gt;</br>
+         &lt;ccb DN="<i>certificate DN</i>"
+                  node="CCB Collector:<b>other_port?sock=collectorID1-ID2</b>"/&gt;</br>
+            <font color="blue">
+            <b>Important: </b>Like in User Pool Collector configuration, there are multiple options of configuration: a single host name, a <i>port range</i>,
+                sinful string (shared_port configuration) with a single collector ID (<b>sock=collectorX</b>), or with a "sock range" (<b>sock=collectorID1-ID2</b>).
+                For shared_port, the configuration is further explained in:
+                <a href="../components/condor.html#collectors">Advanced HTCondor Configuration Multiple Collectors document</a>
+                It's very important to follow this configuration pattern. No coma or semicolon is allowed in the node specification.</font><br/>
+      </blockquote>
+    </li>
+    <li>
+      <a name="high_availability" />
+      <div class="xml">
+      &lt;frontend&gt;&lt;high_availability check_interval="<i>Check interval in sec</i>" enabled="<i>True/False</i>"/&gt;
+      </div>
+      This setting allows you to run Frontend in HA mode. Currently only 1 master, 1 slave is supported. By default, the Frontend runs in master mode ie. <b>enabled="False"</b>.<br/><br/>
+
+      To configure the Frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the ClassAds from the master Frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master Frontend ie. 'FrontendName' as it appears in the glideclient ClassAd of the master Frontend or the value of <b>frontend_name</b> configuration for the master Frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests. You can use same <b>frontend_name</b> for both master and slave Frontend to make it transparent to other services, however you can still distinguish which Frontend is currently active by looking at the 'FrontendHAMode' in the glideclient ClassAd.
+
+
+      <pre>
+      &lt;high_availability check_interval="300" enabled="True"&gt;
+        &lt;ha_frontends&gt;
+          &lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;
+        &lt;/ha_frontends&gt;
+      &lt;/high_availability&gt;</pre>
+
+      </a>
+    </li>
+
+</UL>
+</div>
+<div class="section">
+<h3><A NAME="custom_code"></A>Adding Custom Code/Scripts to Glidein Frontend Glideins</h3>
+    You can add custom scripts to glideins created for this Glidein Frontend by adding scripts and files to the configuration in the files section: 
+        <div class="xml">
+        &lt;glidein&gt;<br>
+        &nbsp;[&lt;groups&gt;&lt;group&gt;]<br>
+
+        &nbsp;&lt;files&gt;<br>
+        &nbsp;&nbsp;&lt;file absfname="<i>script name</i>" 
+        executable="True"
+        after_group="True"
+        comment="<i>comment</i>"/&gt;
+
+        </div>
+    <p>The script/file will be copied to the
+    Web-accessible area and added to one of the glidein's file lists,
+    and when a glidein starts, the glidein startup script will pull it, validate it and execute
+i   any action requested (execute, untar, just keep it, ...).
+        <tt>after_entry</tt> and <tt>after_group</tt> can be used to affect the execution order (see
+        <a href="../factory/custom_scripts.html">writing custom scripts</a>.
+    If any parameters are needed, they can be specified using <b>&lt;attr /&gt;</b>.
+    </p>
+
+    <p>For more detailed information, see the page dedicated to
+    <a href="../factory/custom_scripts.html">writing custom scripts</a>.</p>
+    <p>
+    You can also create wrapper scripts or tar-balls of files, see
+    <a href="../factory/configuration.html#custom_code">the Factory configuration page</a> for
+    syntax.  (Use groups/group tags instead of the Factory's entry tag). The variable name specified by <b>absdir_outattr</b> will be prepended by either
+<b>GLIDECLIENT_</b> or <b>GLIDECLIENT_GROUP_</b>, depending on scope.
+</p>
+</div>
+<div class="section">
+    <H2 CLASS="western"><A NAME="match_example"></A>
+        Match Expressions and Match Attributes
+    </h2>
+<p>
+    Several sections in the configuration allow a match expression.
+    Each of these sections allows an expression to be evaluated to
+    determine where glideins and jobs should be matched.<br/>
+    For example, expressions allowing a white list by the frontend
+    can be created in order to control where the glideins are submitted.
+    It can also allow you to give a HTCondor expression
+    to specify where jobs can run or to specify
+    which glidein_sites can run jobs.  <br />
+    There are two ways to restrict matching in most cases.
+    Note that match_expr clauses, such as &lt;match match_expr&gt; 
+    will use python based expressions as explained below.  Others,
+    such as &lt;factory query_expr&gt; and &lt;job query_expr&gt;
+    use HTCondor ClassAd expressions.  For these, only valid HTCondor
+    expressions can be used.  Python expressions can not be
+    evaluated in these contexts.
+    <br/>
+    Note that, for some tags (like
+    factory query_expr), you can specify expressions in both the
+    default global section as well as in individual group sections.
+    You should take special care before doing this to make sure the
+    expressions are correct, as the expressions are typically "AND"-ed
+    together.
+</p>
+<p>
+    Each match expression is a python expression that will be evaluated.
+    Matches can be scoped to either global scope
+    (&lt;frontend&gt;&lt;match&gt;) or to a group specific scope.
+</p>
+<p>
+    Each python expression will typical be a series of boolean tests,
+    surrounded by parentheses and connected by the boolean expressions
+    "and", "or", and "not".  You can use several dictionaries in
+    these match expressions.  The "job" dictionary contains the
+    ClassAd of the job being matched, and the "glidein" dictionary
+    contains information about the Factory (entry point) ClassAd.
+    There is also a "attr_dict" dictionary that can reference 
+    attributes defined in the frontend.xml.
+    While an extensive list of everything you can
+    in these expressions is out of scope, some examples are below:
+    <ul>
+    <li><b>(job.has_key("ImageSize"))</b>: Returns true if the job ClassAd has the attribute "ImageSize".</li>
+    <li><b>(job["NumJobStarts"]>5)</b>: Returns true if the job ClassAd attribute "NumJobStarts" is greater than 5.</li>
+    <li><b>(glidein["attrs"].has_key("GLIDEIN_Retire_Time"))</b>: Returns true if the Factory entry ClassAd has the attribute "GLIDEIN_Retire_Time".</li>
+    <li><b>(glidein["attrs"]["GLIDEIN_Retire_Time"]>21600)</b>: Returns true if the Factory entry ClassAd's "GLIDEIN_Retire_Time" is greater than 21600.</li>
+    <li><b>(attr_dict["NUM_USERS_ALLOWED"]&gt;0)</b>: Returns true if there is a attribute in the frontend.xml with NUM_USERS_ALLOWED that is greater than zero.</li>
+    <li><b>(job["Owner"] in attr_dict["ITB_Users"].split(","))</b>: Returns true if the job ClassAd attribute "Owner" is in the comma-delimited string attribute ITB_USERS (which would be defined in frontend.xml)</li>
+    </ul>
+</p>
+<p>
+    Each attribute used in a match expression should be declared in a
+    subsequent match_attrs section.  This makes ClassAd variables
+    available to the match expression. Attributes can be made available
+    from the:</p>
+    <ol>
+    <li> Factory ClassAd: (&lt;match&gt;&lt;factory&gt;&lt;match_attr&gt;)</li>
+    <li> Job ClassAd: (&lt;match&gt;&lt;job&gt;&lt;match_attr&gt;)</li>
+    </ol>
+    <p>
+    Each <b>match_attr</b> tag must contain a <b>name</b>.
+    This is the name of the attribute
+    in the appropriate ClassAd.  <br/>
+    It must also contain a <b>type</b> which can be
+    one of the following:
+    </p>
+    <ol>
+    <li>string: A constant string of letters, numbers, or characters.</li>
+    <li>int: An integer: a positive or negative number, or zero.</li>
+    <li>real: A real number that could have decimal places</li>
+    <li>bool: It can by "True" or "False"</li>
+    <li>Expr: A ClassAd expression</li>
+    </ol>
+</p>
+<p><B><u>Example</u></b></p>
+        <div class="xml">
+         &lt;match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'&gt;<br/>
+            &lt;factory query_expr="(GLIDEIN_Site=!=UNDEFINED)"&gt;<br/>
+               &lt;match_attrs&gt;
+                  &lt;match_attr name="GLIDEIN_Site" type="string"/&gt;
+               &lt;/match_attrs&gt;<br/>
+               &lt;collectors&gt;
+               &lt;/collectors&gt;<br/>
+            &lt;/factory&gt;<br/>
+            &lt;job query_expr="(DESIRED_Sites=!=UNDEFINED)"&gt;<br/>
+               &lt;match_attrs&gt;
+                  &lt;match_attr name="DESIRED_Sites" type="string"/&gt;
+               &lt;/match_attrs&gt;<br/>
+               &lt;schedds&gt;
+               &lt;/schedds&gt;<br/>
+            &lt;/job&gt;<br/>
+         &lt;/match&gt;<br/>
+        </div>
+
+
+<p><B><u>Example</u></b></p>
+        Glideins can also use "start_expr" to make sure
+        the correct jobs start on pilots.  This is a HTCondor 
+        expression run on the pilot startd daemon.
+        Here is an example:
+        <div class="xml">
+              &lt;match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'
+            start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &lt;
+            <br/>
+            ...
+            <br/>
+            &lt;/match &gt;
+        </div>
+</p>
+
+<p><B><u>Example</u></b></p>
+        Here is an example of policy.py that is equivalent to above example
+        <div class="xml">
+            &lt;match match_expr='True'
+            policy_file='/path/to/policy.py'
+            start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &gt;
+            <br/>
+            &lt;factory query_expr="True"&gt;
+                &lt;match_attrs /&gt;
+             &lt;/factory&gt;
+            <br/>
+            &lt;job query_expr="True"&gt;
+                &lt;match_attrs /&gt;
+             &lt;/job&gt;
+            <br/>
+            &lt;/match &gt;
+        </div>
+        <pre>
+# Filename: /path/to/policy.py
+# match(job, glidein) is equivalent to match_expr in frontend.xml
+def match(job, glidein):
+    return (glidein['attrs'].get('GLIDEIN_Site') in job["DESIRED_Sites"].split(","))
+
+# factory/job query_expr is a string of HTCondor expression
+factory_query_expr = '(GLIDEIN_Site=!=UNDEFINED)'
+job_query_expr = '(DESIRED_Sites=!=UNDEFINED)'
+
+# factory/job match_attrs is a dict with following structure
+factory_match_attrs = {
+    'GLIDEIN_Site': {'type': 'string', 'comment': 'From policy'}
+}
+job_match_attrs = {
+        'DESIRED_Sites': {'type': 'string', 'comment': 'From policy'}
+}
+        </pre>
+</p>
+</div>
+<div class="section">
+<a name="multiple_proxy" />
+<h2>Using Multiple Proxies</h2>
+
+<p>
+<b>
+    Why would you want to use a pool of pilot proxies 
+    instead of a single one?
+</b>
+</p>
+
+<p>
+If your VO maps to a single group account at the remote grid sites, you
+wouldn't.  A pool of pilot proxies (try saying that 5 times fast) does
+not gain you anything.  
+If your VO maps to a pool of accounts at remote grid sites, you should
+consider using a pool of proxies equivalent to the number of users you
+have.  Why?</p>
+
+<p>
+Consider the following scenario: Alice, Bob, and Charlie are all in the
+FUNGUS experiment and form a VO.  They are using GlideinWMS.  Alice
+sends 1000 jobs to FNAL via their GlideinWMS using a single pilot proxy.
+   The pilots map to their userid fungus01 at FNAL, and in accordance with
+the batch system's fair-share policies, the job priority for user
+fungus01 is decreased significantly.
+</p>
+<p>
+Bob comes along and submits 1000 jobs via GlideinWMS, while Charlie
+submits 1000 jobs under his own proxy and not using GlideinWMS.  The
+GlideinWMS pilots launch for Bob, and map to fungus01. Charlie launches
+his own jobs that get mapped to fungus02.  Relative to fungus02,
+fungus01 priority is terrible, and Bob's jobs sit around waiting for
+Charlie -- even though Bob didn't occupy the FNAL resources, Alice did!
+</p>
+<p>
+The solution: have a pool of pilot proxies.  We then spread the
+fair-share penalty amongst fungus01, fungus02, and fungus03, and Bob now
+can compete on a more equal footing with Charlie and Alice.
+</p>
+<p>
+<b>Using multiple proxies</b>
+</p>
+<p>
+Proxies can be specified in the 
+<tt>&lt;security&gt;&lt;credentials&gt;&lt;credential&gt;</tt> tags.  Multiple proxy tags can be entered, one for each proxy file.  These can found in the security section at the top of the xml, in which case, the proxies are shared for all security groups.  They can also be found within <tt>&lt;group&gt;</tt> tags, in which case they are used only by that security group.
+</p>
+<p>
+One example follows:
+<div class="config">
+<blockquote>
+         &lt;security&gt;<br/>
+<blockquote>
+            &lt;credentials&gt;<br/>
+<blockquote>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot05_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot06_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot07_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot08_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot09_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+</blockquote>
+            &lt;proxies&gt;<br/>
+</blockquote>
+         &lt;security&gt;<br/>
+</blockquote>
+</div>
+</p>
+</div>
+
+<div class="section">
+<H2 CLASS="western"><A NAME="singularity"></A>Run jobs under Singularity</H2>
+
+    <P>As mentionsd <a href="#attr_singularity">above</a>, <b>GLIDEIN_Singularity_Use</b> determines whether or not you want to mandate the use of Singularity
+    (via GlideinWMS) and is used both for provisioning and to match and run once the Glidein is on the site.
+To use Singularity you have to set it to one of REQUIRED, PREFERRED or OPTIONAL, e.g.:
+<blockquote>&lt;attr name="GLIDEIN_Singularity_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="PREFERRED"/&gt;
+</blockquote>
+The Factory setting and the actual availability of singularity and an image will also affect the actual use of Singularity.
+    See the <a href="../factory/configuration.html#singularity">Factory configuration document</a>
+for a table of how Singularity is negotiated with the entries using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE (the entry variable)
+    to decide wether the Glidein can run there and should use Singularity or not.
+</P>
+
+<p>To use Singularity you must also (in the general or group configuration):
+<ol>
+    <li>Use the default wrapper script that we provide (or a similar one). In other words a line like:
+<blockquote>&lt;file absfname="/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh" wrapper="True"/>
+</blockquote>
+    must be added in the &lt;files> section of the general or group parts of the Frontend configuration.
+NOTE: Remember to remove your previous VO wrapper if you had one, e.g. if you were using Singularity via OSG
+</li>
+<li>Specify an image. You can specify one single image or a dictionary of images, SINGULARITY_IMAGES_DICT, and pick one with the variable REQUIRED_OS (set in the job of in the Frontend group).
+If you use SINGULARITY_IMAGES_DICT and REQUIRED_OS, the value of REQUIRED_OS must be 'any' or one of the keys used in the dictionary.
+To specify the image dictionary you have a couple of options:
+<ul style="list-style-type:none">
+    <li><b>2a.</b> run a pre-singularity script like generic_pre_singularity_setup.sh from /var/lib/gwms-frontend/web-base/frontend/,
+        (or a similar one you did for your VO). To do this add a line such as:
+        <blockquote>
+    &lt;file absfname="/var/lib/gwms-frontend/web-base/frontend/generic_pre_singularity_setup.sh" after_entry="False" executable="True" period="0" untar="False" wrapper="False"/>
+</blockquote>
+    in the &lt;files> section as before. This script sets a SINGULARITY_IMAGES_DICT with the OSG images in CVMFS for "rhel7" and "rhel6".
+        You can select one of them by setting <b>REQUIRED_OS</b> to one of the keys. "rhel7" is the default.
+    </li>
+        <li><b>2b.</b> You can set directly SINGULARITY_IMAGES_DICT in your group attributes adding a line like:
+<blockquote>
+            &lt;attr name="SINGULARITY_IMAGES_DICT" glidein_publish="True" job_publish="True" parameter="False" type="string" value="default:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el6,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el7"/>
+</blockquote>
+Then you can use REQUIRED_OS to select one of the images.
+        </li>
+    <li><b>2c.</b> You can ask the Factory to set SINGULARITY_IMAGES_DICT for you and use REQUIRED_OS to select the image.
+    </li>
+    <li><b>2d.</b> You set SingularityImage in the job submit file, e.g:
+<blockquote>
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE"
+</blockquote>
+    </li>
+</ul>
+    </li>
+</ol>
+    </p>
+
+Optionally, in the general or group configuration you can also:
+<ul>
+    <li>Specify bind-mounts for Singularity images using GLIDEIN_SINGULARITY_BINDPATH. These bind-mounts override the ones listed by the Factory in GLIDEIN_SINGULARITY_BINDPATH_DEFAULT.
+        If one or more of the specified paths does not exist on the node, it will be removed from the list. Here an example:
+<blockquote>
+&lt;attr name="GLIDEIN_SINGULARITY_BINDPATH" const="False" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="/vo_files,/src_path:/dst_path"/>.
+</blockquote>
+        See the <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> for more information about the bind mounts.
+    </li>
+    <li>Specify additional options for the singularity command, using the attribute <b>GLIDEIN_SINGULARITY_OPTS</b>
+</li>
+</ul>
+
+The <a href="../factory/custom_vars.html#singularity_vars">custom variables file</a> contains a reference of all the
+    Singularity attributes used in the Frontend, Factory or Glidein.
+</div>
+
+
+
+<div class="section">
+<H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend
+Daemon</H2>
+<P>Once you have the desired configuration file, move to the VO
+Frontend directory&nbsp; and launch the command:</P>
+
+    <blockquote>./frontend_startup start</blockquote>
+<P>
+With the configutation above, all the activity messages will go into 
+</P>
+    <BLOCKQUOTE>group_*/log/frontend_info.&lt;date&gt;.log</BLOCKQUOTE>
+<P>while the debug, warning and error messages go into </P>
+    <BLOCKQUOTE>group_*/log/frontend_debug.&lt;date&gt;.log</BLOCKQUOTE>
+
+<P><A NAME="ref"></A>
+    The Frontend logs are deleted after a week.
+</P>
+</div>
+
+<div>
+    <a name="xsltplugins"/>
+    <h3 class="western">XSLT Plugins to extend configuration</h3>
+    This is explained in the <a href=../factory/configuration.html#xsltplugins>Factory configuration documentation.</a>
+    <p>
+    </p>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</div>
+</body>
+</html>

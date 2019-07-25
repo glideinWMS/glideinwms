@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>glidefactory ClassAd</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
+    <LI><A HREF="#requirements">Requirements</A></li>
+    <LI><A HREF="#configuration">Configuration and Installation</A></li>
+    <LI><A HREF="#optional">Optional attributes</A></li>
+    <LI><A HREF="#communication">Communication requirements</A></li>
+    <LI><A HREF="#downtime">Downtime</A></li>
+    <LI><A HREF="#monitoring">Monitoring</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<h2>Factory Advertisement of Entries</h2>
+<p>Each Factory entry advertises information about itself that Frontends use when creating requests.  The Frontend also 
+uses this information to publish resource ClassAds to the User Collector. <br><br> There is one ClassAd per 
+entry point and it includes the following:</p>
+<ol>
+	<li><a name="identify"></a><b>Information used to identify the ClassAd.</b> FactoryName and GlideinName are used 
+	by the Frontend to identify the factory needed when generating requests.
+		<ol type="a">
+			<li>Values used to manage Classads in the Collector
+				<ul>
+					<li>Name = &quot;entry_name@glidein_name@factory_name&quot;</li>
+					<li>Internal ClassAd type of Master</li>
+				</ul>
+			</li>
+			<li>Values used to distinguish the different ClassAd types and used by GlideinWMS to query the Collector
+				<ul>
+					<li>GlideinMyType = &quot;glidefactory&quot; </li>
+				</ul>
+			</li>
+			<li>Values set by GlideinWMS to be used by HTCondor but not by GlideinWMS
+				<ul>
+					<li>MyType = &quot;glidefactory&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	<li><a name="requirements"></a><b>Requirements of the Factory.  </b>
+		<ol type="a">
+			<li>The Factory and Frontend agree on trust domains and are used to determine what credentials are valid for a site.  This 
+			is used by the Frontend to map a credential to an entry so each entry publishes its trust domain.  The Factory does not 
+			interpret this value and it is used by Frontends.
+				<ul>
+					<li>GLIDEIN_TrustDomain = &quot;OSG&quot;</li>
+				</ul>
+			</li>
+			<li>Each entry supports an authentication method that describes the credential requirements for submitting glideins.  Only 
+			one method is allowed per entry and these attributes are only used by v3+ Frontends.  The glidein proxy attribute is True 
+			for non-grid-proxy entries.
+				<ul>
+					<li>GLIDEIN_SupportedAuthenticationMethod = &quot;grid_proxy&quot;</li>
+					<li>GlideinRequireGlideinProxy = False</li>
+				</ul>
+			</li>
+			<li>Additional requirements may need to be supplied by the Frontend.  An entry may require the Frontend to pass the VM Id and Type.
+			</li>
+		</ol>
+	</li>
+	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for querying the 
+	collector or possibly in match expressions.
+		<ol type="a">
+			<li>Factory information
+				<ul>
+					<li>FactoryName = &quot;factory_name&quot;</li>
+					<li>GlideinName = &quot;glidein_name&quot; </li>
+					<li>GlideinWMSVersion = &quot;glideinWMS UNKNOWN&quot;</li>
+				</ul>
+			</li>
+			<li>Entry information.  These values are specific to each entry and may be used by the Frontends in matching user requirements 
+			to jobs.
+				<ul>
+					<li>EntryName = &quot;entry_name&quot;</li>
+					<li>GLIDEIN_GridType = &quot;condor&quot;</li>
+					<li>GLIDEIN_GlobusRSL = &quot;&#40;queue=default&#41;&quot;</li>
+					<li>GLIDEIN_Gatekeeper = &quot;entry.domain.name entry.domain.name:port&quot;</li>
+					<li>DaemonStartTime = 1291848363</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	<li><a name="optional"></a><b>Optional Factory admin defined attributes.  </b>If const=False, they will be prefaced with GlideinParam.  The 
+	intention of this is to indicate that the Frontend can override but this functionality is broken.
+		<ol type="a">
+			<li>Values used to affect glidein behavior.
+				<ul>
+					<li>CCB = &quot;True&quot;</li>
+					<li>GlideinParamGLIDEIN_Max_Idle = 1200 </li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+			<li>Information published about an entry that can be used by the Frontend, for example, something used in a Match expression for 
+			matching user jobs to entries.
+				<ul>
+					<li>GLIDEIN_Site = &quot;site_name&quot;</li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+			<li>Glidein Collector:  This special value is automatically added by the Factory in every Classad.  
+			The Frontend is required to overwrite it (define in the Frontend request).
+				<ul>
+					<li>GlideinParamGLIDEIN_Collector = &quot;Fake&quot;</li>
+				</ul>
+			</li>
+		</ol>
+       </li>
+       <li><a name="communication"></a><b>Communication requirements.  </b>
+               <ol type="a">
+                       <li>The Factory publishes the security information that the Frontend uses to communicate requests.  This is needed for legacy reasons.
+                               <ul>
+                                       <li>PubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+                                       <li>PubKeyType = &quot;RSA&quot;</li>
+                                       <li>SupportedSignTypes = &quot;sha1&quot;</li>
+                                       <li>PubKeyValue = &quot;-----BEGIN PUBLIC KEY-----&#92;nMIIBIjAG9w0BAQ32m ... eZWnULjTB&#92;n-----END PUBLIC KEY-----&#92;n&quot;</li>
+                               </ul>
+                       </li>
+               </ol>
+	</li>
+	<li><a name="downtime"></a><b>Downtime information.  </b>
+		<ol type="a">
+			<li>An entry can go into downtime when there are issues.  The Frontend can then use this information in selecting entries so that 
+			it only requests glideins from entries that can service the request.
+				<ul>
+					<li>GLIDEIN_In_Downtime = &quot;True&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	<li><a name="monitoring"><b>Monitoring values.  </b>
+		<ol type="a">
+			<li>These are generated by the Factory and used for generating the monitoring data.  All are prefaced with GlideinMonitor.  
+			Monitoring values may be shared between services but are only used in generating monitoring information and not to affect glidein submission.
+				<ul>
+					<li>GlideinMonitorTotalStatusPending = 0</li>
+					<li>GlideinMonitorTotalStatusIdle = 0</li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+</ol>
+<p>The Factory does not advertise all configuration information for an entry.  There may be additional values may affect glidein submission, such as limits 
+on how many pilots are allowed in the queue, or glidein behavior at the site, such as unpublished attributes.
+</p>
+
+<h2>Example glidefactory ClassAd</h2>
+<pre>
+MyType = "glidefactory"
+TargetType = ""
+GlideinMyType = "glidefactory"
+GlideinWMSVersion = "glideinWMS UNKNOWN"
+Name = "entry@glidein@factory"
+FactoryName = "factory"
+GlideinName = "glidein"
+EntryName = "entry"
+SupportedSignTypes = "sha1"
+PubKeyID = "60b25b1dca401abad2d17c2f5f15e887"
+PubKeyType = "RSA"
+PubKeyValue = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA+dfogrc8+zSaK5vnfsgd\n4qbC2E0lD95QoCHGI6bevjCN2oeZzWgsY7Wug5esmuStgYSKC7XR2zu30rpfrD9V\ /EpsWCDIvBkDi\nU6v33EfFnUOUtp0pOxWk5JT/k+yo4i1hP4KTPjQt4K1tLeY7CGxqtMbD/wTGTgH+\nLo/UwtDIFXacL8tKXJTNZGjzlpaC/tWdKT8RJN09J6ioejAXgDXJ7a+VRbBOZNZb\njQIDAQAB\n-----END PUBLIC KEY-----\n"
+GlideinAllowx509_Proxy = TRUE
+GlideinRequirex509_Proxy = TRUE
+DaemonStartTime = 1293038517
+UpdateSequenceNumber = 3794
+GLIDEIN_In_Downtime = "False"
+GLEXEC_JOB = "True"
+GLIDEIN_GridType = "condor"
+GLEXEC_BIN = "NONE"
+USE_CCB = "True"
+GCB_ORDER = "NONE"
+GLIDEIN_Site = "xen13"
+GLIDEIN_GlobusRSL = "(queue=default)"
+GLIDEIN_Gatekeeper = "node.domain.name/jobmanager-condor"
+GlideinParamUSE_MATCH_AUTH = "True"
+GlideinParamGLIDEIN_Collector = "node.domain.name"
+GlideinMonitorTotalClientMonitorGlideTotal = 0
+GlideinMonitorTotalStatusPending = 0
+GlideinMonitorTotalStatusStageIn = 0
+GlideinMonitorTotalStatusIdle = 0
+GlideinMonitorTotalClientMonitorJobsRunning = 0
+GlideinMonitorTotalRequestedMaxGlideins = 1
+GlideinMonitorTotalClientMonitorGlideRunning = 0
+GlideinMonitorTotalStatusIdleOther = 0
+GlideinMonitorTotalStatusStageOut = 0
+GlideinMonitorTotalRequestedIdle = 0
+GlideinMonitorTotalStatusRunning = 0
+GlideinMonitorTotalClientMonitorInfoAge = 22
+GlideinMonitorTotalStatusWait = 0
+GlideinMonitorTotalClientMonitorJobsRunHere = 0
+GlideinMonitorTotalClientMonitorJobsIdle = 0
+GlideinMonitorTotalClientMonitorGlideIdle = 0
+GlideinMonitorTotalStatusHeld = 0
+MyAddress = "<131.225.206.30:0>"
+AuthenticatedIdentity = "factory_user@node.domain.name"
+LastHeardFrom = 1294181640
+UpdatesTotal = 11713
+UpdatesSequenced = 11665
+UpdatesLost = 1
+UpdatesHistory = "0x00000000000000000000000000000000"
+
+**Note:  This attribute was shortened to fit into this document.
+</pre>
+
+
+</div>
+</body>
+</html>

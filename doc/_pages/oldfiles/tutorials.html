@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="./index.html">Home</a></li>
+        <li>Upgrade</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="./index.html">Home</a></li>
+	        <li> <a href="./download.html">Download</a></li>
+	        <li> <a href="./frontend/index.html">Glidein Frontend</a></li>
+        	<li> <a href="./factory/index.html">WMS Factory</a></li>
+        	<li> <a href="./components/index.html" >Components</a></li>
+                <li> <a href="./recipes/index.html">Recipes</a></li>
+	        <li> <a href="./components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="./images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
+    </map>
+
+
+    <h2>GlideinWMS</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./download.html">Download</a></li>
+	     <li> <a href="./documentation.html">Documentation</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./history.html">History</a></li>
+	     <li> <a href="./license.html">License</a></li>
+	</ul>
+        <h3>Tutorials</h3>
+	</div>
+    <div class="jump">
+    <u>Jump to:</u>
+    <ol>
+        <li><a href="#vofe">Submitting with a VO Frontend</a></li>
+        <li><a href="#add_resources">Additional Resources</a></li>
+    </ol>
+    </div>
+    <div class="related">
+    Related Links:
+    <ul>
+        <li>
+            <a href="install.html">Installation Overview</a>
+        </li>
+    </ul>
+    </div>
+<div class="section">
+    <a name="vofe" />
+    <h2>Submitting with a VO Frontend</h2>
+    These examples assumes you have GlideinWMS installation running and as a user, you have access to submit jobs.  Make sure
+    you have sourced the correct HTCondor installation.
+    <br/>
+    <br/>
+    <b>NOTE:</b>  It is recommended that you always provide a VOMS proxy in the user job submission.  This will allow you to run on a site
+    whether or not gLExec is enabled.  A proxy may also be required for other reasons, such as the job staging data.
+    <br/>
+    <br/>
+    The GlideinWMS environment looks almost exactly like a regular, local HTCondor pool.  It just does not have any 
+    resources attached unless you ask for them; try
+    <pre>$ condor_status</pre>
+    and you can see that no glideins are connected to your local pool. The GlideinWMS system will submit glideins on your behalf when 
+    they are needed.  Some information may need to be specified in order for you get glideins that can run your jobs. 
+    Depending on your VO Frontend configuration, you may also have to specify additional requirements.
+    <br/>
+    <br/>
+        
+    <h4>Submitting a simple job with no requirements</h4>
+    Here is a generic job that calculates Pi using the monte carlo method.  First create a file called pi.py and make it executable:
+    <pre>
+#!/bin/env python
+from random import *  
+from math import sqrt,pi  
+from sys import argv
+inside=0  
+n=int(argv[1])
+for i in range(0,n):  
+    x=random()  
+    y=random()  
+    if sqrt(x*x+y*y)<=1:  
+        inside+=1  
+pi_prime=4.0*inside/n  
+print pi_prime, pi-pi_prime
+    </pre>
+    You can run it:
+    <pre>
+$ ./pi.py 1000000
+3.1428 -0.00120734641021
+    </pre>
+    The first number is the approximation of pi.  The second number is how far from the real pi it is.  If you repeat this, you will 
+    see how the result changes every time.
+    <br/>
+    <br/>
+    Now, let's submit this as a HTCondor job.  Because we are going to run this multiple times (100), it will actually be a bunch of jobs.
+    These jobs should run everywhere, so we won't need to specify any additional requirements.  Create the submit file and call it myjob.sh:
+    <pre>
+Universe   = vanilla
+Executable = pi.py
+Arguments  = 10000000
+Requirements = (Arch=!="")
+Log        = job.$(Cluster).log
+Output   = job.$(Cluster).$(Process).out
+Error      = job.$(Cluster).$(Process).err
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+Queue 100
+    </pre>
+    Next submit the job:
+    <pre>$ condor_submit myjob.sh</pre>
+    The VO Frontend is monitoring the job queue and user collector.  When it sees your jobs and that there are no glideins, it will ask the Factory
+    to provide some.  Once the glideins start and contact your user collector, you can see them by running
+    <pre>$ condor_status</pre>
+    HTCondor will match your jobs to the glideins and the jobs will then run.  You can monitor the status of your user jobs by running
+    <br/>
+    <pre>$ condor_q</pre>
+    Once the jobs have finished, you can view the output in the job.$(Cluster).$(Process).out files.
+    <br/>
+    <br/>
+    
+    <h4>Understanding where jobs are running</h4>
+    While your jobs can run everywhere, you may still want to know where they actually ran; possibly because you want to know who to thank for the 
+    CPUs you were consuming, or to debug problems you had with your program. 
+    <br/> 
+    <br/>
+    To do this, we add some additional attributes to the submit file:
+    <pre>
+Universe   = vanilla
+Executable = pi.py
+Arguments  = 50000000
+Requirements = (Arch=!="")
+Log        = job.$(Cluster).log
+Output   = job.$(Cluster).$(Process).out
+Error      = job.$(Cluster).$(Process).err
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
++JOB_Site = "$$(GLIDEIN_Site:Unknown)"
++JOB_Gatekeeper = "$$(GLIDEIN_Gatekeeper:Unknown)"
+Queue 100
+    </pre>
+    These additional attributes in the job are used by the VO Frontend to find sites that match these requirements.  HTCondor also uses them to 
+    match your jobs to the right glideins.  
+    </br>  
+    </br>
+    Now submit the job cluster as before.  You can monitor the running jobs with:
+    <pre>
+$ condor_q `id -un` -const 'JobStatus==2' -format '%d.' ClusterId -format '%d ' ProcId -format '%s\n' MATCH_EXP_JOB_Site
+    </pre>
+    
+</div>
+
+<div class="section">
+    <a name="add_resources" />
+    <h4>Additional resources</h4>
+
+    <br/>
+    If you need help debugging issues with running jobs, see our <a href="./frontend/troubleshooting.html"> Frontend troubleshooting guide</a>.
+
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</body>
+</html>

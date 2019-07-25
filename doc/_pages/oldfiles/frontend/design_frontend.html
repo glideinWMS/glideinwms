@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Glidein Frontend</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Frontend</a></li>
+        <li>Design</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>Glidein Frontend</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+         <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Frontend Design Internals</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#implementation">Implementation</a> </li>
+</ol>
+</div>
+<div class="related">
+Related Information:
+<ul>
+    <li><a href="design.html">Frontend design overview</a></li>
+    <li><a href="../factory/design.html">Factory design</a></li>
+    <li><a href="../factory/design_data_exchange.html">
+           Factory/Frontend Data Exchange
+    </a></li>
+</ul>
+</div>
+<div class="section">
+<div class="section">
+
+<H2><A NAME="flow"></A>Program flow</H2>
+<P>The main tasks of the Frontend Daemon (glideinFrontend.py) are the startup the Group Programs (glideinFrontendElement.py)  and the aggregation of statistics from the entries.
+See picture below for an overview.
+</P>
+    <p>The only non trivial operation is the statistics aggregation. The Frontend Daemon reads the XML files produced by the Frontend Group Daemons, aggregates them, and writes out an aggregate XML file. It also updates the RRD files used to keep the history and creates the rrdtool graphs and HTML pages for human consumption.
+</p>
+<IMG SRC="../images/flow_frontend_main.png">
+
+<P>The Frontend Group Program (glideinFrontendElement.py) is invoked to process the requests and statistics for a Group (e.g. a VO or a set of schedds sharing the same Glideins) and then it ends. There is no infinite loop. It is invoked also to cleanup the ClassAd of the Group (e.g. if the Frontend is terminating).
+The glideinFrontendElement queries the Factory to know the available entries, the load and the status of previous requests. It queries also the Schedds to know the job requests. And also the WMS collector to know number and types of available Glideins.
+Stats are updated. The jobs are clustered (autoclustering) and matched with the Entries that can run them. Running jobs are also matched with the Glideins (Entries) that are running them.
+</P>
+<IMG SRC="../images/flow_frontend_element.png">
+
+
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

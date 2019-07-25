@@ -1,0 +1,232 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Data Exchange</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#flow">Program flow</A></li>
+    <LI><A HREF="#flow_work">Find and perform work</A></li>
+    <LI><A HREF="#flow_advertise">Advertise myself</A></li>
+    <LI><A HREF="#flow_stats">Write statistics</A></li>
+    <LI><A HREF="#source">Source code distribution</A></li>
+    <LI><A HREF="#config">Configuration files</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> Data Exchange</li>
+</ul>
+</div>
+<div class="section">
+
+<h2><a name="classads"></a>Data exchange overview</h2>
+<p>In the previous section we described the general architecture of
+the WMS. Let now have a look at the type of information that the two
+pieces publish.</p><br>
+See <a href="./protocol_details.html">here</a> for a detailed description of the protocol. </p>
+<h3><a name="factory_classads"></a>The Glidein&nbsp;Factory ClassAd</h3>
+<p>A&nbsp;Factory publishes one ClassAd per glidein entry. The
+class-ad contains 
+</p>
+<ul>
+    <li>The name of the glidein (and the Factory)
+    </li><li>The attributes that describe the glidein
+    </li><li>The list of parameters that the glidein accepts. All the
+    parameters have also default values associated with them, in
+    case a Frontend does not redefine them, and the (optional) public key 
+    algorithm, ID and value, together with the supported symmetric algorithms, 
+    that the Frontend can use to push back encrypted values.
+    </li><li>The list of monitoring values (like how many glideins are in the queues, etc)
+    </li><li>Limits configured in the Factory
+</li></ul>
+<p>Look at the picture below for a generic description.<br><br><img src="../images/factory_publish.png" name="graphics3" align="BOTTOM" border="0"><br><br>Please
+notice that the glidein attributes can be completely arbitrary; the
+only predefined attributes are the glidein and Factory name, and the
+convention that anything that starts with <font face="monospace"><b>GlideinParam</b></font>
+is a parameter. Anything that starts with <font face="monospace"><b>GlideinMonitor</b></font>
+is a monitoring attribute and  anything that starts with <font face="monospace"><b>GlideinConfig</b></font> is a limit configured in the Factory.<br><br>
+Once the&nbsp;Factory starts
+serving frontends, it will publish also another ClassAd for every
+Frontend served. This ClassAd contains only monitoring information,
+and is not used by the GlideinWMS itself.<br>Find below a graphical
+representation of these ClassAds.<br><img src="../images/factory_client_publish.png" name="graphics4" align="BOTTOM" border="0"></p>
+<h3><a name="frontend_classads"></a>The VO Frontend Class-Ad</h3>
+<p>A VO Frontend will obtain the list all available glideins and
+select the ones that fit its needs, based on the published
+attributes. For each fitting glidein, a Frontend ClassAd will be
+published. Such a ClassAd will contain 
+</p>
+
+<ul>
+    <li>The name of the Frontend and a request ID
+    </li><li>The desired glidein name
+    </li><li>The (optional) URL and signatures for the Frontend specific scripts and data
+    </li><li>The desired rate and limits of glidein submissions
+    </li><li>The glidein parameters (in clear)
+    </li><li>The (optional) Factory public key ID used, together with:
+    <ul>
+      <li>The symmetric encryption algorithm and key
+      </li><li>The encrypted identity
+      </li><li>The encrypted parameters
+    </li></ul>
+    </li><li>List of monitoring values (like how many jobs are currently running, etc)
+    </li><li>Limits configured in the Frontend
+</li></ul>
+
+<p>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the HTCondor collector</p>
+
+<p>Have a look at the picture below for a generic description.<br><img src="../images/frontend_publish.png" name="graphics5" align="BOTTOM" border="0"></p>
+<p>The most important parameters that the VO Fronted sends to the Factory are:</p>
+<ul>
+      <li>The address of the <a href="../components/collector_install.html">User Pool collector(s)</a> - <b>GLIDEIN_Collector</b>.</li>
+
+      <li>The pilot proxies. If present, these are always encrypted. Three types of information are sent:
+    <ul>
+      <li>Number of proxies sent - <b>nr_x509_proxies</b></li>
+      <li>The proxy identifiers; given an identifier, the proxy DN must not change between updates. - <b>x509_proxy_0_identifier</b> ... <b>x509_proxy_N_identifier</b></li>
+      <li>The security classes; proxies within the same class may have access to one another - <b>x509_proxy_0_security_class</b> ... <b>x509_proxy_N_security_class</b></li>
+
+      <li>The proxies themselves - <b>x509_proxy_0</b> ... <b>x509_proxy_N</b></li>
+        </ul></li>
+      <li>The security name associated with the proxies - <b>SecurityName</b>. 
+          The Factory uses it for Frontend whitelisting.
+          If present, it is always encrypted.</li> 
+</ul>
+<p>In the current implementation, the only glidein rate setting parameters
+supported are <font face="monospace"><b>ReqIdleGlideins</b></font>,
+that tells the Factory how many idle glideins to keep in the queue at
+any given time, and <font face="monospace"><b>ReqMaxGlideins</b></font>,
+that tells the Factory to stop submitting new glideins when the
+number of running glidiens raises that level.
+Future versions may contain more sophisticated
+controls, like the maximum number of glideins to keep in the queue or
+the maximum rate at which the glideins should be submitted.</p>
+
+<h4><a name="glideresource_classads"></a>The glideresource ClassAd:</h4>
+<p>For every Factory entry that accepts requests from the VO Frontend, Frontend will
+publish glideresource ClassAds to the User Pool Collector. Such a ClassAd will contains
+</p>
+<ul>
+	<li>Information about the Factory and Frontend element served and the downtime status</li>
+	<li>Monitoring information from the Factory available in glidefactoryclient ClassAd</li>
+	<li>Monitoring information from the Frontend about the glideins and jobs</li>
+    <li>Matching information from the Frontend about Factory and job information:
+        <ul>
+            <li>GlideClientMatchingGlideinCondorExpr: The HTCondor start expression on the glideins to restrict the jobs that start on glideins.</li>
+            <li>GlideClientConstraintJobCondorExpr: The HTCondor expression of which jobs to consider for glidein matching.</li>
+            <li>GlideClientMatchingInternalPythonExpr: The Python expression that the Frontend uses to determine which Factory entries are acceptable for submission to.</li>
+            <li>GlideClientConstraintFactoryCondorExpr: A HTCondor ClassAd expression to determine which Factory entries can be considered.</li>
+        </ul>
+    </li>
+	<li>Any custom information about the entry that is available through the glidefactory ClassAd that a user can use for match-making purposes</li>
+</ul>
+<p>Picture below shows a glideresource ClassAd<br>
+<img src="../images/frontend_publish_resource.png" name="graphics5c" align="BOTTOM" border="0"></p>
+</p>
+
+
+<h4><a name="limits_triggered"></a>New limits and curbs on  number of glideins triggered appear in glideresource ClassAd:</h4>
+<li> <p>To advertize Frontend limits/curbs</p>
+<p>
+Frontend adds the following attributes in glideresource ClassAd about Frontend limits/curbs.
+These new attributes in glideresource all start with the prefix "GlideClientLimit" to indicate that this attribute provides information about limit triggered.
+examples:<br/>
+If TotalGlideinsPerEntry on Frontend side is triggered, you will see in glideresource ClassAd
+GlideClientLimitTotalGlideinsPerEntry = "count=11, limit=10"
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
+</p>
+
+<li> <p>To advertize Factory limits </p>
+<p>
+Factory adds the following attributes in glidefactoryclient ClassAd.
+These new attributes in glidefactoryclient all start with 2 prefixes: GlideinMonitorStatus and GlideFactoryLimit.
+GlideinMonitorStatus is pre-pended by the Factory code for this attribute to be picked by Frontend code to become attribute of glideresource ClassAd.
+The second prefix GlideFactoryLimit indicates that this attribute provides information about a limit triggered.
+Examples found in glidefactoryclient:<br/>
+If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this”
+</p>
+<p>
+The Frontend code looks at glidefactoryclient, picks up attributes that start with
+GlideinMonitorStatus
+and converts them to start with
+GlideFactoryMonitorStatus.
+Examples found in glideresource:<br/>
+Again, If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideFactoryMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+</p>
+</li>
+
+</div>
+</body>
+</html>

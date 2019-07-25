@@ -1,0 +1,491 @@
+---
+layout: default
+---
+
+<div class="content">
+    <div class="heading">
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> Condor</li>
+	</ul>
+        <h3>Advanced Condor Configuration</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li><a href="#schedds">Multiple Schedds</a></li>
+    <li><a href="#schedds">Multiple Schedds / Shared Port</a></li>
+    <li><a href="#collectors">Multiple Collectors for Scalability /Shared Port</a></li>
+    <li><a href="#collectors_ha">Multiple Collectors for Reliability / Condor High Availability (HA) Feature</a></li>
+    <li><a href="#quill">Quill</a></li>
+</ol>
+</div>
+<div class="related">
+Related Links:
+<ul>
+<li><a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor Website</a></li>
+<li> <a href="condor_config.html">HTCondor configuration attributes</a></li>
+<li><a  href="index.html">More GlideinWMS HTCondor Topics</a></li>
+</ul>
+</div>
+
+
+<div class="section">
+    <p>
+    <br>
+    For the purposes of the examples shown here the HTCondor install location is
+    shown as <b>/opt/glideincondor</b>.<br/>
+    The working directory is
+    <b>/opt/glidecondor/condor_local</b> and the machine name is
+    <b>mymachine.fnal.gov</b>.<br>
+
+    If you want to use a different setup, make the necessary changes.
+    If you installed HTCondor via RPMs the configuration files location is different: see
+     <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#installing-htcondor">this OSG guide</a>
+    or the OSG pages about the
+     <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">Frontend</a>
+    and <a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">Factory</a>.
+    </p>
+</div>
+
+    <hr width="90%">
+<div class="section">
+<a name="schedds"><h2>Multiple Schedds in the Factory</h2></a>
+
+   <p>
+    <b>Note: </b>If you specified any of these options using the GlideinWMS
+    configuration based installer, these files and initialization steps will
+    already have been performed.  These instructions are relevant to any
+    post-installation changes you desire to make.
+    </p>
+    <p>
+    Unless explicity mentioned, all operations are to be done by the user that
+    you installed HTCondor as.
+    </p>
+
+<h3>Increase the number of available file descriptors</h3>
+   <p>
+  When using multiple schedds, you may want to consider increasing the available
+  file descriptors.
+  This can be done by issuing a "ulimit -n" command as well as changing the
+  values in the /etc/security/limits.conf file</p>
+   </p>
+
+<h3>Using the condor_shared_port feature</h3>
+    <p>
+
+    <!-- Shared port V2.5.2+ ----- -->
+    <h4>GlideinWMS V3+ </h4>
+    Additional information on this daemon can be found here:<ul>
+    <a href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Introduction1.html#x29-1480003.1">HTCondor manual -  Daemons</a></br>
+    <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul>
+    </p>
+    <p>
+    Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b>
+    will need to contain the following attributes. Port 9618 is the default port
+    for the schedds.
+    <blockquote>
+         #--  Enable shared_port_daemon<br>
+         SHADOW.USE_SHARED_PORT = True<br>
+         SCHEDD.USE_SHARED_PORT = True<br>
+         SHARED_PORT_MAX_WORKERS = 1000<br>
+         SCHEDD.SHARED_PORT_ARGS = -p 9618<br>
+         DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
+    </blockquote>
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    <b>Very important:</b> As explained below in this documentation, all HTCondor daemons on the Frontend (including User Collector and Schedd) use the <i>shared port</i> daemon       on port 9618, which must be open. For the secondary collectors, you may need to open the port range 9620 to 9660 depending on your configuration (i.e. if Glideins call
+       back on those ports). If there are standalone submit hosts, they may have only port 9615 open, as indicated in the examples. In this case, please review the firewalls to        make sure 9618 is open.
+       The same range must be open also for the GlideinWMS versions prior to 3.4.1, as well as the port 9615.
+       Please note, if you install the user schedd on a separate host, incoming TCP port 9618 remains to be open (it was 9615 for GlideinWMS 3.4.0 and earlier).
+    </p>
+
+
+<!-- Multiple Schedds ---- -->
+<a name="new_schedd_setup"/>
+<h3>Multiple Schedds in GlideinWMS</h3>
+The following needs to be added to your HTCondor config file for each additional
+schedd desired.
+Note the <b><font color="red">numeric</font></b> suffix used to distinguish each schedd.
+<br/> <br/>
+If the multiple schedds are being used on your WMS Collector, HTCondor-G is used
+to submit the glidein pilot jobs and the
+    <font color="green"><b>SCHEDD(GLIDEINS/JOBS)2_ENVIRONMENT attribute</b></font> shown
+below is required.  If not, then it should be omitted.
+<br/> <br/>
+The JOB_QUEUE_LOG attribute is required.
+<br/> <br/>
+<blockquote>
+<p>
+<b><u>For the WMS Collector:</u></b><br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT     = $(LOCAL_DIR)/$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/execute<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/lock<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/procd_pipe<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/spool<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with HTCondor 7.7.5+</b><br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)"<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_EXPRS = SPOOLL_DIR_STRING<br/>
+    <font color="green">SCHEDDGLIDEINS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font><br/>
+DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
+DC_DAEMON_LIST = + SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
+</p>
+<p>
+<b><u>For the User Submit host:</u></b><br/>
+SCHEDDJOBS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT     = $(LOCAL_DIR)/$(SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/execute<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/lock<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/procd_pipe<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR_ALT)/spool<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)"<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_EXPRS = SPOOL_DIR_STRING<br/>
+DAEMON_LIST = $(DAEMON_LIST), SCHEDDJOBS<b><font color="red">2</font></b><br/>
+DC_DAEMON_LIST = + SCHEDDJOBS<b><font color="red">2</font></b><br/>
+</p>
+</blockquote>
+<p>
+The directories files will need to be created for the attributes by these attributes defined above:<br/>
+<blockquote>
+  LOCAL_DIR<br/>
+  EXECUTE<br/>
+  SPOOL<br/>
+  LOCK<br/>
+</blockquote>
+</p>
+<p>
+A script is available to do this for you, given the attributes are defined
+with the naming convention shown.  If they already exist, it will verify their
+existance and ownership, otherwise they will be created.
+<blockquote>
+ source /opt/glidecondor/condor.sh<br/>
+ GLIDEINWMS_LOCATION/install/services/init_schedd.sh<br/>
+(sample output)<br/>
+Validating schedd: SCHEDDJOBS2<br/>
+Processing schedd: SCHEDDJOBS2<br/>
+  SCHEDDJOBS2.LOCAL_DIR_ALT: /opt/glidecondor/condor_local/schedd_jobs2 <br/>
+  ... created<br/>
+  SCHEDDJOBS2.EXECUTE: /opt/glidecondor/condor_local/schedd_jobs2/execute <br/>
+  ... created<br/>
+  SCHEDDJOBS2.SPOOL: /opt/glidecondor/condor_local/schedd_jobs2/spool <br/>
+  ... created<br/>
+  SCHEDDJOBS2.LOCK: /opt/glidecondor/condor_local/schedd_jobs2/lock <br/>
+  ... created<br/>
+
+
+</blockquote>
+</div>
+
+    <hr width="90%">
+
+<!---  Multiple Collectors for Scalability and explanation of Shared Port-------- -->
+<div class="section">
+<a name="collectors"><h2>Multiple Collectors for Scalability / Shared Port</h2></a>
+    <p>
+     For scalability purposes, this section will describe the steps (configuration) necessary to add additional
+     (secondary) HTCondor collectors for the WMS and/or User Collectors using or not, shared_port option.
+    </p>
+    <p>
+    <b>Note: </b>If you specified any of these options using the GlideinWMS
+    configuration based installer, these files and initialization steps will
+    already have been performed.  These instructions are relevant to any
+    post-installation changes you desire to make.
+    </p>
+    <p>
+    <b>Important: </b>When secondary (additional) collectors are added to either
+       the WMS Collector or User Collector, changes must also be made to the
+       <a href="../frontend/configuration.html">Frontend configurations</a> of all Frontends,
+       so they are made aware of them.
+    </p>
+<h3></a>HTCondor configuration changes</h3>
+<h4></a>Individual Ports</h4>
+    <p>
+     For <b>each</b> secondary collector, the following Condor attributes are required:
+    </p>
+    <blockquote>
+      COLLECTOR<b>nn</b> = $(COLLECTOR)</br>
+      COLLECTOR<b>nn</b>_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector<b>nn</b>Log"</br>
+      COLLECTOR<b>nn</b>_ARGS = -f -p <b>port_number</b></br>
+      DAEMON_LIST = $(DAEMON_LIST), COLLECTOR<b>nn</b></br>
+    </blockquote>
+    <p>
+     In the above example, <b>n</b> is an arbitrary value to uniquely identify
+     each secondary collector.
+     Each secondary collector must also have a unique <b>port_number</b>.
+    </p>
+    <p>
+     After these  changes have been made in your Condor configuration file, restart HTCondor to effect
+     the change.  You will see these collector processes running (example has 5 secondary collectors).
+    </p>
+    <blockquote>
+user  17732     1  0 13:34 ?        00:00:00 condor_master
+user  17735 17732  0 13:34 ?        00:00:00 condor_collector -f <font color="blue">primary</font></br>
+user  17736 17732  0 13:34 ?        00:00:00 condor_negotiator -f</br>
+user  17737 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9619 <font color="blue">secondary</font></br>
+user  17738 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9620 <font color="blue">secondary</font></br>
+user  17739 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9621 <font color="blue">secondary</font></br>
+user  17740 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9622 <font color="blue">secondary</font></br>
+user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font color="blue">secondary</font></br>
+    </blockquote>
+<h4></a>Separate Ports</h4>
+    <p>
+    Since GlideinWMS v3.4.1, shared_port is enabled by default for
+    secondary collectors and CCBs, having all the collector communication behind a single TCP por (by default, port 9618). This helps to have a
+    queue <b>per daemon</b>, instead of global queue. To carry out this, the following HTCondor attributes are required:
+    </p>
+    <blockquote>
+     COLLECTOR_HOST = $(CONDOR_HOST):<b>port_number</b>
+     USE_SHARED_PORT = True
+     SHARED_PORT_MAX_WORKERS = 1000
+     SHARED_PORT_ARGS = -p <b>port_number</b>
+     DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
+    </blockquote>
+    For the secondary collectors configuration, in this example we show an arbitrary value to uniquely identify each
+        secondary collector, but all of the collector host are behind of a single TCP port.
+    <blockquote>
+      use Experimental:CollectorNode(<b>nn</b>)
+      COLLECTOR<b>nn</b>_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector<b>nn</b>Log"
+    </blockquote>
+    <p>
+     After these  changes have been made in your HTCondor configuration file, restart HTCondor to effect
+     the change.  You will see these collector processes running (example has 5 secondary collectors and the main one
+     listening on the same port: 9618).
+    </p>
+    <blockquote>
+      ├─1675222 condor_shared_port -f -p 9618 <font color="blue">TCP single port</font></br>
+      ├─1675223 condor_collector -f <font color="blue">primary</font></br>
+      ├─1675227 condor_negotiator -f</br>
+      ├─1675229 condor_schedd -f</br>
+      ├─1675230 condor_collector -f -f -local-name COLLECTOR1 -sock collector1 <font color="blue">secondary</font></br>
+      ├─1675232 condor_collector -f -f -local-name COLLECTOR2 -sock collector2 <font color="blue">secondary</font></br>
+      ├─1675234 condor_collector -f -f -local-name COLLECTOR3 -sock collector3 <font color="blue">secondary</font></br>
+      ├─1675237 condor_collector -f -f -local-name COLLECTOR4 -sock collector4 <font color="blue">secondary</font></br>
+      ├─1675240 condor_collector -f -f -local-name COLLECTOR5 -sock collector5 <font color="blue">secondary</font></br>
+    </blockquote>
+<h4></a>Transition to Shared Port</h4>
+    <p>
+        <b>This is a temporary configuration to switch from separate ports to shared_port</b>
+        In GlideinWMS v3.4.1, shared port only configuration is incompatible if talking to older Factories (v3.4 or older).
+        Also, it requires the Frontend admin to drain the Frontend, change the configuration and restart it.
+        To make it compatible and to allow a smother transition, the following configuration makes possible to support
+        both, different ports and shared port and avoid the pitfalls mentioned.
+
+        A secondary collector can both listen on a separate port and listen to the shared port daemon.
+
+        <blockquote>
+        COLLECTOR<b>nn</b> = $(COLLECTOR)
+        COLLECTOR<b>nn</b>_ARGS = -f -local-name COLLECTOR<b>nn</b> -p <b>port_number></b> -sock collector<b>nn</b>
+        COLLECTOR<b>nn</b>_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector<b>nn</b>Log"
+        DAEMON_LIST=$(DAEMON_LIST), COLLECTOR<b>nn</b>
+        </blockquote>
+        <p>
+        After these  changes have been made in your Condor configuration file, restart HTCondor to effect the change.
+        You will see as many collector processes running as you defined.
+        </p>
+</div>
+
+    <hr width="90%">
+
+<!---  Multiple Collectors for High Availability (HA)-------- -->
+<div class="section">
+<a name="collectors_ha"><h2>Multiple Collectors for High Availability (HA)</h2></a>
+    <p>
+     For reliability purposes, you may want to utilize HTCondor's High Availability (HA) feature for
+     collectors.<br/>
+     <p/>
+     The HTCondor configuration of additional (secondary) collectors is the same as in the previous section,
+     <a href="#collectors">Multiple Collectors for Scalability</a>.
+     Refer to the <a href="http://research.cs.wisc.edu/htcondor/manual/">HTCondor manual</a> section on
+     High Availability of the Central Manager for additional configuration requirements.
+     <p>
+    <b>Important: </b>When the HTCondor High Availability feature is used in the User Collector,
+       changes must also be made to the
+       <a href="../frontend/configuration.html">Frontend configurations</a>
+       so it is made aware of them.
+    </p>
+    <p/>
+</div>
+    <hr width="90%">
+
+<div class="section">
+    <h2><a name="quill">Installing Quill</a></h2>
+
+<p>The <a href="http://research.cs.wisc.edu/htcondor/manual/current/9_3Quill.html">HTCondor manual section about Quill</a>
+  may have instructions more updated than this section.
+</p>
+<h3><a name="software">Required software</a></h3>
+    <ul>
+    <li>
+        A reasonably recent Linux OS (SL4 used at press time).
+    </li>
+    <li>
+        A <a target="_blank" href="http://www.postgresql.org/" title="PostgreSQL Hoe Page">
+            PostgreSQL server</a>.
+    </li>
+
+    <li>
+        The
+        <a target="_blank" href="http://research.cs.wisc.edu/htcondor/downloads/" title="HTCondor download page">
+            HTCondor distribution</a>.<br>
+    </li>
+    </ul>
+<h3><a name="install">Installation instructions</a></h3>
+
+    <p>
+    The installation will assume you have installed HTCondor v8+.
+    </p>
+    <p>
+    The install directory is <b>/opt/glidecondor</b>, the working directory is
+    <b>/opt/glidecondor/condor_local</b> and the machine name is
+    <b>mymachine.fnal.gov</b>. and its IP
+    <b>131.225.70.222</b>.
+    </p>
+
+    <p>
+    If you want to use a different setup, make the necessary changes.
+    </p>
+    <p>
+    Unless explicity mentioned, all operations are to be done as root.
+    </p>
+<h3>Obtain and install PostgreSQL RPMs</h3>
+    <p>
+
+    Most Linux distributions come with very old versions of PostgreSQL, so you will
+    want to download the latest version.
+    </p>
+    <p>
+    The RPMs can be found on
+    <a target="_blank" href="http://www.postgresql.org/ftp/binary/" title="PostgreSQL Download page">http://www.postgresql.org/ftp/binary/</a>
+    </p>
+    <p>
+    At the time of writing, the latest version is v8.2.4, and the RPM files to install are
+    </p><blockquote>
+      postgresql-8.2.4-1PGDG.i686.rpm<br>
+
+      postgresql-libs-8.2.4-1PGDG.i686.rpm<br>
+      postgresql-server-8.2.4-1PGDG.i686.rpm<br>
+    </blockquote>
+<h3>Initialize PostgreSQL</h3>
+    <p>
+    Switch to user postgres:
+    </p><blockquote>
+
+      su - postgres<br>
+    </blockquote>
+    And initialize initialize the database with:
+    <blockquote>
+      initdb -A "ident sameuser" -D /var/lib/pgsql/data<br>
+    </blockquote>
+    <p></p>
+
+<h3>Configure PostgreSQL</h3>
+    <p>
+    PostgreSQL by default only accepts local connections., so you need to configure
+it in order for Quill to use it.
+    </p>
+    <p>
+    Please do it as user postgres.
+    </p>
+    <p>
+    To enable TCP/IP traffic, you need to change
+    <b>listen_addresses</b> in <b>/var/lib/pgsql/data/postgresql.conf</b> to:<br>
+
+    </p><blockquote>
+      # Make it listen to TCP ports<br>
+      listen_addresses = '*'<br>
+    </blockquote>
+    <p></p>
+    <p>
+    Moreover, you need to specify which machines will be able to access it.<br>
+
+    Unless you have strict security policies forbiding this, I recommend enabling
+    read access to the whole world by adding the following line
+    to <b>/var/lib/pgsql/data/pg_hba.conf</b>:
+    </p><blockquote>
+      host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
+      quillreader&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; md5<br>
+
+    </blockquote>
+    On the other hand, we want only the local machine to be able to write the
+    database.  So, we will add to
+    <b>/var/lib/pgsql/data/pg_hba.conf</b>:
+    <blockquote>
+      host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
+      quillwriter&nbsp;&nbsp;&nbsp;&nbsp; 131.225.70.222/32 &nbsp; md5<br>
+
+    </blockquote>
+    <p></p>
+<h3>Start PostgreSQL</h3>
+    To start PostgreSQL, just run:
+    <blockquote>
+      /etc/init.d/postgresql start<br>
+    </blockquote>
+
+    There should be no error messages.
+<h3>Initalize Quill users</h3>
+    Switch to user postgres:<br>
+    <blockquote>
+      su - postgres<br>
+    </blockquote>
+
+    And initialize initialize the Quill users with:<br>
+    <blockquote>
+  createuser quillreader --no-createdb --no-adduser --no-createrole --pwprompt<br>
+  # passwd <b>reader</b><br>
+  createuser quillwriter --createdb --no-adduser --no-createrole --pwprompt<br>
+  # password &lt;writer passwd&gt;<br>
+
+  psql -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
+  psql -d template1 -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
+  psql -d template1 -c "GRANT CREATE ON SCHEMA public TO quillwriter; GRANT USAGE ON SCHEMA public TO quillwriter;"<br>
+    </blockquote>
+<h3>Configure Condor</h3>
+Append the following lines to
+
+<b>/opt/glidecondor/etc/condor_config</b>:
+    <blockquote>
+      #############################<br>
+      # Quill settings<br>
+      #############################<br>
+      QUILL_ENABLED = TRUE<br>
+      QUILL_NAME = quill@$(FULL_HOSTNAME)<br>
+
+      QUILL_DB_NAME = $(HOSTNAME)<br>
+      QUILL_DB_QUERY_PASSWORD = reader<br>
+      QUILL_DB_IP_ADDR = $(HOSTNAME):5432<br>
+      QUILL_MANAGE_VACUUM = TRUE<br>
+    </blockquote>
+    In <b>/opt/glidecondor/condor_local/condor_config.local</b>,
+    add <b>QUILL</b> to <b>DAEMON_LIST,</b> getting something like:
+    <blockquote>
+
+DAEMON_LIST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  = MASTER, QUILL, SCHEDD
+    </blockquote>
+    Finally, put the writer passwd into
+    <b>/opt/glidecondor/condor_local/spool/.quillwritepassword</b>:
+    <blockquote>
+      echo "&lt;writer passwd&gt;" &gt;
+      /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+
+      chown condor /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+      chmod go-rwx /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+    </blockquote>
+</div>

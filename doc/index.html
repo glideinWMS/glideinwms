@@ -1,0 +1,110 @@
+---
+layout: default
+title: HOMEPAGE
+---
+
+
+    {% include sub.html %}
+
+<div class="banners">
+  <iframe src= "flossmores.html"
+    height= "700px"
+    width="1000px"
+    align="top">
+  </iframe>
+</div>
+
+<div class="smaller">
+  <iframe src="flosses.html"
+    height= "400px"
+    width="580px"
+    align="top">
+  </iframe>
+</div>
+
+
+<div class="section">
+    <a name="overview" />
+    <h2 class="intro">Summary of Process</h2>
+    <p class="intro">
+    GlideinWMS is a workload management system (WMS)
+     that is used on top of <a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor</a>.
+    A goal of both GlideinWMS and HTCondor is to
+    match user jobs (any piece of work
+    that must be done) with resources
+    (available machines or computers) without wasting
+     idle resources. Whereas HTCondor is a WMS used
+     for cluster computing, GlideinWMS is used for
+     grid computing and allows a job to be completed
+      by utilizing machines that are not part of the
+       user’s administrative domain.
+    This allows user jobs to be completed more
+    efficiently without being limited by a certain
+     organization’s computational power.
+    <br>  In order to gather resources and determine whether a user job can
+     run successfully, GlideinWMS creates glideins, or pilot jobs, that
+      act as a placeholder or copy for a user job. The GlideinWMS process
+       can be divided into ten steps, as shown in the animation above.
+     </p>
+    <ol type= "1" class="intro">
+        <li>
+          The user sends their job to the submit node (condor_shedd). The job enters a queue.
+
+</li>
+        <li>
+          Glidein Factories obtain attributes about the resources available to run a job from the grid sites in the form of classAds. Examples of attributes include the operating system or CPU type of the machine. This information is then sent to the WMS Collector, which acts as the link between the factories and the frontends.
+
+</li>
+        <li>
+          The information from the grid sites is advertised from the WMS Collector to the frontends using one classAd per grid pool.
+
+</li>
+        <li>
+          Frontends monitor the submit node queues and receive information about the user job attributes from the submit node in the form of classAds.
+
+</li>
+
+        <li>
+          The frontends compare the
+           attributes and requirements
+           of the user jobs with the
+           information published by the
+            factories to determine which
+             factory should send glideins.
+              Requests are sent to the WMS
+               Collector in the form of
+               classAds, which are then
+               send to the factories.
+
+</li>
+        <li>
+          The glideins are produced by the factories and submitted to the appropriate grid sites as grid jobs. At the grid sites, HTCondor daemons, such as a startd, is called to run the glidein. Once the glidein is started, it will validate whether a user job can run by examining the grid site. This includes checking for the appropriate software libraries and seeing if there is enough disk space.
+
+</li>
+        <li>
+          Once the glidein has finished running, the glidein is registered as a resource in the user pool.
+
+</li>
+        <li>
+          The resource (or glidein) attributes are advertised to the user pool in the form of classAds. If the glidein does not finish successfully, troubleshooting must occur.
+
+</li>
+        <li>
+          The glideins are matched with the user job attributes (provided by the submit node). The jobs are then sent to the grid sites to run. Because the user pool determines which job will run on the resource provided by the pilot job at the moment the resource becomes available, the glidein that a job is matched to is not necessarily the same one it was submitted for in the beginning of the process.
+
+        </li>
+        <li>
+          The user jobs are then run on the sites using resources
+             on the grid. The user is notified of their completion.
+
+        </li>
+    </ol>
+    <p class="intro">
+
+      As long as there are user jobs in the queue, there are available glideins that can be sent or used. A glidein can be used to run multiple user jobs and remains in the worker node until it is no longer needed and will eventually terminate.
+<br>  GlideinWMS also solves many problems with the grid. If a site is malfunctioning, this will only affect the glidein factory, which will have to send an additional glidein to recover the one lost to the malfunctioning site. User jobs will not be lost to the broken site. Other similar problems will be shielded from users.
+
+    </p>
+
+
+</div>

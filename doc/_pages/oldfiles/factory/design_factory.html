@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Factory Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../common/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Factory Internals</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#flow">Program flow</A></li>
+    <LI><A HREF="#source">Source code distribution</A></li>
+    <LI><A HREF="#config">Configuration files</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> Factory Internals</li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<H2><A NAME="flow"></A>Program flow</H2>
+<P>The main tasks of the Factory Daemon are to startup up the Entry
+Daemons and to aggregate statistics from the entries.<BR>See
+picture below for an overview.</P>
+<IMG SRC="../images/flow_factory_main.png">
+<p>
+    The only non trivial operation is the statistics aggregation. 
+The Factory Daemon reads the XML files produced by the Factory Daemons,
+aggregates them, and writes out an aggregate XML file. It also
+updates the <A HREF="http://oss.oetiker.ch/rrdtool/">RRD</A> files
+used to keep the history and creates the rrdtool graphs and also HTML
+pages for human consumption.<BR>See picture below for an overview.</P>
+
+<IMG SRC="../images/flow_factory_stats.png">
+</div>
+
+<div class="section">
+<H2><A NAME="source"></A>Source code distribution</H2>
+<P>The Factory Daemon is implemented as a series of Python scripts which 
+do not need to be pre-compiled.</P>
+<P>The code is spread over several Python modules: some of them specific to
+the Factory and other shared between different parts of the GlideinWMS.
+There are also an external dependency on the <A HREF="http://oss.oetiker.ch/rrdtool/">rrdtool</A>
+Python libraries.
+</p>
+<p>The picture below shows the dependency tree.</P>
+<P><IMG SRC="../images/modules_factory.png">
+</p><p>Note: glideFactory.py
+is executable.</P>
+
+<P>The GlideinWMS common libraries are in GlideinWMS/lib directory.</P>
+</div>
+
+<div class="section">
+<H2><A NAME="config"></A>Configuration files</H2>
+<P>The Factory daemon reads a single configuration file:</p>
+    <TT>glidein.descript</TT>
+<p>It is located in the root of the Factory configuration tree.</P>
+<P>Only two elements of this configuration file are used:</P>
+<UL>
+
+    <LI><TT>Entries</TT> - The list of entries, used to launch the Entry Daemons.</li>
+    <LI><TT>LoopDelay</TT> - How long should it sleep between iterations.</li>
+</UL>
+<P><B>Warning</B>: The configuration file should never be changed by
+hand. It is generated and maintained by 
+<A HREF="index.html#create_entry">a dedicated tool.</A></P>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+
+</div>
+</body>
+</html>

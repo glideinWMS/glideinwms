@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>GlideinWMS - Glidein Recipes</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li>Overview</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+            </map>
+
+            <h2>Glidein Recipes</h2>
+            <ul class="subcomponents">
+                <li> <a href="./index.html">Overview</a></li>
+                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
+                <li> <a href="./cloud.html">Cloud Recipes</a></li>
+                <li class="last">EC2 VM Roll</li>
+            </ul>
+            <h3>Overview</h3>
+        </div>
+        <div class="jump">
+            <u>Jump to:</u>
+            <ol>
+                <li><a href="#existingvm">New VM from existing VM</a> </li>
+            </ol>
+        </div>
+        <div class="section">
+            <a name="existingvm">
+            <h2 class="western">Roll new VM from an existing VM (EC2)</h2>
+            <p>
+                This recipe describes the process to take an existing VM and roll a new VM.
+            </p>
+            <p>
+            Start the VM on Amazon EC2 and SSH to it.  This recipe assumes that the VM is running and that you are logged in.  Make the changes that
+            are desired.  Then follow the folowing steps:
+            </p>
+            <p>Make a directory to store your cloud credentials and scp them to that directory.  In this recipe, we assume that the directory is:</p>
+            <pre>/root/.ec2</pre>
+            <p>
+            The next step will be to bundle the running image using ec2-bundle-vol.
+            </p>
+            <pre>ec2-bundle-vol --generate-fstab -e /root/.ec2 -r x86_64 --kernel aki-9800e5f1 \
+-k /root/.ec2/pk-XXXXXX.pem -c /root/.ec2/cert-XXXXXX.pem -u XXXX-XXXX-XXXX -p &lt;image_name&gt;</pre>
+            <p>
+            The following table explains what the various required options do.
+            </p>
+            <table summary="Required options for ec2-bundle-vol" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Option</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td><nobr>--generate-fstab</nobr></td>
+                        <td>N/A</td>
+                        <td>
+                            This generates the fstab for the image.  This is dynamically created and inserted by EC2.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-e</td>
+                        <td>/root/.ec2</td>
+                        <td>
+                            This option instructs that bundle process to ignore the credentials directory.  This way the credentials are *not*
+                            bundled with the new image.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-r</td>
+                        <td>x86_64</td>
+                        <td>
+                            Specifies the architecture for the new image.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>--kernel</td>
+                        <td>aki-980035f1</td>
+                        <td>
+                            Specifies the kernel that the image will request.  In Amazon EC2, the kernels are dynamically associated with the images.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-k</td>
+                        <td>/root/.ec2/pk-XXXXXX.pem</td>
+                        <td>
+                            Specifies the private key to use.  Replace the "X"'s with the appropriate file name.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-c</td>
+                        <td><nobr>/root/.ec2/cert-XXXXXX.pem</nobr></td>
+                        <td>
+                            Specifies the public key to use.  Replace the "X"'s with the appropriate file name.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-u</td>
+                        <td>XXXX-XXXX-XXXX</td>
+                        <td>
+                            Specifies the account number to use.  Replace the "X"'s with the appropriate account number.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-p</td>
+                        <td>&lt;image_name&gt;</td>
+                        <td>
+                            Specifies a name for the new image.  This name will be re-used in subsequent commands.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p/>
+            <p>
+            Now that the image has been bundled, we need to upload the image to S3 storage.
+            </p>
+            <pre>ec2-upload-bundle -b &lt;bucket_path&gt; -m /tmp/&lt;image_name&gt;.manifest.xml -a XXXXXX -s XXXXXX</pre>
+            <p>
+            As before, the following table describes the required options:
+            </p>
+            <table summary="Required options for ec2-bundle-vol" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Option</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td><nobr>-b</nobr></td>
+                        <td>&lt;bucket_path&gt;</td>
+                        <td>
+                            S3 storage uses the concepts of "buckets".  You can think of them as if they were directory.  There are technical
+                            differences, but practically, they behave the same. If the bucket is one level (e.g. not nested), this command will 
+                            create the bucket for you.  If you wish to have a nested structure, then you will have to create the bucket path 
+                            structure.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-m</td>
+                        <td>/tmp/&lt;image_name&gt;.manifest.xml</td>
+                        <td>
+                            This specifies the image manifest file.  It is created during the bundle command.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-a</td>
+                        <td>XXXXXX</td>
+                        <td>
+                            Specifies Access Key for your account.  Replace the "X"'s with the appropriate value.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-s</td>
+                        <td>XXXXXX</td>
+                        <td>
+                            Specifies Secret Key for your account.  Replace the "X"'s with the appropriate value.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p/>
+            <p>
+            Now that the image has been modified, bundled, and uploaded, we have to register the image.  Executing the following command
+            will register the image and return the AMI_ID that will be used in any subsequent launch requests.
+            </p>
+            <pre>ec2-register &lt;bucket_path&gt;/&lt;image_name&gt;.manifest.xml -K /root/.ec2/pk-XXXXXX.pem \
+-C /root/.ec2/cert-XXXXXX.pem -n &lt;image_name&gt;</pre>
+            <p>
+            As before, the following table describes the required options:
+            </p>
+            <table summary="Required options for ec2-bundle-vol" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Option</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><nobr>&lt;bucket_path&gt;/&lt;image_name&gt;.manifest.xml</nobr></td>
+                        <td>
+                            This is the path to the manifest file.  You must specify the full S3 path to this file.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-K</td>
+                        <td>/root/.ec2/pk-XXXXXX.pem</td>
+                        <td>
+                            Specifies the private key to use.  Replace the "X"'s with the appropriate file name.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-C</td>
+                        <td>/root/.ec2/cert-XXXXXX.pem</td>
+                        <td>
+                            Specifies the public key to use.  Replace the "X"'s with the appropriate file name.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>-n</td>
+                        <td>&lt;image_name&gt;</td>
+                        <td>
+                            Specifies the name for the image that you are registering.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p/>
+            <p>
+            Now we are done with the current image.  Shutdown the image and start using the new one!
+            </p>
+        </div>
+        <div class="section">
+            <a name="scratchvm">
+            <h2 class="western">New VM from scratch EC2</h2>
+            <p> This recipe describes the process to roll a new VM from scratch.</p>
+            <p> TO BE ADDED.</p>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+            GlideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,324 @@
+---
+layout: default
+---
+
+<div class="content">
+    <div class="heading">
+
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> Overview</li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
+	</ul>
+        <h3>Tools</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#gwms_logcat">
+                Inspect glideins output and HTCondor logs<br/>
+                (gwms-logcat.sh)</a>
+        <li><a href="#glidecondor_addDN">
+                Add a DN to the HTCondor mapfile<br/>
+                (glidecondor_addDN)</a>
+        <li><a href="#glidecondor_createSecSched">
+                Add secondary HTCondor schedds<br/>
+                (glidecondor_createSecSched)</a>
+        <li><a href="#glidecondor_createSecCol">
+                Add HTCondor collectors <br/>
+                (glidecondor_createSecCol)</a>
+        <li><a href="#create_condor_tarball">
+                Adding HTCondor tarballs<br/>
+                (create_condor_tarball)</a>
+</ol>
+</div>
+<!--
+<div class="related">
+Related Links: <br/>
+<ul>
+        <LI><A HREF="./custom_scripts.html">Custom Scripts</A></li>
+        <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+</ul>
+-->
+</div>
+
+<!-- -------------------------------------------------------- -->
+<br>
+<hr width="90%"/>
+<div class="section">
+<a name="gwms_logcat"/><h4><b>gwms-logcat.sh</b></h4>
+<p>Provides information about glideins and their HTCondor log files:
+easily locate stdout and stderr, print a startd log file from the Glidein
+execution. See below for how to use it.
+</P>
+
+<blockquote>
+   gwms-logcat.sh -h
+<pre>
+./factory/tools/gwms-logcat.sh [options] LOG_TYPE LOGFILE
+./factory/tools/gwms-logcat.sh [options] LOG_TYPE ENTRY [JOB_ID]
+./factory/tools/gwms-logcat.sh -f URL [options] LOG_TYPE
+./factory/tools/gwms-logcat.sh -r [options] LOG_TYPE JOB_ID
+./factory/tools/gwms-logcat.sh -l
+  LOG_TYPE HTCondor log to extract from the job logfile:
+           all (all logs), master, startd, starter, startdhistory, xml
+  LOGFILE  Job log file (stderr from a glidein)
+  ENTRY    Entry name
+  JOB_ID   HTCondor job (glidein) id. By default picks the last job with a valid log file
+  -v       verbose
+  -h       print this message
+  -l       list all entries (arguments are ignored)
+  -a       list only entries that were active (has at least one job) - used with '-l', ignored otherwise
+  -u USER  to use a different user (job owner) from the default Frontend one
+  -r       Remote running jobs. pilot_launcher.log is fetched from the VM
+  -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
+  -f URL   Forward the information (to a fodler: file:///path/ via copy or a URL http:// via post)
+</pre>
+</blockquote>
+<p>gwms-logcat.sh can be used interactively to examin the HTCondor log files or the XML file produced by the
+Glideins and stored at the Factory.
+</p>
+<p>Files from a Glidein running on the cloud and spinning a VM are not transferred back to the Factory but
+you can explore them if the VM is still running using the remote option (<tt>-r</tt>) which fetches pilot_launcher.log
+from the VM.
+</p>
+<p>The option <tt>-f</tt> is forwarding the information in batch mode: it is processing all the desired log files to the destination directory or URL. It is also saving a checkpoint file to avoid reprocessing multiple times the same files. Ideally can be run periodically, e.g. as cron job.
+</p>
+<blockquote>
+   gwms-logcat.sh -f /var/www/html/glidein-logs/ startd
+</blockquote>
+</div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
+<div class="section">
+<a name="glidecondor_addDN"/><h4><b>glidecondor_addDN</b></h4>
+<p>
+The <tt>glidecondor_addDN</tt> script (found in the ./install directory of
+the GlideinWMS tree) can help to  manage HTCondor mapfiles.  The management of
+DNs and authorization to specific users can be confusing and this utility
+can help.
+</p>
+<p>
+It has two usage modes:
+<ol>
+<li> Add a single DN:<br>
+<blockquote>
+ glidecondor_addDN <i>[options]</i> [-daemon <i>comment</i>] <i>DN_or_certfile</i> <i>user</i>
+</blockquote>
+</li>
+<li> Add DNs from a list file:<br>
+<blockquote>
+  glidecondor_addDN <i>[options]</i> -import <i>listfile</i>*
+</blockquote>
+</li>
+</ol>
+</p>
+<p>
+Where <i>[options]</i> is any combination of:
+<table class="requirements">
+ <tr><td>-m <i>fname</i></td>
+     <td>By default, the script will find the certificate_mapfile by invoking
+         <blockquote>
+           condor_config_val CERTIFICATE_MAPFILE
+         </blockquote>
+         Use this option to specify a different file name (mostly useful for prototyping).</td></tr>
+ <tr><td>-d <i>fname</i></td>
+     <td>By default, the script will put the daemon DNs into <tt>90_gwms_dns.config</tt> in the HTCondor's <tt>LOCAL_CONFIG_DIR</tt> (obtained via <tt>condor_config_val</tt>).<br>
+         Use this option to specify a different file name (mostly useful for prototyping).</td></tr>
+ <tr><td>-allow-alterate</td>
+     <td>If present, the tool will look for alternate config files (e.g. condor_config.local)
+         to put daemon DNs into.</td></tr>
+ <tr><td>-disable-checks</td><td>Without it, valid config files must already be present.</td></tr>
+ <tr><td>-recreate</td>
+     <td>By default, the tool will add to existing files.<br>
+         If this option is present, it will destroy any existing configuration files, and create new ones instead.</td></tr>
+ <tr><td>-allow-others</td>
+     <td>By default when <tt>-recreate</tt> is used, the new config files will override any existing DN attributes (i.e. <i>GSI_DAEMON_NAME</i>).<br>
+         If you want to preserve the settings from other config files, use this option.</td></tr>
+ <tr><td>-q</td><td>Quiet operation.</td></tr>
+</table>
+</p>
+<p>
+In both operation modes, the tool will add properly encoded (DN,username) entries in the certificate mapfile. Also,
+if the DN is tagged as belonging to a trusted daemon, also in the DN config file.
+</p>
+<p>
+In both modes, the DN can be the actual DN string, or a certificate from which to extract the string from.
+The tool will try to guess which one you are using, but you can also force it by prepending it with either
+<tt>dn:</tt> or <tt>file:</tt>.
+</p>
+<p>
+The <i>listfile</i> contains one DN per line; lines starting with a hash (#) or that are completely empty, are ignored.<br>
+Each line must have exactly three columns, separated by any number of spaces:
+<blockquote>
+<i>user type DN_or_certfile</i>
+</blockquote>
+</p>
+<p>
+The <i>DN_or_cerfile</i> can contain spaces, and <b>MUST NOT</b> be quoted.
+</p>
+<p>
+The <i>type</i> columns must be either <tt>daemon</tt> or <tt>client</tt>.
+</p>
+<p>
+Example of the first type:
+</p>
+<blockquote>
+   glidecondor_addDN -daemon "My own host certificate DN" file:/etc/grid-security/hostcert.pem condor
+</blockquote>
+<p>
+Example of the second type:
+</p>
+<blockquote>
+   cat pool_dns.list
+<pre>
+# This file contains the pool DNs
+# Format
+# user type   DN
+condor daemon file:/etc/grid-security/hostcert.pem
+ce2    daemon /DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=osg-glidein-ce-2.example.edu
+ce1    daemon dn:/DC=org/DC=doegrids/OU=Services/CN=osg-glidein-ce.example.edu
+pilot1 daemon /DC=org/DC=doegrids/OU=Services/CN=osgpilot01/osg-glidein-fe.example.gov
+fe1    client /DC=org/DC=doegrids/OU=Services/CN=osg-glidein-fe.example.gov
+</pre>
+   glidecondor_addDN -recreate -disable-checks -import pool_dns.list
+</blockquote>
+</div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
+<div class="section">
+<a name="glidecondor_createSecSched"/><h4><b>glidecondor_createSecSched</b></h4>
+<p>
+The <tt>glidecondor_createSecSched</tt> script (found in the ./install directory of
+the GlideinWMS tree) can help manage the HTCondor's secondary schedds. It can be used
+when HTCondor's configuration is stored in
+<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+</p>
+<p>
+Usage:
+</p>
+<blockquote>
+   glidecondor_createSecSched [-commonlog] [-nocreatedirs] </i>scheddlist</i>
+</blockquote>
+<p>
+This script will re-create the <tt>11_gwms_secondary_schedds.config</tt> file at each invocation.
+The node admin can thus easily change the number of secondary schedds as needed.
+</p>
+<p>
+By default, each secondary schedd will have its own log file.
+If a shared log is desired, use <tt>-commonlog</tt>.<br>
+Please <b>note</b> that the tool does not try to guess what the existing config(if any) is using.
+</p>
+<p>
+By default, the tool will create any needed directories.
+If you are sure the directories are already in place, e.g. beacuse you are just reducing the number of secondary schedds,
+you can use <tt>-nocreatedirs</tt> to speed it up.
+</p>
+<p>
+Example:
+</p>
+<blockquote>
+   glidecondor_createSecSched schedd_glideins1,schedd_glideins2
+</blockquote>
+</div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
+<div class="section">
+<a name="glidecondor_createSecCol"><h4><b>glidecondor_createSecCol</b></h4>
+ <p>
+The <tt>glidecondor_createSecCol</tt> script (found in the ./install directory of
+the GlideinWMS tree) can help manage the HTCondor's secondary collectors. It can be used
+when HTCondor's configuration is stored in
+<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+</p>
+<p>
+Usage:
+</p>
+<blockquote>
+   glidecondor_createSecCol [-useportasname] [-commonlog] <i>portrange</i>
+</blockquote>
+<p>
+This script will re-create the <tt>11_gwms_secondary_collectors.config file</tt> file at each invocation.
+The node admin can thus easily change the number of secondary collectors as needed.
+</p>
+<p>
+Since each HTCondor Daemon needs a unique name, each collector will be called COLLECTOR<i>xxx</i>.
+By default, the numbering starts with 0 for the first collector in the port range, and is incremented by one for each additional one.<br>
+If <tt>-useportasname</tt> is used, <i>xxx</i> is instead defined as the port number used by the collector.<br>
+Please <b>note</b> that the tool does not try to guess what the existing config (if any) is using.
+</p>
+<p>
+By default, each secondary collector will have its own log file.
+If a shared log is desired, use <tt>-commonlog</tt>.<br>
+</p>
+<p>
+Example:
+</p>
+<blockquote>
+   glidecondor_createSecCol 9620-9639
+</blockquote>
+</div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
+<div class="section">
+<a name="create_condor_tarball"><h4><b>create_condor_tarball</b></h4>
+ <p>
+The <tt>create_condor_tarball</tt> script
+(found in the ./factory/creation directory of the GlideinWMS tree)
+can help reduce the disk space needs on the Factory node.
+<p/>
+It can be used to create a condor tarball for use by the GlideinWMS pilot process for various entry points.
+The GlideinWMS pilot does not need all the files/processes contained in a normal HTCondor tarfile.
+This utility extracts only the needed processes/libraries thereby reducing the space needed on your Factory node.
+</p>
+<pre>
+Usage: create_condor_tarball output_filename input_tarfile_or_dir
+
+   output_filename - file name of the output tarball created
+
+   input_tarfile_or_dir - this is the source tarfile or if already expanded,
+                          the top level directory.
+</pre>
+Once the output condor tarball is created, additional configuration is required in
+the Factory configuration file.  Refer to the
+<a href="../factory/configuration.html#tarballs">Multiple HTCondor Tarballs section of the Factory Configuration</a> document for details.
+
+<p>
+</p>
+<p>
+Example:
+</p>
+<blockquote>
+  create_condor_tarball   /tmp/condor-8.7.6     condor-8.7.6-x86_64_RedHat6-stripped.tar.gz
+</blockquote>
+</div>
+
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
+<div class="section">
+<h4><b>Other monitoring tools</b></h4>
+<p>
+The tools <tt>analyze_entries</tt>,<tt>analyze_queues</tt>, and
+<tt>analyze_frontends</tt> exist in the <tt>factory/tools</tt> directory.
+They can be used to monitor recent status of the Factory, entries,
+and connected frontends. See <a href="../factory/monitoring.html#analyze_entries">Factory monitoring</a> for more details.
+</p>
+</div>

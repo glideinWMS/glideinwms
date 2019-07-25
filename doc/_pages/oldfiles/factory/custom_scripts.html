@@ -1,0 +1,555 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Custom Scripts</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./configuration.html">Configuration</a></li>
+        <li>Custom Scripts</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> Configuration</li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Custom Scripts</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#config">Script inclusion</A></li>
+    <LI><A HREF="#api">Script API</A></li>
+    <LI><A HREF="#glidein_config">Configuration file</A></li>
+    <LI><A HREF="#condor_vars">HTCondor vars file</A></li>
+    <LI><A HREF="#xml_output">Reporting script exit status</A></li>
+    <LI><A HREF="#periodic">Periodic scripts</A></li>
+    <LI><A HREF="#order">Loading order</A></li>
+    <LI><A HREF="#examples">Examples</A></li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+        <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+	<LI><A HREF="./configuration.html">Factory configuration</A></li>
+        <LI><A HREF="../frontend/configuration.html">Frontend configuration</A></li>
+</ul>
+</div>
+<div class="section">
+ 
+<H2>Description</H2>
+<P>This document describes how to write custom scripts to run in a
+glidein. Glidein Factory administrators may want to write them to
+implement features specific to their clients. Two examples are worker
+node validation, and discovery and setup of VO-specific software.<BR>
+    <B>PS</B>:
+The &quot;scripts&quot; can be any executable, also compiled binaries.</P>
+
+    <H2><A NAME="config"></A>Script inclusion</H2>
+<P>A script is a file that was listed in the 
+
+<A HREF="configuration.html#args">Glidein Factory</A> or <A HREF="../frontend/configuration.html#args">Frontend</A>
+    configuration file as being executable (see the <A HREF="configuration.html#custom_code">attributes description</A>):</P>
+    <BLOCKQUOTE>executable=&quot;True&quot;</BLOCKQUOTE>
+<P>By default the files listed are non executable, so an
+administrator needs explicitly list the executable ones.</P>
+    <P>Scripts are all executed once before starting the HTCondor glidein. Periodic scripts are invoked also later,
+        repeatedly according to the period specified (in seconds):</P>
+    <BLOCKQUOTE>period=&quot;3600&quot;</BLOCKQUOTE>
+
+    <H2><A NAME="api"></A>Script API</H2>
+<P>A script is provided with exactly 2 arguments:</P>
+<OL>
+    <LI>The name of <A HREF="#glidein_config">the glidein
+    configuration file</A></li>
+
+    <LI>An entry id; this can be either <tt><B>main</B></tt>
+    or the name of the entry point</li>
+</OL>
+<P>All other input comes from <A HREF="#glidein_config">the glidein
+configuration file</A> that is used as a dashboard between different
+scripts.</P>
+<P>If the script provides any output to be used by other scripts, it
+should write it in <A HREF="#glidein_config">the glidein configuration
+file</A>. If the values need to be published by the condor_startd or
+visible by the user jobs, the <A HREF="#condor_vars">condor vars</A> file should also be
+modified.</P>
+
+    <P>NOTE that periodic scripts provide an additional output mechanism: since they run via
+        <a href="https://research.cs.wisc.edu/htcondor/manual/current/4_4Hooks.html">HTCondor startd_cron</a>
+        and the output is not masked, anything sent to standard output is added by HTCondor to the machine classad after
+        adding a prefix (see the <A HREF="#periodic">periodic scripts section below</A>).
+        If you want to be more compatible though, we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
+        and the <A HREF="#condor_vars">condor vars</A> file to specify if the variable needs to be published to the startd.
+    </P>
+<P>The script must return with exit code 0 if successful; a non-zero
+return value on the first invocation will stop the execution of the glidein with a validation
+error. A non-zero return value on following invocations of periodic scripts will notify the startd setting
+    GLIDEIN_PS_OK to False (<a href="#periodic">see below</a>) </P>
+
+</div>
+
+<div class="section">
+<H2><A NAME="glidein_config"></A>The glidein configuration file</H2>
+<P>The glidein configuration file acts as a dashboard between
+different scripts.</P>
+<P>It is a simple ASCII file, with one value per line; the first column 
+represents the attribute name, while the rest is the attribute value.<BR>
+If the value does not contain any spaces, the easiest way to extract a 
+value in bash is:</P>
+
+    <BLOCKQUOTE>
+    <I>attr_val</I>=`grep &quot;^$<I>attr_name</I> 
+    &quot; $<I>glidein_config</I> | awk '{print $2}'`
+    </BLOCKQUOTE>
+
+<P>Several attributes are added by the default glidein scripts, the
+most interesting being:</P>
+<UL>
+    <LI>ADD_CONFIG_LINE_SOURCE &ndash; Script that can be used to add new
+    attributes to the glidein configuration file (see below).</li>
+    <LI>GLIDEIN_Name &ndash; Name of the glidein branch</li>
+    <LI>GLIDEIN_Entry_Name &ndash; name of the glidein entry point</li>
+    <LI>TMP_DIR &ndash; The path to the temporary dir</li>
+    <LI>PROXY_URL &ndash; The URL of the Web proxy</li>
+
+</UL>
+<P>All attributes of the glidein Factory (both the common and the
+entry specific) are also loaded into this file.</P>
+<P>To write into the glidein configuration file, the best approach in
+bash is to use the add_config_line support script. Just source the
+provided script and use it. Here is an example:</P>
+<BLOCKQUOTE>
+    # get the glidein configuration file name<BR>
+    # must use <B>glidein_config</B>, it is used as global variable<BR>
+    glidein_config=$1
+</BLOCKQUOTE>
+
+<BLOCKQUOTE>
+    # import add_config_line function<BR>
+    add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' 
+        $glidein_config | awk '{print $2}'`<BR>
+    source $add_config_line_source
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+    # add an attributes<BR>
+    add_config_line <I>myattribute myvalue</I>
+
+</BLOCKQUOTE>
+</div>
+
+
+<div class="section">
+<H2><A NAME="condor_vars"></A>HTCondor vars file</H2>
+<P>The GlideinWMS uses a so called <I>condor vars file</I> to decide
+which attributes are going to be inserted into the condor
+configuration file, which are going to be published by the glidein
+condor_startd to the collector, and which attributes are going to be
+put into the job environment.</P>
+<P>The condor vars file can be found from <A HREF="#glidein_config">the
+glidein configuration file</A> as</P>
+
+<BLOCKQUOTE> CONDOR_VARS_FILE</BLOCKQUOTE>
+<P>It is an ASCII file, with one entry per row. Each non comment line
+must have 7 columns. Each column has a specific meaning:</P>
+<OL>
+    <LI>Attribute name (will be extracted from 
+    <A HREF="#glidein_config">the glidein configuration file</A>)</li>
+    <LI>Attribute type</li>
+    <UL>
+        <LI>I &ndash; integer</li>
+
+        <LI>S &ndash; quoted string</li>
+        <LI>C &ndash; unquoted string (i.e. HTCondor keyword or expression)</li>
+    </UL>
+    <LI>Default value, use &ndash; if no default</li>
+    <LI>HTCondor name, i.e. under which name should this attribute be
+    known in the condor configuration</li>
+    <LI>Is a value required for this attribute? <BR>Must be Y or N.
+    If Y and the attribute is not defined, the glidein will fail.</li>
+
+    <LI>Will condor_startd publish this attribute to the
+    collector?<BR>Must be Y or N.</li>
+    <LI>Will the attribute be exported to the user job environment?</li>
+    <UL>
+        <LI>- - Do not export</li>
+        <LI>+ - Export using the original attribute name</li>
+        <LI>@ - Export using the HTCondor name</li>
+
+    </UL>
+</OL>
+<P>The GlideinWMS defines several attributes in the default condor
+var files</P>
+<BLOCKQUOTE>
+    glideinWMS/creation/web_base/condor_vars.lst<BR>
+    glideinWMS/creation/web_base/condor_vars.lst.entry
+</BLOCKQUOTE>
+<P>Here below, you can see a short extract. For all the options, look
+at <A HREF="custom_vars.html">dedicated configuration variables page</A>.</P>
+<PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
+#                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
+#                                                                                               + = Use VarName
+#                                                                                               @ = Use CondorName
+#################################################################################################################
+X509_USER_PROXY         C       -               GSI_DAEMON_PROXY                Y       N       -
+USE_MATCH_AUTH          C       -     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION  N       N       -
+GLIDEIN_Factory         S       -               +                               Y       Y       @
+GLIDEIN_Name            S       -               +                               Y       Y       @
+GLIDEIN_Collector       C       -               HEAD_NODE                       Y       N       -
+GLIDEIN_Expose_Grid_Env C       False     JOB_INHERITS_STARTER_ENVIRONMENT      N       Y       +
+TMP_DIR                 S       -               GLIDEIN_Tmp_Dir                 Y       Y       @
+CONDORG_CLUSTER         I       -               GLIDEIN_ClusterId               Y       Y       @
+CONDORG_SUBCLUSTER      I       -               GLIDEIN_ProcId                  Y       Y       @
+CONDORG_SCHEDD          S       -               GLIDEIN_Schedd                  Y       Y       @
+SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -
+SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -
+MAX_MASTER_LOG          I       1000000         +                               N       N       -
+MAX_STARTD_LOG          I       10000000        +                               N       N       -</PRE>
+
+<P>If you need to add anything to a <I>condor vars</I> file, the best approach in
+bash is to use the add_condor_vars_line support script. Just source the
+provided script and use it. Here is an example:</P>
+<BLOCKQUOTE>
+    # get the condor vars file name <BR>
+    # must use <B>condor_vars_file</B>, it is used as global variable<BR>
+    condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '{print $2}'`
+
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+    # import add_condor_vars_line function<BR>
+    add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE '
+$glidein_config | awk '{print $2}'`<BR>
+    source $add_config_line_source
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+    # add an attribute<BR>
+    add_condor_vars_line 
+        <I>myattribute type def condor_name req publish jobid</I>
+
+</BLOCKQUOTE>
+</div>
+
+<div class="section">
+<H2><A NAME="xml_output"></A>Reporting script exit status</H2>
+<P>GlideinWMS Factory can receive and interpret a detailed exit status report, 
+if provided by the validation script.</P>
+<P>The script should write the exit status report in the following file:</P>
+<BLOCKQUOTE>
+otrb_output.xml
+</BLOCKQUOTE>
+<P>The Factory provides a helper script to properly generate such a file.
+A detailed description of the format can be found in the dedicated
+<A HREF="validation_xml_output.html">description page</A>.</P>
+<P>To use the helper script, first discover its location with:</P>
+<BLOCKQUOTE>
+    # find error reporting helper script <BR>
+    error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+</BLOCKQUOTE>
+<P>If the validation script succeeded, report the success by using:</P>
+<BLOCKQUOTE>
+    # Everything worked out fine <BR>
+    &quot;$error_gen&quot; -ok &lt;script name&gt;  [&lt;key&gt; &lt;value&gt;]*
+</BLOCKQUOTE>
+<P>You can specify any number of (key,value) pairs, representing any metrics
+you verified during your valudation run, if any.</P>
+<P>If the validation script instead failed, report the failure by using:</P>
+<BLOCKQUOTE>
+    # Uh oh, we hit an error <BR>
+    &quot;$error_gen&quot; -error &lt;script name&gt; &lt;error type&gt; &quot;&lt;detailed description&gt;&quot;  [&lt;key&gt; &lt;value&gt;]*
+</BLOCKQUOTE>
+<P>The script should use one of the 
+<A HREF="validation_xml_output.html#error_types">standard <i>error types</i></A>.
+<BR>It should also provide a human readable <i>detailed description</i>. 
+It is perfectly fine if it extends over multiple lines; 
+just make sure you properly pass it to the script.
+<BR>You can also specify any number of (key,value) pairs,
+representing any metrics that failed during the test.
+Proviind at least one metric is recommended, but not strictly necessary.</P>
+<P><b>Note:</B> The reported status MUST match the script exit code.
+E.g. if you claim the script succeeded, you must also exit with a 0 exit code.</P>
+</div>
+
+<div class="section">
+<H2><A NAME="periodic"></A>Periodic scripts</H2>
+<p>Scripts by default have period=0 and are invoked only once. The Factory/Frontend administrator can specify
+    an integer number of seconds to make a script periodic.
+    Periodic scripts are invoked a first time at the beginning, according to their order, like all other scripts,
+    then they are invoked using the <a href="https://research.cs.wisc.edu/htcondor/manual/current/4_4Hooks.html#SECTION00543000000000000000">
+    HTCondor damon ClassAd hook mechanism</a> (aka schedd_cron) and a wrapper script that allows them to maintain the same API.
+</p>
+    <p>The Periodic scripts wrapper defines some additional variables in glidein_config and in the schedd ClassAds:</p>
+    <ul>
+        <li>GLIDEIN_PS_FAILED_LIST - List of scripts that failed at least once</li>
+        <li>GLIDEIN_PS_FAILING_LIST - List of scripts that failed the last execution</li>
+        <li>GLIDEIN_PS_OK - True is no script failed its last execution (GLIDEIN_PS_FAILING_LIST is empty)
+      At the beginning is published to schedd then directly</li>
+        <li>GLIDEIN_PS_FAILED_LAST - Name of the last script that failed execution</li>
+        <li>GLIDEIN_PS_FAILED_LAST_REASON - String describing the last failure</li>
+        <li>GLIDEIN_PS_FAILED_LAST_END - End time (seconds from Epoch) of the last failure</li>
+        <li>GLIDEIN_PS_LAST - File path of the last script</li>
+        <li>GLIDEIN_PS_LAST_END - end time of the last script execution
+            (0 for script_wrapper.sh invoked at startup)</li>
+    </ul>
+    <p>All these attributes can be used in the startd (e.g. start or shutdown expressions:
+        <tt>start_expr="GLIDEIN_PS_OK =!= FALSE"</tt>) or in other scripts.</p>
+    <p>Periodic scripts run via
+        <a href="https://research.cs.wisc.edu/htcondor/manual/current/4_4Hooks.html#SECTION00543000000000000000">HTCondor startd_cron</a>,
+        the output is not masked, so anything sent to standard output is added by HTCondor to the machine ClassAd. To protect form
+        clashes a prefix is added (via STARTD_CRON_<JobName>_PREFIX in HTCondor). By default the prefix is GLIDEIN_PS_ but you can
+            change that by setting "prefix" in the file section of the Frontend or Factory configuration.
+            The special value "NOPREFIX" unsets the automatic prefix allowing
+            to set the variables as you output them. Be aware that you may overwrite system variables with unpleasant effects.
+        If you want to be more compatible we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
+        and the <A HREF="#condor_vars">condor vars</A> file to specify if the variable needs to be published to the startd.
+        See below for more.
+    </p>
+
+
+    </div>
+
+<div class="section">
+<H2><A NAME="order"></A>Loading order</H2>
+<P>During the first invocation scripts are loaded and executed one at a time in order.
+    Later, periodic scripts are re-executed one at the time according to the period.
+    System scripts are coming with the framework, user scripts are the ones listed in the Factory and Frontend
+    configuration files. First all files are downloaded, then the scripts are executed.
+    Both the download and the first invocation follow the same order in six distinct stages:</P>
+<!--
+main (Factory main):
+* file_list
+* after_file_list (after_entry-True)
+client (Frontend main):
+* preentry_file_list
+* file_list (after_entry-True)
+* aftergroup_preentry_file_list (after_group-True)
+* aftergroup_file_list (after_entry-True, after_group-True)
+client_group_ABC (Frontend group):
+* preentry_file_list
+* file_list (after_entry-True)
+entry_XYZ (Factory entry):
+* file_list
+
+Order:
+"main file_list"
+"client preentry_file_list"
+"client_group preentry_file_list"
+"client aftergroup_preentry_file_list"
+"entry file_list"
+"client file_list"
+"client_group file_list"
+"client aftergroup_file_list"
+"main after_file_list"
+-->
+    <OL>
+    <LI><P>Global attributes are loaded and global system scripts
+    executed.</P></LI>
+    <LI><P>The user provided global files are loaded and user scripts
+    are executed. First the Factory ones, then the Frontend ones (i.e. all the ones that have
+    <tt>after_entry=&quot;False&quot;</tt>. False is the default for the Factory scripts, True for the Frontend ones).
+        The (pre-entry) Frontend scripts are executed in the following order: pre-group scripts (in global config with
+    <tt>after_group=&quot;False&quot;</tt>, which is the default), group scripts and after-group (i.e.
+        <tt>after_group=&quot;True&quot;</tt>). </P>
+
+    <LI><P>The entry specific attributes are loaded and entry specific
+    system scripts executed.</P>
+    <LI><P>The user provided entry specific files are loaded and entry
+    specific user scripts are executed.</P>
+    <LI><P>The after_entry user provided global files are loaded and
+    after_entry user scripts are executed. First the Frontend ones, then the Factory ones (i.e. all the ones that have
+    set <tt>after_entry=&quot;True&quot;</tt>).
+    The (after-entry) Frontend scripts are executed in the following order: pre-group scripts (in global config with
+    <tt>after_group=&quot;False&quot;</tt>, which is the default), group scripts and after-group (i.e.
+        <tt>after_group=&quot;True&quot;</tt>).</P>
+    <LI><P>Final global system scripts are executed and the HTCondor daemons
+    are launched.</P>
+</OL>
+<P>The Glidein Factory configuration allows an administrator to
+specify the files/scripts mentioned in points 2, 4 and 5. <BR>
+    <tt>after_entry</tt> and <tt>after_group</tt> allow to set the belonging to one group or the other.<br>
+    Within a group the files/scripts are loaded/executed in the order in which they are
+specified in the configuration file.</P>
+
+    <p>All scripts, periodic and not, are executed a first time according to the order above.
+        Note that the wrapper scripts are not mentioned, because those are executed only right before the job.</p>
+
+</div>
+
+<div class="section">
+<H2><A NAME="examples"></A>Examples</H2>
+<P>The above documentation is hopefully providing enough information
+to write the scripts that will customize the glideins to your needs.
+Below are a few examples you can use as templates.</P>
+<H3>Test that a certain library exists</H3>
+<PRE>#!/bin/sh
+
+glidein_config=&quot;$1&quot;
+
+# find error reporting helper script
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
+if [ -z &quot;/usr/lib/libcrypto.so.0.9.8&quot; ]; then
+  &quot;$error_gen&quot; -error &quot;libtest.sh&quot; &quot;WN_Resource&quot; &quot;Crypto library not found.&quot; &quot;file&quot; &quot;/usr/lib/libcrypto.so.0.9.8&quot;
+  exit 1
+fi
+echo &quot;Crypto library found&quot;
+&quot;$error_gen&quot; -ok  &quot;libtest.sh&quot; &quot;file&quot; &quot;/usr/lib/libcrypto.so.0.9.8&quot;
+exit 0
+</PRE><H3>
+Find, test and advertise a software distribution</H3>
+<PRE>#!/bin/sh
+
+glidein_config=&quot;$1&quot;
+
+###############
+# Get the data
+
+# find error reporting helper script
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
+if [ -f &quot;$VO_SW_DIR/setup.sh&quot; ]; then
+   source &quot;$VO_SW_DIR/setup.sh&quot;
+else
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;Could not find $VO_SW_DIR/setup.sh&quot; \ 
+              &quot;file&quot; &quot;$VO_SW_DIR/setup.sh&quot; &quot;base_dir_attr&quot; &quot;VO_SW_DIR&quot;
+   exit 1
+fi
+
+tmpname=$PWD/installed_software_tmp_$$.tmp
+software_list&gt; $tmpname
+
+
+###########################################################
+# import add_config_line and add_condor_vars_line functions
+
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
+
+condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '{print $2}'`
+
+
+##################
+# Format the data
+
+sw_list=`cat $tmpname | awk '{if (length(a)!=0) {a=a &quot;,&quot; $0} else {a=$0}}END{print a}'`
+
+if [ -z &quot;$sw_list&quot; ]; then
+  ERRSTR=&quot;No SW found.
+But the setup script was present at $VO_SW_DIR/setup.sh.&quot;
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;$ERRSTR&quot; \ 
+               &quot;source_file&quot; &quot;$VO_SW_DIR/setup.sh&quot;
+
+  exit 1
+fi
+
+#################
+# Export the data
+
+add_config_line GLIDEIN_SW_LIST &quot;$sw_list&quot;
+add_condor_vars_line GLIDEIN_SW_LIST &quot;S&quot; &quot;-&quot; &quot;+&quot; &quot;Y&quot; &quot;Y&quot; &quot;+&quot;
+
+&quot;$error_gen&quot; -ok  &quot;swfind.sh&quot; &quot;sw_list&quot; &quot;$sw_list&quot;
+exit 0
+</PRE><H3>
+Change an existing value based on conditions found</H3>
+<PRE>#!/bin/bash
+
+glidein_config=$1
+entry_dir=$2
+
+# find error reporting helper script
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
+# import add_config_line function, will use glidein_config
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
+
+vo_scalability=`grep '^VO_SCALABILITY ' $glidein_config | awk '{print $2}'`
+
+if [ -z &quot;$vo_scalability&quot; ]; then
+  # set a reasonable default
+  vo_scalability=5000
+fi
+
+tot_mem=`grep MemTotal /proc/meminfo |awk '{print $2}'`
+if [ &quot;$tot_mem&quot; -lt 500000 ]; then
+  if [ &quot;$entry_dir&quot; == &quot;main&quot; ]; then
+    # all glideins need to scale down if low on memory
+    let vo_scalability=vo_scalability/2
+  elif [ &quot;$entry_dir&quot; == &quot;florida23&quot; ]; then
+    # but florida23 can use a little more
+    let vo_scalability=vo_scalability*5/4
+  fi
+
+  # write it back
+  add_config_line VO_SCALABILITY $vo_scalability
+  &quot;$error_gen&quot; -ok  &quot;memset.sh&quot; &quot;vo_scalability&quot; &quot;$vo_scalability&quot;
+  exit 0
+fi 
+&quot;$error_gen&quot; -ok  &quot;memset.sh&quot;
+exit 0
+</PRE>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</div>
+</body>
+</html>

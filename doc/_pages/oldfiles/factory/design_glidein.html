@@ -1,0 +1,341 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Glidein Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Glidein Internals</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#overview">Overview</A></li>
+    <LI><A HREF="#flow">Program flow</A></li>
+    <LI><A HREF="#source">Source code distribution</A></li>
+    <LI><A HREF="#config">Configuration files</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> Glidein Internals</li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<H2><A NAME="overview"></A>Overview of the glidein mechanism</H2>
+<P>A glidein is, simply put, a properly configured <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+Startd</A> submitted as a Grid job. Once a glidein starts on a worker
+node, it will join a specified HTCondor pool, making the obtained
+Grid-batch slot a slot in the HTCondor pool. At this point, a regular
+HTCondor job can start there as if was a dedicated resource. See
+the picture below for a schematic overview.</p>
+<IMG SRC="../images/glideins.png">
+<p>HTCondor
+glideins are a convenient way to expand a HTCondor pool. Apart from the
+task of submitting new glideins as needed, everything else stays the
+same as in a dedicated pool.</P>
+<P>In GlideinWMS, the <A HREF="index.html">Glidein Factory</A> is the
+one that submits the glideins to the Grid resources, as shown in the
+picture below.</P>
+
+<P><IMG SRC="../images/factory_overview.png"></p>
+<p>This
+document describes how a glidein configures and starts the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+Startd</A>.</P>
+<P>The Glidein Factory sends just a wrapper. However, it
+must perform several tasks, including:</P>
+<UL>
+    <LI>Check that the working environment on the worker node is
+    reasonable (else user jobs will fail) 
+    </li>
+    <LI>Obtain the HTCondor binaries 
+    </li>
+    <LI>Configure HTCondor 
+    </li>
+
+    <LI>Prepare the environment for HTCondor and the user jobs 
+    </li>
+    <LI>Start HTCondor 
+    </li>
+</UL>
+<P>Given the complexity of the task, and for the sake of flexibility,
+it makes sense to split the script in several pieces. So the glidein
+job is composed of several pieces, including a startup script, helper
+scripts, the HTCondor binaries and a base configuration file. 
+</P>
+<P>However, having a Grid job with data files can represent a
+challenge; each Grid flavor treats data in a different way. To make
+the system as general as possible, the glideins rely on HTTP for data
+distribution. However, since the HTTP protocol is not a secure one,
+the glidein implements its own security on top of it. 
+</P>
+<P>The picture below for an overview.</p>
+<IMG SRC="../images/glidein_script.png">
+<p>
+    The security is implemented using SHA1 signatures. 
+The signature checking is implemented in two steps:</P>
+
+<OL>
+    <LI><P>The signatures of all the files to
+    be transfered are saved in a signature file and stored on the Web
+    server. The signature of the signature file is then passed as one of
+    the parameters of the glidein job. 
+    </P>
+    <LI><P>The glidein startup script loads the signature file from the
+    Web server and verifies its signature. All other downloads,
+    including the file containing the list of other files, is checked
+    against the values in the signature file. See the pseudo-code below.</P>
+    <PRE>wget http://head.fnal.gov/glidein_g1/signature.sha1
+sha1sum <I>known_sha1</I> signature.sha1
+if $?!=0 then
+ exit 1
+fi
+grep files_name signature.sha1 &gt; file.sha1
+wget http://head.fnal.gov/glidein_g1/files_anme
+sha1sum -c file.sha1
+if $?!=0 then
+ exit 2
+fi</PRE>
+</OL>
+<P>Assuming that the glidein arguments cannot be tampered with, all
+the files are tamper evident.</P>
+
+<P>If a file is marked as executable, it will be run. This allows to
+customize the glidein logic at will.<BR>However, if not all files
+need to be executable; plain files, like configuration files, and
+tarballs are also supported.</P>
+</div>
+
+<div class="section">
+<H2><A NAME="flow"></A>Program flow</H2>
+<P>The glidein startup script is tasked to setup the working
+environment, configure HTCondor and launch the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+Startd</A>.<BR>As said in the overview, a glidein is basically a
+wrapper that downloads other files, executing some of them. <BR>A
+private working directory is used to minimize interference with other
+processes running on the same node.</P>
+<P>At the high level, three types of files are handled:</P>
+<UL>
+
+    <LI>Signature files</li>
+    <LI>Files containing lists of other files</li>
+    <LI>Helper files; these can be either simple files, tarballs or
+    executables.</li>
+</UL>
+<P>The files are also split between general, or Factory wide, and
+entry-specific ones. Since order can be important, especially when
+executables are involved, the glidein allows for global helper files
+to be loaded (and executed) before and/or after the entry-specific
+ones.  One executable is special; this is the helper script that
+starts the 
+<A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00412000000000000000">HTCondor Startd</A>. 
+and  must be the last to be run, so it is handled in
+a special way.</P>
+<P>See the picture below for an overview.</P>
+<P><IMG SRC="../images/flow_glidein_main.png"></p>
+
+<p> You may have noticed that after the initial setup, all further
+communication between stages is carried out by a locally created
+config file. The reason for this is due to the fact that environment
+changes can only propagate in one direction, from parent to child.
+Since most of the setup is done by external executables that would be
+unacceptable, the config file was introduced.</P>
+<P>Some of the stages are pretty self explanatory, but most need
+further details. In particular:</P>
+<UL>
+    <LI><A HREF="#flow_sign">Get signatures and file info</A></li>
+    <LI><A HREF="#flow_file">Download and process a file</A></li>
+    <LI><A HREF="#flow_condor">Configure and start HTCondor</A></li>
+</UL>
+</div>
+
+<div class="section">
+<H3><A NAME="flow_sign"></A>Get signatures and file info</H3>
+<P>The retrieval of the signature files is a multi step process. The
+main reason being that the startup script does not know the name of
+the signature file.<BR>Instead, the glidein startup script receives
+the name of the file that contains the names of all the other important
+files. And that file is fetched first.<BR>Once the name of the
+signature file is know, it is fetched and validated against the
+provided SHA1 signature.<BR>Once the signature file can be trusted,
+the description file is verified, too, using the signature present in
+the signature file.</P>
+<P>Once the signature files are fetched, the content of the
+description files is loaded into memory for further processing.</P>
+<P>See the figure below of an overview.</P>
+<P><IMG SRC="../images/flow_glidein_sign.png"></p>
+<p>You have probably noticed that the name of the signature file is
+extracted before validating the integrity of the description file.
+This can result in a compromised signature being fetched.</P>
+<P>However, this is <B>not</B> a security vulnerability. If the wrong
+signature file is indeed downloaded, the signature of the signature
+will not match and the glidein will terminate with a failure.</P>
+
+</div>
+
+<div class="section">
+<H3><A NAME="flow_file"></A>Download and process a file</H3>
+<P>The glidein startup script will download and process several
+files. This stage will download one of these files.</P>
+<P>File downloading and processing can be conditional; if a
+conditional variable name is given and such conditional variable
+evaluates to False (0) in the configuration file, the stage is
+effectively a NOOP.</P>
+<P>The stage flow requires a fetch of a file over the network and the
+validation against the proper signature file. If for some reason the
+signature does not match, the glidein will terminate with a
+failure.<BR>Some files need further processing; they are either
+tarballs that need to be unpacked, or executables that need to be
+run. This stage will take the appropriate action.</P>
+<P>Finally, the invoker of this stage may request for the file
+processing to be recorded in the configuration file, by providing an
+output variable name. 
+</P>
+<P>See figure below for an overview.</P>
+<P><IMG SRC="../images/flow_glidein_file.png"></P>
+
+</div>
+
+<div class="section">
+<H3><A NAME="flow_condor"></A>Configure and start HTCondor</H3>
+<P>As mentioned before, most of the work in a glidein is carried on
+by the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+Startd</A>. This stage the condor_startd is configured and
+launched.<BR>To do this, the script parses the HTCondor variable
+description files and extracts the needed values from the glidein
+configuration file. If no values is provided, the default is used.</P>
+<P>Once all the variables are collected, the condor_config is
+created.<BR>The script now launches two HTCondor startds, by means of a
+condor_master. The first one is a monitoring startd and is not
+managed.<BR>The second one is instead the main, job startd, and the
+glidein code blocks on it. This startd will do the bulk of the
+processing, advertising itself to a collector and accepting user
+jobs.</P>
+<P>Once the main startd ends, the monitoring startd is killed and the
+log files parsed for job statistics that will be printed in standard
+output. For debugging purposes, the whole log files are then
+compressed and streamed to the standard error.</P>
+<P>See figure below for an overview.</P>
+
+<P><IMG SRC="../images/flow_glidein_condor.png"></P>
+</div>
+
+<div class="section">
+<H2><A NAME="source"></A>Source code distribution</H2>
+<P>The glidein code is composed of a set of shell code scripts,
+mostly using <A HREF="http://tldp.org/LDP/abs/html/">bash</A>,
+although grep and <A HREF="http://www.vectorsite.net/tsawk.html">awk</A> are used
+extensively, too.</P>
+<P>The files are located in <TT>glideinWMS/creation/web_base</TT>but are copied 
+to the Factory configuration directory during the
+<A HREF="index.html#create_entry">Factory configuration</A>.</P>
+<P>The picture below shows the dependency tree of the most used
+scripts. The optional scripts are grayed out.</P>
+<P><IMG SRC="../images/scripts_glidein.png"></P>
+</div>
+
+
+<div class="section">
+<H2><A NAME="config"></A>Configuration files</H2>
+<P>The glidein gets the configuration parameters from two sources;
+from configuration files and from command line arguments.</P>
+<P>Two configuration file (classes) are copied
+from <TT>glideinWMS/creation/web_base</TT></P>
+
+<UL>
+    <LI><TT>condor_config(*)</TT> - contains the base condor configuration. 
+        It will be extended at runtime by the glidein scripts.</li>
+    <LI><TT>condor_vars(*)</TT> - 
+    contains the description and the defaults
+    for the variables used by the glidein. Any meaningful parameter
+    should be documented here.</li>
+</UL>
+<P>Another set of configuration files is generated during the 
+<A HREF="index.html#create_entry">Factory configuration</A>:</P>
+<UL>
+
+    <LI><TT>constants</TT> &ndash; contains the values for a set of variables</li>
+    <LI><TT>grid-mapfile</TT> &ndash; contains the DNs of the trusted services</li>
+    <LI><TT>file-list.lst</TT> &ndash; contains the list of files to download</li>
+    <LI><TT>description.cfg</TT> &ndash; contains the logical to actual name
+    mapping</li>
+
+    <LI><TT>signature.sha1</TT> &ndash; contains the signatures of the files</li>
+</UL>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+
+</div>
+</body>
+</html>

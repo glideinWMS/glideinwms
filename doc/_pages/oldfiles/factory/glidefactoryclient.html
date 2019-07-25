@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>glidefactoryclient ClassAd</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
+    <LI><A HREF="#request">Request details</A></li>
+    <LI><A HREF="#attributes">Factory and Frontend attributes</A></li>
+    <LI><A HREF="#monitoring">Monitoring</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<h2>Factory Advertisement of Frontends</h2>
+<p>The Factory will generate a Classad for each Frontend that it services.  It 
+contains monitoring information that may be used by either the Factory or Frontend.</p>
+<ol>
+	<li><a name="identify"></a><b>Information used to identify the Classad.</b>
+		<ol type="a">
+			<li>Values used to manage Classads in the Collector
+				<ul>
+					<li>Name = &quot;entry_name@glidein_name@factory_name&quot;</li>
+					<li>Internal ClassAd type of License</li>
+				</ul>
+			</li>
+			<li>Values used to distinguish the different ClassAd types
+				<ul>
+					<li>GlideinMyType = &quot;glidefactoryclient&quot; </li>
+				</ul>
+			</li>
+			<li>Values set by GlideinWMS for consistency but are not used
+				<ul>
+					<li>MyType = &quot;glidefactoryclient&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	
+	<li><a name="request"></a><b>Information about a specific request for a specific entry.  </b> 
+		<ol type="a">
+			<li>Factory information
+				<ul>
+					<li>ReqGlidein = &quot;entry_name&#64;glidein_name@factory_name&quot;</li>
+					<li>ReqFactoryName = &quot;factory_name&quot;</li>
+					<li>ReqGlideinName = &quot;glidein_name&quot; </li>
+					<li>GlideinWMSVersion = &quot;glideinWMS UNKNOWN&quot;</li>
+				</ul>
+			</li>
+			<li>Entry information
+				<ul>
+					<li>ReqEntryName = &quot;entry_name&quot;</li>
+                                        <li>GLIDEIN_GridType = &quot;condor&quot;</li>
+                                        <li>GLIDEIN_Gatekeeper = &quot;entry.domain.name entry.domain.name:port&quot;</li>
+				</ul>
+			</li>
+			<li>Frontend information
+				<ul>
+					<li>ReqClientName  = &quot;frontend_name.group_name&quot;</li>
+					<li>ReqClientReqName = &quot;entry_name&#64;glidein_name&#64;factory_name&#64;frontend_name.group_name&quot;</li>
+					<li>GlideinParamGLIDEIN_Collector = &quot;user_collector_node.domain.name&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	
+	<li><a name="attributes"></a><b>Factory and Frontend defined attributes.  </b>These may or may not be prefaced by GlideinParam 
+	depending on how the Factory and Frontend requests have defined them.  All attributes are optional except GLIDEIN_Collector; this is always
+	required to be defined by the Frontend.
+		<ol type="a">
+			<li>Values used to affect glidein behavior.
+				<ul>
+					<li>USE_CCB = &quot;True&quot;</li>
+					<li>USE_MATCH_AUTH = &quot;True&quot;</li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+			<li>Information published about an entry that can be used by the Frontend, for example, something used in a 
+			Match expression for matching user jobs to entries.
+				<ul>
+					<li>GLIDEIN_Site = &quot;site_name&quot;</li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	
+	<li><a name="monitoring"><b>Monitoring values.  </b>
+		<ol type="a">
+			<li>These are generated by the Factory and used for generating the monitoring data.  All are prefaced with GlideinMonitor.  
+			Monitoring values may be shared between services but are only used in generating monitoring information and do not to affect 
+			glidein submission.
+				<ul>
+				
+					<li>GlideinMonitorClientMonitorGlideRunning = 0</li>
+					<li>GlideinMonitorClientMonitorJobsRunning = 0</li>
+					<li>GlideinMonitorStatusIdle = 0</li>
+					<li>GlideinMonitorStatusHeld = 0</li>
+					<li>GlideinMonitorStatusPending = 0</li>
+					<li>GlideinMonitorStatusStageOut = 0</li>
+					<li>GlideinMonitorStatusIdleOther = 0</li>
+					<li>GlideinMonitorStatusRunning = 0</li>
+					<li>GlideinMonitorClientMonitorInfoAge = 23</li>
+					<li>GlideinMonitorClientMonitorGlideIdle = 0</li>
+					<li>GlideinMonitorClientMonitorJobsRunHere = 0</li>
+					<li>GlideinMonitorStatusStageIn = 0</li>
+					<li>GlideinMonitorClientMonitorGlideTotal = 0</li>
+					<li>GlideinMonitorRequestedIdle = 0</li>
+					<li>GlideinMonitorStatusWait = 0</li>
+					<li>GlideinMonitorRequestedMaxGlideins = 1</li>
+					<li>GlideinMonitorClientMonitorJobsIdle = 0</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	
+</ol>
+
+
+<h2>Example glidefactoryclient ClassAd</h2>
+<pre>
+MyType = "glidefactoryclient"
+TargetType = ""
+GlideinMyType = "glidefactoryclient"
+GlideinWMSVersion = "glideinWMS UNKNOWN"
+Name = "entry@ glidein @factory@frontend-instance.main"
+ReqGlidein = "entry@glidein@factory"
+ReqFactoryName = "factory_name"
+ReqGlideinName = "instance_name"
+ReqEntryName = "entry"
+ReqClientName = " frontend-instance.main"
+ReqClientReqName = " entry@glidein@factory "
+GLEXEC_JOB = "True"
+GLIDEIN_GridType = "condor"
+GLEXEC_BIN = "NONE"
+USE_CCB = "True"
+GCB_ORDER = "NONE"
+GLIDEIN_Site = "entry"
+GLIDEIN_GlobusRSL = "(queue=default)"
+GLIDEIN_Gatekeeper = "node.domain.name node.domain.name:port"
+GlideinParamUSE_MATCH_AUTH = "True"
+GlideinParamGLIDEIN_Collector = "user_collector_node.domain.name"
+GlideinMonitorClientMonitorGlideRunning = 0
+GlideinMonitorClientMonitorJobsRunning = 0
+GlideinMonitorStatusIdle = 0
+GlideinMonitorStatusHeld = 0
+GlideinMonitorStatusPending = 0
+GlideinMonitorStatusStageOut = 0
+GlideinMonitorStatusIdleOther = 0
+GlideinMonitorStatusRunning = 0
+GlideinMonitorClientMonitorInfoAge = 23
+GlideinMonitorClientMonitorGlideIdle = 0
+GlideinMonitorClientMonitorJobsRunHere = 0
+GlideinMonitorStatusStageIn = 0
+GlideinMonitorClientMonitorGlideTotal = 0
+GlideinMonitorRequestedIdle = 0
+GlideinMonitorStatusWait = 0
+GlideinMonitorRequestedMaxGlideins = 1
+GlideinMonitorClientMonitorJobsIdle = 0
+MyAddress = "<131.225.206.30:0>"
+AuthenticatedIdentity = "factory_user@node.domain.name"
+LastHeardFrom = 1294181338
+UpdatesTotal = 30
+UpdatesSequenced = 0
+UpdatesLost = 0
+UpdatesHistory = "0x00000000000000000000000000000000"
+
+</pre>
+
+
+</div>
+</body>
+</html>

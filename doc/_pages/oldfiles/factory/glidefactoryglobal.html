@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>glidefactoryglobal ClassAd</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
+    <LI><A HREF="#configuration">Configuration and Installation</A></li>
+    <LI><A HREF="#communication">Communication requirements</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<h2>Factory Advertisement of Globals</h2>
+<p>Each Factory publishes a global ClassAd that contains Factory information that is used by all 
+Frontends.  There is one glidefactoryglobal ClassAd per Factory.</p>
+
+<ol>
+	<li><a name="identify"></a><b>Information used to identify the Classad.</b>
+		<ol type="a">
+			<li>Values used to manage Classads in the Collector
+				<ul>
+					<li>Name = &quot;glidein_name@factory_name&quot;</li>
+					<li>Internal ClassAd type of Master</li>
+				</ul>
+			</li>
+			<li>Values used to distinguish the different ClassAd types and used by GlideinWMS to query the Collector
+				<ul>
+					<li>GlideinMyType = &quot;glidefactoryglobal&quot; </li>
+				</ul>
+			</li>
+			<li>Values set by GlideinWMS to be used by HTCondor but not GlideinWMS
+				<ul>
+					<li>MyType = &quot;glidefactoryglobal&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	<li><a name="configuration"></a><b>Information about the configuration and installation.</b> 
+		<ol type="a">
+			<li>These values are global to all entries in the Factory.  FactoryName and GlideinName are used by the Frontend 
+			when generating the globals client ClassAds.
+				<ul>
+					<li>FactoryName = &quot;factory_name&quot;</li>
+					<li>GlideinName = &quot;glidein_name&quot; </li>
+					<li>GlideinWMSVersion = &quot;glideinWMS UNKNOWN&quot;</li>
+					<li>DaemonStartTime = 1000</li>
+					<li>UpdateSequenceNumber = 1000</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	<li><a name="communication"></a><b>Communication requirements.</b> 
+		<ol type="a">
+			<li>The Factory publishes the security information that the Frontend uses to encrypt requests.
+				<ul>
+					<li>PubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+					<li>PubKeyType = &quot;RSA&quot;</li>
+					<li>SupportedSignTypes = &quot;sha1&quot;</li>
+					<li>PubKeyValue = &quot;-----BEGIN PUBLIC KEY-----&#92;nMIIBIjAG9w0BAQ32m ... eZWnULjTB&#92;n-----END PUBLIC KEY-----&#92;n&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+</ol>
+
+<h2>Example glidefactory ClassAd</h2>
+<pre>
+MyType = "glidefactoryglobal"
+**PubKeyValue = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiGQKdZUhdUwIDAQAB\n-----END PUBLIC KEY-----\n"
+PubKeyType = "RSA"
+Name = "glidein_name@factory_name"
+GlideinMyType = "glidefactoryglobal" 
+AuthenticatedIdentity = "factory_user@node.domain.name"
+UpdateSequenceNumber = 6
+MyAddress = "<111.222.333.44:0>"
+SupportedSignTypes = "sha1"
+FactoryName = "factory_name"
+PubKeyID = "b3dde1f9a255898119c1ca2de46e1a38"
+UpdatesHistory = "0x00000000000000000000000000000000"
+GlideinWMSVersion = "glideinWMS Version"
+UpdatesLost = 0
+UpdatesSequenced = 6
+GlideinName = "glidein_name"
+UpdatesTotal = 7
+CurrentTime = time()
+DaemonStartTime = 1310400230
+LastHeardFrom = 1310400593
+
+**Note:  This attribute was shortened to fit into this document.
+</pre>
+
+
+</div>
+</body>
+</html>

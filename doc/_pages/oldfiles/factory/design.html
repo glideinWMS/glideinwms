@@ -1,0 +1,263 @@
+<DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+        <li>Design</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+</ul>
+    <h3>Design Overview</h3>
+</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#components">Components</a></li>
+    <li><a href="#glidein_daemons">Implementation</a>
+    <ol>
+        <li><a href="#glidein_daemons">Glidein Daemons</a></li>
+        <li><a href="#entry_daemons">Factory Daemons</a></li>
+        <li><a href="#glidein_startup">Glidein startup Script</a></li>
+    </ol>
+    </li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+    <li> <a href="design_factory.html">Factory Internals</a></li>
+    <li> <a href="design_entry.html">Entry Internals</a></li>
+    <li> <a href="design_glidein.html">Glidein Internals</a></li>
+    <li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<H2><A NAME="overview"></A>Glidein Factory Overview</H2>
+<P>A <A HREF="index.html">Glidein Factory</A> is composed of a
+Factory Daemon and several Factory Entry Daemons. Each Entry Daemon
+is autonomous; it advertises itself and processes the incoming
+requests. The main Factory Daemon just launches and monitors the
+Factory Entry Daemons.</p>
+
+
+<p>
+    In the section below, each components will be described.</P>
+</div>
+
+<div class="section">
+<H2><A NAME="components"></A>Factory Components</H2>
+
+The factory is made of several parts, which each have their own section on their design.  
+
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+</ul>
+
+</div>
+<div>
+<h2><a name="implementation"></a>Implementation details</h2>
+
+<h3><a name="glidein_daemons"></a>The Glidein Factory Daemon</h3>
+
+<p>Also, the Glidein Factory is composed of several entry points. The
+Factory Daemon is really just a small process tasked to start and
+monitor the Factory Entry Daemons. See picture in the 
+<a href="#entry_daemons">next section</a> for a logical overview.</p>
+<p>All daemons of a Glidein Factory share the same directory tree,
+which root contains the main configuration files used by
+the Factory daemon.</p>
+<p>More details about the Glidein Factory Daemon internals can be
+found <a href="design_factory.html">here</a>.</p>
+<h3><a name="entry_daemons"></a>The Factory Entry Daemons</h3>
+<p>The Glidein Factory is composed of several Factory Entry Daemons,
+each advertising itself and processing the incoming requests. See the
+picture below for a logical overview.
+
+</p>
+<img src="../images/entry_points_overview.png" name="graphics2" width="80%" align="BOTTOM" border="0/">
+<p>As explained previously, the root
+of the tree contains the common startup and configuration files,
+while each entry point has a few additional configuration files on
+its own. Each entry point is completely described by these files on
+disk; the Factory Entry Daemons only extract information about entry
+point attributes and supported parameters needed for advertising.
+When glidein jobs are submitted, only the Frontend provided
+parameters need to be given to the glidein startup script, as the
+script itself will autonomously gather all the other
+information.
+
+</p>
+<p>More details about the Factory Entry Daemon
+internals can be found <a href="design_entry.html">here</a>.</p>
+<h3><a name="glidein_startup"></a>The glidein startup script</h3>
+<p>As said in the <a href="../index.html#glideins">overview</a>,&nbsp;
+a glidein is essentially a properly configured HTCondor startd.
+However, somebody needs to do that configuration. So we need a job
+startup script that will do the work.<br><br>A startup script needs
+to perform several tasks:</p>
+
+<ul>
+    <li>check that the working environment on the worker node is
+    reasonable (else user jobs will fail) </li>
+
+    <li>obtain the HTCondor binaries </li>
+    <li>configure HTCondor </li>
+    <li>prepare the environment for HTCondor </li>
+    <li>start HTCondor </li>
+
+</ul>
+<p>Given the complexity of the task and for the sake of flexibility,
+it makes sense to split the script in several pieces. Thus, the glidein
+job is composed of several pieces, including the startup script
+pieces, the HTCondor binaries, and a base configuration file.
+</p>
+<p>
+    However, having a Grid job with data files can represent a
+challenge; each Grid flavor treats data in a different way!
+
+</p>
+<p>
+    To make the system as general as possible, the Glidein Factory
+requires the use of a Web Server to distribute its data. This version
+of the Glidein based Factory was tested with 
+<a href="http://www.apache.org/">Apache</a>
+and <a href="http://www.stllinux.org/meeting_notes/2001/0719/tux/index.html">TUX</a>,
+but any other web server should work just well, as only static file
+delivery is required.
+</p>
+<p>
+
+    A general overview of how a glidein
+starts up is given in the picture below.</p>
+<img src="../images/glidein_script.png" name="graphics3" width="80%" align="BOTTOM" border="0/">
+<p>
+The task of the basic startup script (called <tt><b>glidein_startup.sh</b></tt>)
+is thus reduced to loading the other files including the support
+scripts, the base config files and the HTCondor binaries. The list of
+files to load is obtained from the Web server as one of the first
+steps, making the startup script completely generic.<br><br>Please
+notice two things. First, all the files transfered over the Web are
+signed using <tt><b>sha1sum</b></tt>. This
+prevents a hacker from tampering with the files while in transit.
+This is especially important for executables and scripts (to prevent
+arbitrary code to be executed), but is useful for configuration files
+too.</p>
+
+<p>The signature checking is implemented in two steps:</p>
+<ol>
+    <li>The signature of all the files to be transfered is saved in a
+    file called <tt><b>signature.sha1</b></tt> and
+    stored on the Web server. The signature of the signature file is
+    then passed as one of the parameters to the startup script.</li> 
+    <li>The startup script loads the signature file from the Web
+    server and verifies its signature. All other downloads, including
+    the file containing the list of other files, is checked against the
+    values in the signature file. See the pseudo-code below.</li>
+
+<pre>wget http://head.fnal.gov/glidein_g1/signature.sha1
+sha1sum <i>known_sha1</i> signature.sha1
+if $?!=0 then
+ exit 1
+fi
+grep files_list signature.sha1 &gt; filelist.sha1
+wget http://head.fnal.gov/glidein_g1/files_list.lst
+sha1sum -c filelist.sha1
+if $?!=0 then
+ exit 2
+fi
+for file in files_list.lst do
+ wget http://head.fnal.gov/glidein_g1/$file
+done
+sha1sum -c signature.sha1
+if $?!=0 then
+ exit 3
+fi
+
+<i>launch scripts</i></pre>
+</ol>
+<p>The second point I would like to stress, are the advantages that
+come from using standard Web technologies. Web technologies are
+widely used nowadays and there is a plethora of tools that can be
+readily used. In our case, we can reduce the network load and speed
+startup times by using a Web cache near the worker nodes, if
+available. The Glidein Factory was tested with 
+<a href="http://www.squid-cache.org/">Squid</a>,
+but other products should work as well. It is also worth mentioning
+that both OSG and gLite has expressed interest in deploying a Squid
+server on every Grid site.<br><br>More details about the startup
+script internals and support scripts provided by the current
+implementation can be found <a href="design_glidein.html">here</a>.</p>
+</div>
+
+
+
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>glideclientglobal ClassAd</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
+    <LI><A HREF="#configuration">Configuration and installation</A></li>
+    <LI><A HREF="#security">Encrypted security parameters</A></li>
+    <LI><A HREF="#credential">Credentials</A></li>   
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<h2>Frontend Advertisement of Globals</h2>
+<p>The Frontend advertises the one ClassAd per Frontend Group per Factory.  The ClassAd
+contains the credentials that are mapped to that Factory and are categorized by security class.</p>
+<ol>
+	<li><a name="identify"></a><b>Information used to identify the Classad.</b>
+		<ol type="a">
+			<li>Values used to manage Classads in the Collector.
+				<ul>
+					<li>Name = &quot;glidein_name@factory_name@frontend_name.group_name&quot; (this is just ReqName@ClientName)</li>
+					<li>Internal ClassAd type of Master</li>
+				</ul>
+			</li>
+			<li>Values used to distinguish the different ClassAd types and used by GlideinWMS to query the Collector
+				<ul>
+					<li>GlideinMyType = &quot;glideclientglobal&quot; </li>
+				</ul>
+			</li>
+			<li>Values set by GlideinWMS to be used by HTCondor but not by GlideinWMS
+				<ul>
+					<li>MyType = &quot;glideclientglobal&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	
+	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for 
+	querying the collector or possibly in match expressions.  
+		<ol type="a">
+			<li>These describe the Frontend and group making the request.  
+				<ul>
+					<li>ClientName  = &quot;frontend_name.group_name&quot;</li>
+					<li>FrontendName  = &quot;frontend_name&quot; </li>
+					<li>GroupName   = &quot;group_name&quot; </li>
+					<li>GlideinWMSVersion = &quot;glideinWMS UNKNOWN&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+				
+	<li><a name="security"></a><b>Encrypted security parameters.  </b> The Factory and Frontend use these to identify and 
+	talk with each other.  These values will be encrypted in the actual Classad.
+		<ol type="a">
+			<li>The Frontend needs to tell the Factory what security name it is mapped to.  
+				<ul>
+					<li>GlideinEncParamSecurityName = &quot;encrypted security name&quot;</li>
+				</ul>
+			</li>
+			<li>The symmetric key used for encryption.  The Frontend generates this key and encrypts it using the Factory 
+			public key.  All other encrypted parameters passed to the Factory are encrypted with the symmetric key.
+				<ul>
+					<li>ReqPubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+					<li>ReqPubKeyCode = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+				</ul>
+			</li>
+			<li>Encrypted identity that is mapped to expected identity (as listed in the Factory configuration).
+				<ul>
+					<li>ReqEncIdentity = &quot;frontend_name&#64;factorynode.domain.name&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+		
+	<li><a name="credential"></a><b>Credentials allowed for this Frontend group for this Factory.  </b> The credentials are 
+	identified by an ID, which needs to be unique and must stay the same for the lifetime of the requests that use it (a renewed proxy
+	will have the same ID as the expired proxy with the same subject).  Credential ids should not based on the type or content of the 
+	credential.  An example would be to base the ID on a hash of the filename.  All these attributes are encrypted with the 
+	Frontend-generated symmetric key.
+		<ol type="a">
+			<li>Credential and associated security class.  
+				<ul>
+					<li>GlideinEncParamID = &quot;encrypted credential with id_1&quot;</li>
+					<li>GlideinEncParamSecurityClassID = &quot;encrypted security class for credential id_1&quot;</li>
+					<li>GlideinEncParamID = &quot;encrypted credential with id_2&quot;</li>
+					<li>GlideinEncParamSecurityClassID = &quot;encrypted security class for credential id_2&quot;</li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+			<li>Total number of credentials sent which is used for verification in the Factory.
+				<ul>
+					<li>GlideinEncParamNumberOfCredentials = encrypted number of credentials</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	
+</ol>
+
+
+<h2>Example glideclient ClassAd</h2>
+<pre>
+MyType = "glideclientglobal"
+GlideinMyType = "glideclientglobal" 
+**ReqEncIdentity = "fb5c26ceaca17ead"
+Name = "glidein_name@factory_name@frontend_name.group_name"
+AuthenticatedIdentity = "frontend_user@node.domain.name"
+**GlideinEncParam16118 = "15bb98e16d8a062dad0eec6312c53cb6970"
+MyAddress = "<131.225.206.32:0>"
+UpdatesHistory = "0x00000000000000000000000000000000"
+GlideinWMSVersion = "glideinWMS Version"
+UpdatesLost = 0
+ReqPubKeyID = "b3dde1f9a255898119c1ca2de46e1a38"
+UpdatesSequenced = 0
+UpdatesTotal = 3
+GlideinEncParamNumberOfCredentials = "1dcc07fd85a3ed4b63703e26511faa17"
+GlideinEncParamSecurityName = "0c8cc8ed2c70d1e3611485094a71c97b"
+CurrentTime = time()
+**GlideinEncParamSecurityClassCREDID = "fb5c26dc228c85e7d5f1b28cff017"
+LastHeardFrom = 1310400471
+**ReqEncKeyCode = "bea430068f971255df594a5c4f4cbed8157a8a7511d20f13ab"
+
+**Note:  This attribute was shortened to fit into this document.
+</pre>
+
+
+</div>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Glidein Frontend</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Frontend</a></li>
+        <li>Monitoring</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>Glidein Frontend</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+         <li> <a href="./design.html">Design</a></li>
+	     <li> Monitoring</li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Monitoring</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#monitoring_web">Web Monitoring</a> </li>
+        <li><a href="#monitoring_tools">WMS Monitoring</a> </li>
+        <li><a href="#monitoring_logs">Glidein Frontend logs</a> </li>
+        <li><a href="#monitoring_condor">WMS Collector Ads</a> </li>
+        <li><a href="#pseudo_interactive">Pseudo Interactive</a> </li>
+</ol>
+</div>
+<div class="related">
+Related Information:
+<ul>
+        <li><a href="../factory/monitoring.html">Factory Monitoring</a> </li>
+</ul>
+</div>
+<div class="section">
+
+    <p>This document refers to the Glidein Frontend installed via tarball. If you used the RPM installation
+    (<a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG documentation</a>) 
+    the commands will be the same but most paths will be different.
+    </p>
+    <p>There are several ways to monitor the VO Frontend:</p>
+
+    <h3><a name="monitoring_web">VO Frontend entry Web monitoring</a></h3>
+    <p>
+        You can either monitor the Frontend as a whole, or just a single entry point.<br><br>
+        The Frontend monitoring is located at a URL like the one below
+    </p>
+
+    <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/</blockquote>
+
+    <p>
+        Moreover, each Frontend group has its own history on the Web.<br><br>
+        Assuming you have a main group, it can be monitored at
+    </p>
+    <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/group_main/</blockquote>
+
+    <h3><a name="monitoring_tools">VO Frontend monitoring via WMS tools</a></h3>
+
+    <p>You can get the equivalent of the Web page snaphot by using</p>
+    <blockquote>
+        cd glideinWMS/tools/<br>
+        ./wmsXMLView.py -pool gfactory1.my.org
+    </blockquote>
+
+    <h3><a name="monitoring_logs">VO Frontend group log files</a></h3>
+    <p>
+
+        The VO Frontend writes two log files per entry point <b>frontend_info.YYYYMMDD.log</b> and <b>frontend_err.YYYYMMDD.log</b>.<br><br>
+        Assuming you have a main group, the log files are in
+    </p>
+    <blockquote>/home/frontend/frontstage/frontend_myVO1_v1/group_main/log</blockquote>
+
+    <p>
+
+        All errors are reported in the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log</b> contains entries 
+        about what the VO Frontend is doing.
+        You can change the log files and their level of detail by editing the 
+        <a href="configuration.html#process_logs">process logs section</a> of the configuration.
+    </p>
+
+    <h3><a name="monitoring_condor">VO Frontend ClassAds in the WMS Collector</a></h3>
+    <p>
+        The VO Frontend also advertises summary information in the WMS collector.<br><br>
+
+        Use <b>condor_status</b>:
+    </p>
+    <blockquote>condor_status -pool gfrontend1.my.org -any</blockquote>
+
+    <p>and look for <b>glideclient</b> ads.</p>
+
+</div>
+<div class="section">
+<h2><a name="pseudo_interactive"></a>Pseudo Interactive Monitoring</h2>
+<p>The GlideinWMS also provides pseudo interactive monitoring
+functionalities; a user can run short lived commands alongide any
+already running job in the queue. 
+</p>
+<p>To run a pseudo interactive command, move into 
+</p>
+<pre>glideinWMS/tools</pre><p>
+and run 
+</p>
+<pre>./glidein_interactive.py <i>jobid</i> <i>cmdline</i></pre><p>
+
+There are also a set of useful often used commands that you may want
+to use: 
+</p>
+<ul>
+    <li>glidein_ls.py <i>jobid</i> <i>[subdir]</i> 
+    </li><li>glidein_cat.py <i>jobid</i> <i>fname</i> 
+    </li><li>glidein_top.py <i>jobid</i> 
+    </li><li>glidein_ps.py <i>jobid</i> <i>[opts]</i> 
+
+</li></ul>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</div>
+</body>
+</html>

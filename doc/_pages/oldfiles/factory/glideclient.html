@@ -1,0 +1,374 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>glideclient ClassAd</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#userdefined">User defined values</A></li>
+    <LI><A HREF="#identify">Identify the ClassAd</A></li>
+    <LI><A HREF="#configuration">Configuration and installation</A></li>
+    <LI><A HREF="#request">Request information</A></li>
+    <LI><A HREF="#encryption">Encryption information</A></li>
+    <LI><A HREF="#sec_cred">Security credentials</A></li>
+    <LI><A HREF="#ident_cred">Identity credentials</A></li>
+    <LI><A HREF="#security">Security information</A></li>    
+    <LI><A HREF="#glidein">Frontend glidein information</A></li>
+    <LI><A HREF="#monitoring">Monitoring</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> <a href="design_data_exchange.html">Data Exchange</a></li>
+</ul>
+</div>
+<div class="section">
+
+<h2>Frontend Advertisement of Requests</h2>
+<p>The Frontend creates request Classads for the Factory to submit glideins. In the 
+Frontend configuration, you can either match to all entries or customize the match 
+string to request pilots at specific sites.  This match string will use information 
+published in the Factory entry Classads and the user&rsquo;s job Classads.</p>
+<ol>
+	<li><a name="userdefined"></a><b>User defined values.</b>
+		<ol type="a">
+			<li>Users are <u>not</u> supposed to affect <i>how</i> glideins are submitted. 
+			Users can affect <i>where</i> they are submitted when the Frontend configures 
+			match expressions and the user provides supported requirements but this 
+			all takes place in the Frontend.  User requirements are not put into the 
+			Frontend request for the Factory to interpret. The only exception is the Project ID.
+				<ul>
+					<li>GlideinEncParamProjectId = &quot;abcx123&quot;</li>
+				</ul>
+			</li>
+
+		</ol>
+	</li>	
+
+	<li><a name="identify"></a><b>Information used to identify the ClassAd.</b>
+		<ol type="a">
+			<li>Values used to manage ClassAds in the Collector. The id is the credential ID in this 
+			ClassAd and is the grid_proxy, public cert, public key, or username, depending on 
+			the authentication method for this entry.  Each request ClassAd contains one set of credentials.
+				<ul>
+					<li>Name = &quot;id_entry@glidein_name@factory_name @frontend_name.group_name&quot;</li>
+					<li>Internal ClassAd type of Master</li>
+				</ul>
+			</li>
+			<li>Values used to distinguish the different ClassAd types
+				<ul>
+					<li>GlideinMyType = &quot;glideclient&quot; </li>
+				</ul>
+			</li>
+			<li>Values set by GlideinWMS for consistency but are not used
+				<ul>
+					<li>MyType = &quot;glideclient&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>
+	
+	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for 
+	querying the collector or possibly in match expressions.
+		<ol type="a">
+			<li>These describe the frontend and group making the request.  
+				<ul>
+					<li>ClientName  = &quot;frontend_name.group_name&quot;</li>
+					<li>FrontendName  = &quot;frontend_name&quot; </li>
+					<li>GroupName   = &quot;group_name&quot; </li>
+					<li>GlideinWMSVersion = &quot;glideinWMS UNKNOWN&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+		
+	<li><a name="request"></a><b>Information specific to a request.  </b>  
+		<ol type="a">
+			<li>Information on the numbers related to how many glideins needed.  
+				<ul>
+					<li>ReqIdleGlideins = 0</li>
+					<li>ReqMaxGlideins = 1</li>
+				</ul>
+			</li>
+			<li>The entry that the Frontend needs glideins from.  This value is used to match the request to the entry 
+			so it must <u>exactly</u> match the &quot;Name&quot; attribute in the entry ClassAd.
+				<ul>
+					<li>ReqGlidein = &quot;entry_name&#64;glidein_name@factory_name&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+		
+	<li><a name="encryption"></a><b>Encryption information.  </b> The Factory and Frontend use these to identify and talk with each other. 
+		<ol type="a">
+			<li>The Factory Key ID must match the one published by the Factory.  
+				<ul>
+					<li>ReqPubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+				</ul>
+			</li>
+			<li>Encrypted symmetric key.
+				<ul>
+					<li>ReqPubKeyCode = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	<li><a name="sec_cred"></a><b>Security Credentials.  </b>All glideins are submitted with some kind of credentials.  The Factory 
+	Entry specifies what credentials are needed in the authentication method and the Frontend passes the required info in the 
+	request.  Only one (set) of credentials is allowed in a request.  All proxy information is prefaced with GlideinEncParam and 
+	the values are encrypted with the symmetric key. The identifier for a given credential does not change between requests (it 
+	is a hash based on filename and not the contents of the credentials).
+		<ol type="a">
+			<li>Authentication method contains &quot;grid_proxy&quot;  
+				<ul>
+					<li>GlideinEncParamSubmitProxy = ID</li>
+				</ul>
+			</li>
+			<li>Authentication method contains &quot;cert_pair&quot;  
+				<ul>
+					<li>GlideinEncParamPublicCert = ID</li>
+					<li>GlideinEncParamPrivateCert = ID</li>
+					<li>GlideinEncParamGlideinProxy = ID</li>
+				</ul>
+			</li>
+			<li>Authentication method contains &quot;key_pair&quot;  
+				<ul>
+					<li>GlideinEncParamPublicKey = ID</li>
+					<li>GlideinEncParamPrivateKey = ID</li>
+					<li>GlideinEncParamGlideinProxy = ID</li>
+				</ul>
+			</li>
+			<li>Authentication method contains &quot;username_password&quot;  
+				<ul>
+					<li>GlideinEncParamUsername = ID</li>
+					<li>GlideinEncParamPassword = ID</li>
+					<li>GlideinEncParamGlideinProxy = ID</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	<li><a name="ident_cred"></a><b>Identity Credentials.  </b>The Factory may also require the Frontend to 
+	pass identity information in addition to the authenication methods for glidein submission.
+		<ol type="a">
+			<li>Authentication method contains &quot;+project_id&quot;.  This is only applied for TeraGrid sites.
+				<ul>
+					<li>GlideinEncParamProjectId = encrypted project id</li>
+				</ul>
+			</li>
+			<li>Authentication method contains &quot;+vm_id&quot;.  This is used on cloud sites.
+				<ul>
+					<li>GlideinEncParamVMId = encrypted VM id</li>
+				</ul>
+			</li>
+			<li>Authentication method contains &quot;+vm_type&quot;.  This is used on cloud sites.
+				<ul>
+					<li>GlideinEncParamVMType = encrypted VM type</li>
+				</ul>
+			</li>
+			<li>Authentication method contains &quot;+voms_attr&quot;
+				<ul>
+					<li>The Frontend must validate that the submit or glidein proxy contains the VOMS extension.  No 
+					additional parameter is passed.</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	<li><a name="security"></a><b>Security Information.  </b>The Factory needs additional security information to 
+	make sure the request is allowed.  These values are encrypted using the symmetric key.
+		<ol type="a">
+			<li>Encrypted identity information.
+				<ul>
+					<li>ReqEncIdentity = &quot;frontend_name&#64;factorynode.domain.name&quot;</li>
+				</ul>
+			</li>
+			<li>The Factory uses the security name for whitelisting Frontends in an entry.  The security class must be 
+			agreed upon with the Factory to ensure the correct security mappings exist.  If this is not correct, the 
+			Frontend request will be denied.
+				<ul>
+					<li>GlideinEncParamSecurityName = &quot;frontend_name&quot;</li>
+					<li>GlideinEncParamSecurityClass = &quot;frontend&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>		
+	
+	<li><a name="glidein"></a><b>Frontend defined information for affecting glideins.  </b> 
+		<ol type="a">
+			<li>Optional Frontend Admin defined variables. They will be prefaced with GlideinParam.  
+				<ul>
+					<li>GlideinParamUSE_MATCH_AUTH = &quot;True&quot;</li>
+					<li>GlideinParamGLIDEIN_Entry_Start = &quot;True&quot;</li>
+					<li>Etc.</li>
+				</ul>
+			</li>
+			<li>The Frontend specifies what Collector the glideins will report to and is required.  This value is passed 
+			through to the glideins and is not used by the Factory.  
+				<ul>
+					<li>GlideinParamGLIDEIN_Collector = &quot;collectornode.domain.name:9618&quot;</li>
+				</ul>
+			</li>
+			<li>The Frontend specifies the web staging area where the glideins will download Frontend provided files.  
+			A descript file (and signature for verification) is used to point to the files and their signs that will be 
+			used in starting the glideins.  A Frontend can also contain groups with additional information so both the 
+			Frontend and group descript files are specified.  Refer to <a href="http://glideinwms.fnal.gov/doc.prd/factory/design_glidein.html">here</a> 
+			for the structure of the web area on the Frontend as well as the type and format of files expected.
+				<ul>
+					<li>WebURL = &quot;http:&frasl;&frasl;frontend.domain.name&frasl;path-to-staging-area&frasl;stage&frasl;frontend_name&quot;</li>
+					<li>WebSignType = &quot;sha1&quot;</li>
+					<li>WebDescriptFile = &quot;description.abtfgq.cfg&quot;</li>
+					<li>WebDescriptSign = &quot;15af90be49a498528828d321f91ca2302&quot;</li>
+					<li>WebGroupURL = &quot;http:&frasl;&frasl;cms- frontend.domain.name&frasl;path-to-staging-area&frasl;stage&frasl;frontend_name&frasl;group_name&quot;</li>
+					<li>WebGroupDescriptFile = &quot;description.abtfgq.cfg&quot;</li>
+					<li>WebGroupDescriptSign = &quot;b7fde1fd2bc02b02dafd85a655c93f090cfa1e51&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+	
+	<li><a name="monitoring"></a><b>Monitoring and debugging values.  </b>  
+		<ol type="a">
+			<li>These are generated by the Frontend and used for generating the monitoring data. All are prefaced with GlideinMonitor.  Monitoring values may be shared 
+			between services but are only used in generating monitoring data and not to affect glidein requests.  
+				<ul>
+					<li>Any Classad variable that begins with GlideinMonitor: GlideinMonitorRunning = 0, GlideinMonitorGlideinsIdle = 0, etc.</li>
+				</ul>
+			</li>
+			<li>This not used by the Factory but in VO Frontends, where it is used for monitoring and debugging.
+				<ul>
+					<li>ReqName = &quot;entry_name&#64;glidein_name&#64;factory_name&quot;</li>
+				</ul>
+			</li>
+		</ol>
+	</li>	
+</ol>
+
+
+<h2>Example glideclient ClassAd</h2>
+<pre>
+MyType = "glideclient"
+TargetType = ""
+GlideinMyType = "glideclient"
+GlideinWMSVersion = "glideinWMS UNKNOWN"
+Name = "entry@glidein@factory@frontend-instance.main"
+ClientName = "frontend-instance.main"
+FrontendName = "frontend-instance"
+GroupName = "main"
+ReqName = "entry@glidein@factory"
+ReqGlidein = " entry@glidein@factory "
+WebURL = "http://node.domain.name/vofrontend/stage/frontend"
+WebSignType = "sha1"
+WebDescriptFile = "description.acgfgp.cfg"
+WebDescriptSign = "f878f3762273245aa3d87f05b8c7306be0eff51c"
+WebGroupURL = "http://cms-node.domain.name/vofrontend/stage/frontend /group_main"
+WebGroupDescriptFile = "description.acgdrf.cfg"
+WebGroupDescriptSign = "0e832bcc4e47d388803255ac7a98fbe4580f4961"
+ReqPubKeyID = "60b25b1dca401abad2d17c2f5f15e887"
+**ReqEncKeyCode = "f8ee5f9f031141071ef5a40f0e0911de3c09f35517335f721fbbe912b32f73"
+**ReqEncIdentity = "1dcd10a1ca601b5a55fe27db93b2c8f7242559cd15fed974ac28f153236689d06"
+ReqIdleGlideins = 0
+ReqMaxGlideins = 1
+GlideinParamUSE_MATCH_AUTH = "True"
+GlideinParamGLIDEIN_Entry_Start = "True"
+GlideinParamGLIDEIN_Entry_Rank = "1"
+GlideinParamGLIDEIN_Collector = "node.domain.name"
+GlideinMonitorRunning = 0
+GlideinMonitorGlideinsRunning = 0
+GlideinMonitorIdle = 0
+GlideinMonitorGlideinsTotal = 0
+GlideinMonitorOldIdle = 0
+GlideinMonitorGlideinsIdle = 0
+GlideinMonitorRunningHere = 0
+GlideinEncParamx509_proxy_0_identifier = "e5e86dea2bc94f357b922ff41866385d"
+GlideinEncParamSecurityName = "798a603c1d9017ab1f250d79388e7fe9"
+**GlideinEncParamx509_proxy_0 = "79dbcbba4de07ac0578b342db4b63b91a1b12020dc89ab17601d2b634"
+GlideinEncParamnr_x509_proxies = "36d9444ae0177f649c492a01e3575806"
+GlideinEncParamx509_proxy_0_security_class = "160d7ca0e441da3407675d2003571a3e"
+MyAddress = "<111.222.333.44:0>"
+AuthenticatedIdentity = "frontend_user@node.domain.name"
+LastHeardFrom = 1294182587
+UpdatesTotal = 159
+UpdatesSequenced = 0
+UpdatesLost = 0
+UpdatesHistory = "0x00000000000000000000000000000000"
+
+**Note:  This attribute was shortened to fit into this document.
+</pre>
+
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</body>
+</html>

@@ -1,0 +1,374 @@
+---
+layout: default
+---
+<div class="content">
+    <div class="heading">
+    <h2>User Schedd</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
+	     <li> User Schedd</li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
+	</ul>
+        <h3>User Schedd Install</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li><a href="#description">Description</a></li>
+    <li><a href="#hardware">Hardware requirements</a></li>
+    <li><a href="#software">Needed software</a></li>
+    <li><a href="#before_install">Before you begin...</a></li>
+    <li><a href="#condor">Installation</a></li>
+    <li><a href="#submit">Submitting User Jobs</a></li>
+    <li><a href="#fine_tune">Large Scale Fine Tuning</a></li>
+</ol>
+</div>
+<div class="related">
+<u><b>Installation Procedure</b></u><br><br>
+
+Preceded by: <a href="./collector_install.html">User Pool</a><br>
+Followed by: <a href="../frontend/install.html">Glidein Frontend</a><br>
+<br/>
+Install as: root
+
+</div>
+<div class="section">
+
+<h2>1. Description</a></h2>
+            <p><img src="../images/overview_schedd.png" name="Schedd Overview" align="right" border="0"></p>
+            <p>
+                This node will be a
+                <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION004120000000000000000">HTCondor Submit node</a>
+                for the user jobs.  You can install many such nodes to improve scalability of your system.
+            </p>
+    </div>
+
+    <div class="section">
+
+            <h2><a name="hardware">2. Hardware requirements</a></h2>
+		<table class="requirements" style="width: 500px;">
+            <tbody><tr class="head">
+                <td>CPUs</td>
+                <td>Memory</td>
+                <td>Disk</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>min 2GB (16GB recommended)</td>
+                <td>~5GB</td>
+            </tr>
+            </tbody></table>
+
+           <p>
+                This machine needs <b>a reasonably recent CPUs</b> and <b>a large amount of memory</b> (min <b>2GB</b>, recommended <b>16GB</b>,
+                <b>~1.5MB per running job</b>).  The amount of <b>disk</b> needed <b>depends on the user jobs</b>; HTCondor itself uses very little
+                (5 GB should be enough for HTCondor alone)
+            </p>
+
+    </div>
+
+
+
+<div class="section">
+
+  <h2><a name="software">3. Needed software</a></h2>
+    <p>See the <a href="">prerequisites</a> page for a list of software requirements.
+
+</div>
+
+
+    <div class="section">
+
+
+    <h2><a name="before_install">4. Before you begin...</a></h2>
+
+    <h3><a name="before_install_certs">4.1 Required Certificates/Proxies</a></h3>
+    <p>
+        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy, which should be
+        created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
+        </p><ul>
+            <li>Glidein Submitter cert/proxy DN</li>
+            <li>User Pool (Collector) cert/proxy DN</li>
+            <li>Glidein (VO) Frontend cert/proxy DN</li>
+
+        </ul>
+        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.
+        These nicknames are the HTCondor UID used in its configuration and mapfile.
+        These do not matter when installing the user schedds.
+
+        For more details, <a target="_blank" href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#proxy-configuration"> see OSG documentation.</a>
+    <p></p>
+
+    <h3><a name="before_install_misc">4.2 Miscellaneous Notes</a></h3>
+     By default, match authentication will be used.
+
+    </div>
+
+
+    <div class="section">
+
+    <h2><a name="condor">5. Installation instructions</a></h2>
+    <p>
+        The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
+        security implications; see the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Security.html#sec:Non-Root">HTCondor manual</a> for details.
+        The whole process is managed by the install script manage-glideins described below.
+    </p>
+
+    <p>Move into</p>
+
+    <blockquote>glideinWMS/install</blockquote>
+
+    <p>and execute</p>
+    <blockquote>./manage_glideins --install submit --ini <i>/path/to/glideinWMS.ini</i></blockquote>
+
+    <p>
+    <table class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr>
+
+        <tr>
+        <td>install_type</td>
+        <td>tarball or rpm</td>
+        <td>
+            If this is a VOFrontend RPM installation and you are doing a
+            '--configure', then rpm should be specified.<br/>
+            If this is a stand-alone Submit install, only tarball
+            installations are supported.<br/>
+        </td>
+        <td>Valid values: tarball, rpm.<br/>
+        </td>
+        </tr>
+
+        <tr>
+        <td>hostname</td>
+        <td>submitnode.domain.name      </td>
+        <td>hostname for Submit node     </td>
+        <td>.</td>
+        </tr>
+
+        <tr>
+        <td>username</td>
+        <td>condor (non-root account)     </td>
+        <td>UNIX user account that this services will run under. DO NOT use "root". </td>
+        <td> For security purposes, this value should always be a non-root user. </td>
+        </tr>
+
+        <tr>
+        <td>service_name    </td>
+        <td>submit  </td>
+        <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.   </td>
+        <td>.</td>
+        </tr>
+
+        <tr>
+        <td>condor_location     </td>
+        <td>/path/to/condor-submit     </td>
+        <td>Directory in which the condor software will be installed.    </td>
+        <td>
+           <b>IMPORTANT:</b>
+              The Submit can share the same instance of HTCondor as the Frontend.
+              The <b>condor_location</b> must not be a subdirectory of the Frontend's
+              <b>install_location</b> or <b>logs_dir</b>.
+              They may share the same parent, however.
+        </td>
+        </tr>
+
+        <tr>
+        <td>x509_cert_dir</td>
+        <td>/path/to/certificates-location </td>
+        <td>The directory where the CA certificates are maintained.
+        <td>The installer will validate for the precesence of *.0 and *.r0 files.
+            If the CAs are installed from the VDT distribution, this will be
+            the VDT_LOCATION/globus/TRUSTED_CA directory.</td>
+        </td>
+        </tr>
+
+        <tr>
+        <td>x509_cert</td>
+        <td>/path-to-cert-location/cert.pm</td>
+        <td>The location of the certificate file being used.</td>
+        <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 644 or 600.
+        </td>
+        </tr>
+
+        <tr>
+        <td>x509_key</td>
+        <td> /path-to-cert-location/key.pm </td>
+         <td>The location of the certificate key file being used and
+             associated with the certtificate defined by the <b>x509_cert</b>
+             option above.
+        </td>
+         <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 600 or 400.
+        </td>
+        </tr>
+
+        <tr>
+        <td>x509_gsi_dn</td>
+        <td>dn-subject-of-x509_cert-using-openssl</td>
+        <td>
+            This is the identity of the certificate used by this service to
+            contact the other HTCondor based GlideinWMS services.
+        <td>
+            This is the <i>subject</i> of the certificate
+            (<b>x509_cert</b> option).
+            <blockquote>
+            openssl x509 -subject -noout -in [<b>x509_cert</b>]<br/>
+            </blockquote>
+            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other GlideinWMS services as needed.
+        </td>
+        </td>
+        </tr>
+
+        <tr>
+        <td>condor_tarball</td>
+        <td>/path/to/condor/tarballs/condor-8.7.6-x86_64_RedHat6-stripped.tar.gz</td>
+        <td>Location of the condor tarball.</td>
+        <td>
+         The installation script will perform the installation of condor using this tarball.
+		 It must be a zipped tarball with a *.tg.tz name.
+        </td>
+        </tr>
+
+        <tr>
+        <td>condor_admin_email</td>
+        <td>whomever@email.com</td>
+        <td>The email address to get HTCondor notifications in the event of a problem.</td>
+        <td>Used in the condor_config.local only.    </td>
+        </tr>
+
+        <tr>
+        <td>number_of_schedds   </td>
+        <td align="center">5   </td>
+        <td>The desired number of schedds to be used.
+        <td>There must be at least 1 schedd.</td>
+        </tr>
+
+        <tr>
+        <td>schedd_shared_port</td>
+        <td align="center">9618</td>
+        <td>
+        Specifies the port number to be used by the shared port daemon
+        for schedds.
+        </td>
+        <td>
+        This can drastically reduce the number of ports used and thus improves
+        scalability.</br>
+        The default port is 9618. If you install the user schedd on a separate host,
+        this incoming TCP port remains to be open (it was 9615 for versions prior to
+        GlideinWMS 3.4.1). For more detailed information on this, refer to the
+        <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds using condor_shared_port feature</a>.
+        </br>
+        </td>
+        </tr>
+
+        <tr>
+          <td>install_vdt_client</td>
+          <td align="center">n</td>
+          <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
+            </td>
+          <td>
+              This should be set as <b>n</b> - so the installler will not attempt to install the OSG Client<br/>
+              You must pre-install OSG Client<br/>
+<!--
+			This installer will not attempt to reinstall this software if it is already
+			present.</br>
+
+			Valid values:</br>
+			* <b>y</b> - installer will install a OSG Client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
+			* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+			This installer will not attempt to reinstall this software if it is already
+			present.</br>
+-->
+          </td>
+        </tr>
+
+        <tr>
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.
+                   Used only if <b>install_vdt_client</b> option is 'y'</td>
+            <td>
+			Leave this blank (since the <b>install_vdt_client</b> option is should always be 'n'
+<!--
+The installer looks for the existence of 2 files to verify if this is a valid
+			OSG/VDT client installation:</br>
+			1. setup.sh</br>
+			2. existence of a voms-proxy-init executable.</br></br>
+			If the <b>install_vdt_client</b> option is 'n', then this option's value should
+			be empty/blank.</br>
+-->
+        </tr>
+
+        <tr>
+        <td>glideinwms_location     </td>
+        <td>/path/to/glideinWMS    </td>
+        <td>Directory of the GlideinWMS software.   </td>
+        <td>Since this is a HTCondor service only, this software is only used during the installation process. </td>
+        </tr>
+
+	</tbody></table>
+    </p>
+	</p>
+	<p>For example configuration files, see <a href="configuration_install.html">here</a>.
+	</p>
+
+    <p>The installer allows you to automatically start the HTCondor daemons.  To start them on your own, source the condor env script and execute:</p>
+    <blockquote>/path/to/condor/location/condor start</blockquote>
+
+    <p>To stop the HTCondor daemons, source the condor env script and execute:</p>
+    <blockquote>/path/to/condor/location/condor stop</blockquote>
+
+    </div>
+
+
+    <div class="section">
+
+    <h2><a name="submit">6. Submitting user jobs</a></h2>
+    <p>
+        From the user point of view, this is just a regular HTCondor pool.<br><br>
+
+        However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b> line in their JDL,
+        in order to prevent the jobs from landing on sites that cannot run their jobs.<br><br>
+        Users will need to know which attributes the glideins publish and use them accordingly.
+    </p>
+    <p>One useful attribute that all glideins publish is GLIDEIN_Site. If a user wants to restrict its job to a list of sites, he can do it by using:</p>
+    <blockquote>
+        +DESIRED_Sites = "Site1,Site4,Site7,Site22"<br>
+        Requirements = stringListMember(GLIDEIN_Site,DESIRED_Sites)
+    </blockquote>
+
+
+    <p>Some glideins may also need to properly identify the final user, using GSI authentication. A user should thus add the following line:</p>
+    <blockquote>x509userproxy = <i>&lt;path to X509 proxy&gt;</i></blockquote>
+
+    <p>to their HTCondor submission file.</p>
+
+    </div>
+
+
+    <div class="section">
+
+    <h2><a name="fine_tune">7. Fine Tunning for Large Scale Installations</a></h2>
+    <h3>7.1 Increase the number of available file descriptors</h3>
+
+    <p>
+        Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
+        of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in
+        the queue at any given time. This is particularly required for large scale installations.
+        <br><br>
+        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor. This
+        is a good place to set higher file descriptor limit for the schedd process.
+    </p>
+
+</div>

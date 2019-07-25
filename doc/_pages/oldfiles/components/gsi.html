@@ -1,0 +1,337 @@
+--
+layout: default
+---
+
+<div class="content">
+    <div class="heading">
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> GSI</li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
+	</ul>
+        <h3>GSI Authentication</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li> <a href="#reference">Quick Reference</a></li>
+    <li><a href="#software">Required software</a></li>
+    <li><a href="#install">Installation</a></li>
+
+</ol>
+</div>
+<div class="related">
+<ul>
+<li><a href="../factory/troubleshooting.html#colorcoded">GSI Quick Color-coded Guide</a></li>
+</div>
+<div class="section">
+<a name="reference" />
+<h2>1. Quick Reference Guide to GSI Authentication Setup</h2>
+
+<p>
+GlideinWMS uses GSI for authentication/authorization of services and clients.
+The table below acts as a quick reference guide for configuring GSI in GlideinWMS.
+</p>
+<p>
+<u>NOTE</u>: The Factory is not required to have proxy (it will authenticate with the WMS Pool by being on the same host and using the file system). Glideins can run using credentials supplied by the Frontend (prefered mode) but can also be configured to run with Factory supplied credentials. If the Factory is configured to not use any GSI credentials, exclude the Factory from the list of condor_config and GSI_DAEMON_NAME in the table below.
+
+</p>
+<table class="requirements">
+  <tbody><tr class="head">
+    <td>Service</td>
+    <td>Comments</td>
+
+  </tr>
+  <tr>
+    <td>WMS Pool (Collector)</td>
+       <td>
+         <ul>
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of GlideinWMS Collector.
+           </li>
+           <li>HTCondor Mapfile should contain DNs of WMS Collector, Glidein Frontend, Glidein Factory.
+           </li>
+         </ul>
+       </td>
+     </tr>
+     <tr>
+       <td>Glidein (Through Glidein Factory)</td>
+       <td>
+         <ul>
+           <li><u>condor mapfile to be used by glidein startd</u> should contain DN of User Schedds and User Pool. This condor mapfile is not used by the Factory itself but passed over to the glidein via staging area.
+           </li>
+         </ul>
+       </td>
+     </tr>
+     <tr>
+       <td>User Pool (Collector)</td>
+
+       <td>
+         <ul>
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd.
+           </li>
+           <li>HTCondor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd, Glidein Frontend
+           </li>
+         </ul>
+       </td>
+
+     </tr>
+     <tr>
+       <td>Glidein Frontend</td>
+
+       <td>
+         <ul>
+           <li>DN of Glidein Frontend should be in the gridmapfile of WMS Pool, User Pool and User Schedds.
+           </li>
+         </ul>
+       </td>
+
+     </tr>
+     <tr>
+       <td>User Schedd</td>
+       <td>
+         <ul>
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Node itself, Glidein Frontend, glidein startd
+           </li>
+           <li>HTCondor Mapfile should contain DNs of User Pool, User Schedd Nodes, Glidein Frontend, glidein startd.
+           </li>
+         </ul>
+       </td>
+     </tr>
+</tbody></table>
+</div>
+<div class="section">
+<h2><a name="software">2. Required software</a></h2>
+    <ul>
+
+    <li>
+    Any
+    <a href="http://research.cs.wisc.edu/htcondor/manual/current/1_5Availability.html" title="Available architectures">
+        HTCondor supported platforms
+    </a>.
+    </li>
+    <li>
+    The
+    <a href="https://opensciencegrid.org/docs/" title="OSG Client Web page">
+        OSG Client software</a>.
+    </li>
+
+    <li>
+    The
+    <a href=http://research.cs.wisc.edu/htcondor/downloads/ title="HTCondor download page">
+        HTCondor distribution</a>.
+    </li>
+    </ul>
+</div>
+
+<div class="section">
+<h2><a name="install">  3. Installation instructions</a></h2>
+
+    <p>
+    The installation will assume you have installed HTCondor v8+ or newer.
+    The install directory is <b>/opt/glidecondor</b>.
+    If you want to use a different setup, make the necessary changes.
+    </p>
+    <p>
+    Unless explicity mentioned, all operations are to be done as root.
+    </p>
+</div>
+
+<div class="section">
+<h3>  3.1 Install OSG Client</h3>
+    <p>
+    If you have not installed already OSG Client as RPM or tarball, do it now.<br/>
+    <i>(Note: An EGEE/gLite Grid User Interface will work as well, but you need to
+	replace commands and configuration paths with whatever is appropriate for that installation)</i>
+    </p>
+
+    <p>
+	See the prerequisites page for instructions on <a href="prerequisites.html#system_vdt">installing the OSG client</a>.
+
+    <p>
+    <i>(Please notice that those installation assume that the CA certificates will be installed in <b>/etc/grid-security/certificates</b>. You may have to change that path below if you installed it differently)</i>
+    </p>
+</div>
+<div class="section">
+<h3>  3.2 Prepare the security directories and files</h3>
+    <p>
+    Create <b>/opt/glidecondor/certs</b>
+
+    <blockquote>
+      mkdir /opt/glidecondor/certs<br/>
+      chmod a+rx /opt/glidecondor/certs
+    </blockquote>
+    This directory will host the grid-mapfile and eventual service proxy (see below).
+    Note that the RPM installations will use different paths. See the above mentioned documents.
+    </p>
+    <p>
+    Now you need to select what proxy or certificate you will be used for authentication.
+    You have essentially three options:
+    <ol>
+      <li>
+
+        You use the host certificates located in
+        <b>/etc/grid-security</b>
+      </li>
+      <li>
+        You request a service certificate for use with HTCondor, and put it in
+        <b>/opt/glidecondor/certs</b>
+      </li>
+      <li>
+        You create and maintain a valid proxy, obtained from a personal or service
+        certificate, in <b>/opt/glidecondor/certs</b>.
+        How you keep this proxy valid (via
+        <a href=http://grid.ncsa.uiuc.edu/myproxy/ title="MyProxy home page">MyProxy</a>,
+        <a href=http://tools.ietf.org/search/rfc6717 title="kx509 Mode Page">kx509</a>,
+        voms-proxy-init from a local certificate, scp from other nodes, or other
+        methods), is beyond the scope of this document.
+      </li>
+
+    </ol>
+    Most of my test installations used option(3), but you may be better served with
+    (1) or (2) for a large production pool.
+    </p>
+    <p>
+    Anyhow, most of the examples in this collection will assume you use (3), with
+    the proxy being named
+    <b>/opt/glidecondor/certs/x509_service_proxy</b>.
+    <p>
+    <b>Note:</b> The proxy and/or the certificate key must bereadable by the owner only!
+    <b>If it is either group or world readable</b> (and/or writable),
+    <b>HTCondor will refuse to use it</b>
+    (since it could have been stolen and/or compromised by now).
+    </p>
+
+    <p>
+    Once you have the proxy or the certificate, you need to create
+    <b>/opt/glidecondor/certs/grid-mapfile</b> and insert the DN of the proxy/cert
+    followed by a symbolic name.
+    </p>
+    <p>
+    Assuming the DN of the proxy/cert to be "/DC=org/DC=doegrids/OU=Service/CN=mycondor345",
+    you would insert:
+    <blockquote>
+      "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+    </blockquote>
+
+    The symbolic name is not really important, it has no meaning in Unix space. It
+    is just a nickname you will use in configuration and log files.
+    </p>
+    <p>
+    In addition to its own DN, the grid-mapfile must contain also the DNs of all the
+    clients and servers that will ever talk to this HTCondor installation:
+    <ul>
+      <li>
+        The DNs of other HTCondor nodes, i.e. the
+        <a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">HTCondor
+        Central Manager</a>,&nbsp; the
+        <a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">HTCondor
+        Submit nodes</a> and the
+        <a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">HTCondor
+        Execute nodes</a>.
+      </li>
+
+      <li>
+        If this is a
+        <a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">Submit
+        node</a>
+        or&nbsp;<a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">Execute
+        node</a> and your users use GSI authentication, you also need to list all the users' DNs.
+      </li>
+    </ul>
+    Again, you will need to add nicknames to those DNs. In the case of a
+    <a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">
+
+        Submit node
+    </a>
+    or
+    <a href=http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00411000000000000000 title="HTCondor manual">
+        Execute node
+    </a>
+    running as root, the user nicknames must represent actual Unix account.
+    </p>
+    <p>
+    In all other cases, the nicknames have no special meaninig, and are there just for
+    use in configuration and log files.
+    </p>
+    <p>
+
+    For example, assuming this is the Central Manager, and it has two Submit nodes,
+    with DNs "/DC=org/DC=doegrids/OU=Service/CN=schedd34" and
+    "/DC=org/DC=doegrids/OU=Service/CN=schedd98", while all the Execute nodes are
+    glideins, and thus share the same DN "/DC=org/DC=doegrids/OU=Service/CN=work12",
+    the <b>/opt/glidecondor/certs/grid-mapfile</b> could be:
+    <blockquote>
+      "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+      "/DC=org/DC=doegrids/OU=Service/CN=schedd34" scondor1<br>
+      "/DC=org/DC=doegrids/OU=Service/CN=schedd98" scondor2<br>
+      "/DC=org/DC=doegrids/OU=Service/CN=work12" gcondor<br>
+
+    </blockquote>
+</div>
+<div class="section">
+<h3>  3.3 Configure HTCondor security</h3>
+    <p>Force GSI authentication in
+    <b>/etc/condor/condor_config</b>, by adding:
+    <blockquote>
+      ############################################################<br/>
+      ## Security config<br/>
+
+      ############################################################<br/>
+      <br/>
+      ############################<br/>
+      # Authentication settings<br/>
+      ############################<br/>
+      SEC_DEFAULT_AUTHENTICATION = REQUIRED<br/>
+
+      SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI<br/>
+      SEC_READ_AUTHENTICATION = OPTIONAL<br/>
+      SEC_CLIENT_AUTHENTICATION = OPTIONAL<br/>
+      <br/>
+      # Grid Certificate directory<br/>
+      GSI_DAEMON_TRUSTED_CA_DIR=/etc/grid-security/certificates<br/>
+
+      <br/>
+      ############################<br/>
+      # Privacy settings<br/>
+      ############################<br/>
+      SEC_DEFAULT_ENCRYPTION = OPTIONAL<br/>
+      SEC_DEFAULT_INTEGRITY = REQUIRED<br/>
+
+      SEC_READ_INTEGRITY = OPTIONAL<br/>
+      SEC_CLIENT_INTEGRITY = OPTIONAL<br/>
+      SEC_READ_ENCRYPTION = OPTIONAL<br/>
+      SEC_CLIENT_ENCRYPTION = OPTIONAL<br/>
+      <br/>
+      ############################<br/>
+
+      # Set daemon cert location<br/>
+      ############################<br/>
+      GSI_DAEMON_DIRECTORY = /opt/glidecondor/certs<br/>
+      <br/>
+      # Keep this if you use a proxy<br/>
+      GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br/>
+
+      <br/>
+      # If you use a Certificate, uncomment below, pointing it to the right place,
+      and comment the proxy line<br/>
+      #GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem<br/>
+      #GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem<br/>
+      <br/>
+      ############################<br/>
+      # Where to find DN-&gt;uid mappings<br/>
+
+      ############################<br/>
+      GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br/>
+    </blockquote>
+    Since all the security is now GSI based, we don't rely on IP checks anymore.
+    Change <b>HOSTALLOW_WRITE</b> in <b>/etc/condor/condor_config</b>, to:
+    <blockquote>
+      # do not use IP based controls<br/>
+
+      HOSTALLOW_WRITE = *<br/>
+    </blockquote>
+</div>

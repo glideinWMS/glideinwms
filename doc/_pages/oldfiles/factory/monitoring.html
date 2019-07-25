@@ -1,0 +1,480 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+        <li>Monitoring</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+         <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> Monitoring</li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Monitoring</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#monitoring_logs">Log files</a></li>
+        <li><a href="#monitoring_web">Using the Web monitoring</a></li>
+        <li><a href="#monitoring_tools">Using the WMS tools</a></li>
+        <li><a href="#monitoring_logs">Looking at the glidein Factory log files</a></li>
+        <li><a href="#monitoring_glideins">Looking at the glidein outputs</a></li>
+        <li><a href="#monitoring_condor">Checking the WMS collector ads</a></li>
+        <li><a href="#analyze_entries">analyze_entries</a> </li>
+        <li><a href="#analyze_queues">analyze_queues</a> </li>
+        <li><a href="#analyze_frontends">analyze_frontends</a> </li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+<li><a href="../frontend/monitoring.html">Frontend Monitoring</a></li>
+</ul>
+</div>
+<div class="section">
+
+    <h2><a name="monitoring">Glidein Factory monitoring</a></h2>
+
+    <p>
+Monitoring is an essential part of any service. One has to monitor to both: maintain the health of the system and to tune the system for anticipated growth. The various ways you can monitor a Glidein Factory are described below. </p>
+
+<h3><a name="monitoring_logs"></a>Log files</h3>
+<p>Both the Factory Daemon, the Entry Daemons, HTCondor-G and the Glideins write
+extensive log files. The logs are kept for a week and then deleted.</p>
+
+</p>
+
+    <h3><a name="monitoring_web">Glidein Factory entry Web monitoring</a></h3>
+
+    <p>
+        You can either monitor the Factory as a whole, or just a single entry point.<br>
+        <br>
+        The Factory monitoring is located at a URL like the one below (starting with the hostname and ending with the instance name):
+    </p>
+
+    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</blockquote>
+
+    <p>
+
+        Moreover, each entry point, has its own history on the Web.<br>
+        <br>
+        Assuming you have a SanDiego entry, it can be monitored at
+    </p>
+
+    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</blockquote>
+
+<h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
+<p>The Entry Point Daemons will also create <a href="http://oss.oetiker.ch/rrdtool/">RRD
+databases</a> and associated graphs for a period of up to one year.
+This way, one can easily monitor the evolution of the system. 
+</p>
+
+
+    <h3><a name="monitoring_tools">Glidein Factory monitoring via WMS tools</a></h3>
+
+    <p>You can get the equivalent of the Web page snaphot by using</p>
+
+    <blockquote>cd glideinWMS/tools/<br>python wmsXMLView.py</blockquote>
+
+    <h3><a name="monitoring_logs">Glidein Factory entry log files</a></h3>
+
+    <p>
+        By default the glidein Factory writes two log files per entry point <b>factory_info.YYYYMMDD.log</b> 
+        and <b>factory_err.YYYYMMDD.log</b>.<br>
+
+        <br>
+        Assuming you have a SanDiego entry, the log files are in the directory
+    </p>
+
+    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+
+    <p>
+        All errors are reported in the <b>factory_err.YYYYMMDD.log</b>. file, while <b>factory_info.YYYYMMDD.log</b>
+
+        contains entries about what the Factory is doing.
+    </p>
+
+    <h3><a name="monitoring_glideins">Glidein output</a></h3>
+
+    <p>
+        Each glidein creates 2 files on exit; job.<b>ID</b>.out and job.<b>ID</b>.err.<br>
+
+        <br>
+        Assuming you have a SanDiego entries, the log files are in
+    </p>
+
+    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+
+    <p>Problems are usually reasonably easy to spot.</p>
+
+    <h3><a name="monitoring_condor">Glidein Factory ClassAds in the WMS Pool</a></h3>
+
+    <p>
+        The glidein Factory also advertises summary information in the WMS Pool collector.<br>
+        <br>
+        Use <b>condor_status</b>:
+    </p>
+
+    <blockquote>condor_status -any</blockquote>
+
+    <p>and look for <b>glidefactory</b> and <b>glidefactoryclient</b> ads.</p>
+
+</div>
+
+<div class="section">
+<h3><a name="monitoring_classads"></a>Looking at ClassAds</h3>
+<p>As explained in the <a href="../index.html#classads">Data exchange
+overview</a>, the Entry Point Daemons expose a lot of monitoring
+information in the ClassAds sent to the WMS collector. While this may
+not be the most user friendly interface, most of the monitoring
+information you'll ever need is present there.</p>
+
+<p>On top of the <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_status.html">HTCondor provided tools</a> (e.g. condor_status),
+the Factory provides two tools to look at the ClassAds; the first one returns a human readable, but limited text, 
+while the other provides a complete XML-formated output</p>
+<blockquote>
+
+      glideinWMS/tools/wmsTxtView.py [Entries|Sites|Gatekeepers]<br>
+
+      glideinWMS/tools/wmsXMLView.py
+</blockquote>
+
+</p></div>
+
+<div class="section">
+<a name="analyze_entries" />
+<h4><b>analyze_entries</b></h4>
+<p>
+This tool, found in <tt>factory/tools/analyze_entries</tt> can list
+many statistics useful for Factory administrators.  It can list
+the total time used by glideins, the number of glideins submitted,
+the number of jobs run, as well as the efficiency of glideins.</p>
+<p>
+This utility can sort by Frontend, entry or by attributes such as the
+most time used.
+</p>
+<p>
+The command line arguments are shown below:
+
+<table class="attributes">
+<tr><td>--source ABSPATH</td><td><b>Required.</b> Unless you are running this in the
+factory directory, you must specify the absolute path to the Factory
+directory </td> </tr>
+<tr><td>-x</td><td>Interval to look at (in hours).  Valid options are 2, 24, or 168.</td></tr>
+<tr><td>-p</td><td>Look at all the above intervals.</td></tr>
+<tr><td>-f FRONTEND</td><td>Filter by Frontend. You can omit "frontend_" at the beginning of the name.</td></tr>
+<tr><td>-m</td><td>Emphasize Frontend data, no entries shown.  By default, slots are shown.  You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to show hours.</td></tr>
+<tr><td>-msort ATTRIBUTE</td><td>Frontend mode, sort by attribute (strt, fval,
+0job, val, idle, wst, badp, waste, time, total)</td></tr>
+<tr><td>-h</td><td>Show usage message</td></tr>
+</table>
+<p>
+Below is an example of usage:
+</p>
+<pre>
+./analyze_entries --source /opt/wmsfactory/glidein_w
+msfactory_instance -x 168
+
+Glidein log analysis for All Entries - 01-11-2011_13:42:28
+
+----------------------------------------
+Past 168.0 hours:
+
+Total Glideins: 78
+Total Jobs: 57 (Average jobs/glidein: 0.73)
+
+Total time:             66.6K (  18.5 hours -   0.1 slots)
+Total time used:        29.5K (   8.2 hours -   0.0 slots - 44%)
+Total time validating:   4.4K (   1.2 hours -   0.0 slots -  6%)
+Total time idle:        32.4K (   9.0 hours -   0.1 slots - 48%)
+Total time wasted:      37.1K (  10.3 hours -   0.1 slots - 55%)
+Time used/time wasted: 0.8
+Time efficiency: 0.44
+
+
+---------------------------------------
+---------------------------------------
+Per Entry (all frontends) stats for the past 168 hours.
+
+                                         strt fval 0job |  val idle  wst badp |
+ waste    time   total
+ss_ITB_GRATIA_TEST_1                       2%   4%  37% |   6%  48%  55%  92% |
+    10      18  |   78
+
+---------------------------------------
+---------------------------------------
+Per Entry (per Frontend) stats for the past 168 hours.
+
+----------------------------------------
+frontend_vofrontend_service_frontend:
+
+Glideins: 78 - 100.0% of total
+Jobs: 57 (Average jobs/glidein: 0.73)
+
+time:             66.6K (  18.5 hours -   0.1 slots)
+time used:        29.5K (   8.2 hours -   0.0 slots - 44%)
+time validating:   4.4K (   1.2 hours -   0.0 slots -  6%)
+time idle:        32.4K (   9.0 hours -   0.1 slots - 48%)
+time wasted:      37.1K (  10.3 hours -   0.1 slots - 55%)
+Time used/time wasted: 0.8
+Time efficiency: 0.44
+
+                                         strt fval 0job |  val idle  wst badp |
+ waste    time   total
+ss_ITB_GRATIA_TEST_1                       2%   4%  37% |   6%  48%  55%  92% |
+    10      18  |   78
+
+-----------------------------------
+LEGEND:
+
+K - kilseconds (*1,000 seconds)
+M - megaseconds (*1,000,000 seconds)
+
+strt - % of jobs where condor failed to start
+fval - % of glideins that failed to validate (hit 1000s limit)
+0job - %  0 jobs/glidein
+----------
+val - % of time used for validation
+idle - % of time spend idle
+wst - % of time wasted (Lasted - JobsLasted)
+badp - % of badput (Lasted - JobsGoodput)
+----------
+waste - wallclock time wasted (hours) (Lasted - JobsLasted)
+time - total wallclock time (hours) (Lasted)
+total - total number of glideins
+-------------------------------------
+</pre>
+</p>
+</div>
+<div class="section">
+<a name="analyze_queues" />
+<h4><b>analyze_queues</b></h4>
+<p>
+This tool, found in <tt>factory/tools/analyze_queues</tt> can list
+many statistics useful for Factory administrators.
+It will show the number of slots in running, held, and idle status.
+It can display this information per entry or per Frontend.</p>
+<table class="attributes">
+<tr><td>--source ABSPATH</td><td><b>Required.</b> Unless you are running this in the
+Factory directory, you must specify the absolute path to the Factory
+directory</td> </tr>
+<tr><td>-x</td><td>Interval to look at (in hours).  Valid options are 2, 24, or 168.</td></tr>
+<tr><td>-p</td><td>Look at all the above intervals.</td></tr>
+<tr><td>-f FRONTEND</td><td>Filter by Frontend. You can omit "frontend_" at the beginning of the name.</td></tr>
+<tr><td>-z</td><td>Zero suppression (don't show entries with 0s across all attributes)</td></tr>
+<tr><td>-m</td><td>Emphasize frontend data, no entries shown.  By default, slots are shown.  You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to show hours.</td></tr>
+<tr><td>-msort ATTRIBUTE</td><td>Frontend mode, sort by attribute (strt, fval,
+0job, val, idle, wst, badp, waste, time, total)</td></tr>
+<tr><td>-h</td><td>Show usage message</td></tr>
+</table>
+<p>Example usage:</p>
+<pre>
+./analyze_queues --source /opt/wmsfactory/glidein_wmsfactory_instance -x 168
+
+Status Attributes analysis for All Entries - 01-11-2011_15:10:22
+
+----------------------------------------
+Past 168.0 hours:
+
+Status Running:   71.0K (  19.7 hours -   0.1 slots - 62%)
+Status Held:        0.0 (   0.0 hours -   0.0 slots -  0%)
+Status Idle:      19.4K (   5.4 hours -   0.0 slots - 17%)
+Status Unknown:     0.0 (   0.0 hours -   0.0 slots -  0%)
+
+Status Pending:   19.4K (   5.4 hours -   0.0 slots - 17%)
+Status Wait:        0.0 (   0.0 hours -   0.0 slots -  0%)
+Status Stage In:    0.0 (   0.0 hours -   0.0 slots -  0%)
+Status Stage Out:  3.9K (   1.1 hours -   0.0 slots -  3%)
+
+RunDiff (Running-ClientRegistered):  23.1K (   6.4 hours -   0.0 slots - 32%)
+IdleDiff (Idle - RequestedIdle):     -6.1K (  -1.7 hours -  -0.0 slots)
+
+
+---------------------------------------
+---------------------------------------
+Per Entry (all frontends) stats for the past 168 hours.
+
+                                            Run    Held    Idle  Unknwn | Pending    Wait   StgIn  StgOut |  RunDiff IdleDiff   %RD
+
+ss_ITB_GRATIA_TEST_1                      71.0K     0.0   19.4K     0.0 |   19.4K     0.0     0.0    3.9K |    23.1K    -6.1K   32%
+
+
+---------------------------------------
+---------------------------------------
+Per Entry (per frontend) stats for the past 168 hours.
+
+frontend_vofrontend_service_frontend        Run    Held    Idle  Unknwn | Pending    Wait   StgIn  StgOut |  RunDiff IdleDiff   %RD
+
+ss_ITB_GRATIA_TEST_1                      71.0K     0.0   19.4K     0.0 |   19.4K     0.0     0.0    3.9K |    23.1K    -6.1K   32%
+
+-----------------------------------
+LEGEND:
+
+K = x   1,000
+M = x 100,000
+
+Run : Status Running
+Held : Status Held
+Idle : Status Idle
+Unknwn : Status Unknown (StatusIdleOther)
+Pending : Status Pending
+Wait : Status Wait
+StgIn : Status Stage In
+StgOut : Status Stage Out
+RunDiff : StatusRunning - ClientRegistered (ClientGlideTotal)
+IdleDiff : StatusIdle - ReqIdle (Requested Idle)
+%RD - Percent RunDiff over Running (RunDiff/StatusRunning)
+-------------------------------------
+
+</pre>
+</div>
+<div class="section">
+<a name="analyze_frontends" />
+<h4><b>analyze_frontends</b></h4>
+<p>
+This tool, found in <tt>factory/tools/analyze_frontends</tt> can list
+many statistics useful for Factory administrators.
+This tool will show thee number of registered, claimed, and unmatched
+slots.  It can list these per frontend or per entry.
+
+</p>
+The command-line arguments are listed below:
+<table class="attributes">
+<tr><td>--source ABSPATH</td><td><b>Required.</b> Unless you are running this in the Factory 
+directory, you must specify the absolute path to the Factory directory </td> </tr>
+<tr><td>-x</td><td>Interval to look at (in hours).  Valid options are 2, 24, or 168.</td></tr>
+<tr><td>-p</td><td>Look at all the above intervals.</td></tr>
+<tr><td>-f FRONTEND</td><td>Filter by Frontend. You can omit "frontend_" at the beginning of the name.</td></tr>
+<tr><td>-z</td><td>Zero suppression (don't show entries with 0s across all attributes)</td></tr>
+<tr><td>-m</td><td>Emphasize frontend data, no entries shown.  By default, slots are shown.  You can use <tt>-ms</tt> to show seconds or <tt>-mh</tt> to show hours.</td></tr>
+<tr><td>-msort ATTRIBUTE</td><td>Frontend mode, sort by attribute (strt, fval,
+0job, val, idle, wst, badp, waste, time, total)</td></tr>
+<tr><td>-h</td><td>Show usage message</td></tr>
+</table>
+<p>Example usage:</p>
+<pre>
+./analyze_frontends --source /opt/wmsfactory/glidein_wmsfactory_instance -x 168
+
+Status Attributes (Clients) analysis for All Entries - 01-11-2011_15:28:06
+
+----------------------------------------
+Past 168.0 hours:
+
+Registered:      47.8K (  13.3 hours -   0.1 slots)
+Claimed:         31.8K (   8.8 hours -   0.1 slots - 66%)
+Unmatched :      14.6K (   4.1 hours -   0.0 slots - 30%)
+
+Requested Idle:  25.5K (   7.1 hours -   0.0 slots)
+
+Jobs Running:    31.7K (   8.8 hours -   0.1 slots)
+Jobs Run Here:     0.0 (   0.0 hours -   0.0 slots)
+Jobs Idle:       40.0K (  11.1 hours -   0.1 slots)
+
+RunDiff (Running-ClientRegistered):  23.1K (   6.4 hours -   0.0 slots - 32%)
+
+
+---------------------------------------
+---------------------------------------
+Per Entry (all frontends) stats for the past 168 hours.
+
+                                            Regd  Claimd Unmtchd | ReqIdle |  JobRun JobHere JobIdle | RunDiff   %UM   %RD
+
+ss_ITB_GRATIA_TEST_1                       47.8K   31.8K   14.6K |   25.5K |   31.7K     0.0   40.0K |   23.1K   30%   32%
+
+
+---------------------------------------
+---------------------------------------
+Per Entry (per frontend) stats for the past 168 hours.
+
+frontend_vofrontend_service_frontend        Regd  Claimd Unmtchd | ReqIdle |  JobRun JobHere JobIdle | RunDiff   %UM   %RD
+
+ss_ITB_GRATIA_TEST_1                       47.8K   31.8K   14.6K |   25.5K |   31.7K     0.0   40.0K |   23.1K   30%   32%
+
+-----------------------------------
+LEGEND:
+
+K = x   1,000
+M = x 100,000
+
+Regd - Registered (ClientGlideTotal)
+Claimd - Claimed (ClientGlideRunning)
+Unmtchd - Unmatched (ClientGlideIdle)
+ReqIdle - Requested Idle
+JobRun - Client Jobs Running
+JobHere - Client Jobs Run Here
+JobIdle - Client Jobs Idle
+RunDiff - StatusRunning - ClientRegistered (ClientGlideTotal)
+%UM - Percent Unmatched (Unmatched/Registered)
+%RD - Percent RunDiff over Running (RunDiff/StatusRunning)
+-------------------------------------
+</pre>
+</div>
+
+
+
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+
+</body>
+</html>

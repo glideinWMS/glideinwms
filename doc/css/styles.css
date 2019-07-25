@@ -1,0 +1,704 @@
+---
+---
+
+/* Remove all default styles so we can apply the exact style we want */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
+blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font,
+img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var,b, u, i,
+center, dl, dt, dd, ol, ul, li,fieldset, form, label, legend,table, caption,
+tbody, tfoot, thead, tr, th, td
+{
+    margin:    0;
+    padding:   0;
+    border:    0;
+    outline:   0;
+    font-size: 100%;
+}
+
+
+/* Now apply the styles we want */
+
+<style>
+body
+{
+    color:              #eee;
+    font-family:        "Liberation Serif","Times New Roman",serif;
+    font-size:          14px;
+    font-size-adjust:   none;
+    font-style:         normal;
+    font-variant:       normal;
+    font-weight:        normal;
+    line-height:        18px;
+    background-color:   #87aab9;
+    margin-top:         10px;
+    margin-right:       10px;
+    margin-bottom:      10px;
+    margin-left:        10px;
+}
+
+p
+{
+    margin-top:     10px;
+    margin-bottom:  15px;
+    margin-left:    10px;
+    text-align:     justify;
+}
+
+h2, h3, h4, h5, h6
+{
+    text-align: center;
+    margin-top: 10px;;
+    margin-right: 60px;
+    margin-bottom: 15px;
+    margin-left: 0;
+    padding: 0;
+    line-height: 1.1em;
+    font-family: 'Raleway';
+    color: #7a3a32;
+    text-decoration: underline;
+    text-decoration-line: overline;
+
+}
+
+
+
+h1 {
+    	line-height: 1.1em;
+	font-size: 32px; text-align:center;
+	padding: 0px 0px 0px 150px;
+	border: none; background-color: white;
+	margin: 2px 0px 0px 0px; text-decoration:none;
+  background-position: relative;
+  max-width: 100%;
+  height: auto;
+	background-repeat: no-repeat;
+}
+
+h1 a { clear:both; text-decoration: none; color: #003;}
+h1 span {
+	display:block;
+	padding:0px;
+	margin: 0px;
+	font-size:0.5em; text-decoration: none; color: #003;}
+
+h1 ul.main_links {display: block; width: 100%; }
+h1 ul.main_links li {
+	list-style: none;
+	float:left; width:25%;
+	text-align: center; }
+h1 a.main_link {
+	display: block;
+	font-size: 20px;
+	text-align:left;
+	color:#000066; }
+h2 { font-size: 24px;
+    display: block;
+    position: relative;
+    left: 100px;}
+
+h3 { font-size: 3.1vw; }
+h4 { font-size: 16px; }
+h5 { font-size: 15px; color: #29648a;
+      border: 70;
+    }
+h6 { font-size: 24px; }
+div.heading { text-align: center}
+div.heading h2
+{
+display:block;
+color:#336;
+font-family: "Georgia", serif;
+font-size:2.0em;
+padding:0px 0px 5px 0px;
+margin:0px;
+}
+
+div.heading h3
+{
+display:block;
+font-family: 'Source Serif Pro'
+text-align: middle;
+text-decoration: italicize;
+font-size:3.2em;
+padding: 15px 0px 10px 0px;}
+
+
+ul { margin: 5px 0 15px 10px; padding-left: 10px; }
+ol { margin: 5px 0 40px 1000px;
+    padding-left: 20px;
+    font-family: 'cursive'; }
+
+
+
+ol li {
+  margin: 0;
+  font-size: 18px;
+  font-family: 'Source Sans Pro';
+  position: relative;
+  color: black;
+  background-color: none;
+  margin-left: 10%;
+  margin-right: 10%;
+  text-align: left;
+  line-height: 1.5;
+  }
+
+
+blockquote
+{
+    background:    #bcd;
+    padding:       10px 10px;
+    font-size:     100%;
+    border:        1px solid #ddd;
+    margin-left:    0.39in;
+    margin-right:   0.39in;
+    margin-bottom:  0.2in;
+}
+
+pre
+{
+    border:        1px solid #ddd;
+    padding:       10px 10px;
+    font-size:     100%;
+    margin-left:    0.39in;
+    margin-right:   0.39in;
+    margin-bottom:  0.2in;
+    background:    #abc;
+}
+
+div.content
+{
+	float:left;
+	width:82%;
+	display:block;
+}
+
+div.section
+{
+	clear:both;
+
+
+}
+
+div.clear
+{
+	clear: both;
+	margin:0px; padding:0px;
+
+}
+
+
+table.requirements, table.attributes
+{
+    border-top:         1px solid #000;
+    border-bottom:      1px solid #000;
+    border-right:       1px solid #000;
+    border-left:        1px solid #000;
+    border-spacing:     0px;
+}
+
+table.requirements tr.head
+{
+    font-weight:        bold;
+    font-size:          1.3em;
+    color:              #000;
+    background-color:   #aaa;
+    border-bottom:  2px solid #000;
+}
+table.requirements td
+{
+    border-top:     1px solid #000;
+    border-bottom:  1px solid #000;
+    border-right:   1px solid #000;
+    border-left:    1px solid #000;
+    padding:        1px 5px 1px 5px;
+}
+
+table.attributes tr.head td
+{
+    font-weight:        bold;
+    font-size:          1.3em;
+    background-color:   #8be;
+    padding: 5px;
+    border-bottom:  2px solid #000;
+}
+
+table.attributes
+{
+    background-color: #e6f2ff;
+}
+
+table.attributes td
+{
+    padding: 5px 2px 2px 2px;
+    border-bottom:  1px solid #000;
+    vertical-align: top;
+}
+table.attributes td p
+{
+    margin: 1px 1px 5px 1px;
+    padding: 0px;
+    text-align: left;
+}
+
+table.attributes td:first-child
+{
+    background-color: #bdf;
+    text-align: center;
+    font-weight: bold;
+    font-size:1.1em;
+}
+
+
+td.checked
+{
+	text-align:center;
+	background-color: #ccc;
+}
+
+
+ul.breadcrumbs
+{
+	list-style-type: none;
+	display: block;
+	padding: 0px;
+	margin: 0px;
+}
+ul.breadcrumbs li
+{
+	float:left;
+	font-size: 1.2em;
+	margin: 5px 0px 5px 0px;
+}
+ul.breadcrumbs li a
+{
+	text-decoration: none;
+	color: #000;
+	padding: 5px 35px 5px 0px;
+	margin: 0px;
+	background: url('../_pages/images/breadcrumbs.png') no-repeat right center;
+}
+
+
+div.leftmenu {
+float: left;
+width:17%;
+
+}
+ul.components {
+	list-style-type: none;
+	color: #000;
+	margin: 0px;
+	padding:0px;
+}
+
+ul.components li {
+	float:left;
+	width:90%;
+	text-align: center;
+}
+
+ul.components li a
+{
+    float:left;
+	width:90%;
+#	background-color: #ccd;
+	background-color: #F0FF93;
+	border: 1px solid #458;
+	margin: 0px 0px 2px 0px;
+	padding: 10px 0px 10px 0px;
+	color: #000;
+	text-decoration: none;
+}
+
+ul.subcomponents
+{
+display: inline;
+list-style-type: none;
+}
+ul.subcomponents li
+{
+display: inline;
+padding: 0px 3px 0px 0px;
+border-right:1px solid black;
+}
+ul.subcomponents li.last
+{
+border-right:0px solid black;
+}
+
+ul.subcomponents li a
+{
+color: #339;
+text-decoration: none;
+padding: 0px;
+}
+
+
+div.jump ol{
+
+background: #99ced3;
+display:block;
+position: absolute;
+border-radius: 25px;
+width: 200px;
+height:30%;
+border: 3px solid #29648a;
+left: 45%;
+color: white;
+
+}
+
+div.jump ol li{
+  position: relative;
+  font-family: 'Raleway';
+  width: 200px;
+  color: black;
+  font-size: 17px;
+  top:12%;
+  left:-5%;
+}
+
+
+div.related {
+float: right;
+width: 25%;
+background: #eee;
+padding: 5px 0px 5px 10px;
+margin-left: 20px;
+border: 1px solid black;
+}
+div.related ul {list-style-type: circle; }
+div.related ul li a {text-decoration:none; color: #339;}
+
+ol {
+margin-left: 0px;
+}
+
+div.xml {
+	font-family: monospace;
+    font-size: 1.1em;
+	font-weight: bold;
+    color: #009;
+}
+div.xml i { font-weight: normal; }
+
+div.config {
+    margin: 15px;
+    background-color: #cdf;
+    padding: 5px;
+}
+
+div.config blockquote {
+    padding: 3px 5px 3px 25px;
+    margin: 0px;
+    border: 0px;
+    background-color: #cdf;
+}
+
+div.config a {
+    text-decoration: none;
+    color: #000;
+    font-family: monospace;
+    font-size: 1.1em;
+}
+div.config blockquote a {color: #003;}
+div.config blockquote blockquote a {color: #003;}
+
+div.footer {
+color: #000;
+border-top: 1px solid black;
+margin-top: 20px;
+font-size: 0.8em;
+}
+
+div.footer a {color:#666}
+
+img{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width:98%;
+  height:auto;
+  position:sticky;
+  float: middle;
+
+}
+
+
+
+
+
+.navbar {
+  overflow: hidden;
+  float: left;
+  position: sticky;
+  top: 10px;
+  height: 800px;
+  width: 135px;
+  background-color: white;
+
+}
+
+.dropbtn:hover, .dropbtn:focus {
+  background-color: #2980B9;
+  width: 130px;
+  left: -15px;
+}
+
+.navbar a {
+  font-size: 16px;
+  color: black;
+  text-align: middle;
+  position: relative;
+  padding: 14px 16px;
+  text-decoration: none;
+  background-color: #D3D3D3;
+  font-family:'Source Sans Pro';
+}
+
+.dropdown {
+  float: middle;
+  overflow: hidden;
+}
+
+
+
+.dropdown .dropbtn {
+  font-size: 16px;
+  color: black;
+  text-align: middle;
+  padding: 8px 5px;
+  background-color: #29648a;
+  border: black;
+  width: 130px;
+  height: 50px;
+  left: -10px;
+  text-decoration: bold;
+  font-family: 'Source Sans Pro';
+  margin: 4;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+  background-color: white;
+  position: relative;
+  width: 140px;
+  text-decoration: bold;
+}
+
+.dropdown-content {
+  display: none;
+  position: relative;
+  background-color: black;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 0;
+}
+
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: strikethrough;
+  display: block;
+  text-align: left;
+
+}
+
+.show {display: block;}
+
+div.search {
+border: 3px solid #29648a;
+padding: 0px 20px 50px 10px;
+left:10px;
+position: relative;
+width:80%;
+height:20px;
+
+
+}
+
+table.gsc-search-box td {
+float:middle;
+width: 80%;
+position: relative;
+
+
+}
+
+/*
+td.gsc-clear-button, div.gsc-clear-button {
+display:none;
+}
+
+div#searchcontent
+{
+	float:left;
+	width:82%;
+	display:none;
+}
+div#searchcontent h2
+{
+    font-size: 2.2em;
+    text-decoration: underline;
+}
+
+*/
+
+input.gsc-search-button {
+padding: 0px;
+
+
+}
+input.gsc-input {
+    padding : 0px;
+
+}
+
+
+@media screen and (max-width: 999px){
+  div.banners{
+    display: none;
+  }
+  div.smaller{
+    position: absolute;
+    left:160px;
+  }
+  h2.intro{
+     text-align: right;
+     position: relative;
+     left:20px;
+     top:-300px;
+  }
+  p.intro{
+    position: relative;
+    left:100px;
+    top:-230px;
+    width: 67%;
+
+  }
+  ol li{
+    position: relative;
+    left:100px;
+    width: 67%;
+    top:-200px;
+
+  }
+  h6 {
+    font-size: 24px;
+    display: block;
+    position: relative;
+    text-align: right;
+    left:20px;
+    top:-400px;
+  }
+}
+
+
+
+@media screen and (min-width: 1000px){
+  div.smaller{
+    display:none;
+  }
+  div.banners{
+    position: absolute;
+    left: 160px;
+  }
+  p.intro{
+    left: 40px;
+  }
+
+
+  ol li{
+    left:40px;
+  }
+  h2.intro{
+    font-size: 24px;
+    display: block;
+    position: relative;
+  }
+  h6{
+    text-align: middle;
+    position: relative;
+    top: -400px;
+  }
+  p.noheading{
+    text-align: middle;
+  }
+}
+
+p.bitas{
+  position: relative;
+  left:100px;
+  color: black;
+  top:-400px;
+  width: 67%;
+}
+div.history{
+  position: absolute;
+  left:10%;
+  color: black;
+  top:0px;
+  width: 67%;
+}
+
+p.codeexample{
+
+  position: relative;
+  font-family: 'inconsolata';
+  background-color: #eee;
+  border: 2px solid #29648a;
+  color: black;
+  margin-left: 30%;
+  margin-right: auto;
+  width: 17em;
+  top:-400px;
+}
+
+
+
+
+p{
+  position: relative;
+  font-size: 18px;
+  font-family: 'Source Sans Pro';
+  color: black;
+  margin-left: 10%;
+  margin-right: 10%;
+  text-align: left;
+  line-height: 1.5;
+
+}
+
+p.intro{
+  background-color: #f5e6cc;
+}
+p.noheading{
+  color: #E27D60;
+  font-family: 'Montserrat';
+  text-align: middle;
+  position: relative;
+  left:100px;
+  top:-400px;
+}
+
+div.sections ul li{
+  color: blue;
+  position: absolute;
+  text-align: middle;
+  left: 200px;
+  margin-top: 240px;
+  padding: -4;
+}
+div.lists{
+  position: relative;
+  left:200px;
+  width: 60%;
+  top:-55%;
+  font-family: 'Source Sans Pro';
+  line-height: 1.6;
+}
+
+</style>
+</head>
+<body>

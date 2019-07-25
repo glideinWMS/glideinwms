@@ -1,0 +1,255 @@
+
+<!-- Feel free to add content and custom Front Matter to this file.
+# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
+--->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS</title>
+  <meta name = "viewport" content= "width=device-width", inital-scale=1.0">
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">
+  <link rel="stylesheet" type="text/css" href="/css/styles.css" media="screen, projection" />
+  <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+<link href="https://fonts.googleapis.com/css?family=Lora:400,700|Montserrat:300" rel="stylesheet" type='text/css'>
+<link href="https://fonts.googleapis.com/css?family=Inconsolata' rel="stylesheet" type='text/css'>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+
+<body lang="en-US" dir="ltr">
+
+  <img src="/logos.png" class= "first"/>
+
+
+
+
+
+<!--used to be the breadcrumb section here --->
+
+
+<div class="navbar">
+
+  <div class="dropdown">
+    <button onclick="window.location.href='/index.html'" class="dropbtn">Home
+      <i class="fa fa-caret-down"></i>
+    </button>
+  </div>
+  <div class="dropdown">
+    <button onclick="myFunctions()" class="dropbtn">Setup
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id="myDropdowns" class="dropdown-content">
+      <a href="/_pages/oldfiles/install.html">Installation</a>
+      <a href="/_pages/oldfiles/download.html">Download</a>
+      <a href="/_pages/oldfiles/history.html">History</a>
+    </div>
+  </div>
+  <div class="dropdown">
+    <button onclick="myFunctionss()" class="dropbtn">Frontend
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id= "myDropdownss" class="dropdown-content">
+      <a href="#">Configuration</a>
+      <a href="#">Monitoring</a>
+      <a href="#">Troubleshooting</a>
+    </div>
+  </div>
+
+
+  <div class="dropdown">
+    <button onclick="myFunctionsss()" class="dropbtn">Factory
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id= "myDropdownsss" class="dropdown-content">
+      <a href="#">Configuration</a>
+      <a href="#">Monitoring</a>
+      <a href="#">Troubleshooting</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button onclick="myFunctionssss()" class="dropbtn">Tutorials
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id= "myDropdownssss" class="dropdown-content">
+      <a href="#">Submitting a Job</a>
+      <a href="#">Cloud Systems</a>
+      <a href="#">Setting a VM</a>
+      <a href="#">Batch Jobs</a>
+      <a href="#">FAQ</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button onclick="myFunctionsssss()" class="dropbtn">Design
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id= "myDropdownsssss" class="dropdown-content">
+      <a href="#">Frontend</a>
+      <a href="#">Frontend Elements</a>
+      <a href="#">Factory</a>
+      <a href="#">Factory Entry</a>
+      <a href="#">Glideins</a>
+      <a href="#">Data Exchange</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button onclick="myFunctionssssss()" class="dropbtn">Advanced Configuration
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id= "myDropdownssssss" class="dropdown-content">
+      <a href="#">HTCondor Organization Attributes</a>
+      <a href="#">HTCondor Configuration</a>
+      <a href="#">Custom Variables</a>
+      <a href="#">Custom Scripts</a>
+      <a href="#">GlideinWMS Tools</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button onclick="myFunctionsssssss()" class="dropbtn">Documentation
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div id= "myDropdownsssssss" class="dropdown-content">
+      <a href="#">API Documentation</a>
+      <a href="#">References</a>
+
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button onclick="myFunctionssssssss()" class="dropbtn">Sitemap
+      <i class="fa fa-caret-down"></i>
+    </button>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+/* When the user clicks on the button,
+toggle between hiding and showing the dropdown content */
+function myFunction() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
+
+function myFunctions() {
+  document.getElementById("myDropdowns").classList.toggle("show");
+}
+
+function myFunctionss() {
+  document.getElementById("myDropdownss").classList.toggle("show");
+}
+
+function myFunctionsss() {
+  document.getElementById("myDropdownsss").classList.toggle("show");
+}
+function myFunctionssss() {
+  document.getElementById("myDropdownssss").classList.toggle("show");
+}
+function myFunctionsssss() {
+  document.getElementById("myDropdownsssss").classList.toggle("show");
+}
+function myFunctionssssss() {
+  document.getElementById("myDropdownssssss").classList.toggle("show");
+}
+// Close the dropdown if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+</script>
+
+
+
+    </div>
+
+{{ content }}
+
+
+
+
+<script>
+/* When the user clicks on the button,
+toggle between hiding and showing the dropdown content */
+function myFunction() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
+
+function myFunctionss() {
+  document.getElementById("myDropdownss").classList.toggle("show");
+}
+
+function myFunctions() {
+  document.getElementById("myDropdowns").classList.toggle("show");
+}
+
+
+// Close the dropdown if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+</script>
+
+</body>
+</html>
+
+
+
+<div class="search">
+    <script>
+
+    (function() {
+        var cx = '013439253731257915088:h-xvmglqvrq';
+        var gcse = document.createElement('script');
+        gcse.type = 'text/javascript';
+        gcse.async = true;
+        gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(gcse, s);
+    })();
+    </script>
+    <gcse:search enableAutoComplete=true></gcse:search>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+
+
+
+</body>
+
+
+
+
+
+</html>

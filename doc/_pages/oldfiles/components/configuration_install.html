@@ -1,0 +1,561 @@
+---
+layout: default
+---
+<div class="content">
+    <div class="heading">
+    <h2>Installation</h2>
+	<ul class="subcomponents">
+	     <li> Overview</li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
+	</ul>
+        <h3>Example Ini Files </h3>
+	</div>
+    <div class="jump">
+    <u>Jump to:</u>
+    <ol>
+        <li> <a href="#case1">Single node and ini file</a></li>
+        <li> <a href="#case2">Multi-node and single ini file</a></li>
+        <li> <a href="#case3">Multi-node and mulit-ini files</a></li>
+    </ol>
+    </div>
+
+    <div class="related">
+    <u><b>Installation Procedure</b></u><br/><br/>
+
+        <a href="../install.html">Installation Overview</a><br><br>
+
+    </div>
+
+
+<!- ---------- Ini Examples ------------ -->
+<div class="section">
+<h2>Sample ini-files</h2>
+<p>
+Sample ini-files cover following three use cases:
+  <ul>
+    <li><a href="#case1">CASE 1</a>: Single node install with single ini files</li>
+    <li><a href="#case2">CASE 2</a>: Multiple node install with single ini file</li>
+    <li><a href="#case3">CASE 3</a>: Multiple node install with different init files</li>
+  </ul>
+</p>
+
+<a name="case1" />
+<h4>CASE 1: Single node install with single ini files</h4>
+<pre>
+; ## Global options
+[DEFAULT]
+pacman_location =
+pacman_url      =
+
+install_type = tarball
+
+hostname = cms-xen38.fnal.gov
+username = glidein
+
+version = v2_5_1
+instance_name = all_four_node
+install_dir = /opt/no-vdt-glideinWMS
+glideinwms_location = %(install_dir)s/glideinWMS
+javascriptrrd_location = %(install_dir)s/javascriptrrd
+
+tarballs = /opt/install_packages
+condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+
+vdt_location =
+install_vdt_client = n
+
+x509_cert = /etc/grid-security/hostcert.pem
+x509_key  = /etc/grid-security/hostkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=cms-xen38.fnal.gov
+x509_cert_dir  = /etc/grid-security/certificates
+
+;--------------------------------------------------
+[WMSCollector]
+
+service_name = wms_service
+
+condor_location = %(install_dir)s/condor-wms
+collector_port = 9618
+number_of_schedds = 5
+
+frontend_users = frontend_service : vo_cms,
+
+;--------------------------------------------------
+[Factory]
+
+service_name = factory_service
+
+install_location = %(install_dir)s/factory
+logs_dir         = %(install_dir)s/factory-logs
+
+client_log_dir   = %(install_dir)s/client-logs
+client_proxy_dir = %(install_dir)s/client-proxies
+
+use_glexec = n
+use_ccb    = n
+
+ress_host = osg-ress-4.fnal.gov
+entry_vos = cms
+entry_filters = (int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)<(72*60))
+
+
+web_url       = http://%(hostname)s:8319
+web_location  = /var/www/html/factory
+
+;--------------------------------------------------
+[UserCollector]
+
+service_name = userpool_service
+
+condor_location = %(install_dir)s/condor-therest
+collector_port = 9640
+number_of_secondary_collectors = 5
+
+;--------------------------------------------------
+[Submit]
+
+service_name = submit_service
+number_of_schedds = 5
+schedd_shared_port =
+
+condor_location = %(install_dir)s/condor-therest
+
+;--------------------------------------------------
+[VOFrontend]
+
+service_name = frontend_service
+
+install_location = %(install_dir)s/frontend
+logs_dir         = %(install_dir)s/frontend-logs
+
+condor_location = %(install_dir)s/condor-therest
+
+x509_proxy = /etc/grid-security/tony_pilot_proxy
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+glidein_proxy_files = /etc/grid-security/tony_pilot_proxy
+glidein_proxy_dns = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+group_name   = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+
+glexec_use = never
+expose_grid_env = True
+
+web_location  = /var/www/html/frontend
+web_url       = http://%(hostname)s:8319
+</pre>
+
+<a name="case2" />
+<h4>CASE 2: Multiple node install with single ini file</h4>
+<pre>
+; ## Global options
+[DEFAULT]
+
+pacman_location = /opt/pacman/pacman-3.28
+pacman_url      = http://physics.bu.edu/pacman/sample_cache/tarballs
+
+install_type = tarball
+
+version = v2.5.1
+instance_name = v2.5.1-cream-cloud
+install_dir = /opt/glideinWMS-v2plus
+glideinwms_location = %(install_dir)s/glideinWMS
+javascriptrrd_location = %(install_dir)s/javascriptrrd
+
+tarballs = /opt/install_packages
+condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
+
+vdt_location = /opt/vdt
+install_vdt_client = n
+
+x509_cert_dir=/opt/vdt/globus/TRUSTED_CA
+
+condor_admin_email = condor-admin@fnal.gov
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cms-xen6.fnal.gov
+username    = tony_xen_factory
+service_name = wms_service
+
+condor_location = %(install_dir)s/condor-wms
+collector_port = 9618
+
+frontend_users = frontend_service : tony_xen_cms_frontend
+
+x509_cert = /etc/grid-security/glideincerts/cms-xen6glideinwmscollectorcert.pem
+x509_key = /etc/grid-security/glideincerts/cms-xen6glideinwmscollectorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinwmscollector/cms-xen6.fnal.gov
+
+number_of_schedds = 5
+
+;--------------------------------------------------
+[Factory]
+
+hostname = cms-xen6.fnal.gov
+username    = tony_xen_factory
+service_name = factory_service
+
+install_location = %(install_dir)s/Factory
+logs_dir = %(install_dir)s/factory-logs
+client_log_dir = %(install_dir)s/client-logs
+client_proxy_dir = %(install_dir)s/client-proxies
+
+use_glexec = n
+use_ccb    = y
+
+ress_host       = osg-ress-4.fnal.gov
+entry_vos = cms
+entry_filters = (int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)<=(24*60))
+
+web_url       = http://%(hostname)s:8319
+web_location  = /var/www/html/Factory
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cms-xen8.fnal.gov
+username    = tony_xen_pool_collector
+service_name = userpool_service
+
+condor_location = %(install_dir)s/condor-userpool
+collector_port = 9618
+
+x509_cert = /etc/grid-security/glideincerts/cms-xen8glideinpoolcollectorcert.pem
+x509_key = /etc/grid-security/glideincerts/cms-xen8glideinpoolcollectorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinpoolcollector/cms-xen8.fnal.gov
+
+number_of_secondary_collectors = 0
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cms-xen8.fnal.gov
+username    = condor
+service_name = submit_service
+
+condor_location = %(install_dir)s/condor-submit
+
+x509_cert = /etc/grid-security/glideincerts/cms-xen8glideinsubmittercmscert.pem
+x509_key = /etc/grid-security/glideincerts/cms-xen8glideinsubmittercmskey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinsubmittercms/cms-xen8.fnal.gov
+
+number_of_schedds = 5
+schedd_shared_port = 9615
+
+;--------------------------------------------------
+[VOFrontend]
+
+instance_name = v2_5_1-cream-cloud
+
+hostname = cms-xen7.fnal.gov
+username    = tony_xen_cms_frontend
+service_name = frontend_service
+
+install_location = %(install_dir)s/Frontend
+logs_dir     = %(install_dir)s/frontend-logs
+
+condor_location = %(install_dir)s/condor-frontend
+
+gsi_credential_type = proxy
+x509_proxy = /etc/grid-security/glideincerts/tony_pilot_proxy
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+glidein_proxy_files = /etc/grid-security/glideincerts/tony_pilot_proxy
+glidein_proxy_dns = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+group_name = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+
+glexec_use = never
+expose_grid_env = True
+
+web_url       = http://%(hostname)s:8319
+web_location  = /var/www/html/Frontend
+
+</pre>
+
+<a name="case3" />
+<h4>CASE 3: Multiple node install with different ini files</h4>
+
+Multiple node install with services using their own ini files is a work in progress. Sample ini files for different services for a working installation is shown below.
+
+<b>WMSCollector and Factory configuration</b>
+<pre>
+[DEFAULT]
+install_type = tarball
+
+installation_version = v2.5.1
+install_vdt_client = n
+vdt_location = /home/gfactoryuser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/gfactoryuser/v2.5.1/glideinWMS
+pacman_location =
+pacman_url      =
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+username = condoruser
+service_name = WMS_Collector
+condor_location = /home/condoruser/%(installation_version)s/glidecondor
+collector_port = 8618
+frontend_users = Frontend-v2_5_1-cmssrv99:test1user
+x509_cert = /etc/grid-security/cmssrv97condorcert.pem
+x509_key = /etc/grid-security/cmssrv97condorkey.pem
+condor_tarball = /home/gfactoryuser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv97.fnal.gov
+number_of_schedds = 5
+
+;--------------------------------------------------
+[Factory]
+
+hostname = cmssrv97.fnal.gov
+username = gfactoryuser
+service_name = GlideinFactory-v2.5.1-cmssrv97
+install_location = /home/gfactoryuser/v2.5.1/glideinsubmit
+logs_dir = /var/gfactory/v2.5.1/glideinlogs
+client_log_dir = /var/gfactory/v2.5.1/clientlogs
+client_proxy_dir = /var/gfactory/v2.5.1/clientproxies
+instance_name = v1_0
+use_glexec = y
+use_ccb = y
+ress_host = osg-ress-4.fnal.gov
+entry_vos = dzero
+entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
+web_location = /var/www/html/glidefactory-v2.5.1
+web_url = http://%(hostname)s:8000
+javascriptrrd_location = /home/gfactoryuser/javascriptrrd
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+service_name =
+x509_gsi_dn =
+condor_location =
+collector_port =
+number_of_secondary_collectors =
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cmssrv99.fnal.gov
+service_name =
+condor_location =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+glidein_proxy_files = /tmp
+glidein_proxy_dns = %(x509_gsi_dn)s
+</pre>
+
+<b>User Collector ini file</b>
+<pre>
+[DEFAULT]
+
+pacman_url      =
+pacman_location =
+install_vdt_client = n
+vdt_location = /home/frontenduser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+collector_port =
+username =
+condor_location =
+frontend_users =
+service_name =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[Factory]
+
+service_name =
+username =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+service_name = GlideinFactory-v2.5.1-cmssrv97
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+glidein_proxy_dns = %(x509_gsi_dn)s
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+username = condoruser
+service_name = User_Pool
+condor_location = /home/condoruser/v2.5.1/glidecondor
+collector_port = 9618
+x509_cert = /etc/grid-security/cmssrv99condorcert.pem
+x509_key = /etc/grid-security/cmssrv99condorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+number_of_secondary_collectors = 2
+condor_admin_email = condor-admin@fnal.gov
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cmssrv99.fnal.gov
+service_name = UserSchedd
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+condor_location =
+
+</pre>
+
+<b>Submit ini file</b>
+<pre>
+[DEFAULT]
+pacman_url      =
+pacman_location =
+install_vdt_client = n
+vdt_location = /home/frontenduser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+username =
+condor_location =
+frontend_users =
+service_name =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[Factory]
+
+username =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+service_name = GlideinFactory-v2.5.1-cmssrv97
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+service_name = User_Pool
+condor_location =
+collector_port = 9618
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+number_of_secondary_collectors =
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cmssrv99.fnal.gov
+username = testuser
+service_name = UserSchedd
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+condor_location = /home/testuser/v2.5.1/glidecondor
+x509_cert = /etc/grid-security/cmssrv99testusercondorcert.pem
+x509_key = /etc/grid-security/cmssrv99testusercondorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+number_of_schedds = 2
+schedd_shared_port = 4444
+
+</pre>
+
+<b>VO Frontend ini file</b>
+<pre>
+[DEFAULT]
+pacman_version  =
+pacman_url      =
+pacman_location =
+install_vdt_client = n
+vdt_location = /home/frontenduser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+service_name = WMS_Collector
+collector_port = 8618
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv97.fnal.gov
+username = condoruser
+frontend_users = Frontend-v2_5_1-cmssrv99:test1user
+condor_location =
+
+;--------------------------------------------------
+[Factory]
+
+hostname = cmssrv97.fnal.gov
+username = gfactoryuser
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+username = frontenduser
+service_name = Frontend-v2_5_1-cmssrv99
+install_location = /home/frontenduser/v2.5.1/frontstage
+logs_dir = /home/frontenduser/v2.5.1/frontlogs
+instance_name = v1_0
+condor_location = /home/frontenduser/v2.5.1/glidecondor
+condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+x509_proxy = /home/frontenduser/security/grid_proxy
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+glidein_proxy_files = %(x509_proxy)s
+glidein_proxy_dns = %(x509_gsi_dn)s
+glexec_use = optional
+expose_grid_env = True
+group_name = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+web_url = http://cmssrv99.fnal.gov:8000
+web_location = /var/www/html/vofrontend-v2.5.1
+javascriptrrd_location = /home/frontenduser/javascriptrrd
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+service_name = User_Pool
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+collector_port = 9618
+condor_location =
+number_of_secondary_collectors = 2
+
+;--------------------------------------------------
+[Submit]
+
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+hostname = cmssrv99.fnal.gov
+service_name = UserSchedd
+condor_location =
+</pre>
+
+</div>

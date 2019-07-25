@@ -1,0 +1,326 @@
+---
+layout: default
+---
+
+<div class="content">
+    <div class="heading">
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> Prerequisites</li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
+	</ul>
+        <h3>Prerequisite Component Installation</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li><a href="#system_httpd">HTTPD Server</a></li>
+    <li><a href="#system_vdt">OSG Client</a></li>
+    <li><a href="#system_rrdtool">RRDTool</a></li>
+    <li><a href="#system_m2crypto">M2Crypto</a></li>
+    <li><a href="#system_javascriptRRD">javascriptRRD</a></li>
+</ol>
+</div>
+<div class="related">
+<u><b><a href="../install.html">Installation Procedure</a></b></u><br><br>
+
+Preceded by: <a href="../install.html">Installation Overview</a><br>
+Followed by: <a href="../factory/install.html">Factory Install</a><br>
+<br/>
+Install as: various daemon users or as system rpms/packages
+
+</div>
+<div class="section">
+
+<h2 class="header">Prerequisite components</h2>
+    <p>
+    The following is needed by GlideinWMS.  The installer will install HTCondor but all others should be installed before you begin.  The javascriptRRD directory
+    will also need to be provided to the installer.
+    </p>
+    <table class="requirements">
+        <tbody><tr class="head">
+            <td>Software</td>
+            <td>Version</td>
+
+            <td>WMS collector</td>
+            <td>Factory</td>
+            <td>User collector</td>
+            <td>Submit</td>
+            <td>Glidein Frontend</td>
+            <td>Comments</td>
+
+        </tr>
+        <tr>
+            <td> <a href="index.html">GlideinWMS</a> </td>
+            <td> v3.0+ </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td> &nbsp; </td>
+        </tr>
+
+        <tr>
+            <td> Linux OS </td>
+            <td>  </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td> A reasonably recent <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/1_5Availability.html">HTCondor-supported</a>
+             Linux OS (RH/SL5 tested at press time).</td>
+        </tr>
+
+        <tr>
+            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
+            <td> v7.8+/<br>v8.2.3+(BOSCO or Ganglia)</td>
+            <td class="checked"> y </td>
+            <td> &nbsp; </td>
+
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td>The installer will use the tarball or rpm to install and
+                configure HTCondor inline. It is recommended to use v8
+                and above.<br><br>
+                <b><u>Batch Submission via BOSCO:</u></b><br>
+                If you want to add batch resources (via BOSCO) you need
+                HTCondor v8.2.2+. This version requirement is for the WMS Pool,
+                submitting glideins and the HTCondor client, used to setup
+                the BOSCO resource (bosco_cluster_add). Other components
+                can use previous recommended versions of HTCondor.
+                <br><br>
+                <b><u>HTCondor </u></b><br>
+                <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/Monitoring.html#x40-3350003.12">monitoring via Ganglia</a>.
+                GlideinWMS provides configuration files for it.
+                </td>
+        </tr>
+
+        <tr>
+            <td> <a target="_blank" href="https://opensciencegrid.org/docs/">OSG client</a> </td>
+            <td> current version </td>
+            <td class="checked"> y </td>
+
+            <td class="checked"> &nbsp; </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td> Needed to generate GRID/VOMS proxies. See <a href="#system_vdt">below</a> for instructions.</td>
+
+        </tr>
+        <tr>
+            <td> <a target="_blank" href="http://www.python.org/">Python</a> </td>
+            <td> v2.4.3+ </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td> &nbsp; </td>
+        </tr>
+
+        <tr>
+            <td> HTTP server </td>
+            <td>  </td>
+            <td> &nbsp; </td>
+            <td class="checked"> y </td>
+
+            <td> &nbsp; </td>
+            <td> &nbsp; </td>
+            <td class="checked"> y </td>
+            <td> <a target="_blank" href="http://www.apache.org/">Apache</a>, <a target="_blank" href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>
+             or whatever server of choice. This port will need open access to the internet, so worker nodes can download data from this service. See  <a href="#system_httpd">below</a> for instructions.</td>
+        </tr>
+
+        <tr>
+            <td> <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> </td>
+            <td> V1.2.18+ </td>
+            <td> &nbsp; </td>
+            <td class="checked"> y </td>
+
+            <td> &nbsp; </td>
+            <td> &nbsp; </td>
+            <td class="checked"> y </td>
+            <td>
+              The perl-Time-HiRes rpm is needed for this package.  Please verify all dependencies:
+              rrdtool, perl-rrdtool and python-rrdtool. These packages are available via yum using EPEL in EL6/7
+              or can be searched in RPMFind.
+            </td>
+
+        </tr>
+        <tr>
+            <td> <a target="_blank" href="https://pypi.org/project/M2Crypto/">M2Crypto</a> </td>
+            <td> v0.17+ </td>
+            <td> &nbsp; </td>
+            <td class="checked"> y </td>
+
+            <td> &nbsp; </td>
+            <td> &nbsp; </td>
+            <td> y </td>
+            <td> This can be installed using yum, if available. Or via
+            <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">tarball</a>.
+            </td>
+
+        </tr>
+        <tr>
+            <td> <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> (with flot)</td>
+            <td> v0.6.3+ </td>
+            <td> &nbsp; </td>
+
+            <td class="checked"> y </td>
+            <td> &nbsp; </td>
+            <td> &nbsp; </td>
+            <td class="checked"> y </td>
+            <td> <b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed
+            separately for GlideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
+        </tr>
+    </tbody></table>
+    <br/>
+</div>
+
+<div class="section">
+    <h2><a name="system_httpd">1. HTTP server</a></h2>
+    <p>
+    You will need to install an HTTP server for GlideinWMS to be used for staging and monitoring.  This needs to be installed on a port
+    accessible to the outside.
+    The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.
+    In particular, the staging directory will need to be accessible
+    to glideins so they can download appropriate software.
+    </p>
+    <p>
+        The choice of web server is independent of GlideinWMS, but this documentation will only
+        show the example of Apache Web Server.  For most systems, this can be installed via
+        yum:
+        <pre>
+        yum install httpd </pre>
+    </p>
+    <p>
+        Other options are available from Apache
+        <a href="http://httpd.apache.org/download.cgi">here</a>.
+    </p>
+    <p>
+        There are several recommended tasks you may want to
+        also do post-installation to secure and prepare your web server.
+        <ul>
+            <li>Disable all unneeded modules.  Glideinwms does not any
+            non-standard modules and many can be disabled.
+            A list of example modules to keep enabled is below:
+            <tt>'access_module','include_module','log_config_module',
+                    'mime_magic_module','expires_module','deflate_module',
+                    'headers_module','setenvif_module','mime_module',
+                    'status_module','autoindex_module','negotiation_module',
+                    'dir_module','imap_module','alias_module','rewrite_module',
+                    'cache_module','file_cache_module','mem_cache_module',
+                    'authz_host_module','authz_default_module'</tt>.
+            </li>
+            <li>Disable any (unneeded) extensions in /etc/httpd/conf.d </li>
+            <li>Recommended: disable indexes (Options -Indexes) in all
+            directories/locations, such as frontend/factory stage/monitor
+            directories.</li>
+    </ul>
+    <p>
+    </p>
+</div>
+
+
+<div class="section">
+    <h2><a name="system_vdt">2. OSG Client</a></h2>
+    <p>
+        The OSG Worker Node Client (formerly known as VDT Client and OSG Client) is now available as a set of RPMs.
+        OSG provides a <a href="https://opensciencegrid.org/docs/worker-node/install-wn">
+        complete set of instructions</a> that that we recommend.
+        Here you can follow the instructions to install OSG Client on RHEL 6 and 7  based systems (including CentOS and SL).
+        First you will need to enable the EPEL and OSG
+        repositories.  It is also advisable to enable the yum priorities
+        module in order to guarantee the correct packages.
+        For more detail, you have everything explained step by step
+        <a href="https://opensciencegrid.org/docs/#add-osg-software">here</a>.
+    </p>
+</div>
+
+
+<div class="section">
+
+    <h3><a name="system_rrdtool">3. RRDTool</a></h3>
+    <p>
+        You will also need the python module for <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (currently v1.7.0). Many
+        systems come with packages for it; if possible use that.
+    </p>
+
+    <p>
+        You can install it via yum. It is available in the Scientific Linux Repository (slf-primary):
+        <pre> yum install rrdtool rrdtool-python </pre>
+    </p>
+
+    <p>
+        If installing as root is not an option, you can build from the sources, as the <b>glidein factory</b>
+
+        user, and put the python libraries into the PYTHON_PATH.<br>
+        The source code can be downloaded from <a target="_blank" href="http://oss.oetiker.ch/rrdtool/pub/">here</a>.
+        Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs
+        (or similar).
+    </p>
+</div>
+
+<div class="section">
+
+    <h3><a name="system_m2crypto">4. M2Crypto</a></h3>
+
+    <p>
+        You will need the <a target="_blank" href="https://pypi.org/project/M2Crypto/">M2Crypto python library</a>.
+        However, if you have the OSG repositories enabled, you can install it via yum:
+        <pre> yum install m2crypto </pre>
+    </p>
+
+    <p>
+
+        If your system does not come with m2crypto package, or you do not can/want install it as root, compile it from source as
+        the <b>glidein factory</b> user.<br>  The source code can be downloaded from
+        <a target="_blank" href="https://pypi.org/project/M2Crypto/#files">here</a>.
+    </p>
+
+    <p>The build process is very easy:</p>
+
+    <blockquote>
+
+        python setup.py build<br>
+        python setup.py install --root <i>&lt;base dir&gt;</i>
+    </blockquote>
+
+    <p>
+        Finally, add M2Crypto site-packages into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc.<br>
+        The exact path is system specific. On a 32bit system with python 2.3.x it will look like this:
+    </p>
+
+    <blockquote>export PYTHONPATH=$PYTHONPATH:<i>&lt;base dir&gt;</i>/usr/lib/python2.3/site-packages/</blockquote>
+    <br>
+</div>
+
+
+<div class="section">
+
+    <h3><a name="system_javascriptRRD">5. javascriptRRD</a></h3>
+
+    <p>
+        You will need the <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>.  It contains the
+        javascript libraries needed by the monitoring.
+        If you enabled the OSG repositories (above),
+        you can install it via yum:
+    </p>
+    <pre> yum install javascriptrrd </pre>
+    <p>
+        Otherwise, download the tarball (with flot), and untar it.  You will need to
+        point the installer to this directory.
+        The installer will copy the library files to the Web directories during the installation or reconfig steps.
+    </p>
+
+</div>
