@@ -19,7 +19,7 @@ GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -
 
 
 # User modifiable variables
-GLIDEIN_Custom_Start   C       True            +                               N       N       -
+GLIDEIN_Custom_Start   C       True            +                               N       Y       -
 GLIDEIN_Start		C	True		+				N	N	-
 GLIDEIN_Hold		C	False		+				N	N	-
 GLIDEIN_PREEMPT		C	False		+				N	N	-
