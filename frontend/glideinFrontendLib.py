@@ -351,8 +351,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
 
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
-                first_jid=cq_dict_clusters_el[jh][0]
-                job=condorq_data[(first_jid[0], first_jid[1])]
+                first_jid = cq_dict_clusters_el[jh][0]
+                job = condorq_data[(first_jid[0], first_jid[1])]
 
                 try:
                     # Do not match downtime entries
@@ -363,9 +363,9 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
                         # Evaluation order does not really matter.
                         match = eval(match_obj)
                         for policy in match_policies:
-                            if match == True:
-                                # Policies are supposed to be ANDed
-                                match = (match and policy.pyObject.match(job, glidein))
+                            if match is True:
+                                # Policies are supposed to be ANDed: match AND policy == policy because match is True
+                                match = policy.pyObject.match(job, glidein)
                             else:
                                 if match != False:
                                     # Non boolean results should be discarded
@@ -374,10 +374,10 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
                                 break
 
                     if match == True:
-                        # The lines inside this if can be replaced with those three for profiling
-#                        sc, csc, first_t = do_match(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job)
-#                        schedd_count += sc
-#                        cpu_schedd_count += csc
+                        # The lines inside this 'if' can be replaced with the following three commented lines for profiling
+                        # sc, csc, first_t = do_match(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job)
+                        # schedd_count += sc
+                        # cpu_schedd_count += csc
 
                         # the first matched... add all jobs in the cluster
                         cluster_arr = []

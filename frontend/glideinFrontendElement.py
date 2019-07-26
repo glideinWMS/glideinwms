@@ -1254,8 +1254,8 @@ class glideinFrontendElement:
         # Print the totals
         # Ignore the resulting sum
         log_factory_header()
-        log_and_sum_factory_line('Sum of useful factories', False, tuple(total_up_stats_arr), total_down_stats_arr)
-        log_and_sum_factory_line('Sum of down factories', True, tuple(total_down_stats_arr), total_up_stats_arr)
+        log_and_sum_factory_line('Sum of useful factories', False, tuple(total_up_stats_arr))
+        log_and_sum_factory_line('Sum of down factories', True, tuple(total_down_stats_arr))
 
     def log_and_print_unmatched(self, total_down_stats_arr):
         # Print unmatched... Ignore the resulting sum
@@ -1282,7 +1282,7 @@ class glideinFrontendElement:
             0, 0, 0,           # Cores
             0, 0,              # requested... none, since not matching
         )
-        log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
+        log_and_sum_factory_line('Unmatched', True, this_stats_arr)
 
     def decide_removal_type(self, count_jobs, count_status, glideid):
         """Picks the max removal type (unless disable is requested)
@@ -1951,6 +1951,7 @@ class glideinFrontendElement:
 
         return out
 
+
 ############################################################
 def check_parent(parent_pid):
     if os.path.exists('/proc/%s' % parent_pid):
@@ -1959,15 +1960,24 @@ def check_parent(parent_pid):
     logSupport.log.warning("Parent died, exit.")
     raise KeyboardInterrupt("Parent died")
 
+
 ############################################################
 def write_stats(stats):
     for k in stats.keys():
         stats[k].write_file();
 
+
 ############################################################
-# Will log the factory_stat_arr (tuple composed of 17 numbers)
-# and return a sum of factory_stat_arr+old_factory_stat_arr
-def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr):
+def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr=None):
+    """Will log the factory_stat_arr (tuple composed of 17 numbers)
+    and return a sum of factory_stat_arr+old_factory_stat_arr if old_factory_stat_arr is not None
+
+    :param factory: Entry name (or string to write for totals)
+    :param is_down: True if the Entry is down
+    :param factory_stat_arr: Frontend stats for this line
+    :param old_factory_stat_arr: Accumulator for the line stats. If None the stats are just logged
+    :return: new list with old_factory_stat_arr+factory_stat_arr. None if old_factory_stat_arr is None
+    """
     # if numbers are too big, reduce them to either k or M for presentation
     form_arr = []
     for i in factory_stat_arr:
@@ -1983,19 +1993,26 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
     else:
         down_str = "Up  "
 
-    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s | " % tuple(form_arr)) + ("%s %s" % (down_str, factory)))
+    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s | " % tuple(form_arr)) +
+                        ("%s %s" % (down_str, factory)))
 
+    if old_factory_stat_arr is None:
+        return None
+    # else branch, a valid old_factory_stat_arr hes been provided
     new_arr = []
     for i in range(len(factory_stat_arr)):
         new_arr.append(factory_stat_arr[i] + old_factory_stat_arr[i])
     return new_arr
 
+
 def init_factory_stats_arr():
     return [0] * 17
+
 
 def log_factory_header():
     logSupport.log.info("            Jobs in schedd queues                 |           Slots         |       Cores       | Glidein Req | Factory/Entry Information")
     logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun | State Factory")
+
 
 ######################
 # expand $$(attribute)
@@ -2016,6 +2033,7 @@ def expand_DD(qstr, attr_dict):
         qstr="%s%s%s"%(qstr[:m.start()], attr_str, qstr[m.end():])
     return qstr
 
+
 ############################################################
 #
 # S T A R T U P
@@ -2024,7 +2042,7 @@ def expand_DD(qstr, attr_dict):
 
 if __name__ == '__main__':
     register_sighandler()
-    if len(sys.argv)==4:
+    if len(sys.argv) == 4:
         action = "run"
     else:
         action = sys.argv[4]
