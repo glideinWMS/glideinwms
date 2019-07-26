@@ -178,7 +178,7 @@ function dict_set_val {
     # [ -n "${my_dict}" ] && my_dict="${my_dict},"
     # [ -n "$3" ] && echo "${my_dict}$2:$3" || echo "${my_dict}$2"
     echo "${my_dict:+"${my_dict},"}$2${3:+":$3"}"
-    [ -n "${key_found}" ] && return 0
+    [[ -n "${key_found}" ]] && return 0
     return 1
 }
 
@@ -363,7 +363,7 @@ function get_prop_str {
     #  echo the value (or the default if UNDEFINED) and return 0
     #  For no ClassAd file, echo the default and return 1
     #  For bad invocation, return 1
-    if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+    if [[ $# -lt 2  ||  $# -gt 3 ]]; then
         return 1
     elif [[ "x$1" = "xNONE" ]]; then
         echo "$3"
@@ -495,7 +495,7 @@ function singularity_check_paths {
     local val_no_opt="${3%:*}"  # singularity binds are "src:dst:options", keep only 'dst'
     [[ -z "$val_no_opt" ]] && val_no_opt="$2"
     [[ $1 = *v* ]] && to_check="$3"
-    [ -z "$to_check" ] && { info "Cannot check empty key/value ('$to_check'). Discarding it"; false; return; }
+    [[ -z "$to_check" ]] && { info "Cannot check empty key/value ('$to_check'). Discarding it"; false; return; }
     [[ $1 = *e*  &&  ! -e "$to_check" ]] && { info "Discarding path '$to_check'. File does not exist"; false; return; }
     [[ $1 = *c*  &&  ! "$to_check" = "/cvmfs"* ]] && { info "Discarding path '$to_check'. Is not in CVMFS"; false; return; }
     [[ $1 = *d*  &&  ! -e "$val_no_opt" ]] && { info "Discarding value path '$val_no_opt'. File does not exist"; false; return; }
@@ -956,10 +956,10 @@ nvidia_drv.so
 tls_test_.so
 EOF
     for TARGET in $(ldconfig -p | grep -f "$NVLIBLIST"); do
-        if [ -f "$TARGET" ]; then
+        if [[ -f "$TARGET" ]]; then
             BASENAME=`basename $TARGET`
             # only keep the first one found
-            if [ ! -e ".host-libs/$BASENAME" ]; then
+            if [[ ! -e ".host-libs/$BASENAME" ]]; then
                 cp -L $TARGET .host-libs/
             fi
         fi
@@ -1017,7 +1017,7 @@ function setup_classad_variables {
     export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)   # List of modules to load
     export LMOD_BETA=$(get_prop_bool $_CONDOR_JOB_AD LMOD_BETA 0)
     # GLIDEIN_DEBUG_OUTPUT may have been defined in the machine AD (takes precedence)
-    if [ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]; then
+    if [[ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]]; then
         export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
     fi
 
