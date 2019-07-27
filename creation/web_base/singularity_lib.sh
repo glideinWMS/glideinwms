@@ -66,8 +66,9 @@
 # GLIDEIN_SINGULARITY_GLOBAL_OPTS - singularity options, like debug, silent/verbose, ...
 # NOTE: GLIDEIN_SINGULARITY_OPTS and GLIDEIN_SINGULARITY_GLOBAL_OPTS must be expansion/flattening safe because
 #       is passed as veriable and quoted strings inside it are not preserved
-# Reference documentation:
+# Reference documentation for the command and env variables:
 # https://sylabs.io/guides/3.3/user-guide/cli/singularity.html
+# https://sylabs.io/guides/3.3/user-guide/appendix.html
 
 OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/el67-x86_64/bin/singularity"
 
@@ -599,7 +600,10 @@ function singularity_exec {
     local singularity_bin="$1"
     local singularity_image="$2"
     local singularity_binds="$3"
-    local singularity_opts="--ipc --pid --contain $4"  # extra options added at the end (still before binds)
+    # Skipping --contain. It is added in the wrapper (default_singularity_wrapper.sh) at the singularity_exec
+    # invocation when not using GPUs (using $GWMS_SINGULARITY_EXTRA_OPTS)
+    # local singularity_opts="--ipc --pid --contain $4"  # extra options added at the end (still before binds)
+    local singularity_opts="--ipc --pid $4"  # extra options added at the end (still before binds)
     local singularity_global_opts="$5"
     local execution_opt="$6"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] && { warn "Singularity image or binary empty. Failing to run Singularity "; false; return; }
