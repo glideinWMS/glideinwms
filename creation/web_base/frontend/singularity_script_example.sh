@@ -159,7 +159,11 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
     if [ "x$GLIDEIN_Tmp_Dir" != "x" -a -e "$GLIDEIN_Tmp_Dir" ]; then
-        export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+        if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$" ; then
+            export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+        else
+            warn "Unable to set SINGULARITY_WORKDIR to $GLIDEIN_Tmp_Dir/singularity-work.$$. Leaving it undefined."
+        fi
     fi
 
     GWMS_SINGULARITY_EXTRA_OPTS="$GLIDEIN_SINGULARITY_OPTS"
