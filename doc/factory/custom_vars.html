@@ -1547,6 +1547,16 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     startup scripts (Dynamic). A value can be also be a combination of the above: the Factory value can be overridden by the Frontend one
     (unless set as constant), and the startup scripts can modify it and have the ultimate saying.
 </P>
+    <p>The resulting invocation of Singularity is something like the text below.
+    Where $singularity_binds is built using GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_BINDPATH,
+        and GWMS_SINGULARITY_BIND_CVMFS, and the $singularity_image is one coming from SINGULARITY_IMAGES_DICT or
+        specified in the job.
+        The debug options are used if GLIDEIN_DEBUG_OUTPUT is set.
+    </p>
+<pre> singularity [-d -vvv] exec --home "$PWD":/srv --pwd /srv --ipc --pid --contain \
+    $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
+    "$singularity_image" "${@}"
+</pre>
 
 <TABLE class="attributes">
     <TR class="head">
