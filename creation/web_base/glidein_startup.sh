@@ -88,6 +88,7 @@ function do_start_all {
             GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
             popd
         done
+        echo "Started multiple glideins: $GWMS_MULTIGLIDEIN_CHILDS"
     fi
 }
 
@@ -1050,7 +1051,9 @@ if [[ -n "$multi_glidein" ]] && [[ -z "$multi_glidein_restart" ]] && [[ "$multi_
     do_start_all $multi_glidein
     # Wait for all glideins and exit 0
     # TODO: Summarize exit codes and status from all child glideins
+    echo "------ Multi-glidein parent waiting for child processes ($GWMS_MULTIGLIDEIN_CHILDS) ----------" 1>&2
     wait
+    echo "------ Exiting multi-glidein parent ----------" 1>&2
     exit 0
 fi
 
