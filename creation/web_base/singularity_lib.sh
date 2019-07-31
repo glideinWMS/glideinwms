@@ -600,10 +600,8 @@ function singularity_exec {
     local singularity_bin="$1"
     local singularity_image="$2"
     local singularity_binds="$3"
-    # Skipping --contain. It is added in the wrapper (default_singularity_wrapper.sh) at the singularity_exec
-    # invocation when not using GPUs (using $GWMS_SINGULARITY_EXTRA_OPTS)
-    # local singularity_opts="--ipc --pid --contain $4"  # extra options added at the end (still before binds)
-    local singularity_opts="--ipc --pid $4"  # extra options added at the end (still before binds)
+    # Keeping --contain. Should not interfere w/ GPUs
+    local singularity_opts="--ipc --pid --contain $4"  # extra options added at the end (still before binds)
     local singularity_global_opts="$5"
     local execution_opt="$6"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] && { warn "Singularity image or binary empty. Failing to run Singularity "; false; return; }
