@@ -89,6 +89,9 @@ OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity
 # DEBUG if GLIDEIN_DEBUG_OUTPUT is set (and GLIDEIN_QUIET is not set)
 # GWMS_THIS_SCRIPT should be set to $0 to log the file name
 
+# To increment each time the API changes
+export GWMS_SINGULARITY_LIB_VERSION=1
+
 GWMS_SCRIPT_LOG="`dirname "$GWMS_THIS_SCRIPT"`/.LOG_`basename "$GWMS_THIS_SCRIPT"`.$$.txt"
 # Change this to enable script log
 SCRIPT_LOG=
@@ -160,7 +163,7 @@ function dict_check_key {
     # $2 key
     #re=*",${2}:"*  # bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
     [[ ",${!1}," = *",${2}:"* ]] && return 0
-    [[ ",${!1}," = *",${2},"* ]] && return 0  # could be empty val and no separatoe
+    [[ ",${!1}," = *",${2},"* ]] && return 0  # could be empty val and no separator
     return 1
 }
 
@@ -302,8 +305,9 @@ function get_prop_bool {
     #  $3 default value (optional, must be 1->true or 0->false, 0 if unset)
     # For HTCondor consider True: true (case insensitive), any integer != 0
     #                       Anything else is False (0, false, undefined, ...)
+    #                       This is the default behavior (default=0)
     # Out:
-    #  echo "1" for true, dafult for "0" undefined, for false/failure (bad invocation, no ClassAd file)
+    #  echo "1" for true, "$default" for empty value/undefined, "0" for false/failure (bad invocation, no ClassAd file)
     #  return the opposite to allow shell truth values true,1->0 , false,0->1
     # NOTE Spaces are trimmed, so strings like "T RUE" are true
 
@@ -605,13 +609,25 @@ function singularity_exec {
     local singularity_global_opts="$5"
     local execution_opt="$6"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] && { warn "Singularity image or binary empty. Failing to run Singularity "; false; return; }
-    shift 6
+    # TODO: to remove in the future (keeping only the else branch). This is for compatibility with default_singularity_wrapper.sh pre 3.4.6
+    if [[ "X$singularity_global_opts" = "Xexec" ]]; then
+        warn "default_singularity_wrapper.sh pre 3.4.6 running with 3.4.6 Factory scripts. Continuing."
+        singularity_global_opts=
+        execution_opt=exec
+        shift 5
+    else
+        shift 6
+    fi
     # the remaining parameters are the command and parameters invoked by singularity
     [[ -z "$1"  &&  $# -ne 0 ]] && { warn "Singularity invoked with an empty command. Failing."; false; return; }
 
     # Make sure that ALL invocation strings and debug printout are same/consistent
     # Quote all the path strings ($PWD, $singularity_bin, ...) to deal with a path that contains whitespaces
     # CMS is not using "--home $PWD:/srv", OSG is
+    # New OSG: --bind $PWD:/srv --no-home (no --home \"$PWD\":/srv --pwd)
+    # TODO: --home or --no-home ? See email from Dave and Mats
+    # Dave: In versions 3.x through 3.2.1-1 where --home was being ignored on sites that set "mount home = no"
+    # in singularity.conf. This was fixed in 3.2.1-1.1.
     info_dbg  "$execution_opt \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
             "\"$singularity_image\"" "${@}" "[ $# arguments ]"
@@ -998,7 +1014,12 @@ function setup_classad_variables {
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
     export GWMS_SINGULARITY_IMAGES_DICT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGES_DICT)
-    export OSG_MACHINE_GPUS=$(get_prop_str $_CONDOR_MACHINE_AD GPUs "0")
+    export OSG_MACHINE_GPUS=$(get_prop_str $_CONDOR_MACHINE_AD GPUs 0)
+    # Setting below 0 as default for GPU_USE, to distinguish when undefined in machine AD
+    export GPU_USE=$(get_prop_str $_CONDOR_MACHINE_AD GPU_USE)
+    # http_proxy from OSG advertise script
+    export http_proxy=$(get_prop_str $_CONDOR_MACHINE_AD http_proxy)
+    [[ -z "$http_proxy" ]] && unset http_proxy
     export GLIDEIN_REQUIRED_OS=$(get_prop_str $_CONDOR_MACHINE_AD GLIDEIN_REQUIRED_OS)
     export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str $_CONDOR_MACHINE_AD GLIDEIN_DEBUG_OUTPUT)
 
@@ -1016,12 +1037,14 @@ function setup_classad_variables {
     export POSIXSTASHCACHE=$(get_prop_bool $_CONDOR_JOB_AD WantsPosixStashCache 0)
     # OSG Modules
     export MODULE_USE=$(get_prop_str $_CONDOR_JOB_AD MODULE_USE 1)
+    export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 1)
     export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)   # List of modules to load
     export LMOD_BETA=$(get_prop_bool $_CONDOR_JOB_AD LMOD_BETA 0)
-    # GLIDEIN_DEBUG_OUTPUT may have been defined in the machine AD (takes precedence)
-    if [[ "x$GLIDEIN_DEBUG_OUTPUT" = "x" ]]; then
-        export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
-    fi
+
+    # These attributes may have been defined in the machine AD above (takes precedence)
+    [[ -z "$GLIDEIN_DEBUG_OUTPUT" ]] && export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
+    # Setting here default for GPU_USE, to distinguish when undefined in machine AD
+    [[ -z "$GPU_USE" ]] && export GPU_USE=$(get_prop_str $_CONDOR_JOB_AD GPU_USE 0)
 
     # CHECKS
     # SingularityAutoLoad is deprecated, see https://opensciencegrid.atlassian.net/browse/SOFTWARE-2770

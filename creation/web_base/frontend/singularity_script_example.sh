@@ -69,7 +69,7 @@ else
 fi
 source "${GWMS_AUX_DIR}singularity_lib.sh"
 
-info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_util.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
+info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
 
 function exit_or_fallback {
     # An error in Singularity occurred. Fallback to no Singularity if preferred or fail if required
@@ -202,7 +202,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
-    # notably the user-job-wrapper.sh (this script!) and singularity_util.sh (in $GWMS_AUX_SUBDIR)
+    # notably the user-job-wrapper.sh (this script!) and singularity_lib.sh (in $GWMS_AUX_SUBDIR)
     cp "$GWMS_THIS_SCRIPT" .gwms-user-job-wrapper.sh
     export JOB_WRAPPER_SINGULARITY="/srv/.gwms-user-job-wrapper.sh"
     mkdir -p "$GWMS_AUX_SUBDIR"
