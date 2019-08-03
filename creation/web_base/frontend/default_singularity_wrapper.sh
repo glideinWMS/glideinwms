@@ -17,8 +17,8 @@ GWMS_VERSION_SINGULARITY_WRAPPER=20190801
 # $GWMS_SINGULARITY_REEXEC is used to discriminate the re-execution (nothing outside, 1 inside)
 #
 
-# To avoid GWMS debug and info messages in the job stdout/err
-[[ -z "$" ]] && GLIDEIN_QUIET=True
+# To avoid GWMS debug and info messages in the job stdout/err (unless userjob option is set)
+[[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,userjob,* ]] && GLIDEIN_QUIET=True
 
 # When failing we need to tell HTCondor to put the job back in the queue by creating
 # a file in the PATH pointed by $_CONDOR_WRAPPER_ERROR_FILE
