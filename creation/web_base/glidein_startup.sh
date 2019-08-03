@@ -1005,8 +1005,9 @@ if [ -n "$client_name" ]; then
     echo "client_name       = '$client_name'"
 fi
 if [ -n "$client_group" ]; then
-    echo "client_group       = '$client_group'"
+    echo "client_group      = '$client_group'"
 fi
+echo "multi_glidein/restart = '$multi_glidein'/'$multi_glidein_restart'"
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_type         = '$sign_type'"
