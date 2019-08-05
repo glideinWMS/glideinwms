@@ -92,7 +92,8 @@ X509_EXPIRE		I	-		+				Y	N	-
 X509_CERT_DIR		C	-		GSI_DAEMON_TRUSTED_CA_DIR	Y	N	-
 X509_CONDORMAP		C	-		CERTIFICATE_MAPFILE		Y	N	-
 X509_GRIDMAP_DNS	S	-		GLIDEIN_X509_GRIDMAP_DNS	N	Y	-
-X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
+# commenting this out makes master daemon on glidein use mapfile instead of GSI_DAEMON_NAME
+# X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
 X509_SKIP_HOST_CHECK_DNS_REGEX	C	-	+				Y	N	-
 GLIDEIN_LOCAL_TMP_DIR   C       -               +                               Y       N       @
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
