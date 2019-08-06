@@ -1,9 +1,13 @@
 #!/bin/bash
-# 
+# GlideinWMS singularity wrapper. Invoked by HTCondor as user_job_wrapper
+# default_singularity_wrapper USER_JOB [job options and arguments]
 EXITSLEEP=10m
 GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
+GWMS_VERSION_SINGULARITY_WRAPPER=20190801
+# Updated using OSG wrapper #394b564
+# https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
 
 ################################################################################
 #
@@ -13,6 +17,8 @@ GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
 # $GWMS_SINGULARITY_REEXEC is used to discriminate the re-execution (nothing outside, 1 inside)
 #
 
+# To avoid GWMS debug and info messages in the job stdout/err (unless userjob option is set)
+[[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,userjob,* ]] && GLIDEIN_QUIET=True
 
 # When failing we need to tell HTCondor to put the job back in the queue by creating
 # a file in the PATH pointed by $_CONDOR_WRAPPER_ERROR_FILE
@@ -46,6 +52,11 @@ function warn_raw {
     echo "$@" 1>&2
 }
 
+# Ensure all jobs have PATH set
+# bash can set a default PATH - make sure it is exported
+export PATH=$PATH
+[[ -z "$PATH" ]] && export PATH="/usr/local/bin:/usr/bin:/bin"
+
 [[ -z "$glidein_config" ]] && [[ -e "$GWMS_THIS_SCRIPT_DIR/glidein_config" ]] &&
     glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
 
@@ -68,7 +79,10 @@ else
 fi
 source ${GWMS_AUX_DIR}singularity_lib.sh
 
-info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_util.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
+# Calculating full version number, including md5 sums form the wrapper and singularity_lib
+GWMS_VERSION_SINGULARITY_WRAPPER="$GWMS_VERSION_SINGULARITY_WRAPPER_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
+info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER_) starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config)."
+info_dbg "$GWMS_THIS_SCRIPT, in `pwd`, list: `ls -al`"
 
 function exit_or_fallback {
     # An error in Singularity occurred. Fallback to no Singularity if preferred or fail if required
@@ -190,7 +204,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
 
     # GPUs - bind outside GPU library directory to inside /host-libs
-    if [[ "$OSG_MACHINE_GPUS" -gt 0 ]]; then
+    if [[ "$OSG_MACHINE_GPUS" -gt 0  ||  "x$GPU_USE" = "x1" ]]; then
         if [[ "x$OSG_SINGULARITY_BIND_GPU_LIBS" = "x1" ]]; then
             HOST_LIBS=""
             if [[ -e "/usr/lib64/nvidia" ]]; then
@@ -205,15 +219,16 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
                 GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
             fi
         fi
-    else
+        GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --nv"
+    #else
         # if not using gpus, we can limit the image more
-        GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --contain"
+        # Already in default: GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --contain"
     fi
     info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
-    # notably the user-job-wrapper.sh (this script!) and singularity_util.sh (in $GWMS_AUX_SUBDIR)
+    # notably the user-job-wrapper.sh (this script!) and singularity_lib.sh (in $GWMS_AUX_SUBDIR)
     cp "$GWMS_THIS_SCRIPT" .gwms-user-job-wrapper.sh
     export JOB_WRAPPER_SINGULARITY="/srv/.gwms-user-job-wrapper.sh"
     mkdir -p "$GWMS_AUX_SUBDIR"
@@ -236,10 +251,16 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Run and log the Singularity command.
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
-    singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
-             "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
-             "${GWMS_RETURN[@]}"
-
+    if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
+        # GWMS 3.4.5 or lower, no GWMS_SINGULARITY_GLOBAL_OPTS, no GWMS_SINGULARITY_LIB_VERSION
+        singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
+                 "$GWMS_SINGULARITY_EXTRA_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
+                 "${GWMS_RETURN[@]}"
+    else
+        singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
+                 "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
+                 "${GWMS_RETURN[@]}"
+    fi
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
     exit_or_fallback "exec of singularity failed" $?
@@ -291,6 +312,11 @@ else
     # We are now inside Singularity
     #
 
+    # Need to start in /srv (Singularity's --pwd is not reliable)
+    # /srv should always be there in Singularity, we set the option '--home \"$PWD\":/srv'
+    [[ -d /srv ]] && cd /srv
+    export HOME=/srv
+
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
     info_dbg "GWMS singularity wrapper, running inside singularity env = "`printenv`
@@ -334,22 +360,26 @@ if [[ "x$GLIDEIN_Proxy_URL" = "x"  ||  "$GLIDEIN_Proxy_URL" = "None" ]]; then
 fi
 
 # load modules, if available
-#MODULE_USE
+# InitializeModulesEnv and MODULE_USE are 2 variables to enable the use of modules
 [[ "x$LMOD_BETA" = "x1" ]] && MODULE_USE=1
+[[ "x$InitializeModulesEnv" = "x1" ]] && MODULE_USE=1
+
 if [[ "x$MODULE_USE" = "x1" ]]; then
     if [[ "x$LMOD_BETA" = "x1" ]]; then
         # used for testing the new el6/el7 modules
-        if [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh ]]; then
+        if [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
             . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh
         fi
-    elif [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh ]]; then
+    elif [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
         . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
     fi
     module -v >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
+        # module setup did not work, ignore it for the rest of the script
         MODULE_USE=0
     fi
 fi
+
 
 #############################
 #
@@ -362,12 +392,13 @@ function setup_stashcp {
         return 1
     fi
 
-    module load stashcp
+    # keep the user job output clean
+    module load stashcache >/dev/null 2>&1 || module load stashcp >/dev/null 2>&1
 
     # we need xrootd, which is available both in the OSG software stack
     # as well as modules - use the system one by default
     if ! which xrdcp >/dev/null 2>&1; then
-      module load xrootd
+        module load xrootd >/dev/null 2>&1
     fi
 
     # Determine XRootD plugin directory.
@@ -391,15 +422,10 @@ if [[ "x$POSIXSTASHCACHE" = "x1" ]]; then
         # Currently this points _ONLY_ to the OSG Connect source server
         export XROOTD_VMP=$(stashcp --closest | cut -d'/' -f3):/stash=/
     fi
-elif [[ "x$STASHCACHE" = "x1" ]]; then
+elif [[ "x$STASHCACHE" = "x1"  ||  "x$STASHCACHE_WRITABLE" = "x1" ]]; then
     setup_stashcp
-fi
-
-if [[ "x$STASHCACHE_WRITABLE" = "x1" ]]; then
-    setup_stashcp
-    if [[ $? -eq 0 ]]; then
-        export PATH="/cvmfs/oasis.opensciencegrid.org/osg/projects/stashcp/writeback:$PATH"
-    fi
+    # No more extra path for $STASHCACHE_WRITABLE
+    # [[ $? -eq 0 ]] && [[ "x$STASHCACHE_WRITABLE" = "x1" ]]export PATH="/cvmfs/oasis.opensciencegrid.org/osg/projects/stashcp/writeback:$PATH"
 fi
 
 
