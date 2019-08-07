@@ -87,6 +87,20 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_4_6</b> released on August 7, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_6.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings</li>
+            <li>Backport: GlideinWMS proxy renewal service broken for Xenon</li>
+            <li>Add always --contain to the Singularity invocation and update wrapper adding improvement in the OSG one</li>
+            <li>Document and expand multi-node Glidein</li>
+            <li>Document usage of ignore_down_entries</li>
+            <li>Bug fix: Not escaped comma in GSI_DAEMON_NAME causing problems</li>
+            <li>Bug fix: Debug options causing Singularity invocation to fail</li>
+            <li>Bug fix: Singularity workdir creation failing at some sites</li>
+            <li>Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758)</li>
+        </ul>
+      </li>
+      <li>
         <b>v3_4_5</b> released on April 19, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_5.tgz">Tarball</a>)<br>
         <ul>
             <li>Add a bind mount for /etc/localtime in Singularity</li>
