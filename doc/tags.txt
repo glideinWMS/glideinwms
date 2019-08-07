@@ -1,3 +1,13 @@
+v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings
+        Backport: GlideinWMS proxy renewal service broken for Xenon
+        Add always --contain to the Singularity invocation and update wrapper adding improvement in the OSG one
+        Document and expand multi-node Glidein
+        Document usage of ignore_down_entries
+        Bug fix: Not escaped comma in GSI_DAEMON_NAME causing problems
+        Bug fix: Debug options causing Singularity invocation to fail
+        Bug fix: Singularity workdir creation failing at some sites
+        Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758) 
+        
 v3_4_5  Add a bind mount for /etc/localtime in Singularity
         Bug fix: Strings evaluated as boolean (New error preventing the Frontend fo match jobs)
 
