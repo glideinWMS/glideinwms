@@ -541,6 +541,8 @@ function glidein_exit {
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
 
+  send_logs_to_remote
+
   exit $1
 }
 
@@ -833,8 +835,42 @@ function params2file {
     return 0
 }
 
+###########################
+# Logging
+LOGDIR='logs'
+STDOUT_LOGFILE='stdout'
+STDERR_LOGFILE='stderr'
+LOGSERVER='http://fermicloud093.fnal.gov:9393'
+
+function logs_setup {
+    mkdir -p $LOGDIR
+    exec >  >(tee -ia ${LOGDIR}/${STDOUT_LOGFILE})       # TODO: add glidein identifier to filename
+    exec 2> >(tee -ia ${LOGDIR}/${STDERR_LOGFILE} >&2)
+}
+
+function send_logs_to_remote {
+
+    # Upload stdout log file
+    curl_resp=$(curl -X PUT --upload-file ${LOGDIR}/${STDOUT_LOGFILE} $LOGSERVER 2>&1)
+    curl_retval=$?
+    if [ $curl_retval -ne 0 ]; then
+        curl_version=$(curl --version 2>&1 | head -1)
+        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+    fi
+
+    # Upload stderr log file
+    curl_resp=$(curl -X PUT --upload-file ${LOGDIR}/${STDERR_LOGFILE} $LOGSERVER 2>&1)
+    curl_retval=$?
+    if [ $curl_retval -ne 0 ]; then
+        curl_version=$(curl --version 2>&1 | head -1)
+        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+    fi
+}
 
 ################
+# Setup logging
+logs_setup
+
 # Parse and verify arguments
 
 # allow some parameters to change arguments
