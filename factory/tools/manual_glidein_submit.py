@@ -99,7 +99,7 @@ def get_reqname(collector, fe_name, entry_name):
 def main():
     """ The main module
     """
-    # Move to the working direcotry
+    # Move to the working directory
     try:
         if "GLIDEIN_FACTORY_DIR" in os.environ:
             os.chdir(os.environ["GLIDEIN_FACTORY_DIR"])
@@ -177,13 +177,12 @@ def main():
                          " Check file %s permissions"), fname)
 
         # Set the arguments
+        # I was using escapeParam for GLIDECLIENT_ReqNode and GLIDECLIENT_Collector but turned out it's not necessary
         params['CONDOR_VERSION'] = 'default'
         params['CONDOR_OS'] = 'default'
         params['CONDOR_ARCH'] = 'default'
-        params['GLIDECLIENT_ReqNode'] = escapeParam(ad_gc['GlideinParamGLIDECLIENT_ReqNode'])
         params['GLIDECLIENT_ReqNode'] = ad_gc['GlideinParamGLIDECLIENT_ReqNode']
         params['GLIDECLIENT_Rank'] = ad_gc.get('GlideinParamGLIDECLIENT_Rank', "1")
-        params['GLIDEIN_Collector'] = escapeParam(ad_gc['GlideinParamGLIDEIN_Collector'])
         params['GLIDEIN_Collector'] = ad_gc['GlideinParamGLIDEIN_Collector']
         params['USE_MATCH_AUTH'] = ad_gc['GlideinParamUSE_MATCH_AUTH']
         params['Report_Failed'] = 'NEVER'
