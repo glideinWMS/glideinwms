@@ -99,7 +99,7 @@ def get_reqname(collector, fe_name, entry_name):
 def main():
     """ The main module
     """
-    # Move to the working direcotry
+    # Move to the working directory
     try:
         if "GLIDEIN_FACTORY_DIR" in os.environ:
             os.chdir(os.environ["GLIDEIN_FACTORY_DIR"])
