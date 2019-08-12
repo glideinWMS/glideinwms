@@ -6,3 +6,4 @@ ssh -t root@$vofe_fqdn yum -y --enablerepo osg-development upgrade glideinwms-vo
 ssh -t root@$vofe_fqdn 'if `which systemctl> /dev/null 2>&1` ;then systemctl stop gwms-frontend.service;  gwms-frontend upgrade ; systemctl start  gwms-frontend.service;  else service gwms-frontend upgrade; fi' 
 ssh -t root@$vofe_fqdn 'if `which systemctl> /dev/null 2>&1` ;then systemctl restart condor ; else service condor restart; fi' 
 ssh -t root@$vofe_fqdn 'if `which systemctl> /dev/null 2>&1` ;then systemctl reload gwms-frontend ; else service gwms-frontend reconfig; fi' 
+ssh -t root@$vofe_fqdn 'if `which systemctl> /dev/null 2>&1` ;then systemctl restart gwms-frontend ; else service gwms-frontend restart; fi' 

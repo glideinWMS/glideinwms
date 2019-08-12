@@ -523,6 +523,8 @@ dn_fmt='/DC=org/DC=incommon/C=US/ST=IL/L=Batavia/O=Fermi Research Alliance/OU=Fe
 #[ "${el}" = "7" ] && yum_rpm=yum-plugin-priorities
 yum_rpm=yum-plugin-priorities
 
+#[ "${el}" = "7" ] &&  [ "${vm_template}" = "" ] && vm_template="SLF${el}V_DynIP"
+#[ "${el}" = "6" ] &&  [ "${vm_template}" = "" ] && vm_template="CLI_DynamicIP_SLF6"
 [ "${el}" = "7" ] &&  [ "${vm_template}" = "" ] && vm_template="SLF${el}V_DynIP_Home"
 [ "${el}" = "6" ] &&  [ "${vm_template}" = "" ] && vm_template="CLI_DynamicIP_SLF6_HOME"
 
