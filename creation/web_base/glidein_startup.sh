@@ -541,7 +541,7 @@ function glidein_exit {
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
 
-  send_logs_to_remote
+  send_stdlogs_to_remote
 
   exit $1
 }
@@ -837,21 +837,69 @@ function params2file {
 
 ###########################
 # Logging
-LOGDIR='logs'
-STDOUT_LOGFILE='stdout'
-STDERR_LOGFILE='stderr'
-LOGSERVER='http://fermicloud093.fnal.gov:9393'
+
+logdir="logs/${glidein_uuid}"
+stdout_logfile="stdout"
+stderr_logfile="stderr"
+logserver_addr='http://fermicloud093.fnal.gov:9393'
 
 function logs_setup {
-    mkdir -p $LOGDIR
-    exec >  >(tee -ia ${LOGDIR}/${STDOUT_LOGFILE})       # TODO: add glidein identifier to filename
-    exec 2> >(tee -ia ${LOGDIR}/${STDERR_LOGFILE} >&2)
+    mkdir -p "$logdir"
+    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
+    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
 }
 
-function send_logs_to_remote {
+# Every logged event is recorded in a separate file. Eventually, these shards
+# are merged into a single log file.
+
+function log_write {
+    # Log an event
+    # 1:type of message, 2:content
+
+    cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
+    cur_time_ns=$(date +%s%N)   # enough to ensure that shards have different timestamps
+
+    shard_filename="shard_${cur_time_ns}"
+
+    mkdir -p "${logdir}/$BASHPID"
+    pushd "${logdir}/$BASHPID" > /dev/null
+
+    touch "$shard_filename"
+    if command -v jq >/dev/null 2>&1; then
+        json_logevent=$( jq -n \
+                  --arg ts "$cur_time" \
+                  --arg ty "$1" \
+                  --arg body "$2" \
+                  '{timestamp: $ts, type: $ty, content: $body}' )
+    else
+        json_logevent=$(echo -e "{\"timestamp\":\"${cur_time}\", \"type\":\"${1}\", \"content\":\"${2}\"}")
+    fi
+
+    echo "$json_logevent" > "$shard_filename"
+
+    popd > /dev/null
+}
+
+function log_coalesce_shards {
+    # Merge log shards in a single file (for each glidein process)
+
+    pushd "$logdir" > /dev/null
+    cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
+
+    for pid in `find . -mindepth 1 -maxdepth 1 -type d 2>/dev/null`; do
+        out_logfile="${cur_time}_${BASHPID}.log"
+        # concatenate separating with comma, then enclose in square brackets
+        find "$pid" -mindepth 1 -maxdepth 1 -name "shard_*" -print0 | sort -z | xargs -0 sed -s '$s/$/,/' | sed '$ s/.$//' | sed -e '1i[' -e '$a]' -e 's/^/ /' > "$out_logfile"
+        rm -f "${pid}/shard*"
+    done
+
+    popd > /dev/null
+}
+
+function send_stdlogs_to_remote {
 
     # Upload stdout log file
-    curl_resp=$(curl -X PUT --upload-file ${LOGDIR}/${STDOUT_LOGFILE} $LOGSERVER 2>&1)
+    curl_resp=$(curl -X PUT --upload-file ${logdir}/${stdout_logfile} $logserver_addr 2>&1)
     curl_retval=$?
     if [ $curl_retval -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -859,7 +907,7 @@ function send_logs_to_remote {
     fi
 
     # Upload stderr log file
-    curl_resp=$(curl -X PUT --upload-file ${LOGDIR}/${STDERR_LOGFILE} $LOGSERVER 2>&1)
+    curl_resp=$(curl -X PUT --upload-file ${logdir}/${stderr_logfile} $logserver_addr 2>&1)
     curl_retval=$?
     if [ $curl_retval -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -1027,11 +1075,21 @@ function md5wrapper {
 
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
+
+# Generate glidein UUID
+which uuidgen >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+    glidein_uuid=`uuidgen`
+else
+    glidein_uuid=`od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}'`
+fi
+
 echo "script_checksum   = '`md5wrapper "$0"`'"
 echo "debug_mode        = '$operation_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
 echo "condorg_schedd    = '$condorg_schedd'"
+echo "glidein_uuid      = '$glidein_uuid'"
 echo "glidein_credential_id = '$glidein_cred_id'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
@@ -1277,6 +1335,7 @@ if [ $? -ne 0 ]; then
     early_glidein_failure "Could not create '$glidein_config'"
 fi
 echo "# --- glidein_startup vals ---" >> glidein_config
+echo "GLIDEIN_UUID $glidein_uuid" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
 echo "GLIDEIN_Entry_Name $glidein_entry" >> glidein_config
