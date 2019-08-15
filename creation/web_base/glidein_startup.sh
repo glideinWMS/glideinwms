@@ -873,17 +873,30 @@ function generate_glidein_metadata_json {
 
 function log_write {
     # Log an event
-    # 1:invoker, 2:type of message, 3:content, 4:severity
+    # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
+    # If type is file, then the filepath is relative wrt start_dir
 
     cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
     cur_time_ns=$(date +%s%N)   # enough to ensure that shards have different timestamps
 
+    # Argument $1
     invoker=$1
-    content=$3
+    # Argument $2
     case $2 in
         "text" | "file" ) type=$2;;
         *) type="text";;
     esac
+    # Argument $3
+    if [ "$type" == "file" ]; then
+        filename=$3
+        raw_content=$(cat "${start_dir}/${filename}")
+        # Compression and encoding
+        content=$(echo "$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
+    else
+        filename=""
+        content=$3
+    fi
+    # Argument $4
     case $4 in
         "error" | "warn" | "info" | "debug" | "fatal" ) severity=$4;;
         *) severity="info";;
@@ -891,11 +904,6 @@ function log_write {
 
     pid=${BASHPID:-$$}
     shard_filename="shard_${cur_time_ns}_${invoker}_${pid}_${type}_${severity}"   # TODO: may need to escape invoker
-
-    # Compression and encoding
-    if [ "$type" == "file" ]; then
-        content=$(echo "$content" | gzip --stdout - | b64uuencode)
-    fi
 
     pushd "${start_dir}/${logdir}/shards" > /dev/null
     touch "$shard_filename"
@@ -905,11 +913,12 @@ function log_write {
                   --arg pid "$pid" \
                   --arg ts "$cur_time" \
                   --arg ty "$type" \
+                  --arg fn "$filename" \
                   --arg body "$content" \
                   --arg sev "$severity" \
-                  '{invoker: $inv, pid: $pid, timestamp: $ts, severity: $sev, type: $ty, content: $body}' )
+                  '{invoker: $inv, pid: $pid, timestamp: $ts, severity: $sev, type: $ty, filename: $fn, content: $body}' )
     else
-        json_logevent=$(echo -e "{\"invoker\":\"${invoker}\", \"pid\":\"${pid}\", \"timestamp\":\"${cur_time}\", \"severity\":\"${severity}\", \"type\":\"${type}\", \"content\":\"${content}\"}")  # TODO: escaping may be needed
+        json_logevent=$(echo -e "{\"invoker\":\"${invoker}\", \"pid\":\"${pid}\", \"timestamp\":\"${cur_time}\", \"severity\":\"${severity}\", \"type\":\"${type}\", \"filename\":\"${filename}\", \"content\":\"${content}\"}")  # TODO: escaping may be needed
     fi
 
     echo "$json_logevent" > "$shard_filename"
@@ -2131,7 +2140,7 @@ do
 
 done
 
-###############################
+##############################
 # Start the glidein main script
 add_config_line "GLIDEIN_INITIALIZED" "1"
 
