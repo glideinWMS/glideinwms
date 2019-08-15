@@ -541,7 +541,7 @@ function glidein_exit {
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
 
-  send_stdlogs_to_remote
+  send_logs_to_remote
 
   exit $1
 }
@@ -838,68 +838,101 @@ function params2file {
 ###########################
 # Logging
 
-logdir="logs/${glidein_uuid}"
-stdout_logfile="stdout"
-stderr_logfile="stderr"
-logserver_addr='http://fermicloud093.fnal.gov:9393'
-
 function logs_setup {
-    mkdir -p "$logdir"
+    mkdir -p "${logdir}/shards"
+    generate_glidein_metadata_json
+    echo "[" > "${logdir}/${log_logfile}"
+    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
+    echo "]" >> "${logdir}/${log_logfile}"
+
+    #TODO: separate out/err of different processes
     exec >  >(tee -ia "${logdir}/${stdout_logfile}")
     exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
+    echo "$(date): Started logging stdout on file too"
+    echo "$(date): Started logging stderr on file too" >&2
 }
 
 # Every logged event is recorded in a separate file. Eventually, these shards
-# are merged into a single log file.
+# are merged into a single log file; metadata is added at the beginning.
+
+function generate_glidein_metadata_json {
+    if command -v jq >/dev/null 2>&1; then
+        json_metadata=$( jq -n \
+                  --arg uuid "$glidein_uuid" \
+                  --arg name "$glidein_name" \
+                  --arg fact "$glidein_factory" \
+                  --arg client "$client_name" \
+                  --arg client_group "$client_group" \
+                  --arg schedd "$condorg_schedd" \
+                  '{UUID: $uuid, name: $name, factory: $fact, client: $client, client_group: $client_group, schedd: $schedd}' )
+    else
+        json_metadata=$(echo -e "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"schedd\":\"${condorg_schedd}\"}")  # TODO: escaping may be needed
+    fi
+    echo "$json_metadata" > "${logdir}/glidein_metadata.json"
+}
 
 function log_write {
     # Log an event
-    # 1:type of message, 2:content
+    # 1:invoker, 2:type of message, 3:content, 4:severity
 
     cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
     cur_time_ns=$(date +%s%N)   # enough to ensure that shards have different timestamps
 
-    shard_filename="shard_${cur_time_ns}"
+    invoker=$1
+    content=$3
+    case $2 in
+        "text" | "file" ) type=$2;;
+        *) type="text";;
+    esac
+    case $4 in
+        "error" | "warn" | "info" | "debug" | "fatal" ) severity=$4;;
+        *) severity="info";;
+    esac
 
-    mkdir -p "${logdir}/$BASHPID"
-    pushd "${logdir}/$BASHPID" > /dev/null
+    pid=${BASHPID:-$$}
+    shard_filename="shard_${cur_time_ns}_${invoker}_${pid}_${type}_${severity}"   # TODO: may need to escape invoker
 
+    pushd "${start_dir}/${logdir}/shards" > /dev/null
     touch "$shard_filename"
     if command -v jq >/dev/null 2>&1; then
         json_logevent=$( jq -n \
+                  --arg inv "$invoker" \
+                  --arg pid "$pid" \
                   --arg ts "$cur_time" \
-                  --arg ty "$1" \
-                  --arg body "$2" \
-                  '{timestamp: $ts, type: $ty, content: $body}' )
+                  --arg ty "$type" \
+                  --arg body "$content" \
+                  --arg sev "$severity" \
+                  '{invoker: $inv, pid: $pid, timestamp: $ts, severity: $sev, type: $ty, content: $body}' )
     else
-        json_logevent=$(echo -e "{\"timestamp\":\"${cur_time}\", \"type\":\"${1}\", \"content\":\"${2}\"}")
+        json_logevent=$(echo -e "{\"invoker\":\"${invoker}\", \"pid\":\"${pid}\", \"timestamp\":\"${cur_time}\", \"severity\":\"${severity}\", \"type\":\"${type}\", \"content\":\"${content}\"}")  # TODO: escaping may be needed
     fi
 
     echo "$json_logevent" > "$shard_filename"
-
     popd > /dev/null
 }
 
 function log_coalesce_shards {
     # Merge log shards in a single file (for each glidein process)
 
-    pushd "$logdir" > /dev/null
+    pushd "${start_dir}/$logdir" > /dev/null
     cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
 
-    for pid in `find . -mindepth 1 -maxdepth 1 -type d 2>/dev/null`; do
-        out_logfile="${cur_time}_${BASHPID}.log"
-        # concatenate separating with comma, then enclose in square brackets
-        find "$pid" -mindepth 1 -maxdepth 1 -name "shard_*" -print0 | sort -z | xargs -0 sed -s '$s/$/,/' | sed '$ s/.$//' | sed -e '1i[' -e '$a]' -e 's/^/ /' > "$out_logfile"
-        rm -f "${pid}/shard*"
-    done
-
+    if [ -n "$(ls -A shards)" ]; then
+        sed -i '$ d' "$log_logfile"         # remove last square bracket
+        sed -i '${s/$/,/}' "$log_logfile"   # append comma to last line
+        # concatenate separating with comma
+        find "shards" -mindepth 1 -maxdepth 1 -name "shard*" -print0 | sort -z | xargs -0 sed -s '$ s/$/,/' | sed '$ s/.$//' >> "$log_logfile" # TODO: do it without sed?
+        echo "]" >> "$log_logfile"
+        rm -f shards/shard*         # TODO: how to make sure these files are not currently open?
+    fi    
     popd > /dev/null
 }
 
-function send_stdlogs_to_remote {
+function send_logs_to_remote {
+    log_coalesce_shards
 
     # Upload stdout log file
-    curl_resp=$(curl -X PUT --upload-file ${logdir}/${stdout_logfile} $logserver_addr 2>&1)
+    curl_resp=$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stdout_logfile} $logserver_addr 2>&1)
     curl_retval=$?
     if [ $curl_retval -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -907,7 +940,15 @@ function send_stdlogs_to_remote {
     fi
 
     # Upload stderr log file
-    curl_resp=$(curl -X PUT --upload-file ${logdir}/${stderr_logfile} $logserver_addr 2>&1)
+    curl_resp=$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stderr_logfile} $logserver_addr 2>&1)
+    curl_retval=$?
+    if [ $curl_retval -ne 0 ]; then
+        curl_version=$(curl --version 2>&1 | head -1)
+        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+    fi
+
+    # Upload general log file
+    curl_resp=$(curl -X PUT --upload-file ${start_dir}/${logdir}/${log_logfile} $logserver_addr 2>&1)
     curl_retval=$?
     if [ $curl_retval -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -916,7 +957,19 @@ function send_stdlogs_to_remote {
 }
 
 ################
+# Generate glidein UUID
+if command -v uuidgen >/dev/null 2>&1; then
+    glidein_uuid=$(uuidgen)
+else
+    glidein_uuid=$(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')
+fi
+
 # Setup logging
+logdir="logs/${glidein_uuid}"
+stdout_logfile="${glidein_uuid}.out"
+stderr_logfile="${glidein_uuid}.err"
+log_logfile="${glidein_uuid}.log"
+logserver_addr='http://fermicloud093.fnal.gov:9393'
 logs_setup
 
 # Parse and verify arguments
@@ -1075,14 +1128,6 @@ function md5wrapper {
 
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
-
-# Generate glidein UUID
-which uuidgen >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-    glidein_uuid=`uuidgen`
-else
-    glidein_uuid=`od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}'`
-fi
 
 echo "script_checksum   = '`md5wrapper "$0"`'"
 echo "debug_mode        = '$operation_mode'"
