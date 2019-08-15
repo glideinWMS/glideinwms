@@ -892,6 +892,11 @@ function log_write {
     pid=${BASHPID:-$$}
     shard_filename="shard_${cur_time_ns}_${invoker}_${pid}_${type}_${severity}"   # TODO: may need to escape invoker
 
+    # Compression and encoding
+    if [ "$type" == "file" ]; then
+        content=$(echo "$content" | gzip --stdout - | b64uuencode)
+    fi
+
     pushd "${start_dir}/${logdir}/shards" > /dev/null
     touch "$shard_filename"
     if command -v jq >/dev/null 2>&1; then
