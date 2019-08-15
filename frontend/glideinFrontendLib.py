@@ -202,15 +202,15 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
     """
     Get the number of jobs that match each glidein
     
-    @param match_obj: output of re.compile(match string,'<string>','eval')
-    @type condorq_dict: dictionary: sched_name->CondorQ object
-    @param condorq_dict: output of getidleCondorQ
-    @type glidein_dict: dictionary: glidein_name->dictionary of params and attrs
-    @param glidein_dict: output of interface.findGlideins
-    @param attr_dict:  dictionary of constant attributes
-    @param condorq_match_list: list of job attributes from the XML file
+    :param match_obj: output of re.compile(match string,'<string>','eval')
+    :type condorq_dict: dictionary: sched_name->CondorQ object
+    :param condorq_dict: output of getidleCondorQ
+    :type glidein_dict: dictionary: glidein_name->dictionary of params and attrs
+    :param glidein_dict: output of interface.findGlideins
+    :param attr_dict:  dictionary of constant attributes
+    :param condorq_match_list: list of job attributes from the XML file
 
-    @return: tuple of 4 elements, where first 3 are a dictionary of
+    :return: tuple of 4 elements, where first 3 are a dictionary of
         glidein name where elements are number of jobs matching
         First tuple  : Straight match
         Second tuple : The entry proportion based on unique subsets

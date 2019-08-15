@@ -48,7 +48,7 @@ d01ca84d60c7c3bce3e1014b73cf7182  ./creation/templates/factory_initd_startup_tem
 9424191fadf0ea740055825597f93d58  ./creation/templates/factory_initd_startup_template_sl7
 eaff9e410bd82e6b029eb0e9d9505636  ./creation/templates/gwms-factory.service
 fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
-8011ddbcfcf75edadb1a8456ee832b52  ./creation/templates/gwms-renew-proxies.init
+a864e47ca7bb2f1b2ffbd3d1db3c57f9  ./creation/templates/gwms-renew-proxies.init
 7d7d2ee057fdbc10ec548b01d85c8229  ./creation/templates/gwms-renew-proxies.service
 11a437db8f082df96ea3858d2912cc29  ./creation/templates/gwms-renew-proxies.timer
 d54684f520856a54572008b3b53e3656  ./creation/templates/proxies.ini
@@ -60,12 +60,12 @@ f79af46f0f740ae3a9ca525c96381a0e  ./creation/web_base/check_wn_drainstate.sh
 ebb4fc040330f2636ed25be3c5afc83d  ./creation/web_base/collector_setup.sh
 38b0f94b484a44afca74f9a3473a6bea  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
-5a58d9b077275b1e5832475f6fbdd4ec  ./creation/web_base/condor_config.dedicated_starter.include
+f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 a98ca4601e352a0dfa0fdae56d5cccec  ./creation/web_base/condor_platform_select.sh
 83c465084e3c8a854355bdc609e49378  ./creation/web_base/condor_startup.sh
-4f56ee1f81861ec317766757ffb85953  ./creation/web_base/condor_vars.lst
+8d325ca533e19d285e26711336e32638  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 a937c0ee624fe5acc855f0eb09155223  ./creation/web_base/create_mapfile.sh
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
@@ -94,7 +94,7 @@ f564843c0324a04e9248b1743cbb2598  ./creation/web_base/glidein_cpus_setup.sh
 2acf79fe244c24bce8febe79f27f3b47  ./creation/web_base/glidein_lib.sh
 f168da17276900b3ecb3f1e5b6ca100f  ./creation/web_base/glidein_memory_setup.sh
 ab6465250e201c27f167d09b382f7e0a  ./creation/web_base/glidein_sitewms_setup.sh
-1974ae336a84d301408afae627d705c3  ./creation/web_base/glidein_startup.sh
+8c9a6cab9b22fe4dc93548aac0528874  ./creation/web_base/glidein_startup.sh
 7729d6cdf743c3a86906e571d1683323  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 20a2b7ed9b71faeeccf79ab77bc7bfc4  ./creation/web_base/mjf_setparams.sh
@@ -104,8 +104,8 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 7952a21b73f31c0795e51ec0cd135138  ./creation/web_base/setup_x509.sh
-26879f207be4156f85e28fc0b98b1a9a  ./creation/web_base/singularity_lib.sh
-3db85aa71615600a39df968544d40244  ./creation/web_base/singularity_setup.sh
+574d4d05d482c0aa6979f6aa73846d5b  ./creation/web_base/singularity_lib.sh
+e0c11378e667a05e73f96a94e1d1a7c3  ./creation/web_base/singularity_setup.sh
 73e36abceb940089bef39806443764a8  ./creation/web_base/smart_partitionable.sh
 054187e1390c6c812aeed1cad8c0d917  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh

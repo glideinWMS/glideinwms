@@ -1793,8 +1793,20 @@ class glideinFrontendElement:
 
 
     def do_match(self):
-        """Do the actual matching.  This forks subprocess_count as children
-        to do the work in parallel. """
+        """Do the actual matching.
+
+        This forks subprocess_count... methods as children to do the work in parallel:
+        - self.subprocess_count_glidein
+        - self.subprocess_count_real
+        - self.subprocess_count_dt
+
+        The results are stored in 2 dictionaries:
+        - self.count_status_multi, self.count_status_multi_per_cred
+        - self.count_real_jobs, self.count_real_glideins
+        - self.condorq_dict_types
+
+        :return:
+        """
 
         # IS: Heuristics of 100 glideins per fork
         #     Based on times seen by CMS
@@ -1803,7 +1815,8 @@ class glideinFrontendElement:
         glidein_list = self.glidein_dict.keys()
         # split the list in equal pieces
         # the result is a list of lists
-        split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
+        split_glidein_list = [glidein_list[i:i+glideins_per_fork]
+                              for i in range(0, len(glidein_list), glideins_per_fork)]
 
         forkm_obj = ForkManager()
 
@@ -1846,10 +1859,11 @@ class glideinFrontendElement:
 
 
     def subprocess_count_dt(self, dt):
-        """Make match calculations of glideins matching entries (invoked in parallel)
+        """Count the matches (glideins matching entries) using glideinFrontendLib.countMatch
+        Will make calculations in parallel, using multiple processes
 
-        @param dt: index within the data dictionary
-        @return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
+        :param dt: index within the data dictionary
+        :return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
         """
 
         out = ()
@@ -1867,14 +1881,18 @@ class glideinFrontendElement:
 # Data will be saved into /tmp/frontend_dump/ . Make sure to create the dir beforehand.
 #                        group_name=self.group_name
                         )
-        t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+        t = glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out = (c, p, h, pmc, t)
 
         return out
 
     def subprocess_count_real(self):
-        # will make calculations in parallel,using multiple processes
+        """Count the jobs running on the glideins for these requests using glideinFrontendLib.countRealRunning
+        Will make calculations in parallel,using multiple processes
+
+        :return: count_real_jobs, count_real_glideins
+        """
         out = glideinFrontendLib.countRealRunning(
                   self.elementDescript.merged_data['MatchExprCompiledObj'],
                   self.condorq_dict_running,
@@ -1885,20 +1903,21 @@ class glideinFrontendElement:
         return out
 
     def subprocess_count_glidein(self, glidein_list):
-        """
+        """Count glideins statistics
         Will make calculations in parallel, using multiple processes
-        @param glidein_list:
-        @return:
+
+        :param glidein_list:
+        :return:
         """
         out = ()
 
-        count_status_multi={}
+        count_status_multi = {}
         # Count distribution per credentials
         count_status_multi_per_cred = {}
         for glideid in glidein_list:
-            request_name=glideid[1]
+            request_name = glideid[1]
 
-            count_status_multi[request_name]={}
+            count_status_multi[request_name] = {}
             count_status_multi_per_cred[request_name] = {}
             for cred in self.x509_proxy_plugin.cred_list:
                 count_status_multi_per_cred[request_name][cred.getId()] = {}
@@ -1964,7 +1983,7 @@ def check_parent(parent_pid):
 ############################################################
 def write_stats(stats):
     for k in stats.keys():
-        stats[k].write_file();
+        stats[k].write_file()
 
 
 ############################################################

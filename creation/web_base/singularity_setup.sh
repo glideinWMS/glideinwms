@@ -27,14 +27,14 @@ GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
 echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
 
 # defined in singularity_lib.sh
-[ -e "$glidein_config" ] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
+[[ -e "$glidein_config" ]] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 # Source utility files, outside and inside Singularity
-if [ -e "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh ]; then
+if [[ -e "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh ]]; then
     source "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh
 else
     echo "ERROR: singularity_setup.sh: Unable to source '$GWMS_THIS_SCRIPT_DIR/singularity_lib.sh'! File not found. Quitting" 1>&2
-    [ -n "$error_gen" ] && "$error_gen" -error "singularity_setup.sh"
+    [[ -n "$error_gen" ]] && "$error_gen" -error "singularity_setup.sh"
     exit 1
 fi
 
@@ -53,11 +53,11 @@ function no_singularity_fail_or_exit {
     #  2: output message
     #  3: variable (default: WN_Resource)
     local var_name="${3:-WN_Resource}"
-    if [ "$1" = "REQUIRED" ]; then
+    if [[ "$1" = "REQUIRED" ]]; then
         info_stdout "`date` Incompatible Singularity requirements ($2). Failing Glidein"
         "$error_gen" -error "singularity_setup.sh" "$var_name" "$2"
         exit 1
-    elif [ "$1" = "PREFERRED" ]; then
+    elif [[ "$1" = "PREFERRED" ]]; then
         info_stdout "`date` Falling back to no Singularity, error: $2"
         no_use_singularity_config
     else
@@ -98,7 +98,7 @@ function combine_requirements {
     local res=FAIL
     case "$req_frontend" in
         DISABLE_GWMS)
-            if [ "$req_factory" = REQUIRED_GWMS ]; then
+            if [[ "$req_factory" = REQUIRED_GWMS ]]; then
                 res_str="Factory requires glidein to enforce Singularity. Disabling not accepted"
                 echo "FAIL,$res_str"
                 return 1
@@ -107,7 +107,7 @@ function combine_requirements {
             ;;
         NEVER)
             #echo "`date` VO does not want to use singularity"
-            if [ "$req_factory" = REQUIRED ] || [ "$req_factory" = REQUIRED_GWMS ]; then
+            if [[ "$req_factory" = REQUIRED  ||  "$req_factory" = REQUIRED_GWMS ]]; then
                 res_str="Factory requires glidein to use Singularity. VO is against."
                 echo "FAIL,$res_str"
                 return 1
@@ -117,10 +117,10 @@ function combine_requirements {
             res=NEVER
             ;;
         OPTIONAL)  #GWMS Even in OPTIONAL/PREFERRED case, FE will have to specify the wrapper script
-            if [ "$req_factory" = NEVER ] || [ "$req_factory" = OPTIONAL ]; then
+            if [[ "$req_factory" = NEVER  ||  "$req_factory" = OPTIONAL ]]; then
                 res_str="`date` VO and Site prefer no Singularity (OPTIONAL/NEVER)"
                 res=NEVER
-            elif [ "$req_factory" = REQUIRED ] || [ "$req_factory" = REQUIRED_GWMS ]; then
+            elif [[ "$req_factory" = REQUIRED  ||  "$req_factory" = REQUIRED_GWMS ]]; then
                 res_str="Factory requires glidein to use Singularity."
                 res=REQUIRED
             else
@@ -129,10 +129,10 @@ function combine_requirements {
             fi
             ;;
         PREFERRED)  #GWMS Even in OPTIONAL/PREFERRED case, FE will have to specify the wrapper script
-            if [ "$req_factory" = REQUIRED ] || [ "$req_factory" = REQUIRED_GWMS ]; then
+            if [[ "$req_factory" = REQUIRED  ||  "$req_factory" = REQUIRED_GWMS ]]; then
                 res_str="Factory requires glidein to use Singularity."
                 res=REQUIRED
-            elif [ "$req_factory" = NEVER ]; then
+            elif [[ "$req_factory" = NEVER ]]; then
                 res_str="`date` VO has set the use singularity to OPTIONAL but site is not configured with singularity"
                 res=NEVER
             else
@@ -140,7 +140,7 @@ function combine_requirements {
             fi
             ;;
         REQUIRED)
-            if [ "$req_factory" = NEVER ]; then
+            if [[ "$req_factory" = NEVER ]]; then
                 res_str="VO mandates the use of Singularity Site requires not to use it"
                 echo "FAIL,$res_str"
                 return 1
@@ -172,7 +172,7 @@ singularity_bin="$(echo $temp_singularity_bin)"
 
 # Does frontend want to use singularity?
 use_singularity=`grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-`
-if [ -z "$use_singularity" ]; then
+if [[ -z "$use_singularity" ]]; then
     info_stdout "`date` GLIDEIN_Singularity_Use not configured. Defaulting to DISABLE_GWMS"
     # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to DISABLE_GWMS (2018-03-19 discussion)
     use_singularity="DISABLE_GWMS"
@@ -180,7 +180,7 @@ fi
 
 # Does entry require glidein to use singularity?
 require_singularity=`grep '^GLIDEIN_SINGULARITY_REQUIRE ' "$glidein_config" | cut -d ' ' -f 2-`
-if [ -z "$require_singularity" ]; then
+if [[ -z "$require_singularity" ]]; then
     info_stdout "`date` GLIDEIN_SINGULARITY_REQUIRE not configured. Defaulting to OPTIONAL"
     require_singularity="OPTIONAL"
 fi
@@ -194,7 +194,7 @@ gwms_singularity_ec=$?
 gwms_singularity_status="${gwms_singularity%%,*}"
 gwms_singularity_str="${gwms_singularity#*,}"
 info_dbg "Combining VO ($use_singularity) and entry ($require_singularity): $gwms_singularity_ec, $gwms_singularity_status, $gwms_singularity_str"
-if [ $gwms_singularity_ec -ne 0 ] && [ "${gwms_singularity_status}" != FAIL ]; then
+if [[ $gwms_singularity_ec -ne 0  &&  "${gwms_singularity_status}" != FAIL ]]; then
     gwms_singularity_str="Detected inconsistent ec=1/status ${gwms_singularity_status} (${gwms_singularity_str}). Forcing failure."
     gwms_singularity_status=FAIL
 fi
@@ -241,13 +241,13 @@ SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config |
 info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] located on CVMFS"
 GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 cvmfs`"
 ec=$?
-if [ $ec -ne 0 ]; then
+if [[ $ec -ne 0 ]]; then
     out_str="ERROR selecting a Singularity image ($ec, $GWMS_SINGULARITY_IMAGE)"
-    if [ $ec -eq 1 ]; then
+    if [[ $ec -eq 1 ]]; then
         out_str="Singularity image for the default platforms (default,rhel7,rhel6) was not set (via attributes or vo_pre_singularity_setup.sh)"
-    elif [ $ec -eq 2 ]; then
+    elif [[ $ec -eq 2 ]]; then
         out_str="Selected singularity image, $GWMS_SINGULARITY_IMAGE, does not exist"
-    elif [ $ec -eq 3 ]; then
+    elif [[ $ec -eq 3 ]]; then
         out_str="Selected singularity image, $GWMS_SINGULARITY_IMAGE, is not in CVMFS as requested"
     fi
     no_singularity_fail_or_exit $gwms_singularity_status "$out_str"
@@ -262,7 +262,7 @@ info_stdout "`date` Searching and testing the singularity binary"
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
 singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 
-if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
+if [[ "x$HAS_SINGULARITY" = "xTrue" ]]; then
     info "Singularity binary appears present, claims to be version $GWMS_SINGULARITY_VERSION and tested with $GWMS_SINGULARITY_IMAGE"
 else
     # Adapt to missing binary
@@ -283,7 +283,7 @@ advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
 # TODO: advertise also GWMS_SINGULARITY_IMAGE ?
 # TODO: is GLIDEIN_REQUIRED_OS "any" published here, will it not override config setting?
 advertise GLIDEIN_REQUIRED_OS "any" "S"
-if [ "x$GLIDEIN_DEBUG_OUTPUT" != "x" ]; then
+if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
     advertise GLIDEIN_DEBUG_OUTPUT "$GLIDEIN_DEBUG_OUTPUT" "S"
 fi
 info_stdout "`date` Decided to use Singularity ($gwms_singularity_status)"

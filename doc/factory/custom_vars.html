@@ -191,9 +191,10 @@ glideins are HTCondor based; see the <A target="_blank" HREF="https://research.c
 <P>The variables can be divided based on their source:
 </p>
 <UL>
-    <LI><A HREF="#factory_attrs">Factory config xml - attr tags</A></li>
-    <LI><A HREF="#factory_vars">Factory config xml - configuration</A></li>
-    <LI><A HREF="#frontend_vars">Frontend variables</A></li>
+    <LI><A HREF="#factory_attrs">Factory variables (config - attr tags)</A></li>
+    <LI><A HREF="#factory_vars">Factory config - configuration</A></li>
+    <LI><A HREF="#factory_frontend_attrs">Factory or Frontend variables (config - attr tags)</A></li>
+    <LI><A HREF="#frontend_vars">Frontend variables (config - attr tags)</A></li>
     <LI><A HREF="#vm_vars">Cloud VM variables</A></li>
     <LI><A HREF="#dyn_vars">Dynamically generated</A></li>
     <LI><A HREF="#path_vars">Directory Paths</A></li>
@@ -202,8 +203,8 @@ glideins are HTCondor based; see the <A target="_blank" HREF="https://research.c
 </div>
 
 <div class="section">
-<H3><A NAME="factory_attrs"></A>Factory config xml - attr tags</H3>
-<P>This section presents all the variables that can be directly
+<H3><A NAME="factory_attrs"></A>Factory variables (config - attr tags)</H3>
+<P>This section presents variables that can be directly
 changed by a Glidein Factory administrator using attr tags in the
 Factory configuration XML using the following tags:</P>
 <BLOCKQUOTE>
@@ -223,7 +224,7 @@ which are used if the Glidein Factory administrator does not override
 them. These defaults are listed below.
 </P>
 <P>Please also note that some of these variables may also be provided
-by the VO Factory clients.</P>
+by the VO clients (e.g. Frontends). See the sections below.</P>
 
 <TABLE class="attributes">
     <TR class="head">
@@ -897,10 +898,62 @@ They cannot be changed by an administrator in any other way.
 </TABLE>
 </div>
 <div class="section">
+<H3><A NAME="factory_frontend_attrs"></A>Factory or Frontend variables (config - attr tags)</H3>
+<P>This set of values may come from the Glidein Factory or Frontend configuration.
+    While a client can set any number of variables, the ones described below are the most often used.
+    The value set in the Factory can be overridden by the Frontend, unless set constant in the Factory.
+Some of the values below must be a parameter (i.e. have parameter="True" attr specification).
+    This is because they are used in the early phases of the Glidein execution.
+NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should be set, otherwise parameter=True will be ignored.</P>
+<TABLE class="attributes">
+    <TR class="head">
+        <td> <b>Name</b> </td>
+
+        <td> <b>Type</b> </td>
+        <td> <b>Description</b> </td>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
+
+        <TD> Int </TD>
+        <TD>
+            <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
+                (similar to multinode submission, but is all on one node).
+                Unlsess GLIDEIN_MULTIGLIDEIN_LAUNCHALL is set, then a single invocation
+                is used, expecting the system to handle the spawning. <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
+
+        <TD> String </TD>
+        <TD>
+            <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
+                Defines a launcher program that is added at the
+            beginning of the command line when each multiple Glidein instance is started.
+            NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
+
+        <TD> String </TD>
+        <TD>
+            <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
+                followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+</TABLE>
+</div>
+
+<div class="section">
 <H3><A NAME="frontend_vars"></A>Frontend Client Variables</H3>
 <P>The third set of values comes from the Glidein Frontend
 clients. While a client can set any number of variables, the ones
-described below ar the most often used.</P>
+described below are the most often used.</P>
 <TABLE class="attributes">
     <TR class="head">
         <td> <b>Name</b> </td>
@@ -1098,7 +1151,14 @@ described below ar the most often used.</P>
             <p>CLAIM_WORKLIFE for dynamically partitionable slots. Defaults to 3600. This controls how frequently the dynamically partionable slots will coalesce.
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Custom_Start</b> </td>
+        <td> Expr (Bool) </TD>
 
+        <TD>
+            <p>Defaults to true. An expression that gets appended to the start expression of the startd daemons that the pilots start on the worker node. Any frontend validation script can modify this and customize the set of user jobs that are matching. This is useful in order to have only a certain set of user jobs (e.g.: only montecarlo jobs) matching pilots at particular resources (e.g.: sites with slow network/disk)
+        </TD>
+    </TR>
 </TABLE>
 </div>
 
@@ -1488,6 +1548,16 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     startup scripts (Dynamic). A value can be also be a combination of the above: the Factory value can be overridden by the Frontend one
     (unless set as constant), and the startup scripts can modify it and have the ultimate saying.
 </P>
+    <p>The resulting invocation of Singularity is something like the text below.
+    Where $singularity_binds is built using GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_BINDPATH,
+        and GWMS_SINGULARITY_BIND_CVMFS, and the $singularity_image is one coming from SINGULARITY_IMAGES_DICT or
+        specified in the job.
+        The debug options are used if GLIDEIN_DEBUG_OUTPUT is set.
+    </p>
+<pre> singularity [-d -vvv] exec --home "$PWD":/srv --pwd /srv --ipc --pid --contain \
+    $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
+    "$singularity_image" "${@}"
+</pre>
 
 <TABLE class="attributes">
     <TR class="head">

@@ -843,6 +843,14 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Wed Aug 14 2019 Marco Mambelli <marcom@fnal.gov> - 3.4.6-1
+- GlideinWMS v3.4.6
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_4_6/history.html
+- Release candidates: 3.4.6-0.1.rc1
+
+* Tue Jun 4 2019 Diego Davila <didavila@ucsd.edu> - 3.4.5-2
+- patch (sw3689.proxy-renewal-bugfix.patch) to fix bug on proxy renewal
+
 * Fri Jun 7 2019 Marco Mambelli <marcom@fnal.gov> - 3.5
 - GlideinWMS v3.5
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_5/history.html
