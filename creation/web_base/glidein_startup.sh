@@ -918,11 +918,13 @@ function log_coalesce_shards {
     cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
 
     if [ -n "$(ls -A shards)" ]; then
-        sed -i '$ d' "$log_logfile"         # remove last square bracket
-        sed -i '${s/$/,/}' "$log_logfile"   # append comma to last line
-        # concatenate separating with comma
-        find "shards" -mindepth 1 -maxdepth 1 -name "shard*" -print0 | sort -z | xargs -0 sed -s '$ s/$/,/' | sed '$ s/.$//' >> "$log_logfile" # TODO: do it without sed?
-        echo "]" >> "$log_logfile"
+        sed -i '${s/]$/,/}' "$log_logfile"    # replace last square bracket with comma
+        for shd in shards/shard*; do          # concatenate separating with comma
+            cat $shd
+            echo ","
+        done >> "$log_logfile"
+        sed -i '$ d' "$log_logfile"           # remove last comma
+        echo "]" >> "$log_logfile"            # closing square bracket
         rm -f shards/shard*         # TODO: how to make sure these files are not currently open?
     fi    
     popd > /dev/null
