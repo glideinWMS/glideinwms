@@ -112,9 +112,9 @@ further detail. However, a few need more detail; in particular:</P>
 <P>This stage is composed of three logical parts, as shown in the
 picture below:</P>
 <UL>
-    <LI><P>Find the requests by querying the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+    <LI><P>Find the requests by querying the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#introduction">HTCondor
     Collector</A></P>
-    <LI><P>For each request:</P>Keep the required number of idle jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd (G)</A> queue</P>
+    <LI><P>For each request:</P>Keep the required number of idle jobs in the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#introduction">HTCondor Schedd (G)</A> queue</P>
     <LI><P>For each request: Extract the statistics</P></li>
 </UL>
 <P><IMG SRC="../images/flow_entry_work.png"></P>
@@ -124,9 +124,9 @@ the downtime flag, and returns the request-specific job statistics.</P>
 them, it currently uses the HTCondor command line tools:</P>
 
 <UL>
-    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_status.html">condor_status</A> to query the HTCondor Collector</li>
-    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_q.html">condor_q</A> to query the HTCondor Schedd</li>
-    <LI><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_submit.html">condor_submit</A> to submit new jobs to and to release held jobs in the HTCondor Schedd </li>
+    <LI><A HREF="https://htcondor.readthedocs.io/en/latest/man-pages/condor_status.html?highlight=condor_status#condor-status">condor_status</A> to query the HTCondor Collector</li>
+    <LI><A HREF="https://htcondor.readthedocs.io/en/latest/man-pages/condor_q.html?highlight=condor_q">condor_q</A> to query the HTCondor Schedd</li>
+    <LI><A HREF="https://htcondor.readthedocs.io/en/latest/man-pages/condor_submit.html?highlight=condor_submit">condor_submit</A> to submit new jobs to and to release held jobs in the HTCondor Schedd </li>
 </UL>
 
 <P>The requests are inserted into the HTCondor Collector by the <A HREF="../frontend/index.html">VO
@@ -139,7 +139,7 @@ present in the Collector.</P>
 <div class="section">
 <H3><A NAME="flow_advertise"></A>Advertise myself</H3>
 <P>The advertise stage advertises the existence of the Entry Daemon
-and its statistics to the <A HREF="http://www.cs.wisc.edu/condor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor
+and its statistics to the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html">HTCondor
 Collector</A>. <BR>Two classes of ClassAds are sent, one for the
 Entry Daemon itself, and one for every processed event. The two types
 of ClassAds are shown in the pictures below.</P>
@@ -149,7 +149,7 @@ of ClassAds are shown in the pictures below.</P>
 <P><IMG SRC="../images/factory_client_publish.png">
 </P>
 <P>The current implementation uses a HTCondor provided command line
-tool, namely <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_advertise.html">condor_advertise</A>,
+tool, namely <A HREF="https://htcondor.readthedocs.io/en/latest/man-pages/condor_advertise.html?highlight=condor_advertise">condor_advertise</A>,
 for this task.</P>
 </div>
 
@@ -185,7 +185,7 @@ the Factory other shared between different parts of the GlideinWMS. A
 shell script is also used. <BR>There are also some external
 dependencies, namely the <A HREF="http://oss.oetiker.ch/rrdtool/">rrdtool</A>
 and <A HREF="https://pypi.org/project/M2Crypto/">M2Crypto</A>
-python libraries and the <A HREF="http://research.cs.wisc.edu/htcondor/">HTCondor</A>
+python libraries and the <A HREF="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor</A>
 command line binaries.</P>
 
 <P>The picture below shows the dependency tree.</P>
@@ -257,17 +257,17 @@ used by only one Entry Daemon.</P>
     <UL>
         <LI>EntryName &ndash; The entry name used when advertising the Entry
         Daemon.</li>
-        <LI>ScheddName &ndash; The <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd</A> 
+        <LI>ScheddName &ndash; The <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#introduction">HTCondor Schedd</A> 
         used to submit jobs.</li>
 
         <LI>SubmitCluster &ndash; How many jobs should I submit in a single
         submission.</li>
         <LI>MaxIdle, MaxGlideins, MaxHeld &ndash; Limits on the number of
-        jobs in the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd</A> 
+        jobs in the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#introduction">HTCondor Schedd</A> 
         queue.</li>
         <LI>MaxSubmitRate, MaxRemoveRate, MaxReleaseRate, SubmitSleep,
         RemoveSleep, ReleaseSleep &ndash; Knobs to limit the interaction with
-        the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION00412000000000000000">HTCondor Schedd.</A>
+        the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#introduction">HTCondor Schedd.</A>
         </li>
         <LI>DowntimeFile &ndash; The name of the file containing all the
         Factory downtimes. Usually defaults to &ldquo;glideinWMS.downtimes&rdquo;.
@@ -275,7 +275,7 @@ used by only one Entry Daemon.</P>
 
     </UL>
     <LI><P><TT>job.condor</TT> &ndash; A condor description file that is
-    used for submitting the jobs using <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_submit.html">condor_submit</A>.</P>
+    used for submitting the jobs using <A HREF="https://htcondor.readthedocs.io/en/latest/man-pages/condor_submit.html?highlight=condor_submit#condor-submit">condor_submit</A>.</P>
     <LI><P><TT>params.cfg</TT> &ndash; This file contains the entry-specific
     default parameters. These are for values the Frontend will change and also published in the Factory ClassAd</P>
     <li><p><tt>attributes.cfg</tt> - This file contains fixed values whiche are published in the Factory ClassAd

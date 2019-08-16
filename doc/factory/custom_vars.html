@@ -187,7 +187,7 @@ MAX_STARTD_LOG          I       10000000        +                               
 <P>This section defines all the variables that the glideins explicity
 use. Please be aware that, apart from the below mentioned variable
 many other variables will be used by the HTCondor daemons, since
-glideins are HTCondor based; see the <A target="_blank" HREF="https://research.cs.wisc.edu/htcondor/manual/v8.6/3_3Introduction_Configurati.html">HTCondor manual</A> for more details.</P>
+glideins are HTCondor based; see the <A target="_blank" HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-to-configuration.html?highlight=ntroduction%20to%20Configuration#introduction-to-configuration">HTCondor manual</A> for more details.</P>
 <P>The variables can be divided based on their source:
 </p>
 <UL>
@@ -281,8 +281,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <td>Expr (Int)</td>
         <TD>1</TD>
         <TD ROWSPAN=2>
-                <P>Used in calculating the HTCondor <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html">RANK</A></P><P>They
-                are summed together, and the user job with the largest rank will run
+                <P>Used in calculating the HTCondor <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=configuration%20macros#configuration-macros">RANK</A></P><P>They are summed together, and the user job with the largest rank will run
                 first.</P>
 
         </TD>
@@ -361,7 +360,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> 120 </TD>
         <TD>
             <P>Once DAEMON_SHUTDOWN is reached and the glidein pilot enters the 
-            <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html"><I>Retiring</I> state</a>, 
+            <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts"><I>Retiring</I> state</a>, 
             this amount passes to allow the startd and job to gracefully shutdown before forcefully terminating the glidein.
             See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
@@ -436,8 +435,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
         -->
-        Check the <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">
-            HTCondor manual to learn more on how resources are split</a>.
+        Check the <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts"> HTCondor manual to learn more on how resources are split</a>.
         </p>
         <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type, disk (see the last example below).</p>
         <p>Characters may be appended to a numerical value of memory to indicate percentage (%) or units. K or KB indicates KiB, $2^{10}$ numbers of bytes.
@@ -445,7 +443,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             T or TB indicates TiB, $2^{40}$ numbers of bytes.
             Disk space must be a fraction or percentage: 1/4, 25%.
             auto lets HTCondor do the splitting.
-            Check the <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">HTCondor manual</a> for more about resource splitting.</p>
+            Check the <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts">HTCondor manual</a> for more about resource splitting.</p>
         <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
             e.g. request_ioslot=1</p>
         <p>Examples:</p>
@@ -504,8 +502,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
 
         <TD>
             <P>Should process group monitoring be enabled?</P>
-            <P>This is a <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_3Introduction_Configurati.html">HTCondor
-            optimization</A> parameter. Unfortunately, it negatively
+            <P>This is a <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-to-configuration.html?highlight=ntroduction%20to%20Configuration#introduction-to-configuration">HTCondor optimization</A> parameter. Unfortunately, it negatively
             interferes with the batch systems used by the Grid sites, so it
             should not be turned on unless you have a very good reason to do
             so.</P>
@@ -520,7 +517,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             <P>If True, forces the glidein to use <A HREF="configuration.html#tcp">TCP updates</A>.<BR>The collector must be configured in the same way
             for this to work.</P>
 
-            <P>Also see the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:UseProcessGroups">HTCondor documentation</A> for implications and side effects.</P>
+            <P>Also see the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=UPDATE_COLLECTOR_WITH_TCP#network-related-configuration-file-entries">HTCondor documentation</A> for implications and side effects.</P>
         </TD>
     </TR>
     <TR>
@@ -531,14 +528,14 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD>
             <P>If True, enable the startd UDP command socket (HTCondor
             default).</P>
-            <P>Using the UDP command socket is a <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:WantUDPCommandSocket">HTCondor
+            <P>Using the UDP command socket is a <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Network-Related%20Configuration%20File%20Entries#network-related-configuration-file-entries">HTCondor
             optimization</A> that makes working over firewalls and NATs very
             difficult. It is thus recommended you leave it disabled in the
             glideins.</P>
 
             <P>Please note if you leave it disabled, that you must configure
             the schedd with<BR>SCHEDD_SEND_VACATE_VIA_TCP = True<BR>and the
-            negotiator with<BR><A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:NegotiatorInformStartd">NEGOTIATOR_INFORM_STARTD</A>
+            negotiator with<BR><A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Network-Related%20Configuration%20File%20Entries#condor-negotiator-configuration-file-entries">NEGOTIATOR_INFORM_STARTD</A>
             = False<BR>to have a functional system.</P>
         </TD>
     </TR>
@@ -566,7 +563,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             <P>Security related settings. Please notice that the glideins
             always require GSI authentication.</P>
             <P>For more details see the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/Security.html#x36-2700003.8">HTCondor
+            page</A> or the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/security.html?highlight=Security#security">HTCondor
             manual</A>.</P>
         </TD>
     </TR>
@@ -586,7 +583,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:SecEnableMatchPasswordAuthentication">HTCondor
+            page</A> or the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Configuration%20Macros">HTCondor
             manual</A>.</P>
         </TD>
     </TR>
@@ -622,7 +619,6 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
 
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
-            <P>Configure <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">GCB</A>.</P>
             <P>GCB was needed to run glideins on worker nodes behind a
             firewall or a NAT in older versions of HTCondor.<BR>
             <B>Note: Newer versions of HTCondor do not support it anymore.</B></P>
@@ -662,7 +658,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor Connection Brokering (CCB)</A>,
+            <P>If set to True, it will enable <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">HTCondor Connection Brokering (CCB)</A>,
             which is needed if the glideins are behind a firewall or a NAT.</P>
         </TD>
 
@@ -673,7 +669,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#sec:shared-port-daemon">the shared port daemon</A>,
+            <P>If set to True, it will enable <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#reducing-port-usage-with-the-condor-shared-port-daemon">the shared port daemon</A>,
                which will reduce the number of connections between the glidein and the collectors.
                </P>
         </TD>
@@ -692,7 +688,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
 		Most of the time it is an integer, but the type is string to allow also the keywords.
                 In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots.
                 In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available.
-                Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#24707">NUM_CPUS</a></P>
+                Refer to HTCondor manual for info on <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=NUM_CPUS#condor-startd-configuration-file-macros">NUM_CPUS</a></P>
         </TD>
     </TR>
     <TR>
@@ -730,7 +726,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> Int</td>
         <TD> None </TD>
         <TD>
-            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor Startd and jobs started by the glidein. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE (False or unset), the glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_3Introduction_Configurati.html">MEMORY</a></P>
+            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor Startd and jobs started by the glidein. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE (False or unset), the glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-to-configuration.html#introduction-to-configuration">MEMORY</a></P>
         </TD>
     </TR>
     <TR>
@@ -1024,8 +1020,7 @@ described below are the most often used.</P>
         <td> <b>GLIDECLIENT_Rank</b> </td>
         <td>Expr (Int)</td>
         <TD ROWSPAN=2>
-                <P>Used in calculating the Condor <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html">RANK</A></P><P>They
-                are summed together, and the user job with the largest rank will run
+                <P>Used in calculating the Condor <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=NUM_CPUS#configuration-macros">RANK</A></P><P>They are summed together, and the user job with the largest rank will run
                 first.</P>
 
         </TD>
@@ -1073,7 +1068,7 @@ described below are the most often used.</P>
             <P>If True, the user job environment will also contain the
             environment variables defined at glidein startup. 
             </P>
-            <P>See <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_5Configuration_Macros.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
+            <P>See <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=JOB_INHERITS_STARTER_ENVIRONMENT#htcondor-wide-configuration-file-entries">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
         </TD>
     </TR>
     <TR>
@@ -1099,9 +1094,8 @@ described below are the most often used.</P>
             <ul>
               <li><b>fixed</b> - create N single core slots, and split memory and disk equally mong them
               <li><b>partitionable</b> - start up with 
-                        <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION004711800000000000000">
-                        a single partitionable slot and let HTCondor do the spliting as needed</a>
-            </ul>
+                        <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts">a single partitionable slot and let HTCondor do the spliting as needed</a>
+              </ul>
 
              The default behavior is defined by the Factory, but it has historically been set to "fixed".<br><br>
              <b>Note: This variable MUST NOT be passed as a parameter, or the glideins will fail!</b>
@@ -1856,7 +1850,7 @@ These virtual CPUs are though not considered in provisioning, are frequently res
 is used.
 </p>
 <p>For more information, see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_Resource_Slots above. And 
- <a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#24707">NUM_CPUS</a> in the HTCondor manual.
+ <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=NUM_CPUS#condor-starter-configuration-file-entries">NUM_CPUS</a> in the HTCondor manual.
 </p>
 </div>
 

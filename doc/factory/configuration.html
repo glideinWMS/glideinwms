@@ -1265,7 +1265,7 @@ of glidein pools will be presented.
     The detailed description of CCB is
     beyond the scope of this manual and you should refer to the HTCondor
     documentation available
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">here</A>.
+    <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">here</A>.
     , where you will find only the parameters needed to enable it in the
     glideins.
     </p><p>To use HTCondor with CCB, you need to specify:
@@ -1281,7 +1281,7 @@ of glidein pools will be presented.
 
     </div>
 <P>
-and you are done. Just make sure you follow the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">suggested scalability guidelines described in the HTCondor manual</A>.</P>
+and you are done. Just make sure you follow the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#scalability-and-ccb">suggested scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">
@@ -1534,7 +1534,7 @@ but it is no more supported in recent versions, so remove it if you still have i
     The detailed description of CCB is
     beyond the scope of this manual and you should refer to the HTCondor
     documentation available
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">here</A>.
+    <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">here</A>.
     , where you will find only the parameters needed to enable it in the
     glideins.
     </p><p>To use HTCondor with CCB, you need to specify: 
@@ -1550,7 +1550,7 @@ but it is no more supported in recent versions, so remove it if you still have i
 
     </div>
 <P>
-and you are done. Just make sure you follow the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">suggested scalability guidelines described in the HTCondor manual</A>.</P>
+and you are done. Just make sure you follow the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#scalability-and-ccb">suggested scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">
@@ -1621,7 +1621,7 @@ should be used every time it is feasible.</P>
 <P>In GlideinWMS, we enable the glideins to update the user collector using TCP by default.
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See 
-<A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">Condor documentation</A>
+<A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">Condor documentation</A>
  for more details.</P>
 </div>
 
@@ -1683,8 +1683,8 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 <H3 CLASS="western">
 <A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
 <P>As with any HTCondor pool, you may need to set the startd 
-<A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION00471400000000000000">start</A>
-and <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION00471400000000000000">rank</A>
+<A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#the-start-expression">start</A>
+and <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#the-rank-expression">rank</A>
 conditions. <BR/>
 
 For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options: 
@@ -1880,7 +1880,7 @@ of time.
 <OL>
     <LI><P>After a specified amount of time,
     the glidein will enter the 
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">RETIRING state</A>. 
+    <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#machine-activities">RETIRING state</A>. 
     This means, it will wait for the current job to finish
     (or kill it if it does not end within a configurable timeout) and
     exit immediately afterwards. This obviously implies that no new jobs
@@ -2071,9 +2071,7 @@ daemons are started up.</P>
     <p>Path to the wrapper custom script.
     The script will be copied in
     the Web-accessible area, and will be sourced just before a user job
-    starts starts; i.e. it will become part of the 
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_5Configuration_Macros.html">user job wrapper</A>.</P>
-    <LI>
+    starts starts; i.e. it will become part of the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Configuration%20Macros">user job wrapper</A>.</P>
 
         <div class="xml">
         &lt;glidein&gt;<BR/>
