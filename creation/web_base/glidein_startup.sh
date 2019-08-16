@@ -836,22 +836,8 @@ function params2file {
 }
 
 ###########################
-# Logging
-
-function logs_setup {
-    mkdir -p "${logdir}/shards"
-    generate_glidein_metadata_json
-    echo "[" > "${logdir}/${log_logfile}"
-    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
-    echo "]" >> "${logdir}/${log_logfile}"
-
-    #TODO: separate out/err of different processes
-    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
-    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
-    echo "$(date): Started logging stdout on file too"
-    echo "$(date): Started logging stderr on file too" >&2
-}
-
+# Logging utility
+#
 # Every logged event is recorded in a separate file. Eventually, these shards
 # are merged into a single log file; metadata is added at the beginning.
 
@@ -871,74 +857,87 @@ function generate_glidein_metadata_json {
     echo "$json_metadata" > "${logdir}/glidein_metadata.json"
 }
 
+function logs_setup {
+    mkdir -p "${logdir}/shards"
+    generate_glidein_metadata_json
+    echo "[" > "${logdir}/${log_logfile}"
+    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
+    echo "]" >> "${logdir}/${log_logfile}"
+
+    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
+    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
+    echo "$(date): Started logging stdout on file too"
+    echo "$(date): Started logging stderr on file too" >&2
+
+    cat > logging_utils.source << EOF
 function log_write {
     # Log an event
     # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
     # If type is file, then the filepath is relative wrt start_dir
 
-    cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
-    cur_time_ns=$(date +%s%N)   # enough to ensure that shards have different timestamps
+    cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
+    cur_time_ns=\$(date +%s%N)   # enough to ensure that shards have different timestamps
 
-    # Argument $1
-    invoker=$1
-    # Argument $2
-    case $2 in
-        "text" | "file" ) type=$2;;
+    # Argument \$1
+    invoker=\$1
+    # Argument \$2
+    case \$2 in
+        "text" | "file" ) type=\$2;;
         *) type="text";;
     esac
-    # Argument $3
-    if [ "$type" == "file" ]; then
-        filename=$3
-        raw_content=$(cat "${start_dir}/${filename}")
+    # Argument \$3
+    if [ "\$type" == "file" ]; then
+        filename=\$3
+        raw_content=\$(cat "${start_dir}/\${filename}")
         # Compression and encoding
-        content=$(echo "$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
+        content=\$(echo "\$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
     else
         filename=""
-        content=$3
+        content=\$3
     fi
-    # Argument $4
-    case $4 in
-        "error" | "warn" | "info" | "debug" | "fatal" ) severity=$4;;
+    # Argument \$4
+    case \$4 in
+        "error" | "warn" | "info" | "debug" | "fatal" ) severity=\$4;;
         *) severity="info";;
     esac
 
-    pid=${BASHPID:-$$}
-    shard_filename="shard_${cur_time_ns}_${invoker}_${pid}_${type}_${severity}"   # TODO: may need to escape invoker
+    pid=\${BASHPID:-\$\$}
+    shard_filename="shard_\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}"   # TODO: may need to escape invoker
 
     pushd "${start_dir}/${logdir}/shards" > /dev/null
-    touch "$shard_filename"
+    touch "\$shard_filename"
     if command -v jq >/dev/null 2>&1; then
-        json_logevent=$( jq -n \
-                  --arg inv "$invoker" \
-                  --arg pid "$pid" \
-                  --arg ts "$cur_time" \
-                  --arg ty "$type" \
-                  --arg fn "$filename" \
-                  --arg body "$content" \
-                  --arg sev "$severity" \
-                  '{invoker: $inv, pid: $pid, timestamp: $ts, severity: $sev, type: $ty, filename: $fn, content: $body}' )
+        json_logevent=\$( jq -n \
+                  --arg inv "\$invoker" \
+                  --arg pid "\$pid" \
+                  --arg ts "\$cur_time" \
+                  --arg ty "\$type" \
+                  --arg fn "\$filename" \
+                  --arg body "\$content" \
+                  --arg sev "\$severity" \
+                  '{invoker: \$inv, pid: \$pid, timestamp: \$ts, severity: \$sev, type: \$ty, filename: \$fn, content: \$body}' )
     else
-        json_logevent=$(echo -e "{\"invoker\":\"${invoker}\", \"pid\":\"${pid}\", \"timestamp\":\"${cur_time}\", \"severity\":\"${severity}\", \"type\":\"${type}\", \"filename\":\"${filename}\", \"content\":\"${content}\"}")  # TODO: escaping may be needed
+        json_logevent=\$(echo -e "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")  # TODO: escaping may be needed
     fi
 
-    echo "$json_logevent" > "$shard_filename"
+    echo "\$json_logevent" > "\$shard_filename"
     popd > /dev/null
 }
 
 function log_coalesce_shards {
     # Merge log shards in a single file (for each glidein process)
 
-    pushd "${start_dir}/$logdir" > /dev/null
-    cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
+    pushd "${start_dir}/${logdir}" > /dev/null
+    cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
 
-    if [ -n "$(ls -A shards)" ]; then
-        sed -i '${s/]$/,/}' "$log_logfile"    # replace last square bracket with comma
+    if [ -n "\$(ls -A shards)" ]; then
+        sed -i '\${s/]$/,/}' "${log_logfile}" # replace last square bracket with comma
         for shd in shards/shard*; do          # concatenate separating with comma
-            cat $shd
+            cat \$shd
             echo ","
-        done >> "$log_logfile"
-        sed -i '$ d' "$log_logfile"           # remove last comma
-        echo "]" >> "$log_logfile"            # closing square bracket
+        done >> "${log_logfile}"
+        sed -i '$ d' "${log_logfile}"           # remove last comma
+        echo "]" >> "${log_logfile}"            # closing square bracket
         rm -f shards/shard*         # TODO: how to make sure these files are not currently open?
     fi    
     popd > /dev/null
@@ -948,31 +947,37 @@ function send_logs_to_remote {
     log_coalesce_shards
 
     # Upload stdout log file
-    curl_resp=$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stdout_logfile} $logserver_addr 2>&1)
-    curl_retval=$?
-    if [ $curl_retval -ne 0 ]; then
-        curl_version=$(curl --version 2>&1 | head -1)
-        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+    curl_resp=\$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stdout_logfile} ${logserver_addr} 2>&1)
+    curl_retval=\$?
+    if [ \$curl_retval -ne 0 ]; then
+        curl_version=\$(curl --version 2>&1 | head -1)
+        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
     fi
 
     # Upload stderr log file
-    curl_resp=$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stderr_logfile} $logserver_addr 2>&1)
-    curl_retval=$?
-    if [ $curl_retval -ne 0 ]; then
-        curl_version=$(curl --version 2>&1 | head -1)
-        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+    curl_resp=\$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stderr_logfile} ${logserver_addr} 2>&1)
+    curl_retval=\$?
+    if [ \$curl_retval -ne 0 ]; then
+        curl_version=\$(curl --version 2>&1 | head -1)
+        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
     fi
 
     # Upload general log file
-    curl_resp=$(curl -X PUT --upload-file ${start_dir}/${logdir}/${log_logfile} $logserver_addr 2>&1)
-    curl_retval=$?
-    if [ $curl_retval -ne 0 ]; then
-        curl_version=$(curl --version 2>&1 | head -1)
-        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+    curl_resp=\$(curl -X PUT --upload-file ${start_dir}/${logdir}/${log_logfile} ${logserver_addr} 2>&1)
+    curl_retval=\$?
+    if [ \$curl_retval -ne 0 ]; then
+        curl_version=\$(curl --version 2>&1 | head -1)
+        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
     fi
+}
+EOF
+    source logging_utils.source
 }
 
 ################
+
+start_dir=$(pwd)
+
 # Generate glidein UUID
 if command -v uuidgen >/dev/null 2>&1; then
     glidein_uuid=$(uuidgen)
@@ -1297,7 +1302,6 @@ else
     early_glidein_failure "Startup dir $work_dir does not exist."
 fi
 
-start_dir=`pwd`
 echo "Started in $start_dir"
 
 def_work_dir="$work_dir/glide_XXXXXX"
@@ -1435,6 +1439,7 @@ if [ -n "$client_repository_url" ]; then
 fi
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
+echo "LOGGING_UTILS_SOURCE $PWD/logging_utils.source" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "SLOTS_LAYOUT $slots_layout" >> glidein_config
 # Add a line saying we are still initializing
