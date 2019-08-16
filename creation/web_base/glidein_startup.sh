@@ -176,6 +176,8 @@ else
     slots_layout="partitionable"
 fi
 
+function create_b64uuencode {
+    cat > "$1" << EOF
 function python_b64uuencode {
     echo "begin-base64 644 -"
     python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
@@ -196,16 +198,18 @@ function base64_b64uuencode {
 # not all WNs have all the tools installed
 function b64uuencode {
     which uuencode >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    if [ \$? -eq 0 ]; then
         uuencode -m -
     else
         which base64 >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
+        if [ \$? -eq 0 ]; then
             base64_b64uuencode
         else
             python_b64uuencode
         fi
     fi
+}
+EOF
 }
 
 function construct_xml {
@@ -854,22 +858,22 @@ function generate_glidein_metadata_json {
     else
         json_metadata=$(echo -e "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"schedd\":\"${condorg_schedd}\"}")  # TODO: escaping may be needed
     fi
-    echo "$json_metadata" > "${logdir}/glidein_metadata.json"
+    echo "$json_metadata" > "${start_dir}/${logdir}/glidein_metadata.json"
 }
 
 function logs_setup {
-    mkdir -p "${logdir}/shards"
+    mkdir -p "${start_dir}/${logdir}/shards"
     generate_glidein_metadata_json
-    echo "[" > "${logdir}/${log_logfile}"
-    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
-    echo "]" >> "${logdir}/${log_logfile}"
+    echo "[" > "${start_dir}/${logdir}/${log_logfile}"
+    cat "${start_dir}/${logdir}/glidein_metadata.json" >> "${start_dir}/${logdir}/${log_logfile}"
+    echo "]" >> "${start_dir}/${logdir}/${log_logfile}"
 
-    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
-    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
+    exec >  >(tee -ia "${start_dir}/${logdir}/${stdout_logfile}")
+    exec 2> >(tee -ia "${start_dir}/${logdir}/${stderr_logfile}" >&2)
     echo "$(date): Started logging stdout on file too"
     echo "$(date): Started logging stderr on file too" >&2
 
-    cat > logging_utils.source << EOF
+    cat > "logging_utils.source" << EOF
 function log_write {
     # Log an event
     # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
@@ -877,6 +881,10 @@ function log_write {
 
     cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
     cur_time_ns=\$(date +%s%N)   # enough to ensure that shards have different timestamps
+
+    # Source encoding utilities
+    b64uuencode_source="\$(grep '^B64UUENCODE_SOURCE ' "\${glidein_config}" | cut -d ' ' -f 2-)"
+    source "\${b64uuencode_source}"
 
     # Argument \$1
     invoker=\$1
@@ -977,21 +985,6 @@ EOF
 ################
 
 start_dir=$(pwd)
-
-# Generate glidein UUID
-if command -v uuidgen >/dev/null 2>&1; then
-    glidein_uuid=$(uuidgen)
-else
-    glidein_uuid=$(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')
-fi
-
-# Setup logging
-logdir="logs/${glidein_uuid}"
-stdout_logfile="${glidein_uuid}.out"
-stderr_logfile="${glidein_uuid}.err"
-log_logfile="${glidein_uuid}.log"
-logserver_addr='http://fermicloud093.fnal.gov:9393'
-logs_setup
 
 # Parse and verify arguments
 
@@ -1146,6 +1139,12 @@ function md5wrapper {
     echo "$res"  
 }
 
+# Generate glidein UUID
+if command -v uuidgen >/dev/null 2>&1; then
+    glidein_uuid=$(uuidgen)
+else
+    glidein_uuid=$(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')
+fi
 
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
@@ -1384,6 +1383,9 @@ if [ -n "$client_repository_url" ]; then
     fi
 fi
 
+create_b64uuencode b64uuencode.source
+source b64uuencode.source
+
 create_add_config_line add_config_line.source
 source add_config_line.source
 
@@ -1437,6 +1439,7 @@ if [ -n "$client_repository_url" ]; then
         echo "GLIDECLIENT_Group_Signature $client_sign_group_id" >> glidein_config
     fi
 fi
+echo "B64UUENCODE_SOURCE" $PWD/b64uuencode.source >> glidein_config
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "LOGGING_UTILS_SOURCE $PWD/logging_utils.source" >> glidein_config
@@ -1453,6 +1456,13 @@ if [ $? -ne 0 ]; then
 fi
 params2file $params
 
+# Setup logging
+logdir="logs/${glidein_uuid}"
+stdout_logfile="${glidein_uuid}.out"
+stderr_logfile="${glidein_uuid}.err"
+log_logfile="${glidein_uuid}.log"
+logserver_addr='http://fermicloud152.fnal.gov:80'
+logs_setup
 
 ############################################
 # get the proper descript file based on id
