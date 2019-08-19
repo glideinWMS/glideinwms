@@ -545,6 +545,7 @@ function glidein_exit {
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
 
+  log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode ${1}" "info"
   send_logs_to_remote
 
   exit $1
@@ -873,6 +874,9 @@ function logs_setup {
     echo "$(date): Started logging stdout on file too"
     echo "$(date): Started logging stderr on file too" >&2
 
+    # Check server availability (simply warn if not available)
+    ping -c1 -w2 "$(echo ${logserver_addr} | cut -d ":" -f 1)" >/dev/null || echo "Warning: logserver not reachable (${logserver_addr})" >&2
+
     cat > "logging_utils.source" << EOF
 function log_write {
     # Log an event
@@ -980,6 +984,7 @@ function send_logs_to_remote {
 }
 EOF
     source logging_utils.source
+    log_write "glidein_startup.sh" "text" "Remote logging has been setup. Server address: ${logserver_addr}" "info"
 }
 
 ################
@@ -2013,6 +2018,7 @@ function fetch_file_base {
 }
 
 echo "Downloading files from Factory and Frontend"
+log_write "glidein_startup.sh" "text" "Downloading file from Factory and Frontend" "debug"
 
 #####################################
 # Fetch descript and signature files
@@ -2159,6 +2165,9 @@ done
 # Start the glidein main script
 add_config_line "GLIDEIN_INITIALIZED" "1"
 
+log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
+log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
+send_logs_to remote          # checkpoint
 echo "# --- Last Script values ---" >> glidein_config
 last_startup_time=`date +%s`
 let validation_time=$last_startup_time-$startup_time
