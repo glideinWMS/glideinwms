@@ -878,6 +878,15 @@ function logs_setup {
     ping -c1 -w2 "$(echo ${logserver_addr} | cut -d ":" -f 1)" >/dev/null || echo "Warning: logserver not reachable (${logserver_addr})" >&2
 
     cat > "logging_utils.source" << EOF
+function json_escape {
+    # escape json special characters
+    qstr="\$(printf '%s' "\$1" | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
+    # remove unwanted outer double quotes
+    qstr="\${qstr%\"}"
+    qstr="\${qstr#\"}"
+    echo "\$qstr"
+}
+
 function log_write {
     # Log an event
     # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
@@ -891,7 +900,7 @@ function log_write {
     source "\${b64uuencode_source}"
 
     # Argument \$1
-    invoker=\$1
+    invoker="\$(json_escape "\$1")"
     # Argument \$2
     case \$2 in
         "text" | "file" ) type=\$2;;
@@ -899,14 +908,15 @@ function log_write {
     esac
     # Argument \$3
     if [ "\$type" == "file" ]; then
-        filename=\$3
+        filename="\$3"
         raw_content=\$(cat "${start_dir}/\${filename}")
         # Compression and encoding
         content=\$(echo "\$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
     else
         filename=""
-        content=\$3
+        content="\$3"
     fi
+    content="\$(json_escape "\$content")"
     # Argument \$4
     case \$4 in
         "error" | "warn" | "info" | "debug" | "fatal" ) severity=\$4;;
@@ -914,7 +924,7 @@ function log_write {
     esac
 
     pid=\${BASHPID:-\$\$}
-    shard_filename="shard_\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}"   # TODO: may need to escape invoker
+    shard_filename="shard_\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}"
 
     pushd "${start_dir}/${logdir}/shards" > /dev/null
     touch "\$shard_filename"
@@ -929,7 +939,7 @@ function log_write {
                   --arg sev "\$severity" \
                   '{invoker: \$inv, pid: \$pid, timestamp: \$ts, severity: \$sev, type: \$ty, filename: \$fn, content: \$body}' )
     else
-        json_logevent=\$(echo -e "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")  # TODO: escaping may be needed
+        json_logevent=\$(echo -e "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")
     fi
 
     echo "\$json_logevent" > "\$shard_filename"
