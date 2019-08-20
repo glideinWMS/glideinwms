@@ -24,35 +24,30 @@ from itertools import groupby
 from . import condorExe
 from . import condorSecurity
 
-USE_HTCONDOR_PYTHON_BINDINGS = False
-try:
-    # NOTE:
-    # import htcondor tries to look for CONDOR_CONFIG in the usual search path
-    # If it cannot be found, it will print annoying error message which
-    # neither goes to stdout nor stderr. It was not clear how to mask this
-    # message so we may have to live with it till then
-    # In case of non default locations of CONDOR_CONFIG, frontend will always
-    # set the CONDOR_CONFIG appropriately before every command. Since import
-    # happens before frontend can do anything, htcondor module is initialized
-    # without the knowledge of CONDOR_CONFIG. This mandates that we do a
-    # htcondor.reload_config() everytime to use the bindings.
-    import htcondor # pylint: disable=import-error
-    import classad   # pylint: disable=import-error
-    USE_HTCONDOR_PYTHON_BINDINGS = True
-except:
-    # TODO Maybe we should print a message here? Even though I don't know if
-    # logSupport has been initialized. But I'd try to put it log.debug
-    pass
+# USE_HTCONDOR_PYTHON_BINDINGS = True
 
+# NOTE:
+# import htcondor tries to look for CONDOR_CONFIG in the usual search path
+# If it cannot be found, it will print annoying error message which
+# neither goes to stdout nor stderr. It was not clear how to mask this
+# message so we may have to live with it till then
+# In case of non default locations of CONDOR_CONFIG, frontend will always
+# set the CONDOR_CONFIG appropriately before every command. Since import
+# happens before frontend can do anything, htcondor module is initialized
+# without the knowledge of CONDOR_CONFIG. This mandates that we do a
+# htcondor.reload_config() everytime to use the bindings.
+
+import htcondor # pylint: disable=import-error
+import classad   # pylint: disable=import-error
 
 #
 # Configuration
 #
 
 # Set path to condor binaries
-def set_path(new_condor_bin_path):
-    global condor_bin_path
-    condor_bin_path = new_condor_bin_path
+# def set_path(new_condor_bin_path):
+#     global condor_bin_path
+#     condor_bin_path = new_condor_bin_path
 
 
 #
@@ -165,9 +160,21 @@ class LocalScheddCache(NoneScheddCache):
     # PRIVATE
     #
 
-    # return None if not found
-    # Can raise exceptions
     def iGetEnv(self, schedd_name, pool_name):
+        """
+        Return the HTCondor spool directory
+
+        Args:
+            schedd_name: HTCondor schedd name
+            pool_name: HTCondor pool name
+
+        Returns:
+            dictionary w/ spool directory, None if not found
+
+        Raises:
+            RuntimeError: incomplete schedd information
+
+        """
         cs = CondorStatus('schedd', pool_name)
         data = cs.fetch(constraint='Name=?="%s"' % schedd_name,
                         format_list=[('ScheddIpAddr', 's'),
@@ -205,9 +212,18 @@ class LocalScheddCache(NoneScheddCache):
 local_schedd_cache = LocalScheddCache()
 
 
+# TODO: replace w/ function using condor binding or find an equivalent call for the only place where it is used
 def condorq_attrs(q_constraint, attribute_list):
     """
-    Retrieves a list of a single item from the all the factory queues.
+    Retrieves a list of a single item from the all the factory queues
+
+    Args:
+        q_constraint: constraint string for condor_q
+        attribute_list: condor_q query attributes list (projection)
+
+    Returns:
+        condor_q results as list
+
     """
     attr_str = ""
     for attr in attribute_list:
@@ -243,29 +259,52 @@ class AbstractQuery:
     """
 
     def fetch(self, constraint=None, format_list=None):
+        # type: (str, list) -> dict
         """
         Fetch the classad attributes specified in the format_list
         matching the constraint
 
-        @rtype: dict
-        @return: Dict containing classad attributes and values
+        Args:
+            constraint: query constraint
+            format_list: query projection
+
+        Returns:
+            Dict containing classad attributes and values
+
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError("Fetch not implemented")
 
     def load(self, constraint=None, format_list=None):
         """
         Fetch the data and store it in self.stored_data
+
+        Args:
+            constraint: query constraint
+            format_list: query projection
+
+        Returns:
+            None
+
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError("Load not implemented")
 
     def fetchStored(self, constraint_func=None):
-        """
-        @param constraint_func: A boolean function, with only one argument
-                                (data el). If None, return all the data.
-        @type constraint_func: Boolean function
+        # type: (function) -> dict
 
-        @rtype: dict
-        @return: Same as fetch(), but limited to constraint_func(el)==True
+        """
+
+        Args:
+            constraint_func: A boolean function, with only one argument (data el). If None, return all the data.
+
+        Returns:
+            Same as fetch(), but limited to constraint_func(el)==True
+
+        Raises:
+            NotImplementedError
         """
         raise NotImplementedError("fetchStored not implemented")
 
@@ -300,8 +339,6 @@ class CondorQEdit:
         """
         self.pool_name=pool_name
         self.schedd_name=schedd_name
-        if not USE_HTCONDOR_PYTHON_BINDINGS:
-            raise QueryError("QEdit class only implemented with python bindings")
 
     def executeAll(self, joblist=None, attributes=None, values=None):
         """ Given equal sized lists of job ids, attributes and values,
@@ -434,12 +471,7 @@ class CondorQuery(StoredQuery):
         Return the results obtained using HTCondor commands or python bindings
         """
         try:
-            if USE_HTCONDOR_PYTHON_BINDINGS:
-                return self.fetch_using_bindings(constraint=constraint,
-                                                 format_list=format_list)
-            else:
-                return self.fetch_using_exe(constraint=constraint,
-                                            format_list=format_list)
+            return self.fetch_using_bindings(constraint=constraint, format_list=format_list)
         except Exception as ex:
             err_str = 'Error executing htcondor query to pool %s with constraint %s and format_list %s: %s. Env is %s' % (self.pool_name, constraint, format_list, ex, os.environ)
             raise QueryError(err_str), None, sys.exc_info()[2]
@@ -494,8 +526,17 @@ class CondorQuery(StoredQuery):
         return dict_data
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
+        # type (string, list) -> dict
         """
-        Fetch the results using htcondor-python bindings
+        Return the results using HTCondor-python bindings. Implemented in the subclasses
+
+        Args:
+            constraint: Constraints to be applied to the query
+            format_list: Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns:
+            Dict containing the results
+
         """
         raise NotImplementedError("fetch_using_bindings() not implemented")
 
@@ -897,7 +938,20 @@ def xml2list_char_data(data):
         xml2list_inattr["val"] += unescaped_data
 
 
+# TODO this will be removed when we use only python bindings
+# xml2list, xml2list_char_data, xml2list_end_element, xml2list_start_element
 def xml2list(xml_data):
+    """
+    Return a list of dictionaries from a ClassAd in XML format (elements are {attr_name:  attr_value})
+    This function uses side effects with global variables.
+
+    Args:
+        xml_data: ClassAd XML
+
+    Returns:
+        list of dictionaries
+
+    """
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
 
     xml2list_data = []
