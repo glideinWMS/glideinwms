@@ -933,9 +933,11 @@ def list2dict(list_data, attr_name):
     """
     Convert a list to a dictionary where the keys are tuples with the values of the attributes listed in attr_name
 
-    :param list_data: list of dictionaries to convert
-    :param attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
-    :return: dictionary of dictionaries
+    Args:
+        list_data: list of dictionaries to convert
+        attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
+    Returns:
+        dictionary of dictionaries
     """
 
     # Original description: Convert a list to a dictionary and group the results based on
@@ -1055,10 +1057,13 @@ def doNestedGroup(indata, group_key_func, group_element_func=None):
     If group_element_func is None (not provided), then the dictionaries in the groups are a copy of the
     original dictionaries in indata
 
-    @param indata: data to group
-    @param group_key_func: group_by function
-    @param group_element_func: how to handle the data in each group (by default is a copy of the original one)
-    @return: dictionary of dictionaries with grouped indata
+    Args:
+        indata: data to group
+        group_key_func: group_by function
+        group_element_func: how to handle the data in each group (by default is a copy of the original one)
+
+    Returns:
+        dictionary of dictionaries with grouped indata
     """
 
     gdata = {}
@@ -1082,19 +1087,19 @@ def doNestedGroup(indata, group_key_func, group_element_func=None):
     return outdata
 
 
-#
-# Inputs
-#  data        - data from a fetch()
-#  hash_func   - Hashing function
-#                One argument: classad dictionary
-#                Returns: hash value
-#                          if None, will not be counted
-#                          if a list, all elements will be used
-#
-# Returns a dictionary of hash values
-#    Elements are counts (or more dictionaries if hash returns lists)
-#
 def fetch2count(data, hash_func):
+    """
+    Returns a dictionary of hash values.
+
+    Args:
+        data: data from a fetch()
+        hash_func: Hashing function. It's a one argument function that takes a classad dictionary and returns
+        a hash value. If None, will not be counted. If a list, all elements will be used.
+
+    Returns:
+        A dictionary of hash values. Elements are counts (or more dictionaries if hash returns lists)
+    """
+
     count = {}
     for k in data.keys():
         el = data[k]
@@ -1126,33 +1131,34 @@ def fetch2count(data, hash_func):
 
 
 def fetch2count_flat(data, hash_func):
-    """Count the hash values returned from all the elements in data
+    """
+    Count the hash values returned from all the elements in data
 
-    :param data: data from a fetch()
-    :param hash_func: Hashing function
-                One argument: classad dictionary
-                Returns: flat hash value (for hashing functions returning also lists, use fetch2count
-                          if None, will not be counted
-    :return: a dictionary with a count of the hash values returned
+    Args:
+        data: data from a fetch()
+        hash_func: Hashing function. It's a one argument function that takes a classad dictionary and returns
+        a flat hash value. (for hashing functions returning also lists, use fetch2count. If None, will not be counted.
+
+    Returns:
+        A dictionary with a count of the hash values returned
     """
     data_list = sorted(hash_func(v) for v in data.values())
     count = dict((key, len(list(group))) for key, group in groupby([ i for i in data_list if i is not None]))
     return count
 
 
-#
-# Inputs
-#  data        - data from a fetch()
-#  hash_func   - Hashing function
-#                One argument: classad dictionary
-#                Returns: hash value
-#                          if None, will not be counted
-#                          if a list, all elements will be used
-#
-# Returns a dictionary of hash values
-#    Elements are lists of keys (or more dictionaries if hash returns lists)
-#
 def fetch2list(data, hash_func):
+    """
+    Returns a dictionary of hash values.
+
+    Args:
+        data: data from a fetch()
+        hash_func: Hashing function. It's a one argument function that takes a classad dictionary and returns a hash value.
+        if None, will not be counted. if a list, all elements will be used.
+
+    Returns:
+        Dictionary of hash values. Elements are lists of keys (or more dictionaries if hash returns lists)
+    """
     return_list = {}
     for k in data.keys():
         el = data[k]
@@ -1183,24 +1189,6 @@ def fetch2list(data, hash_func):
     return return_list
 
 
-#
-# Recursivelly add two dictionaries
-# Do it in place, using the first one
-#
-def addDict(base_dict, new_dict):
-    for k in new_dict.keys():
-        new_el = new_dict[k]
-        if k not in base_dict:
-            # nothing there?, just copy
-            base_dict[k] = new_el
-        else:
-            if isinstance(new_el, dict):
-                # another dictionary, recourse
-                addDict(base_dict[k], new_el)
-            else:
-                base_dict[k] += new_el
-
-
 ################################################################################
 # Functions to convert existing data type to their bindings friendly equivalent
 ################################################################################
@@ -1208,6 +1196,12 @@ def addDict(base_dict, new_dict):
 def resource_str_to_py_adtype(resource_str):
     """
     Given the resource string return equivalent classad type
+
+    Args:
+        resource_str: the resource string ("-any", "-collector", etc)
+
+    Returns:
+        The htcondor.AdTypes corresponding to the resource_str provided
     """
 
     adtype = resource_str
@@ -1233,6 +1227,12 @@ def resource_str_to_py_adtype(resource_str):
 def bindings_friendly_constraint(constraint):
     """
     Convert the constraint to format that can be used with python bindings
+
+    Args:
+        constraint: the constraint you need to convert
+
+    Returns:
+        True if the constraint is None, otherwise constraint itself
     """
     if constraint is None:
         return True
@@ -1243,61 +1243,14 @@ def bindings_friendly_attrs(format_list):
     """
     Convert the format_list into attrs that can be used with python bindings
     Python bindings should take care of the typing
+
+    Args:
+        format_list: the format list you want to convert. List of lists
+
+    Returns:
+        Empty list if the format lis is None. Otherwise the first element
+        of each element in the list.
     """
     if format_list is not None:
         return [f[0] for f in format_list]
     return []
-
-
-################################################################################
-# TODO: Following code is never used. Maybe we should yank it off in future
-#       during code cleanup.
-################################################################################
-
-class SummarizeMulti:
-    def __init__(self, queries, hash_func=lambda x:1):
-        self.counts = []
-        for query in queries:
-            self.counts.append(self.count(query, hash_func))
-        self.hash_func=hash_func
-
-    # see Count for description
-    def count(self, constraint=None, hash_func=None):
-        out = {}
-
-        for c in self.counts:
-            data = c.count(constraint, hash_func)
-            addDict(out, data)
-
-        return out
-
-    # see Count for description
-    def countStored(self, constraint_func=None, hash_func=None):
-        out = {}
-
-        for c in self.counts:
-            data = c.countStored(constraint_func, hash_func)
-            addDict(out, data)
-
-        return out
-
-
-# condor_q, where we have only one ProcId x ClusterId
-class CondorQLite(CondorQuery):
-    def __init__(self,schedd_name=None,pool_name=None,security_obj=None,schedd_lookup_cache=local_schedd_cache):
-        self.schedd_name=schedd_name
-
-        if schedd_lookup_cache is None:
-            schedd_lookup_cache = NoneScheddCache()
-
-        schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
-
-        CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
-                             pool_name, security_obj, env)
-
-    def fetch(self, constraint=None, format_list=None):
-        if format_list is not None:
-            # check that ClusterId is present, and if not add it
-            format_list = complete_format_list(format_list, [("ClusterId", 'i')])
-        return CondorQuery.fetch(self, constraint=constraint,
-                                 format_list=format_list)
