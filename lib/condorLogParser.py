@@ -870,37 +870,37 @@ def parseSubmitLogFastRaw(fname):
         # nothing to read, if empty
         return jobs
     
-    fd=open(fname, "r")
-    buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    with open(fname, "r") as fd:
+        buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
-    idx = 0
+        idx = 0
 
-    while (idx+5) < size: # else we are at the end of the file
-        # format
-        # 023 (123.2332.000) Bla
+        while (idx+5) < size: # else we are at the end of the file
+            # format
+            # 023 (123.2332.000) Bla
         
-        # first 3 chars are status
-        status = buf[idx:idx+3]
-        idx += 5
-        # extract job id 
-        i1 = buf.find(")", idx)
-        if i1 < 0:
-            break
-        jobid = buf[idx:i1-4]
-        idx = i1 + 1
+            # first 3 chars are status
+            status = buf[idx:idx+3]
+            idx += 5
+            # extract job id 
+            i1 = buf.find(")", idx)
+            if i1 < 0:
+                break
+            jobid = buf[idx:i1-4]
+            idx = i1 + 1
 
-        if jobid in jobs:
-            jobs[jobid] = get_new_status(jobs[jobid], status)
-        else:
-            jobs[jobid] = status
+            if jobid in jobs:
+                jobs[jobid] = get_new_status(jobs[jobid], status)
+            else:
+                jobs[jobid] = status
 
-        i1 = buf.find("...", idx)
-        if i1 < 0:
-            break
-        idx = i1 + 4 #the 3 dots plus newline
+            i1 = buf.find("...", idx)
+            if i1 < 0:
+                break
+            idx = i1 + 4 #the 3 dots plus newline
 
-    buf.close()
-    fd.close()
+        buf.close()
+    
     return jobs
 
 def parseSubmitLogFastRawTimings(fname):
@@ -924,48 +924,47 @@ def parseSubmitLogFastRawTimings(fname):
         # nothing to read, if empty
         return jobs, first_time, last_time
     
-    fd=open(fname, "r")
-    buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    with open(fname, "r") as fd:
+        buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
-    idx = 0
+        idx = 0
 
-    while (idx + 5) < size: # else we are at the end of the file
-        # format
-        # 023 (123.2332.000) MM/DD HH:MM:SS
+        while (idx + 5) < size: # else we are at the end of the file
+            # format
+            # 023 (123.2332.000) MM/DD HH:MM:SS
         
-        # first 3 chars are status
-        status = buf[idx:idx+3]
-        idx += 5
-        # extract job id 
-        i1 = buf.find(")", idx)
-        if i1 < 0:
-            break
-        jobid = buf[idx:i1-4]
-        idx = i1 + 2
-        #extract time
-        line_time = buf[idx:idx+14]
-        idx += 16
+            # first 3 chars are status
+            status = buf[idx:idx+3]
+            idx += 5
+            # extract job id 
+            i1 = buf.find(")", idx)
+            if i1 < 0:
+                break
+            jobid = buf[idx:i1-4]
+            idx = i1 + 2
+            #extract time
+            line_time = buf[idx:idx+14]
+            idx += 16
 
-        if first_time is None:
-            first_time = line_time
-        last_time = line_time
+            if first_time is None:
+                first_time = line_time
+            last_time = line_time
             
-        if jobid in jobs:
-            if status == '001':
-                running_time = line_time
+            if jobid in jobs:
+                if status == '001':
+                    running_time = line_time
+                else:
+                    running_time = jobs[jobid][2]
+                jobs[jobid] = (get_new_status(jobs[jobid][0], status), jobs[jobid][1], running_time, line_time) #start time never changes
             else:
-                running_time = jobs[jobid][2]
-            jobs[jobid] = (get_new_status(jobs[jobid][0], status), jobs[jobid][1], running_time, line_time) #start time never changes
-        else:
-            jobs[jobid] = (status, line_time, '', line_time)
+                jobs[jobid] = (status, line_time, '', line_time)
 
-        i1 = buf.find("...", idx)
-        if i1 < 0:
-            break
-        idx = i1 + 4 #the 3 dots plus newline
+            i1 = buf.find("...", idx)
+            if i1 < 0:
+                break
+            idx = i1 + 4 #the 3 dots plus newline
 
-    buf.close()
-    fd.close()
+        buf.close()
     return jobs, first_time, last_time
 
 def parseSubmitLogFastRawCallback(fname, callback):
@@ -984,48 +983,47 @@ def parseSubmitLogFastRawCallback(fname, callback):
         # nothing to read, if empty
         return
 
-    fd=open(fname, "r")
-    buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    with open(fname, "r") as fd:
+        buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
-    idx = 0
+        idx = 0
 
-    while (idx+5) < size: # else we are at the end of the file
-        # format
-        # 023 (123.2332.000) MM/DD HH:MM:SS
+        while (idx+5) < size: # else we are at the end of the file
+            # format
+            # 023 (123.2332.000) MM/DD HH:MM:SS
         
-        # first 3 chars are status
-        status = buf[idx:idx+3]
-        idx += 5
-        # extract job id 
-        i1 = buf.find(")", idx)
-        if i1 < 0:
-            break
-        jobid = buf[idx:i1-4]
-        idx = i1 + 2
-        #extract time
-        line_time = buf[idx:idx+14]
-        idx += 16
+            # first 3 chars are status
+            status = buf[idx:idx+3]
+            idx += 5
+            # extract job id 
+            i1 = buf.find(")", idx)
+            if i1 < 0:
+                break
+            jobid = buf[idx:i1-4]
+            idx = i1 + 2
+            #extract time
+            line_time = buf[idx:idx+14]
+            idx += 16
 
-        if jobid in jobs:
-            old_status=jobs[jobid]
-            new_status = get_new_status(old_status, status)
-            if new_status != old_status:
-                callback(new_status, line_time, jobid)
-                if new_status in ('005', '009'):
-                    del jobs[jobid] #end of live, don't need it anymore
-                else:
-                    jobs[jobid] = new_status
-        else:
-            jobs[jobid] = status
-            callback(status, line_time, jobid)
+            if jobid in jobs:
+                old_status=jobs[jobid]
+                new_status = get_new_status(old_status, status)
+                if new_status != old_status:
+                    callback(new_status, line_time, jobid)
+                    if new_status in ('005', '009'):
+                        del jobs[jobid] #end of live, don't need it anymore
+                    else:
+                        jobs[jobid] = new_status
+            else:
+                jobs[jobid] = status
+                callback(status, line_time, jobid)
 
-        i1 = buf.find("...", idx)
-        if i1 < 0:
-            break
-        idx = i1 + 4 #the 3 dots plus newline
+            i1 = buf.find("...", idx)
+            if i1 < 0:
+                break
+            idx = i1 + 4 #the 3 dots plus newline
 
-    buf.close()
-    fd.close()
+        buf.close()
     return
 
 def rawJobId2Nr(str):

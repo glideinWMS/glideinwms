@@ -24,15 +24,12 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
     template = get_template("frontend_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname, "w")
-    try:
+    with open(startup_fname, "w") as fd:
         template = template % {"frontend_dir": frontend_dir, 
                                "glideinWMS_dir": glideinWMS_dir, 
                                "default_cfg_fpath": cfg_name,
                                "rpm_install": rpm_install}
         fd.write(template)
-    finally:
-        fd.close()
 
     os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
@@ -41,8 +38,7 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
 #########################################
 # Create frontend-specific mapfile
 def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs,pilot_DNs=[]):
-    fd=open(mapfile_fname, "w")
-    try:
+    with open(mapfile_fname, "w") as fd:
         fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN), 'me'))
         for (uid, dns) in (('factory', factory_DNs),
                           ('schedd', schedd_DNs),
@@ -55,8 +51,6 @@ def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_D
         # Should never get here
         for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
             fd.write("%s (.*) anonymous\n"%t)
-    finally:
-        fd.close()
         
     return
 
@@ -66,8 +60,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
     attrs = condorExe.exe_cmd('condor_config_val', '-dump')
     def_attrs = filter_unwanted_config_attrs(attrs)
 
-    fd=open(config_fname, "w")
-    try:
+    with open(config_fname, "w") as fd:
         fd.write("############################################\n")
         fd.write("#\n")
         fd.write("# Condor config file used by the VO Frontend\n")
@@ -153,9 +146,6 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("########################################################\n")
         fd.write("GSI_DAEMON_PROXY = %s\n" % classad_proxy)
 
-    finally:
-        fd.close()
-        
     return
 
 def filter_unwanted_config_attrs(attrs):
@@ -201,8 +191,7 @@ def filter_unwanted_config_attrs(attrs):
     return attrs
 
 def get_template(template_name, glideinWMS_dir):
-    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
-    template_str = template_fd.read()
-    template_fd.close()
+    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+        template_str = template_fd.read()
 
     return template_str

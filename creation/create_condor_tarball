@@ -57,23 +57,21 @@ def main(argv):
     if os.path.isfile(in_dir):
         # this should be a tarfile, not a dir
         # Untar in a tmpdir
-        fd = tarfile.open(in_dir,"r:gz")
-        tmpdir = tempfile.mkdtemp("_tmp","condor_",os.path.dirname(out_fname))
-        try:
-            # first create the regular files
-            for f in fd.getmembers():
-                if not f.islnk():
-                    fd.extract(f,tmpdir)
-            # then create the links
-            for f in fd.getmembers():
-                if f.islnk():
-                    os.link(os.path.join(tmpdir, f.linkname), os.path.join(tmpdir, f.name))
-            in_dir = os.path.join(tmpdir, os.listdir(tmpdir)[0])  # there is a condor* subdir there
-        except:
-            fd.close()
-            shutil.rmtree(tmpdir)
-            raise
-        fd.close()
+        with tarfile.open(in_dir,"r:gz") as fd:
+            tmpdir = tempfile.mkdtemp("_tmp","condor_",os.path.dirname(out_fname))
+            try:
+                # first create the regular files
+                for f in fd.getmembers():
+                    if not f.islnk():
+                        fd.extract(f,tmpdir)
+                # then create the links
+                for f in fd.getmembers():
+                    if f.islnk():
+                        os.link(os.path.join(tmpdir, f.linkname), os.path.join(tmpdir, f.name))
+                in_dir = os.path.join(tmpdir, os.listdir(tmpdir)[0])  # there is a condor* subdir there
+            except:
+                shutil.rmtree(tmpdir)
+                raise
     elif os.path.isdir(in_dir):
         pass  # good...it is a directory
     else:

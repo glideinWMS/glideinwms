@@ -228,16 +228,12 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
             # could be a race condition
             pass
 
-    fd = open(lock_fname, "r+")
-
-    try:
+    with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             status.load(status_constraint)
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
-    finally:
-        fd.close()
 
     data = status.fetchStored()
 
@@ -406,15 +402,12 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
             # could be a race condition
             pass
 
-    fd=open(lock_fname, "r+")
-    try:
+    with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             status.load(status_constraint)
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
-    finally:
-        fd.close()
 
     data = status.fetchStored()
 
@@ -998,15 +991,12 @@ def exe_condor_advertise(fname, command,
             # could be a race condition
             pass
 
-    fd = open(lock_fname, "r+")
-    try:
+    with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             ret = condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp,
                                                 is_multi, factory_collector)
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
-    finally:
-        fd.close()
 
     return ret

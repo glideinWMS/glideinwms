@@ -131,12 +131,11 @@ option specified: %(dir)s""" %  { "dir": self.vdt_location(),})
     services_file = "%(vdt_location)s/vdt/services/state" % \
          { "vdt_location": self.vdt_location(),}
     try:
-      fd = open(services_file, 'r')
-      lines = fd.readlines()
+      with open(services_file, 'r') as fd:
+          lines = fd.readlines()
     except:
       common.logerr("Unable to read VDT services file: %(services_file)s" % 
          { "services_file": services_file,})
-    fd.close()
     fetch_crl_script = None
     for line in lines:
       els = line.split("\t")

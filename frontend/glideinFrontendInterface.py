@@ -399,9 +399,8 @@ class Credential:
             # If not file specified, assume the file used to generate Id
             cred_file = self.getIdFilename()
         try:
-            data_fd = open(cred_file)
-            cred_data = data_fd.read()
-            data_fd.close()
+            with open(cred_file) as data_fd:
+                cred_data = data_fd.read()
         except:
             # This credential should not be advertised
             self.advertize = False
@@ -892,54 +891,54 @@ class MultiAdvertizeWork:
 
             tmpname=self.adname
             glidein_params_to_encrypt={}
-            fd=file(tmpname, "a")
-            nr_credentials=len(self.x509_proxies_data)
-            if nr_credentials>0:
-                glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
+            with open(tmpname, "a") as fd:
+                nr_credentials=len(self.x509_proxies_data)
+                if nr_credentials>0:
+                    glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
 
-            request_name="Global"
-            if (factory_pool in self.global_params):
-                request_name, security_name=self.global_params[factory_pool]
-                glidein_params_to_encrypt['SecurityName']=security_name
-            classad_name="%s@%s"%(request_name, self.descript_obj.my_name)
-            fd.write('MyType = "%s"\n'%frontendConfig.client_global)
-            fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_global)
-            fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
-            fd.write('Name = "%s"\n'%classad_name)
-            fd.write('FrontendName = "%s"\n'%self.descript_obj.frontend_name)
-            fd.write('FrontendHAMode = "%s"\n'%self.ha_mode)
-            fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
-            fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
-            for i in range(nr_credentials):
-                cred_el=self.x509_proxies_data[i]
-                if cred_el.advertize==False:
-                    continue # we already determined it cannot be used
-                for ld_el in cred_el.loaded_data:
-                    ld_fname, ld_data=ld_el
-                    glidein_params_to_encrypt[cred_el.file_id(ld_fname)]=ld_data
-                    if (hasattr(cred_el, 'security_class')):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)]=str(cred_el.security_class)
+                request_name="Global"
+                if (factory_pool in self.global_params):
+                    request_name, security_name=self.global_params[factory_pool]
+                    glidein_params_to_encrypt['SecurityName']=security_name
+                classad_name="%s@%s"%(request_name, self.descript_obj.my_name)
+                fd.write('MyType = "%s"\n'%frontendConfig.client_global)
+                fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_global)
+                fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
+                fd.write('Name = "%s"\n'%classad_name)
+                fd.write('FrontendName = "%s"\n'%self.descript_obj.frontend_name)
+                fd.write('FrontendHAMode = "%s"\n'%self.ha_mode)
+                fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
+                fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
+                for i in range(nr_credentials):
+                    cred_el=self.x509_proxies_data[i]
+                    if cred_el.advertize==False:
+                        continue # we already determined it cannot be used
+                    for ld_el in cred_el.loaded_data:
+                        ld_fname, ld_data=ld_el
+                        glidein_params_to_encrypt[cred_el.file_id(ld_fname)]=ld_data
+                        if (hasattr(cred_el, 'security_class')):
+                            # Convert the sec class to a string so the Factory can interpret the value correctly
+                            glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)]=str(cred_el.security_class)
 
-            if (factory_pool in self.global_key):
-                key_obj=self.global_key[factory_pool]
-            if key_obj is not None:
-                fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
-                for attr in glidein_params_to_encrypt.keys():
-                    el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
-                    escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
-                    fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
+                if (factory_pool in self.global_key):
+                    key_obj=self.global_key[factory_pool]
+                if key_obj is not None:
+                    fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
+                    for attr in glidein_params_to_encrypt.keys():
+                        el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
+                        escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
+                        fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
 
-            # Update Sequence number information
-            if classad_name in advertizeGCGounter:
-                advertizeGCGounter[classad_name] += 1
-            else:
-                advertizeGCGounter[classad_name] = 0
-            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
- 
-            # add a final empty line... useful when appending
-            fd.write('\n')
-            fd.close()
+                # Update Sequence number information
+                if classad_name in advertizeGCGounter:
+                    advertizeGCGounter[classad_name] += 1
+                else:
+                    advertizeGCGounter[classad_name] = 0
+                fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
+
+                # add a final empty line... useful when appending
+                fd.write('\n')
+                fd.close()
 
             return [tmpname]
 

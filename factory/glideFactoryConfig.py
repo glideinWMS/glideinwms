@@ -55,8 +55,7 @@ class ConfigFile:
 
     def load(self, fname, convert_function):
         self.data={}
-        fd=open(fname, "r")
-        try:
+        with open(fname, "r") as fd:
             lines=fd.readlines()
             for line in lines:
                 if line[0]=="#":
@@ -70,8 +69,6 @@ class ConfigFile:
                 else:
                     lval=larr[1][:-1] #strip newline
                 exec("self.data['%s']=%s"%(lname, convert_function(lval)))
-        finally:
-            fd.close()
 
     def has_key(self, key_name):
         return key_name in self.data
@@ -385,8 +382,7 @@ class SignatureFile(ConfigFile):
 
         """
         self.data = {}
-        fd = open(fname, "r")
-        try:
+        with open(fname, "r") as fd:
             lines = fd.readlines()
             for line in lines:
                 if line[0] == "#":
@@ -399,5 +395,3 @@ class SignatureFile(ConfigFile):
                 lname = larr[2]
                 self.data["%s_sign" % str(lname)] = str(lsign)
                 self.data["%s_descript" % str(lname)] = str(ldescript)
-        finally:
-            fd.close()

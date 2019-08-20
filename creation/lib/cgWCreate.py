@@ -93,10 +93,9 @@ def create_condor_tar_fd(condor_base_dir):
 
         # tar
         fd = cStringIO.StringIO()
-        tf = tarfile.open("dummy.tgz", 'w:gz', fd)
-        for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
-        tf.close()
+        with tarfile.open("dummy.tgz", 'w:gz', fd) as tf:
+            for f in condor_bins:
+                tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
         # rewind the file to the beginning
         fd.seek(0)
     except RuntimeError as e:
@@ -299,15 +298,12 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
     Creates the factory startup script from the template.
     """
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname, "w")
-    try:
+    with open(startup_fname, "w") as fd:
         template = template % {"factory_dir": factory_dir,
                                "glideinWMS_dir": glideinWMS_dir,
                                "default_cfg_fpath": cfg_name,
                                "rpm_install": rpm_install}
         fd.write(template)
-    finally:
-        fd.close()
 
     os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
@@ -335,9 +331,8 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
     os.chmod(os.path.join(work_dir, filename), 0o555)
 
 def get_template(template_name, glideinWMS_dir):
-    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
-    template_str = template_fd.read()
-    template_fd.close()
+    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+        template_str = template_fd.read()
 
     return template_str
 

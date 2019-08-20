@@ -15,8 +15,7 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
     template = get_template(template_fname, glideinWMS_dir_template)
-    fd = open(startup_fname, "w")
-    try:
+    with open(startup_fname, "w") as fd:
         if template_fname.startswith('frontend'):
             template = template % {"frontend_dir": work_dir, 
                                    "glideinWMS_dir": glideinWMS_dir, 
@@ -28,8 +27,6 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
                                    "default_cfg_fpath": cfg_name,
                                    "rpm_install": rpm_install}
         fd.write(template)
-    finally:
-        fd.close()
 
     os.chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH | stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
 
@@ -38,9 +35,8 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
 
 # Read startup file template
 def get_template(template_name, glideinWMS_dir):
-    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
-    template_str = template_fd.read()
-    template_fd.close()
+    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+        template_str = template_fd.read()
     return template_str
 
 

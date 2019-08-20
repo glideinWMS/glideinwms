@@ -245,12 +245,9 @@ class Params:
     #save into a file
     #The file should be usable for reload
     def save_into_file(self,fname,set_ro=False):
-        fd=open(fname, "w")
-        try:
+        with open(fname, "w") as fd:
             fd.write(self.get_xml())
             fd.write("\n")
-        finally:
-            fd.close()
         if set_ro:
             os.chmod(fname, os.stat(fname)[0]&0o444)
         return
