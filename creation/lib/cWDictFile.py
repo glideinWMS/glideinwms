@@ -77,6 +77,19 @@ class DictFile:
         self.is_readonly=readonly
 
     def add(self, key, val, allow_overwrite=False):
+        """
+
+        Args:
+            key:
+            val:
+            allow_overwrite:
+
+        Returns:
+
+        Raises:
+            RuntimeError
+
+        """
         if key in self.keys:
             if self.vals[key] == val:
                 return  # already exists, nothing to do
@@ -129,7 +142,7 @@ class DictFile:
             with open(filepath, "w") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating %s: %s"%(filepath, e))
+            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -272,6 +285,17 @@ class DictFile:
         return "%s \t%s" % (key, self.vals[key])
 
     def parse_val(self, line):
+        """
+        Parse a line and add it to the dictionary
+
+        Args:
+            line:
+
+        Returns:
+
+        Raises:
+            RuntimeError, from self.add()
+        """
         if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
@@ -1036,7 +1060,7 @@ class ExeFile(SimpleFile):
             with open(filepath, "w") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating %s: %s"%(filepath, e))
+            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
         os.chmod(filepath, 0o755)
 
         return
