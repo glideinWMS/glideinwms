@@ -17,6 +17,7 @@ import re
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorSecurity
 
+
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
@@ -24,16 +25,17 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
     template = get_template("frontend_initd_startup_template", glideinWMS_dir)
+    template = template % {"frontend_dir": frontend_dir,
+                           "glideinWMS_dir": glideinWMS_dir,
+                           "default_cfg_fpath": cfg_name,
+                           "rpm_install": rpm_install}
     with open(startup_fname, "w") as fd:
-        template = template % {"frontend_dir": frontend_dir, 
-                               "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name,
-                               "rpm_install": rpm_install}
         fd.write(template)
 
     os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
     return
+
 
 #########################################
 # Create frontend-specific mapfile

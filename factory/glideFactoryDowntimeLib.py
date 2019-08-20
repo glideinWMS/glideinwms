@@ -232,31 +232,33 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
         elif cut_time<=0:
             cut_time=long(time.time())+cut_time
 
+        after_open = False
         try:
             with open(fname, 'r+') as fd:
+                after_open = True
                 fcntl.flock(fd, fcntl.LOCK_EX)
                 # read the old info
-                inlines=fd.readlines()
+                inlines = fd.readlines()
 
-                outlines=[]
-                lnr=0
-                cut_nr=0
+                outlines = []
+                lnr = 0
+                cut_nr = 0
                 for long_line in inlines:
-                    lnr+=1
-                    line=long_line.strip()
-                    if len(line)==0:
+                    lnr += 1
+                    line = long_line.strip()
+                    if len(line) == 0:
                         outlines.append(long_line)
                         continue # pass on empty lines
-                    if line[0:1]=='#':
+                    if line[0:1] == '#':
                         outlines.append(long_line)
-                        continue # pass on comments
+                        continue  # pass on comments
                     arr=line.split()
-                    if len(arr)<2:
+                    if len(arr) < 2:
                         if raise_on_error:
                             raise ValueError("%s:%i: Expected pair, got '%s'"%(fname, lnr, line))
                         else:
                             outlines.append(long_line)
-                            continue # pass on malformed lines
+                            continue  # pass on malformed lines
 
                     try:
                         if arr[1]=='None':
@@ -268,102 +270,105 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
                             raise ValueError("%s:%i: 2nd element: %s"%(fname, lnr, e))
                         else:
                             outlines.append(long_line)
-                            continue #unknown, pass on
+                            continue  # unknown, pass on
 
                     if end_time is None:
                         outlines.append(long_line)
-                        continue #valid forever, pass on
+                        continue  # valid forever, pass on
 
-                    if end_time>=cut_time:
+                    if end_time >= cut_time:
                         outlines.append(long_line)
-                        continue # end_time after cut_time, have to keep it
+                        continue  # end_time after cut_time, have to keep it
 
                     # if we got here, the period ended before the cut date... cut it
-                    cut_nr+=1
-                    pass # end for
+                    cut_nr += 1
+                    pass  # end for
 
                 # go back to start to rewrite
                 fd.seek(0)
                 fd.writelines(outlines)
                 fd.truncate()
         except IOError as e:
-            if raise_on_error:
+            if raise_on_error or after_open:
                 raise
             else:
-                return 0 # no file -> nothing to purge
+                return 0  # no file -> nothing to purge
         
         return cut_nr
 
+
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
-def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="All",comment=""):
-        comment=comment.replace("\r", " ")
-        comment=comment.replace("\n", " ")
+def endDowntime(fname, end_time=None, entry="All", frontend="All", security_class="All", comment=""):
+        comment = comment.replace("\r", " ")
+        comment = comment.replace("\n", " ")
         if end_time is None:
-            end_time=long(time.time())
+            end_time = long(time.time())
     
+        after_open = False
         try:
-            with open(fname, 'r+'):
-	        fcntl.flock(fd, fcntl.LOCK_EX)
+            with open(fname, 'r+') as fd:
+                after_open = True
+                fcntl.flock(fd, fcntl.LOCK_EX)
                 # read the old info
-                inlines=fd.readlines()
+                inlines = fd.readlines()
 
-                outlines=[]
-                lnr=0
-                closed_nr=0
+                outlines = []
+                lnr = 0
+                closed_nr = 0
                 for long_line in inlines:
-                    lnr+=1
-                    line=long_line.strip()
-                    if len(line)==0:
+                    lnr += 1
+                    line = long_line.strip()
+                    if len(line) == 0:
                         outlines.append(long_line)
-                        continue # pass on empty lines
-                    if line[0:1]=='#':
+                        continue  # pass on empty lines
+                    if line[0:1] == '#':
                         outlines.append(long_line)
-                        continue # pass on comments
-                    arr=line.split()
-                    if len(arr)<2:
+                        continue  # pass on comments
+                    arr = line.split()
+                    if len(arr) < 2:
                         outlines.append(long_line)
-                        continue # pass on malformed lines
-                    #make sure this is for the right entry
-                    if ((entry!="All")and(len(arr)>2)and(entry!=arr[2])):
-                        outlines.append(long_line)
-                        continue
-                    if ((entry=="All")and(len(arr)>2)and("factory"==arr[2])):
+                        continue  # pass on malformed lines
+                    # make sure this is for the right entry
+                    if ((entry != "All") and (len(arr) > 2) and (entry != arr[2])):
                         outlines.append(long_line)
                         continue
-                    if ((frontend!="All")and(len(arr)>3)and(frontend!=arr[3])):
+                    if ((entry == "All") and (len(arr) > 2) and ("factory" == arr[2])):
                         outlines.append(long_line)
                         continue
-                    #make sure that this time tuple applies to this security_class
-                    if ((security_class!="All")and(len(arr)>4)and(security_class!=arr[4])):
+                    if ((frontend != "All") and (len(arr) > 3) and (frontend != arr[3])):
                         outlines.append(long_line)
                         continue
-                    cur_start_time=0
-                    if arr[0]!='None':
-                        cur_start_time=timeConversion.extractISO8601_Local(arr[0])
-                    if arr[1]!='None':
-                        cur_end_time=timeConversion.extractISO8601_Local(arr[1])
-                    if arr[1]=='None' or ((cur_start_time<long(time.time())) and (cur_end_time>end_time)):
+                    # make sure that this time tuple applies to this security_class
+                    if ((security_class != "All") and (len(arr) > 4) and (security_class != arr[4])):
+                        outlines.append(long_line)
+                        continue
+                    cur_start_time = 0
+                    if arr[0] != 'None':
+                        cur_start_time = timeConversion.extractISO8601_Local(arr[0])
+                    if arr[1] != 'None':
+                        cur_end_time = timeConversion.extractISO8601_Local(arr[1])
+                    if arr[1] == 'None' or ((cur_start_time < long(time.time())) and (cur_end_time > end_time)):
                         # open period -> close
                         outlines.append("%-30s %-30s"%(arr[0], timeConversion.getISO8601_Local(end_time)))
-                        if (len(arr)>2):
-                            sep=" "
-                            t=2
+                        if len(arr) > 2:
+                            sep = " "
+                            t = 2
                         for param in arr[2:]:
-                                if t<5:
+                                if t < 5:
                                     outlines.append("%s%-20s" % (sep, param))
                                 else:
                                     outlines.append("%s%s" % (sep, param))
                                 t=t+1
-                        if (comment!=""):
+                        if comment != "":
                             outlines.append("; %s" % (comment))
                         outlines.append("\n")
-                        closed_nr+=1
+                        closed_nr += 1
                     else:
                         # closed just pass on
                         outlines.append(long_line)
-                    #Keep parsing file, since there may be multiple downtimes
-                    #pass # end for
+                    # Keep parsing file, since there may be multiple downtimes
+                    # pass # end for
                
                 # go back to start to rewrite
                 fd.seek(0)
@@ -371,6 +376,9 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
                 fd.truncate()
 
         except IOError:
-            return 0 # no file -> nothing to end
+            if after_open:
+                raise
+            else:
+                return 0  # no file -> nothing to end
 
         return closed_nr

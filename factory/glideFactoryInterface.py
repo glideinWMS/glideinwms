@@ -661,18 +661,17 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gf')
-    fd = file(tmpnam, "w")
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
             fd.write('Requirements = (Name == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factory_id))
-        finally:
-            fd.close()
-
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        try:
+            os.remove(tmpnam)
+        except OSError:
+            pass
 
 
 def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -680,36 +679,35 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfg')
-    fd = file(tmpnam, "w")
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_global)
             fd.write('Requirements = (Name == "%s@%s")&&(GlideinMyType == "%s")\n' % (glidein_name, factory_name, factoryConfig.factory_id))
-        finally:
-            fd.close()
-
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        try:
+            os.remove(tmpnam)
+        except OSError:
+            pass
+
 
 def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Deadvertize all entry and global classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_fact')
-    fd = file(tmpnam, "w")
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
             fd.write('Requirements = (FactoryName =?= "%s")&&(GlideinName =?= "%s")\n' % (factory_name, glidein_name))
-        finally:
-            fd.close()
-
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        try:
+            os.remove(tmpnam)
+        except OSError:
+            pass
 
 
 ############################################################
@@ -844,9 +842,8 @@ def createGlideinClientMonitoringFile(fname,
     else:
         open_type = "w"
 
-    fd = file(fname, open_type)
     try:
-        try:
+        with open(fname, open_type) as fd:
             limits = ('IdleGlideinsPerEntry', 'HeldGlideinsPerEntry', 'TotalGlideinsPerEntry')
             for limit in limits:
                 if limit in limits_triggered:
@@ -886,11 +883,10 @@ def createGlideinClientMonitoringFile(fname,
                         fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
             # add a final empty line... useful when appending
             fd.write('\n')
-        finally:
-            fd.close()
     except:
         # remove file in case of problems
-        os.remove(fname)
+        if os.path.exists(fname):
+            os.remove(fname)
         raise
 
 
@@ -934,18 +930,19 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
     Deadvertize  monitoring classads for the given entry.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
-    fd = file(tmpnam, "w")
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id))
-        finally:
-            fd.close()
+            fd.write('Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n' %
+                     (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id))
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        try:
+            os.remove(tmpnam)
+        except OSError:
+            pass
 
 
 def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -953,18 +950,19 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
     Deadvertize all monitoring classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
-    fd = file(tmpnam, "w")
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")' % (factory_name, glidein_name, factoryConfig.factoryclient_id))
-        finally:
-            fd.close()
+            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")' %
+                     (factory_name, glidein_name, factoryConfig.factoryclient_id))
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        try:
+            os.remove(tmpnam)
+        except OSError:
+            pass
 
 
 ############################################################
