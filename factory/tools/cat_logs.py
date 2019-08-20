@@ -56,9 +56,8 @@ def main():
     for fname in log_list:
         sys.stdout.write("%s\n"%fname)
         sys.stdout.write("===========================================================\n")
-        fd=open(fname, "r")
-        sys.stdout.write(fd.read())
-        fd.close()
+        with open(fname, "r") as fd:
+            sys.stdout.write(fd.read())
         sys.stdout.write("\n")
         
 

@@ -236,12 +236,10 @@ class GlideinHandler(BaseRotatingHandler):
         elif self.compression == "gz":
             if os.path.exists(dfn + ".gz"):
                 os.remove(dfn + ".gz")
-            f_in = open(dfn, "rb")
             try:
-                f_out = gzip.open(dfn + ".gz", "wb")
-                f_out.writelines(f_in)
-                f_out.close()
-                f_in.close()
+                with open(dfn, "rb") as f_in:
+                    with gzip.open(dfn + ".gz", "wb") as f_out:
+                        f_out.writelines(f_in)
                 os.remove(dfn)
             except IOError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)

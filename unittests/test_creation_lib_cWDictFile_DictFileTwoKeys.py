@@ -233,12 +233,10 @@ class TestDictFileTwoKeys(unittest.TestCase):
     def test_save_into_load_from_fd(self):
         other = copy.deepcopy(self.dict_file)
         fnm = create_temp_file()
-        fd = open(fnm, "w")
-        self.dict_file.save_into_fd(fd)
-        fd.close()
-        fd = open(fnm, "r")
-        other.load_from_fd(fd, erase_first=True)
-        fd.close()
+        with open(fnm, "w") as fd:
+            self.dict_file.save_into_fd(fd)
+        with open(fnm, "r") as fd:
+            other.load_from_fd(fd, erase_first=True)
         self.assertTrue(self.dict_file.is_equal(other))
         os.remove(fnm)
 

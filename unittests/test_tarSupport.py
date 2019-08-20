@@ -61,10 +61,9 @@ class TestTarSupport(unittest.TestCase):
         temp_path = create_temp_file(
             file_dir=self.working_dir,
             write_path_to_file=False)
-        temp_file = open(temp_path, 'w')
-        temp_file.write(blob)
-        temp_file.seek(0)
-        temp_file.close()
+        with open(temp_path, 'w') as temp_file:
+            temp_file.write(blob)
+            temp_file.seek(0)
         shutil.move(temp_path, "%s.tar.gz" % temp_path)
 
         tarball = GlideinTar()

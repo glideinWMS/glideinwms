@@ -126,13 +126,10 @@ class DictFile:
             os.makedirs(dir)
         filepath=os.path.join(dir, fname)
         try:
-            fd=open(filepath, "w")
+            with open(filepath, "w") as fd:
+                self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
             raise RuntimeError("Error creating %s: %s"%(filepath, e))
-        try:
-            self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
-        finally:
-            fd.close()
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -191,18 +188,15 @@ class DictFile:
 
         filepath = os.path.join(dir, fname)
         try:
-            fd = open(filepath, "r")
+            with open(filepath, "r") as fd:
+                try:
+                    self.load_from_fd(fd, erase_first, set_not_changed)
+                except RuntimeError as e:
+                    raise RuntimeError("File %s: %s" % (filepath, str(e)))
         except IOError as e:
             print("Error opening %s: %s" % (filepath, e))
             print("Assuming blank, and re-creating...")
             return
-        try:
-            try:
-                self.load_from_fd(fd, erase_first, set_not_changed)
-            except RuntimeError as e:
-                raise RuntimeError("File %s: %s" % (filepath, str(e)))
-        finally:
-            fd.close()
 
         if change_self:
             self.dir = dir
@@ -1039,13 +1033,10 @@ class ExeFile(SimpleFile):
 
         filepath=os.path.join(dir, fname)
         try:
-            fd=open(filepath, "w")
+            with open(filepath, "w") as fd:
+                self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
             raise RuntimeError("Error creating %s: %s"%(filepath, e))
-        try:
-            self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
-        finally:
-            fd.close()
         os.chmod(filepath, 0o755)
 
         return
