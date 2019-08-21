@@ -2184,7 +2184,7 @@ def is_tarfile(name):
     """
     try:
         with open(name) as t:
-        return True
+            return True
     except TarError:
         return False
 

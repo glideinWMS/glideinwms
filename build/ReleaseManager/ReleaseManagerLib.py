@@ -12,8 +12,6 @@ import shutil
 import platform
 
 
-
-
 class ExeError(RuntimeError):
 
     def __init__(self, str):
@@ -339,7 +337,7 @@ class TaskRPM(TaskTar):
 
         #shutil.copyfile(self.specFileTemplate, self.specFile)
         #fdin = open(self.specFileTemplate, 'r')
-        with open(self.specFileTemplate, 'r) as fdin:
+        with open(self.specFileTemplate, 'r') as fdin:
             lines = fdin.readlines()
         
         with open(self.specFile, 'w') as fdout:
