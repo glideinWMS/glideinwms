@@ -99,9 +99,9 @@ def create_config(fname):
                 i = p
             add_collector(i, p, fd)
             i += 1
-        except IOError as e:
-            print("%s" % e)
-            sys.exit(2)
+    except IOError as e:
+        print("%s" % e)
+        sys.exit(2)
 
 
 def parse_args(args):
