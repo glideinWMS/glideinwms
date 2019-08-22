@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+"""
+The script check if the factory setup is 3.5 ready. This means the client and proxies
+directories are owned user running this process, and jobs owner is this user as well.
+"""
+
+from __future__ import print_function
+
+import os
+import sys
+import getpass
+
+import htcondor
+
+from glideinwms.creation.lib import factoryXmlConfig
+
+
+def main():
+    """ The main function
+    """
+    conf_file = '/etc/gwms-factory/glideinWMS.xml'
+    print('Loading configuration file %s' % conf_file)
+    conf = factoryXmlConfig.parse(conf_file)
+    uid = os.getuid()
+    user = getpass.getuser()
+
+    # pylint: disable=maybe-no-member
+    dir_dicts = [conf.get_client_log_dirs(), conf.get_client_proxy_dirs()]
+
+    for client_dir_dict in dir_dicts:
+        for _, fe_client_dir in client_dir_dict.items():
+            cid = os.stat(fe_client_dir).st_uid
+            if cid != uid:
+                print(("Directory %s is owned by user with id %s, while the user running this"
+                       "process is %s") % (fe_client_dir, cid, uid))
+                return 1
+    print('Checked ownership (%s) of client and proxies directories' % user)
+
+    # Query all the schedds for job owners
+    queries = []
+    coll_query = htcondor.Collector().locateAll(htcondor.DaemonTypes.Schedd)
+    for schedd_ad in coll_query:
+        schedd_obj = htcondor.Schedd(schedd_ad)
+        queries.append(schedd_obj.xquery(projection=["Owner"]))
+
+    users = set()
+    i = 0
+    for query in htcondor.poll(queries):
+        try:
+            users.add(query.next()["Owner"])
+            i += 1
+        except StopIteration:
+            pass
+    print("Checked Owner of %s jobs" % i)
+    if len(users) != 1:
+        print("Found that jobs Owner are: " + ", ".join(users))
+        print("All the jobs Owner should be %s instead" % user)
+        return 2
+    else:
+        jobuser = users.pop()
+        if user != jobuser:
+            print("All the jobs have owner %s, while the user running this process is %s" %
+                  (jobuser, user))
+            return 3
+
+    return 0
+
+
+if __name__ == '__main__':
+    RET = main() # capital letters used because pylint considers this a constant
+    if RET != 0:
+        #TODO doc.prd instead of doc.dev?
+        print("Please, make sure to run the fact_chown script. More details at"
+              "https://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user")
+    sys.exit(RET)
