@@ -97,8 +97,9 @@ class GlideinTar:
             invalid compression type has been passed in
         """
         tar_mode = "w:%s" % compression
-        with glideinwms_tarfile.open(archive_full_path, mode=tar_mode) as tf:
-            self.create_tar(tf)
+        tf = glideinwms_tarfile.open(archive_full_path, mode=tar_mode)
+        self.create_tar(tf)
+        tf.close()
 
     def create_tar_blob(self, compression="gz"):
         """Creates a tarball and writes it out to memory
@@ -115,8 +116,9 @@ class GlideinTar:
         from cStringIO import StringIO
         tar_mode = "w:%s" % compression
         file_out = StringIO()
-        with glideinwms_tarfile.open(fileobj=file_out, mode=tar_mode) as tf:
-            self.create_tar(tf)
+        tf = glideinwms_tarfile.open(fileobj=file_out, mode=tar_mode)
+        self.create_tar(tf)
+        tf.close()
         return file_out.getvalue()
 
     def is_tarfile(self, full_path):
