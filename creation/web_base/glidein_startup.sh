@@ -857,7 +857,7 @@ function generate_glidein_metadata_json {
                   --arg schedd "$condorg_schedd" \
                   '{UUID: $uuid, name: $name, factory: $fact, client: $client, client_group: $client_group, schedd: $schedd}' )
     else
-        json_metadata=$(echo -e "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"schedd\":\"${condorg_schedd}\"}")  # TODO: escaping may be needed
+        json_metadata=$(echo "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"schedd\":\"${condorg_schedd}\"}")  # TODO: escaping may be needed
     fi
     echo "$json_metadata" > "${start_dir}/${logdir}/glidein_metadata.json"
 }
@@ -900,7 +900,7 @@ function log_write {
     source "\${b64uuencode_source}"
 
     # Argument \$1
-    invoker="\$(json_escape "\$1")"
+    invoker="\$1"
     # Argument \$2
     case \$2 in
         "text" | "file" ) type=\$2;;
@@ -916,7 +916,6 @@ function log_write {
         filename=""
         content="\$3"
     fi
-    content="\$(json_escape "\$content")"
     # Argument \$4
     case \$4 in
         "error" | "warn" | "info" | "debug" | "fatal" ) severity=\$4;;
@@ -939,7 +938,9 @@ function log_write {
                   --arg sev "\$severity" \
                   '{invoker: \$inv, pid: \$pid, timestamp: \$ts, severity: \$sev, type: \$ty, filename: \$fn, content: \$body}' )
     else
-        json_logevent=\$(echo -e "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")
+        invoker="\$(json_escape "\${invoker}")"
+        content="\$(json_escape "\${content}")"
+        json_logevent=\$(echo "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")
     fi
 
     echo "\$json_logevent" > "\$shard_filename"
