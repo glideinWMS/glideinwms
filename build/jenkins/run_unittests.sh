@@ -48,9 +48,8 @@ if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
     echo "exiting"
     exit 1
 fi
-. "$GLIDEINWMS_SRC/build/jenkins/utils.sh" 
-ret=$?
-if [ $ret -ne 0 ] ; then
+
+if !  . "$GLIDEINWMS_SRC/build/jenkins/utils.sh" ; then
     echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
     echo "exiting"
     exit 1
@@ -62,7 +61,7 @@ if [ "x$VIRTUAL_ENV" = "x" ]; then
 fi
 
 if ! cd "$GLIDEINWMS_SRC"/unittests ; then
-    echo "cannot find  $GLIDEINWMS_SRC/unittests , exiting" 
+    echo "cannot find  '$GLIDEINWMS_SRC/unittests' , exiting" 
     exit 1
 fi
 
@@ -79,7 +78,7 @@ SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 #files="test_frontend.py test_frontend_element.py"
 
 if [ -n "$LIST_FILES" ]; then
-    files_list="$(ls test_*py)"
+    files_list="$(find . -readable -name  'test_*.py' -print)"
 else
     files_list="$*"
 fi
@@ -90,13 +89,13 @@ for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
     if [ -n "$VERBOSE" ]; then
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
+            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
         else
             ./"$file" || log_nonzero_rc "$file" $?
         fi
     else
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
+            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
         else
             ./"$file"
         fi
@@ -107,8 +106,10 @@ CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BR_NO_SLASH=$(echo "${CURR_BRANCH}" | sed -e 's/\//_/g')
 
 if [ "$RUN_COVERAGE" = "yes" ]; then
+    DATE=$(date "+%Y-%m-%d %H:%M:%S")
+    TITLE="Glideinwms Coverage Report for branch $CURR_BRANCH on $DATE"
     coverage report > "${WORKSPACE}/coverage.report.${BR_NO_SLASH}"
-    coverage html || echo "coverage html report failed"
+    coverage html --title "$TITLE" || echo "coverage html report failed"
     if [ -d htmlcov ]; then
     	mv htmlcov "${WORKSPACE}/htmlcov.${BR_NO_SLASH}"
     else
