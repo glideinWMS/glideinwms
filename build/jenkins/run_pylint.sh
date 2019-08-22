@@ -85,7 +85,7 @@ process_branch() {
     PEP8_OPTIONS="$PEP8_OPTIONS""E111"
     # E121 continuation line under-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
-    # E123 closing bracket does not match indentation of opening bracket’s line
+    # E123 closing bracket does not match indentation of opening bracket's line
     #PEP8_OPTIONS="$PEP8_OPTIONS,E123"
     # E126 continuation line over-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E126"
