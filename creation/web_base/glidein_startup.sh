@@ -863,12 +863,16 @@ function generate_glidein_metadata_json {
 }
 
 function logs_setup {
-    mkdir -p "${start_dir}/${logdir}/shards"
+    # Create the necessary folders
+    mkdir -p "${start_dir}/${logdir}/shards/creating"
+
+    # Create an 'empty' log, containing only glidein metadata
     generate_glidein_metadata_json
     echo "[" > "${start_dir}/${logdir}/${log_logfile}"
     cat "${start_dir}/${logdir}/glidein_metadata.json" >> "${start_dir}/${logdir}/${log_logfile}"
     echo "]" >> "${start_dir}/${logdir}/${log_logfile}"
 
+    # Log a copy of stdout and stderr too
     exec >  >(tee -ia "${start_dir}/${logdir}/${stdout_logfile}")
     exec 2> >(tee -ia "${start_dir}/${logdir}/${stderr_logfile}" >&2)
     echo "$(date): Started logging stdout on file too"
@@ -909,7 +913,14 @@ function log_write {
     # Argument \$3
     if [ "\$type" == "file" ]; then
         filename="\$3"
-        raw_content=\$(cat "${start_dir}/\${filename}")
+        case \${filename} in
+            /*) filepath="\${filename}";;               # absolute
+             *) filepath="${start_dir}/\${filename}";;  # relative
+        esac
+        raw_content=\$(cat "\${filepath}")
+        if [ -z "\$raw_content" ]; then
+            raw_content="File not found"
+        fi
         # Compression and encoding
         content=\$(echo "\$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
     else
@@ -923,10 +934,10 @@ function log_write {
     esac
 
     pid=\${BASHPID:-\$\$}
-    shard_filename="shard_\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}"
+    shard_filename="\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}.shard"
 
     pushd "${start_dir}/${logdir}/shards" > /dev/null
-    touch "\$shard_filename"
+    touch "creating/\${shard_filename}"
     if command -v jq >/dev/null 2>&1; then
         json_logevent=\$( jq -n \
                   --arg inv "\$invoker" \
@@ -943,7 +954,9 @@ function log_write {
         json_logevent=\$(echo "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")
     fi
 
-    echo "\$json_logevent" > "\$shard_filename"
+    # Make sure that shards in the main dir have been fully written
+    echo "\${json_logevent}" > "creating/\${shard_filename}"
+    mv "creating/\${shard_filename}" "\${shard_filename}"
     popd > /dev/null
 }
 
@@ -951,18 +964,27 @@ function log_coalesce_shards {
     # Merge log shards in a single file (for each glidein process)
 
     pushd "${start_dir}/${logdir}" > /dev/null
-    cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
 
-    if [ -n "\$(ls -A shards)" ]; then
-        sed -i '\${s/]$/,/}' "${log_logfile}" # replace last square bracket with comma
-        for shd in shards/shard*; do          # concatenate separating with comma
-            cat \$shd
-            echo ","
-        done >> "${log_logfile}"
-        sed -i '$ d' "${log_logfile}"           # remove last comma
-        echo "]" >> "${log_logfile}"            # closing square bracket
-        rm -f shards/shard*         # TODO: how to make sure these files are not currently open?
-    fi    
+    # Skip if another process is already coaleascing
+    if mkdir shards/coalescing; then
+        cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
+        # Skip if there are no shards
+        if [ -n "\$(ls -Ap shards | grep -v /)" ]; then
+            cp "${log_logfile}" shards/coalescing/
+            mv shards/*.shard shards/coalescing/
+            pushd shards/coalescing > /dev/null
+            sed -i '\${s/]$/,/}' "${log_logfile}"   # replace last square bracket with comma
+            for shd in *.shard; do                  # concatenate separating with comma
+                cat \$shd
+                echo ","
+            done >> "${log_logfile}"
+            sed -i '$ d' "${log_logfile}"           # remove last comma
+            echo "]" >> "${log_logfile}"            # closing square bracket
+            popd > /dev/null
+            mv "shards/coalescing/${log_logfile}" .
+        fi
+    rm -rf shards/coalescing
+    fi
     popd > /dev/null
 }
 
@@ -2178,7 +2200,7 @@ add_config_line "GLIDEIN_INITIALIZED" "1"
 
 log_write "glidein_startup.sh" "text" "Starting the glidein main script" "info"
 log_write "glidein_startup.sh" "file" "${glidein_config}" "debug"
-send_logs_to remote          # checkpoint
+send_logs_to_remote          # checkpoint
 echo "# --- Last Script values ---" >> glidein_config
 last_startup_time=`date +%s`
 let validation_time=$last_startup_time-$startup_time
