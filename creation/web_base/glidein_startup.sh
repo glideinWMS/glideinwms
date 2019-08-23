@@ -852,12 +852,25 @@ function generate_glidein_metadata_json {
                   --arg uuid "$glidein_uuid" \
                   --arg name "$glidein_name" \
                   --arg fact "$glidein_factory" \
+                  --arg entry "$glidein_entry" \
                   --arg client "$client_name" \
                   --arg client_group "$client_group" \
+                  --arg cred "$glidein_cred_id" \
+                  --arg cluster "$condorg_cluster" \
+                  --arg subcluster "$condorg_subcluster" \
                   --arg schedd "$condorg_schedd" \
-                  '{UUID: $uuid, name: $name, factory: $fact, client: $client, client_group: $client_group, schedd: $schedd}' )
+                  --arg debug "$set_debug" \
+                  --arg startup_pid "$$" \
+                  --arg tmpdir "$glide_tmp_dir" \
+                  --arg local_tmpdir "$glide_local_tmp_dir" \
+                  --arg proxy "$proxy_url" \
+                  --arg desc_file "$descript_file" \
+                  --arg desc_entry_file "$descript_entry_file" \
+                  --arg signature "$sign_id" \
+                  --arg entry_signature "$sign_entry_id" \
+                  '{UUID: $uuid, name: $name, factory: $fact, entry: $entry, client: $client, client_group: $client_group, cred_id: $cred, cluster: $cluster, subcluster: $subcluster, schedd: $schedd, debug: $debug, startup_pid: $startup_pid, tmpdir: $tmpdir, local_tmpdir: $local_tmpdir, proxy: $proxy, desc_file: $desc_file, desc_entry_file: $desc_entry_file, signature: $signature, entry_signature: $entry_signature}' )
     else
-        json_metadata=$(echo "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"schedd\":\"${condorg_schedd}\"}")  # TODO: escaping may be needed
+        json_metadata=$(echo "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${signature}\", \"entry_signature\":\"${sign_entry_id}\"}")  # TODO: escaping may be needed
     fi
     echo "$json_metadata" > "${start_dir}/${logdir}/glidein_metadata.json"
 }
