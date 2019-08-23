@@ -93,9 +93,13 @@ def create_condor_tar_fd(condor_base_dir):
 
         # tar
         fd = cStringIO.StringIO()
-        with tarfile.open("dummy.tgz", 'w:gz', fd) as tf:
-            for f in condor_bins:
-                tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
+        # TODO #23166: Use context managers[with statement] when python 3 
+        # once we get rid of SL6 and tarballs
+ 
+        tf = tarfile.open("dummy.tgz", 'w:gz', fd)
+        for f in condor_bins:
+            tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
+        tf.close()
         # rewind the file to the beginning
         fd.seek(0)
     except RuntimeError as e:
