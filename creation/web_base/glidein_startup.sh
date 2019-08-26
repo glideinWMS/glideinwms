@@ -535,6 +535,9 @@ function glidein_exit {
       fi
   fi
 
+  log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
+  send_logs_to_remote
+
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
@@ -544,9 +547,6 @@ function glidein_exit {
   fi
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
-
-  log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode ${1}" "info"
-  send_logs_to_remote
 
   exit $1
 }
@@ -1446,6 +1446,13 @@ source get_id_selectors.source
 wrapper_list="$PWD/wrapper_list.lst"
 touch "$wrapper_list"
 
+# Logging paths
+logdir="logs/${glidein_uuid}"
+stdout_logfile="${glidein_uuid}.out"
+stderr_logfile="${glidein_uuid}.err"
+log_logfile="${glidein_uuid}.log"
+logserver_addr='http://fermicloud152.fnal.gov:80'
+
 # create glidein_config
 glidein_config="$PWD/glidein_config"
 echo > "$glidein_config"
@@ -1494,6 +1501,7 @@ echo "B64UUENCODE_SOURCE" $PWD/b64uuencode.source >> glidein_config
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "LOGGING_UTILS_SOURCE $PWD/logging_utils.source" >> glidein_config
+echo "GLIDEIN_Log_Abspath" "${start_dir}/${logdir}/${log_logfile}" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "SLOTS_LAYOUT $slots_layout" >> glidein_config
 # Add a line saying we are still initializing
@@ -1508,11 +1516,6 @@ fi
 params2file $params
 
 # Setup logging
-logdir="logs/${glidein_uuid}"
-stdout_logfile="${glidein_uuid}.out"
-stderr_logfile="${glidein_uuid}.err"
-log_logfile="${glidein_uuid}.log"
-logserver_addr='http://fermicloud152.fnal.gov:80'
 logs_setup
 
 ############################################

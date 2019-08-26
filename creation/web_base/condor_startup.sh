@@ -8,7 +8,6 @@
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
 #
-
 function trap_with_arg {
     func="$1" ; shift
     for sig ; do
@@ -456,6 +455,7 @@ if [ -z "$job_maxtime" ]; then
         job_maxtime=192600
     fi
 fi
+logfile_abspath=$(grep -i "^GLIDEIN_Log_Abspath" "$config_file" | cut -d ' ' -f 2-)
 
 # At this point, we need to define two times:
 #  die_time = time that glidein will enter graceful shutdown
@@ -1183,6 +1183,11 @@ else
     cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
 cond_print_log StartdHistoryLog log/StartdHistoryLog
+
+append_glidein_log=true   # TODO: this is only a test
+if [ $append_glidein_log = true ]; then
+    cond_print_log "GlideinLog" "${logfile_abspath}"
+fi
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
