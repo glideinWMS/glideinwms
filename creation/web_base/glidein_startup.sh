@@ -872,22 +872,22 @@ function generate_glidein_metadata_json {
     else
         json_metadata=$(echo "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${signature}\", \"entry_signature\":\"${sign_entry_id}\"}")  # TODO: escaping may be needed
     fi
-    echo "$json_metadata" > "${start_dir}/${logdir}/glidein_metadata.json"
+    echo "$json_metadata" > "${logdir}/glidein_metadata.json"
 }
 
 function logs_setup {
     # Create the necessary folders
-    mkdir -p "${start_dir}/${logdir}/shards/creating"
+    mkdir -p "${logdir}/shards/creating"
 
     # Create an 'empty' log, containing only glidein metadata
     generate_glidein_metadata_json
-    echo "[" > "${start_dir}/${logdir}/${log_logfile}"
-    cat "${start_dir}/${logdir}/glidein_metadata.json" >> "${start_dir}/${logdir}/${log_logfile}"
-    echo "]" >> "${start_dir}/${logdir}/${log_logfile}"
+    echo "[" > "${logdir}/${log_logfile}"
+    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
+    echo "]" >> "${logdir}/${log_logfile}"
 
     # Log a copy of stdout and stderr too
-    exec >  >(tee -ia "${start_dir}/${logdir}/${stdout_logfile}")
-    exec 2> >(tee -ia "${start_dir}/${logdir}/${stderr_logfile}" >&2)
+    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
+    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
     echo "$(date): Started logging stdout on file too"
     echo "$(date): Started logging stderr on file too" >&2
 
@@ -904,10 +904,14 @@ function json_escape {
     echo "\$qstr"
 }
 
+function get_logfile_path_relative {
+    echo "${logdir}/${log_logfile}"
+}
+
 function log_write {
     # Log an event
     # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
-    # If type is file, then the filepath is relative wrt start_dir
+    # If type is file, then the filepath can be either absolute or relative to work_dir
 
     cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
     cur_time_ns=\$(date +%s%N)   # enough to ensure that shards have different timestamps
@@ -928,7 +932,7 @@ function log_write {
         filename="\$3"
         case \${filename} in
             /*) filepath="\${filename}";;               # absolute
-             *) filepath="${start_dir}/\${filename}";;  # relative
+             *) filepath="${work_dir}/\${filename}";;   # relative
         esac
         raw_content=\$(cat "\${filepath}")
         if [ -z "\$raw_content" ]; then
@@ -949,7 +953,7 @@ function log_write {
     pid=\${BASHPID:-\$\$}
     shard_filename="\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}.shard"
 
-    pushd "${start_dir}/${logdir}/shards" > /dev/null
+    pushd "${work_dir}/${logdir}/shards" > /dev/null
     touch "creating/\${shard_filename}"
     if command -v jq >/dev/null 2>&1; then
         json_logevent=\$( jq -n \
@@ -976,7 +980,7 @@ function log_write {
 function log_coalesce_shards {
     # Merge log shards in a single file (for each glidein process)
 
-    pushd "${start_dir}/${logdir}" > /dev/null
+    pushd "${work_dir}/${logdir}" > /dev/null
 
     # Skip if another process is already coaleascing
     if mkdir shards/coalescing; then
@@ -1005,7 +1009,7 @@ function send_logs_to_remote {
     log_coalesce_shards
 
     # Upload stdout log file
-    curl_resp=\$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stdout_logfile} ${logserver_addr} 2>&1)
+    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stdout_logfile} ${logserver_addr} 2>&1)
     curl_retval=\$?
     if [ \$curl_retval -ne 0 ]; then
         curl_version=\$(curl --version 2>&1 | head -1)
@@ -1013,7 +1017,7 @@ function send_logs_to_remote {
     fi
 
     # Upload stderr log file
-    curl_resp=\$(curl -X PUT --upload-file ${start_dir}/${logdir}/${stderr_logfile} ${logserver_addr} 2>&1)
+    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stderr_logfile} ${logserver_addr} 2>&1)
     curl_retval=\$?
     if [ \$curl_retval -ne 0 ]; then
         curl_version=\$(curl --version 2>&1 | head -1)
@@ -1021,7 +1025,7 @@ function send_logs_to_remote {
     fi
 
     # Upload general log file
-    curl_resp=\$(curl -X PUT --upload-file ${start_dir}/${logdir}/${log_logfile} ${logserver_addr} 2>&1)
+    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${log_logfile} ${logserver_addr} 2>&1)
     curl_retval=\$?
     if [ \$curl_retval -ne 0 ]; then
         curl_version=\$(curl --version 2>&1 | head -1)
@@ -1033,10 +1037,8 @@ EOF
     log_write "glidein_startup.sh" "text" "Remote logging has been setup. Server address: ${logserver_addr}" "info"
 }
 
+
 ################
-
-start_dir=$(pwd)
-
 # Parse and verify arguments
 
 # allow some parameters to change arguments
@@ -1352,6 +1354,7 @@ else
     early_glidein_failure "Startup dir $work_dir does not exist."
 fi
 
+start_dir=$(pwd)
 echo "Started in $start_dir"
 
 def_work_dir="$work_dir/glide_XXXXXX"
@@ -1446,13 +1449,6 @@ source get_id_selectors.source
 wrapper_list="$PWD/wrapper_list.lst"
 touch "$wrapper_list"
 
-# Logging paths
-logdir="logs/${glidein_uuid}"
-stdout_logfile="${glidein_uuid}.out"
-stderr_logfile="${glidein_uuid}.err"
-log_logfile="${glidein_uuid}.log"
-logserver_addr='http://fermicloud152.fnal.gov:80'
-
 # create glidein_config
 glidein_config="$PWD/glidein_config"
 echo > "$glidein_config"
@@ -1501,7 +1497,6 @@ echo "B64UUENCODE_SOURCE" $PWD/b64uuencode.source >> glidein_config
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "LOGGING_UTILS_SOURCE $PWD/logging_utils.source" >> glidein_config
-echo "GLIDEIN_Log_Abspath" "${start_dir}/${logdir}/${log_logfile}" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "SLOTS_LAYOUT $slots_layout" >> glidein_config
 # Add a line saying we are still initializing
@@ -1516,6 +1511,11 @@ fi
 params2file $params
 
 # Setup logging
+logdir="logs/${glidein_uuid}"
+stdout_logfile="${glidein_uuid}.out"
+stderr_logfile="${glidein_uuid}.err"
+log_logfile="${glidein_uuid}.log"
+logserver_addr='http://fermicloud152.fnal.gov:80'
 logs_setup
 
 ############################################

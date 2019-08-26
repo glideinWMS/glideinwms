@@ -455,7 +455,10 @@ if [ -z "$job_maxtime" ]; then
         job_maxtime=192600
     fi
 fi
-logfile_abspath=$(grep -i "^GLIDEIN_Log_Abspath" "$config_file" | cut -d ' ' -f 2-)
+
+# import logging utility functions
+logging_utils_source="`grep '^LOGGING_UTILS_SOURCE ' "$config_file" | cut -d ' ' -f 2-`"
+source "$logging_utils_source"
 
 # At this point, we need to define two times:
 #  die_time = time that glidein will enter graceful shutdown
@@ -1184,9 +1187,11 @@ else
 fi
 cond_print_log StartdHistoryLog log/StartdHistoryLog
 
+
 append_glidein_log=true   # TODO: this is only a test
+logfile_path=$(get_logfile_path_relative)
 if [ $append_glidein_log = true ]; then
-    cond_print_log "GlideinLog" "${logfile_abspath}"
+    cond_print_log "GlideinLog" "${logfile_path}"
 fi
 
 ## kill the master (which will kill the startd)
