@@ -24,7 +24,7 @@ from itertools import groupby
 from . import condorExe
 from . import condorSecurity
 
-# USE_HTCONDOR_PYTHON_BINDINGS = True
+USE_HTCONDOR_PYTHON_BINDINGS = True
 
 # NOTE:
 # import htcondor tries to look for CONDOR_CONFIG in the usual search path
