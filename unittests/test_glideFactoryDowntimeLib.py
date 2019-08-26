@@ -37,7 +37,6 @@ class TestDowntimes(unittest.TestCase):
         pass
 
     def test_downtimesfile(self):
-        now = long(time.time())
         self.downtime.startDowntime(
             entry="All",
             comment="unittest downtime",
@@ -53,9 +52,10 @@ class TestDowntimes(unittest.TestCase):
         # Test downtime comments
         self.assertEquals(self.downtime.downtime_comment, "unittest downtime")
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
-
+       
         # Use now+1 since we just ended the downtime
         # The second counter may not have updated
+        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
@@ -80,6 +80,7 @@ class TestDowntimes(unittest.TestCase):
                 entry="James",
                 check_time=None))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
+        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
@@ -108,6 +109,7 @@ class TestDowntimes(unittest.TestCase):
                 entry="DougEntry",
                 check_time=None))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
+        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
@@ -127,6 +129,7 @@ class TestDowntimes(unittest.TestCase):
             security_class="All",
             comment="unittest delayed downtime",
             create_if_empty=True)
+        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
@@ -136,6 +139,7 @@ class TestDowntimes(unittest.TestCase):
                 entry="All",
                 check_time=now + 9600))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
+        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
@@ -192,6 +196,7 @@ class TestDowntimes(unittest.TestCase):
                 security_class="OtherClass",
                 check_time=now + 9600))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
+        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="TestEntry",
