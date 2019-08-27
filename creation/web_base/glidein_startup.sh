@@ -870,7 +870,7 @@ function generate_glidein_metadata_json {
                   --arg entry_signature "$sign_entry_id" \
                   '{UUID: $uuid, name: $name, factory: $fact, entry: $entry, client: $client, client_group: $client_group, cred_id: $cred, cluster: $cluster, subcluster: $subcluster, schedd: $schedd, debug: $debug, startup_pid: $startup_pid, tmpdir: $tmpdir, local_tmpdir: $local_tmpdir, proxy: $proxy, desc_file: $desc_file, desc_entry_file: $desc_entry_file, signature: $signature, entry_signature: $entry_signature}' )
     else
-        json_metadata=$(echo "{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${signature}\", \"entry_signature\":\"${sign_entry_id}\"}")  # TODO: escaping may be needed
+        json_metadata="{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${sign_id}\", \"entry_signature\":\"${sign_entry_id}\"}"  # TODO: escaping may be needed
     fi
     echo "$json_metadata" > "${logdir}/glidein_metadata.json"
 }
@@ -892,7 +892,7 @@ function logs_setup {
     echo "$(date): Started logging stderr on file too" >&2
 
     # Check server availability (simply warn if not available)
-    ping -c1 -w2 "$(echo ${logserver_addr} | cut -d ":" -f 1)" >/dev/null || echo "Warning: logserver not reachable (${logserver_addr})" >&2
+    ping -c1 -w2 "$(echo "${logserver_addr}" | cut -d ":" -f 1)" >/dev/null || echo "Warning: logserver not reachable (${logserver_addr})" >&2
 
     cat > "logging_utils.source" << EOF
 function json_escape {
@@ -968,7 +968,7 @@ function log_write {
     else
         invoker="\$(json_escape "\${invoker}")"
         content="\$(json_escape "\${content}")"
-        json_logevent=\$(echo "{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}")
+        json_logevent="{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}"
     fi
 
     # Make sure that shards in the main dir have been fully written
