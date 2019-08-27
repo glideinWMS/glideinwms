@@ -1009,7 +1009,7 @@ function send_logs_to_remote {
     log_coalesce_shards
 
     # Upload stdout log file
-    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stdout_logfile} ${logserver_addr} 2>&1)
+    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stdout_logfile} ${logserver_addr}/${stdout_logfile} 2>&1)
     curl_retval=\$?
     if [ \$curl_retval -ne 0 ]; then
         curl_version=\$(curl --version 2>&1 | head -1)
@@ -1017,7 +1017,7 @@ function send_logs_to_remote {
     fi
 
     # Upload stderr log file
-    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stderr_logfile} ${logserver_addr} 2>&1)
+    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stderr_logfile} ${logserver_addr}/${stderr_logfile} 2>&1)
     curl_retval=\$?
     if [ \$curl_retval -ne 0 ]; then
         curl_version=\$(curl --version 2>&1 | head -1)
@@ -1025,7 +1025,7 @@ function send_logs_to_remote {
     fi
 
     # Upload general log file
-    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${log_logfile} ${logserver_addr} 2>&1)
+    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${log_logfile} ${logserver_addr}/${log_logfile} 2>&1)
     curl_retval=\$?
     if [ \$curl_retval -ne 0 ]; then
         curl_version=\$(curl --version 2>&1 | head -1)
@@ -1515,7 +1515,8 @@ logdir="logs/${glidein_uuid}"
 stdout_logfile="${glidein_uuid}.out"
 stderr_logfile="${glidein_uuid}.err"
 log_logfile="${glidein_uuid}.log"
-logserver_addr='http://fermicloud152.fnal.gov:80'
+#logserver_addr='http://fermicloud152.fnal.gov:80'
+logserver_addr='http://gwms-web.fnal.gov/fermicloud152/log'
 logs_setup
 
 ############################################
