@@ -891,9 +891,6 @@ function logs_setup {
     echo "$(date): Started logging stdout on file too"
     echo "$(date): Started logging stderr on file too" >&2
 
-    # Check server availability (simply warn if not available)
-    ping -c1 -w2 "$(echo "${logserver_addr}" | cut -d ":" -f 1)" >/dev/null || echo "Warning: logserver not reachable (${logserver_addr})" >&2
-
     cat > "logging_utils.source" << EOF
 function json_escape {
     # escape json special characters
