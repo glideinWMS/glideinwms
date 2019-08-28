@@ -39,14 +39,14 @@ else
 fi
 
 
-function no_use_singularity_config {
+no_use_singularity_config () {
     info_stdout "`date` Not using singularity ($gwms_singularity_status)"
     advertise HAS_SINGULARITY "False" "C"
     "$error_gen" -ok "singularity_setup.sh" "use_singularity" "False"
     exit 0
 }
 
-function no_singularity_fail_or_exit {
+no_singularity_fail_or_exit () {
     # No singularity, fail if required, exit 0 after advertising if not
     # In
     #  1: gwms_singularity_status
@@ -65,7 +65,7 @@ function no_singularity_fail_or_exit {
     fi
 }
 
-function combine_requirements {
+combine_requirements () {
     # Combine the requirements of Frontend and Factory
     # Return 0 if it can run, 1 if glidein should fail
     # Echo a value for the level  OR has_singularity decision
@@ -171,7 +171,7 @@ temp_singularity_bin="`grep '^SINGULARITY_BIN ' "$glidein_config" | cut -d ' ' -
 singularity_bin="$(echo $temp_singularity_bin)"
 
 # Does frontend want to use singularity?
-use_singularity=`grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-`
+use_singularity=$(grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-)
 if [[ -z "$use_singularity" ]]; then
     info_stdout "`date` GLIDEIN_Singularity_Use not configured. Defaulting to DISABLE_GWMS"
     # GWMS, when Group does not specify GLIDEIN_Singularity_Use, it should default to DISABLE_GWMS (2018-03-19 discussion)
@@ -179,7 +179,7 @@ if [[ -z "$use_singularity" ]]; then
 fi
 
 # Does entry require glidein to use singularity?
-require_singularity=`grep '^GLIDEIN_SINGULARITY_REQUIRE ' "$glidein_config" | cut -d ' ' -f 2-`
+require_singularity=$(grep '^GLIDEIN_SINGULARITY_REQUIRE ' "$glidein_config" | cut -d ' ' -f 2-)
 if [[ -z "$require_singularity" ]]; then
     info_stdout "`date` GLIDEIN_SINGULARITY_REQUIRE not configured. Defaulting to OPTIONAL"
     require_singularity="OPTIONAL"
@@ -278,6 +278,8 @@ advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
+advertise SINGULARITY_MODE "$GWMS_SINGULARITY_MODE" "S"
+advertise GWMS_SINGULARITY_MODE "$GWMS_SINGULARITY_MODE" "S"
 # The dict has changed after singularity_get_image to include values from legacy variables
 advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
 # TODO: advertise also GWMS_SINGULARITY_IMAGE ?
@@ -286,6 +288,8 @@ advertise GLIDEIN_REQUIRED_OS "any" "S"
 if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
     advertise GLIDEIN_DEBUG_OUTPUT "$GLIDEIN_DEBUG_OUTPUT" "S"
 fi
+glidein_provides="$(grep '^GLIDEIN_PROVIDES ' "$glidein_config" | cut -d ' ' -f 2-)"
+advertise GLIDEIN_PROVIDES "$glidein_provides,singularity/$GWMS_SINGULARITY_MODE" "S"
 info_stdout "`date` Decided to use Singularity ($gwms_singularity_status)"
 
 "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True"
