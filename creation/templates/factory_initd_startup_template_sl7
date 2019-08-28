@@ -48,18 +48,19 @@ RET_NO_PRIVILEGE=4
 RET_NOT_INSTALLED=5
 RET_NOT_CONFIGURED=6
 RET_NOT_RUNNING=7
+RET_NOT_35_READY=150
 
 
 [ -f /etc/sysconfig/gwms-factory ] && . /etc/sysconfig/gwms-factory
 
-# Variables substituted during the file creation (by cgWCreate.py)        
+# Variables substituted during the file creation (by cgWCreate.py)
 factory_dir=%(factory_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
 def_factory_config=%(default_cfg_fpath)s
 RPM_INSTALL=%(rpm_install)s
 
 # RPM_INSTALL can be {''|'False'|'True'}
-# RPM only if RPM_INSTALL = True 
+# RPM only if RPM_INSTALL = True
 # '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
@@ -81,6 +82,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     LOG_FILE_STARTUP=/dev/null
     DEFAULT_WRITEBACK=no
     BIN_DIR=/usr/sbin/
+    TOOLS_DIR=/usr/bin/
     CREATION_DIR=
     FACTORY_START="${BIN_DIR}glideFactory.py"
     FACTORY_STOP="${BIN_DIR}stopFactory.py"
@@ -91,6 +93,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     glideinWMS_dir="$factory_dir"
     def_factory_config=/etc/gwms-factory/glideinWMS.xml
     FACTORY_CONFIG=/etc/gwms-factory/glideinWMS.xml
+    FACTORY_CHECK35_READY="${TOOLS_DIR}fact_chown_check"
 else
     # TAR installation  (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
@@ -130,6 +133,23 @@ check_configured () {
     exit $RET_NOT_CONFIGURED
 }
 
+check_35_ready () {
+    # check if files and jobs ownership is correct. Needed for 3.5 single user factory
+    if [ "$1" = "--check_35_ready" ]; then
+        invoke_as_factory $FACTORY_CHECK35_READY
+        f35exit=$?
+        if [ $f35exit -eq 0 ]; then
+            return 0
+        fi
+        echo "The Factory is not ready for 3.5. Please run $FACTORY_CHECK35_READY for more details"
+        echo -n "To disable this check remove the --check_35_ready option from the gwms-factory.service file"
+        failure
+        echo
+        exit $RET_NOT_35_READY
+    fi
+    return 0
+}
+
 export HOME="/var/lib/gwms-factory"
 export X509_CERT_DIR="/etc/grid-security/certificates"
 #export FACTORY_USER=gfactory
@@ -146,7 +166,7 @@ else
     force_name_option=
 fi
 id_str="$glidein_name@${factory_name}"
-    
+
 
 get_user() {
     # logname returns the original user efater a "su" instead I need the current one
@@ -154,7 +174,7 @@ get_user() {
         echo $USER
     else
         # whoami is the current user, logname the original
-        whoami 
+        whoami
     fi
 }
 
@@ -220,7 +240,7 @@ help_usage() {
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
     $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
     $SCRIPT_NAME infosysdown [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
-    $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY] 
+    $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY]
 "
     else
         echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
@@ -228,7 +248,7 @@ help_usage() {
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
     $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME|All] [-security SEC_CLASS|All] [-comment COMMENT]
     $SCRIPT_NAME infosysdown [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
-    $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY] 
+    $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY]
 "
 #                 echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
 #    $SCRIPT_NAME ress+bdii entries [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
@@ -240,10 +260,11 @@ help_usage() {
 start() {
     check_installed
     pushd $factory_dir 1>/dev/null
+    check_35_ready $1
     check_configured
     echo -n "Starting GlideinWMS Factory $id_str: "
 
-    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null 
+    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null
     MYRETVAL=$?
     if [ $MYRETVAL -eq 0 ]; then
         # already running, so nothing to be done
@@ -280,7 +301,7 @@ stop() {
     check_installed
     echo -n "Shutting down GlideinWMS Factory $id_str: "
 
-    "$FACTORY_CHECK" "$factory_dir" 2>/dev/null 1>&2 </dev/null 
+    "$FACTORY_CHECK" "$factory_dir" 2>/dev/null 1>&2 </dev/null
     MYRETVAL=$?
     if [ $MYRETVAL -ne 0 ]; then
         # not running, so nothing to be done
@@ -313,7 +334,7 @@ stop() {
         fi
         sleep 1
     done
-    
+
     "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && failure || success
     RETVAL=$?
     echo
@@ -360,7 +381,7 @@ reconfig() {
 	if [ -f "$1" ]; then
             echo "Using factory config file arg: $1"
             cfg_loc=$1
-            shift 
+            shift
 	else
             echo "Using default factory config file: $def_factory_config"
             cfg_loc=$def_factory_config
@@ -412,7 +433,7 @@ reconfig() {
             extra_options=" $force_name_option -update_def_cfg $update_def_cfg"
 	fi
 	invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete $comment_option"
-	
+
 	reconfig_failed=$?
 	popd 1>/dev/null
 	test $reconfig_failed -eq 0 && success || failure
@@ -453,7 +474,7 @@ upgrade() {
            shift
         else
            echo "Using default factory config file: $def_factory_config"
-           cfg_loc=$def_factory_config 
+           cfg_loc=$def_factory_config
         fi
 
         writeback=$DEFAULT_WRITEBACK
@@ -527,19 +548,19 @@ downtime() {
 systemd_reload(){
 
     if ps $1 | grep glideFactory > /dev/null 2>&1 ; then
-       echo "Reload of GWMS Factory Service triggers factory reconfig, PID is $1"  
+       echo "Reload of GWMS Factory Service triggers factory reconfig, PID is $1"
        /bin/kill -HUP $1
     elif ps $1 | grep reconfig_glidein > /dev/null 2>&1 ; then
        echo "a previous Reload of GWMS Factory Service has not completed. No factory reconfig will be performed"
     else
-       echo "Cannot detect a running factory. Will not reload or reconfig" 
+       echo "Cannot detect a running factory. Will not reload or reconfig"
     fi
 
 }
 
 case $1 in
     start)
-        start
+        start $2
         ;;
     stop)
         stop
