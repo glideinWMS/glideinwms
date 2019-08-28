@@ -413,9 +413,9 @@ If the pages are not reachable check that your web server is running and that no
     There are two tools that can be used to talk to the glideins:
     <ul>
       <li><b>fetch_glidein_log</b> - This tool will fetch the log from a glidein. It is a wrapper around 
-             <a href="http://research.cs.wisc.edu/htcondor/manual/current/condor_fetchlog.html">condor_fetchlog</a>.</li>
+             <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_fetchlog.html?highlight=condor_fetchlog">condor_fetchlog</a>.</li>
       <li><b>glidein_off</b> - This tool will turn off one or more glideins. It is a wrapper around 
-             <a href="http://research.cs.wisc.edu/htcondor/manual/current/condor_off.html">condor_off</a>.</li>
+             <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_off.html?highlight=condor_off">condor_off</a>.</li>
     </ul>
     Additionally, there is a general purpuse tool, called <br><b>enter_frontend_env</b><br> that simply sets the
     environment so that it matches the one used by the Frontend daemons. You can then use all HTCondor commands directly,
@@ -480,7 +480,7 @@ manual_glidein_startup --wms-collector=fermicloud145.fnal.gov:8618 --client-name
 optional arguments:
   -h, --help            show this help message and exit
   --wms-collector WMS_COLLECTOR
-                        COLLECTOR_HOST for WMS Collector(s) in CSV format (default: gfactory-1.t2.ucsd.edu,glidein.grid.iu.edu)
+                        COLLECTOR_HOST for WMS Collector(s) in CSV format (default: gfactory-2.opensciencegrid.org,gfactory-itb-1.opensciencegrid.org)
   --req-name REQ_NAME   Factory entry info: ReqName in the glideclient classad
   --client-name CLIENT_NAME
                         Frontend group info: ClientName in the glideinclient classad

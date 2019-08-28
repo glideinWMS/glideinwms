@@ -48,9 +48,8 @@ if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
     echo "exiting"
     exit 1
 fi
-. "$GLIDEINWMS_SRC/build/jenkins/utils.sh" 
-ret=$?
-if [ $ret -ne 0 ] ; then
+
+if !  . "$GLIDEINWMS_SRC/build/jenkins/utils.sh" ; then
     echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
     echo "exiting"
     exit 1
@@ -62,7 +61,7 @@ if [ "x$VIRTUAL_ENV" = "x" ]; then
 fi
 
 if ! cd "$GLIDEINWMS_SRC"/unittests ; then
-    echo "cannot find  $GLIDEINWMS_SRC/unittests , exiting" 
+    echo "cannot find  '$GLIDEINWMS_SRC/unittests' , exiting" 
     exit 1
 fi
 
