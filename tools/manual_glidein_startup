@@ -83,8 +83,8 @@ def parse_opts(argv):
 
     parser.add_argument(
         '--wms-collector', type=str, action='store', dest='wms_collector',
-        default='gfactory-1.t2.ucsd.edu,glidein.grid.iu.edu',
-        help='COLLECTOR_HOST for WMS Collector(s) in CSV format (default: gfactory-1.t2.ucsd.edu,glidein.grid.iu.edu)')
+        default='gfactory-2.opensciencegrid.org,gfactory-itb-1.opensciencegrid.org',
+        help='COLLECTOR_HOST for WMS Collector(s) in CSV format (default: gfactory-2.opensciencegrid.org,gfactory-itb-1.opensciencegrid.org)')
 
     parser.add_argument(
         '--req-name', type=str, action='store', dest='req_name',
