@@ -186,13 +186,16 @@ create_b64uuencode() {
     cat > "$1" << EOF
 python_b64uuencode() {
     echo "begin-base64 644 -"
-    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
-while size>57:
- print binascii.b2a_base64(buf[idx:idx+57]),;
- idx+=57;
- size-=57;
+    python -c 'import binascii, sys
+fd = sys.stdin
+buf = fd.read()
+idx, size, maxsize = 0, len(buf), 45
+while size > maxsize:
+    print binascii.b2a_base64(buf[idx:idx+maxsize]),;
+    idx += maxsize;
+    size -= maxsize;
 print binascii.b2a_base64(buf[idx:]),'
-    echo "===="
+    echo "====" }
 }
 
 base64_b64uuencode() {
