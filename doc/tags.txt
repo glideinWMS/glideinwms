@@ -1,3 +1,15 @@
+v3_5_1  Updated SW and docs for the change in OSG factories
+        Updated all the obsolete links to HTCondor manual in GlideinWMS website
+        Set up an ITB Frontend for GWMS and FIFE testing
+        Updated gitattributes to resolve conflicts w/ checksum files
+        Fermilab Frontend not communicating w/ upgraded Factory
+        Added editorconfig and default encoding
+        GlideinWMS code will use now docstring format 
+        Provided flexible mechanism for custom scripts to log information that can be brought back along with the other condor logs
+        Bug fix: pip errors in nightly CI
+        Bug fix: Unittest failing at times on SL7
+        Bug fix: Checked if single user factory migration script has been run before startup
+
 v3_5    Removed support for Globus GRAM (GT2/GT5)
         Removed dependency on condor_root_switchboard
         Improved release scripts release.py and osg-release.sh (better help and error messages)

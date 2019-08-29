@@ -103,6 +103,22 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_5_1</b> released on August 29, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_5_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_5_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_5_1.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Updated SW and docs for the change in OSG factories</li>
+            <li>Updated all the obsolete links to HTCondor manual in GlideinWMS website</li>
+            <li>Set up an ITB Frontend for GWMS and FIFE testing</li>
+            <li>Updated gitattributes to resolve conflicts w/ checksum files</li>
+            <li>Fermilab Frontend not communicating w/ upgraded Factory</li>
+            <li>Added editorconfig and default encoding</li>
+            <li>GlideinWMS code will use now docstring format</li>
+            <li>Provided flexible mechanism for custom scripts to log information that can be brought back along with the other condor logs</li>
+            <li>Bug fix: pip errors in nightly CI</li>
+            <li>Bug fix: Unittest failing at times on SL7</li>
+            <li>Bug fix: Checked if single user factory migration script has been run before startup</li>
+        </ul>
+      </li>
+      <li>
         <b>v3_4_6</b> released on August 14, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_6.tgz">Tarball</a>)<br>
         <ul>
             <li>Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings</li>
