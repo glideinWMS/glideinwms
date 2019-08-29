@@ -398,7 +398,7 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
     fi
 else
     # glidein_config not available
-    warn "glidein_config not definied ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited."
+    warn "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited."
     [[ -z "$error_gen" ]] && error_gen=warn
     glidein_config=NONE
 fi
