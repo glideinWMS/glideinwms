@@ -70,7 +70,7 @@
 # https://sylabs.io/guides/3.3/user-guide/cli/singularity.html
 # https://sylabs.io/guides/3.3/user-guide/appendix.html
 
-OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/el67-x86_64/bin/singularity"
+OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/current/bin/singularity"
 
 # 0 = true
 # 1 = false
