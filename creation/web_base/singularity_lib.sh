@@ -97,20 +97,20 @@ GWMS_SCRIPT_LOG="`dirname "$GWMS_THIS_SCRIPT"`/.LOG_`basename "$GWMS_THIS_SCRIPT
 SCRIPT_LOG=
 [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]] && SCRIPT_LOG="$GWMS_SCRIPT_LOG"
 
-function info_stdout {
+info_stdout () {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"
 }
 
-function info_raw {
+info_raw () {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
 }
 
-function info {
+info () {
     info_raw "INFO " "$@"
 }
 
-function info_dbg {
+info_dbg () {
     if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
         #local script_txt=''
         #[ -n "$GWMS_THIS_SCRIPT" ] && script_txt="(file: $GWMS_THIS_SCRIPT)"
@@ -118,11 +118,11 @@ function info_dbg {
     fi
 }
 
-function warn {
+warn () {
     warn_raw "WARNING " "$@"
 }
 
-function warn_raw {
+warn_raw () {
     echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
 }
@@ -139,7 +139,7 @@ function warn_raw {
 # my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
 #
 
-function dict_get_val {
+dict_get_val () {
     # Return to stdout the value of the fist key present in the dictionary
     # Return true (0) if a value is found and is not empty, 1 otherwise
     # Use a regex to extract the values
@@ -157,7 +157,7 @@ function dict_get_val {
     return 1
 }
 
-function dict_check_key {
+dict_check_key () {
     # Return true (0) if the key is in the dict (the value could be empty)
     # $1 dict name
     # $2 key
@@ -167,7 +167,7 @@ function dict_check_key {
     return 1
 }
 
-function dict_set_val {
+dict_set_val () {
     # Echoes a new string including the new key:value. Return is 0 if the key was already there, 1 if new
     # $1 dict name
     # $2 key
@@ -189,10 +189,10 @@ function dict_set_val {
 # function get_dict_items {} - not needed
 
 # TEST: for iterators tests
-# function dit { echo "TEST: <$1> <$2> <$3>"; }
+# dit () { echo "TEST: <$1> <$2> <$3>"; }
 # dict_items_iterator my_dict dit par1
 # Make sure that par1 is passed, spaces are preserved, no-val keys are handled correctly and val options are preserved
-function dict_items_iterator {
+dict_items_iterator () {
     # Split the dict string to list the items and apply the function
     # $1 dict
     # $2.. $n $2 is the function to apply to all items, $3..$n its parameters (optional), $(n+1) the key, $(n+2) the value
@@ -211,7 +211,7 @@ function dict_items_iterator {
     done
 }
 
-function dict_keys_iterator {
+dict_keys_iterator () {
     # Split the dict string to list the keys and apply the function
     # $1 dict
     # $2.. $n $2 is the function to apply to all keys, $3..$n its parameters (optional), $(n+1) will be the key
@@ -228,7 +228,7 @@ function dict_keys_iterator {
     done
 }
 
-function dict_get_keys {
+dict_get_keys () {
     # Returns a comma separated list of keys (there may be spaces if keys do have spaces)
     # Quote the return string and use  IFS=, to separate the keys, this way you'll preserve spaces
     # Returning the elements would flatten the array and cause problems w/ spaces
@@ -239,7 +239,7 @@ function dict_get_keys {
 }
 
 
-function dict_get_first {
+dict_get_first () {
     # Returns the first element of the dictionary (whole item, or key, or value)
     #  $1 dict
     #  $2 what to return: item, key, value (default: value)
@@ -263,7 +263,7 @@ function dict_get_first {
 }
 
 
-function list_get_intersection {
+list_get_intersection () {
     # Return the intersection of two comma separated lists.
     # 'any' in any of the 2 lists, means that the other list is returned (is a wildcard)
     # If the Input lists are sorted in order of preference, the result is as well
@@ -298,7 +298,7 @@ function list_get_intersection {
 # GWMS aux functions
 #
 
-function get_prop_bool {
+get_prop_bool () {
     # In:
     #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     #  $2 the key
@@ -349,7 +349,7 @@ function get_prop_bool {
 }
 
 
-function is_condor_true {
+is_condor_true () {
    # Assuming the input is numeric 0->False other->True
    if [[ $1 -eq 0 ]]; then
        false
@@ -359,7 +359,7 @@ function is_condor_true {
 }
 
 
-function get_prop_str {
+get_prop_str () {
     # In:
     #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     #  $2 the key
@@ -398,14 +398,14 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
     fi
 else
     # glidein_config not available
-    warn "glidein_config not definied ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited."
+    warn "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited."
     [[ -z "$error_gen" ]] && error_gen=warn
     glidein_config=NONE
 fi
 
 
 # TODO: should always use add_config_line_safe to avoid 2 functions?
-function advertise {
+advertise () {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # In:
     #  1 - key
@@ -433,7 +433,7 @@ function advertise {
     fi
 }
 
-function advertise_safe {
+advertise_safe () {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # Thos should be used in periodic scripts or wrappers, because it uses add_config_line_safe
     # In:
@@ -463,7 +463,7 @@ function advertise_safe {
 }
 
 
-function get_all_platforms {
+get_all_platforms () {
     # Return all supported platforms (all Singularity platforms)
     # In
     #  SINGULARITY_IMAGES_DICT
@@ -480,7 +480,7 @@ function get_all_platforms {
 # Singularity functions
 #
 
-function singularity_check_paths {
+singularity_check_paths () {
     # Check if the mount-points are valid. Return true and echo the mount-point if all tests are satisfied,
     # return false otherwise.
     # List of valid checks (other letters will be ignored):
@@ -511,7 +511,7 @@ function singularity_check_paths {
 
 # TOTEST:
 # singularity_get_binds "" /cvmfs /minos,/usr/games
-function singularity_get_binds {
+singularity_get_binds () {
     # Return on stdout a string with multiple --bind options for whichever is not empty of:
     # $3 (overrides), GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, $2 (defaults), in that order
     # Each of them must be a valid Singularity mount point string (comma separated, no spaces, src[:dst[:opt]] groups)
@@ -540,7 +540,7 @@ function singularity_get_binds {
 }
 
 
-function singularity_update_path {
+singularity_update_path () {
     # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
     # so that they can work inside. Also "/execute/dir_[0-9a-zA-Z]*" directories are replaced
     # In:
@@ -565,28 +565,7 @@ function singularity_update_path {
 }
 
 
-function singularity_exec_simple {
-    # Return on stdout the command to invoke Singularity exec
-    # Change here for all invocations (both singularity_setup, wrapper). Custom options should go in the specific script
-    # In:
-    #  1 - singularity bin
-    #  2 - Singularity image path
-    #  3 ... - Command to execute and its arguments
-    #  PWD, GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_OPTS, GLIDEIN_SINGULARITY_GLOBAL_OPTS
-    # NOTE: GLIDEIN_SINGULARITY_OPTS and GLIDEIN_SINGULARITY_GLOBAL_OPTS must be expansion/flattening safe (see above)
-
-    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
-    # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
-    local singularity_binds="`singularity_get_binds e "/cvmfs,/etc/hosts,/etc/localtime"`"
-    local singularity_bin="$1"
-    local singularity_image="$2"
-    shift 2
-    singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" "$GLIDEIN_SINGULARITY_OPTS" \
-                     "$GLIDEIN_SINGULARITY_GLOBAL_OPTS" "" "${@}"
-}
-
-
-function singularity_exec {
+singularity_exec () {
     # Return on stdout the command to invoke Singularity exec
     # Change here for all invocations (both singularity_setup, wrapper). Custom options should go in the specific script
     # In:
@@ -610,8 +589,8 @@ function singularity_exec {
     local execution_opt="$6"
     [[ -z "$singularity_image"  ||  -z "$singularity_bin" ]] && { warn "Singularity image or binary empty. Failing to run Singularity "; false; return; }
     # TODO: to remove in the future (keeping only the else branch). This is for compatibility with default_singularity_wrapper.sh pre 3.4.6
-    if [[ "X$singularity_global_opts" = "Xexec" ]]; then
-        warn "default_singularity_wrapper.sh pre 3.4.6 running with 3.4.6 Factory scripts. Continuing."
+    if [[ "X$singularity_global_opts" = Xexec ]]; then
+        warn "default_singularity_wrapper.sh pre 3.4.6 running with 3.4.6 Factory scripts. Continuing in compatibility mode."
         singularity_global_opts=
         execution_opt=exec
         shift 5
@@ -628,23 +607,24 @@ function singularity_exec {
     # TODO: --home or --no-home ? See email from Dave and Mats
     # Dave: In versions 3.x through 3.2.1-1 where --home was being ignored on sites that set "mount home = no"
     # in singularity.conf. This was fixed in 3.2.1-1.1.
+
     info_dbg  "$execution_opt \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
             "\"$singularity_image\"" "${@}" "[ $# arguments ]"
     local error
-    if [[ ",$execution_opt," = *",exec,"* ]]; then
-        exec "$singularity_bin" $singularity_global_opts exec --home "$PWD":/srv --pwd /srv \
-            $singularity_opts ${singularity_binds:+"--bind" "$singularity_binds"} \
+    if [[ ",${execution_opt}," = *,exec,* ]]; then
+        exec "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
+            ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
             "$singularity_image" "${@}"
         error=$?
         [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && echo "Failed to exec singularity ($error): exec \"$singularity_bin\" $singularity_global_opts exec --home \"$PWD\":/srv --pwd /srv " \
             "$singularity_opts ${singularity_binds:+"--bind" "\"$singularity_binds\""} " \
             "\"$singularity_image\"" "${@}" >> $_CONDOR_WRAPPER_ERROR_FILE
         warn "exec of singularity failed: exit code $error"
-        return $error
+        return ${error}
     else
-        "$singularity_bin" $singularity_global_opts exec --home "$PWD":/srv --pwd /srv \
-            $singularity_opts ${singularity_binds:+"--bind" "$singularity_binds"} \
+        "$singularity_bin" ${singularity_global_opts} exec --home "$PWD":/srv --pwd /srv \
+            ${singularity_opts} ${singularity_binds:+"--bind" "$singularity_binds"} \
             "$singularity_image" "${@}"
         return $?
     fi
@@ -655,7 +635,28 @@ function singularity_exec {
 }
 
 
-function singularity_test_exec {
+singularity_exec_simple () {
+    # Return on stdout the command to invoke Singularity exec
+    # Change here for all invocations (both singularity_setup, wrapper). Custom options should go in the specific script
+    # In:
+    #  1 - singularity bin
+    #  2 - Singularity image path
+    #  3 ... - Command to execute and its arguments
+    #  PWD, GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, GLIDEIN_SINGULARITY_OPTS, GLIDEIN_SINGULARITY_GLOBAL_OPTS
+    # NOTE: GLIDEIN_SINGULARITY_OPTS and GLIDEIN_SINGULARITY_GLOBAL_OPTS must be expansion/flattening safe (see above)
+
+    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
+    # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
+    local singularity_binds="`singularity_get_binds e "/cvmfs,/etc/hosts,/etc/localtime"`"
+    local singularity_bin="$1"
+    local singularity_image="$2"
+    shift 2
+    singularity_exec "$singularity_bin" "$singularity_image" "$singularity_binds" "$GLIDEIN_SINGULARITY_OPTS" \
+                     "$GLIDEIN_SINGULARITY_GLOBAL_OPTS" "" "${@}"
+}
+
+
+singularity_test_exec () {
     # Test Singularity by invoking it with the standard environment (binds, options)
     # In:
     #  1 - Singularity image, default GWMS_SINGULARITY_IMAGE_DEFAULT
@@ -663,6 +664,10 @@ function singularity_test_exec {
     #  PWD (used by singularity_exec to bind it)
     #  GLIDEIN_DEBUG_OUTPUT - to increase verbosity
     # Out:
+    #  unprivileged
+    #  privileged
+    #  fakeroot
+    #  EMPTY if no singularity
     # Return:
     #  true - Singularity OK
     #  false - Test failing. Singularity not working or empty bin/image
@@ -673,21 +678,37 @@ function singularity_test_exec {
             { info "Singularity image or binary empty. Test failed "; false; return; }
     # If verbose, make also Singularity verbose
     [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]] && export GLIDEIN_SINGULARITY_GLOBAL_OPTS="-vvv -d $GLIDEIN_SINGULARITY_GLOBAL_OPTS"
-    # A previous test was working only in some singularity versions: printenv | grep "$singularity_bin"
-    # true will be successful also with a binary named singularity that is not really singularity as long as it
-    # returns true. Acceptable risk
-    if (singularity_exec_simple "$singularity_bin" "$singularity_image" true 1>&2)
-    then
-        info "Singularity at $singularity_bin appears to work"
+    # singularity v2.x outputs escape codes always to stdout (bug), they need to be filtered out:
+    #   sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g'
+    # singularity always creates a user map /proc/self/uid_map with lines (D.Dykstra):
+    #   n1  n2  [n3]
+    # Looking at the first line:
+    # if n2 is 0 then it runs in privileged mode
+    # if n1 is not 0, the it runs unprivileged as that user
+    # if n1 is 0 but n2 not then it runs in fake-root mode (a special unprivileged mode in v3.3)
+    local map_format_regex="^,[0-9]+,[0-9]+,"
+    local check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" cat /proc/self/uid_map |
+            sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g' | head -n1 | tr -s '[:blank:]' ','),"
+    if [[ "$check_singularity" =~ $map_format_regex ]]; then
+        # singularity ran correctly
+        local singularity_mode=unprivileged
+        # same test used also in singularity_check()
+        if [[ "$check_singularity" = ,0,* ]]; then
+            [[ "$check_singularity" = ,0,0,* ]] && singularity_mode=privileged || singularity_mode=fakeroot
+        fi
+        info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode)"
+        echo "$singularity_mode"
         true
     else
-        info "Singularity at $singularity_bin failed "
+        # test failed
+        [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed " ||
+            info "Singularity at '$singularity_bin' failed w/ unexpected output"
         false
     fi
 }
 
 
-function singularity_get_platform {
+singularity_get_platform () {
     # TODO: incomplete, add script to detect platform (needs to work in/out singularity)
     # Detect the platform (OS) inside of Singularity (invoking it with the standard environment: binds, options)
     # In:
@@ -713,14 +734,67 @@ function singularity_get_platform {
 }
 
 
-function singularity_locate_bin {
+singularity_test_bin () {
+    # Test Singularity path, check the version and validate w/ the image (if an image is passed)
+    # In:
+    #   1 - type,path
+    #   2 - s_image, if provided will be used to test Singularity (as additional test)
+    # Side effects:
+    #  bread_crumbs - documents the tests for debugging purposes
+    #     test:   -> test attempted, path not provided or singularity --version failed,
+    #     test:T  -> singularity --version succeeded, image for test not provided
+    #     test:TF -> singularity --version succeeded but image invocation failed
+    #     test:TT -> both singularity --version and image invocation succeeded
+    # Out:
+    #  return 0 - all attempted tests succeeded, 1 - a test failed
+    #  stdout "_$step\n_$sin_type\n_$sin_version\n_$bin_path\n_@$bread_crumbs" ("$bread_crumbs" if failing)
+
+    local step="${1%%,*}"
+    local sin_path="${1#*,}"
+    local sin_version
+    local sin_type
+    local sin_image="$2"
+    if [[ "$step" = module ]]; then
+        module load singularity >/dev/null 2>&1
+        # message on error?
+        sin_path=$(which singularity)
+        [[ -z "$sin_path" && "x$LMOD_CMD" = x/cvmfs/* ]] &&
+            warn "Singularity not found in module. OSG OASIS module from module-init.sh used. May override a system module."
+    elif [[ "$step" = PATH ]]; then
+        # find the full path
+        sin_path=$(which singularity)
+    fi
+    local bread_crumbs=" $step($sin_path):"
+    [[ -z "$sin_path" ]] && { echo "$bread_crumbs"; false; return; }
+    sin_version=$("$sin_path" --version 2>/dev/null)
+    [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
+    if [[ -z "$sin_image" ]]; then
+        sin_type=unknown
+        bread_crumbs+="T"
+    else
+        if sin_type=$(singularity_test_exec "$sin_image" "$sin_path"); then
+            bread_crumbs+="TT"
+        else
+            bread_crumbs+="TF"
+            echo "$bread_crumbs"
+            false
+            return
+        fi
+    fi
+    # \n is the separator, _ is to ensure that all lines are counted when parsing, @ used for bread_crumbs quick parse
+    echo -e "_$step\n_$sin_type\n_$sin_version\n_$sin_path\n_@$bread_crumbs"
+    # true; return
+}
+
+
+singularity_locate_bin () {
     # Find Singularity path, check the version and validate w/ the image (if an image is passed)
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
-    #   LMOD_CMD, optional if in the environment
+    #   OSG_SINGULARITY_BINARY_DEFAULT, LMOD_CMD, optional if in the environment
     # Out (E - exported):
-    #   E PATH - Singularity path may be added
+    #   E GWMS_SINGULARITY_MODE - unprivileged, privileged, fakeroot or unknown (no image to test)
     #   E GWMS_SINGULARITY_VERSION
     #   E GWMS_SINGULARITY_PATH - set if Singularity is found
     #   E HAS_SINGULARITY - set to True if Singularity is found
@@ -731,119 +805,69 @@ function singularity_locate_bin {
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
     local s_location="$1"
     local s_image="$2"
-    # bread_crumbs meaning:  test:TF singularity --version succeded but image invocation failed
-    #     test: -> singularity --version failed,  test:TT -> both singularity --version and image invocation succeded
+    # bread_crumbs populated also in singularity_test_bin
     local bread_crumbs=""
-    HAS_SINGULARITY="False"
+    local test_out
+    HAS_SINGULARITY=False
 
     if [[ -n "$s_location" ]]; then
         s_location_msg=" at $s_location,"
-        bread_crumbs+=" s_bin:"
+        bread_crumbs+=" s_bin_defined"
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
-            if [[ "x$s_location" = "xNONE" ]]; then
+            [[ "x$s_location" = xNONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
-            fi
-            info "Suggested path $1 (SINGULARITY_BIN?) is not a directory or does not contain singularity!"
-            info "will try to proceed with auto-discover but this misconfiguration may cause errors later!"
+            info "Suggested path '$1' (SINGULARITY_BIN?) is not a directory or does not contain singularity."
+            info "Will try to proceed with auto-discover but this mis-configuration may cause errors later"
         else
             # 1. Look first in the path suggested, separate from $PATH
-            GWMS_SINGULARITY_VERSION=$("$s_location"/singularity --version 2>/dev/null)
-            if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-                GWMS_SINGULARITY_PATH="$s_location/singularity"
-                if [[ -n "$s_image" ]] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
-                    GWMS_SINGULARITY_VERSION=
-                    bread_crumbs+="TF"
-                fi
-            fi
-            if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-                HAS_SINGULARITY="True"
-                #GWMS_SINGULARITY_PATH="$s_location/singularity"
-                # Add $LOCATION to $PATH
-                # info " ... prepending $LOCATION to PATH"
-                # export PATH="$LOCATION:$PATH"
-                singularity_in="SINGULARITY_BIN"
-                bread_crumbs+="TT"
-            fi
+            test_out=$(singularity_test_bin "s_bin,${s_location}/singularity" "$s_image") &&
+                HAS_SINGULARITY=True
+            bread_crumbs+="${test_out##*@}"
         fi
     fi
-    if [[ "$HAS_SINGULARITY" != "True" ]]; then
+    if [[ "$HAS_SINGULARITY" != True ]]; then
         # 2. Look in $PATH
-        GWMS_SINGULARITY_VERSION=$(singularity --version 2>/dev/null)
-        if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-            GWMS_SINGULARITY_PATH="$(which singularity 2>/dev/null)"
-            bread_crumbs+=" path($GWMS_SINGULARITY_PATH):"
-            if [[ -n "$s_image" ]] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
-                GWMS_SINGULARITY_VERSION=
-                bread_crumbs+="TF"
+        # 3. Look in the default OSG location
+        # 4. Invoke module
+        #    some sites requires us to do a module load first - not sure if we always want to do that
+        for attempt in "PATH,singularity" "OSG,$OSG_SINGULARITY_BINARY_DEFAULT" "module"; do
+            if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
+                HAS_SINGULARITY=True
+                break
             fi
-        fi
-        if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-            HAS_SINGULARITY="True"
-            #GWMS_SINGULARITY_PATH="$(which singularity 2>/dev/null)"
-            singularity_in="PATH"
-            bread_crumbs+="TT"
-        else
-            # 3. Look in the default OSG location
-            GWMS_SINGULARITY_VERSION=$("$OSG_SINGULARITY_BINARY_DEFAULT" --version 2>/dev/null)
-            if [[ -n "$GWMS_SINGULARITY_VERSION"  ]]; then
-                GWMS_SINGULARITY_PATH="$OSG_SINGULARITY_BINARY_DEFAULT"
-                bread_crumbs+=" osg:"
-                if [[ -n "$s_image" ]] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
-                    GWMS_SINGULARITY_VERSION=
-                    bread_crumbs+="TF"
-                fi
-            fi
-            if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-                HAS_SINGULARITY="True"
-                singularity_in="OSG"
-                bread_crumbs+="TT"
-            else
-                # 4. Invoke module
-                # some sites requires us to do a module load first - not sure if we always want to do that
-                GWMS_SINGULARITY_VERSION=$(module load singularity >/dev/null 2>&1; singularity --version 2>/dev/null)
-                if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-                    GWMS_SINGULARITY_PATH=$(module load singularity >/dev/null 2>&1; which singularity)
-                    bread_crumbs+=" module($GWMS_SINGULARITY_PATH):"
-                    if [[ -n "$s_image" ]] && ! singularity_test_exec "$s_image" "$GWMS_SINGULARITY_PATH"; then
-                        GWMS_SINGULARITY_VERSION=
-                        bread_crumbs+="TF"
-                    fi
-                elif [[ "x$LMOD_CMD" == x/cvmfs/* ]]; then
-                    warn "Singularity not found in module. OSG OASIS module from module-init.sh used. May override a system module."
-                fi
-                if [[ -n "$GWMS_SINGULARITY_VERSION" ]]; then
-                    HAS_SINGULARITY="True"
-                    singularity_in="module"
-                    bread_crumbs+="TT"
-                fi
-            fi
-        fi
+            bread_crumbs+="${test_out##*@}"
+        done
+        bread_crumbs+="${test_out##*@}"
     fi
     # Execution test done w/ default image
-    info_dbg "Has singularity $HAS_SINGULARITY (last $singularity_in). Tests: $bread_crumbs"
-    if [[ "$HAS_SINGULARITY" = "True" ]]; then
+    info_dbg "Has singularity $HAS_SINGULARITY. Tests: $bread_crumbs"
+    if [[ "$HAS_SINGULARITY" = True ]]; then
+        local test_results
+        IFS=$'\n' read -rd '' -a test_results <<<"$test_out"
         # one last check - make sure we could determine the path to singularity
-        if [[ "x$GWMS_SINGULARITY_PATH" = "x" ]]; then
+        if [[ -z "${test_results[3]#_}" ]]; then
             warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
         else
-            export HAS_SINGULARITY=$HAS_SINGULARITY
-            export GWMS_SINGULARITY_PATH="$GWMS_SINGULARITY_PATH"
-            export GWMS_SINGULARITY_VERSION=$GWMS_SINGULARITY_VERSION
-            info "Singularity found at \"${GWMS_SINGULARITY_PATH}\" (using $singularity_in)"
+            export HAS_SINGULARITY=${HAS_SINGULARITY}
+            export GWMS_SINGULARITY_PATH="${test_results[3]#_}"
+            export GWMS_SINGULARITY_VERSION="${test_results[2]#_}"
+            export GWMS_SINGULARITY_MODE="${test_results[1]#_}"
+            info "Singularity found at \"${GWMS_SINGULARITY_PATH}\" ($GWMS_SINGULARITY_MODE mode, using ${test_results[0]#_})"
             true
             return
         fi
     fi
     # No valid singularity found
-    export HAS_SINGULARITY="False"
+    export HAS_SINGULARITY=False
     export GWMS_SINGULARITY_PATH=""
     export GWMS_SINGULARITY_VERSION=""
-    warn "Singularity not found$s_location_msg in PATH, and module"
+    export GWMS_SINGULARITY_MODE=""
+    warn "Singularity not found$s_location_msg in PATH, OSG_SINGULARITY_BINARY_DEFAULT and module"
     false
 }
 
 
-function singularity_get_image {
+singularity_get_image () {
     # Return on stdout the Singularity image
     # Let caller decide what to do if there are problems
     # In:
@@ -905,7 +929,7 @@ function singularity_get_image {
     echo "$singularity_image"
 }
 
-function singularity_sanitize_image {
+singularity_sanitize_image () {
     # TODO: these checks are also in the wrapper, remove duplicates, use function
     # for /cvmfs based directory images, expand the path without symlinks so that
     # the job can stay within the same image for the full duration
@@ -928,7 +952,7 @@ function singularity_sanitize_image {
 }
 
 
-function create_host_lib_dir() {
+create_host_lib_dir () {
     # this is a temporary solution until enough sites have newer versions
     # of Singularity. Idea for this solution comes from:
     # https://github.com/singularityware/singularity/blob/master/libexec/cli/action_argparser.sh#L123
@@ -986,7 +1010,47 @@ EOF
 }
 
 
-function setup_classad_variables {
+singularity_check () {
+    # Check if it is invoked in Singularity and if Singularity is privileged mode ot not
+    # Return true (0) if in Singularity false (1) otherwise
+    # Echo to stdout a string with the status:
+    # - EMPTY if not in singularity
+    # - yes is SINGULARITY_NAME or GWMS_SINGULARITY_REEXEC are defined
+    # - likely if SINGULARITY_NAME is not defined but process 1 is shim-init or sinit
+    # - appends _privileged to yes or likely if singularity is running in privileged mode
+    # - appends _fakeroot  to yes or likely if singularity is running in unprivileged fake-root mode
+    # In Singularity SINGULARITY_NAME and SINGULARITY_CONTAINER are defined
+    # In the default GWMS wrapper GWMS_SINGULARITY_REEXEC=1
+    # The process 1 in singularity is called init-shim (v>=2.6), or sinit (v>=3.2), not init
+    # If the parent is 1 and is not init could be also Docker or other containers, so the check was removed
+    #   even if it could be also Singularity
+    local in_singularity=
+    [[ -n "$SINGULARITY_NAME" ]] && in_singularity=yes
+    [[ -z "$in_singularity" && -n "$GWMS_SINGULARITY_REEXEC" ]] && in_singularity=yes
+    [[ -z "$in_singularity" && "x`ps -p1 -ocomm=`" = "xshim-init" ]] && in_singularity=likely
+    [[ -z "$in_singularity" && "x`ps -p1 -ocomm=`" = "xsinit" ]] && in_singularity=likely
+    # [[ "x$PPID" = x1 ]] && [[ "x`ps -p1 -ocomm=`" != "xinit" ]] && { true; return; }  This is true also in Docker
+    [[ -z "$in_singularity" ]] && { false; return; }
+    # It is in Singularity
+    # Test for privileged singularity suggested by D.Dykstra
+    # singularity exec -c -i -p ~/work/singularity/cvmfs-fuse3 cat /proc/self/uid_map 2>/dev/null|awk '{if ($2 == "0") print "privileged"; else print "unprivileged"; gotone=1;exit} END{if (gotone != 1) print "failed"}'
+    local check_privileged="$(cat /proc/self/uid_map 2>/dev/null | head -n1 | tr -s '[:blank:]' ','),"
+    if [[ "$check_privileged" = ,0,* ]]; then
+        [[ "$check_privileged" = ,0,0,* ]] && in_singularity=${in_singularity}_privileged || in_singularity=${in_singularity}_fakeroot
+    fi
+    echo ${in_singularity}
+    # echo will not fail, returning 0 (true)
+}
+
+
+singularity_is_inside () {
+    # Return true (0) if in Singularity false (1) otherwise
+    # Uses singularity_check(), return its exit code
+    singularity_check > /dev/null
+}
+
+
+setup_classad_variables () {
     # Retrieve variables from Machine and Job ClassAds
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     # Out:
@@ -1060,13 +1124,13 @@ function setup_classad_variables {
     fi
     # TODO: Remove to allow this for toubleshooting purposes?
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
-            warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
-            export GWMS_SINGULARITY_AUTOLOAD=$HAS_SINGULARITY
+        warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
+        export GWMS_SINGULARITY_AUTOLOAD=$HAS_SINGULARITY
     fi
 }
 
 
-function singularity_setup_inside {
+singularity_setup_inside () {
     # Setup some environment variables when the script is restarting in Singularity
     # In:
     #   $GWMS_SINGULARITY_OUTSIDE_PWD, $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE as fallback)
@@ -1084,7 +1148,7 @@ function singularity_setup_inside {
                OSG_WN_TMP ; do
         # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
         val="`echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,"`"
-        eval $key="$val"
+        eval ${key}="${val}"
         info_dbg "changed $key => $val"
     done
 
@@ -1132,27 +1196,12 @@ function singularity_setup_inside {
 }
 
 
-function singularity_is_inside {
-    # Return true (0) if in Singularity false (1) otherwise
-    # In Singularity SINGULARITY_NAME and SINGULARITY_CONTAINER are defined
-    # In the default GWMS wrapper GWMS_SINGULARITY_REEXEC=1
-    # The process 1 in singularity is called init-shim (v>=2.6), not init
-    # If the parent is 1 and is not init (very likely)
-    [[ -n "$SINGULARITY_NAME" ]] && { true; return; }
-    [[ -n "$GWMS_SINGULARITY_REEXEC" ]] && { true; return; }
-    [[ "x`ps -p1 -ocomm=`" = "xshim-init" ]] && { true; return; }
-    [[ "x$PPID" = x1 ]] && [[ "x`ps -p1 -ocomm=`" != "xinit" ]] && { true; return; }
-    false
-    return
-}
-
-
 #################################
 #
 # CVMFS functions
 #
 
-function cvmfs_test_and_open {
+cvmfs_test_and_open () {
     # Testing and opening all CVMFS repos named in the comma separated list. Call-back or exit if failing
     # In:
     #  1 - CVMFS repos names, comma separated
@@ -1163,7 +1212,7 @@ function cvmfs_test_and_open {
     if [[ -n "$1" ]]; then
         # Test and keep open each CVMFS repo
         for x in $1; do  # Spaces in file name are OK, separator is comma
-            if eval "exec $holdfd</cvmfs/\"$x\""; then
+            if eval "exec ${holdfd}</cvmfs/\"$x\""; then
                 echo "\"/cvmfs/$x\" exists and available"
                 let "holdfd=holdfd+1"
             else

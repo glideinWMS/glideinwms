@@ -13,6 +13,8 @@ GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   Y   -
 GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   Y   -
 SINGULARITY_IMAGES_DICT                 S   -   +   N   Y   -
 GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
+SINGULARITY_MODE                        S   -   +   N   Y   -
+SINGULARITY_VERSION                     S   -   +   N   Y   -
 GLIDEIN_REQUIRED_OS         S   any             +   N   Y   -
 REQUIRED_OS                 S   any             +   N   Y   -
 GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -
@@ -100,7 +102,8 @@ GLIDEIN_LOCAL_TMP_DIR   C       -               +                               
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 PUBLISH_OBITUARIES      C       False           +                               N       N       -
 SiteWMS_WN_Draining  C   False       +   N   Y   -
-SiteWMS_WN_Preempt C   False       +   N   Y   -
+SiteWMS_WN_Preempt  C   False       +   N   Y   -
+GLIDEIN_PROVIDES    S	-			+   N	Y	+
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
