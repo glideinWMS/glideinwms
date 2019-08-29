@@ -26,7 +26,7 @@ GWMS_VERSION_SINGULARITY_WRAPPER=20190801
 [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]] && rm -f "$_CONDOR_WRAPPER_ERROR_FILE" >/dev/null 2>&1 || true
 
 
-function exit_wrapper {
+exit_wrapper () {
     # An error occurred. Communicate to HTCondor and avoid black hole (sleep for hold time) and then exit 1
     #  1: Error message
     #  2: Exit code (1 by default)
@@ -48,7 +48,7 @@ function exit_wrapper {
 }
 
 # In case singularity_lib cannot be imported
-function warn_raw {
+warn_raw () {
     echo "$@" 1>&2
 }
 
@@ -84,7 +84,7 @@ GWMS_VERSION_SINGULARITY_WRAPPER="$GWMS_VERSION_SINGULARITY_WRAPPER_$(md5sum "$G
 info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER_) starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config)."
 info_dbg "$GWMS_THIS_SCRIPT, in `pwd`, list: `ls -al`"
 
-function exit_or_fallback {
+exit_or_fallback () {
     # An error in Singularity occurred. Fallback to no Singularity if preferred or fail if required
     # If this function returns, then is OK to fall-back to no Singularity (otherwise it will exit)
     # OSG is continuing after sleep, no fall-back, no exit
@@ -106,7 +106,7 @@ function exit_or_fallback {
 }
 
 
-function prepare_and_invoke_singularity {
+prepare_and_invoke_singularity () {
     # Code moved into a function to allow early return in case of failure
     # In:
     #   SINGULARITY_IMAGES_DICT: dictionary w/ Singularity images
@@ -386,7 +386,7 @@ fi
 #  Stash cache
 #
 
-function setup_stashcp {
+setup_stashcp () {
     if [[ "x$MODULE_USE" != "x1" ]]; then
         warn "Module unavailable. Unable to setup Stash cache."
         return 1
