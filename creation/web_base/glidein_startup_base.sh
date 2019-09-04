@@ -1431,6 +1431,10 @@ add_periodic_script() {
         rm ${include_fname}
     fi
 
+    let add_startd_cron_counter=add_startd_cron_counter+1   
+    local name_prefix=GLIDEIN_PS_   
+    local s_name="${name_prefix}${add_startd_cron_counter}"
+
     # Append the following to the startd configuration
     # Instead of Periodic and Kill wait for completion:
     # STARTD_CRON_DATE_MODE = WaitForExit
@@ -2052,6 +2056,4 @@ echo 1>&2
 #########################
 # clean up after I finish
 glidein_exit ${ret}
-#!/bin/bash
-#
-# Project:
+
