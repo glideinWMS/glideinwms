@@ -15,6 +15,29 @@ GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "$
 
 export LANG=C
 
+##############################
+# Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
+
+get_data() {
+    # Retrieve the specified data, which is appended as tarball
+    # 1: selected file
+    sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar xz -O "$1"
+}
+
+source_data() {
+    # Source the specified data, which is appended as tarball
+    # 1: selected file
+    local data="$(get_data "$1")"
+    [[ -n "$data" ]] && eval "$data"
+}
+
+list_data() {
+    # Show a list of the tarballed files in this script
+    sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar tz
+}
+
+################################
+# Extends 'trap' allowing to pass the signal name as argument to the handler
 trap_with_arg() {
     func="$1" ; shift
     for sig ; do
@@ -863,193 +886,193 @@ params2file() {
 # Every logged event is recorded in a separate file. Eventually, these shards
 # are merged into a single log file; metadata is added at the beginning.
 
-generate_glidein_metadata_json() {
-    if command -v jq >/dev/null 2>&1; then
-        json_metadata=$( jq -n \
-                  --arg uuid "${glidein_uuid}" \
-                  --arg name "${glidein_name}" \
-                  --arg fact "${glidein_factory}" \
-                  --arg entry "${glidein_entry}" \
-                  --arg client "${client_name}" \
-                  --arg client_group "${client_group}" \
-                  --arg cred "${glidein_cred_id}" \
-                  --arg cluster "${condorg_cluster}" \
-                  --arg subcluster "${condorg_subcluster}" \
-                  --arg schedd "${condorg_schedd}" \
-                  --arg debug "${set_debug}" \
-                  --arg startup_pid "$$" \
-                  --arg tmpdir "${glide_tmp_dir}" \
-                  --arg local_tmpdir "${glide_local_tmp_dir}" \
-                  --arg proxy "${proxy_url}" \
-                  --arg desc_file "${descript_file}" \
-                  --arg desc_entry_file "${descript_entry_file}" \
-                  --arg signature "${sign_id}" \
-                  --arg entry_signature "${sign_entry_id}" \
-                  '{UUID: $uuid, name: $name, factory: $fact, entry: $entry, client: $client, client_group: $client_group, cred_id: $cred, cluster: $cluster, subcluster: $subcluster, schedd: $schedd, debug: $debug, startup_pid: $startup_pid, tmpdir: $tmpdir, local_tmpdir: $local_tmpdir, proxy: $proxy, desc_file: $desc_file, desc_entry_file: $desc_entry_file, signature: $signature, entry_signature: $entry_signature}' )
-    else
-        json_metadata="{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${sign_id}\", \"entry_signature\":\"${sign_entry_id}\"}"  # TODO: escaping may be needed
-    fi
-    echo "${json_metadata}" > "${logdir}/glidein_metadata.json"
-}
-
-logs_setup() {
-    # Create the necessary folders
-    mkdir -p "${logdir}/shards/creating"
-
-    # Create an 'empty' log, containing only glidein metadata
-    generate_glidein_metadata_json
-    echo "[" > "${logdir}/${log_logfile}"
-    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
-    echo "]" >> "${logdir}/${log_logfile}"
-
-    # Log a copy of stdout and stderr too
-    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
-    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
-    echo "$(date): Started logging stdout on file too"
-    echo "$(date): Started logging stderr on file too" >&2
-
-    cat > "logging_utils.source" << EOF
-json_escape() {
-    # escape json special characters
-    qstr="\$(printf '%s' "\$1" | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
-    # remove unwanted outer double quotes
-    qstr="\${qstr%\"}"
-    qstr="\${qstr#\"}"
-    echo "\$qstr"
-}
-
-get_logfile_path_relative() {
-    echo "${logdir}/${log_logfile}"
-}
-
-log_write() {
-    # Log an event
-    # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
-    # If type is file, then the filepath can be either absolute or relative to work_dir
-
-    cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
-    cur_time_ns=\$(date +%s%N)   # enough to ensure that shards have different timestamps
-
-    # Source encoding utilities
-    b64uuencode_source="\$(grep '^B64UUENCODE_SOURCE ' "\${glidein_config}" | cut -d ' ' -f 2-)"
-    source "\${b64uuencode_source}"
-
-    # Argument \$1
-    invoker="\$1"
-    # Argument \$2
-    case \$2 in
-        "text" | "file" ) type=\$2;;
-        *) type="text";;
-    esac
-    # Argument \$3
-    if [ "\$type" == "file" ]; then
-        filename="\$3"
-        case \${filename} in
-            /*) filepath="\${filename}";;               # absolute
-             *) filepath="${work_dir}/\${filename}";;   # relative
-        esac
-        raw_content=\$(cat "\${filepath}")
-        if [ -z "\$raw_content" ]; then
-            raw_content="File not found"
-        fi
-        # Compression and encoding
-        content=\$(echo "\$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
-    else
-        filename=""
-        content="\$3"
-    fi
-    # Argument \$4
-    case \$4 in
-        "error" | "warn" | "info" | "debug" | "fatal" ) severity=\$4;;
-        *) severity="info";;
-    esac
-
-    pid=\${BASHPID:-\$\$}
-    shard_filename="\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}.shard"
-
-    pushd "${work_dir}/${logdir}/shards" > /dev/null
-    touch "creating/\${shard_filename}"
-    if command -v jq >/dev/null 2>&1; then
-        json_logevent=\$( jq -n \
-                  --arg inv "\$invoker" \
-                  --arg pid "\$pid" \
-                  --arg ts "\$cur_time" \
-                  --arg ty "\$type" \
-                  --arg fn "\$filename" \
-                  --arg body "\$content" \
-                  --arg sev "\$severity" \
-                  '{invoker: \$inv, pid: \$pid, timestamp: \$ts, severity: \$sev, type: \$ty, filename: \$fn, content: \$body}' )
-    else
-        invoker="\$(json_escape "\${invoker}")"
-        content="\$(json_escape "\${content}")"
-        json_logevent="{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}"
-    fi
-
-    # Make sure that shards in the main dir have been fully written
-    echo "\${json_logevent}" > "creating/\${shard_filename}"
-    mv "creating/\${shard_filename}" "\${shard_filename}"
-    popd > /dev/null
-}
-
-log_coalesce_shards() {
-    # Merge log shards in a single file (for each glidein process)
-
-    pushd "${work_dir}/${logdir}" > /dev/null
-
-    # Skip if another process is already coaleascing
-    if mkdir shards/coalescing; then
-        cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
-        # Skip if there are no shards
-        if [ -n "\$(ls -Ap shards | grep -v /)" ]; then
-            cp "${log_logfile}" shards/coalescing/
-            mv shards/*.shard shards/coalescing/
-            pushd shards/coalescing > /dev/null
-            sed -i '\${s/]$/,/}' "${log_logfile}"   # replace last square bracket with comma
-            for shd in *.shard; do                  # concatenate separating with comma
-                cat \$shd
-                echo ","
-            done >> "${log_logfile}"
-            sed -i '$ d' "${log_logfile}"           # remove last comma
-            echo "]" >> "${log_logfile}"            # closing square bracket
-            popd > /dev/null
-            mv "shards/coalescing/${log_logfile}" .
-        fi
-    rm -rf shards/coalescing
-    fi
-    popd > /dev/null
-}
-
-send_logs_to_remote() {
-    log_coalesce_shards
-
-    # Upload stdout log file
-    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stdout_logfile} ${logserver_addr}/${stdout_logfile} 2>&1)
-    curl_retval=\$?
-    if [ \$curl_retval -ne 0 ]; then
-        curl_version=\$(curl --version 2>&1 | head -1)
-        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
-    fi
-
-    # Upload stderr log file
-    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stderr_logfile} ${logserver_addr}/${stderr_logfile} 2>&1)
-    curl_retval=\$?
-    if [ \$curl_retval -ne 0 ]; then
-        curl_version=\$(curl --version 2>&1 | head -1)
-        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
-    fi
-
-    # Upload general log file
-    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${log_logfile} ${logserver_addr}/${log_logfile} 2>&1)
-    curl_retval=\$?
-    if [ \$curl_retval -ne 0 ]; then
-        curl_version=\$(curl --version 2>&1 | head -1)
-        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
-    fi
-}
-EOF
-    source logging_utils.source
-    log_write "glidein_startup.sh" "text" "Remote logging has been setup. Server address: ${logserver_addr}" "info"
-}
+#generate_glidein_metadata_json() {
+#    if command -v jq >/dev/null 2>&1; then
+#        json_metadata=$( jq -n \
+#                  --arg uuid "${glidein_uuid}" \
+#                  --arg name "${glidein_name}" \
+#                  --arg fact "${glidein_factory}" \
+#                  --arg entry "${glidein_entry}" \
+#                  --arg client "${client_name}" \
+#                  --arg client_group "${client_group}" \
+#                  --arg cred "${glidein_cred_id}" \
+#                  --arg cluster "${condorg_cluster}" \
+#                  --arg subcluster "${condorg_subcluster}" \
+#                  --arg schedd "${condorg_schedd}" \
+#                  --arg debug "${set_debug}" \
+#                  --arg startup_pid "$$" \
+#                  --arg tmpdir "${glide_tmp_dir}" \
+#                  --arg local_tmpdir "${glide_local_tmp_dir}" \
+#                  --arg proxy "${proxy_url}" \
+#                  --arg desc_file "${descript_file}" \
+#                  --arg desc_entry_file "${descript_entry_file}" \
+#                  --arg signature "${sign_id}" \
+#                  --arg entry_signature "${sign_entry_id}" \
+#                  '{UUID: $uuid, name: $name, factory: $fact, entry: $entry, client: $client, client_group: $client_group, cred_id: $cred, cluster: $cluster, subcluster: $subcluster, schedd: $schedd, debug: $debug, startup_pid: $startup_pid, tmpdir: $tmpdir, local_tmpdir: $local_tmpdir, proxy: $proxy, desc_file: $desc_file, desc_entry_file: $desc_entry_file, signature: $signature, entry_signature: $entry_signature}' )
+#    else
+#        json_metadata="{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${sign_id}\", \"entry_signature\":\"${sign_entry_id}\"}"  # TODO: escaping may be needed
+#    fi
+#    echo "${json_metadata}" > "${logdir}/glidein_metadata.json"
+#}
+#
+#logs_setup() {
+#    # Create the necessary folders
+#    mkdir -p "${logdir}/shards/creating"
+#
+#    # Create an 'empty' log, containing only glidein metadata
+#    generate_glidein_metadata_json
+#    echo "[" > "${logdir}/${log_logfile}"
+#    cat "${logdir}/glidein_metadata.json" >> "${logdir}/${log_logfile}"
+#    echo "]" >> "${logdir}/${log_logfile}"
+#
+#    # Log a copy of stdout and stderr too
+#    exec >  >(tee -ia "${logdir}/${stdout_logfile}")
+#    exec 2> >(tee -ia "${logdir}/${stderr_logfile}" >&2)
+#    echo "$(date): Started logging stdout on file too"
+#    echo "$(date): Started logging stderr on file too" >&2
+#
+#    cat > "logging_utils.source" << EOF
+#json_escape() {
+#    # escape json special characters
+#    qstr="\$(printf '%s' "\$1" | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
+#    # remove unwanted outer double quotes
+#    qstr="\${qstr%\"}"
+#    qstr="\${qstr#\"}"
+#    echo "\$qstr"
+#}
+#
+#get_logfile_path_relative() {
+#    echo "${logdir}/${log_logfile}"
+#}
+#
+#log_write() {
+#    # Log an event
+#    # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
+#    # If type is file, then the filepath can be either absolute or relative to work_dir
+#
+#    cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
+#    cur_time_ns=\$(date +%s%N)   # enough to ensure that shards have different timestamps
+#
+#    # Source encoding utilities
+#    b64uuencode_source="\$(grep '^B64UUENCODE_SOURCE ' "\${glidein_config}" | cut -d ' ' -f 2-)"
+#    source "\${b64uuencode_source}"
+#
+#    # Argument \$1
+#    invoker="\$1"
+#    # Argument \$2
+#    case \$2 in
+#        "text" | "file" ) type=\$2;;
+#        *) type="text";;
+#    esac
+#    # Argument \$3
+#    if [ "\$type" == "file" ]; then
+#        filename="\$3"
+#        case \${filename} in
+#            /*) filepath="\${filename}";;               # absolute
+#             *) filepath="${work_dir}/\${filename}";;   # relative
+#        esac
+#        raw_content=\$(cat "\${filepath}")
+#        if [ -z "\$raw_content" ]; then
+#            raw_content="File not found"
+#        fi
+#        # Compression and encoding
+#        content=\$(echo "\$raw_content" | gzip --stdout - | b64uuencode | tr -d '\n\r')
+#    else
+#        filename=""
+#        content="\$3"
+#    fi
+#    # Argument \$4
+#    case \$4 in
+#        "error" | "warn" | "info" | "debug" | "fatal" ) severity=\$4;;
+#        *) severity="info";;
+#    esac
+#
+#    pid=\${BASHPID:-\$\$}
+#    shard_filename="\${cur_time_ns}_\${invoker}_\${pid}_\${type}_\${severity}.shard"
+#
+#    pushd "${work_dir}/${logdir}/shards" > /dev/null
+#    touch "creating/\${shard_filename}"
+#    if command -v jq >/dev/null 2>&1; then
+#        json_logevent=\$( jq -n \
+#                  --arg inv "\$invoker" \
+#                  --arg pid "\$pid" \
+#                  --arg ts "\$cur_time" \
+#                  --arg ty "\$type" \
+#                  --arg fn "\$filename" \
+#                  --arg body "\$content" \
+#                  --arg sev "\$severity" \
+#                  '{invoker: \$inv, pid: \$pid, timestamp: \$ts, severity: \$sev, type: \$ty, filename: \$fn, content: \$body}' )
+#    else
+#        invoker="\$(json_escape "\${invoker}")"
+#        content="\$(json_escape "\${content}")"
+#        json_logevent="{\"invoker\":\"\${invoker}\", \"pid\":\"\${pid}\", \"timestamp\":\"\${cur_time}\", \"severity\":\"\${severity}\", \"type\":\"\${type}\", \"filename\":\"\${filename}\", \"content\":\"\${content}\"}"
+#    fi
+#
+#    # Make sure that shards in the main dir have been fully written
+#    echo "\${json_logevent}" > "creating/\${shard_filename}"
+#    mv "creating/\${shard_filename}" "\${shard_filename}"
+#    popd > /dev/null
+#}
+#
+#log_coalesce_shards() {
+#    # Merge log shards in a single file (for each glidein process)
+#
+#    pushd "${work_dir}/${logdir}" > /dev/null
+#
+#    # Skip if another process is already coaleascing
+#    if mkdir shards/coalescing; then
+#        cur_time=\$(date +%Y-%m-%dT%H:%M:%S%:z)
+#        # Skip if there are no shards
+#        if [ -n "\$(ls -Ap shards | grep -v /)" ]; then
+#            cp "${log_logfile}" shards/coalescing/
+#            mv shards/*.shard shards/coalescing/
+#            pushd shards/coalescing > /dev/null
+#            sed -i '\${s/]$/,/}' "${log_logfile}"   # replace last square bracket with comma
+#            for shd in *.shard; do                  # concatenate separating with comma
+#                cat \$shd
+#                echo ","
+#            done >> "${log_logfile}"
+#            sed -i '$ d' "${log_logfile}"           # remove last comma
+#            echo "]" >> "${log_logfile}"            # closing square bracket
+#            popd > /dev/null
+#            mv "shards/coalescing/${log_logfile}" .
+#        fi
+#    rm -rf shards/coalescing
+#    fi
+#    popd > /dev/null
+#}
+#
+#send_logs_to_remote() {
+#    log_coalesce_shards
+#
+#    # Upload stdout log file
+#    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stdout_logfile} ${logserver_addr}/${stdout_logfile} 2>&1)
+#    curl_retval=\$?
+#    if [ \$curl_retval -ne 0 ]; then
+#        curl_version=\$(curl --version 2>&1 | head -1)
+#        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
+#    fi
+#
+#    # Upload stderr log file
+#    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${stderr_logfile} ${logserver_addr}/${stderr_logfile} 2>&1)
+#    curl_retval=\$?
+#    if [ \$curl_retval -ne 0 ]; then
+#        curl_version=\$(curl --version 2>&1 | head -1)
+#        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
+#    fi
+#
+#    # Upload general log file
+#    curl_resp=\$(curl -X PUT --upload-file ${work_dir}/${logdir}/${log_logfile} ${logserver_addr}/${log_logfile} 2>&1)
+#    curl_retval=\$?
+#    if [ \$curl_retval -ne 0 ]; then
+#        curl_version=\$(curl --version 2>&1 | head -1)
+#        warn "\$curl_cmd failed. version:\$curl_version  exit code \$curl_retval stderr: \$curl_resp "
+#    fi
+#}
+# EOF
+#    source logging_utils.source
+#    log_write "glidein_startup.sh" "text" "Remote logging has been setup. Server address: ${logserver_addr}" "info"
+#}
 
 
 ################
@@ -1492,14 +1515,15 @@ fi
 # shellcheck disable=SC2086
 params2file ${params}
 
+############################################
 # Setup logging
-logdir="logs/${glidein_uuid}"
-stdout_logfile="${glidein_uuid}.out"
-stderr_logfile="${glidein_uuid}.err"
-log_logfile="${glidein_uuid}.log"
-#logserver_addr='http://fermicloud152.fnal.gov:80'
 logserver_addr='http://gwms-web.fnal.gov/fermicloud152/log'
-logs_setup
+echo "Extracting logging_utils.source"
+get_data logging_utils.source 2>&1 >logging_utils.source
+echo "Sourcing logging_utils.source"
+source_data logging_utils.source 2>&1
+log_init "${glidein_uuid}" "${logserver_addr}" "${work_dir}"
+log_setup
 
 ############################################
 # get the proper descript file based on id
@@ -1601,9 +1625,6 @@ add_periodic_script() {
         # Make sure that no undesired file is there when called for first cron
         rm ${include_fname}
     fi
-    let add_startd_cron_counter=add_startd_cron_counter+1
-    local name_prefix=GLIDEIN_PS_
-    local s_name="${name_prefix}${add_startd_cron_counter}"
 
     # Append the following to the startd configuration
     # Instead of Periodic and Kill wait for completion:
@@ -2226,3 +2247,6 @@ echo 1>&2
 #########################
 # clean up after I finish
 glidein_exit ${ret}
+#!/bin/bash
+#
+# Project:
