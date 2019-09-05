@@ -608,75 +608,6 @@ automatic_work_dir() {
 }
 
 
-# Create a script that defines add_config_line
-#   and add_condor_vars_line
-# This way other depending scripts can use it
-# Scripts are executed one at the time (also in schedd_cron)
-# If this changes, these functions would have to add a locking mechanism
-create_add_config_line() {
-    cat > "$1" << EOF
-
-warn() {
- echo \$(date) \$@ 1>&2
-}
-
-###################################
-# Add a line to the config file
-# Arg: line to add, first element is the id
-# Uses global variable glidein_config
-add_config_line() {
-    grep -q "^\${*}$" \$glidein_config
-    if [ \$? -ne 0 ]; then
-        rm -f \${glidein_config}.old #just in case one was there
-        mv \$glidein_config \${glidein_config}.old
-        if [ \$? -ne 0 ]; then
-            warn "Error renaming \$glidein_config into \${glidein_config}.old"
-            exit 1
-        fi
-        grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
-        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
-        echo "\$@" >> \$glidein_config
-        rm -f \${glidein_config}.old
-    fi
-}
-
-##################################################
-# Add a line to the config file using a lock file
-# Replace add_config_line in script_wrapper where multiple instances run in parallel
-# Uses FD 200, fails after a timeout of 300 sec
-add_config_line_safe() {
-    grep -q "^\${*}$" \$glidein_config
-    if [ \$? -ne 0 ]; then
-        # when fd is closed the lock is released, no need to trap and remove the file
-        (
-        flock -w 300 -e 200 || (warn "Error acquiring lock for glidein_config"; exit 1)
-        add_config_line "\$@"
-        ) 200>\${glidein_config}.lock
-    fi
-}
-
-
-
-####################################
-# Add a line to the condor_vars file
-# Arg: line to add, first element is the id
-# Uses global variable condor_vars_file
-add_condor_vars_line() {
-    id=\$1
-
-    rm -f \${condor_vars_file}.old #just in case one was there
-    mv \$condor_vars_file \${condor_vars_file}.old
-    if [ \$? -ne 0 ]; then
-        warn "Error renaming \$condor_vars_file into \${condor_vars_file}.old"
-        exit 1
-    fi
-    grep -v "^\$id\b" \${condor_vars_file}.old > \$condor_vars_file
-    echo "\$@" >> \$condor_vars_file
-    rm -f \${condor_vars_file}.old
-}
-EOF
-}
-
 # Create a script that defines various id based functions 
 # This way other depending scripts can use it
 create_get_id_selectors() {
@@ -1224,9 +1155,6 @@ fi
 
 # Extract and source all the data contained at the end of this script as tarball
 extract_all_data
-
-create_add_config_line add_config_line.source
-source add_config_line.source
 
 create_get_id_selectors get_id_selectors.source
 source get_id_selectors.source
