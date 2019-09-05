@@ -1329,7 +1329,7 @@ add_periodic_script() {
     local s_cc_prefix="$7"
     if [ ${add_startd_cron_counter} -eq 0 ]; then
         # Make sure that no undesired file is there when called for first cron
-        rm ${include_fname}
+        rm -f ${include_fname}
     fi
 
     let add_startd_cron_counter=add_startd_cron_counter+1   
