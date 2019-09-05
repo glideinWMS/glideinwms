@@ -129,7 +129,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 
         # augment glidein_startup.sh, appending the utility files/data to glidein_startup_base.sh as tarball:
         # create tarball of files to be later sourced and shared between scripts
-        tar_file_list = ["logging_utils.source"]
+        tar_file_list = ["logging_utils.source", "b64uuencode.source"]
         tar_utils = tarfile.open("tar_utils.tar.gz", "w:gz")
         for util_file in tar_file_list:
             util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)

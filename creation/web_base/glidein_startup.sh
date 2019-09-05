@@ -36,6 +36,22 @@ list_data() {
     sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar tz
 }
 
+extract_all_data() {
+    # Extract and source all the tarball files
+    local -a files
+    # change separator to split the output of 'tar' command
+    local IFS_OLD="${IFS}"
+    IFS=$'\n'
+    files=($(list_data))
+    for f in ${files[@]}; do
+        echo "Extracting file ${f}"
+        get_data "${f}" > "${f}"
+        echo "Sourcing file ${f}"
+        source_data "${f}"
+    done
+    IFS="${IFS_OLD}"
+}
+
 ################################
 # Extends 'trap' allowing to pass the signal name as argument to the handler
 trap_with_arg() {
@@ -204,45 +220,6 @@ if (echo "x${slots_layout}" | grep -i fixed) >/dev/null 2>&1 ; then
 else
     slots_layout="partitionable"
 fi
-
-create_b64uuencode() {
-    cat > "$1" << EOF
-python_b64uuencode() {
-    echo "begin-base64 644 -"
-    python -c 'import binascii, sys
-fd = sys.stdin
-buf = fd.read()
-idx, size, maxsize = 0, len(buf), 45
-while size > maxsize:
-    print binascii.b2a_base64(buf[idx:idx+maxsize]),;
-    idx += maxsize;
-    size -= maxsize;
-print binascii.b2a_base64(buf[idx:]),'
-    echo "====" }
-}
-
-base64_b64uuencode() {
-    echo "begin-base64 644 -"
-    base64 -
-    echo "===="
-}
-
-# not all WNs have all the tools installed
-b64uuencode() {
-    which uuencode >/dev/null 2>&1
-    if [ \$? -eq 0 ]; then
-        uuencode -m -
-    else
-        which base64 >/dev/null 2>&1
-        if [ \$? -eq 0 ]; then
-            base64_b64uuencode
-        else
-            python_b64uuencode
-        fi
-    fi
-}
-EOF
-}
 
 construct_xml() {
   result="$1"
@@ -1245,8 +1222,8 @@ if [ -n "${client_repository_url}" ]; then
     fi
 fi
 
-create_b64uuencode b64uuencode.source
-source b64uuencode.source
+# Extract and source all the data contained at the end of this script as tarball
+extract_all_data
 
 create_add_config_line add_config_line.source
 source add_config_line.source
@@ -1323,10 +1300,6 @@ params2file ${params}
 ############################################
 # Setup logging
 logserver_addr='http://gwms-web.fnal.gov/fermicloud152/log'
-echo "Extracting logging_utils.source"
-get_data logging_utils.source 2>&1 >logging_utils.source
-echo "Sourcing logging_utils.source"
-source_data logging_utils.source 2>&1
 log_init "${glidein_uuid}" "${logserver_addr}" "${work_dir}"
 log_setup "${glidein_config}"
 
