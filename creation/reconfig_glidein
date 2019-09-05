@@ -129,8 +129,9 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 
         # augment glidein_startup.sh, appending the utility files/data to glidein_startup_base.sh as tarball:
         # create tarball of files to be later sourced and shared between scripts
-        tar_file_list = ["add_config_line.source", "get_id_selectors.source", "logging_utils.source", "b64uuencode.source"]
+        tar_file_list = cgWConsts.TAR_FILE_LIST
         try:
+            # Note: cannot use 'with open' for tarfile due to compatibility with python 2.6
             tar_utils = tarfile.open("tar_utils.tar.gz", "w:gz", dereference=True)
         except tarfile.TarError as te:
             print2("TarError: %s" % str(te))
