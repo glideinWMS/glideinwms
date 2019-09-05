@@ -16,6 +16,8 @@ import sys
 import logging
 import os.path
 # import subprocess
+import shutil
+import tarfile
 import tempfile
 import signal
 STARTUP_DIR = sys.path[0]
@@ -124,6 +126,21 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # copy the submit files
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
+
+        # augment glidein_startup.sh, appending the utility files/data to glidein_startup_base.sh as tarball:
+        # create tarball of files to be later sourced and shared between scripts
+        tar_file_list = ["logging_utils.source"]
+        tar_utils = tarfile.open("tar_utils.tar.gz", "w:gz")
+        for util_file in tar_file_list:
+            util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
+            tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
+        tar_utils.close()
+        # append the the tarball to glidein_startup.sh
+        with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "a") as st_file:
+            st_file.write("exit 0\n#EOF\n")
+            with open("tar_utils.tar.gz", "rb") as tar_utils:
+                shutil.copyfileobj(tar_utils, st_file)
+        os.remove("tar_utils.tar.gz")
         print2('...Updated the glidein_startup.sh and local_start.sh scripts')
 
         # copy glidein_startup.sh to the stage area for cloud entries
