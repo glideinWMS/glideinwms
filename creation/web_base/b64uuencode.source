@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+
+python_b64uuencode() {
+    echo "begin-base64 644 -"
+    python -c 'import binascii, sys
+fd = sys.stdin
+buf = fd.read()
+idx, size, maxsize = 0, len(buf), 45
+while size > maxsize:
+    print binascii.b2a_base64(buf[idx:idx+maxsize]),;
+    idx += maxsize;
+    size -= maxsize;
+print binascii.b2a_base64(buf[idx:]),'
+    echo "====" }
+}
+
+base64_b64uuencode() {
+    echo "begin-base64 644 -"
+    base64 -
+    echo "===="
+}
+
+b64uuencode() {
+    # determines the proper command to use for encoding,
+    # since not all the VMs have the same tools installed
+    which uuencode >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        uuencode -m -
+    else
+        which base64 >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            base64_b64uuencode
+        else
+            python_b64uuencode
+        fi
+    fi
+}
+
