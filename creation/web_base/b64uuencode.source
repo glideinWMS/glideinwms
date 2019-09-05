@@ -29,12 +29,10 @@ base64_b64uuencode() {
 b64uuencode() {
     # determines the proper command to use for encoding,
     # since not all the VMs have the same tools installed
-    which uuencode >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    if which uuencode >/dev/null 2>&1; then
         uuencode -m -
     else
-        which base64 >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
+        if which base64 >/dev/null 2>&1; then
             base64_b64uuencode
         else
             python_b64uuencode
