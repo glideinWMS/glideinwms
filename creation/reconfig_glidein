@@ -130,16 +130,24 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # augment glidein_startup.sh, appending the utility files/data to glidein_startup_base.sh as tarball:
         # create tarball of files to be later sourced and shared between scripts
         tar_file_list = ["add_config_line.source", "get_id_selectors.source", "logging_utils.source", "b64uuencode.source"]
-        tar_utils = tarfile.open("tar_utils.tar.gz", "w:gz")
+        try:
+            tar_utils = tarfile.open("tar_utils.tar.gz", "w:gz", dereference=True)
+        except tarfile.TarError as te:
+            print2("TarError: %s" % str(te))
+            sys.exit(1)
         for util_file in tar_file_list:
             util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
             tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
         tar_utils.close()
         # append the the tarball to glidein_startup.sh
-        with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "a") as st_file:
-            st_file.write("exit 0\n#EOF\n")
-            with open("tar_utils.tar.gz", "rb") as tar_utils:
-                shutil.copyfileobj(tar_utils, st_file)
+        try:
+            with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "a") as st_file:
+                st_file.write("exit 0\n#EOF\n")
+                with open("tar_utils.tar.gz", "rb") as tar_utils:
+                    shutil.copyfileobj(tar_utils, st_file)
+        except IOError as ioe:
+            print2("IOError [%d]: %s" % (ioe.errno, ioe.strerror))
+            sys.exit(1)
         os.remove("tar_utils.tar.gz")
         print2('...Updated the glidein_startup.sh and local_start.sh scripts')
 
