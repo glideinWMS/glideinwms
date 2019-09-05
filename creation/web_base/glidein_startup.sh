@@ -607,94 +607,8 @@ automatic_work_dir() {
     return 1
 }
 
-
-# Create a script that defines various id based functions 
-# This way other depending scripts can use it
-create_get_id_selectors() {
-    cat > "$1" << EOF
-############################################
-# Get entry/client/group work dir
-# Arg: type (main/entry/client/client_group)
-get_work_dir() {
-    if [ "\$1" = "main" ]; then
-        grep "^GLIDEIN_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "entry" ]; then
-        grep "^GLIDEIN_ENTRY_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "client" ]; then
-        grep "^GLIDECLIENT_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "client_group" ]; then
-        grep "^GLIDECLIENT_GROUP_WORK_DIR " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    fi
-    echo "[get_work_dir] Invalid id: \$1" 1>&2
-    return 1
-}
-
-################################################
-# Get entry/client/group description file name
-# Arg: type (main/entry/client/client_group)
-get_descript_file() {
-    if [ "\$1" = "main" ]; then
-        grep "^DESCRIPTION_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "entry" ]; then
-        grep "^DESCRIPTION_ENTRY_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "client" ]; then
-        grep "^GLIDECLIENT_DESCRIPTION_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "client_group" ]; then
-        grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    fi
-    echo "[get_descript_file] Invalid id: \$1" 1>&2
-    return 1
-}
-
-############################################
-# Get entry/client/group signature
-# Arg: type (main/entry/client/client_group)
-get_signature() {
-    if [ "\$1" = "main" ]; then
-        grep "^GLIDEIN_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "entry" ]; then
-        grep "^GLIDEIN_Entry_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "client" ]; then
-        grep "^GLIDECLIENT_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    elif [ "\$1" = "client_group" ]; then
-        grep "^GLIDECLIENT_Group_Signature " "\${glidein_config}" | cut -d ' ' -f 2-
-        return \$?
-    fi
-    echo "[get_signature] Invalid id: \$1" 1>&2
-    return 1
-}
-
-############################################
-# Get entry/client/group prefix
-# Arg: type (main/entry/client/client_group)
-get_prefix() {
-    if [ "\$1" = "main" ]; then
-        echo ""
-    elif [ "\$1" = "entry" ]; then
-        echo "ENTRY_"
-    elif [ "\$1" = "client" ]; then
-        echo "GLIDECLIENT_"
-    elif [ "\$1" = "client_group" ]; then
-        echo "GLIDECLIENT_GROUP_"
-    else
-        echo "[get_prefix] Invalid id: \$1" 1>&2
-        return 1
-    fi
-}
-
-EOF
-}
+#######################################
+# Parameters utility functions
 
 params_get_simple() {
     # Retrieve a simple parameter (no special characters in its value) from the param list
@@ -736,7 +650,6 @@ params_decode() {
  -e 's/\.dot,/./g'
 }
 
-###################################
 # Put parameters into the config file
 params2file() {
     param_list=""
@@ -1155,9 +1068,6 @@ fi
 
 # Extract and source all the data contained at the end of this script as tarball
 extract_all_data
-
-create_get_id_selectors get_id_selectors.source
-source get_id_selectors.source
 
 wrapper_list="${PWD}/wrapper_list.lst"
 touch "${wrapper_list}"

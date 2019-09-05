@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+
+############################################
+# Get entry/client/group work dir
+# Arg: type (main/entry/client/client_group)
+get_work_dir() {
+    case "$1" in
+        main)
+            grep "^GLIDEIN_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        entry)
+            grep "^GLIDEIN_ENTRY_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        client)
+            grep "^GLIDECLIENT_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        client_group)
+            grep "^GLIDECLIENT_GROUP_WORK_DIR " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        *)
+            echo "[get_work_dir] Invalid id: $1" 1>&2
+            return 1;;
+    esac
+}
+
+################################################
+# Get entry/client/group description file name
+# Arg: type (main/entry/client/client_group)
+get_descript_file() {
+    case "$1" in
+        main)
+            grep "^DESCRIPTION_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        entry)
+            grep "^DESCRIPTION_ENTRY_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        client)
+            grep "^GLIDECLIENT_DESCRIPTION_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        client_group)
+            grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        *)
+            echo "[get_descript_file] Invalid id: $1" 1>&2
+            return 1;;
+    esac
+}
+
+############################################
+# Get entry/client/group signature
+# Arg: type (main/entry/client/client_group)
+get_signature() {
+    case "$1" in
+        main)
+            grep "^GLIDEIN_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        entry)
+            grep "^GLIDEIN_Entry_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        client)
+            grep "^GLIDECLIENT_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        client_group)
+            grep "^GLIDECLIENT_Group_Signature " "${glidein_config}" | cut -d ' ' -f 2-
+            return $?;;
+        *)
+            echo "[get_signature] Invalid id: $1" 1>&2
+            return 1;;
+    esac
+}
+
+############################################
+# Get entry/client/group prefix
+# Arg: type (main/entry/client/client_group)
+get_prefix() {
+    case "$1" in
+        main)           echo "";;
+        entry)          echo "ENTRY_";;
+        client)         echo "GLIDECLIENT_";;
+        client_group)   echo "GLIDECLIENT_GROUP_";;
+        *)              echo "[get_prefix] Invalid id: $1" 1>&2
+            return 1;;
+    esac
+}
