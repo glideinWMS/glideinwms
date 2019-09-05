@@ -48,6 +48,12 @@ INITD_STARTUP_FILE="factory_startup"
 
 WEB_BASE_DIR=os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "web_base")
 
+TAR_FILE_LIST=("add_config_line.source",
+               "get_id_selectors.source",
+               "logging_utils.source",
+               "b64uuencode.source"
+              )
+
 ###################################################
 #
 # These functions append constant parts to strings
