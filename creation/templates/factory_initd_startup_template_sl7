@@ -141,7 +141,7 @@ check_35_ready () {
         if [ $f35exit -eq 0 ]; then
             return 0
         fi
-        echo "The Factory is not ready for 3.5. Please run $FACTORY_CHECK35_READY for more details"
+        echo "The Factory is not ready for 3.5.x. Please run $FACTORY_CHECK35_READY --verbose as the factory user for more details."
         echo -n "To disable this check remove the --check_35_ready option from the gwms-factory.service file"
         failure
         echo
