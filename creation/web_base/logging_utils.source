@@ -75,6 +75,8 @@ log_init() {
     log_logfile="${1}.log"
     logserver_addr="${2}"
     log_relative_basepath="${3}"
+    # TODO: the token must be read from a file, not hardcoded. This is just an experiment.
+    log_auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnZmFjdG9yeV9zZXJ2aWNlIiwiaWF0IjoxNTY4MjM2ODU5LCJzdWIiOiJJVEJfRkNfQ0UyIiwiZXhwIjoxNTY4ODQxNjU5LCJuYmYiOjE1NjgyMzY1NTl9.42wSdtt_jv2TyqIs7A5w_ravrbvLtMT_HJv_ehlLxhY"
 
     # Export configuration
     add_config_line "GLIDEIN_LOGDIR" "${logdir}"
@@ -83,6 +85,7 @@ log_init() {
     add_config_line "GLIDEIN_LOG_LOGFILE" "${log_logfile}"
     add_config_line "GLIDEIN_LOGSERVER_ADDR" "${logserver_addr}"
     add_config_line "GLIDEIN_LOG_RELATIVE_BASEPATH" "${log_relative_basepath}"
+    add_config_line "GLIDEIN_LOG_AUTH_TOKEN" "${log_auth_token}"
 
     # Create the necessary folders
     mkdir -p "${logdir}/shards/creating"
@@ -130,6 +133,7 @@ function log_setup() {
     log_logfile="$(grep '^GLIDEIN_LOG_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
     logserver_addr="$(grep '^GLIDEIN_LOGSERVER_ADDR ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_relative_basepath="$(grep '^GLIDEIN_LOG_RELATIVE_BASEPATH ' "${glidein_config}" | cut -d ' ' -f 2-)"
+    log_auth_token="$(grep '^GLIDEIN_LOG_AUTH_TOKEN ' "${glidein_config}" | cut -d ' ' -f 2-)"
     certdir="/etc/grid-security/certificates/"  # X509_CERT_DIR not available in glidein_config yet
 
     log_ready=1
@@ -267,7 +271,7 @@ send_logs_to_remote() {
     log_coalesce_shards
 
     # Upload stdout log file
-    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${stdout_logfile}" "${logserver_addr}/${stdout_logfile}" 2>&1)
+    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${stdout_logfile}" "${logserver_addr}/${stdout_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
     curl_retval=$?
     if [ ${curl_retval} -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -275,7 +279,7 @@ send_logs_to_remote() {
     fi
 
     # Upload stderr log file
-    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${stderr_logfile}" "${logserver_addr}/${stderr_logfile}" 2>&1)
+    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${stderr_logfile}" "${logserver_addr}/${stderr_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
     curl_retval=$?
     if [ ${curl_retval} -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -283,7 +287,7 @@ send_logs_to_remote() {
     fi
 
     # Upload general log file
-    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${log_logfile}" "${logserver_addr}/${log_logfile}" 2>&1)
+    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${log_logfile}" "${logserver_addr}/${log_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
     curl_retval=$?
     if [ ${curl_retval} -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
