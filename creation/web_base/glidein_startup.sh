@@ -1137,7 +1137,8 @@ params2file ${params}
 
 ############################################
 # Setup logging
-logserver_addr='http://gwms-web.fnal.gov/fermicloud152/log'
+#logserver_addr='https://gwms-web.fnal.gov/fermicloud152/log'
+logserver_addr='https://fermicloud152.fnal.gov/log'
 log_init "${glidein_uuid}" "${logserver_addr}" "${work_dir}"
 log_setup "${glidein_config}"
 
