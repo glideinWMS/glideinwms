@@ -611,6 +611,9 @@ GLIDEIN_VARIABLES = $glidein_variables
 MASTER_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 
+#Stats that make dectection of black-hole slots
+STARTD.STATISTICS_TO_PUBLISH_LIST = $(STATISTICS_TO_PUBLISH_LIST) JobBusyTime JobDuration
+
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
 
