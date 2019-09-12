@@ -134,7 +134,6 @@ function log_setup() {
     logserver_addr="$(grep '^GLIDEIN_LOGSERVER_ADDR ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_relative_basepath="$(grep '^GLIDEIN_LOG_RELATIVE_BASEPATH ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_auth_token="$(grep '^GLIDEIN_LOG_AUTH_TOKEN ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    certdir="/etc/grid-security/certificates/"  # X509_CERT_DIR not available in glidein_config yet
 
     log_ready=1
 }
@@ -271,7 +270,7 @@ send_logs_to_remote() {
     log_coalesce_shards
 
     # Upload stdout log file
-    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${stdout_logfile}" "${logserver_addr}/${stdout_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
+    curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${stdout_logfile}" "${logserver_addr}/${stdout_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
     curl_retval=$?
     if [ ${curl_retval} -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -279,7 +278,7 @@ send_logs_to_remote() {
     fi
 
     # Upload stderr log file
-    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${stderr_logfile}" "${logserver_addr}/${stderr_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
+    curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${stderr_logfile}" "${logserver_addr}/${stderr_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
     curl_retval=$?
     if [ ${curl_retval} -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
@@ -287,7 +286,7 @@ send_logs_to_remote() {
     fi
 
     # Upload general log file
-    curl_resp=$(curl -X PUT --capath "${certdir}" --upload-file "${log_relative_basepath}/${logdir}/${log_logfile}" "${logserver_addr}/${log_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
+    curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${log_logfile}" "${logserver_addr}/${log_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
     curl_retval=$?
     if [ ${curl_retval} -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
