@@ -23,7 +23,7 @@ VERBOSE = False
 def log(*args):
     """print success messages only when verbose, no --quiet option"""
     if VERBOSE:
-        print(args)
+        print(*args)
 
 
 def main():
@@ -86,7 +86,7 @@ def main():
             gt2_entries.append(entry_dict['name'])
     if gt2_entries:
         print("Entries %s are enabled and use unsupported Globus GT2. Should be disabled." %
-              (gt2_entries,))
+              (', '.join(gt2_entries),))
         return 4
     else:
         log("No Globus GT2 entries. Passed.")

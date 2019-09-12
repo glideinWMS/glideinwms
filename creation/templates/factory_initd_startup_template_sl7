@@ -135,7 +135,7 @@ check_configured () {
 
 check_35_ready () {
     # check if files and jobs ownership is correct. Needed for 3.5 single user factory
-    if [ "$1" = "--check_35_ready" ]; then
+    if [ -n "$GWMS_CHECK_35_READY" -o "$1" = "--check_35_ready" ]; then
         invoke_as_factory $FACTORY_CHECK35_READY
         f35exit=$?
         if [ $f35exit -eq 0 ]; then
