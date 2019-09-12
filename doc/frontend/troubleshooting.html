@@ -635,7 +635,45 @@ CONDA_SHLVL=0
 
 
 [.....]
+
+MODULESHOME=/usr/share/Modules
+LESSOPEN=||/usr/bin/lesspipe.sh %s
+XDG_RUNTIME_DIR=/run/user/8440
+QT_PLUGIN_PATH=/usr/lib64/kde4/plugins:/usr/lib/kde4/plugins
+GIT_AUTHOR_EMAIL=marco.mascheroni@cern.ch
+LC_TIME=it_IT.UTF-8
+GUESTFISH_RESTORE=\e[0m
+LC_NAME=it_IT.UTF-8
+BASH_FUNC_module()=() {  eval `/usr/bin/modulecmd bash $*`
+}
+_=/usr/bin/env
+--- ============= ---
+
+Unsetting X509_USER_PROXY
+=== Condor starting gio 12 set 2019, 16.51.20, CEST (1568299880) ===
+=== Condor started in background, now waiting on process 30732 ===
 </pre>
+
+The wrapper will execute the glidein_startup.sh script, which in turn will run validation scripts, and then it will start condor (as you can see in the last lines in the log above). If everything is successful you will se a process tree similar to the one below, and, if interested, you can immediately check the condor job logs (you can find the execution directory of the pilot either in the wrapper stdou, or from the ps output).
+
+<pre>
+[mmascher@lxplus794 ~]$ ps auxf
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+mmascher 28651  0.0  0.0 190528  3208 ?        S    13:31   0:00 sshd: mmascher@pts/61
+mmascher 28652  0.0  0.0 128392  4996 pts/61   Ss   13:31   0:00  \_ -bash
+mmascher 10614  0.0  0.0 113180  1448 pts/61   S    16:50   0:00      \_ /bin/sh ./glidein_startup_wrapper
+mmascher 10615  0.0  0.0 113708  2132 pts/61   S    16:50   0:00          \_ /bin/bash ./glidein_startup.sh -param_GLIDECLIENT_Rank 1 -param_USE_MATCH_AUTH True -sign 9de23b396248df4285410ad
+mmascher 27815  0.0  0.0 113416  1728 pts/61   S    16:51   0:00              \_ /bin/bash /tmp/mmascher/glide_j8tqfe/main/condor_startup.sh glidein_config
+mmascher 30732  0.0  0.0 130832  8716 ?        Ss   16:51   0:00                  \_ /tmp/mmascher/glide_j8tqfe/main/condor/sbin/condor_master -f -pidfile /tmp/mmascher/glide_j8tqfe/condor_m
+mmascher 31451  0.1  0.0  24920  2660 ?        S    16:51   0:04                      \_ condor_procd -A /tmp/mmascher/glide_j8tqfe/log/procd_address -L /tmp/mmascher/glide_j8tqfe/log/ProcLo
+mmascher 31470  0.0  0.0 109664  9228 ?        Ss   16:51   0:01                      \_ condor_startd -f
+mmascher  1995  0.0  0.0 110628  8920 ?        Ss   17:20   0:00                          \_ condor_starter -f submit-1.chtc.wisc.edu
+mmascher  2009  0.0  0.0 110628  3088 ?        S    17:20   0:00                              \_ condor_starter -f submit-1.chtc.wisc.edu
+
+[mmascher@lxplus794 ~]$ ls /tmp/mmascher/glide_j8tqfe/log/
+InstanceLock  MasterLog  procd_address  procd_address.watchdog  ProcLog  ProcLog.old  StartdHistoryLog  StartdLog  StarterLog  transfer_history  XferStatsLog
+</pre>
+
 
 Final remark: if you wish to change some of the non constant factory or frontend parameter, you may use the --override-args options of manual_glidein_startup:
 
