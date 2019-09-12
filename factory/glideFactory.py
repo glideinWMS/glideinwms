@@ -29,6 +29,7 @@ import copy
 import logging
 import math
 # from datetime import datetime
+import jwt
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../"))
@@ -151,6 +152,37 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
         logSupport.log.exception("Unable to write the descript.xml file: ")
 
 ############################################################
+
+def generate_log_tokens(startup_dir, glideinDescript, entries):
+    """
+    Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
+    """
+    # TODO: secret should be retrieved from a file, not hardcoded. This is just an experiment
+    secret = 'secret'
+    # TODO: client_proxies isn't the ideal location, better create dedicate folder. This is just an experiment.
+    token_basedir = os.path.join(startup_dir, 'client_proxies')
+    factory_name = glideinDescript.data['FactoryName']
+
+    logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
+
+    for entry in entries:
+        curtime = int(time.time())
+        token_name = factory_name + "_" + entry + ".jwt"
+        token_filepath = os.path.join(token_basedir, token_name)
+        token_payload = {'iss': factory_name,
+                         'sub': entry,
+                         'iat': curtime,
+                         'exp': curtime + 604800,
+                         'nbf': curtime - 300
+                        }
+        token = jwt.encode(token_payload, secret, algorithm='HS256')
+        try:
+            with open(token_filepath, "w") as tkfile:
+                tkfile.write(token)
+        except IOError:
+            logSupport.log.exception("Unable to create JWT file: ")
+
+###########################################################
 
 def entry_grouper(size, entries):
     """
@@ -771,6 +803,8 @@ def main(startup_dir):
         os.path.join(startup_dir, "monitor"), entries,
         log=logSupport.log
     )
+
+    generate_log_tokens(startup_dir, glideinDescript, entries)
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
