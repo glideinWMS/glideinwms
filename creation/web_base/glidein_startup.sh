@@ -210,8 +210,7 @@ do case "$1" in
     -param_*)    params="$params $(echo "$1" | awk '{print substr($0,8)}') $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
-shift
-shift
+shift 2
 done
 
 # make sure we have a valid slots_layout
@@ -1137,9 +1136,8 @@ params2file ${params}
 
 ############################################
 # Setup logging
-#logserver_addr='https://gwms-web.fnal.gov/fermicloud152/log'
-logserver_addr='https://fermicloud152.fnal.gov/log'
-log_init "${glidein_uuid}" "${logserver_addr}" "${work_dir}"
+recipients=($(grep -i "^LOG_RECIPIENTS " "${glidein_config}" | cut -d ' ' -f 2-))
+log_init "${glidein_uuid}" "${work_dir}"
 log_setup "${glidein_config}"
 
 ############################################

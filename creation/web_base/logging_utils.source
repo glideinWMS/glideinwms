@@ -3,7 +3,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# Author:
+#   Leonardo Lai 
 #
 
 ###########################
@@ -11,6 +12,7 @@
 #
 # Every logged event is recorded in a separate file. Eventually, these shards
 # are merged into a single log file; metadata is added at the beginning.
+# Logs are sent to one or more remote servers via https.
 
 log_initialized=0
 log_ready=0
@@ -52,11 +54,11 @@ generate_glidein_metadata_json() {
 log_init() {
     # Initializes the log utility with the specified configuration.
     # This also creates the necessary folders, and should be called only once per glidein.
-    # 1: glidein_uuid, 2: log_server_address, 3: relative basepath
+    # 1: glidein_uuid, 2: relative_basepath
 
     # Validate number of arguments
-    if [ "$#" -ne 3 ]; then
-        my_warn "log_init: could not initialize log. Expected 3 arguments, got $#."
+    if [ "$#" -ne 2 ]; then
+        my_warn "log_init: could not initialize log. Expected 2 arguments, got $#."
         return 1
     fi
 
@@ -73,8 +75,7 @@ log_init() {
     stdout_logfile="${1}.out" 
     stderr_logfile="${1}.err" 
     log_logfile="${1}.log"
-    logserver_addr="${2}"
-    log_relative_basepath="${3}"
+    log_relative_basepath="${2}"
     # TODO: the token must be read from a file, not hardcoded. This is just an experiment.
     log_auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnZmFjdG9yeV9zZXJ2aWNlIiwiaWF0IjoxNTY4MjM2ODU5LCJzdWIiOiJJVEJfRkNfQ0UyIiwiZXhwIjoxNTY4ODQxNjU5LCJuYmYiOjE1NjgyMzY1NTl9.42wSdtt_jv2TyqIs7A5w_ravrbvLtMT_HJv_ehlLxhY"
 
@@ -83,7 +84,6 @@ log_init() {
     add_config_line "GLIDEIN_STDOUT_LOGFILE" "${stdout_logfile}"
     add_config_line "GLIDEIN_STDERR_LOGFILE" "${stderr_logfile}"
     add_config_line "GLIDEIN_LOG_LOGFILE" "${log_logfile}"
-    add_config_line "GLIDEIN_LOGSERVER_ADDR" "${logserver_addr}"
     add_config_line "GLIDEIN_LOG_RELATIVE_BASEPATH" "${log_relative_basepath}"
     add_config_line "GLIDEIN_LOG_AUTH_TOKEN" "${log_auth_token}"
 
@@ -131,9 +131,15 @@ function log_setup() {
     stdout_logfile="$(grep '^GLIDEIN_STDOUT_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
     stderr_logfile="$(grep '^GLIDEIN_STDERR_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_logfile="$(grep '^GLIDEIN_LOG_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    logserver_addr="$(grep '^GLIDEIN_LOGSERVER_ADDR ' "${glidein_config}" | cut -d ' ' -f 2-)"
+    log_recipients=($(grep '^LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
     log_relative_basepath="$(grep '^GLIDEIN_LOG_RELATIVE_BASEPATH ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_auth_token="$(grep '^GLIDEIN_LOG_AUTH_TOKEN ' "${glidein_config}" | cut -d ' ' -f 2-)"
+
+    if command -v curl >/dev/null 2>&1; then
+        curl_version=$(curl --version 2>&1 | head -1)
+    else
+        curl_version="not installed"
+    fi
 
     log_ready=1
 }
@@ -268,29 +274,19 @@ send_logs_to_remote() {
     # Note: implicitly merges the shards too
 
     log_coalesce_shards
+ 
+    # Upload stdout, stderr and log file
+    logfiles=("${stdout_logfile}" "${stderr_logfile}" "${log_logfile}")
 
-    # Upload stdout log file
-    curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${stdout_logfile}" "${logserver_addr}/${stdout_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
-    curl_retval=$?
-    if [ ${curl_retval} -ne 0 ]; then
-        curl_version=$(curl --version 2>&1 | head -1)
-        my_warn "${curl_cmd} failed. version: ${curl_version} exit_code: ${curl_retval} stderr: ${curl_resp}"
-    fi
-
-    # Upload stderr log file
-    curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${stderr_logfile}" "${logserver_addr}/${stderr_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
-    curl_retval=$?
-    if [ ${curl_retval} -ne 0 ]; then
-        curl_version=$(curl --version 2>&1 | head -1)
-        my_warn "${curl_cmd} failed. version: ${curl_version} exit_code: ${curl_retval} stderr: ${curl_resp}"
-    fi
-
-    # Upload general log file
-    curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${log_logfile}" "${logserver_addr}/${log_logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
-    curl_retval=$?
-    if [ ${curl_retval} -ne 0 ]; then
-        curl_version=$(curl --version 2>&1 | head -1)
-        my_warn "${curl_cmd} failed. version: ${curl_version} exit_code: ${curl_retval} stderr: ${curl_resp}"
-    fi
+    for recipient_addr in "${log_recipients[@]}"; do
+        for logfile in "${logfiles[@]}"; do
+            curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${logfile}" "${recipient_addr}/${logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
+            curl_retval=$?
+            if [ ${curl_retval} -ne 0 ]; then
+                curl_version=$(curl --version 2>&1 | head -1)
+                my_warn "Failed to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
+            fi
+        done
+    done
 }
 
