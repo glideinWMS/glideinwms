@@ -30,6 +30,7 @@ import logging
 import math
 # from datetime import datetime
 import jwt
+import urllib
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../"))
@@ -159,28 +160,38 @@ def generate_log_tokens(startup_dir, glideinDescript, entries):
     """
     # TODO: secret should be retrieved from a file, not hardcoded. This is just an experiment
     secret = 'secret'
-    # TODO: client_proxies isn't the ideal location, better create dedicate folder. This is just an experiment.
-    token_basedir = os.path.join(startup_dir, 'client_proxies')
     factory_name = glideinDescript.data['FactoryName']
 
     logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
 
     for entry in entries:
         curtime = int(time.time())
-        token_name = factory_name + "_" + entry + ".jwt"
-        token_filepath = os.path.join(token_basedir, token_name)
-        token_payload = {'iss': factory_name,
-                         'sub': entry,
-                         'iat': curtime,
-                         'exp': curtime + 604800,
-                         'nbf': curtime - 300
-                        }
-        token = jwt.encode(token_payload, secret, algorithm='HS256')
-        try:
-            with open(token_filepath, "w") as tkfile:
-                tkfile.write(token)
-        except IOError:
-            logSupport.log.exception("Unable to create JWT file: ")
+        
+        if 'LOG_RECIPIENTS' in glideFactoryConfig.JobParams(entry).data:
+            log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS'].split()
+        else:
+            continue
+
+        for recipient_addr in log_recipients:
+            token_name = "auth_token.jwt"
+            recipient_safe = urllib.quote(recipient_addr, '')
+            token_dir = os.path.join(startup_dir, 'entry_' + entry, 'tokens', recipient_safe)
+            if not os.path.exists(token_dir):
+                os.makedirs(token_dir)
+            token_filepath = os.path.join(token_dir, token_name)
+            token_payload = {'iss': factory_name,
+                             'sub': entry,
+                             'aud': recipient_safe,
+                             'iat': curtime,
+                             'exp': curtime + 604800,
+                             'nbf': curtime - 300
+                            }
+            token = jwt.encode(token_payload, secret, algorithm='HS256')
+            try:
+                with open(token_filepath, "w") as tkfile:
+                    tkfile.write(token)
+            except IOError:
+                logSupport.log.exception("Unable to create JWT file: ")
 
 ###########################################################
 
@@ -431,6 +442,9 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             childs_uptime[group].insert(0, time.time())
 
         logSupport.log.info("EntryGroup startup times: %s" % childs_uptime)
+
+        logSupport.log.info("data0: %s" % glideFactoryConfig.JobParams("ITB_FC_CE2").__dict__) # TODO debug only
+        generate_log_tokens(startup_dir, glideinDescript, entries)
 
         for group in childs:
             # set it in non blocking mode
@@ -803,8 +817,6 @@ def main(startup_dir):
         os.path.join(startup_dir, "monitor"), entries,
         log=logSupport.log
     )
-
-    generate_log_tokens(startup_dir, glideinDescript, entries)
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
