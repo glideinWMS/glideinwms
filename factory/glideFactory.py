@@ -158,11 +158,17 @@ def generate_log_tokens(startup_dir, glideinDescript, entries):
     """
     Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
     """
-    # TODO: secret should be retrieved from a file, not hardcoded. This is just an experiment
-    secret = 'secret'
-    factory_name = glideinDescript.data['FactoryName']
-
     logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
+    
+    # Retrieve the factory secret key (manually delivered) for token generation
+    try:
+        with open(os.path.join(startup_dir, 'jwt_secret.key'), "r") as keyfile:
+            secret = keyfile.readline().strip()
+    except IOError:
+        logSupport.log.exception("Cannot find the key for JWT generation (must be manually deposited).")
+        raise
+
+    factory_name = glideinDescript.data['FactoryName']
 
     for entry in entries:
         curtime = int(time.time())
