@@ -16,6 +16,7 @@
 
 log_initialized=0
 log_ready=0
+no_recipients=1
 
 # TODO: replace with a script-wise warning function
 my_warn() {
@@ -139,6 +140,14 @@ function log_setup() {
         curl_version=$(curl --version 2>&1 | head -1)
     else
         curl_version="not installed"
+        my_warn "log_setup: curl not installed. Logs will still be produced, but not forwarded to remote servers."
+    fi
+
+    if [ "${#log_recipients[@]}" -eq 0 ]; then
+        my_warn "log_setup: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
+        no_recipients=1
+    else
+        no_recipients=0
     fi
 
     log_ready=1
@@ -187,7 +196,7 @@ log_write() {
         *) type="text";;
     esac
     # Argument $3
-    if [ "$type" == "file" ]; then
+    if [ "$type" = "file" ]; then
         filename="$3"
         case ${filename} in
             /*) filepath="${filename}";;               # absolute
@@ -274,7 +283,11 @@ send_logs_to_remote() {
     # Note: implicitly merges the shards too
 
     log_coalesce_shards
- 
+
+    if [ "${no_recipients}" = 1 ]; then
+        return 1
+    fi
+
     # Upload stdout, stderr and log file
     logfiles=("${stdout_logfile}" "${stderr_logfile}" "${log_logfile}")
 
