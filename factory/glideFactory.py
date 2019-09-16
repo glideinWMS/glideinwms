@@ -159,7 +159,19 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
 def generate_log_tokens(startup_dir, glideinDescript, entries):
     """
     Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
+
+    Args:
+        startup_dir: Path to the glideinsubmit directory
+        glideinDescript: Factory config's glidein description object 
+        entries: List of entries names (strings)
+
+    Returns:
+        None
+
+    Raises:
+        IOError: If can't open/read/write a file (key/token) 
     """
+
     logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
     
     # Retrieve the factory secret key (manually delivered) for token generation
@@ -172,21 +184,29 @@ def generate_log_tokens(startup_dir, glideinDescript, entries):
 
     factory_name = glideinDescript.data['FactoryName']
 
+    # Issue a token for each entry-recipient pair
     for entry in entries:
-        curtime = int(time.time())
-        
+
+        # Skip if no recipient is set for this entry in the configuration
         if 'LOG_RECIPIENTS' in glideFactoryConfig.JobParams(entry).data:
             log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS'].split()
         else:
+            logSupport.log.info("Skipping token generation for %s (no recipients)" % entry)
             continue
+
+        curtime = int(time.time())
 
         for recipient_addr in log_recipients:
             token_name = "auth_token.jwt"
+            # Escape slashes and potentially dangerous characters
             recipient_safe = urllib.quote(recipient_addr, '')
             token_dir = os.path.join(startup_dir, 'entry_' + entry, 'tokens', recipient_safe)
             if not os.path.exists(token_dir):
                 os.makedirs(token_dir)
             token_filepath = os.path.join(token_dir, token_name)
+            # Payload fields:
+            # iss->issuer,      sub->subject,       aud->audience
+            # iat->issued_at,   exp->expiration,    nbf->not_before
             token_payload = {'iss': factory_name,
                              'sub': entry,
                              'aud': recipient_safe,
@@ -200,6 +220,7 @@ def generate_log_tokens(startup_dir, glideinDescript, entries):
                     tkfile.write(token)
             except IOError:
                 logSupport.log.exception("Unable to create JWT file: ")
+                raise
 
 ###########################################################
 
@@ -451,7 +472,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
         logSupport.log.info("EntryGroup startup times: %s" % childs_uptime)
 
-        logSupport.log.info("data0: %s" % glideFactoryConfig.JobParams("ITB_FC_CE2").__dict__) # TODO debug only
         generate_log_tokens(startup_dir, glideinDescript, entries)
 
         for group in childs:
