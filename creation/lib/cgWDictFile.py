@@ -50,7 +50,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
 
     def parse_val(self, line):
         if len(line)==0:
-            return #ignore emoty lines
+            return #ignore empty lines
         if line[0]=='#':
             return # ignore comments
         arr=line.split(None, 3)
@@ -100,7 +100,7 @@ class InfoSysDictFile(cWDictFile.DictFile):
 
     def parse_val(self, line):
         if len(line) == 0:
-            return  #ignore emoty lines
+            return  #ignore empty lines
         if line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 3)
@@ -507,7 +507,7 @@ class chmodClientDirSupport(clientDirSupport):
 
 
 ###########################################
-# Support classes used my Main
+# Support classes used by Main
 
 class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
     def __init__(self,user,dir,dir_name='client'):
@@ -534,7 +534,7 @@ class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
 
 
 ###########################################
-# Support classes used my Entry
+# Support classes used by Entry
 
 class clientLogDirSupport(clientDirSupport):
     def __init__(self,user,log_dir,dir_name='clientlog'):

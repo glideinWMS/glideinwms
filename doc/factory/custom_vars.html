@@ -1153,6 +1153,22 @@ described below are the most often used.</P>
             <p>Defaults to true. An expression that gets appended to the start expression of the startd daemons that the pilots start on the worker node. Any frontend validation script can modify this and customize the set of user jobs that are matching. This is useful in order to have only a certain set of user jobs (e.g.: only montecarlo jobs) matching pilots at particular resources (e.g.: sites with slow network/disk)
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_BLACKHOLE_NUMJOBS</b> </td>
+        <td> Int </TD>
+
+        <TD>
+            <p>This attribute represents number of jobs completed too quickly before raising the blackhole detection flag. More details in blackhole detection section,  on the bottom of who webpage (Lifetime of a Glidein).
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_BLACKHOLE_RATE</b> </td>
+        <td> Int </TD>
+
+        <TD>
+            <p>The variable indicates if the glidein have been detected as a blackhole based on the stats obtained from the STARTD. The stats are always the same for all slots as it’s a global statistic about the whole startd. By default is False. More details in blackhole detection section, on the bottom of who webpage (Lifetime of a Glidein).
+        </TD>
+    </TR>
 </TABLE>
 </div>
 
@@ -1261,6 +1277,17 @@ cannot directly change them.</P>
 
         <td> <b>CONDORG_SUBCLUSTER</b> </td>
         <TD> Int </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_BLACKHOLE</b> </td>
+        <TD> Expr (Bool)</TD>
+        <TD>
+            <P>The variable indicates if the glidein have been detected as a blackhole 
+        based on the stats obtained from the STARTD. The stats are always the same for 
+        all slots as it’s a global statistic about the whole startd. By default is False. 
+        More details in blackhole detection section, on the bottom of who webpage 
+        (Lifetime of a Glidein).</P>
+        </TD>
     </TR>
 </TABLE>
 </div>
@@ -1919,6 +1946,10 @@ If cannot find one, it will shutdown.
 Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 
 N.B.: 12 hours after the walltime, a glidein is removed from the factory queue no matter what is using a periodic remove expression. This is done to prevent <i>staleness of glideins</i> which are the glideins that appears running in the factory condor queue indefinitely, but are no longer in the CE queue.
+
+<p>
+Note: This information above applies when normal execution. When a blackhole is detected, START will evaluate to False, meaning that no new jobs will start and the glidein will eventually retire. For more details, check out the blackhole detection section, on the bottom of this webpage.
+</p>
 </div>
 
 <div class="section">
@@ -1938,6 +1969,34 @@ N.B.: 12 hours after the walltime, a glidein is removed from the factory queue n
             <li>
                 When a machine is draining, create a file named "shutdowntime" in the MJF directory.  Put the draining deadline unix timestamp in the file.  Even a distant time in the future is sufficient to cause the glidein to set SiteWMS_WN_Draining=True and stop accepting new jobs (this is controled by the <tt>check_wn_drainstate.sh</tt> condor CROND script).
             </li>
+    </ul>
+</div>
+
+<div class="section">
+    <a name="blackhole" />
+    <h2>Draining glideins</h2>
+
+    <p>
+        Sometimes a worker node passes all the tests, the glidein starts OK but all jobs keep failing for some internal reason (for example, something VO specific, not tested by the tests). 
+        In order to identify this case, the Frontend operator can now set up two variables which will help to recognise this event. Whenever too many jobs complete too quickly and both variables are matched,  the glidein will retire and add all the preventive measures to avoid 
+blackhole effects (e.g. holding the node for an additional 20min) like when tests are failing. The two variables are:
+    </p>
+    <ul>
+            <li>
+                GLIDEIN_BLACKHOLE_NUMJOBS (int): Number of jobs limit allowed to complete very quickly. The flag will be raise when corresponding stats are equal or greater than this variable.
+            </li>
+            <li>
+                GLIDEIN_BLACKHOLE_RATE(int): Number of jobs divided by time - in seconds, to be completed. The flag will be raise when corresponding stats are lower than 1/ GLIDEIN_BLACKHOLE_RATE.
+            </li>
+     <p>
+        We strongly recommend to set these two variables attributes to True (parameter, glidein_publish and job_publish). This way both 
+attributes will be available in the condor_startd’s and glideinclient’s ClassAd, in the glidein condor_configuration and in the user job's environment. 
+        Moreover, there is an internal (and dynamic) variable named GLIDEIN_BLACKHOLE(boolean), which will be TRUE when it detect that stats from the STARTD beat these two variables as explained previously.
+
+        For more information, check the condor vars list.
+
+        The stats are coming from two probes that will generate 16 attributes in each slot ad when enabled. Because that's a lot, they will not be published by default. We enable them for publication by adding this to the configuration of execute nodes (condor_startup.sh). The values are available immediately if the schedd is queried directly (START expression, direct query from client or startd cron script). The start expression is updated everytime that job starts.
+    </p>       
     </ul>
 </div>
 

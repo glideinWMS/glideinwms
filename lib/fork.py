@@ -14,7 +14,7 @@ from __future__ import absolute_import
 #   Burt Holzman and Igor Sfiligoi
 #
 # TODO: This could be rewritten so that the polling lists are registered once and the fd are removed only when
-#       not needed anymore (currently there is an extrnal structure and the poll object is a new one each time)
+#       not needed anymore (currently there is an external structure and the poll object is a new one each time)
 import cPickle
 import os
 import sys
@@ -119,7 +119,7 @@ def fetch_fork_result_list(pipe_ids):
     and after forking to entry.writeStats()
  
     @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid 
+    @param pipe_ids: Dictionary of pipe and pid 
 
     @rtype: dict
     @return: Dictionary of fork_results
@@ -155,7 +155,7 @@ def fetch_ready_fork_result_list(pipe_ids):
     and after forking to entry.writeStats()
 
     @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid
+    @param pipe_ids: Dictionary of pipe and pid
 
     @rtype: dict
     @return: Dictionary of work_done

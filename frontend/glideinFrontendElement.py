@@ -113,7 +113,7 @@ class glideinFrontendElement:
         self.attr_dict = glideinFrontendConfig.AttrsDescript(
             self.work_dir, self.group_name).data
 
-        # Automatically initialze history object data to dictionaries
+        # Automatically initialize history object data to dictionaries
         # PS: The default initialization is not to CounterWrapper, to avoid
         # saving custom classes to disk
         self.history_obj = glideinFrontendConfig.HistoryFile(
@@ -164,7 +164,7 @@ class glideinFrontendElement:
         self.removal_requests_tracking = self.elementDescript.element_data['RemovalRequestsTracking']
         self.removal_margin = int(self.elementDescript.element_data['RemovalMargin'])
 
-        # Default bahavior: Use factory proxies unless configure overrides it
+        # Default behavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
@@ -430,7 +430,7 @@ class glideinFrontendElement:
 
         (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[('collector', 0)]
 
-        # M2Crypto objects are not picklable, so do the transforamtion here
+        # M2Crypto objects are not pickable, so do the transformation here
         self.populate_pubkey()
         self.identify_bad_schedds()
         self.populate_condorq_dict_types()

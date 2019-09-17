@@ -65,6 +65,8 @@ GLIDECLIENT_Rank	C	1		+				N	N	-
 GLIDECLIENT_Group_Rank	C	1		+				N	N	-
 GLIDEIN_CLAIM_WORKLIFE_DYNAMIC	I	3600		+				N	N	-
 GLIDEIN_CLAIM_WORKLIFE	I	-1		+				N	N	-
+GLIDEIN_BLACKHOLE_NUMJOBS       I       -       +                               N       Y       +
+GLIDEIN_BLACKHOLE_RATE          C       -       +                               N       Y       +
 
 # Factory provided
 GLIDEIN_Factory		S	-		+				Y	Y	@
@@ -101,9 +103,10 @@ X509_SKIP_HOST_CHECK_DNS_REGEX	C	-	+				Y	N	-
 GLIDEIN_LOCAL_TMP_DIR   C       -               +                               Y       N       @
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 PUBLISH_OBITUARIES      C       False           +                               N       N       -
-SiteWMS_WN_Draining  C   False       +   N   Y   -
-SiteWMS_WN_Preempt  C   False       +   N   Y   -
-GLIDEIN_PROVIDES    S	-			+   N	Y	+
+SiteWMS_WN_Draining     C       False           +                               N       Y       -
+SiteWMS_WN_Preempt      C       False           +                               N       Y       -
+GLIDEIN_PROVIDES        S	-               +                               N       Y       +
+GLIDEIN_BLACKHOLE       C       False           +                               N       Y       +
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@

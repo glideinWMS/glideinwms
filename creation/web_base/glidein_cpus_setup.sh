@@ -84,7 +84,7 @@ function detect_cpus_pbs {
         fi
     fi
     [ "$cores" = "" ] && return 1
-    [ $different_values = yes ] && echo "glidein_cpu_setup.sh: WARNING Different core counts in PBS (PBS_NUM_NODES:$PBS_NUM_NODES, PBS_NP:$PBS_NP, PBS_NODEFILE:$cores_file)"
+    [ $different_values = yes ] && echo "glidein_cpus_setup.sh: WARNING Different core counts in PBS (PBS_NUM_NODES:$PBS_NUM_NODES, PBS_NP:$PBS_NP, PBS_NODEFILE:$cores_file)"
     return 0
 }
 
@@ -194,6 +194,6 @@ echo "`date` Setting GLIDEIN_CPUS=$GLIDEIN_CPUS $glidein_cpus_how"
 add_config_line GLIDEIN_CPUS "${GLIDEIN_CPUS}"
 add_condor_vars_line GLIDEIN_CPUS "C" "-" "+" "N" "N" "-"
 
-"$error_gen" -ok "glidein_cpu_setup.sh" "GLIDEIN_CPUS" "${GLIDEIN_CPUS}"
+"$error_gen" -ok "glidein_cpus_setup.sh" "GLIDEIN_CPUS" "${GLIDEIN_CPUS}"
 exit 0
 

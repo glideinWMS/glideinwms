@@ -43,7 +43,7 @@ from glideinwms.lib import timeConversion
 
 ##########################################################
 #
-# The following Global varables are used to set defaults
+# The following Global variables are used to set defaults
 # When the user does not specify anything
 #
 ##########################################################
