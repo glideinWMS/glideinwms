@@ -3,6 +3,7 @@
 """
 The script check if the factory setup is 3.5 ready. This means the client and proxies
 directories are owned user running this process, and jobs owner is this user as well.
+It further checks that there are no GT2 entries enabled in the configuration.
 """
 
 from __future__ import print_function
@@ -16,11 +17,20 @@ import htcondor
 from glideinwms.creation.lib import factoryXmlConfig
 
 
+VERBOSE = False
+
+
+def log(*args):
+    """print success messages only when verbose, no --quiet option"""
+    if VERBOSE:
+        print(*args)
+
+
 def main():
     """ The main function
     """
     conf_file = '/etc/gwms-factory/glideinWMS.xml'
-    print('Loading configuration file %s' % conf_file)
+    log('Loading configuration file %s' % conf_file)
     conf = factoryXmlConfig.parse(conf_file)
     uid = os.getuid()
     user = getpass.getuser()
@@ -32,10 +42,10 @@ def main():
         for _, fe_client_dir in client_dir_dict.items():
             cid = os.stat(fe_client_dir).st_uid
             if cid != uid:
-                print(("Directory %s is owned by user with id %s, while the user running this"
+                print(("Directory %s is owned by user with id %s, while the user running this "
                        "process is %s") % (fe_client_dir, cid, uid))
                 return 1
-    print('Checked ownership (%s) of client and proxies directories. Passed' % user)
+    log('Checked ownership (%s) of client and proxies directories. Passed' % user)
 
     # Query all the schedds for job owners
     queries = []
@@ -52,8 +62,10 @@ def main():
             i += 1
         except StopIteration:
             pass
-    print("Checked Owner of %s jobs" % i)
-    if len(users) != 1:
+    log("Checked Owner of %s jobs" % i)
+    if i == 0:
+        log("No jobs running. Passed")
+    elif len(users) > 1:
         print("Found that jobs Owner are: " + ", ".join(users))
         print("All the jobs Owner should be %s instead" % user)
         return 2
@@ -63,14 +75,30 @@ def main():
             print("All the jobs have owner %s, while the user running this process is %s" %
                   (jobuser, user))
             return 3
+        else:
+            log("All jobs have the %s user. Passed" % user)
+
+    # checking entries
+    entry_dicts = conf.get_entries()
+    gt2_entries = []
+    for entry_dict in entry_dicts:
+        if entry_dict['enabled'] == u'True' and entry_dict.get('gridtype', 'NONE') == u'gt2':
+            gt2_entries.append(entry_dict['name'])
+    if gt2_entries:
+        print("Entries %s are enabled and use unsupported Globus GT2. Should be disabled." %
+              (', '.join(gt2_entries),))
+        return 4
+    else:
+        log("No Globus GT2 entries. Passed.")
 
     return 0
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and (sys.argv[1] == '--verbose' or sys.argv[1] == '-v'):
+        VERBOSE = True
     RET = main()  # capital letters used because pylint considers this a constant
     if RET != 0:
-        #TODO doc.prd instead of doc.dev?
-        print("Please, make sure to run the fact_chown script. More details at"
-              "https://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user")
+        print("Please, make sure to run the fact_chown script. More details at "
+              "https://glideinwms.fnal.gov/doc.v3_5_1/factory/configuration.html#single_user")
     sys.exit(RET)

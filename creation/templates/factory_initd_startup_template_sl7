@@ -135,13 +135,13 @@ check_configured () {
 
 check_35_ready () {
     # check if files and jobs ownership is correct. Needed for 3.5 single user factory
-    if [ "$1" = "--check_35_ready" ]; then
+    if [ -n "$GWMS_CHECK_35_READY" -o "$1" = "--check_35_ready" ]; then
         invoke_as_factory $FACTORY_CHECK35_READY
         f35exit=$?
         if [ $f35exit -eq 0 ]; then
             return 0
         fi
-        echo "The Factory is not ready for 3.5. Please run $FACTORY_CHECK35_READY for more details"
+        echo "The Factory is not ready for 3.5.x. Please run $FACTORY_CHECK35_READY --verbose as the factory user for more details."
         echo -n "To disable this check remove the --check_35_ready option from the gwms-factory.service file"
         failure
         echo
