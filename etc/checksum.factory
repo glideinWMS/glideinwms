@@ -1,10 +1,28 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_5_1_rc1
+# GLIDEINWMS_VERSION v3_5_1
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
+b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
+631fde7409e65190563d88a1b1ca4e42  ./build/ReleaseManager/ReleaseManagerLib.py
+f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
+bc64a9bef89ad31152ae8d2b139bbb7a  ./build/ReleaseManager/osg-release.sh
+330c7fe280c31752d684a16ef46584c9  ./build/ReleaseManager/release.py
+5266903b688a0ac13777c12715329cf1  ./build/jenkins/pylintrc
+953939a9869ba8689cb7f6d36e455733  ./build/jenkins/run_autopep8.sh
+336e51e58462eae7e706098606e9ceec  ./build/jenkins/run_coverage.sh
+1008608b8062d72d7994467dc4295c33  ./build/jenkins/run_futurize.sh
+51232be7a33433506f2ae95cb2ae8075  ./build/jenkins/run_pylint.sh
+a0c7920c659d45519e0fbad738037658  ./build/jenkins/utils.sh
+0d3cb8ad73989679bdfe5bc42e767e4f  ./build/packaging/rpm/chksum.sh
+f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
+282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/factory_startup_sl7
+6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
+b1a3de5c3f7010654321212d7bac64fd  ./build/packaging/rpm/glideinwms.spec
+6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
+3a6b2ffd6f2b4aaccaf693cc75214c59  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 231264d2191650a0137c6ea2df57b31b  ./creation/clone_glidein
@@ -28,8 +46,8 @@ ee9cb6269677199508b96ce2b79007e3  ./creation/lib/factoryXmlConfig.py
 1fcf4ac71dcfa7a13810b2f0d4657c82  ./creation/lib/xmlConfig.py
 6eaf9f903474ff91d0fef1d479e4ee3a  ./creation/lib/xslt.py
 29ec438d5caa1ec7c5f831e39d619fda  ./creation/reconfig_glidein
-c41859e96cf8afdaa0b602c048c2d46f  ./creation/templates/factory_initd_startup_template
-1685ba5fbc02bec04d47ede5efc2cd30  ./creation/templates/factory_initd_startup_template_sl7
+24b9675a39e2acedaba3efcd05859596  ./creation/templates/factory_initd_startup_template
+c1af588966133decb724ac4e61555127  ./creation/templates/factory_initd_startup_template_sl7
 15ecd62050411ce7d1c0aa8b33f9b447  ./creation/templates/gwms-factory.service
 fc648630677156904ef40f5434d25872  ./creation/templates/gwms-renew-proxies.cron
 a864e47ca7bb2f1b2ffbd3d1db3c57f9  ./creation/templates/gwms-renew-proxies.init
@@ -49,7 +67,7 @@ f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_st
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 a98ca4601e352a0dfa0fdae56d5cccec  ./creation/web_base/condor_platform_select.sh
 83c465084e3c8a854355bdc609e49378  ./creation/web_base/condor_startup.sh
-8d325ca533e19d285e26711336e32638  ./creation/web_base/condor_vars.lst
+9f40f08d29ab777b348527ec092987eb  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 a937c0ee624fe5acc855f0eb09155223  ./creation/web_base/create_mapfile.sh
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
@@ -88,8 +106,8 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 7952a21b73f31c0795e51ec0cd135138  ./creation/web_base/setup_x509.sh
-574d4d05d482c0aa6979f6aa73846d5b  ./creation/web_base/singularity_lib.sh
-e0c11378e667a05e73f96a94e1d1a7c3  ./creation/web_base/singularity_setup.sh
+7f980930c1a218317db684b4ddf619aa  ./creation/web_base/singularity_lib.sh
+23694585bac5a28c9126edcf2bac94cf  ./creation/web_base/singularity_setup.sh
 73e36abceb940089bef39806443764a8  ./creation/web_base/smart_partitionable.sh
 054187e1390c6c812aeed1cad8c0d917  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
@@ -124,7 +142,7 @@ cfc56b61ce5c3a4829eaec10ceecfda8  ./factory/tools/entry_q
 1ffaeb0028e433fc48924d532ca2a435  ./factory/tools/entry_rm
 42f31f668a2d755b331e5dcb6c9620b3  ./factory/tools/extract_EC2_Address
 c0c6ade8276d75856c22fc69f8da4f30  ./factory/tools/fact_chown
-a8f1542372751a076656734506daa485  ./factory/tools/fact_chown_check
+b445ccad8fddbb12829d1f54ebfa2e53  ./factory/tools/fact_chown_check
 4909525cdce44cbfa328ad84b12867ae  ./factory/tools/find_StartdLogs.py
 f756c3ba9a458bb8dee41fc291f4127b  ./factory/tools/find_logs.py
 7a3927fc02da63e5883b013d7a64964b  ./factory/tools/gwms-logcat.sh

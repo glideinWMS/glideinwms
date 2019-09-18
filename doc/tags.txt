@@ -1,14 +1,15 @@
-v3_5_1  Updated SW and docs for the change in OSG factories
+v3_5_1  Including all 3.4.6 features
+        Updated SW and docs for the change in OSG factories
         Updated all the obsolete links to HTCondor manual in GlideinWMS website
         Set up an ITB Frontend for GWMS and FIFE testing
         Updated gitattributes to resolve conflicts w/ checksum files
-        Fermilab Frontend not communicating w/ upgraded Factory
         Added editorconfig and default encoding
-        GlideinWMS code will use now docstring format 
-        Provided flexible mechanism for custom scripts to log information that can be brought back along with the other condor logs
+        GlideinWMS code will use now Google docstring format 
+        Advertise if a Glidein can use privileged or unprivileged Singularity
+        Check if single user factory migration script has been run before startup
         Bug fix: pip errors in nightly CI
         Bug fix: Unittest failing at times on SL7
-        Bug fix: Checked if single user factory migration script has been run before startup
+        Bug fix: Factory could start also w/ a GT2 entry enabled
 
 v3_5    Removed support for Globus GRAM (GT2/GT5)
         Removed dependency on condor_root_switchboard
@@ -24,7 +25,7 @@ v3_5    Removed support for Globus GRAM (GT2/GT5)
           1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. 
           For detailed instructions see: http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
 
-v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings
+v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings (Fermilab Frontend not communicating w/ upgraded Factory)
         Backport: GlideinWMS proxy renewal service broken for Xenon
         Add always --contain to the Singularity invocation and update wrapper adding improvement in the OSG one
         Document and expand multi-node Glidein
