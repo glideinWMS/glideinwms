@@ -24,7 +24,7 @@
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
-%define systemddir %{_prefix}/lib/systemd/system
+%define systemddir %{_libdir}/systemd/system
 
 Name:           glideinwms
 Version:        %{version}
@@ -416,27 +416,27 @@ install -m 0644 install/templates/condor_mapfile $RPM_BUILD_ROOT%{_sysconfdir}/c
 # Install condor schedd dirs
 # This should be consistent with 02_gwms_factory_schedds.config and 02_gwms_schedds.config
 for schedd in "schedd_glideins2" "schedd_glideins3" "schedd_glideins4" "schedd_glideins5" "schedd_jobs2"; do
-	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd
-	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/execute
-	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/lock
-	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/procd_pipe
-	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/spool
+    install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd
+    install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/execute
+    install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/lock
+    install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/procd_pipe
+    install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/spool
 done
 
 
 # Install tools
 install -d $RPM_BUILD_ROOT%{_bindir}
 # Install the tools as the non-*.py filenames
-for file in tools/[!_]*.py; do
-   newname=`echo $file | sed -e 's/.*\/\(.*\)\.py/\1/'`
-   cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
+for file in tools/[^_]*.py; do
+    newname=`echo $file | sed -e 's/.*\/\(.*\)\.py/\1/'`
+    cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
 done
-for file in factory/tools/[!_]*; do
-   if [ -f "$file" ]; then
-       newname=`echo $file | sed -e 's/\(.*\)\.py/\1/'`
-       newname=`echo $newname | sed -e 's/.*\/\(.*\)/\1/'`
-       cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
-   fi
+for file in factory/tools/[^_]*; do
+    if [ -f "$file" ]; then
+        newname=`echo $file | sed -e 's/\(.*\)\.py/\1/'`
+        newname=`echo $newname | sed -e 's/.*\/\(.*\)/\1/'`
+        cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
+    fi
 done
 cp creation/create_condor_tarball $RPM_BUILD_ROOT%{_bindir}
 
