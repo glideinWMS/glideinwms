@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import stat
 import tarfile
+import urllib
 import cStringIO
 from . import cgWDictFile
 
@@ -133,6 +134,14 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         client_log_base_dir = conf.get_child(u'submit')[u'base_client_log_dir']
         submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
 
+        # Folders and files of tokens for glidein logging authentication
+        token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
+        token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
+        token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
+        token_desc_file = os.path.join(token_entrydir, 'tokens.desc')
+        token_files = [token_tgz_file, token_desc_file]
+        print("Token dir: " + token_basedir) # DEBUG
+
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
         if gridtype.startswith('batch '):
@@ -161,14 +170,14 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid(submit_attrs)
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
-            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
+            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs, token_files)
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -195,7 +204,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype):
+    def populate_standard_grid(self, rsl, auth_method, gridtype, transf_enc_in_files):
         if gridtype == 'gt2' or gridtype == 'gt5':
             if "project_id" in auth_method or ((rsl is not None) and rsl != ""):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
@@ -211,6 +220,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
+        if len(transf_enc_in_files) > 0:
+            self.add("transfer_Input_files", ','.join(transf_enc_in_files))
+            self.add("encrypt_Input_files", ','.join(transf_enc_in_files))
+        else:
+            print("Warning: no additional files to transfer to Condor workspace. Expecting at least the log tokens")
+
         self.add("Transfer_Executable", "True")
         self.add("transfer_Output_files", "")
         self.add("WhenToTransferOutput ", "ON_EXIT")
@@ -219,17 +234,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_error ", "False")
 
 
-    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
-        input_files = []
+    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs, transf_enc_in_files):
         encrypt_input_files = []
-
-        self.populate_standard_grid(rsl, auth_method, gridtype)
-
-        input_files.append('$ENV(X509_USER_PROXY)')
         encrypt_input_files.append('$ENV(X509_USER_PROXY)')
+        encrypt_input_files += transf_enc_in_files
         self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
-        self.add("transfer_Input_files", ','.join(input_files))
-        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
+        
+        self.populate_standard_grid(rsl, auth_method, gridtype, encrypt_input_files)
 
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
