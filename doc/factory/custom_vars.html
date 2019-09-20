@@ -1996,6 +1996,7 @@ attributes will be available in the condor_startd’s and glideinclient’s Clas
         For more information, check the condor vars list.
 
         The stats are coming from two probes that will generate 16 attributes in each slot ad when enabled. Because that's a lot, they will not be published by default. We enable them for publication by adding this to the configuration of execute nodes (condor_startup.sh). The values are available immediately if the schedd is queried directly (START expression, direct query from client or startd cron script). The start expression is updated everytime that job starts.
+        Note: Notice that the mentioned probes were introduced in HTCondor 8.7.8, so make sure you have that version or newer in order to get the STARTD stats.
     </p>       
     </ul>
 </div>
