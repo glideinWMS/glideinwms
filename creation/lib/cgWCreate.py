@@ -106,6 +106,23 @@ def create_condor_tar_fd(condor_base_dir):
 
 
 ##########################################
+def get_factory_log_recipients(entry):
+    """ Read the log recipients specified by the Factory in its configuration
+
+    Args:
+        entry: dict-like object representing the entry configuration
+
+    Returns:
+        list: list contaning the URLs of the log servers, empty if none present
+    """
+    entr_attrs = entry.get_child_list(u'attrs')
+    for attr in entr_attrs:
+        if attr[u'name'] == 'LOG_RECIPIENTS_FACTORY':
+            return attr[u'value'].split()
+    return []
+
+
+##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate(self, exe_fname, entry_name, conf, entry):
@@ -138,9 +155,16 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
         token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
         token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
-        token_desc_file = os.path.join(token_entrydir, 'tokens.desc')
-        token_files = [token_tgz_file, token_desc_file]
-        print("Token dir: " + token_basedir) # DEBUG
+        url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
+        token_files = [token_tgz_file, url_dirs_desc_file]  #, recipients_lst_file]
+
+        # Get the list of log recipients specified from the Factory for this entry
+        factory_recipients = get_factory_log_recipients(entry)
+        frontend_recipients = []    # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
+        log_recipients = list(set(factory_recipients + frontend_recipients))
+        # TODO: must fix for 'batch' grid, because it already sets 'environment'
+        if len(log_recipients) > 0:
+            self.add('environment', '"LOG_RECIPIENTS=' + "'" + ' '.join(log_recipients) + "'" + '"')
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")

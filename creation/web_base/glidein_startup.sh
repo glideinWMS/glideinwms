@@ -43,7 +43,7 @@ extract_all_data() {
     local IFS_OLD="${IFS}"
     IFS=$'\n'
     files=($(list_data))
-    for f in ${files[@]}; do
+    for f in "${files[@]}"; do
         echo "Extracting file ${f}"
         get_data "${f}" > "${f}"
         echo "Sourcing file ${f}"
@@ -972,6 +972,7 @@ set_proxy_fullpath() {
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
+
 ########################################
 # prepare and move to the work directory
 case "${work_dir}" in
@@ -1065,6 +1066,10 @@ if [ -n "${client_repository_url}" ]; then
     fi
 fi
 
+# Move the token files from condor to glidein workspace
+mv "${start_dir}/tokens.tgz" .
+mv "${start_dir}/url_dirs.desc" .
+
 # Extract and source all the data contained at the end of this script as tarball
 extract_all_data
 
@@ -1136,8 +1141,9 @@ params2file ${params}
 
 ############################################
 # Setup logging
-recipients=($(grep -i "^LOG_RECIPIENTS " "${glidein_config}" | cut -d ' ' -f 2-))
 log_init "${glidein_uuid}" "${work_dir}"
+# Remove these files, if they are still there
+rm -rf tokens.tgz url_dirs.desc tokens
 log_setup "${glidein_config}"
 
 ############################################
