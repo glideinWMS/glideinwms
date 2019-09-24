@@ -212,7 +212,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
             try:
                 os.makedirs(tokens_dir)
             except OSError as oe:
-                logSupport.log.exception("Unable to create JWT entry dir (%s): %s" % (os.path.join(tokens_dir, recipient_safe_url), oe.strerror))
+                logSupport.log.exception("Unable to create JWT entry dir (%s): %s" % (os.path.join(tokens_dir, entry), oe.strerror))
                 raise
 
         # Create the url_dirs.desc file
