@@ -195,14 +195,14 @@ def generate_log_tokens(startup_dir, glideinDescript):
     for entry in entries:
         
         # Get the list of recipients
-        if 'LOG_RECIPIENTS' in glideFactoryConfig.JobParams(entry).data:
-            log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS'].split()
+        if 'LOG_RECIPIENTS_FACTORY' in glideFactoryConfig.JobParams(entry).data:
+            log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS_FACTORY'].split()
         else:
             log_recipients = []
 
         curtime = int(time.time())
 
-        # Directory where to put tokens.tgz and tokens.desc
+        # Directory where to put tokens.tgz and url_dirs.desc
         entry_dir = os.path.join(credentials_dir, 'entry_' + entry)
         # Directory where tokens are initially generated, before flushing them to tokens.tgz
         tokens_dir = os.path.join(entry_dir, "tokens")
@@ -215,8 +215,8 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 logSupport.log.exception("Unable to create JWT entry dir (%s): %s" % (os.path.join(tokens_dir, recipient_safe_url), oe.strerror))
                 raise
 
-        # Create the tokens.desc file
-        open(os.path.join(entry_dir, "tokens.desc"), 'w').close()
+        # Create the url_dirs.desc file
+        open(os.path.join(entry_dir, "url_dirs.desc"), 'w').close()
 
         for recipient_url in log_recipients:
             # Obtain a legal filename from the url, escaping "/" and other tricky symbols
@@ -248,9 +248,9 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 # Write the factory token
                 with open(token_filepath, "w") as tkfile:
                     tkfile.write(token)
-                # Write to tokens.desc
-                with open(os.path.join(entry_dir, "tokens.desc"), "a") as tokens_desc:
-                    tokens_desc.write("%s %s\n" % (recipient_url, recipient_safe_url))
+                # Write to url_dirs.desc
+                with open(os.path.join(entry_dir, "url_dirs.desc"), "a") as url_dirs_desc:
+                    url_dirs_desc.write("%s %s\n" % (recipient_url, recipient_safe_url))
             except IOError:
                 logSupport.log.exception("Unable to create JWT file: ")
                 raise

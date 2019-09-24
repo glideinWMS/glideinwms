@@ -16,12 +16,24 @@
 
 log_initialized=0
 log_ready=0
-no_recipients=1
+log_no_send=1
 
 # TODO: replace with a script-wise warning function
 my_warn() {
     echo "$(date)" "$@" 1>&2
 }
+
+
+serialize_assoc_arr() {
+    # Serialize an associative array to a file
+    # To deserialize, use:
+    #   eval "declare -A <arr>=$(cat <file>)"
+    # 1: outfile, 2: associative array name
+    local outfile="$1"
+    local disp_arr="$(declare -p "$2")"
+    echo "${disp_arr#*=}" > "${outfile}"
+}
+
 
 generate_glidein_metadata_json() {
     if command -v jq >/dev/null 2>&1; then
@@ -52,6 +64,53 @@ generate_glidein_metadata_json() {
     echo "${json_metadata}" > "${logdir}/glidein_metadata.json"
 }
 
+
+log_init_tokens() {
+    # Process the tokens received from the factory to authenticate with log server:
+    # Keep only the necessary ones, delete everything else
+    # An associative array is created and serialized: it maps server urls to tokens
+    # 1: array or recipients (urls)
+
+    local recipients=("$@")
+    if [ "${#recipients[@]}" -eq 0 ]; then
+        my_warn "log_init_tokens: empty argument (list of recipients)"
+        return 1
+    fi
+
+    if [ ! -f tokens.tgz ] || [ ! -f url_dirs.desc ]; then
+        my_warn "log_init_tokens: missing token files (tar and descriptor)"
+        return 1
+    fi
+
+    if ! tar xf tokens.tgz; then
+        my_warn "log_init_tokens: failed to untar the tokens archive"
+        return 1
+    fi
+
+    declare -A tokens_arr
+    for recip in "${recipients[@]}"; do
+        local recip_dir="$(grep "^${recip} " url_dirs.desc | cut -d ' ' -f 2-)"
+        local vofe_token_name="TODO"    # TODO: get the name of the frontend + group
+        if [ -f "tokens/${recip_dir}/${vofe_token_name}" ]; then
+            # Use the token signed by the frontend
+            tokens_arr["${recip}"]=$(cat tokens/${recip_dir}/${vofe_token_name}.jwt)
+        elif [ -f "tokens/${recip_dir}/default.jwt" ]; then
+            # Use the token signed by the factory
+            tokens_arr["${recip}"]=$(cat tokens/${recip_dir}/default.jwt)
+        else
+            my_warn "log_init_tokens: could not find any valid token for ${recip}"
+            # TODO: maybe fail only for this recipient, still serving the others?
+            return 1
+        fi
+    done
+
+    serialize_assoc_arr "tokens_arr" tokens_arr
+    
+    # It's important to remove these files because they contain private information
+    rm -rf tokens.tgz url_dirs.desc tokens
+}
+
+
 log_init() {
     # Initializes the log utility with the specified configuration.
     # This also creates the necessary folders, and should be called only once per glidein.
@@ -77,8 +136,6 @@ log_init() {
     stderr_logfile="${1}.err" 
     log_logfile="${1}.log"
     log_relative_basepath="${2}"
-    # TODO: the token must be read from a file, not hardcoded. This is just an experiment.
-    log_auth_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnZmFjdG9yeV9zZXJ2aWNlIiwiaWF0IjoxNTY4MjM2ODU5LCJzdWIiOiJJVEJfRkNfQ0UyIiwiZXhwIjoxNTY4ODQxNjU5LCJuYmYiOjE1NjgyMzY1NTl9.42wSdtt_jv2TyqIs7A5w_ravrbvLtMT_HJv_ehlLxhY"
 
     # Export configuration
     add_config_line "GLIDEIN_LOGDIR" "${logdir}"
@@ -86,7 +143,32 @@ log_init() {
     add_config_line "GLIDEIN_STDERR_LOGFILE" "${stderr_logfile}"
     add_config_line "GLIDEIN_LOG_LOGFILE" "${log_logfile}"
     add_config_line "GLIDEIN_LOG_RELATIVE_BASEPATH" "${log_relative_basepath}"
-    add_config_line "GLIDEIN_LOG_AUTH_TOKEN" "${log_auth_token}"
+    if [ -n "${LOG_RECIPIENTS}" ]; then
+        add_config_line "GLIDEIN_LOG_RECIPIENTS" "${LOG_RECIPIENTS}"
+    fi
+
+    # Setup tokens to authenticate with log servers
+    log_recipients=($(grep '^GLIDEIN_LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
+    local no_send=0
+    if [ "${#log_recipients[@]}" -eq 0 ]; then
+        my_warn "log_init: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
+        no_send=1
+    elif ! log_init_tokens "${log_recipients[@]}"; then
+        my_warn "log_init: error while initializing tokens. Logs will still be produced, but not forwarded to remote servers."
+        no_send=1
+    fi
+
+    # Check if curl is installed
+    if command -v curl >/dev/null 2>&1; then
+        curl_version=$(curl --version 2>&1 | head -1)
+    else
+        curl_version="not installed"
+        my_warn "log_init: curl not installed. Logs will still be produced, but not forwarded to remote servers."
+        no_send=1
+    fi
+
+    add_config_line "CURL_VERSION" "${curl_version}"
+    add_config_line "GLIDEIN_LOG_NO_SEND" "${no_send}"
 
     # Create the necessary folders
     mkdir -p "${logdir}/shards/creating"
@@ -106,7 +188,8 @@ log_init() {
     add_config_line "GLIDEIN_LOG_INITIALIZED" "1"
 }
 
-function log_setup() {
+
+log_setup() {
     # Setup the logging utilities for the caller script with the specified configuration
     # 1: glidein config filename
 
@@ -127,27 +210,18 @@ function log_setup() {
         my_warn "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
         return 1
     fi
-    
+
     logdir="$(grep '^GLIDEIN_LOGDIR ' "${glidein_config}" | cut -d ' ' -f 2-)"
     stdout_logfile="$(grep '^GLIDEIN_STDOUT_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
     stderr_logfile="$(grep '^GLIDEIN_STDERR_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_logfile="$(grep '^GLIDEIN_LOG_LOGFILE ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    log_recipients=($(grep '^LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
+    log_recipients=($(grep '^GLIDEIN_LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
+    log_no_send="$(grep '^GLIDEIN_LOG_NO_SEND ' "${glidein_config}" | cut -d ' ' -f 2-)"
     log_relative_basepath="$(grep '^GLIDEIN_LOG_RELATIVE_BASEPATH ' "${glidein_config}" | cut -d ' ' -f 2-)"
-    log_auth_token="$(grep '^GLIDEIN_LOG_AUTH_TOKEN ' "${glidein_config}" | cut -d ' ' -f 2-)"
+    curl_version="$(grep '^CURL_VERSION ' "${glidein_config}" | cut -d ' ' -f 2-)"
 
-    if command -v curl >/dev/null 2>&1; then
-        curl_version=$(curl --version 2>&1 | head -1)
-    else
-        curl_version="not installed"
-        my_warn "log_setup: curl not installed. Logs will still be produced, but not forwarded to remote servers."
-    fi
-
-    if [ "${#log_recipients[@]}" -eq 0 ]; then
-        my_warn "log_setup: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
-        no_recipients=1
-    else
-        no_recipients=0
+    if [ "${log_no_send}" -ne 0 ]; then
+        log_no_send=1
     fi
 
     log_ready=1
@@ -284,19 +358,25 @@ send_logs_to_remote() {
 
     log_coalesce_shards
 
-    if [ "${no_recipients}" = 1 ]; then
+    if [ "${log_no_send}" = 1 ]; then
         return 1
     fi
 
+    # Retrieve the tokens (deserializing the tokens_arr file)
+    if [ ! -f tokens_arr ]; then
+        my_warn "send_logs_to_remote: cannot find tokens_arr file"
+        return 1
+    fi
+    eval "declare -A tokens_arr=$(cat tokens_arr)"
+    
     # Upload stdout, stderr and log file
     logfiles=("${stdout_logfile}" "${stderr_logfile}" "${log_logfile}")
 
     for recipient_addr in "${log_recipients[@]}"; do
         for logfile in "${logfiles[@]}"; do
-            curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${logfile}" "${recipient_addr}/${logfile}" -H "Authorization: Bearer ${log_auth_token}" 2>&1)
+            curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${logfile}" "${recipient_addr}/${logfile}" -H "Authorization: Bearer ${tokens_arr["${recipient_addr}"]}" 2>&1)
             curl_retval=$?
             if [ ${curl_retval} -ne 0 ]; then
-                curl_version=$(curl --version 2>&1 | head -1)
                 my_warn "Failed to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
             fi
         done
