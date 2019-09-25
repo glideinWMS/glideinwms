@@ -344,6 +344,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             indata = ','.join(enc_input_files)
             self.add("transfer_Input_files", indata)
             self.add("encrypt_Input_files", indata)
+        # Logging is optional, no exception if empty
 
         self.add("Transfer_Executable", "True")
         self.add("transfer_Output_files", "")
