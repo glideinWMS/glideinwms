@@ -22,6 +22,7 @@ log_no_send=1
 warn() {
     # Print a warning message in the stderr
     # Note: this func is also defined in glidein_startup, which needs it early
+
     echo "WARN $(date)" "$@" 1>&2
 }
 
@@ -30,7 +31,10 @@ serialize_assoc_arr() {
     # Serialize an associative array to a file
     # To deserialize, use:
     #   eval "declare -A <arr>=$(cat <file>)"
-    # 1: outfile, 2: associative array name
+    #
+    # Arguments:
+    #   1: outfile, 2: associative array name
+
     local outfile="$1"
     local disp_arr="$(declare -p "$2")"
     echo "${disp_arr#*=}" > "${outfile}"
@@ -38,6 +42,8 @@ serialize_assoc_arr() {
 
 
 generate_glidein_metadata_json() {
+    # Create a log shard file containing information about the glidein
+
     if command -v jq >/dev/null 2>&1; then
         json_metadata=$( jq -n \
                   --arg uuid "${glidein_uuid}" \
@@ -61,6 +67,7 @@ generate_glidein_metadata_json() {
                   --arg entry_signature "${sign_entry_id}" \
                   '{UUID: $uuid, name: $name, factory: $fact, entry: $entry, client: $client, client_group: $client_group, cred_id: $cred, cluster: $cluster, subcluster: $subcluster, schedd: $schedd, debug: $debug, startup_pid: $startup_pid, tmpdir: $tmpdir, local_tmpdir: $local_tmpdir, proxy: $proxy, desc_file: $desc_file, desc_entry_file: $desc_entry_file, signature: $signature, entry_signature: $entry_signature}' )
     else
+        # Fallback for jq
         json_metadata="{\"uuid\":\"${glidein_uuid}\", \"name\":\"${glidein_name}\", \"factory\":\"${glidein_factory}\", \"entry\":\"${glidein_entry}\", \"client\":\"${client_name}\", \"client_group\":\"${client_group}\", \"cred_id\":\"${glidein_cred_id}\", \"cluster\":\"${condorg_cluster}\", \"subcluster\":\"${condorg_subcluster}\", \"schedd\":\"${condorg_schedd}\",\"debug\":\"${set_debug}\", \"startup_pid\":\"$$\", \"tmpdir\":\"${glide_tmp_dir}\", \"local_tmpdir\":\"${glide_local_tmp_dir}\", \"proxy\":\"${proxy_url}\", \"desc_file\":\"${descript_file}\", \"desc_entry_file\":\"${descript_entry_file}\", \"signature\":\"${sign_id}\", \"entry_signature\":\"${sign_entry_id}\"}"  # TODO: escaping may be needed
     fi
     echo "${json_metadata}" > "${logdir}/glidein_metadata.json"
@@ -69,9 +76,10 @@ generate_glidein_metadata_json() {
 
 log_init_tokens() {
     # Process the tokens received from the factory to authenticate with log server:
-    # Keep only the necessary ones, delete everything else
+    # keep only the necessary ones, delete everything else
     # An associative array is created and serialized: it maps server urls to tokens
-    # 1: array or recipients (urls)
+    # Arguments:
+    #   1: array or recipients (urls)
 
     local recipients=("$@")
     if [ "${#recipients[@]}" -eq 0 ]; then
@@ -81,12 +89,12 @@ log_init_tokens() {
 
     if [ ! -f tokens.tgz ] || [ ! -f url_dirs.desc ]; then
         warn "log_init_tokens: missing token files (tar and descriptor)"
-        return 1
+        return 2
     fi
 
     if ! tar xf tokens.tgz; then
         warn "log_init_tokens: failed to untar the tokens archive"
-        return 1
+        return 3
     fi
 
     declare -A tokens_arr
@@ -102,7 +110,7 @@ log_init_tokens() {
         else
             warn "log_init_tokens: could not find any valid token for ${recip}"
             # TODO: maybe fail only for this recipient, still serving the others?
-            return 1
+            return 4
         fi
     done
 
@@ -116,7 +124,8 @@ log_init_tokens() {
 log_init() {
     # Initializes the log utility with the specified configuration.
     # This also creates the necessary folders, and should be called only once per glidein.
-    # 1: glidein_uuid, 2: relative_basepath
+    # Arguments:
+    #   1: glidein_uuid, 2: relative_basepath
 
     # Validate number of arguments
     if [ "$#" -ne 2 ]; then
@@ -127,7 +136,7 @@ log_init() {
     # Inherit glidein_config from caller. It is necessary for logging to be properly configured.
     if [ ! -f "${glidein_config}" ]; then
         warn "log_init: glidein_config not defined in ${0}. Logging will not work here."
-        return 1
+        return 2
     else
         add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)"
         source "${add_config_line_source}"
@@ -193,7 +202,8 @@ log_init() {
 
 log_setup() {
     # Setup the logging utilities for the caller script with the specified configuration
-    # 1: glidein config filename
+    # Arguments:
+    #   1: glidein config filename
 
     # Validate number of arguments
     if [ "$#" -ne 1 ]; then
@@ -229,8 +239,12 @@ log_setup() {
     log_ready=1
 }
 
+
 json_escape() {
     # Escape json special characters
+    # Arguments:
+    #   1: text to escape
+
     qstr="$(printf '%s' "$1" | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
     # Remove unwanted outer double quotes
     qstr="${qstr%\"}"
@@ -238,7 +252,9 @@ json_escape() {
     echo "${qstr}"
 }
 
+
 get_logfile_path_relative() {
+    # Get the relative path of the logfile w.r.t. the work dir
 
     if [ "${log_ready}" != 1 ]; then
         warn "get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
@@ -247,10 +263,14 @@ get_logfile_path_relative() {
     echo "${logdir}/${log_logfile}"
 }
 
+
 log_write() {
-    # Log an event
-    # 1:invoker, 2:type of message, 3:content/filepath, 4:severity
+    # Log an event. This involves the creation of a 'shard', i.e. a file storing the log entry
+    # The content can include either a string or the body of a file (encoded in base64)
     # If type is file, then the filepath can be either absolute or relative to work_dir
+    #
+    # Arguments
+    #   1:invoker, 2:type of message, 3:content/filepath, 4:severity
 
     if [ "${log_ready}" != 1 ]; then
         warn "log_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
@@ -264,18 +284,18 @@ log_write() {
     b64uuencode_source="$(grep '^B64UUENCODE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)"
     source "${b64uuencode_source}"
 
-    # Argument $1
+    # Argument $1 (invoker)
     invoker="$1"
-    # Argument $2
+    # Argument $2 (type)
     case $2 in
         "text" | "file" ) type=$2;;
         *) type="text";;
     esac
-    # Argument $3
+    # Argument $3 (content/filepath)
     if [ "$type" = "file" ]; then
         filename="$3"
         case ${filename} in
-            /*) filepath="${filename}";;               # absolute
+            /*) filepath="${filename}";;                            # absolute
              *) filepath="${log_relative_basepath}/${filename}";;   # relative
         esac
         raw_content=$(cat "${filepath}")
@@ -288,7 +308,7 @@ log_write() {
         filename=""
         content="$3"
     fi
-    # Argument $4
+    # Argument $4 (severity)
     case $4 in
         "error" | "warn" | "info" | "debug" | "fatal" ) severity=$4;;
         *) severity="info";;
@@ -297,6 +317,11 @@ log_write() {
     pid=${BASHPID:-$$}
     shard_filename="${cur_time_ns}_${invoker}_${pid}_${type}_${severity}.shard"
 
+    # Create a JSON shard containing all the required attributes.
+    # This operation must be atomic, to avoid race conditions with log_coalesce shards.
+    # The idea is to exploit the atomicity of the command 'mv' (at least in local fs),
+    # whereas 'echo' (which leverages OS write) is not.
+    # So, it first writes to a safe location, then moves the shard (atomically) where needed.
     pushd "${log_relative_basepath}/${logdir}/shards" > /dev/null
     touch "creating/${shard_filename}"
     if command -v jq >/dev/null 2>&1; then
@@ -315,26 +340,31 @@ log_write() {
         json_logevent="{\"invoker\":\"${invoker}\", \"pid\":\"${pid}\", \"timestamp\":\"${cur_time}\", \"severity\":\"${severity}\", \"type\":\"${type}\", \"filename\":\"${filename}\", \"content\":\"${content}\"}"
     fi
 
-    # Make sure that shards in the main dir have been fully written
     echo "${json_logevent}" > "creating/${shard_filename}"
     mv "creating/${shard_filename}" "${shard_filename}"
     popd > /dev/null
 }
 
+
 log_coalesce_shards() {
     # Merge log shards in a single file (for each glidein process)
+    # Skip (and return with code 1) if another process is already coaleascing,
+    # so that this operation is non-blocking. Retcode 1 may be exploited to loop
+    # log_coalesce_shards until it succeeds, when you want to force the merging
 
     if [ "${log_ready}" != 1 ]; then
         warn "log_coalesce_shards: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
-        return 1
+        return 2
     fi
 
     pushd "${log_relative_basepath}/${logdir}" > /dev/null
 
-    # Skip if another process is already coaleascing
     if mkdir shards/coalescing; then
+        # Coalescing is performed in a separate directory, to avoid
+        # interference from other processes calling log_write in the meanwhile.
+        # Only one process at a time is allowed to use the merging folder.
+        # The 'trylock' is based on the atomicity of the mkdir command
         cur_time=$(date +%Y-%m-%dT%H:%M:%S%:z)
-        # Skip if there are no shards
         if [ -n "$(find shards -maxdepth 1 -type f)" ]; then
             cp "${log_logfile}" shards/coalescing/
             mv shards/*.shard shards/coalescing/
@@ -349,22 +379,30 @@ log_coalesce_shards() {
             popd > /dev/null
             mv "shards/coalescing/${log_logfile}" .
         fi
-    rm -rf shards/coalescing
+        rm -rf shards/coalescing
+        popd > /dev/null
+        return 0
+    else
+        popd > /dev/null
+        return 1
     fi
-    popd > /dev/null
 }
 
 send_logs_to_remote() {
-    # Forward the logs to a remote HTTP server.
-    # Note: implicitly merges the shards too
+    # Forward the logs to a remote HTTPS server.
+    # A token must be included in the header for authentication.
+    # Note:
+    #   it also merges the shards before sending
 
     log_coalesce_shards
 
+    # log_no_send is set when the recipients initialization failed for some
+    # reason, but the system is still capable of producing logs
     if [ "${log_no_send}" = 1 ]; then
         return 1
     fi
 
-    # Retrieve the tokens (deserializing the tokens_arr file)
+    # Retrieve the tokens (by deserializing the tokens_arr file)
     if [ ! -f tokens_arr ]; then
         warn "send_logs_to_remote: cannot find tokens_arr file"
         return 1
