@@ -248,7 +248,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("transfer_Input_files", ','.join(transf_enc_in_files))
             self.add("encrypt_Input_files", ','.join(transf_enc_in_files))
         else:
-            print("Warning: no additional files to transfer to Condor workspace. Expecting at least the log tokens")
+            raise RuntimeError("No additional files to transfer to Condor workspace. Expecting at least the log tokens")
 
         self.add("Transfer_Executable", "True")
         self.add("transfer_Output_files", "")
