@@ -84,7 +84,7 @@ ignore_signal() {
 }
 
 warn() {
-    echo "$(date)" "$@" 1>&2
+    echo "WARN $(date)" "$@" 1>&2
 }
 
 # Functions to start multiple glideins

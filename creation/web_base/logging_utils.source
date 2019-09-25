@@ -8,7 +8,7 @@
 #
 
 ###########################
-# Logging utility
+# Logging utilities
 #
 # Every logged event is recorded in a separate file. Eventually, these shards
 # are merged into a single log file; metadata is added at the beginning.
@@ -18,9 +18,11 @@ log_initialized=0
 log_ready=0
 log_no_send=1
 
-# TODO: replace with a script-wise warning function
-my_warn() {
-    echo "$(date)" "$@" 1>&2
+
+warn() {
+    # Print a warning message in the stderr
+    # Note: this func is also defined in glidein_startup, which needs it early
+    echo "WARN $(date)" "$@" 1>&2
 }
 
 
@@ -73,17 +75,17 @@ log_init_tokens() {
 
     local recipients=("$@")
     if [ "${#recipients[@]}" -eq 0 ]; then
-        my_warn "log_init_tokens: empty argument (list of recipients)"
+        warn "log_init_tokens: empty argument (list of recipients)"
         return 1
     fi
 
     if [ ! -f tokens.tgz ] || [ ! -f url_dirs.desc ]; then
-        my_warn "log_init_tokens: missing token files (tar and descriptor)"
+        warn "log_init_tokens: missing token files (tar and descriptor)"
         return 1
     fi
 
     if ! tar xf tokens.tgz; then
-        my_warn "log_init_tokens: failed to untar the tokens archive"
+        warn "log_init_tokens: failed to untar the tokens archive"
         return 1
     fi
 
@@ -98,7 +100,7 @@ log_init_tokens() {
             # Use the token signed by the factory
             tokens_arr["${recip}"]=$(cat tokens/${recip_dir}/default.jwt)
         else
-            my_warn "log_init_tokens: could not find any valid token for ${recip}"
+            warn "log_init_tokens: could not find any valid token for ${recip}"
             # TODO: maybe fail only for this recipient, still serving the others?
             return 1
         fi
@@ -118,13 +120,13 @@ log_init() {
 
     # Validate number of arguments
     if [ "$#" -ne 2 ]; then
-        my_warn "log_init: could not initialize log. Expected 2 arguments, got $#."
+        warn "log_init: could not initialize log. Expected 2 arguments, got $#."
         return 1
     fi
 
     # Inherit glidein_config from caller. It is necessary for logging to be properly configured.
     if [ ! -f "${glidein_config}" ]; then
-        my_warn "log_init: glidein_config not defined in ${0}. Logging will not work here."
+        warn "log_init: glidein_config not defined in ${0}. Logging will not work here."
         return 1
     else
         add_config_line_source="$(grep '^ADD_CONFIG_LINE_SOURCE ' "${glidein_config}" | cut -d ' ' -f 2-)"
@@ -151,10 +153,10 @@ log_init() {
     log_recipients=($(grep '^GLIDEIN_LOG_RECIPIENTS ' "${glidein_config}" | cut -d ' ' -f 2-))
     local no_send=0
     if [ "${#log_recipients[@]}" -eq 0 ]; then
-        my_warn "log_init: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
+        warn "log_init: no recipients configured. Logs will still be produced, but not forwarded to remote servers."
         no_send=1
     elif ! log_init_tokens "${log_recipients[@]}"; then
-        my_warn "log_init: error while initializing tokens. Logs will still be produced, but not forwarded to remote servers."
+        warn "log_init: error while initializing tokens. Logs will still be produced, but not forwarded to remote servers."
         no_send=1
     fi
 
@@ -163,7 +165,7 @@ log_init() {
         curl_version=$(curl --version 2>&1 | head -1)
     else
         curl_version="not installed"
-        my_warn "log_init: curl not installed. Logs will still be produced, but not forwarded to remote servers."
+        warn "log_init: curl not installed. Logs will still be produced, but not forwarded to remote servers."
         no_send=1
     fi
 
@@ -195,19 +197,19 @@ log_setup() {
 
     # Validate number of arguments
     if [ "$#" -ne 1 ]; then
-        my_warn "log_setup: could not setup log for ${0}. Expected 1 arguments, got $#."
+        warn "log_setup: could not setup log for ${0}. Expected 1 arguments, got $#."
         return 1
     fi
     local glidein_config=${1}
 
     if [ ! -f "${glidein_config}" ]; then
-        my_warn "log_setup: glidein_config not defined in ${0}. Logging will not work here."
+        warn "log_setup: glidein_config not defined in ${0}. Logging will not work here."
         return 1
     fi
 
     log_initialized="$(grep '^GLIDEIN_LOG_INITIALIZED ' "${glidein_config}" | cut -d ' ' -f 2-)"
     if [ "${log_initialized}" != 1 ]; then
-        my_warn "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
+        warn "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
         return 1
     fi
 
@@ -239,7 +241,7 @@ json_escape() {
 get_logfile_path_relative() {
 
     if [ "${log_ready}" != 1 ]; then
-        my_warn "get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn "get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 1
     fi
     echo "${logdir}/${log_logfile}"
@@ -251,7 +253,7 @@ log_write() {
     # If type is file, then the filepath can be either absolute or relative to work_dir
 
     if [ "${log_ready}" != 1 ]; then
-        my_warn "log_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn "log_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 1
     fi
 
@@ -323,7 +325,7 @@ log_coalesce_shards() {
     # Merge log shards in a single file (for each glidein process)
 
     if [ "${log_ready}" != 1 ]; then
-        my_warn "log_coalesce_shards: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn "log_coalesce_shards: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 1
     fi
 
@@ -364,7 +366,7 @@ send_logs_to_remote() {
 
     # Retrieve the tokens (deserializing the tokens_arr file)
     if [ ! -f tokens_arr ]; then
-        my_warn "send_logs_to_remote: cannot find tokens_arr file"
+        warn "send_logs_to_remote: cannot find tokens_arr file"
         return 1
     fi
     eval "declare -A tokens_arr=$(cat tokens_arr)"
@@ -377,7 +379,7 @@ send_logs_to_remote() {
             curl_resp=$(curl -X PUT --upload-file "${log_relative_basepath}/${logdir}/${logfile}" "${recipient_addr}/${logfile}" -H "Authorization: Bearer ${tokens_arr["${recipient_addr}"]}" 2>&1)
             curl_retval=$?
             if [ ${curl_retval} -ne 0 ]; then
-                my_warn "Failed to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
+                warn "Failed to deliver ${logfile} to remote server (${recipient_addr}). curl_version: ${curl_version} curl_exit_code: ${curl_retval} curl_err_msg: ${curl_resp}"
             fi
         done
     done
