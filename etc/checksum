@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_5_1
+# GLIDEINWMS_VERSION v3_6
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -23,7 +23,7 @@ ca903d6a9591018e31cf3ef44e7926e9  ./build/packaging/rpm/frontend.xml
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/frontend_startup_sl7
 6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
-b1a3de5c3f7010654321212d7bac64fd  ./build/packaging/rpm/glideinwms.spec
+df6832a2187568e668b9b81fd26adf13  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 3a6b2ffd6f2b4aaccaf693cc75214c59  ./build/packaging/rpm/gwms-factory.sysconfig
 3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
