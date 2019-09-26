@@ -112,7 +112,7 @@ def parse_opts(argv):
         default=False,
         help='Enable debug logging')
 
-    options = parser.parse_args(argv)
+    options = parser.parse_args(argv[1:])
 
     if ((options.req_name is None) or (options.client_name is None)): 
         logging.error('Missing one or more required options: --client-name, --req-name')
@@ -132,7 +132,7 @@ def params2args(ad, param_prefix='GlideinParam'):
     for attr in ad:
         if attr.startswith(param_prefix):
             key = '-param_%s' % attr.replace(param_prefix, '')
-            args[key] = escape_param(ad.get(attr))
+            args[key] = escape_param(str(ad.get(attr)))
     return args
 
 
@@ -148,7 +148,7 @@ def main(argv):
     glidein_startup_args = {}
     for collector_host in wms_collector:
         collector = htcondor.Collector(collector_host)
-        ads_gc = collector.query(htcondor.AdTypes.Master, constraint_gc)
+        ads_gc = collector.query(htcondor.AdTypes.Any, constraint_gc)
 
         if ads_gc:
             # If a given client name has mutliple credentials, there will be
