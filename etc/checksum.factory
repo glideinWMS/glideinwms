@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_5_1
+# GLIDEINWMS_VERSION v3_6
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -20,7 +20,7 @@ a0c7920c659d45519e0fbad738037658  ./build/jenkins/utils.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/factory_startup_sl7
 6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
-b1a3de5c3f7010654321212d7bac64fd  ./build/packaging/rpm/glideinwms.spec
+df6832a2187568e668b9b81fd26adf13  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 3a6b2ffd6f2b4aaccaf693cc75214c59  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
