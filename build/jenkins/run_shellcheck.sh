@@ -68,6 +68,14 @@ process_branch() {
             echo " -Warning:    $n_warning"
             echo " -Info:       $n_info"
             echo " -Style:      $n_style"
+
+            # Highlight the presence of error/warnings (makes search easier)
+            if (( n_error > 0 )); then
+                echo "Error found!"
+            fi
+            if (( n_warning > 0 )); then
+                echo "Warning found!"
+            fi
         else
             # Without jq, JSON cannot be prettified and counters would not work
             echo "$sc_out" > "$out_file"
@@ -84,8 +92,15 @@ process_branch() {
 
     end_time="$(date -u +%s.%N)"
     elapsed="$(bc <<< "scale=2; (${end_time}-${start_time})/1")"
-    echo "Total: ${total_issues}"
-    echo "Test #: ${CURR_BRANCH} .... ${return_status}   ${elapsed} s"
+    echo
+    echo "-----------------------------------------------------"
+    echo "All the files have been analyzed"
+    echo "Total issues: $total_issues"
+    echo " -Error:      $total_error"
+    echo " -Warning:    $total_warning"
+    echo " -Info:       $total_info"
+    echo " -Style:      $total_style"
+    echo "# Test #: ${CURR_BRANCH} .... ${return_status}   ${elapsed} s"
 }
 
 ###################################
