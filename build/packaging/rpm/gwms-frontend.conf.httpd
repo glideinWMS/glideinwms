@@ -15,3 +15,23 @@ Alias /vofrontend /var/lib/gwms-frontend/web-area
     Options -Indexes
 </Directory>
 
+# HTTPS configuration part.If HTTP is desired, comment the following block
+# Note:module_ssl must be installed and the load must be commented in ssl.conf
+LoadModule ssl_module modules/mod_ssl.so
+
+NameVirtualHost *:443
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^/factory/monitor/(.*)$ https://%{HTTP_HOST}/factory/monitor/$1 [R=301,L]
+SSLSessionCache         shmcb:/var/cache/mod_ssl/scache(512000)
+SSLSessionCacheTimeout  300
+<VirtualHost *:443>
+    ErrorLog logs/ssl_error_log
+    TransferLog logs/ssl_access_log
+    LogLevel warn
+    SSLEngine On
+    SSLCertificateFile /etc/grid-security/hostcert.pem
+    SSLCertificateKeyFile /etc/grid-security/hostkey.pem
+    SSLCACertificatePath /etc/grid-security/certificates
+</VirtualHost>
+# End of HTTPS configuration
