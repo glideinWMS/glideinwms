@@ -234,11 +234,12 @@ SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' $glidein_config | cut
 SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | cut -d ' ' -f 2-`"
 SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | cut -d ' ' -f 2-`"
 SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_RESTRICTIONS="`grep '^SINGULARITY_IMAGE_RESTRICTIONS ' $glidein_config | cut -d ' ' -f 2-`"
 
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 # TODO Should the image be on CVMFS or anywhere is OK?
-info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] located on CVMFS"
+info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] located on $SINGULARITY_IMAGE_RESTRICTIONS"
 GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 cvmfs`"
 ec=$?
 if [[ $ec -ne 0 ]]; then
