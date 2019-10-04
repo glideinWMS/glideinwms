@@ -19,6 +19,7 @@ GWMS_VERSION_SINGULARITY_WRAPPER=20190801
 
 # To avoid GWMS debug and info messages in the job stdout/err (unless userjob option is set)
 [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,userjob,* ]] && GLIDEIN_QUIET=True
+[[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nowait,* ]] && EXITSLEEP=2m  # leave 2min to update classad
 
 # When failing we need to tell HTCondor to put the job back in the queue by creating
 # a file in the PATH pointed by $_CONDOR_WRAPPER_ERROR_FILE
@@ -38,6 +39,11 @@ exit_wrapper () {
         warn "Wrapper script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
         echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >> $_CONDOR_WRAPPER_ERROR_FILE
     fi
+    # also chirp
+    if [[ -e ../../main/condor/libexec/condor_chirp ]]; then
+        ../../main/condor/libexec/condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1"
+    fi
+
     #  TODO: Add termination stamp? see OSG
     #              touch ../../.stop-glidein.stamp >/dev/null 2>&1
     # Eventually the periodic validation of singularity will make the pilot
@@ -236,10 +242,17 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to somewhere inside that dir (for example, X509_USER_PROXY)
-    if [[ "x$_CONDOR_JOB_IWD" != "x" ]]; then
+    if [[ -n "$_CONDOR_JOB_IWD" ]]; then
         export GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
     else
         export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
+    fi
+
+    # Disabling outside LD_LIBRARY_PATH to avoid problems w/ different OS
+    # TODO: should also PATH be emptied? No known problems so far w/ PATH
+    if [[ -n "$LD_LIBRARY_PATH" ]]; then
+        echo "OSG Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset LD_LIBRARY_PATH
     fi
 
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN

@@ -1101,7 +1101,13 @@ setup_classad_variables () {
     export POSIXSTASHCACHE=$(get_prop_bool $_CONDOR_JOB_AD WantsPosixStashCache 0)
     # OSG Modules
     export MODULE_USE=$(get_prop_str $_CONDOR_JOB_AD MODULE_USE 1)
-    export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 1)
+    # Don't load modules for LIGO
+    if (echo "X$GLIDEIN_Client" | grep ligo) >/dev/null 2>&1; then
+        export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 0)
+    else
+        export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 1)
+    fi
+
     export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)   # List of modules to load
     export LMOD_BETA=$(get_prop_bool $_CONDOR_JOB_AD LMOD_BETA 0)
 
