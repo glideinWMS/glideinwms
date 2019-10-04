@@ -22,7 +22,7 @@ setup_python_venv() {
         AUTOPEP8="autopep8==1.3"
         TESTFIXTURES="testfixtures==5.4.0"
         # htcondor is not pip for python 2.6 (will be found from the RPM)
-        HTCONDOR=" "
+        HTCONDOR=
         COVERAGE="coverage"
         JSONPICKLE="jsonpickle==0.9"
         PYCODESTYLE="pycodestyle==2.4.0"
@@ -92,9 +92,9 @@ setup_python_venv() {
     #try again if anything failed to install, sometimes its order
     for package in $failed_packages; do
         echo "REINSTALLING $package"
-        pip install $package
+        pip install "$package"
         if [ $? -ne 0 ]; then
-            echo ERROR $package could not be installed.  Exiting
+            echo "ERROR $package could not be installed.  Exiting"
             return 1
         fi
     done
@@ -144,6 +144,6 @@ Subject: $subject;
 Content-Type: text/html;
 MIME-VERSION: 1.0;
 ;
-$(cat $contents)
+$(cat "$contents")
 " | sendmail -t
 }
