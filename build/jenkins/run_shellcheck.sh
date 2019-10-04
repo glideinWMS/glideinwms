@@ -42,7 +42,9 @@ process_branch() {
     do
         echo "-----------------------------------------------------"
         echo "Scanning: $filename"
+        # TODO: protect against scripts in different directories w/ same file name
         out_file="${WORKSPACE}/${LOGDIR}/${CURR_BRANCH}/$(basename "${filename%.*}").json"
+        [[ -e "$out_file" ]] && echo "WARNING: duplicate file name, overwriting checks: $out_file"
         # shellcheck disable=SC2086
         sc_out=$(shellcheck ${SC_OPTIONS} "${filename}" 2>/dev/null)
         if command -v jq >/dev/null 2>&1; then
@@ -131,6 +133,13 @@ export GLIDEINWMS_SRC="${WORKSPACE}"/glideinwms
 LOGDIR="SC_logs"
 
 ####################################
+
+if [ ! -e  "${GLIDEINWMS_SRC}" ]; then
+    echo "ERROR: ${GLIDEINWMS_SRC} not found!"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
+    echo "exiting"
+    exit 1
+fi
 
 if [ ! -e  "${GLIDEINWMS_SRC}/build/jenkins/utils.sh" ]; then
     echo "ERROR: ${GLIDEINWMS_SRC}/build/jenkins/utils.sh not found!"
