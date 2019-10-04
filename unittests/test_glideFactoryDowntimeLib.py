@@ -80,6 +80,7 @@ class TestDowntimes(unittest.TestCase):
                 entry="James",
                 check_time=None))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
+        # Make sure that is after the last downtime command
         now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
@@ -109,6 +110,7 @@ class TestDowntimes(unittest.TestCase):
                 entry="DougEntry",
                 check_time=None))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
+        # Make sure that is after the last downtime command
         now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
@@ -129,7 +131,6 @@ class TestDowntimes(unittest.TestCase):
             security_class="All",
             comment="unittest delayed downtime",
             create_if_empty=True)
-        now = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
@@ -139,15 +140,19 @@ class TestDowntimes(unittest.TestCase):
                 entry="All",
                 check_time=now + 9600))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
-        now = long(time.time())
+        # Make sure that is after the last downtime command
+        now2 = long(time.time())
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="All",
-                check_time=None))
-        self.assertTrue(
-            self.downtime.checkDowntime(
-                entry="All",
-                check_time=now + 9600))
+                check_time=now2 + 1))
+        # Relative to the initial time (must be now2 < now + 7200)
+        # Otherwise endDowntime() interrupts started downtime intervals 
+        if now2 < now + 7200:
+            self.assertTrue(
+                self.downtime.checkDowntime(
+                    entry="All",
+                    check_time=now + 9600)) 
 
     def test_setfrontendsecclass(self):
         now = long(time.time())
@@ -196,13 +201,14 @@ class TestDowntimes(unittest.TestCase):
                 security_class="OtherClass",
                 check_time=now + 9600))
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
-        now = long(time.time())
+        # Test relative to initial time but must be in the future
+        now = max(long(time.time())+1, now + 9600)
         self.assertFalse(
             self.downtime.checkDowntime(
                 entry="TestEntry",
                 frontend="SampleFrontend",
                 security_class="SecClass",
-                check_time=now + 9600))
+                check_time=now))
 
 
 if __name__ == '__main__':
