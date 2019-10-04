@@ -70,7 +70,7 @@
 # https://sylabs.io/guides/3.3/user-guide/cli/singularity.html
 # https://sylabs.io/guides/3.3/user-guide/appendix.html
 
-OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
+OSG_SINGULARITY_BINARY_DEFAULT="${OSG_SINGULARITY_BINARY:-/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity}"
 
 # 0 = true
 # 1 = false
@@ -813,6 +813,7 @@ singularity_locate_bin () {
     if [[ -n "$s_location" ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
+        [[ "$s_location" == OSG ]] && s_location="$OSG_SINGULARITY_BINARY_DEFAULT"
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"

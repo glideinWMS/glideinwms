@@ -1722,6 +1722,24 @@ or by running a pre_singularity setup script.
             </P>
         </td>
     </TR>
+    <TR>
+        <td> <b>OSG_SINGULARITY_BINARY</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Frontend Factory</td>
+        <td><P>Path in CVMFS of the OSG provided singularity binary. This is one of the paths searched by the Glidein. By default /cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>SINGULARITY_BIN</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Frontend Factory</td>
+        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific path of the singularity binary that will be tested (and used) before the other options, but this use is onnly for debug purposes, not recommended in production.
+            </P>
+        </td>
+    </TR>
 </TABLE>
 </div>
 
