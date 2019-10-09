@@ -16,8 +16,8 @@ AdvertiseWithMultiple 	True
 MonitorDisplayText 	
 MonitorLink 	
 CondorConfig 	/var/lib/gwms-frontend/vofrontend/frontend.condor_config
-LogDir 	/var/log/gwms-frontend
-ProcessLogs 	[{'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'ALL', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5'}, {'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'INFO,ERR,WARN', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5'}, {'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'DEBUG', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5'}]
+LogDir 	fixtures/frontend/log/gwms-frontend
+ProcessLogs 	[{'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'ALL', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5', u'compression': u''}, {'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'INFO,ERR,WARN', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5', u'compression': u''}, {'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'DEBUG', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5', u'compression': u''}]
 MaxIdleVMsTotal 	1000
 CurbIdleVMsTotal 	200
 MaxIdleVMsTotalGlobal 	1000
@@ -39,3 +39,4 @@ ProxySecurityClasses 	{u'/tmp/vo_proxy': u'frontend'}
 ProxyTrustDomains 	{u'/tmp/vo_proxy': u'OSG'}
 ProxyTypes 	{u'/tmp/vo_proxy': u'grid_proxy'}
 MatchExpr 	(True) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))
+DowntimesFile fixtures/frontend/downtimes.file

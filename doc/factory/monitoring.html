@@ -96,8 +96,6 @@ Monitoring is an essential part of any service. One has to monitor to both: main
 <p>Both the Factory Daemon, the Entry Daemons, HTCondor-G and the Glideins write
 extensive log files. The logs are kept for a week and then deleted.</p>
 
-With the introduction of privilege separation in GlideinWMS, location for log files have changed, altough a link to log directory is still maintained from the  &lt;glidein directory&gt;. Location for the log files is controlled through configuration and GlideinWMS uses condor_switchboard to control the access to the log directories. This makes the deployment more secure.
-
 </p>
 
     <h3><a name="monitoring_web">Glidein Factory entry Web monitoring</a></h3>
@@ -185,7 +183,7 @@ information in the ClassAds sent to the WMS collector. While this may
 not be the most user friendly interface, most of the monitoring
 information you'll ever need is present there.</p>
 
-<p>On top of the <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_status.html">HTCondor provided tools</a> (e.g. condor_status),
+<p>On top of the <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_status.html?highlight=condor_status#condor-status">HTCondor provided tools</a> (e.g. condor_status),
 the Factory provides two tools to look at the ClassAds; the first one returns a human readable, but limited text, 
 while the other provides a complete XML-formated output</p>
 <blockquote>

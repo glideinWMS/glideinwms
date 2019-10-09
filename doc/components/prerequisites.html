@@ -58,7 +58,7 @@
 <u>Jump to:</u>
 <ol>
     <li><a href="#system_httpd">HTTPD Server</a></li>
-    <li><a href="#system_vdt">OSG VDT Client</a></li>
+    <li><a href="#system_vdt">OSG Client</a></li>
     <li><a href="#system_rrdtool">RRDTool</a></li>
     <li><a href="#system_m2crypto">M2Crypto</a></li>
     <li><a href="#system_javascriptRRD">javascriptRRD</a></li>
@@ -114,8 +114,8 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> A reasonably recent <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/1_5Availability.html">HTCondor-supported</a>
-             Linux OS (RH/SL5 tested at press time).</td>
+            <td> A reasonably recent <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/overview/availability.html?highlight=Availability">HTCondor-supported</a>
+             Linux OS (RH/SL 6 and 7 tested at this time).</td>
         </tr>
         
         <tr>
@@ -138,7 +138,7 @@ Install as: various daemon users or as system rpms/packages
                 can use previous recommended versions of HTCondor.
                 <br><br>
                 <b><u>HTCondor </u></b><br>
-                <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/Monitoring.html#x40-3350003.12">monitoring via Ganglia</a>.
+                <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/monitoring.html?highlight=Monitoring">monitoring via Ganglia</a>.
                 GlideinWMS provides configuration files for it.
                 </td>
         </tr>
@@ -152,7 +152,7 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> Needed to generate GRID/VOMS proxies. See <a href="">below</a> for instructions.</td>
+            <td> Needed to generate GRID/VOMS proxies. See <a href="#system_vdt">below</a> for instructions.</td>
 
         </tr>
         <tr>
@@ -177,7 +177,7 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td class="checked"> y </td>
             <td> <a target="_blank" href="http://www.apache.org/">Apache</a>, <a target="_blank" href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>
-             or whatever server of choice. This port will need open access to the internet, so worker nodes can download data from this service.</td>
+             or whatever server of choice. This port will need open access to the internet, so worker nodes can download data from this service. See  <a href="#system_httpd">below</a> for instructions.</td>
         </tr>
 
         <tr>

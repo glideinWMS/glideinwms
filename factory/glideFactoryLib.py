@@ -20,22 +20,20 @@ import glob
 import string
 import re
 import pwd
-import binascii
 import base64
 import tempfile
 from itertools import groupby
 
 from glideinwms.lib import condorExe
-from glideinwms.lib import condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
+from glideinwms.lib import subprocessSupport
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
-
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -236,11 +234,21 @@ def getCondorQCredentialList(factoryConfig=None):
 
     return cred_list
 
+
 def getQCredentials(condorq, client_name, creds,
                    client_sa, cred_secclass_sa, cred_id_sa):
     """
-    Get the current queue status for client and credenitial.
+    Get the current queue status for a given client and credential (condorQ sub-query).
+    Get the current queue status for a given client and credential (condorQ sub-query).
     v3 equivalent for getQProxySecClass
+
+    :param condorq: condor_q query to select within
+    :param client_name: client name (e.g. the Frontend requesting the jobs)
+    :param creds: credential object (to extract sec class and id)
+    :param client_sa: schedd attribute to compare the client name
+    :param cred_secclass_sa: schedd attribute to compare the security class
+    :param cred_id_sa: schedd attribute to compare the credential ID
+    :return: sub-query with only the desired jobs
     """
 
     entry_condorQ = condorMonitor.SubQuery(
@@ -298,8 +306,35 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     return entry_condorQ
 
 
+def getQClientNames(condorq, factoryConfig=None):
+    """Return a dictionary grouping the condorQ by client_names (factoryConfig.client_schedd_attribute)
+
+    :param condorq: condor_q query object from condorMonitor.CondorQ
+    :return: list of client names (factoryConfig.client_schedd_attribute)
+    """
+    if factoryConfig is None:
+        factoryConfig = globals()['factoryConfig']
+    schedd_attribute = factoryConfig.client_schedd_attribute
+
+    def group_key_func(val):
+        try:
+            return val[schedd_attribute]
+        except KeyError:
+            return None
+
+    client_condorQ = condorMonitor.NestedGroup(condorq, group_key_func)
+    client_condorQ.schedd_name = condorq.schedd_name
+    client_condorQ.factory_name = condorq.factory_name
+    client_condorQ.glidein_name = condorq.glidein_name
+    client_condorQ.entry_name = condorq.entry_name
+    client_condorQ.client_name = condorq.client_name  # Should be None
+    client_condorQ.load()
+    return client_condorQ
+
+
 def getQStatusSF(condorq):
     """ Return a dictionary where keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
+    NOTE: this has not the same level of detail as getQStatus, e.g. Idle jobs are not split depending on GridJobStatus
     """
     qc_status = {}
     submit_files = set(v.get('GlideinEntrySubmitFile') for k,v in condorq.stored_data.items()) - set([None])
@@ -315,14 +350,14 @@ def getQStatus(condorq):
     Running maybe: 2 or 4010 if in stage-out
     1100 is used for unknown GridJobStatus
     """
-    qc_status = condorMonitor.Summarize(condorq, hash_status).countStored()
+    qc_status = condorMonitor.Summarize(condorq, hash_status).countStored(flat_hash=True)
     return qc_status
 
 
 def getQStatusStale(condorq):
-    """ Return a dictionary with jobStatus, stale_info/numJobs, where stale_info is 1 is the status information is old
+    """ Return a dictionary with jobStatus, stale_info/numJobs, where stale_info is 1 if the status information is old
     """
-    qc_status = condorMonitor.Summarize(condorq, hash_statusStale).countStored()
+    qc_status = condorMonitor.Summarize(condorq, hash_statusStale).countStored(flat_hash=True)
     return qc_status
 
 
@@ -416,69 +451,52 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     fname_short = 'x509_%s.proxy' % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 
-    if username != MY_USERNAME:
-        # use privsep
-        # all args go through the environment, so they are protected
-        update_proxy_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
-        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if var in os.environ:
-                update_proxy_env.append('%s=%s' % (var, os.environ[var]))
-
-        try:
-            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
-        except condorPrivsep.ExeError as e:
-            raise RuntimeError("Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
-        except:
-            raise RuntimeError("Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
-        return fname
-    else:
-        # do it natively when you can
-        if not os.path.isfile(fname):
-            # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
-            try:
-                os.write(fd, proxy_data)
-            finally:
-                os.close(fd)
-            return fname
-
-        # old file exists, check if same content
-        fl = open(fname, 'r')
-        try:
-            old_data = fl.read()
-        finally:
-            fl.close()
-        if proxy_data == old_data:
-            # nothing changed, done
-            return fname
-
-        #
-        # proxy changed, neeed to update
-        #
-
-        # remove any previous backup file
-        try:
-            os.remove(fname + ".old")
-        except:
-            pass # just protect
-
-        # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+    # We have no longer privilege separation so we do it natively
+    if not os.path.isfile(fname):
+        # new file, create
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, proxy_data)
         finally:
             os.close(fd)
-
-        # move the old file to a tmp and the new one into the official name
-        try:
-            os.rename(fname, fname + ".old")
-        except:
-            pass # just protect
-        os.rename(fname + ".new", fname)
         return fname
+
+    # old file exists, check if same content
+    with open(fname, 'r') as fl:
+        old_data = fl.read()
+    
+    if proxy_data == old_data:
+        # nothing changed, done
+        return fname
+
+    #
+    # proxy changed, neeed to update
+      #
+
+    # remove any previous backup file
+    try:
+        os.remove(fname + ".old")
+    except:
+       pass # just protect
+
+    # create new file
+    fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+    try:
+        os.write(fd, proxy_data)
+    finally:
+        os.close(fd)
+
+    # move the old file to a tmp and the new one into the official name
+    try:
+        os.rename(fname, fname + ".old")
+    except:
+       pass # just protect
+    os.rename(fname + ".new", fname)
+    return fname
 
     # end of update_x509_proxy_file
     # should never reach this point
+
 
 #
 # Main function
@@ -680,7 +698,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     @param frontend_name:
     @param log:
     @param factoryConfig:
-    @return: 1 if some glideins were removes, 0 otherwise
+    @return: 1 if some glideins were removed, 0 otherwise
     TODO: could return the number of glideins removed
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
@@ -871,15 +889,64 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     return glideins_sanitized
 
 
-def logStats(condorq, client_int_name, client_security_name,
-             proxy_security_class, log=logSupport.log, factoryConfig=None):
+def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
+    """
+    Sum to the current schedd statistics of this entry (from condor_q on the Factory)
+    to the values already stored in factoryConfig.client_stats, factoryConfig.qc_stats
+    Do that for all the clients that have jobs on this entry
+
+    :param condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
+    :param log: to log errors/info/...
+    :param factoryConfig: common data block for the entry to get schedd statistics (client_stats, qc_stats)
+    :return:
+    """
 
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    #
-    # First check if we have enough glideins in the queue
-    #
+    # group_by client_name the condorQ data
+    clients_condorq = getQClientNames(condorq, factoryConfig)
+    data = clients_condorq.fetchStored()
+
+    for client_name, client_data in data.items():
+        # Count glideins by status
+        # getQStatus() equivalent
+        data_list = sorted(hash_status(v) for v in client_data.values())
+        qc_status = dict((key, len(list(group))) for key, group in groupby([i for i in data_list if i is not None]))
+        # getQStatusSF() equivalent
+        qc_status_sf = {}
+        submit_files = set(v.get('GlideinEntrySubmitFile') for k, v in client_data.items()) - set([None])
+        for sf in submit_files:
+            sf_status = sorted(v['JobStatus'] for k,v in client_data.items() if v.get('GlideinEntrySubmitFile')==sf)
+            qc_status_sf[sf] = dict( (key, len(list(group))) for key, group in groupby(sf_status))
+
+        sum_idle_count(qc_status)
+
+        log.info("Inactive client %s schedd status %s" % (client_name, qc_status))
+        # client_stats are the one actually used in classads and monitoring, ignoring factoryConfig.qc_stats
+        factoryConfig.client_stats.logSchedd(client_name, qc_status, qc_status_sf)
+        #factoryConfig.qc_stats.logSchedd(client_log_name, qc_status, qc_status_sf)
+
+    return
+
+
+def logStats(condorq, client_int_name, client_security_name,
+             proxy_security_class, log=logSupport.log, factoryConfig=None):
+    """
+    Sum to the current schedd statistics of this entry (from condor_q on the Factory)
+    to the values already stored in factoryConfig.client_stats, factoryConfig.qc_stats
+
+    :param condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
+    :param client_int_name: client name (from the requestor/Frontend)
+    :param client_security_name: security name used by the client
+    :param proxy_security_class: credential security class used by the client
+    :param log: to log errors/info/...
+    :param factoryConfig: common data block for the entry to get schedd statistics (client_stats, qc_stats)
+    :return:
+    """
+
+    if factoryConfig is None:
+        factoryConfig = globals()['factoryConfig']
 
     # Count glideins by status
     qc_status = getQStatus(condorq)
@@ -889,11 +956,12 @@ def logStats(condorq, client_int_name, client_security_name,
 
     log.info("Client %s (secid: %s_%s) schedd status %s" % (client_int_name, client_security_name,
                                                             proxy_security_class, qc_status))
-    if factoryConfig.qc_stats is not None:
-        client_log_name = secClass2Name(client_security_name,
-                                        proxy_security_class)
-        factoryConfig.client_stats.logSchedd(client_int_name, qc_status, qc_status_sf)
-        factoryConfig.qc_stats.logSchedd(client_log_name, qc_status, qc_status_sf)
+
+    # logStats is called always after logWorkRequest and other updates of qc_status, removing the check:
+    # if factoryConfig.qc_stats is not None:
+    client_log_name = secClass2Name(client_security_name, proxy_security_class)
+    factoryConfig.client_stats.logSchedd(client_int_name, qc_status, qc_status_sf)
+    factoryConfig.qc_stats.logSchedd(client_log_name, qc_status, qc_status_sf)
 
     return
 
@@ -1216,36 +1284,20 @@ def escapeParam(param_str):
 def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # check to see if the username for the proxy is
 # same as the factory username
-    if username != MY_USERNAME:  # Use privsep
-        try:
-            args = ["condor_submit", "-name", schedd, submitFile]
-            submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir,
-                                                      "condor_submit", args, env=exe_env)
-            log.debug(str(submit_out))
-        except condorPrivsep.ExeError as e:
-            submit_out = []
-            msg = "condor_submit failed (user %s): %s" % (username, str(e))
-            log.error(msg)
-            raise RuntimeError(msg)
-        except:
-            submit_out = []
-            msg = "condor_submit failed (user %s): Unknown privsep error" % username
-            log.error(msg)
-            raise RuntimeError(msg)
-    else:  # Do not use privsep
-        try:
-            submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                                            child_env=env_list2dict(exe_env))
-        except condorExe.ExeError as e:
-            submit_out = []
-            msg = "condor_submit failed: %s" % str(e)
-            log.error(msg)
-            raise RuntimeError(msg)
-        except Exception as e:
-            submit_out = []
-            msg = "condor_submit failed: Unknown error: %s" % str(e)
-            log.error(msg)
-            raise RuntimeError(msg)
+    try:
+        submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
+                                        child_env=env_list2dict(exe_env))
+
+    except condorExe.ExeError as e:
+        submit_out = []
+        msg = "condor_submit failed: %s" % str(e)
+        log.error(msg)
+        raise RuntimeError(msg)
+    except Exception as e:
+        submit_out = []
+        msg = "condor_submit failed: Unknown error: %s" % str(e)
+        log.error(msg)
+        raise RuntimeError(msg)
     return submit_out
 
 
@@ -1306,7 +1358,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         raise RuntimeError(msg)
 
     if username != MY_USERNAME:
-        # Use privsep
         # need to push all the relevant env variables through
         for var in os.environ:
             if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
@@ -1314,7 +1365,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 try:
                     entry_env.append('%s=%s' % (var, os.environ[var]))
                 except KeyError:
-                    msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
+                    msg = """KeyError: '%s' not found in execution environment!!""" % (var)
                     log.warning(msg)
     try:
         submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
@@ -1331,7 +1382,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 if nr_submitted != 0:
                     time.sleep(factoryConfig.submit_sleep)
 
-                nr_to_submit = (nr_glideins - nr_submitted)
+                nr_to_submit = (nr_glideins_sf - nr_submitted)
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
 
@@ -1446,7 +1497,10 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
     try:
         glideinDescript = glideFactoryConfig.GlideinDescript()
         jobDescript = glideFactoryConfig.JobDescript(entry_name)
+        jobAttributes = glideFactoryConfig.JobAttributes(entry_name)
         signatures = glideFactoryConfig.SignatureFile()
+
+        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
 
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""
@@ -1459,9 +1513,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             if not str(v).strip():
                 log.warning('Skipping empty job parameter (%s)' % k)
                 continue
+            exe_env.append('GLIDEIN_PARAM_%s=%s'% (k, str(v)))
             params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
-        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
         exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 
@@ -1476,12 +1530,15 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
         slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        max_walltime = jobAttributes.data.get("GLIDEIN_Max_Walltime")
         proxy_url = jobDescript.data.get("ProxyURL", None)
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
         exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
         exe_env.append('GLIDEIN_SLOTS_LAYOUT=%s' % slots_layout)
+        if max_walltime:
+            exe_env.append('GLIDEIN_MAX_WALLTIME=%s' % max_walltime)
 
         submit_time = timeConversion.get_time_in_format(time_format="%Y%m%d")
         exe_env.append('GLIDEIN_LOGNR=%s' % str(submit_time))
@@ -1622,7 +1679,7 @@ email_logs = False
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 
-            # we add this here because the macros will be expanded when used in the gt2 submission
+            # TODO: we might review this part as we added this here because the macros were been expanded when used in the gt2 submission
             # we don't add the macros to the arguments for the EC2 submission since condor will never
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
@@ -1794,6 +1851,7 @@ def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):
         greater_than_n_iterations = True
 
     return greater_than_n_iterations
+
 
 ############################################################
 # only allow simple strings

@@ -19,8 +19,13 @@ import unittest2 as unittest
 import xmlrunner
 
 
-from glideinwms.creation.lib.cWDictFile import SHA1DictFile
-from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.creation.lib.cWDictFile import SHA1DictFile
+    from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+except ImportError as err:
+    raise TestImportError(str(err))
 
 
 class TestSHA1DictFile(unittest.TestCase):
@@ -31,8 +36,8 @@ class TestSHA1DictFile(unittest.TestCase):
 
     def test_init(self):
         self.assertTrue(isinstance(self.dic, SHA1DictFile))
-        self.assertTrue('description.e98f4o.cfg  group_main' in self.dic.keys)
-        self.assertTrue('description.e98f4o.cfg  group_main' in self.dic)
+        self.assertTrue('description.e98f4o.cfg  group_group1' in self.dic.keys)
+        self.assertTrue('description.e98f4o.cfg  group_group1' in self.dic)
 
     def test_add_from_file(self):
         self.dic.add_from_file("fixtures/frontend/group_group1/params.cfg",
@@ -41,8 +46,8 @@ class TestSHA1DictFile(unittest.TestCase):
 
     def test_format_val(self):
         expected = 'ad0f57615c3df8bbb2130d96cfdf09363f4bd3ed  ' + \
-                   'description.e98f4o.cfg  group_main'
-        mykey = 'description.e98f4o.cfg  group_main'
+                   'description.e98f4o.cfg  group_group1'
+        mykey = 'description.e98f4o.cfg  group_group1'
         self.assertEqual(expected, self.dic.format_val(mykey, None))
 
     def test_parse_val(self):
@@ -69,8 +74,8 @@ class TestSummarySHA1DictFile(unittest.TestCase):
 
     def test_init(self):
         self.assertTrue(isinstance(self.dic, SummarySHA1DictFile))
-        self.assertTrue('group_main' in self.dic.keys)
-        self.assertTrue('group_main' in self.dic)
+        self.assertTrue('group_group1' in self.dic.keys)
+        self.assertTrue('group_group1' in self.dic)
 
     def test_add_from_file(self):
         self.dic.add_from_file("fixtures/frontend/group_group1/params.cfg",
@@ -79,8 +84,8 @@ class TestSummarySHA1DictFile(unittest.TestCase):
 
     def test_format_val(self):
         expected = 'ad0f57615c3df8bbb2130d96cfdf09363f4bd3ed  ' + \
-                   'description.e98f4o.cfg  group_main'
-        self.assertEqual(expected, self.dic.format_val('group_main', None))
+                   'description.e98f4o.cfg  group_group1'
+        self.assertEqual(expected, self.dic.format_val('group_group1', None))
 
     def test_parse_val(self):
         cpy = copy.deepcopy(self.dic)

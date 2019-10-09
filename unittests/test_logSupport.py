@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Project:
+    glideinwms
+Purpose:
+    test glideinwms/lib/logSupport.py
+Author:
+    Anthony Tiradani, tiradani@fnal.gov
+"""
 
 from __future__ import absolute_import
 import logging

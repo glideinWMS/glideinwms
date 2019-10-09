@@ -20,6 +20,7 @@ import string
 import copy
 import socket
 import xml.parsers.expat
+from itertools import groupby
 from . import condorExe
 from . import condorSecurity
 
@@ -686,6 +687,7 @@ class SubQuery(BaseSubQuery):
 class Group(BaseSubQuery):
     """
     Sub Query class with grouping functionality
+    Each element has a value that is the summary of the values in a group
     """
 
     def __init__(self, query, group_key_func, group_data_func):
@@ -699,6 +701,27 @@ class Group(BaseSubQuery):
         """
         BaseSubQuery.__init__(
             self, query, lambda d: doGroup(d, group_key_func, group_data_func))
+
+
+class NestedGroup(BaseSubQuery):
+    """
+    Sub Query class with grouping functionality to create nested results
+    Each element is a dictionary with elements reduced from the original elements in the group
+    """
+
+    def __init__(self, query, group_key_func, group_element_func=None):
+        """
+        group_key_func  - Key extraction function
+                          One argument: classad dictionary
+                          Returns: value of the group key
+        group_element_func - Group extraction function
+                          One argument: list of tuples (key, classad dictionaries)
+                          Returns: a dictionary of classad dictionary
+                          If None, 'dict' is used
+        """
+
+        BaseSubQuery.__init__(
+            self, query, lambda d: doNestedGroup(d, group_key_func, group_element_func))
 
 
 class Summarize:
@@ -720,14 +743,18 @@ class Summarize:
     #    hash_func  - if !=None, use this instead of the main one
     # Returns a dictionary of hash values
     #    Elements are counts (or more dictionaries if hash returns lists)
-    def count(self, constraint=None, hash_func=None):
+    def count(self, constraint=None, hash_func=None, flat_hash=False):
         data = self.query.fetch(constraint)
+        if flat_hash:
+            return fetch2count_flat(data, self.getHash(hash_func))
         return fetch2count(data, self.getHash(hash_func))
 
     # Use data pre-stored in query
     # Same output as count
-    def countStored(self, constraint_func=None, hash_func=None):
+    def countStored(self, constraint_func=None, hash_func=None, flat_hash=False):
         data = self.query.fetchStored(constraint_func)
+        if flat_hash:
+            return fetch2count_flat(data, self.getHash(hash_func))
         return fetch2count(data, self.getHash(hash_func))
 
     # Parameters, same as count
@@ -904,9 +931,30 @@ def xml2list(xml_data):
 
 def list2dict(list_data, attr_name):
     """
-    Convert a list to a dictionary and group the results based on
-    attributes specified by attr_name
+    Convert a list to a dictionary where the keys are tuples with the values of the attributes listed in attr_name
+
+    :param list_data: list of dictionaries to convert
+    :param attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
+    :return: dictionary of dictionaries
     """
+
+    # Original description: Convert a list to a dictionary and group the results based on
+    #     attributes specified by attr_name
+
+    # This function has a couple of quirks, but is OK because the ways it is used (MM)
+    # The way it is used, attr_name is the job cluster, process, which are both present in all jobs from condor_q and unique,
+    # or the Name that is always present and unique in condor_status
+    # so the quirks should not cause problems
+    # 1. Type checking (of attr_name) probably should use isistance()
+    # 2. dict_name is a tuple including elements of attr_name translated to value in list_el
+    #  if them or the lowercase is a key in list_el
+    #  BUT from the value ( dict_data[dict_name] ) only exact match is excluded, not the lowercase version
+    # 3. keys (dict_name) may have different cardinality if one or some of the elements is not matching list_el keys
+    # 4. if 2 or more list_el have the same dict_name (same valies in attr_list attributes), the newest ones overwrite
+    #  the older ones without any warning
+    #  AND the original description mentions ... "and group the results" ... there is no grouping
+    # 5. 'Undefined' attributes are not added to the dict_el (dict elements may have different keys)
+    # 6. using '%s'%a_value != 'Undefined' and  str(list_el[a]) != 'Undefined' for the same. Use twice the better one
 
     if type(attr_name) in (type([]), type((1, 2))):
         attr_list = attr_name
@@ -975,8 +1023,10 @@ def applyConstraint(data, constraint_func):
 
 def doGroup(indata, group_key_func, group_data_func):
     """
-    Group the indata based on the keys that satisfy group_key_func
-    Return dict of groups that satisfy group_data_func
+    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    Return a dict of groups summarized by group_data_func
+    Each group returned by group_data_func must be a dictionary,
+    possibly similar to the original value of the indata elements
     """
 
     gdata = {}
@@ -989,7 +1039,45 @@ def doGroup(indata, group_key_func, group_data_func):
 
     outdata = {}
     for k in gdata:
+        # value is a summary of the values
         outdata[k] = group_data_func(gdata[k])
+
+    return outdata
+
+
+def doNestedGroup(indata, group_key_func, group_element_func=None):
+    """
+    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    Return a dict of dictionaries created by group_element_func
+    Each each value of the dictionaries returned by group_element_func
+    must be a dictionary, possibly similar to the original value of the indata elements
+
+    If group_element_func is None (not provided), then the dictionaries in the groups are a copy of the
+    original dictionaries in indata
+
+    @param indata: data to group
+    @param group_key_func: group_by function
+    @param group_element_func: how to handle the data in each group (by default is a copy of the original one)
+    @return: dictionary of dictionaries with grouped indata
+    """
+
+    gdata = {}
+    for k, inel in indata.iteritems():
+        gkey = group_key_func(inel)
+        if gkey in gdata:
+            gdata[gkey].append((k, inel))
+        else:
+            gdata[gkey] = [(k, inel)]
+
+    outdata = {}
+    if group_element_func:
+        for k in gdata:
+            # dictionary produced using  original dictionary elements in the group
+            outdata[k] = group_element_func(gdata[k])
+    else:
+        for k in gdata:
+            # just grouping the original elements without changing them
+            outdata[k] = dict(gdata[k])
 
     return outdata
 
@@ -1034,6 +1122,21 @@ def fetch2count(data, hash_func):
             count_el = 1
         cel[hid] = count_el
 
+    return count
+
+
+def fetch2count_flat(data, hash_func):
+    """Count the hash values returned from all the elements in data
+
+    :param data: data from a fetch()
+    :param hash_func: Hashing function
+                One argument: classad dictionary
+                Returns: flat hash value (for hashing functions returning also lists, use fetch2count
+                          if None, will not be counted
+    :return: a dictionary with a count of the hash values returned
+    """
+    data_list = sorted(hash_func(v) for v in data.values())
+    count = dict((key, len(list(group))) for key, group in groupby([ i for i in data_list if i is not None]))
     return count
 
 

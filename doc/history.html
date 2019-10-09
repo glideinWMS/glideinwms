@@ -81,11 +81,110 @@ Related Pages:
 </li>
 </ul>
 </div>
-<div class="section">
 
+<div class="section">
+<a name="compatibility"></a>
+    <h3>Compatibility Statement</h3>
+    <p>GlideinWMS strives to have Factory and Frontends compatible across versions.
+        If there is an incompatibility:</p>
+    <ul>
+        <li>Any incompatibility will be always clearly stated in the release notes</li>
+        <li>We will not require to have to upgrade Factory and Frontends at the same time.
+            If this is unavoidable, a major version change should happen</li>
+        <li>If a change causing incompatibility is needed, we will prefer to require to upgrade the Factory
+            before the Frontends and not the opposite (i.e. the newer Factory will be compatible
+            with the older Frontends).
+            If this happens, at least a minor version change should happen.</li>
+    </ul>
+</div>
+
+<div class="section">
 <a name="stable"></a>
     <h3>Stable Series</h3>
     <ul>
+      <li>
+        <b>v3_6</b> released on September 25, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_6.tgz">Tarball</a>)<br>
+        <ul>
+	<li>Renaming of v3_5_1 (released on 9/18) to respect the odd/even numbering</li>
+	<li>Including all 3.4.6 features</li>
+	<li>Updated SW and docs for the change in OSG factories</li>
+        <li>Updated all the obsolete links to HTCondor manual in GlideinWMS website</li>
+        <li>Set up an ITB Frontend for GWMS and FIFE testing</li>
+        <li>Updated gitattributes to resolve conflicts w/ checksum files</li>
+        <li>Added editorconfig and default encoding</li>
+        <li>GlideinWMS code will use now Google docstring format </li>
+        <li>Advertise if a Glidein can use privileged or unprivileged Singularity</li>
+        <li>Check if single user factory migration script has been run before startup</li>
+        <li>Bug fix: pip errors in nightly CI</li>
+        <li>Bug fix: Unittest failing at times on SL7</li>
+        <li>Bug fix: Factory could start also w/ a GT2 entry enabled</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_4_6</b> released on August 14, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_6.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings</li>
+            <li>Backport: GlideinWMS proxy renewal service broken for Xenon</li>
+            <li>Add always --contain to the Singularity invocation and update wrapper adding improvement in the OSG one</li>
+            <li>Document and expand multi-node Glidein</li>
+            <li>Document usage of ignore_down_entries</li>
+            <li>Bug fix: Not escaped comma in GSI_DAEMON_NAME causing problems</li>
+            <li>Bug fix: Debug options causing Singularity invocation to fail</li>
+            <li>Bug fix: Singularity workdir creation failing at some sites</li>
+            <li>Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758)</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_4_5</b> released on April 19, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_5.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Add a bind mount for /etc/localtime in Singularity</li>
+            <li>Bug fix: Strings evaluated as boolean (New error preventing the Frontend fo match jobs)</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_4_4</b> released on April 4, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_4.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Propagate to Factory and glidein submission attributes controlled by FE</li>
+            <li>Track jobs that spawn multiple nodes, e.g. HPC submission</li>
+            <li>Include OSG distributed unprivileged Singularity to the search path and do a full test of Singularity</li>
+            <li>Improved HTCondor configuration for schedd in Factory and Frontend</li>
+            <li>Add a bind mount for /etc/hosts in Singularity</li>
+            <li>Removed Frontend service dependency from HTCondor service</li>
+            <li>Added flag to Ignore entries in downtime when considering glideins matches</li>
+            <li>Bug fix: Factory GlideinMonitor* classads appear to be erased periodically</li>
+            <li>Bug fix: Glidein not killing condor processes</li>
+            <li>Bug fix: Error preventing the Frontend fo match jobs</li>
+            <li>Bug fix: Make sure metasite limits are respected</li>
+            <li>Bug fix: Convert per/frontend limits to integers before division</li>
+            <li>Bug fix: 'tochild' AttributeError in Factory</li>
+            <li>Bug fix: Pilot proxies could be generated with invalid VOMS ACs</li>
+            <li>NOTE: To use the new HTCondor configuration you need to reconfig or restart HTCondor after merging eventual .rpmnew files</li>
+        </ul>
+      </li>
+      <li>
+        <b>v3_4_3</b> released on January 25, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_4_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_3.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Add a scaling factor for all glideins limits in the entries</li>
+            <li>Comprehensive unit-test for the parsing of the Frontend configuration with collectors using shared port</li>
+            <li>Add the possibility to disable completely Glidein removal</li>
+            <li>Increase verbosity to help Singularity troubleshooting</li>
+            <li>Improve error messages in glideFactoryCredentials</li>
+            <li>Automatically remove glideins after walltime</li>
+            <li>Bug fix: Improve manual_submit_glidein</li>
+            <li>Bug fix: Improve the way condor_jdl dict is populated for metasites</li>
+            <li>Bug fix: Factory crashing with malformed HTCondor log (AttributeError: dirSummaryTimingsOut.data)</li>
+            <li>Bug fix: glidein_config parsing cutting the results at the first space</li>
+            <li>Bug fix: shell scripts improvements (condition smart_partionable.sh, variable splitting)</li>
+            <li>Bug fix: Frontend upgrade is failing if it is unable to determine the version of the Factory</li>
+            <li>Bug fix: Avoid glideFactoryEntryGroup processe leaks</li>
+            <li>Bug fix: Stale running and held glidein numbers reported in factory classads</li>
+            <li>Bug fix: Update documentation about ports requirement for Frontend's submit host</li>
+            <li>Bug fix: The factory seems to ignore the configuration values in the files in the config.d directory w/ entry configurations</li>
+            <li>Bug fix: Frontend not recognizing entries in downtime</li>
+            <li>Bug fix: Pylint tests improved (htcondor setup, remove external lins)</li>
+            <li>NOTE: If you update from 3.4 or earlier make sure to have open port 9618 also on standalone Frontends/subit hosts (was using 9615 before)</li>
+        </ul>
+      </li>
       <li>
         <b>v3_4_2</b> released on October 26, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_4_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_4_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_4_2.tgz">Tarball</a>)<br>
         <ul>
@@ -746,24 +845,42 @@ COLLECTOR.USE_SHARED_PORT=False
 
     <a name="development"></a>
     <h3>Development Series</h3>
-    This is work in progress, so some pieces may be broken and 
-    the documentation out of sync. 
-    But it is a good place to look for what is going on.<br>
+    This is work in progress, so some pieces may be not so tested yet and the documentation out of sync. 
+    But it passed all out tests and is a good place to look for what is going on.<br>
     <ul>
+      <li>
+        <b>v3_5</b> released on June 7, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_5.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Spawned off branch 3_4_x. Includes all features and bug fixes released in v3_4_5</li>
+	    <li>Removed support for Globus GRAM (GT2/GT5)</li>
+            <li>Removed dependency on condor_root_switchboard</li>
+            <li>Improved release scripts release.py and osg-release.sh (better help and error messages)</li>
+            <li>Added unit tests</li>
+            <li>Improved Frontend scalability (from CMS scale tests)</li>
+            <li>Remove use of deprecated sets module</li>
+            <li>Bug fix: Incorrect exception handling glideinFrontendElement.py::populate_pubkey</li>
+            <li>Bug fix: Entries in downtime setting seems not to work correctly</li>
+            <li>Bug fix: GlideinWMS proxy renewal service broken for Xenon</li>
+	    <li>NOTE: v3_5 and v3_4 are fully interoperable. I.e. You can mic v3_5 and v3_4_x Factories and Frontends in your system</li>
+	    <li>NOTE-FACTORY: The v3.5 Factory is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to: 
+          1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. 
+	  For detailed instructions see: <a href="http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user">http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user</a></li>
+        </ul>
+      </li>
       <li>
         <b>v3_3_3</b> released on April 17, 2018 (<a href="http://glideinwms.fnal.gov/doc.v3_3_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_3.tgz">Tarball</a>)<br>
         <ul>
-            <li>Includes all features and bug fixes released in v3_2_22_2
+            <li>Includes all features and bug fixes released in v3_2_22_2</li>
         </ul>
       </li>
       <li>
         <b>v3_3_2</b> released on March 24, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_3_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_3_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_3_1.tgz">Tarball</a>)<br>
         <ul>
-          <li>Allow multiple remote directories for BOSCO submissions
-          <li>Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM
-          <li>Documented vm_id_fname and vm_type_fname
-          <li>Includes all features and bug fixes released in v3_2_18
-          <li>Includes some important features and bug fixes planned for v3_2_19 (fix of AWS submission)
+          <li>Allow multiple remote directories for BOSCO submissions</li>
+          <li>Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM</li>
+          <li>Documented vm_id_fname and vm_type_fname</li>
+          <li>Includes all features and bug fixes released in v3_2_18</li>
+          <li>Includes some important features and bug fixes planned for v3_2_19 (fix of AWS submission)</li>
         </ul>
       </li>
       <li>
@@ -1762,6 +1879,7 @@ ml">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS
     The first usable version
     </ul>
 </div>
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

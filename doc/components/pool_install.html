@@ -81,7 +81,7 @@ Install as: root
             <p><img src="../images/overview_schedd.png" name="Schedd Overview" align="right" border="0"></p>
             <p>
                 This node will be a 
-                <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/3_1Introduction.html#SECTION004120000000000000000">HTCondor Submit node</a>
+                <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Submit node</a>
                 for the user jobs.  You can install many such nodes to improve scalability of your system.
             </p>
     </div>
@@ -153,7 +153,7 @@ Install as: root
     <h2><a name="condor">5. Installation instructions</a></h2>
     <p>
         The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
-        security implications; see the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Security.html#sec:Non-Root">HTCondor manual</a> for details.
+        security implications; see the <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/security.html?highlight=%22Running%20HTCondor%20as%20Non-Root%22#running-htcondor-as-non-root">HTCondor manual</a> for details.
         The whole process is managed by the install script manage-glideins described below.
     </p>
 
@@ -296,7 +296,7 @@ Install as: root
 
         <tr>
         <td>schedd_shared_port</td>
-        <td align="center">9615</td>
+        <td align="center">9618</td>
         <td>
         Specifies the port number to be used by the shared port daemon
         for schedds.
@@ -304,11 +304,10 @@ Install as: root
         <td>
         This can drastically reduce the number of ports used and thus improves
         scalability.</br>
-        The default port is 9615.</br>
-        Leave this option blank if you do not wish to utilize this feature or
-        if is is not supported in the version of HTCondor being used.<br/>
-        For more information on use of the shared_port_daemon, see the
-        <a href="condor.html#schedds">GlideinWMS - Advanced HTCondor Configuration manual</a>.
+        The default port is 9618. If you install the user schedd on a separate host, 
+        this incoming TCP port remains to be open (it was 9615 for versions prior to 
+        GlideinWMS 3.4.1). For more detailed information on this, refer to the 
+        <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds using condor_shared_port feature</a>.
         </br>
         </td>
         </tr>

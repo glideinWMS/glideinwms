@@ -190,11 +190,6 @@ If no specific entries are needed, an empty list should be returned.
   def activate_userjob_classads(self):
     self.userjob_classads_required = True
   #---------------------
-  def privilege_separation(self):
-    if self.has_option(self.ini_section, "privilege_separation"):
-      return self.option_value(self.ini_section, "privilege_separation")
-    return "n"
-  #---------------------
   def number_of_schedds(self):
     option = "number_of_schedds"
     if self.daemon_list.find("SCHEDD") > 0:

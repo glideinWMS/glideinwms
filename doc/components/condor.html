@@ -67,7 +67,7 @@
 <div class="related">
 Related Links:
 <ul>
-<li><a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor Website</a></li>
+<li><a target="_blank" href="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor Website</a></li>
 <li> <a href="condor_config.html">HTCondor configuration attributes</a></li>
 <li><a  href="index.html">More GlideinWMS HTCondor Topics</a></li>
 </ul>
@@ -121,22 +121,26 @@ Related Links:
     <!-- Shared port V2.5.2+ ----- -->
     <h4>GlideinWMS V3+ </h4>
     Additional information on this daemon can be found here:<ul>
-    <a href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Introduction1.html#x29-1480003.1">HTCondor manual -  Daemons</a></br>
-    <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html?highlight=Daemons#the-htcondor-daemons">HTCondor manual -  Daemons</a></br>
+    <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=Networking%20(includes%20sections%20on%20Port%20Usage%20and%20CCB)#networking-includes-sections-on-port-usage-and-ccb">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
     </p>
     <p>
     Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
-    will need to contain the following attributes. Port 9615 is the default port
+    will need to contain the following attributes. Port 9618 is the default port
     for the schedds.
     <blockquote>
          #--  Enable shared_port_daemon<br>
          SHADOW.USE_SHARED_PORT = True<br>
          SCHEDD.USE_SHARED_PORT = True<br>
          SHARED_PORT_MAX_WORKERS = 1000<br>
-         SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
+         SCHEDD.SHARED_PORT_ARGS = -p 9618<br>
          DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
     </blockquote>
-    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect. 
+    <b>Very important:</b> As explained below in this documentation, all HTCondor daemons on the Frontend (including User Collector and Schedd) use the <i>shared port</i> daemon       on port 9618, which must be open. For the secondary collectors, you may need to open the port range 9620 to 9660 depending on your configuration (i.e. if Glideins call 
+       back on those ports). If there are standalone submit hosts, they may have only port 9615 open, as indicated in the examples. In this case, please review the firewalls to        make sure 9618 is open.
+       The same range must be open also for the GlideinWMS versions prior to 3.4.1, as well as the port 9615.
+       Please note, if you install the user schedd on a separate host, incoming TCP port 9618 remains to be open (it was 9615 for GlideinWMS 3.4.0 and earlier).
     </p>
 
 
@@ -269,7 +273,7 @@ Processing schedd: SCHEDDJOBS2<br/>
      the change.  You will see these collector processes running (example has 5 secondary collectors).
     </p>
     <blockquote>
-user  17732     1  0 13:34 ?        00:00:00 /usr/local/glideins/separate-no-privsep-7-6/condor-userpool/sbin/condor_master
+user  17732     1  0 13:34 ?        00:00:00 condor_master
 user  17735 17732  0 13:34 ?        00:00:00 condor_collector -f <font color="blue">primary</font></br>
 user  17736 17732  0 13:34 ?        00:00:00 condor_negotiator -f</br>
 user  17737 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9619 <font color="blue">secondary</font></br>
@@ -281,7 +285,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <h4></a>Separate Ports</h4>
     <p>
     Since GlideinWMS v3.4.1, shared_port is enabled by default for
-    secondary collectors and CCBs, having all the collector communication behind a single TCP port. This helps to have a
+    secondary collectors and CCBs, having all the collector communication behind a single TCP por (by default, port 9618). This helps to have a
     queue <b>per daemon</b>, instead of global queue. To carry out this, the following HTCondor attributes are required:
     </p>
     <blockquote>
@@ -305,8 +309,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
     <blockquote>
       ├─1675222 condor_shared_port -f -p 9618 <font color="blue">TCP single port</font></br>
       ├─1675223 condor_collector -f <font color="blue">primary</font></br>
-      ├─1675227 condor_negotiator -f
-      ├─1675229 condor_schedd -f
+      ├─1675227 condor_negotiator -f</br>
+      ├─1675229 condor_schedd -f</br>
       ├─1675230 condor_collector -f -f -local-name COLLECTOR1 -sock collector1 <font color="blue">secondary</font></br>
       ├─1675232 condor_collector -f -f -local-name COLLECTOR2 -sock collector2 <font color="blue">secondary</font></br>
       ├─1675234 condor_collector -f -f -local-name COLLECTOR3 -sock collector3 <font color="blue">secondary</font></br>
@@ -346,7 +350,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
      <p/>
      The HTCondor configuration of additional (secondary) collectors is the same as in the previous section, 
      <a href="#collectors">Multiple Collectors for Scalability</a>.
-     Refer to the <a href="http://research.cs.wisc.edu/htcondor/manual/">HTCondor manual</a> section on 
+     Refer to the <a href="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor manual</a> section on 
      High Availability of the Central Manager for additional configuration requirements.
      <p> 
     <b>Important: </b>When the HTCondor High Availability feature is used in the User Collector, 
@@ -361,8 +365,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <div class="section">
     <h2><a name="quill">Installing Quill</a></h2>
 
-<p>The <a href="http://research.cs.wisc.edu/htcondor/manual/current/9_3Quill.html">HTCondor manual section about Quill</a>
-  may have instructions more updated than this section.
+<p>The <a href="https://htcondor.readthedocs.io/en/latest/contrib-source-modules/introduction-contrib-source-modules.html?highlight=Quill#introduction">HTCondor manual section about Quill</a> may have instructions more updated than this section. Keep in mind that Quill has been removed from HTCondor codebase in 
+  HTCondor version 8.7.6, meaning that the current version of the manual may not have mmuch reference to it.
 </p>
 <h3><a name="software">Required software</a></h3>
     <ul>

@@ -48,7 +48,7 @@ RET_NO_PRIVILEGE=4
 RET_NOT_INSTALLED=5
 RET_NOT_CONFIGURED=6
 RET_NOT_RUNNING=7
-
+RET_NOT_35_READY=150
 
 [ -f /etc/sysconfig/gwms-factory ] && . /etc/sysconfig/gwms-factory
 
@@ -79,6 +79,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     LOG_FILE_STARTUP=/var/log/gwms-factory/server/factory/startup.log
     DEFAULT_WRITEBACK=no
     BIN_DIR=/usr/sbin/
+    TOOLS_DIR=/usr/bin/
     CREATION_DIR=
     FACTORY_START="${BIN_DIR}glideFactory.py"
     FACTORY_STOP="${BIN_DIR}stopFactory.py"
@@ -89,6 +90,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     glideinWMS_dir="$factory_dir"
     def_factory_config=/etc/gwms-factory/glideinWMS.xml
     FACTORY_CONFIG=/etc/gwms-factory/glideinWMS.xml
+    FACTORY_CHECK35_READY="${TOOLS_DIR}fact_chown_check"
 else
     # TAR installation  (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
@@ -126,6 +128,23 @@ check_configured () {
     failure
     echo
     exit $RET_NOT_CONFIGURED
+}
+
+check_35_ready () {
+    # check if files and jobs ownership is correct. Needed for 3.5 single user factory
+    if [ -n "$GWMS_CHECK_35_READY" -o "$1" = "--check_35_ready" ]; then
+        invoke_as_factory $FACTORY_CHECK35_READY
+        if [ $? -eq 0 ]; then
+            return 0
+        fi
+        echo "The Factory is not ready for 3.5.x. Please run $FACTORY_CHECK35_READY --verbose as the factory user for more details."
+        echo "To disable this check remove the --check_35_ready option from the gwms-factory.service file "
+        echo -n "and remove GWMS_CHECK_35_READY from /etc/sysconfig/gwms-factory"
+        failure
+        echo
+        exit $RET_NOT_35_READY
+    fi
+    return 0
 }
 
 export HOME="/var/lib/gwms-factory"
@@ -238,6 +257,7 @@ help_usage() {
 start() {
     check_installed
     pushd $factory_dir 1>/dev/null
+    check_35_ready $1
     check_configured
     echo -n "Starting GlideinWMS Factory $id_str: "
 
@@ -537,7 +557,7 @@ downtime() {
 
 case $1 in
     start)
-        start
+        start $2
         ;;
     stop)
         stop

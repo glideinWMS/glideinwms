@@ -71,6 +71,8 @@
         <LI><A HREF="#example_configuration">Example Configuration</A>
         <LI><A HREF="#args">Configuration File</A>
         <LI><A HREF="#metasites">Grouping entries into metasites</A>
+        <li><a href="#single_user">Single user (upgrade to 3.5)</a> </li>
+        <li><a href="#singularity">Singularity</a> </li>
         <li><a href="#glexec">glExec</a> </li>
         <li><a href="#private_net">Private Networks</a> </li>
         <li><a href="#security">Security</a> </li>
@@ -130,7 +132,7 @@ for a more detailed description.
     </blockquote>
     <a href="#security">&lt;/security &gt;</a><br/>
     <a href="#stage">&lt;stage base_dir="/var/www/html/glidefactory/stage" use_symlink="True" web_base_url="http://factory.fnal.gov:9000/glidefactory/stage"/&gt;</a><br/>
-    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" /&gt;</a><br/>
+    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" num_factories="1" /&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
@@ -142,7 +144,7 @@ for a more detailed description.
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port" gridtype="condor" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
@@ -395,13 +397,15 @@ individual entry point configuration.
         &lt;glidein&gt;&lt;submit base_dir=&quot;<I>directory</I>&quot;
         base_log_dir=&quot;<I>log directory</I>&quot;
         base_client_log_dir=&quot;<i>client log directory</I>&quot;
-
-        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;/&gt;
+        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;
+        num_factories=&quot;<I>1</I>&quot;/&gt;
         </div>
     <p><b>Recommended:</b> Where to create the glidein submit directory. 
     The default is the user home
     directory. Log directories can be configured independent of the base
-    directory using options mentioned above.</P>
+    directory using options mentioned above. <b>num_factories</b> is a scaling factor used to
+    scale down <i>max_glideins, max_held</i>, and <i>max_idle</i> for the entries.
+    </P>
     <LI>
         <a name="stage" />
         <div class="xml">
@@ -456,10 +460,10 @@ individual entry point configuration.
         identity=&quot;username_usedby_factory@factory_hostname&quot;
         /&gt;</div>
 
-    <p><b>Recommended:</b> (Required for privilege separation) 
+    <p><b>Recommended:</b>
     This configures the Frontend. 
     <b>Frontend on the Frontend hosting machine
-    should have the  same name as mentioned in the 'name'. </b>Identity tells the
+    should have the same name as mentioned in the 'name'. </b>Identity tells the
     Factory the username under which the Factory should map the given
     Frontend to.
     <b>If this does not match the Frontend configuration, 
@@ -533,7 +537,8 @@ individual entry point configuration.
             <TD>
                 <P>Set True if the attribute should be passed 
                 as a parameter.  Always set this to True 
-                unless you know what you are doing.</P>
+                    unless you know what you are doing.
+                    <b>NOTE As of 3.4.6 in the Factory, publish has to be set to True and const to False, otherwise the attribute will not published in the parameter list.</b></P>
             </TD>
         </TR>
         <TR>
@@ -691,9 +696,9 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;
 
-        gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
+        gridtype=&quot;<I>grid type [default: condor]</I>&quot;&gt;
         </div>
-    <b>Optional:</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
+    <b>Optional:</b> The default condor is for HTCondor-CE Gatekeepers. Other values are ec2 or one of the batch types supported by HTCondor:
     batch pbs (for PBS and SLURM), batch lsf, batch sge, batch condor. 
     This tag can specify additional HTCondor Grid types.
     </li>
@@ -808,7 +813,7 @@ override the global arguments if present.
         <div class="xml">
             &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<I>entry name</I>&quot;&gt;<br/>
             &lt;config&gt;<br/>
-            &lt;max_jobs&gt;<br/>
+            &lt;max_jobs num_factories="3"&gt;<br/>
             &nbsp;&nbsp;&lt;per_entry held="1000" idle="2000" glideins="10000"/&gt;<br/>
             &nbsp;&nbsp;&lt;default_per_frontend held="50" idle="100" glideins="5000"/&gt;<br/>
             &nbsp;&nbsp;&lt;per_frontends&gt;<br/>
@@ -834,6 +839,7 @@ override the global arguments if present.
                  <li>&lt;default_per_frontend ... &gt; specifies default limits for each frontend-security class (for this entry).</li>
                  <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
              </ul>
+             All these limits are scaled down by the num_factories attributes (it can be specified here, at the entry level or in the global submit section)
            </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
@@ -981,8 +987,9 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         publish=&quot;True&quot;/&gt;
         </div>
         <b>Recommended:</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
-        Valid values are 1..N and "auto" or "0" which means to use all cores by using HTCondor's
-        core auto-detection.  The entry will default to 1 if not otherwise defined. 
+        Valid values are 1..N and "auto", "slot" or "node" (corresponding to 0, 0, -1) which means to use all cores on the slot
+         or on the node (see it on the <A HREF="custom_vars.html">configuration variables page</A> for more).
+         The entry will default to 1 if not otherwise defined.
     </li>
     </ul>
         <li>
@@ -1057,13 +1064,13 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
     &lt;/entries&gt;<br>
     &lt;entry_sets&gt;<br>
         <blockquote>
-        &lt;entry_set alias="ITB_FC_CE3" enabled="True"&gt;<br>
+        &lt;entry_set alias="T2_US_UCSD" enabled="True"&gt;<br>
             <blockquote>
             &lt;config&gt;<br>
               <blockquote>
               &lt;max_jobs&gt;<br>
                  <blockquote>
-                 &lt;default_per_frontend glideins="5000" held="100" idle="400"/&gt;<br>
+                 &lt;default_per_frontend glideins="5000" held="50" idle="100"/&gt;<br>
                  &lt;per_entry glideins="10000" held="1000" idle="4000"/&gt;<br>
                  &lt;per_frontends&gt;<br>
                  &lt;/per_frontends&gt;<br>
@@ -1073,7 +1080,7 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
               &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
               &lt;entry_selection algorithm_name="Default" &gt;<br>
-              &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br>
+              &lt;submit cluster_size="10" max_per_cycle="25" sleep="2" slots_layout="partitionable"&gt;<br>
                  <blockquote>
                  &lt;submit_attrs&gt;<br>
                  &lt;/submit_attrs&gt;<br>
@@ -1086,12 +1093,12 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
            &lt;attrs&gt;<br>
               <blockquote>
               &lt;attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
-publish="True" type="string" value="default"/&gt;<br>
+                  publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
-publish="True" type="string" value="default"/&gt;<br>
+                  publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
-              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_GRATIA_TEST"/&gt;<br>
-              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS"/&gt;<br>
+              &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="UCSD"/&gt;<br>
+              &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS,ATLAS,Fermilab,LIGO,NWICG,HCCLONG"/&gt;<br>
               &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
               </blockquote>
            &lt;/attrs&gt;<br>
@@ -1103,13 +1110,9 @@ publish="True" type="string" value="default"/&gt;<br>
            &lt;/monitorgroups&gt;<br>
            &lt;entries&gt;<br>
                   <blockquote>
-                  &lt;entry name="ITB_FC_CE3_121" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2"
-rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins4@fermicloud092.fnal.gov" trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;entry name="CMSHTPC_T2_US_UCSD_gw2" auth_method="grid_proxy" comment="Created new multicore entry on 2016/03/29 -- Marty" enabled="True" gatekeeper="osg-gw-2.t2.ucsd.edu osg-gw-2.t2.ucsd.edu:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="Condor"&gt;<br>
                   &lt;/entry&gt;<br>
-                  &lt;entry name="ITB_FC_CE3_025" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2"<br>
-rsl="(queue=default)(jobtype=single)"<br>
-schedd_name="schedd_glideins4@fermicloud092.fnal.gov"<br>
-trust_domain="grid" verbosity="std" work_dir="OSG"&gt;<br>
+                  &lt;entry name="CMSHTPC_T2_US_UCSD_gw4" auth_method="grid_proxy" comment="Created new multicore entry on 2016/03/29 -- Marty" enabled="True" gatekeeper="osg-gw-4.t2.ucsd.edu osg-gw-4.t2.ucsd.edu:9619" gridtype="condor" proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="Condor"&gt;<br>
                   &lt;/entry&gt;<br>
                   </blockquote>
           &lt;/entries&gt;<br>
@@ -1191,6 +1194,94 @@ on the local area network, you will need to do more fine tuning when
 deploying a larger one. In this section, the various advanced aspects
 of glidein pools will be presented. 
 </p>
+</div>
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="single_user"></A>Migration process for the removal of dependency of condor_root_switchboard (Upgrade to v3.5)</H3>
+
+<P> Starting v3.5, GlideinWMS stopped supporting Globus GRAM GT2/GT5 and Factory and all pilot jobs run under a single user (gfactory) to eliminate
+    the need of switchboard and setuid/user-switching. Thus, all glideins will run using the Factory user (no more separated users per-VO).
+    For the log and secure files, the same directory structure remains the same, only the ownership will change.
+</P>
+
+<P> The transition for the new jobs is clear. But either for upgrading an existing Factory version from v3.4.x or ealier (even if there are no glideins)
+    or for the old glideins that are still running, there is a process which will ease the
+    migration process for this purpose. This process implies the execution of a script which:<BR/>
+    1. Will change the ownership of the log and security file directories<BR/>
+    2. Will run a sed command on the condor job_queue files to change ownership of jobs inside condor<BR/>
+
+    First of all, to check what the script does, you must be located in factory/tools of your GWMS installation and execute like (add --debug for a more verbose output):
+
+    <blockquote>
+    sudo fact_chown --user=gfactory --group=gfactory --test --backup
+    </blockquote>
+
+    This execution should show you how the script works without making changes. It will also create a backup of the files that is going to modify in
+    the current working directory. Please, notice that if you create the backup now, make sure that both condor and the factory are not running. Otherwise the 
+    backup might be out of date.<BR/>
+
+    If you know what you are doing and, you would like actually to do the migration, please follow the following steps:<BR/>
+
+    1. Stop Factory and <b>stop condor</b>. (This step is very important condor must not run when the script is being executed!)<BR/>
+    2. Run the script fact_chown indicating the user and the group which the directories and their content will take the ownership. 
+       Add also the flag <b>--backup</b> to have backup of everything (or not if you are happy with a backup created previously). 
+       Example with backups (notice the absence of --test):
+    
+       <blockquote>
+        sudo fact_chown --user=gfactory --group=gfactory --backup
+       </blockquote>
+    
+    3. Start condor and Factory and check the changes<BR/>
+<P>
+</P>
+    Remember:<BR/>
+    - Run the script with no options if you don't want to have backups.<BR/>
+    - If you see the permissions have changed but not the ownership, make sure you have executed the script with condor stopped.<BR/>
+    - If pilots go held after executing the script, make sure that you have executed the steps as indicated before. If condor was running during 
+      the script execution: stop condor, run the script again and release the jobs.<BR/>
+</P>
+
+<P> After executing these steps, you should see your jobs changed user in condor_q to the new owner. Also, the onwership to Factory user (gfactory) of: <BR/>
+    - Log files directories in /var/log/gwms-factory/client/<BR/>
+    - Security files directory in /var/lib/gwms-factory/client-proxies/<BR/>
+    - All files and folders in the corresponding folder's tree indicated before:<BR/>
+    - /var/log/gwms-factory/client/<user_username>/glidein_gfactory_instance/<BR/>
+    - /var/lib/gwms-factory/client-proxies/<USER_DIRS> <BR/>
+</P>
+
+<P> To <b>revert</b> to a previous version of GlideinWMS, you need to restore the job_queue files and change back the permissions of the log directories. As commented previously, those operations need to be performed with both condor and GlideinWMS stoppped. <BR/>
+    - To restore the job_queue condor files: untar all the schedd_glideins1_job_queue.log.tar.gz files, and move the job_queue.log file into its original location. You can print it when you run the fact_chown script (you can also run it with --test and --skipchown)<BR/>
+    - To restore the directory permissions for the logfiles, you can run the following command: <BR/>
+
+      <blockquote>
+       for dir in /var/log/gwms-factory/client/user_fe*; do USERARR=(${dir//_/ }); USER=${USERARR[1]}; chown -R $USER:$USER $dir; done
+       </blockquote>
+</P>
+
+<H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
+<p>
+    <BR/>
+    The detailed description of CCB is
+    beyond the scope of this manual and you should refer to the HTCondor
+    documentation available
+    <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">here</A>.
+    , where you will find only the parameters needed to enable it in the
+    glideins.
+    </p><p>To use HTCondor with CCB, you need to specify:
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
+
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;USE_CCB&quot;
+    value=&quot;True&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+
+    </div>
+<P>
+and you are done. Just make sure you follow the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#scalability-and-ccb">suggested scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">
@@ -1443,7 +1534,7 @@ but it is no more supported in recent versions, so remove it if you still have i
     The detailed description of CCB is
     beyond the scope of this manual and you should refer to the HTCondor
     documentation available
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">here</A>.
+    <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">here</A>.
     , where you will find only the parameters needed to enable it in the
     glideins.
     </p><p>To use HTCondor with CCB, you need to specify: 
@@ -1459,7 +1550,7 @@ but it is no more supported in recent versions, so remove it if you still have i
 
     </div>
 <P>
-and you are done. Just make sure you follow the <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">suggested scalability guidelines described in the HTCondor manual</A>.</P>
+and you are done. Just make sure you follow the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#scalability-and-ccb">suggested scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">
@@ -1530,7 +1621,7 @@ should be used every time it is feasible.</P>
 <P>In GlideinWMS, we enable the glideins to update the user collector using TCP by default.
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See 
-<A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">Condor documentation</A>
+<A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#networking-includes-sections-on-port-usage-and-ccb">Condor documentation</A>
  for more details.</P>
 </div>
 
@@ -1592,8 +1683,8 @@ export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 <H3 CLASS="western">
 <A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
 <P>As with any HTCondor pool, you may need to set the startd 
-<A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION00471400000000000000">start</A>
-and <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html#SECTION00471400000000000000">rank</A>
+<A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#the-start-expression">start</A>
+and <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#the-rank-expression">rank</A>
 conditions. <BR/>
 
 For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options: 
@@ -1789,7 +1880,7 @@ of time.
 <OL>
     <LI><P>After a specified amount of time,
     the glidein will enter the 
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_7Policy_Configuration.html">RETIRING state</A>. 
+    <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#machine-activities">RETIRING state</A>. 
     This means, it will wait for the current job to finish
     (or kill it if it does not end within a configurable timeout) and
     exit immediately afterwards. This obviously implies that no new jobs
@@ -1980,9 +2071,7 @@ daemons are started up.</P>
     <p>Path to the wrapper custom script.
     The script will be copied in
     the Web-accessible area, and will be sourced just before a user job
-    starts starts; i.e. it will become part of the 
-    <A HREF="https://research.cs.wisc.edu/htcondor/manual/v8.7.7/3_5Configuration_Macros.html">user job wrapper</A>.</P>
-    <LI>
+    starts; i.e. it will become part of the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Configuration%20Macros">user job wrapper</A>.</P>
 
         <div class="xml">
         &lt;glidein&gt;<BR/>

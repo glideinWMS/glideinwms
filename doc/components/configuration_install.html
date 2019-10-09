@@ -123,7 +123,6 @@ condor_location = %(install_dir)s/condor-wms
 collector_port = 9618
 number_of_schedds = 5
 
-privilege_separation = y
 frontend_users = frontend_service : vo_cms,
 
 ;--------------------------------------------------
@@ -230,7 +229,6 @@ service_name = wms_service
 condor_location = %(install_dir)s/condor-wms
 collector_port = 9618
 
-privilege_separation = y
 frontend_users = frontend_service : tony_xen_cms_frontend
 
 x509_cert = /etc/grid-security/glideincerts/cms-xen6glideinwmscollectorcert.pem
@@ -352,7 +350,6 @@ username = condoruser
 service_name = WMS_Collector
 condor_location = /home/condoruser/%(installation_version)s/glidecondor
 collector_port = 8618
-privilege_separation = y
 frontend_users = Frontend-v2_5_1-cmssrv99:test1user
 x509_cert = /etc/grid-security/cmssrv97condorcert.pem
 x509_key = /etc/grid-security/cmssrv97condorkey.pem
@@ -425,7 +422,6 @@ glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
 hostname = cmssrv97.fnal.gov
 collector_port =
 username =
-privilege_separation =
 condor_location =
 frontend_users =
 service_name =
@@ -485,7 +481,6 @@ glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
 
 hostname = cmssrv97.fnal.gov
 username =
-privilege_separation =
 condor_location =
 frontend_users =
 service_name =
@@ -550,7 +545,6 @@ service_name = WMS_Collector
 collector_port = 8618
 x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv97.fnal.gov
 username = condoruser
-privilege_separation = y
 frontend_users = Frontend-v2_5_1-cmssrv99:test1user
 condor_location =
 

@@ -920,6 +920,7 @@ class VarsDictFile(DictFile):
 
         return DictFile.add(self, key, val, allow_overwrite)
 
+    # valid types are "string", "expr" and "integer" (anything different from the first 2 strings is considered integer)
     def add_extended(self,key,
                      type,
                      val_default,  # None or False==No default (i.e. -)
@@ -1736,4 +1737,3 @@ def validate_node(nodestr, allow_range=False):
         raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
     # OK, all looks good
     return
-

@@ -84,10 +84,13 @@ def main(config_file):
         fc_list.append(factory_collector.attrib['node'])
     all_3_4_1 = True
     for fc in fc_list:
-        f_version = get_factory_version(fc)
-        if f_version.startswith("glideinWMS 3.4-") or f_version.startswith("glideinWMS 3.2") or f_version.startswith("glideinWMS 3.3"):
-            all_3_4_1 = False
-            break
+        try:
+            f_version = get_factory_version(fc)
+            if f_version.startswith("glideinWMS 3.4-") or f_version.startswith("glideinWMS 3.2") or f_version.startswith("glideinWMS 3.3"):
+                all_3_4_1 = False
+                break
+        except (IOError, IndexError, AttributeError):
+            mylog("WARNING: Unable to retrieve factory version for %s. Assuming it is compatible with all the options you use." % fc)
     if all_3_4_1:
         return "All connected Factories are at least v3.4.1"
     return check_config(root)
@@ -95,8 +98,8 @@ def main(config_file):
 
 if __name__ == '__main__':
     config_file = CONFIG_FILE
-    if len(sys.argv) == 1:
-        config_file = sys.argv[0]
+    if len(sys.argv) == 2:
+        config_file = sys.argv[1]
     try:
         msg = main(config_file)
     except RuntimeError as e:

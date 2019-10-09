@@ -363,3 +363,18 @@ def file_get_tmp(fname=None, tmp_type=None):
 
 # in classadSupport
 # def generate_classad_filename(prefix='gwms_classad'):
+
+def safe_boolcomp(value, expected):
+    """Safely do a boolean comparison.
+
+    This works even if the value you wantto compare is a string.
+
+    Args:
+        value: what you want to safely compare
+        expected (bool): What you want to compare `value` with
+
+    Returns:
+        bool: True if str(value).lower() is True
+    """
+
+    return str(value).lower() == str(expected).lower()

@@ -13,12 +13,15 @@ GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   Y   -
 GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   Y   -
 SINGULARITY_IMAGES_DICT                 S   -   +   N   Y   -
 GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
+SINGULARITY_MODE                        S   -   +   N   Y   -
+SINGULARITY_VERSION                     S   -   +   N   Y   -
 GLIDEIN_REQUIRED_OS         S   any             +   N   Y   -
 REQUIRED_OS                 S   any             +   N   Y   -
 GLIDEIN_DEBUG_OUTPUT        S   -               +   N   Y   -
 
 
 # User modifiable variables
+GLIDEIN_Custom_Start   C       True            +                               N       Y       -
 GLIDEIN_Start		C	True		+				N	N	-
 GLIDEIN_Hold		C	False		+				N	N	-
 GLIDEIN_PREEMPT		C	False		+				N	N	-
@@ -92,13 +95,15 @@ X509_EXPIRE		I	-		+				Y	N	-
 X509_CERT_DIR		C	-		GSI_DAEMON_TRUSTED_CA_DIR	Y	N	-
 X509_CONDORMAP		C	-		CERTIFICATE_MAPFILE		Y	N	-
 X509_GRIDMAP_DNS	S	-		GLIDEIN_X509_GRIDMAP_DNS	N	Y	-
-X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
+# commenting this out makes master daemon on glidein use mapfile instead of GSI_DAEMON_NAME
+# X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
 X509_SKIP_HOST_CHECK_DNS_REGEX	C	-	+				Y	N	-
 GLIDEIN_LOCAL_TMP_DIR   C       -               +                               Y       N       @
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 PUBLISH_OBITUARIES      C       False           +                               N       N       -
 SiteWMS_WN_Draining  C   False       +   N   Y   -
-SiteWMS_WN_Preempt C   False       +   N   Y   -
+SiteWMS_WN_Preempt  C   False       +   N   Y   -
+GLIDEIN_PROVIDES    S	-			+   N	Y	+
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
@@ -117,6 +122,7 @@ GLIDEIN_Resource_Slots  C   -       +               N   N   -
 # this will be used for MaxJobRetirementTime of the main startd
 PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
 GLIDEIN_CPUS		C	1		+				N	N	@ 
+GLIDEIN_NODES		C	1		+				N	N	@
 HOLD_GRACE_TIME 	I	0	        +				N	Y	+
 
 
