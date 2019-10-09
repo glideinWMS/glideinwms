@@ -1,6 +1,6 @@
 ---
 # GlideinWMS release notes ordered by release version
-# Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing ine string) and NOTES
+# Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing one string) and NOTES
 # (NOTE: dictionaries containing one string)
 
 #         <b>v3_5_1</b> released on September 18, 2019 (<a href="http://glideinwms.fnal.gov/doc.v3_5_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_5_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_5_1.tgz">Tarball</a>)<br>

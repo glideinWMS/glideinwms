@@ -8,8 +8,8 @@ v3_5_1:
   - Updated SW and docs for the change in OSG factories
   - Updated all the obsolete links to HTCondor manual in GlideinWMS website
   - Set up an ITB Frontend for GWMS and FIFE testing
-  - Updated gitattributes to resolve conflicts w/ checksum files
-  - Added editorconfig and default encoding
+  - Updated gitattributes file to resolve conflicts w/ checksum files
+  - Added editorconfig file and default encoding
   - 'GlideinWMS code will use now Google docstring format '
   - Advertise if a Glidein can use privileged or unprivileged Singularity
   - Check if single user factory migration script has been run before startup
@@ -89,7 +89,7 @@ v3_4_3:
   - glidein_config parsing cutting the results at the first space
   - shell scripts improvements (condition smart_partionable.sh, variable splitting)
   - Frontend upgrade is failing if it is unable to determine the version of the Factory
-  - Avoid glideFactoryEntryGroup processe leaks
+  - Avoid glideFactoryEntryGroup processes leaks
   - Stale running and held glidein numbers reported in factory classads
   - Update documentation about ports requirement for Frontend's submit host
   - The factory seems to ignore the configuration values in the files in the config.d
@@ -147,11 +147,11 @@ v3_4:
   - Estimate the cores provided to glideins running on an entry
   - Write LogCompletedStats jsons for monitoring purposes
   - Add entry monitoring breakdown for metasites
-  - Code modernization to Python 2.6/2.7 stansards (futurize stage 1 compliant)
+  - Code modernization to Python 2.6/2.7 standards (futurize stage 1 compliant)
   - Increased testing (more than doubled unit tests coverage and testing more files
     w/ pylint)
   NOTE:
-  - The type of the GLIDEIN_CPU attr is String (to accomodate the keywords auto, slot,
+  - The type of the GLIDEIN_CPU attr is String (to accommodate the keywords auto, slot,
     node). Documentation was reporting Int incorrectly. Make sure your configuration
     uses the correct type or you may get a reconfig/upgrade error.
   - If you use HTCondor 8.7.2 or bigger with the GlideinWMS Factory, you must install
@@ -182,34 +182,27 @@ v3_3_1:
 v3_3:
   Bug fix:
   - 'Multiple credential (eg: vm_id+vm_type) definitions now work
-
     correctly'
-  - 'create_condor_tarball now also includes required globus libraries
-
-    from lib/condor that HTCondor loads at runtime'
+  - create_condor_tarball now also includes required globus libraries
+    from lib/condor that HTCondor loads at runtime
   Feature:
   - Includes all features and bug fixes released in v3_2_15
   - Support Google Compute Engine CE. Requires glidein cloud vm rpms v2+
   - Support native configuration of EC2 spot prices and AZ in the entry
   - Support frontend policies specified in external python file
-  - 'Support changes to VM ID and VM Type without need to reconfig/upgrade
-
-    frontend service'
+  - Support changes to VM ID and VM Type without need to reconfig/upgrade
+    frontend service
 
 v3_2_9:
   Bug fix:
-  - 'glideresource classads now contain appropriate monitoring
-
-    information'
-  - 'Fixed a bug where an unhandled exception would cause a
-
-    frontend to shutdown'
-  - 'Removed obsolute defult requirement for vanilla jobs in
-
+  - glideresource classads now contain appropriate monitoring
+    information
+  - Fixed a bug where an unhandled exception would cause a
+    frontend to shutdown
+  - 'Removed obsolete default requirement for vanilla jobs in
     user schedd''s config file'
-  - 'Glidein now works correctly when both grid/voms-proxy
-
-    commands are not available on the worker node'
+  - Glidein now works correctly when both grid/voms-proxy
+    commands are not available on the worker node
   - GlideinWMSVersion is now correctly reported in rpm distribution
   Feature:
   - VO Frontend supports a master-slave HA mode
@@ -221,49 +214,38 @@ v3_2_9:
 v3_2_8:
   Bug fix:
   - Glideins do not mail admins when HTCondor daemon crash
-  - 'Gridmanager log paths used by glidein/factory scheds are
-
-    now correctly expanded for different users'
-  - 'Factory and Frontend service start/stop exit codes now
-
-    confer to Linux standards'
-  - 'Fixed issue where work dir and vesioning in frontend config
-
-    would break the config in case of frontend rpms'
-  - 'Made improvements to the HTCondor configuration used by
-
-    factory rpm'
+  - Gridmanager log paths used by glidein/factory scheds are
+    now correctly expanded for different users
+  - Factory and Frontend service start/stop exit codes now
+    confer to Linux standards
+  - Fixed issue where work dir and versioning in frontend config
+    would break the config in case of frontend rpms
+  - Made improvements to the HTCondor configuration used by
+    factory rpm
   - 'There is no name collision for glideins when
-
     USE_PID_NAMESPACES is enabled in site''s HTCondor batch system'
-  - 'Factory does not leak file descriptors when HTCondor
-
-    commands using privilege separation fail'
+  - Factory does not leak file descriptors when HTCondor
+    commands using privilege separation fail
   Feature:
   - Added option to compress process logs in factory and frontend
-  - 'VO Frontend parameters are added to HTCondor config for ganglia
-
-    monitoring'
-  - 'CONDOR_VIEW_HOST is now set to localhost for factory collectors to
-
+  - VO Frontend parameters are added to HTCondor config for ganglia
+    monitoring
+  - CONDOR_VIEW_HOST is now set to localhost for factory collectors to
     minimize overhead in communication between primary and secondary
-
-    collectors'
+    collectors
   - Added failed glidein statistics to frontend monitoring
   - Added idle/running/total core statistics to frontend monitoring
   - "Added the support for HTCondor GANGLIAD monitoring \n(requires HTCondor 8.1 or\
     \ newer). If you have HTCondor 8.0.x or earlier\nyou must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,\n\
     otherwise your HTCondor will complain about an unsupported option\nand crash."
-  - 'USE_CCB is now enabled by default and this information is
-
-    advertised in the glidefactory classads'
+  - USE_CCB is now enabled by default and this information is
+    advertised in the glidefactory classads
   - Improved documentation
 
 v3_2_7_2:
   Bug fix:
-  - 'Set MASTER.USE_SHARED_PORT instead of USE_SHARED_PORT to
-
-    avoid secondary collectors using the shared port daemon'
+  - Set MASTER.USE_SHARED_PORT instead of USE_SHARED_PORT to
+    avoid secondary collectors using the shared port daemon
 
 v3_2_7_1:
   Feature:
@@ -271,44 +253,34 @@ v3_2_7_1:
 
 v3_2_7:
   Bug fix:
-  - 'Fixed an issue where a corrupted internal state file
-
-    would crash the factory'
+  - Fixed an issue where a corrupted internal state file
+    would crash the factory
   - KeyError in a match_expr is now correctly logged
   - proxy_url in an entry's config is now correctly used
-  - 'rrdtool commands are now used correctly when rrdtool
-
-    python library is not installed on the system'
-  - 'Error classads now correctly advertise all the relevant
-
-    attributes'
+  - rrdtool commands are now used correctly when rrdtool
+    python library is not installed on the system
+  - Error classads now correctly advertise all the relevant
+    attributes
   - glidein_off now correctly work with the HTCondor HA setup
-  - 'Internal security changes are now properly cleaned up
-
-    and applied in factory and frontend'
-  - 'Factory monitoring now correctly report UserRunning info
-
-    when frontend is configured with multiple credentials'
-  - 'Fixed an issue with the factory rpm installation in case
-
-    of privilege separation'
+  - Internal security changes are now properly cleaned up
+    and applied in factory and frontend
+  - Factory monitoring now correctly report UserRunning info
+    when frontend is configured with multiple credentials
+  - Fixed an issue with the factory rpm installation in case
+    of privilege separation
   - Secondary schedd for frontend is now disabled by default
-  - 'DAEMON_SHUTDOWN in glidein now uses idle timers that
-
-    are relative to change in the state'
+  - DAEMON_SHUTDOWN in glidein now uses idle timers that
+    are relative to change in the state
   - Factory rpm now properly pulls down dependencies
   - UpdateSequenceNumber for classads now update correctly
-  - 'Frontend now correctly provisions multicore glideins if
-
-    the GLIDEIN_CPUS is configured for the entry'
-  - 'GLIDEIN_MaxMemMBs_Estimate now takes GLIDEIN_CPUS in the
-
-    consideration'
+  - Frontend now correctly provisions multicore glideins if
+    the GLIDEIN_CPUS is configured for the entry
+  - GLIDEIN_MaxMemMBs_Estimate now takes GLIDEIN_CPUS in the
+    consideration
   Feature:
   - Glideins now support shared port
-  - 'Glideins now have an option to report monitoring info to a
-
-    different collector configured in the factory'
+  - Glideins now have an option to report monitoring info to a
+    different collector configured in the factory
   - Glideins now use local storage for its tmp internal operaations
   - Improved documentation
 
@@ -321,7 +293,6 @@ v3_2_6:
   Feature:
   - condor_chirp is now added to condor tarball used by glidein
   - 'Added support for submitting glideins to batch sites using BOSCO.
-
     Requires HTCondor v8.2.2+'
   - Added new tool to purge old glideins
   - Added periodic auto-update to Status Now monitoring pages
@@ -335,58 +306,44 @@ v3_2_5_1:
 
 v3_2_5:
   Bug fix:
-  - 'Fixed an issue when factory config with HTCondorCE attributes
-
-    would result in an invalid XML on reconfig'
-  - 'Fixed a bug where number of jobs run as reported by a
-
-    glidein was significantly scaled up'
-  - 'Fixed issues in frontend introduced in v3_2_4 where the
-
-    frontend would crash under certain conditions'
+  - Fixed an issue when factory config with HTCondorCE attributes
+    would result in an invalid XML on reconfig
+  - Fixed a bug where number of jobs run as reported by a
+    glidein was significantly scaled up
+  - Fixed issues in frontend introduced in v3_2_4 where the
+    frontend would crash under certain conditions
   - 'Frontend''s group logging and factory logging now
-
     correctly consider the backup_count when configured'
   - 'Frontend RPM now corectly creates frontend.xml config with
-
     default trust_domain=''grid'' for the credentials'
   - Fixed frontend performance issue introduced in v3.2.4
   Feature:
   - Improved Documentation
-  - 'Added administrative commands for frontend fetch_glidein_log,
-
-    glidein_off and enter_frontend_env'
+  - Added administrative commands for frontend fetch_glidein_log,
+    glidein_off and enter_frontend_env
   - Frontend now considers MAX_JOBS_RUNNING when requesting more glideins
-  - 'Frontend can now perform several tasks in parallel making it
-
-    more scalable'
-  - 'Frontend and Factory startup scripts are more consistent with each
-
-    other'
+  - Frontend can now perform several tasks in parallel making it
+    more scalable
+  - Frontend and Factory startup scripts are more consistent with each
+    other
 
 v3_2_4:
   Bug fix:
   - 'Factory & frontend operations like reconfig and upgrade now
-
     check if they are run by valid users'
   - Fixed partitioning of multi-core glideins
   - Fixed bug in factory/frontend stopping
   - 'Fixed several bugs in the /etc/init.d/gwms-factory script
-
     available through the RPM distribution'
-  - 'Fixed bug with the factory/frontend monitoring that resulted
-
+  - Fixed bug with the factory/frontend monitoring that resulted
     in significantly scaled up monitoring numbers when frontend used
-
-    multiple proxies'
+    multiple proxies
   - Factory now properly advertises entries in downtime
-  - 'GLIDEIN_Glexec_Use when defined in the group now correctly
-
-    overriddes the value defined in global scope'
+  - GLIDEIN_Glexec_Use when defined in the group now correctly
+    overriddes the value defined in global scope
   Feature:
   - Added support for HTCondor-CE attributes in the factory
   - 'Made several performance improvements to frontend. Frontend does
-
     several tasks in parallel to better utilize the CPU.'
   - Factory & frontend monitoring pages now use new javascriptrrd v1.1.0+
   - Factory monitoring now aggregates Log RRDs
@@ -397,40 +354,29 @@ v3_2_4:
 
 v3_2_3:
   Bug fix:
-  - 'Factory now correctly updates the renewed credentials it gets
-
-    from the Frontends'
-  - 'Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
-
-    VM_MAX_LIFETIME are now documented'
+  - Factory now correctly updates the renewed credentials it gets
+    from the Frontends
+  - Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
+    VM_MAX_LIFETIME are now documented
   - Partitionable slots now correctly evaluate daemon shutdown
   - Partitionable slots now correctly coalesce when the jobs finish
-  - 'For non-rpm installs, reconfiguring the factory from outside
-
-    the factory working directory now works correctly'
-  - 'Frontend with no credentials configured logs appropriate info
-
-    in the log files'
+  - For non-rpm installs, reconfiguring the factory from outside
+    the factory working directory now works correctly
+  - Frontend with no credentials configured logs appropriate info
+    in the log files
   - clone_glidein tool is now packaged with the factory rpm
   - Factory now correctly cleans up completed_jobs logs
   - Improved Frontend efficiency by reducing the calls to OpenSSL
   Feature:
-  - 'Glideins now have the ability to track the worker node batch slot.
-
+  - Glideins now have the ability to track the worker node batch slot.
     Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
-
     information is reported in the glidein''s STARTD classad and logged in
-
-    job''s log file written by HTCondor using classad variables
-
+    job's log file written by HTCondor using classad variables
     GLIDEIN_SiteWMS, GLIDEIN_SiteWMS_JOBID, GLIDEIN_SiteWMS_QUEUE and
-
-    GLIDEIN_SiteWMS_SLOT.'
-  - 'Number of rotated process_logs for factory and frontend process to
-
+    GLIDEIN_SiteWMS_SLOT.
+  - Number of rotated process_logs for factory and frontend process to
     keep can now be configured using backup_count configuration
-
-    attribute'
+    attribute
 
 v3_2_22_2:
   Bug fix:
@@ -1817,7 +1763,7 @@ v1_2_3:
   Feature:
   - Fix glexec handling in condor v7.0.3
   - Cut in half the number of condor_q's in the frontend.
-  - Minor monitoring twaeks.
+  - Minor monitoring tweaks.
   - Minor installation tweaks.
 
 v1_2_2:
@@ -1880,7 +1826,7 @@ v0_8:
   Feature:
   - Add support for multiple schedds
   - Add initial support for pseudo interactive monitoring
-  - Inproved Web monitoring
+  - Improved Web monitoring
   - Better documentation
   NOT BACKWARD COMPATIBLE:
   - Entry points need to be recreated.
@@ -1918,7 +1864,7 @@ v0_3:
   - Added support for GCB and gLExec
   - Better stability and logging.
   - Many bug fixes.
-  - Greately improved user documentation.
+  - Greatly improved user documentation.
   NOT BACKWARD COMPATIBLE:
   - Entry points need to be recreated.
 
