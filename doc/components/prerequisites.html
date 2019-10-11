@@ -268,13 +268,11 @@ Install as: various daemon users or as system rpms/packages
     </ul>
     <h3> Enabled HTTPS connections
     <p>
-       Make sure you install module_ssl to be able to use HTTPS connection for monitoring (it’s enabled by default). 
+        Make sure you install module_ssl to be able to use HTTPS connection for monitoring (it’s enabled by default). 
         <pre>
         yum install mod_ssl </pre>
 
         Why? Because Frontend and Factory use their web servers for the staging and monitoring pages. Staging continues to use HTTP (otherwise caching is not possible) but monitoring pages by default, uses HTTPS and this is why this module must be installed (Otherwise, you will get an error when starting the server). 
-        Once is installed, go to ssl.conf (usually in /etc/httpd/conf.d/ssl.conf) and commented the mod_ssl module as it’s already loaded by default in the gwms httpd configuration.
-
         Restart the webserver and you will see secure connection when accessing to the monitoring pages:
 
        <pre>
@@ -282,10 +280,10 @@ Install as: various daemon users or as system rpms/packages
         https://factory_host.fnal.gov/factory/monitor/
        </pre>
 
-       On the other hand, it’s possible to keep HTTP  for sites that desire so. If this is the case, the corresponding HTTP configuration should be manipulated. For that:
+       On the other hand, it’s possible to keep HTTP for sites that desire so. If this is the case, the corresponding HTTP configuration should be manipulated. For that:
 
     1. Go to /etc/httpd/conf.d/gwms-frontend/factory.conf
-    2. Comment or remove (in this case you might want to remove mod_ssl package too) 	   related to HTTPS
+    2. Comment or remove (in this case you might want to remove mod_ssl package too) related to HTTPS
     3. Restart httpd service
     </p>
     <p>
