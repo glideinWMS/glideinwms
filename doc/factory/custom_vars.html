@@ -909,6 +909,27 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
         <td> <b>Description</b> </td>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_DEBUG_OUTPUT</b> </td>
+
+        <TD> Str </TD>
+        <TD>
+            <P>If True enables debug output from the Glidein (more verbose messages). 
+	    The messages printed are affected also by GLIDEIN_DEBUG_OPTIONS.
+	    If not empty is considered True.
+            </P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_DEBUG_OPTIONS</b> </td>
+
+        <TD> Str </TD>
+        <TD>
+		<P>Comma separated list of keywords affecting Glidein debug. Possible options are:<br>
+		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper) 
+                </P>
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
 
         <TD> Int </TD>
