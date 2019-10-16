@@ -692,7 +692,7 @@ singularity_test_exec () {
         check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" cat /proc/self/uid_map |
                 sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g' | head -n1 | tr -s '[:blank:]' ','),"
     else
-        check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" env | gerp SINGULARITY_CONTAINER |
+        check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" env | grep SINGULARITY_CONTAINER |
                 sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g')"
     fi
     if [[ "$check_singularity" =~ $map_format_regex ]]; then
@@ -708,6 +708,8 @@ singularity_test_exec () {
     elif [[ "$check_singularity" = "SINGULARITY_CONTAINER="* ]]; then
         singularity_mode=privileged
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode), user namespaces not available"
+        echo "$singularity_mode"
+        true
     else
         # test failed
         [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed " ||
