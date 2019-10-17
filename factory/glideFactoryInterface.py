@@ -296,6 +296,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
         invalid_classad = False
 
         for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
+            # TODO: useless for, only one element
             plen = len(prefix)
             for attr in kel:
                 if attr in reserved_names:
