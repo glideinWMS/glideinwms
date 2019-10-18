@@ -66,7 +66,7 @@ export PATH=$PATH
 [[ -z "$glidein_config" ]] && [[ -e "$GWMS_THIS_SCRIPT_DIR/glidein_config" ]] &&
     glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
 
-# error_gen defined in singularity_lib.sh
+# error_gen defined also in singularity_lib.sh
 [[ -e "$glidein_config" ]] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 
@@ -248,13 +248,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
     fi
 
-    # Disabling outside LD_LIBRARY_PATH to avoid problems w/ different OS
-    # TODO: should also PATH be emptied? No known problems so far w/ PATH
-    if [[ -n "$LD_LIBRARY_PATH" ]]; then
-        echo "OSG Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
-        unset LD_LIBRARY_PATH
-    fi
-
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN
     singularity_update_path /srv "$@"
 
@@ -264,6 +257,19 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Run and log the Singularity command.
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
+
+    # Disabling outside LD_LIBRARY_PATH and PATH to avoid problems w/ different OS
+    if [[ -n "$LD_LIBRARY_PATH" ]]; then
+        info "OSG Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset LD_LIBRARY_PATH
+    fi
+    OLD_PATH=
+    if [[ -n "$PATH" ]]; then
+        OLD_PATH="$PATH"
+        info "OSG Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset PATH
+    fi
+
     if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
         # GWMS 3.4.5 or lower, no GWMS_SINGULARITY_GLOBAL_OPTS, no GWMS_SINGULARITY_LIB_VERSION
         singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
@@ -276,6 +282,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
+    [[ -n "$OLD_PATH" ]] && PATH="$OLD_PATH"
     exit_or_fallback "exec of singularity failed" $?
 }
 
@@ -344,7 +351,7 @@ fi
 # This section will be executed:
 # - in Singularity (if $GWMS_SINGULARITY_REEXEC not empty)
 # - if is OK to run w/o Singularity ( $HAS_SINGULARITY" not true OR $GWMS_SINGULARITY_PATH" empty )
-# - if setup or exec of singularity failed (it is possible to fall-back)
+# - if setup or exec of singularity failed (and it is possible to fall-back)
 #
 
 info_dbg "GWMS singularity wrapper, final setup."
