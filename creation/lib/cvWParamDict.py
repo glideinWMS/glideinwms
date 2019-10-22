@@ -4,9 +4,9 @@ from __future__ import print_function
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
-# Description: 
+# Description:
 #   Frontend creation module
 #   Classes and functions needed to handle dictionary files
 #   created out of the parameter object
@@ -51,7 +51,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True) # this one must be loaded before any tarball
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE, allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
-        
+
         # follow by the blacklist file
         file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
@@ -93,10 +93,10 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                 real_start_expr = start_expr
             # since I removed the attributes, roll back into the match.start_expr
             params.data['match']['start_expr'] = real_start_expr
-        
+
         self.dicts['consts'].add('GLIDECLIENT_Start', real_start_expr)
-        
-        # create GLIDEIN_Collector attribute 
+
+        # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
         # create GLIDEIN_CCB attribute only if CCBs list is in config file
         tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
@@ -178,7 +178,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         """
         if self.monitor_dir!=other.monitor_dir:
             print("WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
-        
+
         return cvWDictFile.frontendMainDicts.reuse(self, other)
 
     def save(self, set_readonly=True):
@@ -193,7 +193,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
             fobj.save(dir=self.monitor_jslibs_dir, save_only_if_changed=False)
@@ -281,7 +281,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                 real_start_expr=start_expr
             # since I removed the attributes, roll back into the match.start_expr
             sub_params.data['match']['start_expr'] = real_start_expr
-        
+
         self.dicts['consts'].add('GLIDECLIENT_Group_Start', real_start_expr)
 
         # derive attributes
@@ -328,7 +328,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_client_security(self):
         # create the real mapfiles
         cvWCreate.create_client_mapfile(os.path.join(self.work_dir, cvWConsts.GROUP_MAP_FILE),
@@ -344,7 +344,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                         self.client_security['pilot_DNs'])
         return
 
-        
+
 ################################################
 #
 # This Class contains both the main and
@@ -367,7 +367,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
     def populate(self,params=None):  # will update params (or self.params)
         if params is None:
             params = self.params
-        
+
         self.main_dicts.populate(params)
         self.active_sub_list = self.main_dicts.active_sub_list
 
@@ -380,7 +380,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
         if self.monitor_dir != other.monitor_dir:
             print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'" %
                   (self.monitor_dir, other.monitor_dir))
-        
+
         return cvWDictFile.frontendDicts.reuse(self, other)
 
     ###########
@@ -402,7 +402,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 ############################################################
 #
 # P R I V A T E - Do not use
-# 
+#
 ############################################################
 
 #######################
@@ -429,7 +429,7 @@ def validate_attribute(attr_name, attr_val):
 
 def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj = params.attrs[attr_name]
-    
+
     if attr_obj.value is None:
         raise RuntimeError("Attribute '%s' does not have a value: %s" % (attr_name, attr_obj))
 
@@ -489,7 +489,7 @@ def populate_frontend_descript(work_dir,
         if not os.path.isfile(params.security.classad_proxy):
             raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
         frontend_dict.add('ClassAdProxy', params.security.classad_proxy)
-        
+
         frontend_dict.add('SymKeyType', params.security.sym_key)
 
         active_sub_list[:]  # erase all
@@ -827,8 +827,10 @@ def validate_credential_type(cred_type):
     types_set = set(cred_type.split('+'))
     common_types = mutually_exclusive.intersection(types_set)
 
-    if len(common_types) > 1:
-        raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
+    # turn this off temporarily while we figure out how to include tokens
+    # in auth_file with grid_proxy
+    #if len(common_types) > 1:
+    #    raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
 
 
 #####################################################
@@ -910,9 +912,9 @@ def populate_gridmap(params, gridmap_dict):
 # Populate security values
 def populate_main_security(client_security, params):
     if params.security.proxy_DN is None:
-        raise RuntimeError("DN not defined for classad_proxy")    
+        raise RuntimeError("DN not defined for classad_proxy")
     client_security['proxy_DN']=params.security.proxy_DN
-    
+
     collector_dns=[]
     collector_nodes=[]
     for el in params.collectors:
@@ -940,7 +942,7 @@ def populate_group_security(client_security, params, sub_params):
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         factory_dns.append(dn)
     client_security['factory_DNs']=factory_dns
-    
+
     schedd_dns=[]
     for schedds in (params.match.job.schedds, sub_params.match.job.schedds):
       for el in schedds:
@@ -972,7 +974,7 @@ def populate_group_security(client_security, params, sub_params):
                     dn=x509Support.extract_DN(real_proxy_fname)
                     # don't worry about conflict... there is nothing wrong if the DN is listed twice
                     pilot_dns.append(dn)
-                
+
     client_security['pilot_DNs']=pilot_dns
 
 

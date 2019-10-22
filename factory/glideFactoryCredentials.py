@@ -6,10 +6,7 @@ Created on Jun 21, 2011
 from __future__ import absolute_import
 import os
 import re
-import sys
 import pwd
-import binascii
-import traceback
 import gzip
 import cStringIO
 import base64
@@ -95,7 +92,8 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     :param client_id: id used for tracking the submit credentials
     :param credential_data: the credentials to be advertised
     :param request_clientname: client name passed by frontend
-    :return:the credential file updated
+    :return: (full pathname of credential file, compressed_file)
+
     """
 
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
@@ -131,15 +129,15 @@ def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
     return data
 
 def process_global(classad, glidein_descript, frontend_descript):
-    # Factory public key must exist for decryption 
+    # Factory public key must exist for decryption
     pub_key_obj = glidein_descript.data['PubKeyObj']
     if pub_key_obj is None:
         raise CredentialError("Factory has no public key.  We cannot decrypt.")
+        
 
     try:
         # Get the frontend security name so that we can look up the username
         sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
-        
         request_clientname = classad['ClientName']
 
         # get all the credential ids by filtering keys by regex
@@ -149,7 +147,7 @@ def process_global(classad, glidein_descript, frontend_descript):
         for key in mkeys:
             prefix_len = len("GlideinEncParamSecurityClass")
             cred_id = key[prefix_len:]
-            
+            logSupport.log.debug("key=%s cred_id=%s"%(key,cred_id))
             cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
             security_class = sym_key_obj.decrypt_hex(classad[key])
             username = frontend_descript.get_username(frontend_sec_name, security_class)
@@ -157,7 +155,21 @@ def process_global(classad, glidein_descript, frontend_descript):
             msg = "updating credential for %s" % username
             logSupport.log.debug(msg)
 
-            update_credential_file(username, cred_id, cred_data, request_clientname)
+            crd, ccrd = update_credential_file(username, cred_id, cred_data, request_clientname)
+            #
+            # signal from security_class in config to create soft link to token
+            #
+            sec_class_name = sym_key_obj.decrypt_hex(classad["GlideinEncParamSecurityClass%s" % cred_id])
+            if sec_class_name.endswith("_token"):
+		pth = os.path.dirname(crd)
+                dst = os.path.join(pth, sec_class_name)
+                logSupport.log.debug("creating link from %s  to  %s" % (crd,dst))
+		if os.path.exists(dst):
+                    os.remove(dst)
+                os.symlink(crd,dst)
+                
+
+
     except:
         logSupport.log.debug("\nclassad %s\nfrontend_descript %s\npub_key_obj %s)" % (classad, frontend_descript, pub_key_obj))
         error_str = "Error occurred processing the globals classads."
@@ -210,7 +222,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     sym_key_obj = get_key_obj(pub_key_obj, classad)
     authenticated_identity = classad["AuthenticatedIdentity"]
 
-    # verify that the identity that the client claims to be is the identity that Condor thinks it is 
+    # verify that the identity that the client claims to be is the identity that Condor thinks it is
     try:
         enc_identity = sym_key_obj.decrypt_hex(classad['ReqEncIdentity'])
     except:
@@ -232,7 +244,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     # verify that the frontend is authorized to talk to the factory
     expected_identity = frontend_descript.get_identity(frontend_sec_name)
     if expected_identity is None:
-        error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name 
+        error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name
         raise CredentialError(error_str)
     if authenticated_identity != expected_identity:
         error_str = "This frontend Authenticated Identity, does not match the expected identity"
@@ -241,10 +253,10 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
     return sym_key_obj, frontend_sec_name
 
 
-def check_security_credentials(auth_method, params, client_int_name, entry_name):
+def check_security_credentials(auth_method, params, client_int_name, entry_name, allow_multi_auth=False):
     """
     Verify taht only credentials for the given auth method are in the params
-    
+
     @type auth_method: string
     @param auth_method: authentication method of an entry, defined in the config
     @type params: dictionary
@@ -253,6 +265,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     @param client_int_name: internal client name
     @type entry_name: string
     @param entry_name: name of the entry
+    @param allow_multi_auth: if True, allows more than one auth method ex: "grid_proxy+auth_file"
 
     @raise CredentialError: if the credentials in params don't match what is defined for the auth method
     """
@@ -261,6 +274,13 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     if not set(auth_method_list) & set(SUPPORTED_AUTH_METHODS):
         logSupport.log.warning("None of the supported auth methods %s in provided auth methods: %s" %
                                (SUPPORTED_AUTH_METHODS, auth_method_list))
+        return
+
+    if allow_multi_auth:
+        unsupported = set(auth_method_list) - set(SUPPORTED_AUTH_METHODS)
+        if unsupported:
+            logSupport.log.warning("auth methods %s from configured list %s are unsupported, is this a typo ?" %
+                                  (unsupported, auth_method_list))
         return
 
     params_keys = set(params.keys())
@@ -326,7 +346,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
                                       (client_int_name, entry_name))
-                    
+
         elif 'username_password' in auth_method_list:
             # Validate username and password keys were passed
             if not (('Username' in params) and ('Password' in params)):
@@ -339,13 +359,13 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
                                       (client_int_name, entry_name))
-    
+
         else:
             # should never get here, unsupported main authentication method is checked at the beginning
             raise CredentialError("Inconsistency between SUPPORTED_AUTH_METHODS and check_security_credentials")
 
     # No invalid credentials found
-    return 
+    return
 
 
 def compress_credential(credential_data):

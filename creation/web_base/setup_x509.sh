@@ -169,7 +169,8 @@ function copy_x509_proxy {
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY"
         exit 1
     fi
-
+    x_dir=$(dirname "$X509_USER_PROXY")
+    echo "debug x_dir=$x_dir"
     export X509_USER_PROXY="$local_proxy_dir/myproxy"
     # protect from strange sites (only the owner should only read) was: a-wx, go-r
     chmod 0400 "$X509_USER_PROXY"
@@ -180,6 +181,15 @@ function copy_x509_proxy {
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
     fi    
+    #if '_token' in trust_domain, copy any tokens over with x509_user_proxy
+    #trust_domain=$(grep '^GLIDEIN_TrustDomain ' "$glidein_config" | cut -d ' ' -f 2-)
+    #echo "debug trust_domain=$trust_domain"
+    #if echo $trust_domain | grep -q '_token$'; then
+    	for TK in "$x_dir/*_token" ; do
+      		echo "debug cp $TK $local_proxy_dir"
+      		cp $TK $local_proxy_dir
+    	done
+    #fi
 
     return 0
 }

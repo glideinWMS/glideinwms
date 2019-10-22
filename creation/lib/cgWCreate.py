@@ -22,6 +22,8 @@ from . import cgWDictFile
 
 
 ##############################
+
+
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
     try:
@@ -41,6 +43,8 @@ def create_condor_tar_fd(condor_base_dir):
             'lib/CondorJavaWrapper.class',
             'lib/scimark2lib.jar',
             'lib/condor',
+            'lib64/libSciTokens',
+            'lib64/libmunge.so.0.0.2',
         ]
         condor_opt_libexecs = [
             'libexec/glexec_starter_setup.sh',
@@ -105,6 +109,23 @@ def create_condor_tar_fd(condor_base_dir):
 
 
 ##########################################
+def get_factory_log_recipients(entry):
+    """ Read the log recipients specified by the Factory in its configuration
+
+    Args:
+        entry: dict-like object representing the entry configuration
+
+    Returns:
+        list: list contaning the URLs of the log servers, empty if none present
+    """
+    entr_attrs = entry.get_child_list(u'attrs')
+    for attr in entr_attrs:
+        if attr[u'name'] == 'LOG_RECIPIENTS_FACTORY':
+            return attr[u'value'].split()
+    return []
+
+
+##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate(self, exe_fname, entry_name, conf, entry):
@@ -134,6 +155,37 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         client_log_base_dir = conf.get_child(u'submit')[u'base_client_log_dir']
         submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
 
+        enc_input_files = []
+        trust_domain = entry[u'trust_domain']
+        if trust_domain.endswith('_token'):
+            base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
+            for root, dirs, files  in os.walk(base_client_proxies_dir):
+                for fname in files:
+                    if fname.endswith('_token'):
+                        pth = os.path.join(root,fname)
+                        enc_input_files.append(pth)
+                        self.add('environment', "AUTH_TOKEN=%s"%fname)
+            		    self.add('+AUTH_TOKEN', fname)
+                        break
+        # Folders and files of tokens for glidein logging authentication
+        # leos token stuff, left it in for now
+        token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
+        token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
+        token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
+        if os.path.exists(token_tgz_file):
+            enc_input_files.append(token_tgz_file)
+        url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
+        if os.path.exists(url_dirs_desc_file):
+            enc_input_files.append(url_dirs_desc_file)
+
+        # Get the list of log recipients specified from the Factory for this entry
+        factory_recipients = get_factory_log_recipients(entry)
+        frontend_recipients = []    # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
+        log_recipients = list(set(factory_recipients + frontend_recipients))
+        # TODO: must fix for 'batch' grid, because it already sets 'environment'
+        if len(log_recipients) > 0:
+            self.add('environment', '"LOG_RECIPIENTS=' + "'" + ' '.join(log_recipients) + "'" + '"')
+
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
         if gridtype.startswith('batch '):
@@ -162,15 +214,16 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
             self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
+            enc_input_files.append('$ENV(X509_USER_PROXY)')
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -197,7 +250,23 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name):
+    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None):
+    	"""
+        create a standard condor jdl file to submit to  OSG grid
+        Args:
+            rsl (str):
+            auth_method (str): grid_proxy, voms_proxy, key_pair, cert_pair, username_password,
+                               optionally with  +vm_type, +vm_id, and/or +project_id
+            grid_type (str): 'condor', 'cream', 'nordugrid_rsl' currently supported
+            entry_enabled (expr): if evaluates to False, does not write jdl
+            entry_name (str): factory entry name
+            enc_input_files (list or str): files to be appended to Transfer_input_files
+                                            and encrypt_input_files in the jdl
+        Returns:
+            None
+        Raises:
+            RunTimeError when jdl file should not be created
+   	 """
         if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
             raise RuntimeError(" The grid type '%s' is no longer supported. Review the attributes of the entry %s " % (gridtype, entry_name))
         elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
@@ -211,6 +280,21 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("copy_to_spool", "True")
 
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
+        if enc_input_files:
+            indata = None
+            #py2/3 compat
+            if 'basestring' not in globals():
+                basestring = str
+            if isinstance(enc_input_files, basestring):
+                indata = enc_input_files
+            else:
+                try:
+                    indata = ','.join(enc_input_files)
+                except TypeError:
+                    pass
+            if indata:
+                self.add("transfer_Input_files", indata)
+                self.add("encrypt_Input_files", indata)
 
         self.add("Transfer_Executable", "True")
         self.add("transfer_Output_files", "")
@@ -221,14 +305,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
-        input_files = []
-        encrypt_input_files = []
-
-        input_files.append('$ENV(X509_USER_PROXY)')
-        encrypt_input_files.append('$ENV(X509_USER_PROXY)')
         self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
-        self.add("transfer_Input_files", ','.join(input_files))
-        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
 
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
@@ -332,7 +409,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         # Remove file if already exists
         os.remove(os.path.join(work_dir, filename))
     copy_file(os.path.join(org_dir, filename), work_dir)
-    os.chmod(os.path.join(work_dir, filename), 0o555)
+    os.chmod(os.path.join(work_dir, filename), 0o755)
 
 def get_template(template_name, glideinWMS_dir):
     template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")

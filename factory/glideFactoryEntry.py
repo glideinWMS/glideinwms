@@ -14,13 +14,9 @@ import signal
 import os
 import os.path
 import sys
-import fcntl
 import traceback
-import time
 import string
-import math
 import copy
-import random
 import logging
 
 sys.path.append(os.path.join(sys.path[0], "../../"))
@@ -1058,8 +1054,12 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         # Check request has the required credentials and nothing else
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
+            # TODO allow_multi_auth=True should not be hardcoded, should come
+            # from the entry configuration - this is a hack to get things
+            # moving
             glideFactoryCredentials.check_security_credentials(
-                auth_method, decrypted_params, client_int_name, entry.name)
+                auth_method, decrypted_params, client_int_name,
+                entry.name, allow_multi_auth=True)
         except glideFactoryCredentials.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
@@ -1235,6 +1235,15 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if 'voms_attr' in auth_method:
             # TODO: PM: determine how to verify voms attribute on a proxy
             pass
+        if 'auth_file' in auth_method:
+            auth_file_id = decrypted_params.get('AuthFile')
+            if (auth_file_id and
+                not submit_credentials.add_security_credential(
+                    'AuthFile',
+                    '%s_%s' % (client_int_name, auth_file_id))):
+                entry.log.warning("Credential %s for the auth file is not safe for client %s, skipping request" %
+                                  (auth_file_id, client_int_name))
+                return return_dict
 
         # Determine identifier for file name and add to
         # credentials to be passed to submit

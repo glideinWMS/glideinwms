@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys
+import os
 import M2Crypto
 
 def extract_DN(fname):
@@ -22,8 +23,10 @@ def extract_DN(fname):
             old_data = data[:data_idx]
             data = data[data_idx:]
         except ValueError:
-            print("%s not a valid certificate file" % fname)
-            sys.exit(3)
+            # need to return without exiting to be able to store condor_tokens
+            # and SciTokens in  <credentials > in frontend.xml
+            print("%s not a valid certificate file, using filename as DN" % fname)
+            return str(os.path.basename(fname))
 
         m = M2Crypto.X509.load_cert_string(data)
         if m.check_ca():
