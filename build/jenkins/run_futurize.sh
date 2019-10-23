@@ -1,6 +1,14 @@
 #!/bin/bash
 
 
+find_aux () {
+    # $1 basename of the aux file
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return }
+    false
+}
+
+
 function help_msg {
   #filename="$(basename $0)"
   cat << EOF
@@ -95,21 +103,29 @@ echo ""
 # Setup the build environment
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
+export MYDIR=$(dirname $0)
 
-
-if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
-    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+if [ ! -d  "$GLIDEINWMS_SRC" ]; then
+    echo "ERROR: $GLIDEINWMS_SRC not found!"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
 
-if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+ultil_file=$(find_aux utils.sh)
+
+if [ ! -e  "$ultil_file" ]; then
+    echo "ERROR: $ultil_file not found!"
+    echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
     echo "exiting"
     exit 1
 fi
 
+if ! . "$ultil_file" ; then
+    echo "ERROR: $ultil_file contains errors!"
+    echo "exiting"
+    exit 1
+fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
@@ -202,8 +218,9 @@ process_branch () {
     fi
 
     # get list of python scripts without .py extension
+    magic_file=$(find_aux gwms_magic)
     FILE_MAGIC=
-    [ -e  "$GLIDEINWMS_SRC"/build/jenkins/gwms_magic ] && FILE_MAGIC='-m "$GLIDEINWMS_SRC"/build/jenkins/gwms_magic'
+    [ -e  "$magic_file" ] && FILE_MAGIC='-m "$magic_file"'
     scripts=$(find .  -path .git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     if [ -n "$SEQUENTIAL" ]; then
         OUTPUT2=""
