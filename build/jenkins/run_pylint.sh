@@ -139,9 +139,11 @@ process_branch() {
 
     # get list of python scripts without .py extension
     magic_file=$(find_aux gwms_magic)
-    FILE_MAGIC=
-    [ -e  "$magic_file" ] && FILE_MAGIC='-m "$magic_file"'
-    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    if [ -e  "$magic_file" ]; then
+        scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    else
+        scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    fi
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
       #can't seem to get --ignore or --ignore-modules to work, so do it this way
