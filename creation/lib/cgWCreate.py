@@ -165,7 +165,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                         pth = os.path.join(root,fname)
                         enc_input_files.append(pth)
                         self.add('environment', "AUTH_TOKEN=%s"%fname)
-            		    self.add('+AUTH_TOKEN', fname)
+                        self.add('+AUTH_TOKEN', fname)
                         break
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
@@ -251,7 +251,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name, enc_input_files=None):
-    	"""
+        """
         create a standard condor jdl file to submit to  OSG grid
         Args:
             rsl (str):
@@ -266,7 +266,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             None
         Raises:
             RunTimeError when jdl file should not be created
-   	 """
+        """
+
         if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
             raise RuntimeError(" The grid type '%s' is no longer supported. Review the attributes of the entry %s " % (gridtype, entry_name))
         elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
