@@ -70,7 +70,7 @@
 # https://sylabs.io/guides/3.3/user-guide/cli/singularity.html
 # https://sylabs.io/guides/3.3/user-guide/appendix.html
 
-OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
+OSG_SINGULARITY_BINARY_DEFAULT="${OSG_SINGULARITY_BINARY:-/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity}"
 
 # 0 = true
 # 1 = false
@@ -687,8 +687,14 @@ singularity_test_exec () {
     # if n1 is not 0, the it runs unprivileged as that user
     # if n1 is 0 but n2 not then it runs in fake-root mode (a special unprivileged mode in v3.3)
     local map_format_regex="^,[0-9]+,[0-9]+,"
-    local check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" cat /proc/self/uid_map |
-            sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g' | head -n1 | tr -s '[:blank:]' ','),"
+    local check_singularity
+    if [[ -e /proc/self/uid_map ]]; then
+        check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" cat /proc/self/uid_map |
+                sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g' | head -n1 | tr -s '[:blank:]' ','),"
+    else
+        check_singularity="$(singularity_exec_simple "$singularity_bin" "$singularity_image" env | grep SINGULARITY_CONTAINER |
+                sed -r -e 's/\x1b\[[0-9;]*m?//g' -e 's/\x1b[()][A-Z0-9]//g')"
+    fi
     if [[ "$check_singularity" =~ $map_format_regex ]]; then
         # singularity ran correctly
         local singularity_mode=unprivileged
@@ -698,7 +704,12 @@ singularity_test_exec () {
         fi
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode)"
         echo "$singularity_mode"
-        true
+        # true - not needed echo returns true
+    elif [[ "$check_singularity" = "SINGULARITY_CONTAINER="* ]]; then
+        singularity_mode=privileged
+        info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode), user namespaces not available"
+        echo "$singularity_mode"
+        # true - not needed echo returns true
     else
         # test failed
         [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed " ||
@@ -775,7 +786,7 @@ singularity_test_bin () {
         if sin_type=$(singularity_test_exec "$sin_image" "$sin_path"); then
             bread_crumbs+="TT"
         else
-            bread_crumbs+="TF"
+            bread_crumbs+="TF($sin_version)"
             echo "$bread_crumbs"
             false
             return
@@ -813,6 +824,7 @@ singularity_locate_bin () {
     if [[ -n "$s_location" ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
+        [[ "$s_location" == OSG ]] && s_location="$OSG_SINGULARITY_BINARY_DEFAULT"
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
@@ -826,11 +838,11 @@ singularity_locate_bin () {
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
-        # 2. Look in $PATH
-        # 3. Look in the default OSG location
+        # 2. Look in the default OSG location
+        # 3. Look in $PATH
         # 4. Invoke module
         #    some sites requires us to do a module load first - not sure if we always want to do that
-        for attempt in "PATH,singularity" "OSG,$OSG_SINGULARITY_BINARY_DEFAULT" "module"; do
+        for attempt in "OSG,$OSG_SINGULARITY_BINARY_DEFAULT" "PATH,singularity" "module"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
@@ -1015,17 +1027,18 @@ singularity_check () {
     # Return true (0) if in Singularity false (1) otherwise
     # Echo to stdout a string with the status:
     # - EMPTY if not in singularity
-    # - yes is SINGULARITY_NAME or GWMS_SINGULARITY_REEXEC are defined
+    # - yes is SINGULARITY_CONTAINER or GWMS_SINGULARITY_REEXEC are defined
     # - likely if SINGULARITY_NAME is not defined but process 1 is shim-init or sinit
     # - appends _privileged to yes or likely if singularity is running in privileged mode
     # - appends _fakeroot  to yes or likely if singularity is running in unprivileged fake-root mode
-    # In Singularity SINGULARITY_NAME and SINGULARITY_CONTAINER are defined
+    # - appends _nousernamespaces to yes or likely there is no user namespace info (singularity is running in privileged mode)
+    # In Singularity SINGULARITY_NAME and SINGULARITY_CONTAINER are defined (in v=2.2.1 only SINGULARITY_CONTAINER)
     # In the default GWMS wrapper GWMS_SINGULARITY_REEXEC=1
     # The process 1 in singularity is called init-shim (v>=2.6), or sinit (v>=3.2), not init
     # If the parent is 1 and is not init could be also Docker or other containers, so the check was removed
     #   even if it could be also Singularity
     local in_singularity=
-    [[ -n "$SINGULARITY_NAME" ]] && in_singularity=yes
+    [[ -n "$SINGULARITY_CONTAINER" ]] && in_singularity=yes
     [[ -z "$in_singularity" && -n "$GWMS_SINGULARITY_REEXEC" ]] && in_singularity=yes
     [[ -z "$in_singularity" && "x`ps -p1 -ocomm=`" = "xshim-init" ]] && in_singularity=likely
     [[ -z "$in_singularity" && "x`ps -p1 -ocomm=`" = "xsinit" ]] && in_singularity=likely
@@ -1034,9 +1047,13 @@ singularity_check () {
     # It is in Singularity
     # Test for privileged singularity suggested by D.Dykstra
     # singularity exec -c -i -p ~/work/singularity/cvmfs-fuse3 cat /proc/self/uid_map 2>/dev/null|awk '{if ($2 == "0") print "privileged"; else print "unprivileged"; gotone=1;exit} END{if (gotone != 1) print "failed"}'
-    local check_privileged="$(cat /proc/self/uid_map 2>/dev/null | head -n1 | tr -s '[:blank:]' ','),"
-    if [[ "$check_privileged" = ,0,* ]]; then
-        [[ "$check_privileged" = ,0,0,* ]] && in_singularity=${in_singularity}_privileged || in_singularity=${in_singularity}_fakeroot
+    if [[ -e /proc/self/uid_map ]]; then
+        local check_privileged="$(cat /proc/self/uid_map 2>/dev/null | head -n1 | tr -s '[:blank:]' ','),"
+        if [[ "$check_privileged" = ,0,* ]]; then
+            [[ "$check_privileged" = ,0,0,* ]] && in_singularity=${in_singularity}_privileged || in_singularity=${in_singularity}_fakeroot
+        fi
+    else
+        in_singularity=${in_singularity}_nousernamespaces
     fi
     echo ${in_singularity}
     # echo will not fail, returning 0 (true)
