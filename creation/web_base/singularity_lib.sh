@@ -704,12 +704,12 @@ singularity_test_exec () {
         fi
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode)"
         echo "$singularity_mode"
-        true
+        # true - not needed echo returns true
     elif [[ "$check_singularity" = "SINGULARITY_CONTAINER="* ]]; then
         singularity_mode=privileged
         info "Singularity at '$singularity_bin' appears to work ($singularity_mode mode), user namespaces not available"
         echo "$singularity_mode"
-        true
+        # true - not needed echo returns true
     else
         # test failed
         [[ "$check_singularity" = ',' ]] && info "Singularity at $singularity_bin failed " ||
