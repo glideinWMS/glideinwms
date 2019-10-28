@@ -19,6 +19,7 @@ GWMS_VERSION_SINGULARITY_WRAPPER=20190801
 
 # To avoid GWMS debug and info messages in the job stdout/err (unless userjob option is set)
 [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,userjob,* ]] && GLIDEIN_QUIET=True
+[[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nowait,* ]] && EXITSLEEP=2m  # leave 2min to update classad
 
 # When failing we need to tell HTCondor to put the job back in the queue by creating
 # a file in the PATH pointed by $_CONDOR_WRAPPER_ERROR_FILE
@@ -31,19 +32,35 @@ exit_wrapper () {
     #  1: Error message
     #  2: Exit code (1 by default)
     #  3: sleep time (default: $EXITSLEEP)
+    # The error is published to stderr, if available to $_CONDOR_WRAPPER_ERROR_FILE,
+    # if chirp available sets JobWrapperFailure
     [[ -n "$1" ]] && warn_raw "ERROR: $1"
     local exit_code=${2:-1}
+    local sleep_time=${3:-$EXITSLEEP}
+    local publish_fail
     # Publish the error so that HTCondor understands that is a wrapper error and retries the job
     if [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]]; then
         warn "Wrapper script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
         echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >> $_CONDOR_WRAPPER_ERROR_FILE
+    else
+        publish_fail="HTCondor error file"
     fi
+    # also chirp
+    if [[ -e ../../main/condor/libexec/condor_chirp ]]; then
+        ../../main/condor/libexec/condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1"
+    else
+        [[ -n "$publish_fail" ]] && publish_fail="${publish_fail} and "
+        publish_fail="${publish_fail}condor_chirp"
+    fi
+
+    [[ -n "$publish_fail" ]] && warn "Failed to communicate ERROR with ${publish_fail}"
+
     #  TODO: Add termination stamp? see OSG
     #              touch ../../.stop-glidein.stamp >/dev/null 2>&1
     # Eventually the periodic validation of singularity will make the pilot
     # to stop matching new payloads
     # Prevent a black hole by sleeping EXITSLEEP (10) minutes before exiting. Sleep time can be changed on top of this file
-    sleep $EXITSLEEP
+    sleep $sleep_time
     exit $exit_code
 }
 
@@ -60,7 +77,7 @@ export PATH=$PATH
 [[ -z "$glidein_config" ]] && [[ -e "$GWMS_THIS_SCRIPT_DIR/glidein_config" ]] &&
     glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
 
-# error_gen defined in singularity_lib.sh
+# error_gen defined also in singularity_lib.sh
 [[ -e "$glidein_config" ]] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 
@@ -236,7 +253,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to somewhere inside that dir (for example, X509_USER_PROXY)
-    if [[ "x$_CONDOR_JOB_IWD" != "x" ]]; then
+    if [[ -n "$_CONDOR_JOB_IWD" ]]; then
         export GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
     else
         export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
@@ -251,6 +268,19 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Run and log the Singularity command.
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
+
+    # Disabling outside LD_LIBRARY_PATH and PATH to avoid problems w/ different OS
+    if [[ -n "$LD_LIBRARY_PATH" ]]; then
+        info "OSG Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset LD_LIBRARY_PATH
+    fi
+    OLD_PATH=
+    if [[ -n "$PATH" ]]; then
+        OLD_PATH="$PATH"
+        info "OSG Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset PATH
+    fi
+
     if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
         # GWMS 3.4.5 or lower, no GWMS_SINGULARITY_GLOBAL_OPTS, no GWMS_SINGULARITY_LIB_VERSION
         singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
@@ -263,6 +293,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
+    [[ -n "$OLD_PATH" ]] && PATH="$OLD_PATH"
     exit_or_fallback "exec of singularity failed" $?
 }
 
@@ -331,7 +362,7 @@ fi
 # This section will be executed:
 # - in Singularity (if $GWMS_SINGULARITY_REEXEC not empty)
 # - if is OK to run w/o Singularity ( $HAS_SINGULARITY" not true OR $GWMS_SINGULARITY_PATH" empty )
-# - if setup or exec of singularity failed (it is possible to fall-back)
+# - if setup or exec of singularity failed (and it is possible to fall-back)
 #
 
 info_dbg "GWMS singularity wrapper, final setup."
