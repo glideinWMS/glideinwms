@@ -32,24 +32,35 @@ exit_wrapper () {
     #  1: Error message
     #  2: Exit code (1 by default)
     #  3: sleep time (default: $EXITSLEEP)
+    # The error is published to stderr, if available to $_CONDOR_WRAPPER_ERROR_FILE,
+    # if chirp available sets JobWrapperFailure
     [[ -n "$1" ]] && warn_raw "ERROR: $1"
     local exit_code=${2:-1}
+    local sleep_time=${3:-$EXITSLEEP}
+    local publish_fail
     # Publish the error so that HTCondor understands that is a wrapper error and retries the job
     if [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]]; then
         warn "Wrapper script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
         echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >> $_CONDOR_WRAPPER_ERROR_FILE
+    else
+        publish_fail="HTCondor error file"
     fi
     # also chirp
     if [[ -e ../../main/condor/libexec/condor_chirp ]]; then
         ../../main/condor/libexec/condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1"
+    else
+        [[ -n "$publish_fail" ]] && publish_fail="${publish_fail} and "
+        publish_fail="${publish_fail}condor_chirp"
     fi
+
+    [[ -n "$publish_fail" ]] && warn "Failed to communicate ERROR with ${publish_fail}"
 
     #  TODO: Add termination stamp? see OSG
     #              touch ../../.stop-glidein.stamp >/dev/null 2>&1
     # Eventually the periodic validation of singularity will make the pilot
     # to stop matching new payloads
     # Prevent a black hole by sleeping EXITSLEEP (10) minutes before exiting. Sleep time can be changed on top of this file
-    sleep $EXITSLEEP
+    sleep $sleep_time
     exit $exit_code
 }
 
