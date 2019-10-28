@@ -391,10 +391,14 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
             export       condor_vars_file="`grep -i "^CONDOR_VARS_FILE "    $glidein_config | cut -d ' ' -f 2-`"
         fi
 
-        info "Sourcing add config line: $add_config_line_source"
-        source "$add_config_line_source"
-        # make sure we don't source a second time inside the container
-        export SOURCED_ADD_CONFIG_LINE=1
+        if [[ -e "$add_config_line_source" ]]; then
+            info "Sourcing add config line: $add_config_line_source"
+            . "$add_config_line_source"
+            # make sure we don't source a second time inside the container
+            export SOURCED_ADD_CONFIG_LINE=1
+        else
+            warn "glidein_config defined but add_config_line ($add_config_line_source) not available. Some functions like advertise will be limited."
+        fi
     fi
 else
     # glidein_config not available
@@ -1118,7 +1122,13 @@ setup_classad_variables () {
     export POSIXSTASHCACHE=$(get_prop_bool $_CONDOR_JOB_AD WantsPosixStashCache 0)
     # OSG Modules
     export MODULE_USE=$(get_prop_str $_CONDOR_JOB_AD MODULE_USE 1)
-    export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 1)
+    # Don't load modules for LIGO
+    if (echo "X$GLIDEIN_Client" | grep ligo) >/dev/null 2>&1; then
+        export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 0)
+    else
+        export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 1)
+    fi
+
     export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)   # List of modules to load
     export LMOD_BETA=$(get_prop_bool $_CONDOR_JOB_AD LMOD_BETA 0)
 
