@@ -230,10 +230,10 @@ esac
 # So, if a VO wants to have their own _new_pre_singularity_setup.sh, they must copy and modify
 # generic_pre_singularity_setup.sh and also must put their default singularity images 
 # under /cvmfs/singularity.opensciencegrid.org
-SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' $glidein_config | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' $glidein_config | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' $glidein_config | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' "$glidein_config" | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' "$glidein_config" | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' "$glidein_config" | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config" | cut -d ' ' -f 2-`"
 
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
@@ -259,6 +259,7 @@ export GWMS_SINGULARITY_IMAGE
 info_stdout "`date` Searching and testing the singularity binary"
 
 # Look for binary and adapt if missing
+OSG_SINGULARITY_BINARY="`grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-`"
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
 singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 
