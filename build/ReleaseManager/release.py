@@ -1,12 +1,13 @@
 #!/usr/bin/python -B
 
+from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import os
-import getopt
+# not used - import getopt
 import optparse
 
-import ReleaseManagerLib
+from glideinwms.build.ReleaseManager import ReleaseManagerLib
 
 
 def manager_version():

@@ -1,9 +1,12 @@
 #!/usr/bin/python -B
 
+from __future__ import absolute_import
 from __future__ import print_function
-import os, sys
-import subprocess, shlex
-import traceback
+import os
+import sys
+import subprocess
+# not used - import shlex
+# not used - import traceback
 import string
 import shutil
 import platform
