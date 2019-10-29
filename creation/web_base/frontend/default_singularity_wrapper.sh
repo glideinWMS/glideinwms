@@ -5,7 +5,7 @@ EXITSLEEP=10m
 GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
-GWMS_VERSION_SINGULARITY_WRAPPER=20190801
+GWMS_VERSION_SINGULARITY_WRAPPER=20191029
 # Updated using OSG wrapper #394b564
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
 
