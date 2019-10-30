@@ -78,6 +78,7 @@ vofrontend install (userschedd, submit, vofrontend).
 Summary:        The VOFrontend for glideinWMS submission host
 Group:          System Environment/Daemons
 Requires: httpd
+Requires: mod_ssl
 Requires: condor >= 8.4.0
 Requires: python-rrdtool
 Requires: m2crypto
@@ -174,6 +175,7 @@ Summary:        The Factory for glideinWMS
 Group:          System Environment/Daemons
 Provides:       GlideinWMSFactory = %{version}-%{release}
 Requires: httpd
+Requires: mod_ssl
 Requires: glideinwms-factory-condor = %{version}-%{release}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
@@ -924,7 +926,7 @@ rm -rf $RPM_BUILD_ROOT
 - Glideinwms v3.2.22
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_22/history.html
 - Release candidates: 3.2.22-0.1.rc1 to 3.2.22-0.2.rc2
- 
+
 * Tue Feb 27 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-2
 - Fixed a problem with proxy outo-renewal, see [19147]
 
