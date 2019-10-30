@@ -7,7 +7,7 @@ import os
 # not used - import getopt
 import optparse
 
-from glideinwms.build.ReleaseManager import ReleaseManagerLib
+from . import ReleaseManagerLib
 
 
 def manager_version():
