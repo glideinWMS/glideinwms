@@ -15,52 +15,17 @@ Alias /vofrontend /var/lib/gwms-frontend/web-area
     Options -Indexes
 </Directory>
 
-# HTTPS configuration part.If HTTP is desired, comment the following block
-# Note:module_ssl must be installed
-<VirtualHost *:443>
-    LogLevel warn
-    SSLEngine On
-    SSLCertificateFile /etc/grid-security/hostcert.pem
-    SSLCertificateKeyFile /etc/grid-security/hostkey.pem
-    SSLCACertificatePath /etc/grid-security/certificates
-</VirtualHost>
-<VirtualHost *:80>
-    LogLevel warn
-    <IfModule mod_authz_core.c>
-        # Apache 2.4
-        RewriteEngine On
-        NameVirtualHost *:80
-        #Remove trailing slash from non-filepath urls
-        RewriteCond %{REQUEST_URI} /(.+)/$
-        RewriteCond %{REQUEST_FILENAME} !-d
+# HTTPS redirect part. Note:module_ssl must be installed
+# and ssl.conf correctly configured.
+# If HTTP only is desired, comment the # Force https block 
 
-        # Include trailing slash on directory
-        RewriteCond %{REQUEST_URI} !(.+)/$
-        RewriteCond %{REQUEST_FILENAME} -d
-        RewriteRule ^/vofrontend/monitor(.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+RewriteEngine On
 
-        # Force HTTPS
-        RewriteCond %{HTTP_HOST} https://%{HTTP_HOST}%{REQUEST_URI} [OR,NC]
-        RewriteCond %{HTTPS} off
-        RewriteRule ^/vofrontend/monitor(.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        # Apache 2.2
-        RewriteEngine On
-        NameVirtualHost *:443
-        #Remove trailing slash from non-filepath-url
-        RewriteCond %{REQUEST_URI} /(.+)/$
-        RewriteCond %{REQUEST_FILENAME} !-d
+# Force https FOR MONITOR ONLY, NOT FOR STAGE
+RewriteCond %{HTTPS} off
+RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$
+RewriteRule ^(.+)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-        # Include trailing slash on directory
-        RewriteCond %{REQUEST_URI} !(.+)/$
-        RewriteCond %{REQUEST_FILENAME} -d
-        RewriteRule ^/vofrontend/monitor(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-        # Force HTTPS
-        RewriteCond %{HTTP_HOST} https://%{HTTP_HOST}%{REQUEST_URI} [OR,NC]
-        RewriteCond %{HTTPS} off
-        RewriteRule ^/vofrontend/monitor(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-    </IfModule>
-</VirtualHost>
-# End of HTTPS configuration
+
+
