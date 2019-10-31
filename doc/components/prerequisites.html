@@ -232,8 +232,7 @@ Install as: various daemon users or as system rpms/packages
     You will need to install an HTTP server for GlideinWMS to be used for staging and monitoring.  This needs to be installed on a port
     accessible to the outside.
     The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.
-    In particular, the staging directory will need to be accessible
-    to glideins so they can download appropriate software.
+    In particular, the staging directory will need to be accessible to glideins so they can download appropriate software.
     </p>
     <p>
         The choice of web server is independent of GlideinWMS, but this documentation will only
@@ -267,10 +266,10 @@ Install as: various daemon users or as system rpms/packages
             directories.</li>
             <li> Enable HTTPS connections for monitor pages.
              <ul>
-               <li>If https is enabled on the factory/fronted web server http: connections to
-                 the /monitor pages will redirect to https:. If https is not enabled, the /monitor pages behave as they did previously.
+               <li>If HTTPS is enabled on the Factory/Frontend web server "http:" connections to
+                 the /monitor pages will redirect to "https:". If HTTPs is not enabled, the /monitor pages behave as they did previously.
                  <li>The /stage pages are intended to be cached and will never be redirected.
-                 <li>If for some reason https is enabled and https redirection
+                 <li>If for some reason https is enabled and HTTPS redirection
                  of monitor pages is not desired the
                  appropriate block of /etc/httpd/conf.d/gwms-(factory|frontend).conf
                  may be commented out.

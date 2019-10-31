@@ -15,22 +15,20 @@ Alias /vofrontend /var/lib/gwms-frontend/web-area
     Options -Indexes
 </Directory>
 
-#comment the following line to turn off https redirect
+# Comment the following line to turn off https redirect
 RewriteEngine On
 #=========================
-# is it an http request?
+# Is it an http request?
 RewriteCond %{HTTPS} off
 #=========================
-# is mod_ssl available? 
-# <ifModule mod_ssl.c> unreliable as it 
-# depends on loading order
-# of files in /etc/httpd/conf.d
+# Is mod_ssl available? 
+# <ifModule mod_ssl.c> unreliable as it depends on loading order of files in /etc/httpd/conf.d
 # https://stackoverflow.com/questions/46819390/
 # apache-loads-mod-ssl-but-ifmodule-mod-ssl-c-ignored-in-my-vhosts
 RewriteCond /usr/lib64/httpd/modules/mod_ssl.so -f
 #=========================
-# does the URL go to a monitor page?
+# Does the URL go to a monitor page?
 RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$
 #=========================
-#if all the above true, rewrite!
+# If all the above true, rewrite!
 RewriteRule ^(.+)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
