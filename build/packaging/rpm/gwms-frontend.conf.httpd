@@ -4,32 +4,21 @@
 Alias /vofrontend /var/lib/gwms-frontend/web-area
 <Directory /var/lib/gwms-frontend/web-area>
     <IfModule mod_authz_core.c>
-        # Apache 2.4 
+        # Apache 2.4
         Require all granted
-    </IfModule> 
-    <IfModule !mod_authz_core.c> 
+    </IfModule>
+    <IfModule !mod_authz_core.c>
         # Apache 2.2
         Order allow,deny
         Allow from all
-    </IfModule> 
+    </IfModule>
     Options -Indexes
 </Directory>
 
-# HTTPS configuration part. Note:module_ssl must be installed
-# and ssl.conf configured correctly
-# If HTTP only is desired, comment the # Force https block
+# Force monitor pages to use https if available
 
 <IfModule mod_ssl.c>
-    #Apache 2.4
-    RewriteEngine On
-
-    # Force https FOR MONITOR ONLY, NOT FOR STAGE
-    RewriteCond %{HTTPS} off
-    RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$
-    RewriteRule ^(.+)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-</IfModule>
-<IfModule !mod_ssl.c>
-    #Apache 2.2
+    # i.e, if ssl available
     RewriteEngine On
 
     # Force https FOR MONITOR ONLY, NOT FOR STAGE
