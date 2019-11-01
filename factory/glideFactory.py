@@ -30,6 +30,8 @@ import logging
 import math
 # from datetime import datetime
 
+from M2Crypto.RSA import RSAError
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
@@ -745,6 +747,19 @@ def main(startup_dir):
             glideinDescript.load_pub_key(recreate=False)
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
+    except RSAError as e:
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
+        key_fname = getattr(e, 'key_fname', None)
+        cwd = getattr(e, 'cwd', None)
+        if key_fname and cwd:
+            logSupport.log.error("Failed to load RSA key %s with current working direcotry %s", key_fname, cwd)
+            logSupport.log.error("If you think the rsa key might be corrupted, try to remove it, and then reconfigure the factory to recreate it")
+        raise
+    except IOError as ioe:
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
+        if ioe.filename == 'rsa.key' and ioe.errno == 2:
+             logSupport.log.error("Missing rsa.key file. Please, reconfigure the factory to recreate it")
+        raise
     except:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
