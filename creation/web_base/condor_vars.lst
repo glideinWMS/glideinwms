@@ -12,6 +12,7 @@ GLIDEIN_Singularity_Use     S   DISABLE_GWMS    +   N   Y   -
 GLIDEIN_SINGULARITY_BINDPATH            S   -   +   N   Y   -
 GLIDEIN_SINGULARITY_BINDPATH_DEFAULT    S   -   +   N   Y   -
 SINGULARITY_IMAGES_DICT                 S   -   +   N   Y   -
+SINGULARITY_IMAGES_DICT                 S   -   +   N   Y   -
 GLIDEIN_SINGULARITY_OPTS                S   -   +   N   Y   -
 SINGULARITY_MODE                        S   -   +   N   Y   -
 SINGULARITY_VERSION                     S   -   +   N   Y   -
