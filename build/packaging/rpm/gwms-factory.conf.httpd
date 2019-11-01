@@ -1,6 +1,5 @@
 # This is the httpd conf file
-# GlideinWMS VOFrontend web configuration
-
+# GlideinWMS Factory web configuration
 Alias /factory /var/lib/gwms-factory/web-area
 <Directory /var/lib/gwms-factory/web-area>
     <IfModule mod_authz_core.c>
@@ -14,4 +13,24 @@ Alias /factory /var/lib/gwms-factory/web-area
     </IfModule> 
     Options -Indexes
 </Directory>
+
+
+# Comment the following line to turn off https redirect
+RewriteEngine On
+#=========================
+# Is it an http request?
+RewriteCond %{HTTPS} off
+#=========================
+# Is mod_ssl available? 
+# <ifModule mod_ssl.c> unreliable as it depends on loading order of files in /etc/httpd/conf.d
+# https://stackoverflow.com/questions/46819390/
+# apache-loads-mod-ssl-but-ifmodule-mod-ssl-c-ignored-in-my-vhosts
+RewriteCond /usr/lib64/httpd/modules/mod_ssl.so -f
+#=========================
+# Does the URL go to a monitor page?
+RewriteCond %{REQUEST_URI} ^(.+)/monitor(.+)$
+#=========================
+# If all the above true, rewrite!
+RewriteRule ^(.+)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
 

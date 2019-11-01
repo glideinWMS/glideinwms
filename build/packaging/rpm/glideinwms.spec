@@ -929,7 +929,7 @@ rm -rf $RPM_BUILD_ROOT
 - Glideinwms v3.2.22
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_22/history.html
 - Release candidates: 3.2.22-0.1.rc1 to 3.2.22-0.2.rc2
- 
+
 * Tue Feb 27 2018 Marco Mambelli <marcom@fnal.gov> - 3.2.21-2
 - Fixed a problem with proxy outo-renewal, see [19147]
 
