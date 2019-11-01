@@ -4,8 +4,8 @@
 
 find_aux () {
     # $1 basename of the aux file
-    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return }
-    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return }
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
     false
 }
 
@@ -44,16 +44,16 @@ process_branch() {
     PYLINT_RCFILE=/dev/null
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
 
-    # Some of the options in the following section depend more on the pylint version 
+    # Some of the options in the following section depend more on the pylint version
     # than the Python version
     # Make sure to check and be consistent w/ the venv setup in util.sh
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # PYLINT_IGNORE_LIST files for python 2.6 here
-        # white-space seperated list of files to be skipped by pylint 
-        # --ignore-module/--ignore  is supposed to do this but doesn't 
+        # white-space seperated list of files to be skipped by pylint
+        # --ignore-module/--ignore  is supposed to do this but doesn't
         # seem to work.  After coding this I found that it is
         # not needed with careful use of --disable: directive but its
-        # here if needed in future 
+        # here if needed in future
         PYLINT_IGNORE_LIST=""
         # pylint directives added since v1.3.1 throw bad-option-value
         # errors unless disabled at command line
@@ -64,7 +64,7 @@ process_branch() {
         # unsubscriptable-object considered to be buggy in recent pylint relases
         PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
         # Starting pylint 1.4 external modules must be whitelisted
-        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"	
+        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"
     fi
 
     # pep8 related variables
@@ -84,7 +84,7 @@ process_branch() {
     # E265 block comment should start with '# '
 
     #PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
-    
+
     #uncomment or add lines to taste
     #see tail of pep8.log for counts of
     #various pep8 errors
@@ -134,7 +134,7 @@ process_branch() {
 
     #uncomment to see all pep8 errors
     #PEP8_OPTIONS=""
-    
+
 
 
     # get list of python scripts without .py extension
@@ -150,8 +150,8 @@ process_branch() {
       PYLINT_SKIP="False"
       for ignore in $PYLINT_IGNORE_LIST; do
           if [ "$ignore" = "$script" ] ; then
-             echo "pylint skipping $script" >>  "$pylint_log" 
-             PYLINT_SKIP="True"  
+             echo "pylint skipping $script" >>  "$pylint_log"
+             PYLINT_SKIP="True"
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
@@ -172,8 +172,8 @@ process_branch() {
       PYLINT_SKIP="False"
       for ignore in $PYLINT_IGNORE_LIST; do
           if [ "$ignore" = "$file" ] ; then
-             echo "pylint skipping $file" >>  "$pylint_log" 
-             PYLINT_SKIP="True"  
+             echo "pylint skipping $file" >>  "$pylint_log"
+             PYLINT_SKIP="True"
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
@@ -397,7 +397,7 @@ do
         pep8_log="$PEP8_LOG.$gb_escape"
         results="$RESULTS.$gb_escape"
     fi
-    process_branch "$pylint_log" "$pep8_log" "$results" "$gb" 
+    process_branch "$pylint_log" "$pep8_log" "$results" "$gb"
     log_branch_results "$RESULTS_MAIL" "$results"
 done
 

@@ -3,8 +3,8 @@
 
 find_aux () {
     # $1 basename of the aux file
-    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return }
-    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return }
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return ; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return ; }
     false
 }
 
@@ -49,7 +49,7 @@ do
   1) FUTURIZE_STAGE='-1';;
   2) FUTURIZE_STAGE='-2';;
   s) SEQUENTIAL=yes;;
-  : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;  
+  : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;
   *) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   \?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   esac

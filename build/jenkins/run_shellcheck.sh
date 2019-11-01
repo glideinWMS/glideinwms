@@ -3,8 +3,8 @@
 
 find_aux () {
     # $1 basename of the aux file
-    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return }
-    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return }
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
     false
 }
 
@@ -177,6 +177,6 @@ fi
 
 case "$1" in
     check) process_branch;;
-    flags) show_flags;;    
+    flags) show_flags;;
     *) usage;;
 esac
