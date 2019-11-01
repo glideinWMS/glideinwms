@@ -627,10 +627,10 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     else:
         # Need more idle
         # Check that adding more idle doesn't exceed request max_glideins
-        if q_idle_glideins + q_held_glideins + q_running_glideins + add_glideins >= req_max_glideins:
+        if q_idle_glideins + q_running_glideins + add_glideins >= req_max_glideins:
             # Exceeded limit, try to adjust
 
-            add_glideins = req_max_glideins - q_idle_glideins - q_held_glideins - q_running_glideins
+            add_glideins = req_max_glideins - q_idle_glideins - q_running_glideins
 
             # Have hit request limit, cannot submit
             if add_glideins < 0:
@@ -1969,7 +1969,7 @@ class GlideinTotals:
             nr_allowed = self.entry_max_idle - self.entry_idle
 
         # Check entry total glideins
-        if self.entry_idle + nr_allowed + self.entry_running + self.entry_held > self.entry_max_glideins:
+        if self.entry_idle + nr_allowed + self.entry_running > self.entry_max_glideins:
             nr_allowed = self.entry_max_glideins - self.entry_idle - self.entry_running
 
         fe_limit = self.frontend_limits[frontend_name]
@@ -1979,8 +1979,8 @@ class GlideinTotals:
             nr_allowed = fe_limit['max_idle'] - fe_limit['idle']
 
         # Check frontend:sec_class total glideins
-        if fe_limit['idle'] + fe_limit['held'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']:
-            nr_allowed = fe_limit['max_glideins'] - fe_limit['idle'] - fe_limit['held'] - fe_limit['running']
+        if fe_limit['idle'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']:
+            nr_allowed = fe_limit['max_glideins'] - fe_limit['idle'] - fe_limit['running']
 
         # Return
         return nr_allowed
@@ -2013,7 +2013,7 @@ class GlideinTotals:
 
     def has_entry_exceeded_max_glideins(self):
         # max_glideins=total glidens for an entry.  Total is defined as idle+running+held
-        return self.entry_idle + self.entry_running + self.entry_held >= self.entry_max_glideins
+        return self.entry_idle + self.entry_running >= self.entry_max_glideins
 
 
     def __str__(self):
