@@ -282,6 +282,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinWorkDir', '"$ENV(GLIDEIN_STARTUP_DIR)"')
         self.add('+GlideinSlotsLayout', '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
         self.add('+GlideinMaxWalltime', '$ENV(GLIDEIN_MAX_WALLTIME)')
+        # fename does not start with Glidein for convenience (it's short) and consistency with options of the factory tools
+        # that already use the fename naming convention. Added after the condor_privsep deprecation.
+        self.add("+fename", '"$ENV(GLIDEIN_USER)"')
         if proxy_url:
             self.add('+GlideinProxyURL', '"%s"' % proxy_url)
 
