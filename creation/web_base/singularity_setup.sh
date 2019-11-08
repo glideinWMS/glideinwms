@@ -185,11 +185,12 @@ if [[ -z "$require_singularity" ]]; then
     require_singularity="OPTIONAL"
 fi
 
+set -x
 # What are the restrictions for the singularity image?
 image_restrictions=$(grep '^SINGULARITY_IMAGE_RESTRICTIONS ' "$glidein_config" | cut -d ' ' -f 2-)
-if [[ -z "$require_singularity" ]]; then
-    info_stdout "`date` SINGULARITY_IMAGE_RESTRICTIONS not configured. Defaulting to any"
-    image_restrictions="any"
+if [[ -z "$image_restrictions" ]]; then
+    info_stdout "`date` SINGULARITY_IMAGE_RESTRICTIONS not configured. Defaulting to cvmfs"
+    image_restrictions="cvmfs"
 fi
 
 info_stdout "`date` Factory's desire to use Singularity: $require_singularity"
@@ -245,7 +246,7 @@ SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' $glidein_config |
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 # TODO Should the image be on CVMFS or anywhere is OK?
-info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] located on $image_restrictions"
+info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] with restrictions $image_restrictions"
 GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 $image_restrictions`"
 ec=$?
 if [[ $ec -ne 0 ]]; then
