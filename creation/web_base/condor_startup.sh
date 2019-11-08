@@ -1047,6 +1047,8 @@ else
     # Wait for a few seconds to make sure the pid file is created,
     sleep 5 & wait $!
     # Wait more if the pid file was not created and the Glidein was not killed, see [#9639]
+    # Waiting additional 200s. HTCondor performs a hostname resolution and, if it fails, it retries every 3 seconds,
+    # 40 times, before continuing. This makes for 120 seconds.
     if [[ ! -e "$PWD/condor_master2.pid" ]] && [[ "$ON_DIE" -eq 0 ]]; then
         echo "=== Condor started in background but the pid file is still missing, waiting 200 sec more ==="
         sleep 200 & wait $!
@@ -1059,7 +1061,7 @@ else
     else
         # If ON_DIE == 1, condor has already been killed by a signal
         if [[ "$ON_DIE" -eq 0 ]]; then
-            echo "=== Condor was started but the PID file is missing, killing process $condor_pid ==="
+            echo "=== Condor was started but the PID file is still missing, killing process $condor_pid ==="
             kill -s SIGQUIT $condor_pid
         fi
     fi

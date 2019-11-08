@@ -32,12 +32,12 @@ slots_layout=`grep '^SLOTS_LAYOUT ' "$glidein_config" | cut -d ' ' -f 2-`
 # mainextra adds extra virtual cpus for the resource, so it is sure to fail with fixed slots
 condor_config_resource_slots="`grep -i "^GLIDEIN_Resource_Slots " "$glidein_config" | cut -d ' ' -f 2-`"
 echo "$condor_config_resource_slots" | grep mainextra > /dev/null
-if [ "$?" -eq 0 ]; then
+if [[ "$?" -eq 0 ]]; then
   # sure error with fixed: force partitionable
   RES_SLOT=mainextra
 else
   echo "$condor_config_resource_slots" | grep main > /dev/null
-  if [ "$?" -eq 0 ]; then
+  if [[ "$?" -eq 0 ]]; then
     # possible error with fixed: do nothing or warn
     RES_SLOT=main
   fi
@@ -47,23 +47,24 @@ fi
 # 1. If GLIDEIN_CPUS==1 or not defined and not FORCE_PARTITIONABLE and no mainextra ResourceSlot is defined,
 # then switch partitionable to fixed
 # 2. If mainextra ResourceSlot is defined then switch fixed to partitionable
-if [ "X$slots_layout" = "Xpartitionable" ]; then
+if [[ "X$slots_layout" = "Xpartitionable" ]]; then
   # only need to worry about the partitionable use case
   num_cpus=`grep '^GLIDEIN_CPUS ' "$glidein_config" | cut -d ' ' -f 2-`
-  if [ -z "$num_cpus" ]; then
+  if [[ -z "$num_cpus" ]]; then
     # the default is single core
     # there could be virtual cpus (mainextra) or more real CPUs (due to RSL request) both not in GLIDEIN_CPUS
     num_cpus=1
   fi
 
-  if [ "$num_cpus" == "1" ]; then
+  if [[ "$num_cpus" -eq 1 ]]; then
+    # matches 1, 01, ... no match for other numbers or string values (AUTO, ...)
     # do not want single core partitionable slots
 
     force_part=`grep '^FORCE_PARTITIONABLE ' "$glidein_config" | cut -d ' ' -f 2-`
-    if [ "X$force_part" = "XTrue" ]; then
+    if [[ "X$force_part" = "XTrue" ]]; then
       # unless forced to
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ForcedSinglePartitionable"
-    elif [ "X$RES_SLOT" = "Xmainextra" ]; then
+    elif [[ "X$RES_SLOT" = "Xmainextra" ]]; then
       # unless resource slot have mainextra type
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ResourceSlotKeptPartitionable"
     else
@@ -75,7 +76,7 @@ if [ "X$slots_layout" = "Xpartitionable" ]; then
     "$error_gen" -ok "smart_partitionable.sh" "Action" "None"
   fi
 else
-    if [ "X$RES_SLOT" = "Xmainextra" ]; then
+    if [[ "X$RES_SLOT" = "Xmainextra" ]]; then
       # do not want fixed with mainextra resource slots (sure problem)
       add_config_line SLOTS_LAYOUT partitionable
       "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchResourceSlotToPartitionable"
@@ -87,7 +88,6 @@ else
       # -  "$num_cpus" -gt "1" catches numbers with prefixed 0s, e.g. 03 -gt 1
       # conditions are separated to be safer and more clear:
       #  tests show precedence left to right, but documentation no: https://www.tldp.org/LDP/abs/html/opprecedence.html
-      # TODO: do a better detection: for all 
       add_config_line SLOTS_LAYOUT partitionable
       "$error_gen" -ok "smart_partitionable.sh" "Action" "SwitchResourceSlotToPartitionable"
     else
