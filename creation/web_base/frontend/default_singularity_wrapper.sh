@@ -423,19 +423,21 @@ setup_stashcp () {
         return 1
     fi
 
-    # keep the user job output clean
-    module load stashcache >/dev/null 2>&1 || module load stashcp >/dev/null 2>&1
+    # if we do not have stashcp in the path, load stashcache and xrootd from modules
+    if ! which stashcp >/dev/null 2>&1; then
+        module load stashcache >/dev/null 2>&1 || module load stashcp >/dev/null 2>&1
 
-    # we need xrootd, which is available both in the OSG software stack
-    # as well as modules - use the system one by default
-    if ! which xrdcp >/dev/null 2>&1; then
-        module load xrootd >/dev/null 2>&1
+        # we need xrootd, which is available both in the OSG software stack
+        # as well as modules - use the system one by default
+        if ! which xrdcp >/dev/null 2>&1; then
+            module load xrootd >/dev/null 2>&1
+        fi
+
+        # Determine XRootD plugin directory.
+        # in lieu of a MODULE_<name>_BASE from lmod, this will do:
+        export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
+        export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
     fi
-
-    # Determine XRootD plugin directory.
-    # in lieu of a MODULE_<name>_BASE from lmod, this will do:
-    export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
-    export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
 
 }
 
