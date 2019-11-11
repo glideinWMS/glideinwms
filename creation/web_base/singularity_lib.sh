@@ -1099,6 +1099,7 @@ setup_classad_variables () {
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
     export GWMS_SINGULARITY_IMAGES_DICT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGES_DICT)
+    export GWMS_SINGULARITY_IMAGE_RESTRICTIONS=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_RESTRICTIONS)
     export OSG_MACHINE_GPUS=$(get_prop_str $_CONDOR_MACHINE_AD GPUs 0)
     # Setting below 0 as default for GPU_USE, to distinguish when undefined in machine AD
     export GPU_USE=$(get_prop_str $_CONDOR_MACHINE_AD GPU_USE)
