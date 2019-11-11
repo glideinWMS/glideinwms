@@ -1,0 +1,71 @@
+---
+# GlideinWMS release notes ordered by release version
+# YAML format used to generate tags.txt and history.html, starting w/ GlideinWMS v3.6
+# Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing ine string) and NOTES
+# (NOTE: dictionaries containing one string)
+
+# Special version names:
+# default
+# template...
+
+default:
+  Series: Stable
+  Tarball: false
+
+template:
+  Date: d, 2019
+  Feature:
+    -
+    -
+  Bug fix:
+    -
+    -
+  NOTE:
+    -
+  NOTE-FACTORY:
+    -
+  NOTE-FRONTEND:
+    -
+
+v3_6:
+  Date: September 25, 2019
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Renaming of v3_5_1 (released on 9/18) to respect the odd/even numbering
+    - Includes all 3.4.6 features
+    - Updated SW and docs for the change in OSG factories
+    - Updated all the obsolete links to HTCondor manual in GlideinWMS website
+    - Set up an ITB Frontend for GWMS and FIFE testing
+    - Updated gitattributes to resolve conflicts w/ checksum files
+    - Added editorconfig and default encoding
+    - GlideinWMS code will use now Google docstring format
+    - Advertise if a Glidein can use privileged or unprivileged Singularity
+    - Check if single user factory migration script has been run before startup
+  Bug fix:
+    - pip errors in nightly CI
+    - Unittest failing at times on SL7
+    - Factory could start also w/ a GT2 entry enabled
+  NOTE:
+    - v3_6 is fully interoperable w/ v3_5 and v3_4. I.e. You can mix v3_6_x, v3_5_x and v3_4_x Factories and Frontends in your system
+  NOTE-FACTORY:
+    - The v3.6 Factory (like v3.5) is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to:\
+      1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory.
+      For detailed instructions see http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
+
+v3_6_1:
+  Date: Novemver 13, 2019
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Added compatibility w/ HTCondor 8.8.x in OSG 3.5
+    - Monitoring pages use https if available
+    - Improved search and testing of Singularity binary
+    - Unset LD_LIBRARY_PATH and PATH for jobs in Singularity
+    - Updated documentation links and Google search
+    - Improved CI testing
+    - Stop considering held limits when counting maximum jobs in Factory
+  Bug fix:
+    - Fix Fatcory tools (entry_rm, entry_q and entry_ls) to be more verbose with single user Factory
+    - Removed hardcoded CVMFS requirement for Singularity
+    - Improve diagnostic messages when rsa.key file is corrupted

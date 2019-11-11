@@ -112,7 +112,7 @@ def dump_txt(release_tags, fname=None, versions=None):
             for k in [k for k in release_tags[v] if k not in PROCESSED_TAGS]:
                 for i in release_tags[v][k]:
                     print("\t%s: %s" % (k, i), file=fd)
-            print()
+            print(file=fd)
     finally:
         if fd:
             fd.close()
@@ -488,7 +488,7 @@ if __name__ == "__main__":
             outfile = None
         elif outfile == 'tags.history':
             outfile = "doc/history.html"
-        if action_out == 'tag':
+        if action_out == 'txt':
             dump_txt(release_tags, outfile)
         elif action_out == 'print':
             dump_txt(release_tags)
