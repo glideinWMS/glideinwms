@@ -1,20 +1,23 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6
+# GLIDEINWMS_VERSION v3_6_1_rc1
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
-631fde7409e65190563d88a1b1ca4e42  ./build/ReleaseManager/ReleaseManagerLib.py
+850beed897ce33c7dca40868171ae4dc  ./build/ReleaseManager/ReleaseManagerLib.py
+d41d8cd98f00b204e9800998ecf8427e  ./build/ReleaseManager/__init__.py
 f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
 bc64a9bef89ad31152ae8d2b139bbb7a  ./build/ReleaseManager/osg-release.sh
-330c7fe280c31752d684a16ef46584c9  ./build/ReleaseManager/release.py
+0118612b559999665fd5c7dd6a63b18b  ./build/ReleaseManager/release.py
+c9e385efd40775a9b92f8c26cef3d24b  ./build/jenkins/gwms_magic
 5266903b688a0ac13777c12715329cf1  ./build/jenkins/pylintrc
 953939a9869ba8689cb7f6d36e455733  ./build/jenkins/run_autopep8.sh
 336e51e58462eae7e706098606e9ceec  ./build/jenkins/run_coverage.sh
-1008608b8062d72d7994467dc4295c33  ./build/jenkins/run_futurize.sh
-51232be7a33433506f2ae95cb2ae8075  ./build/jenkins/run_pylint.sh
+f25026ce5284a385210208412d5fe57a  ./build/jenkins/run_futurize.sh
+8df6d567a3e787a9799a081fb5ca3df0  ./build/jenkins/run_pylint.sh
+60f9cd04ffc48321bd2b960eaf4594e0  ./build/jenkins/run_shellcheck.sh
 a0c7920c659d45519e0fbad738037658  ./build/jenkins/utils.sh
 0d3cb8ad73989679bdfe5bc42e767e4f  ./build/packaging/rpm/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
@@ -23,10 +26,10 @@ ca903d6a9591018e31cf3ef44e7926e9  ./build/packaging/rpm/frontend.xml
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/frontend_startup_sl7
 6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
-df6832a2187568e668b9b81fd26adf13  ./build/packaging/rpm/glideinwms.spec
-6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
+dc3ac142b221e7b24324929a397be779  ./build/packaging/rpm/glideinwms.spec
+2f1aebc190d7958e3990101c5cb88d70  ./build/packaging/rpm/gwms-factory.conf.httpd
 3a6b2ffd6f2b4aaccaf693cc75214c59  ./build/packaging/rpm/gwms-factory.sysconfig
-3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
+c3734d0d88cf84fa78769ad243783071  ./build/packaging/rpm/gwms-frontend.conf.httpd
 2af0555b1cc795fd420bd09d52950d64  ./build/packaging/rpm/gwms-frontend.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
@@ -72,7 +75,7 @@ d21df4d1e3e170fcd7f7ae66b752d7ac  ./creation/web_base/check_blacklist.sh
 f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
-9f40f08d29ab777b348527ec092987eb  ./creation/web_base/condor_vars.lst
+57981a8bf2952f5045c6e7a926c80079  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
 ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
@@ -87,14 +90,14 @@ ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/factory/images/frontendStatus.small.png
 f447660440eb339d83e638c2f5a0f319  ./creation/web_base/factory/index.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-5032efa4718722aedff726db2db59d00  ./creation/web_base/frontend/default_singularity_wrapper.sh
+b1a1edb64ee49a5b40101b7d839bd1e2  ./creation/web_base/frontend/default_singularity_wrapper.sh
 323b5dd91f3df1c0aab5679cdbf1fb86  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
 a8a213f5c4387a8a027091f7100bd124  ./creation/web_base/frontend/images/frontendRRDGroupMatix.small.png
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/frontend/images/frontendStatus.small.png
 d837fdb994350b2fa4c85f2dcc3b2ccc  ./creation/web_base/frontend/index.html
-fcdfd537d35ddc249a11f131b0d18849  ./creation/web_base/frontend/singularity_script_example.sh
+a747c02b76f7a6cb4acf6123501a0879  ./creation/web_base/frontend/singularity_script_example.sh
 2f0406bfb9085c8e8bcb31e7a5617882  ./creation/web_base/frontendGroupGraphStatusNow.html
 e026658daeb77f455a221f0a56adee7b  ./creation/web_base/frontendRRDBrowse.html
 ab693b0037de0864de7cde231d8f1863  ./creation/web_base/frontendRRDGroupMatrix.html
@@ -112,14 +115,14 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-7f980930c1a218317db684b4ddf619aa  ./creation/web_base/singularity_lib.sh
-23694585bac5a28c9126edcf2bac94cf  ./creation/web_base/singularity_setup.sh
-73e36abceb940089bef39806443764a8  ./creation/web_base/smart_partitionable.sh
+32908f1edce6a12b0e66a86469e06119  ./creation/web_base/singularity_lib.sh
+6d44af1f26b459495968529adefff396  ./creation/web_base/singularity_setup.sh
+67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 054187e1390c6c812aeed1cad8c0d917  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 786012a22c50b121e3f4c5d88e0c3b32  ./factory/glideFactoryConfig.py
 d9294db7c2369f4376242b2e249806ab  ./factory/glideFactoryCredentials.py
-54fd30a06634244f415a35fc0f564f0c  ./factory/glideFactoryInterface.py
+43aff38a6877a9971ef985ca624e113f  ./factory/glideFactoryInterface.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 15212a131ce9e1111beec5c28eb261cf  ./frontend/checkFrontend.py
@@ -185,7 +188,7 @@ a01e1b4d6331933cbd0301cbdcb35064  ./lib/glideinwms_tarfile.py
 8df68b5fe9724679b707b6793b0817f1  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 7f7f93e798e4ad05473c04cd7734acfe  ./lib/pidSupport.py
-139814f1b4c576765e1d6b78b8b1fdb9  ./lib/pubCrypto.py
+68023fee48c9eb2c885d0d33743fed96  ./lib/pubCrypto.py
 c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 74aa1e59155f9a9f5dba72f260755aeb  ./lib/servicePerformance.py
 2668364af8f259c85b659ccc7500aa92  ./lib/subprocessSupport.py
@@ -196,6 +199,11 @@ ad3182067d3adbfb8a4c9e92b16ba1c2  ./lib/tarSupport.py
 1da1078c2a95b7e7870363862049c034  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
+d41d8cd98f00b204e9800998ecf8427e  ./py3tools/__init__.py
+56e128462c9439ff2525a6f098715207  ./py3tools/header_example.yaml
+3d309b22c7dd5b9711b270bf1fa070d4  ./py3tools/process_tags
+ac4d39685f6d2593c29b8675bb884d5b  ./py3tools/tags_all.yaml
+ac2c23f5edfd1b05dcf2c868d0b9eeae  ./py3tools/tags_example.yaml
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 1c9c14257fa443e0aa031ae44f867122  ./tools/glidein_cat.py
 543db027e898d6b9960ecd44f513086e  ./tools/glidein_gdb.py
@@ -207,6 +215,6 @@ fd7be34c7517e9ee13ffd291add07642  ./tools/glidein_top.py
 d41d8cd98f00b204e9800998ecf8427e  ./tools/lib/__init__.py
 dd70671e56148999fba49d3fe5eb0dd5  ./tools/lib/glideinCmd.py
 f9f9a94225532f040cac2a12c9e8f97f  ./tools/lib/glideinMonitor.py
-231f9a746dab5ba25d8a707e26509d8d  ./tools/manual_glidein_startup
+878f73b9559f115881cbba9fce9f71af  ./tools/manual_glidein_startup
 2255ed709df2365451d65ef22b38cf6c  ./tools/wmsTxtView.py
 d9f9002c264db4a47d153e529f65b25b  ./tools/wmsXMLView.py
