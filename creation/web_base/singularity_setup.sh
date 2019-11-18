@@ -298,7 +298,7 @@ if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
     advertise GLIDEIN_DEBUG_OUTPUT "$GLIDEIN_DEBUG_OUTPUT" "S"
 fi
 glidein_provides="$(grep '^GLIDEIN_PROVIDES ' "$glidein_config" | cut -d ' ' -f 2-)"
-advertise GLIDEIN_PROVIDES "$glidein_provides,singularity/$GWMS_SINGULARITY_MODE" "S"
+advertise GLIDEIN_PROVIDES "${glidein_provides:+"$glidein_provides,"}singularity/$GWMS_SINGULARITY_MODE" "S"
 info_stdout "`date` Decided to use Singularity ($gwms_singularity_status)"
 
 "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True"
