@@ -30,12 +30,20 @@
 LIBLOCATION=$(dirname $0)
 source "$LIBLOCATION/glidein_lib.sh"
 
+EXIT_MESSAGE_FILE=$start_dir/exit_message
+
+function logmsg {
+    if touch $EXIT_MESSAGE_FILE 2> /dev/null; then
+        echo "$1" >> $EXIT_MESSAGE_FILE
+    fi
+}
+
 function isNumberOrFalse {
-    # the function verifies that the argument (i.e.: $1) is a number, and exts otherwise
+    # the function verifies that the argument (i.e.: $1) is a number, and exits otherwise
     # printing a message to stderr
     echo $1 | grep -Eq '(^\-?[0-9]+$)|(^"Unknown"$)'
     if [ $? -eq 1 ]; then
-        echo "JOBFEATURES ($JOBFEATURES) or MACHINEFEATURES ($MACHINEFEATURES) variable found, but shutdown file NOT containing a number (contains '$1' instead)" >&2
+        logmsg "JOBFEATURES ($JOBFEATURES) or MACHINEFEATURES ($MACHINEFEATURES) variable found, but shutdown file NOT containing a number (contains '$1' instead)"
         exit 1
     fi
 }
@@ -45,20 +53,42 @@ isNumberOrFalse $J
 M=$(getValueFromFileOrURL shutdowntime "$MACHINEFEATURES")
 isNumberOrFalse $M
 
-EXIT_MESSAGE_FILE=$start_dir/exit_message
-if [ "$J" != '"Unknown"' ] || [ "$M" != '"Unknown"' ] ; then
+# Ignoring if cannot find the shutdown files
+if [ "$J" == '"Unknown"' ] && [ "$M" == '"Unknown"' ] ; then
+    echo "SiteWMS_WN_Draining = False"
+    echo "SiteWMS_WN_Preempt = False"
+    exit 0
+fi
+
+# Get the shutdown time (the lowest number between J and M)
+# We know either J or M contains the timestamp, but one can contain "Unknwown".
+# Replace the "Unknwon" with the other timestamp
+J=$([ "$J" == '"Unknown"' ] && echo $M || echo $J)
+M=$([ "$M" == '"Unknown"' ] && echo $J || echo $M)
+SHTUDOWN_TIME=$([ $J -le $M ] && echo "$J" || echo "$M")
+
+TO_DIE=$(grep -i '^GLIDEIN_ToDie =' $CONDOR_CONFIG | tr -d '"' | tail -1 | awk '{print $NF;}')
+TO_RETIRE=$(grep -i '^GLIDEIN_TORETIRE =' $CONDOR_CONFIG | tr -d '"' | tail -1 | awk '{print $NF;}')
+GRACE_TIME="$(($TO_DIE-$TO_RETIRE))"
+CURR_TIME=$(date +%s)
+
+if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt 0 ] ; then
+    logmsg "Ignoring potentially stale MJF shutdown files since their shoutdown time is in the past"
+    echo "SiteWMS_WN_Draining = False"
+    echo "SiteWMS_WN_Preempt = False"
+    exit 0
+fi
+
+if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt $GRACE_TIME ]; then
     echo "SiteWMS_WN_Draining = True"
-    if [ ! -f $EXIT_MESSAGE_FILE ] ; then
-        echo "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`" >> $EXIT_MESSAGE_FILE
-    fi
-    CURR_TIME=$(date +%s)
-    if ( [ "$J" != '"Unknown"' ] && [ $((J - CURR_TIME)) -lt 1800 ] ) || ( [ "$M" != '"Unknown"' ] && [ $((M - CURR_TIME)) -lt 1800 ] ); then
-        echo "Preempting user job since less then 1800 seconds are left before machine shutdown. Time is `date`" >> $EXIT_MESSAGE_FILE
+    logmsg "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`"
+    if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt 1800 ] ; then
+        logmsg "Preempting user job since less then 1800 seconds are left before machine shutdown. Time is `date`"
         echo "SiteWMS_WN_Preempt = True"
     fi
 else
     if [ -f $EXIT_MESSAGE_FILE ] ; then
-        echo "Aborting shutdown of pilot. New jobs will be accepted. Time is `date`" >> $EXIT_MESSAGE_FILE
+        logmsg "Aborting shutdown of pilot. New jobs will be accepted. Time is `date`"
         #shutdown can be aborted. Do not print in the logs
         rm $EXIT_MESSAGE_FILE
     fi
