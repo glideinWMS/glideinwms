@@ -69,3 +69,4 @@ v3_6_1:
     - Fix Fatcory tools (entry_rm, entry_q and entry_ls) to be more verbose with single user Factory
     - Removed hardcoded CVMFS requirement for Singularity
     - Improve diagnostic messages when rsa.key file is corrupted
+    - Improve control of the worker node draining, avoiding to stop accepting jobs as soon as the draining file is present
