@@ -185,7 +185,6 @@ if [[ -z "$require_singularity" ]]; then
     require_singularity="OPTIONAL"
 fi
 
-set -x
 # What are the restrictions for the singularity image?
 image_restrictions=$(grep '^SINGULARITY_IMAGE_RESTRICTIONS ' "$glidein_config" | cut -d ' ' -f 2-)
 if [[ -z "$image_restrictions" ]]; then
