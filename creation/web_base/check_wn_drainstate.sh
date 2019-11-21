@@ -63,37 +63,35 @@ fi
 # Get the shutdown time (the lowest number between J and M)
 # We know either J or M contains the timestamp, but one can contain "Unknwown".
 # Replace the "Unknwon" with the other timestamp
-J=$([ "$J" == '"Unknown"' ] && echo $M || echo $J)
-M=$([ "$M" == '"Unknown"' ] && echo $J || echo $M)
-SHTUDOWN_TIME=$([ $J -le $M ] && echo "$J" || echo "$M")
+[ "$J" == '"Unknown"' ] && J=$M
+[ "$M" == '"Unknown"' ] && M=$J
+SHTUDOWN_TIME=$M
+[ $J -lt $SHTUDOWN_TIME ] && SHTUDOWN_TIME=$J
 
 TO_DIE=$(grep -i '^GLIDEIN_ToDie =' $CONDOR_CONFIG | tr -d '"' | tail -1 | awk '{print $NF;}')
 TO_RETIRE=$(grep -i '^GLIDEIN_TORETIRE =' $CONDOR_CONFIG | tr -d '"' | tail -1 | awk '{print $NF;}')
 GRACE_TIME="$(($TO_DIE-$TO_RETIRE))"
 CURR_TIME=$(date +%s)
 
-if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt 0 ] ; then
+S_DRAINING=False
+S_PREEMPT=False
+if [ $SHTUDOWN_TIME -lt $CURR_TIME ] ; then
     logmsg "Ignoring potentially stale MJF shutdown files since their shoutdown time is in the past"
-    echo "SiteWMS_WN_Draining = False"
-    echo "SiteWMS_WN_Preempt = False"
-    exit 0
-fi
-
-if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt $GRACE_TIME ]; then
-    echo "SiteWMS_WN_Draining = True"
+elif [ $((SHTUDOWN_TIME - CURR_TIME)) -lt $GRACE_TIME ]; then
+    S_DRAINING=True
     logmsg "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`"
     if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt 1800 ] ; then
         logmsg "Preempting user job since less then 1800 seconds are left before machine shutdown. Time is `date`"
-        echo "SiteWMS_WN_Preempt = True"
+        S_PREEMPT=True
     fi
 else
     if [ -f $EXIT_MESSAGE_FILE ] ; then
-        logmsg "Aborting shutdown of pilot. New jobs will be accepted. Time is `date`"
+        logmsg "No pilot draining. Machine shutdown is still far. New jobs will be accepted. Time is `date`"
         #shutdown can be aborted. Do not print in the logs
         rm $EXIT_MESSAGE_FILE
     fi
-    echo "SiteWMS_WN_Draining = False"
-    echo "SiteWMS_WN_Preempt = False"
 fi
+echo "SiteWMS_WN_Draining = $S_DRAINING"
+echo "SiteWMS_WN_Preempt = $S_PREEMPT"
 
 exit 0
