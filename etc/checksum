@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6_1_rc1
+# GLIDEINWMS_VERSION v3_6_1
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -26,11 +26,16 @@ ca903d6a9591018e31cf3ef44e7926e9  ./build/packaging/rpm/frontend.xml
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 282f93abe8974e195f8beb68420df8a4  ./build/packaging/rpm/frontend_startup_sl7
 6520fec904604f05cfe444debc84cd73  ./build/packaging/rpm/glideinWMS.xml
-dc3ac142b221e7b24324929a397be779  ./build/packaging/rpm/glideinwms.spec
+e10c506ffbf52040b495f7f76d48d10e  ./build/packaging/rpm/glideinwms.spec
 2f1aebc190d7958e3990101c5cb88d70  ./build/packaging/rpm/gwms-factory.conf.httpd
 3a6b2ffd6f2b4aaccaf693cc75214c59  ./build/packaging/rpm/gwms-factory.sysconfig
 c3734d0d88cf84fa78769ad243783071  ./build/packaging/rpm/gwms-frontend.conf.httpd
 2af0555b1cc795fd420bd09d52950d64  ./build/packaging/rpm/gwms-frontend.sysconfig
+d41d8cd98f00b204e9800998ecf8427e  ./build/py3tools/__init__.py
+56e128462c9439ff2525a6f098715207  ./build/py3tools/header_example.yaml
+3d309b22c7dd5b9711b270bf1fa070d4  ./build/py3tools/process_tags
+ac4d39685f6d2593c29b8675bb884d5b  ./build/py3tools/tags_all.yaml
+ac2c23f5edfd1b05dcf2c868d0b9eeae  ./build/py3tools/tags_example.yaml
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 231264d2191650a0137c6ea2df57b31b  ./creation/clone_glidein
@@ -141,7 +146,7 @@ ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 7952a21b73f31c0795e51ec0cd135138  ./creation/web_base/setup_x509.sh
 32908f1edce6a12b0e66a86469e06119  ./creation/web_base/singularity_lib.sh
-6d44af1f26b459495968529adefff396  ./creation/web_base/singularity_setup.sh
+f3c68075ea65b0808e2d28a19e017260  ./creation/web_base/singularity_setup.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 054187e1390c6c812aeed1cad8c0d917  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
@@ -261,11 +266,6 @@ ad3182067d3adbfb8a4c9e92b16ba1c2  ./lib/tarSupport.py
 1da1078c2a95b7e7870363862049c034  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
-d41d8cd98f00b204e9800998ecf8427e  ./py3tools/__init__.py
-56e128462c9439ff2525a6f098715207  ./py3tools/header_example.yaml
-3d309b22c7dd5b9711b270bf1fa070d4  ./py3tools/process_tags
-ac4d39685f6d2593c29b8675bb884d5b  ./py3tools/tags_all.yaml
-ac2c23f5edfd1b05dcf2c868d0b9eeae  ./py3tools/tags_example.yaml
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 1c9c14257fa443e0aa031ae44f867122  ./tools/glidein_cat.py
 543db027e898d6b9960ecd44f513086e  ./tools/glidein_gdb.py
