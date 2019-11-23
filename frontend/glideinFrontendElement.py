@@ -27,6 +27,8 @@ import time
 import string
 import logging
 import re
+import tempfile
+import shutil
 
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -34,7 +36,9 @@ from glideinwms.lib import symCrypto, pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
+from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import servicePerformance
+from glideinwms.lib import subprocessSupport
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
@@ -773,19 +777,26 @@ class glideinFrontendElement:
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
+                tkn = self.refresh_entry_token(glidein_el)
+                gp_encrypt = None
+                if tkn:
+                    gp_encrypt = {'Frontend_token': tkn}
                 advertizer.add(factory_pool_node,
                                request_name, request_name,
-                               glidein_min_idle, glidein_max_run,
+                               glidein_min_idle,
+                               glidein_max_run,
                                self.idle_lifetime,
                                glidein_params=glidein_params,
                                glidein_monitors=glidein_monitors,
                                glidein_monitors_per_cred=glidein_monitors_per_cred,
                                remove_excess_str=remove_excess_str,
                                remove_excess_margin=remove_excess_margin,
-                               key_obj=key_obj, glidein_params_to_encrypt=None,
+                               key_obj=key_obj,
+                               glidein_params_to_encrypt=gp_encrypt,
                                security_name=self.security_name,
                                trust_domain=trust_domain,
-                               auth_method=auth_method, ha_mode=self.ha_mode)
+                               auth_method=auth_method,
+                               ha_mode=self.ha_mode)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" %
                                        (request_name, factory_pool_node))
@@ -835,6 +846,31 @@ class glideinFrontendElement:
         servicePerformance.endPerfMetricEvent(self.group_name, 'advertize_classads')
 
         return
+
+
+    def refresh_entry_token(self, glidein_el):
+        # glidein_el['params']['CONDOR_VERSION'] > 8.9.2 is condor_token_capable
+        tkn_file = None
+        tkn_str = None
+        if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
+            (fd, tmpnm) = tempfile.mkstemp()
+            try:
+                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/%s.token" % glidein_el['attrs']['GLIDEIN_Site']
+                cmd = "condor_token_fetch -lifetime 86400"
+                tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                os.chmod(tmpnm,400)
+                os.write(fd, tkn_str)
+                os.close(fd)
+                #shutil.move(tmpnm, tkn_file)
+                file_tmp2final(tkn_file, tmpnm)
+                logSupport.log.debug("created token %s" % tkn_file)
+            except Exception as err:
+                logSupport.log.debug('failed to fetch %s' % tkn_file)
+                logSupport.log.debug('%s' % err)
+            finally:
+                if os.path.exists(tmpnm):
+                    os.remove(tmpnm)
+        return tkn_str
 
     def populate_pubkey(self):
         bad_id_list = []
