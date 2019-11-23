@@ -18,6 +18,7 @@ import traceback
 import string
 import copy
 import logging
+import tempfile
 
 sys.path.append(os.path.join(sys.path[0], "../../"))
 
@@ -1216,6 +1217,23 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials = glideFactoryCredentials.SubmitCredentials(
                              credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
+    frontend_supplied_token = decrypted_params.get('Frontend_token')
+    if frontend_supplied_token:
+        (fd, tmpnm) = tempfile.mkstemp()
+        try:
+            tkn_file = os.path.join(submit_credentials.cred_dir, 'frontend_token')
+            entry.log.debug("frontend_token supplied, writing to %s" % tkn_file)
+            os.chmod(tmpnm,400)
+            os.write(fd, frontend_supplied_token)
+            os.close(fd)
+            util.file_tmp2final(tkn_file, tmpnm)
+        except Exception as err:
+            entry.log.error('failed to create token: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
+
+
 
     if 'grid_proxy' in auth_method:
         ########################
