@@ -156,17 +156,17 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
 
         enc_input_files = []
-        trust_domain = entry[u'trust_domain']
-        if trust_domain.endswith('_token'):
-            base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
-            for root, dirs, files  in os.walk(base_client_proxies_dir):
-                for fname in files:
-                    if fname.endswith('_token'):
-                        pth = os.path.join(root,fname)
-                        enc_input_files.append(pth)
-                        self.add('environment', "AUTH_TOKEN=%s"%fname)
-                        self.add('+AUTH_TOKEN', fname)
-                        break
+        # if a token is found in the client proxies dir, add it to
+        # the transfer/encrypt input file list
+        base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
+        for root, dirs, files  in os.walk(base_client_proxies_dir):
+            for fname in files:
+                if fname.endswith('_token'):
+                    pth = os.path.join(root,fname)
+                    enc_input_files.append(pth)
+                    self.add('environment', "AUTH_TOKEN=%s"%fname)
+                    self.add('+AUTH_TOKEN', fname)
+                    break
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
         token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
