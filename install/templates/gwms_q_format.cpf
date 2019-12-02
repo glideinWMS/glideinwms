@@ -1,7 +1,7 @@
 # Taken from https://github.com/htcondor/htcondor/blob/master/src/condor_q.V6/queue.cpp#L4713-L4723
 SELECT
-   ClusterId     AS ' ID'  NOSUFFIX  WIDTH 5 PRINTF '%4d.'
-   ProcId        AS ' '    NOPREFIX  WIDTH 3 PRINTF '%-3d'
+   ClusterId     AS ' ID'  NOSUFFIX  WIDTH 9
+   ProcId        AS ' '    NOPREFIX  WIDTH 4 PRINTF '.%-4d'
 # Replacing Owner (gfactory) with the frontend owner to maintain condor_privsep behavior (job sent
 # with frontend user as the owner).
 # N.B.: 3.6.1 introduces a new frontend_owner classad which can be used in place of the regexp.
