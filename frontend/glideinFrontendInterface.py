@@ -998,12 +998,12 @@ class MultiAdvertizeWork:
             for el in self.factory_queue[factory_pool]:
                 params_obj, key_obj = el
                 try:
-                    filename_arr_el=self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
+                    filename_arr_el = self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
                 except NoCredentialException:
-                    filename_arr = [] # don't try to advertise
+                    filename_arr = []  # don't try to advertise
                     logSupport.log.warning("No security credentials match for factory pool %s, not advertising request;"
                                            " if this is not intentional, check for typos frontend's credential "
                                            "trust_domain and type, vs factory's pool trust_domain and auth_method" %

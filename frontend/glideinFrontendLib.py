@@ -24,8 +24,8 @@ import traceback
 from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import condorMonitor, logSupport
 
-#############################################################################################
 
+#############################################################################################
 #
 # Return a dictionary of schedds containing interesting jobs
 # Each element is a condorQ
@@ -46,12 +46,13 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
         # if nothing specified, assume it wants all of them
         js_constraint="True"
     else:
-        js_arr=[]
+        js_arr = []
         for n in job_status_filter:
             js_arr.append('(JobStatus=?=%i)'%n)
-        js_constraint=string.join(js_arr, '||')
+        js_constraint = string.join(js_arr, '||')
 
     return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
+
 
 def getIdleVomsCondorQ(condorq_dict):
     out={}
@@ -61,6 +62,7 @@ def getIdleVomsCondorQ(condorq_dict):
         out[schedd_name]=sq
     return out
 
+
 def getIdleProxyCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
@@ -68,8 +70,6 @@ def getIdleProxyCondorQ(condorq_dict):
         sq.load()
         out[schedd_name]=sq
     return out
-
-
 
 
 #
@@ -86,6 +86,7 @@ def getIdleCondorQ(condorq_dict):
         out[schedd_name] = sq
     return out
 
+
 #
 # Return a dictionary of schedds containing running jobs
 # Each element is a condorQ
@@ -99,6 +100,7 @@ def getRunningCondorQ(condorq_dict):
         sq.load()
         out[schedd_name] = sq
     return out
+
 
 def appendRealRunning(condorq_dict, status_dict):
     """Adds provenance information from condor_status to the condor_q dictionary
@@ -140,6 +142,7 @@ def appendRealRunning(condorq_dict, status_dict):
             if not found:
                 condorq[jid]['RunningOn'] = 'UNKNOWN'
 
+
 #
 # Return a dictionary of schedds containing old jobs
 # Each element is a condorQ
@@ -154,6 +157,7 @@ def getOldCondorQ(condorq_dict, min_age):
         out[schedd_name] = sq
     return out
 
+
 #
 # Return the number of jobs in the dictionary
 # Use the output of getCondorQ
@@ -164,11 +168,11 @@ def countCondorQ(condorq_dict):
         count += len(condorq_dict[schedd_name].fetchStored())
     return count
 
+
 #
 # Return a set of users present in the dictionary
 # Needs "User" attribute
 #
-
 def getCondorQUsers(condorq_dict):
     users_set = set()
     for schedd_name in condorq_dict.keys():
@@ -178,6 +182,7 @@ def getCondorQUsers(condorq_dict):
             users_set.add(job['User'])
 
     return users_set
+
 
 # This function has been used for profiling reasons (to get a better result with cProfile)
 #Keeping it around just in case we need it again in the future
@@ -519,17 +524,20 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
 
 def countRealRunning(match_obj, condorq_dict, glidein_dict,
                      attr_dict, condorq_match_list=None, match_policies=[]):
-    """
-    Counts all the running jobs on an entry
-    :param match_obj: selection for the jobs
-    :param condorq_dict: result of condor_q, keyed by schedd name
-    :param glidein_dict: glideins, keyed by entry (glidename)
-    :param attr_dict: entry attributes, NOT USED
-    :param condorq_match_list: match attributes used for clustering
-    :return: Tuple with the job counts (used for stats) and glidein counts (used for glidein_max_run)
-      Both are dictionaries keyed by glidename (entry)
-    """
+    """Counts all the running jobs on an entry
 
+    Args:
+        match_obj: selection for the jobs
+        condorq_dict: result of condor_q, keyed by schedd name
+        glidein_dict: glideins, keyed by entry (glidename)
+        attr_dict: entry attributes, NOT USED
+        condorq_match_list: match attributes used for clustering
+        match_policies:
+
+    Returns: Tuple with the job counts (used for stats) and glidein counts (used for glidein_max_run)
+      Both are dictionaries keyed by glidename (entry)
+
+    """
     out_job_counts = {}
     out_glidein_counts = {}
 
@@ -1106,6 +1114,7 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
     return getCondorStatusConstrained(collector_names, type_constraint,
                                       constraint, format_list,
                                       subsystem_name="schedd")
+
 
 ############################################################
 #

@@ -38,27 +38,42 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
 
     return
 
+
 #########################################
 # Create frontend-specific mapfile
-def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs,pilot_DNs=[]):
-    fd=open(mapfile_fname, "w")
+def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collector_DNs, pilot_DNs=[]):
+    """Write a HTCondor map file and add all the provided DNs and map them to the corresponding condor user
+
+    Used to create a frontend-specific mapfile used by the tools
+
+    Args:
+        mapfile_fname (str): path to the map file
+        my_DN (list): list of DNs corresponding to the Frontend (mapped to me)
+        factory_DNs (list): list of DNs corresponding to the Factory (mapped to factory)
+        schedd_DNs (list): list of DNs corresponding to the User schedds (mapped to schedd)
+        collector_DNs (list): list of DNs corresponding to the User collector/s (mapped to collector)
+        pilot_DNs (list): list of DNs corresponding to the pilots (mapped to pilot)
+
+    """
+    fd = open(mapfile_fname, "w")
     try:
-        fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN), 'me'))
+        fd.write('GSI "^%s$" %s\n' % (re.escape(my_DN), 'me'))
         for (uid, dns) in (('factory', factory_DNs),
-                          ('schedd', schedd_DNs),
-                          ('collector', collector_DNs),
-                          ('pilot', pilot_DNs)):
+                           ('schedd', schedd_DNs),
+                           ('collector', collector_DNs),
+                           ('pilot', pilot_DNs)):
             for i in range(len(dns)):
-                fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]), uid, i))
+                fd.write('GSI "^%s$" %s%i\n' % (re.escape(dns[i]), uid, i))
         fd.write("GSI (.*) anonymous\n")
         # Add FS and other mappings just for completeness
-        # Should never get here
+        # Condor should never get here because these mappings are not accepted
         for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
             fd.write("%s (.*) anonymous\n"%t)
     finally:
         fd.close()
         
     return
+
 
 #########################################
 # Create frontend-specific condor_config

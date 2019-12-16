@@ -1628,6 +1628,14 @@ class glideinFrontendElement:
 
 
     def get_condor_q(self, schedd_name):
+        """Retrieve the jobs a schedd is requesting
+
+        Args:
+            schedd_name (str): the schedd name
+
+        Returns (dict): a dictionary with all the jobs
+
+        """
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1635,9 +1643,9 @@ class glideinFrontendElement:
                 condorq_format_list = list(condorq_format_list) + list(self.x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509userproxy', 's'),))
+            condorq_format_list = list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
+            condorq_format_list = list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
+            condorq_format_list = list(condorq_format_list)+list((('x509userproxy', 's'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
                                expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),

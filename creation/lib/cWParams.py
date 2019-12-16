@@ -59,14 +59,14 @@ class SubParams:
     # PROTECTED
     #
 
-    # validate input against bae template (i.e. the defaults)
+    # validate input against base template (i.e. the defaults)
     def validate(self, base, path_text):
         for k in self.data.keys():
             if k not in base:
                 # element not in base, report
                 raise RuntimeError("Unknown parameter %s.%s"%(path_text, k))
             else:
-                # verify subelements, if any
+                # verify sub-elements, if any
                 defel=base[k]
                 if isinstance(defel, xmlParse.OrderedDict):
                     # subdictionary

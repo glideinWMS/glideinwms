@@ -381,8 +381,11 @@ class CondorQuery(StoredQuery):
             self.security_obj = condorSecurity.ProtoRequest()
 
     def require_integrity(self, requested_integrity):
-        """
-        Set client integerity settings to use for condor commands
+        """Set client integrity settings to use for condor commands
+
+        Args:
+            requested_integrity (str): HTCondor integrity level
+
         """
         if requested_integrity is None:
             condor_val = None
@@ -394,10 +397,10 @@ class CondorQuery(StoredQuery):
         self.security_obj.set('CLIENT', 'INTEGRITY', condor_val)
 
     def get_requested_integrity(self):
-        """
-        Get the current integrity settings
+        """Get the current integrity settings
 
-        @return: None->None; REQUIRED->True; OPTIONAL->False
+        Returns: None->None; REQUIRED->True; OPTIONAL->False
+
         """
         condor_val = self.security_obj.get('CLIENT', 'INTEGRITY')
         if condor_val is None:
@@ -405,8 +408,11 @@ class CondorQuery(StoredQuery):
         return (condor_val == 'REQUIRED')
 
     def require_encryption(self, requested_encryption):
-        """
-        Set client encryption settings to use for condor commands
+        """Set client encryption settings to use for condor commands
+
+        Args:
+            requested_encryption (str): HTCondor encryption level
+
         """
         if requested_encryption is None:
             condor_val = None
@@ -418,20 +424,26 @@ class CondorQuery(StoredQuery):
         self.security_obj.set('CLIENT', 'ENCRYPTION', condor_val)
 
     def get_requested_encryption(self):
-        """
-        Get the current encryption settings
+        """Get the current encryption settings
 
-        @return: None->None; REQUIRED->True; OPTIONAL->False
-        """
+        Returns: None->None; REQUIRED->True; OPTIONAL->False
 
+        """
         condor_val = self.security_obj.get('CLIENT', 'ENCRYPTION')
         if condor_val is None:
             return None
         return (condor_val == 'REQUIRED')
 
     def fetch(self, constraint=None, format_list=None):
-        """
-        Return the results obtained using HTCondor commands or python bindings
+        """Return the results obtained using HTCondor commands or python bindings
+
+
+        Args:
+            constraint (str): query constraint
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the query results
+
         """
         try:
             if USE_HTCONDOR_PYTHON_BINDINGS:
@@ -445,19 +457,15 @@ class CondorQuery(StoredQuery):
             raise QueryError(err_str), None, sys.exc_info()[2]
 
     def fetch_using_exe(self, constraint=None, format_list=None):
+        """Return the results obtained from executing the HTCondor query command
+
+        Args:
+            constraint (str): Constraints to be applied to the query
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the results
+
         """
-        Return the results obtained from executing the HTCondor query command
-
-        @param constraint: Constraints to be applied to the query
-        @type constraint: string
-
-        @param format_list: Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
-        @type format_list: list
-
-        @return: Dict containing the results
-        @rtype: dict
-        """
-
         if constraint is None:
             constraint_str = ""
         else:
@@ -494,8 +502,17 @@ class CondorQuery(StoredQuery):
         return dict_data
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
-        """
-        Fetch the results using htcondor-python bindings
+        """Fetch the results using htcondor-python bindings
+
+        Args:
+            constraint (str): Constraints to be applied to the query
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the results
+
+        Raises:
+            NotImplementedError: the operation is not implemented using bindings
+
         """
         raise NotImplementedError("fetch_using_bindings() not implemented")
 
@@ -520,8 +537,7 @@ class CondorQuery(StoredQuery):
 
 
 class CondorQ(CondorQuery):
-    """
-    Class to implement condor_q. Uses htcondor-python bindings if possible.
+    """Class to implement condor_q. Uses htcondor-python bindings if possible.
     """
 
     def __init__(self, schedd_name=None, pool_name=None, security_obj=None,
@@ -546,10 +562,15 @@ class CondorQ(CondorQuery):
                                  format_list=format_list)
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
-        """
-        Fetch the results using htcondor-python bindings
-        """
+        """Fetch the condor_q results using htcondor-python bindings
 
+        Args:
+            constraint (str): Constraints to be applied to the query
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the results
+
+        """
         results_dict = {}  # defined here in case of exception
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
