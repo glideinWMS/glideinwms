@@ -34,15 +34,30 @@ try:
     # In case of non default locations of CONDOR_CONFIG, frontend will always
     # set the CONDOR_CONFIG appropriately before every command. Since import
     # happens before frontend can do anything, htcondor module is initialized
-    # without the knowledge of CONDOR_CONFIG. This mandates that we do a
-    # htcondor.reload_config() everytime to use the bindings.
-    import htcondor # pylint: disable=import-error
+    # without the knowledge of CONDOR_CONFIG. A reload is needed.
+    # Furthemore _CONDOR_ variables are ignored by htcondor and need to be added
+    # manually to htcondor.param.
+    # This mandates that we do a htcondor_full_reload() every time to use the bindings.
+    import htcondor  # pylint: disable=import-error
     import classad   # pylint: disable=import-error
     USE_HTCONDOR_PYTHON_BINDINGS = True
-except:
+except ImportError:
     # TODO Maybe we should print a message here? Even though I don't know if
     # logSupport has been initialized. But I'd try to put it log.debug
     pass
+
+
+def htcondor_full_reload():
+    HTCONDOR_ENV_PREFIX = "_CONDOR_"
+    HTCONDOR_ENV_PREFIX_LEN = len(HTCONDOR_ENV_PREFIX)  # len of _CONDOR_ = 8
+    if not USE_HTCONDOR_PYTHON_BINDINGS:
+        return
+    # Reload configuration reading CONDOR_CONFIG from the environment
+    htcondor.reload_config()
+    # _CONDOR_ variables need to be added manually to _Params
+    for i in os.environ:
+        if i.startswith(HTCONDOR_ENV_PREFIX):
+            htcondor.param[i[HTCONDOR_ENV_PREFIX_LEN:]] = os.environ[i]
 
 
 #
@@ -313,7 +328,7 @@ class CondorQEdit:
         if not (len(joblist) == len(attributes) == len(values)):
             raise QueryError("Arguments to QEdit.executeAll should have the same length")
         try:
-            htcondor.reload_config()
+            htcondor_full_reload()
             if self.pool_name:
                 collector = htcondor.Collector(str(self.pool_name))
             else:
@@ -578,7 +593,7 @@ class CondorQ(CondorQuery):
         self.security_obj.save_state()
         try:
             self.security_obj.enforce_requests()
-            htcondor.reload_config()
+            htcondor_full_reload()
             if self.pool_name:
                 collector = htcondor.Collector(str(self.pool_name))
             else:
@@ -639,7 +654,7 @@ class CondorStatus(CondorQuery):
         self.security_obj.save_state()
         try:
             self.security_obj.enforce_requests()
-            htcondor.reload_config()
+            htcondor_full_reload()
             if self.pool_name:
                 collector = htcondor.Collector(str(self.pool_name))
             else:
