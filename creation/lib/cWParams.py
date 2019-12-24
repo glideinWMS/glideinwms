@@ -291,6 +291,13 @@ class Params:
 ######################################################
 # Ordered dictionary with comment support
 class commentedOrderedDict(xmlParse.OrderedDict):
+    """
+    Each value of the dict elements is a tuple:
+    - default value
+    - type of the value (descriptive string)
+    - comment
+    - commentedOrderedDict in case this is not a leaf
+    """
     def __init__(self, dict = None):
         # cannot call directly the parent due to the particular implementation restrictions
         self._keys = []

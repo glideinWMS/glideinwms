@@ -102,16 +102,17 @@ class VOFrontendParams(cWParams.CommonParams):
                         'files': ([], 'List of files', "Each file group contains", self.file_defaults)}
 
         # User Pool collectors
-        collector_defaults=cWParams.commentedOrderedDict()
-        collector_defaults["node"]=(None, "nodename", "Factory collector node name (for example, fg2.my.org:9999)", None)
-        collector_defaults["DN"]=(None, "dn", "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)", None)
-        collector_defaults["factory_identity"]=("factory@fake.org", "authenticated_identity", "What is the AuthenticatedIdentity of the factory at the WMS collector", None)
-        collector_defaults["my_identity"]=("me@fake.org", "authenticated_identity", "What is the AuthenticatedIdentity of my proxy at the WMS collector", None)
+        collector_defaults = cWParams.commentedOrderedDict()
+        collector_defaults["node"] = (None, "nodename", "Factory collector node name (for example, fg2.my.org:9999)", None)
+        collector_defaults["out_node"] = (None, "nodename", "Factory collector node name for publishing (same as node by default)", None)
+        collector_defaults["DN"] = (None, "dn", "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)", None)
+        collector_defaults["factory_identity"] = ("factory@fake.org", "authenticated_identity", "What is the AuthenticatedIdentity of the factory at the WMS collector", None)
+        collector_defaults["my_identity"] = ("me@fake.org", "authenticated_identity", "What is the AuthenticatedIdentity of my proxy at the WMS collector", None)
 
         # User schedulers
-        schedd_defaults=cWParams.commentedOrderedDict()
-        schedd_defaults["fullname"]=(None, "name", "User schedd name (for example, schedd_3@sb1.my.org)", None)
-        schedd_defaults["DN"]=(None, "dn", "User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)", None)
+        schedd_defaults = cWParams.commentedOrderedDict()
+        schedd_defaults["fullname"] = (None, "name", "User schedd name (for example, schedd_3@sb1.my.org)", None)
+        schedd_defaults["DN"] = (None, "dn", "User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)", None)
 
         # match_attr for factory and job query_expr
         query_attrs_defaults=cWParams.commentedOrderedDict()
@@ -172,18 +173,18 @@ class VOFrontendParams(cWParams.CommonParams):
 
         ###############################
         # Start defining the defaults
-        self.defaults["downtimes_file"]=('frontenddowntime', 'string', 'Frontend Downtime File', None)
-        self.defaults["frontend_name"]=(socket.gethostname(), 'ID', 'VO Frontend name', None)
+        self.defaults["downtimes_file"] = ('frontenddowntime', 'string', 'Frontend Downtime File', None)
+        self.defaults["frontend_name"] = (socket.gethostname(), 'ID', 'VO Frontend name', None)
         self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 
         self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?', None)
 
-        work_defaults=cWParams.commentedOrderedDict()
-        work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"], "base_dir", "Frontend base dir", None)
-        work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"], "log_dir", "Frontend base log dir", None)
-        self.defaults["work"]=work_defaults
+        work_defaults = cWParams.commentedOrderedDict()
+        work_defaults["base_dir"] = ("%s/frontstage"%os.environ["HOME"], "base_dir", "Frontend base dir", None)
+        work_defaults["base_log_dir"] = ("%s/frontlogs"%os.environ["HOME"], "log_dir", "Frontend base log dir", None)
+        self.defaults["work"] = work_defaults
 
-        process_log_defaults=cWParams.commentedOrderedDict()
+        process_log_defaults = cWParams.commentedOrderedDict()
         process_log_defaults["min_days"] = ["3.0", "days", "Min number of days the logs must be preserved (even if they use too much space)", None]
         process_log_defaults["max_days"] = ["7.0", "days", "Max number of days the logs should be preserved", None]
         process_log_defaults["max_mbytes"] = ["100.0", "Mbytes", "Max number of Mbytes the logs can use", None]
@@ -196,70 +197,70 @@ class VOFrontendParams(cWParams.CommonParams):
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
         self.defaults["log_retention"] = log_retention_defaults
         
-        monitor_footer_defaults=cWParams.commentedOrderedDict()
+        monitor_footer_defaults = cWParams.commentedOrderedDict()
         monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
         monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
         self.defaults["monitor_footer"] = monitor_footer_defaults
 
-        self.defaults['loop_delay']=('60', 'seconds', 'Number of seconds between iterations', None)
-        self.defaults['advertise_delay']=('5', 'NR', 'Advertize evert NR loops', None)
-        self.defaults['advertise_with_tcp']=('True', 'Bool', 'Should condor_advertise use TCP connections?', None)
-        self.defaults['advertise_with_multiple']=('True', 'Bool', 'Should condor_advertise use -multiple?', None)
+        self.defaults['loop_delay'] = ('60', 'seconds', 'Number of seconds between iterations', None)
+        self.defaults['advertise_delay'] = ('5', 'NR', 'Advertize evert NR loops', None)
+        self.defaults['advertise_with_tcp'] = ('True', 'Bool', 'Should condor_advertise use TCP connections?', None)
+        self.defaults['advertise_with_multiple'] = ('True', 'Bool', 'Should condor_advertise use -multiple?', None)
 
-        self.defaults['group_parallel_workers']=('2', 'NR', 'Max number of parallel workers that process the group policies', None)
+        self.defaults['group_parallel_workers'] = ('2', 'NR', 'Max number of parallel workers that process the group policies', None)
 
-        self.defaults['restart_attempts']=('3', 'NR', 'Max allowed NR restarts every restart_interval before shutting down', None)
-        self.defaults['restart_interval']=('1800', 'NR', 'Time interval NR sec which allow max restart attempts', None)
+        self.defaults['restart_attempts'] = ('3', 'NR', 'Max allowed NR restarts every restart_interval before shutting down', None)
+        self.defaults['restart_interval'] = ('1800', 'NR', 'Time interval NR sec which allow max restart attempts', None)
 
-        stage_defaults=cWParams.commentedOrderedDict()
-        stage_defaults["base_dir"]=("/var/www/html/vofrontend/stage", "base_dir", "Stage base dir", None)
-        stage_defaults["web_base_url"]=("http://%s/vofrontend/stage"%socket.gethostname(), 'base_url', 'Base Web server URL', None)
-        stage_defaults["use_symlink"]=("True", "Bool", "Can I symlink stage dir from work dir?", None)
-        self.defaults["stage"]=stage_defaults
+        stage_defaults = cWParams.commentedOrderedDict()
+        stage_defaults["base_dir"] = ("/var/www/html/vofrontend/stage", "base_dir", "Stage base dir", None)
+        stage_defaults["web_base_url"] = ("http://%s/vofrontend/stage"%socket.gethostname(), 'base_url', 'Base Web server URL', None)
+        stage_defaults["use_symlink"] = ("True", "Bool", "Can I symlink stage dir from work dir?", None)
+        self.defaults["stage"] = stage_defaults
 
-        self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor", "base_dir", "Monitoring base dir", None)
-        self.monitor_defaults["web_base_url"]=(None, "web_base_url", "Monitoring base dir", None)
-        self.defaults["monitor"]=self.monitor_defaults
+        self.monitor_defaults["base_dir"] = ("/var/www/html/vofrontend/monitor", "base_dir", "Monitoring base dir", None)
+        self.monitor_defaults["web_base_url"] = (None, "web_base_url", "Monitoring base dir", None)
+        self.defaults["monitor"] = self.monitor_defaults
         
-        pool_collector_defaults=cWParams.commentedOrderedDict()
-        pool_collector_defaults["node"]=(None, "nodename", "Pool collector node name (for example, col1.my.org:9999)", None)
-        pool_collector_defaults["DN"]=(None, "dn", "Pool collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)", None)
-        pool_collector_defaults["secondary"]=("False", "Bool", "Secondary nodes will be used by glideins, if present", None)
-        pool_collector_defaults["group"]=("default", "string", "Collector group name useful to group HA setup", None)
+        pool_collector_defaults = cWParams.commentedOrderedDict()
+        pool_collector_defaults["node"] = (None, "nodename", "Pool collector node name (for example, col1.my.org:9999)", None)
+        pool_collector_defaults["DN"] = (None, "dn", "Pool collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)", None)
+        pool_collector_defaults["secondary"] = ("False", "Bool", "Secondary nodes will be used by glideins, if present", None)
+        pool_collector_defaults["group"] = ("default", "string", "Collector group name useful to group HA setup", None)
 
-        self.defaults["collectors"]=([], 'List of pool collectors', "Each proxy collector contains", pool_collector_defaults)
+        self.defaults["collectors"] = ([], 'List of pool collectors', "Each proxy collector contains", pool_collector_defaults)
 
-        ccb_defaults=cWParams.commentedOrderedDict()
-        ccb_defaults["node"]=(None, "nodename", "CCB collector node name (for example, ccb1.my.org:9999)", None)
-        ccb_defaults["DN"]=(None, "dn", "CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)", None)
-        ccb_defaults["group"]=("default", "string", "CCB collector group name useful to group HA setup", None)
-        self.defaults["ccbs"]=([], 'List of CCB collectors', "Each CCB contains", ccb_defaults)
+        ccb_defaults = cWParams.commentedOrderedDict()
+        ccb_defaults["node"] = (None, "nodename", "CCB collector node name (for example, ccb1.my.org:9999)", None)
+        ccb_defaults["DN"] = (None, "dn", "CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)", None)
+        ccb_defaults["group"] = ("default", "string", "CCB collector group name useful to group HA setup", None)
+        self.defaults["ccbs"] = ([], 'List of CCB collectors', "Each CCB contains", ccb_defaults)
 
-        self.defaults["security"]=copy.deepcopy(security_defaults)
-        self.defaults["security"]["classad_proxy"]=(None, "fname", "File name of the proxy used for talking to the WMS collector", None)
-        self.defaults["security"]["proxy_DN"]=(None, "dn", "Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)", None)
-        self.defaults["security"]["sym_key"]=("aes_256_cbc", "sym_algo", "Type of symetric key system used for secure message passing", None)
+        self.defaults["security"] = copy.deepcopy(security_defaults)
+        self.defaults["security"]["classad_proxy"] = (None, "fname", "File name of the proxy used for talking to the WMS collector", None)
+        self.defaults["security"]["proxy_DN"] = (None, "dn", "Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)", None)
+        self.defaults["security"]["sym_key"] = ("aes_256_cbc", "sym_algo", "Type of symetric key system used for secure message passing", None)
 
-        self.defaults["match"]=copy.deepcopy(match_defaults)
+        self.defaults["match"] = copy.deepcopy(match_defaults)
         # Change default match value
         # By default we want to look only for vanilla universe jobs
         # that are not monitoring jobs
-        self.defaults["match"]["job"]["query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
+        self.defaults["match"]["job"]["query_expr"][0] = '(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
 
-        self.defaults["attrs"]=sub_defaults['attrs']
-        self.defaults["files"]=copy.deepcopy(sub_defaults['files'])
+        self.defaults["attrs"] = sub_defaults['attrs']
+        self.defaults["files"] = copy.deepcopy(sub_defaults['files'])
         # ordering is specific to global section of factory
-        self.defaults["files"][3]["after_group"]=("False", 'Bool', 'Should this file be loaded after the group ones?', None)
+        self.defaults["files"][3]["after_group"] = ("False", 'Bool', 'Should this file be loaded after the group ones?', None)
 
-        global_config_defaults=cWParams.commentedOrderedDict()
+        global_config_defaults = cWParams.commentedOrderedDict()
         global_config_defaults['ignore_down_entries'] = ["False", "Bool", "If set the frontend will ignore down entries during matching counts", None]
-        global_config_defaults['idle_vms_total']=copy.deepcopy(common_config_vms_total_defaults)
-        global_config_defaults['idle_vms_total_global']=copy.deepcopy(common_config_vms_total_defaults)
-        global_config_defaults['running_glideins_total']=copy.deepcopy(common_config_running_total_defaults)
-        global_config_defaults['running_glideins_total_global']=copy.deepcopy(common_config_running_total_defaults)
-        self.defaults["config"]=global_config_defaults
+        global_config_defaults['idle_vms_total'] = copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults['idle_vms_total_global'] = copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults['running_glideins_total'] = copy.deepcopy(common_config_running_total_defaults)
+        global_config_defaults['running_glideins_total_global'] = copy.deepcopy(common_config_running_total_defaults)
+        self.defaults["config"] = global_config_defaults
 
-        self.defaults["groups"]=(xmlParse.OrderedDict(), "Dictionary of groups", "Each group contains", self.group_defaults)
+        self.defaults["groups"] = (xmlParse.OrderedDict(), "Dictionary of groups", "Each group contains", self.group_defaults)
 
         # Initialize the external policy modules data structure
         self.match_policy_modules = {
@@ -275,8 +276,8 @@ class VOFrontendParams(cWParams.CommonParams):
         ha_defaults = cWParams.commentedOrderedDict()
         ha_defaults['ha_frontends'] = ([], 'List of frontends in  HA mode',
                                        'Each element contains', haf_defaults)
-        ha_defaults["enabled"]=('False', 'Bool', 'Enable HA?', None)
-        ha_defaults["check_interval"]=('300', 'NR', 'How frequently should slav check if the master is down', None)
+        ha_defaults["enabled"] = ('False', 'Bool', 'Enable HA?', None)
+        ha_defaults["check_interval"] = ('300', 'NR', 'How frequently should slav check if the master is down', None)
         #ha_defaults["activation_delay"]=('150', 'NR', 'How many sec to wait before slav activates after detecting that master is down', None)
         self.defaults['high_availability'] = ha_defaults
 

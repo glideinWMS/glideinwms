@@ -127,13 +127,12 @@ class ClassadAdvertiser:
 
 
     def __init__(self, pool=None, multi_support=False, tcp_support=False):
-        """
-        Constructor
+        """Constructor
 
-        @type pool: string 
-        @param pool: Collector address
-        @type multi_support: bool 
-        @param multi_support: True if the installation support advertising multiple classads with one condor_advertise command. Defaults to False.
+        Args:
+            pool (str): Collector address
+            multi_support (bool): True if the installation support advertising multiple classads with one condor_advertise command. Defaults to False.
+            tcp_support (bool): True if TCP is supported and should be used
         """
 
         # Dictionary of classad objects
@@ -153,27 +152,25 @@ class ClassadAdvertiser:
 
 
     def addClassad(self, name, ad_obj):
-        """
-        Adds the classad to the classad dictionary
-        
-        @type name: string 
-        @param name: Name of the classad
-        @type ad_obj: ClassAd
-        @param ad_obj: Actual classad object
+        """Adds the classad to the classad dictionary
+
+        Args:
+            name (str): Name of the classad
+            ad_obj (ClassAd):  Actual classad object
         """
 
         self.classads[name] = ad_obj
 
 
     def classadToFile(self, ad):
-        """
-        Write classad to the file and return the filename
-        
-        @type ad: string 
-        @param ad: Name of the classad
-        
-        @rtype: string
-        @return: Name of the file
+        """Write classad to the file and return the filename
+
+        Args:
+            ad (str): Name of the classad
+
+        Returns (str):
+            Name of the file
+
         """
 
         fname = self.getUniqClassadFilename()
@@ -193,15 +190,16 @@ class ClassadAdvertiser:
 
 
     def classadsToFile(self, ads):
-        """
-        Write multiple classads to a file and return the filename. 
+        """Write multiple classads to a file and return the filename.
+
         Use only when multi advertise is supported by condor.
-        
-        @type ads: list
-        @param ads: Classad names
-        
-        @rtype: string
-        @return: Filename containing all the classads to advertise
+
+        Args:
+            ads (list): Classad names
+
+        Returns (str):
+            Filename containing all the classads to advertise
+
         """
 
         fname = self.getUniqClassadFilename()
@@ -225,11 +223,13 @@ class ClassadAdvertiser:
 
 
     def doAdvertise(self, fname):
-        """
-        Do the actual advertisement of classad(s) in the file
+        """Do the actual advertisement of classad(s) in the file
 
-        @type fname: string
-        @param fname: File name containing classad(s)
+        Args:
+            fname (str): File name containing classad(s)
+
+        Raises:
+            RuntimeError 'Failed advertising ... classads' if `fname` is None or empty not a valid string
         """
 
         if (fname) and (fname != ""):
@@ -244,11 +244,10 @@ class ClassadAdvertiser:
 
 
     def advertiseClassads(self, ads=None):
-        """
-        Advertise multiple classads to the pool
+        """Advertise multiple classads to the pool
 
-        @type ads: list
-        @param ads: classad names to advertise
+        Args:
+            ads (list): classad names to advertise
         """
 
         if (ads is None) or (len(ads) == 0) :
@@ -268,11 +267,10 @@ class ClassadAdvertiser:
 
 
     def advertiseClassad(self, ad):
-        """
-        Advertise the classad to the pool
-        
-        @type ad: string 
-        @param ad: Name of the classad
+        """Advertise the classad to the pool
+
+        Args:
+            ad (str): Name of the classad
         """
 
         fname = self.classadToFile(ad)
@@ -280,27 +278,27 @@ class ClassadAdvertiser:
 
 
     def advertiseAllClassads(self):
-        """
-        Advertise all the known classads to the pool
+        """Advertise all the known classads to the pool
         """
 
         self.advertiseClassads(self.classads.keys())
 
 
     def invalidateClassad(self, ad):
-        """
-        Invalidate the classad from the pool
-        
-        @type type: string 
-        @param type: Name of the classad
+        """Invalidate the classad from the pool
+
+        Args:
+            ad (str): Name of the classad
+
+        Returns:
+
         """
 
         self.invalidateConstrainedClassads('Name == "%s"' % ad)
 
 
     def invalidateAllClassads(self):
-        """
-        Invalidate all the known classads
+        """Invalidate all the known classads
         """
 
         for ad in self.classads.keys():
@@ -308,13 +306,11 @@ class ClassadAdvertiser:
 
 
     def invalidateConstrainedClassads(self, constraint):
-        """
-        Invalidate classads from the pool matching the given constraints
-        
-        @type type: string 
-        @param type: Condor constraints for filtering the classads
-        """
+        """Invalidate classads from the pool matching the given constraints
 
+        Args:
+            constraint (str): Condor constraints for filtering the classads
+        """
         try:
             fname = self.getUniqClassadFilename()
             fd = file(fname, "w")
@@ -336,13 +332,12 @@ class ClassadAdvertiser:
 
 
     def getAllClassads(self):
-        """
-        Return all the known classads
-        
-        @rtype: string
-        @return: All the known classads delimited by empty line 
-        """
+        """Return all the known classads
 
+        Returns (str):
+            All the known classads delimited by empty line
+
+        """
         ads = ""
 
         for ad in self.classads.keys():
@@ -351,13 +346,12 @@ class ClassadAdvertiser:
 
 
     def getUniqClassadFilename(self):
-        """
-        Return a uniq file name for advertising/invalidating classads
-        
-        @rtype: string
-        @return: Filename
-        """
+        """Return a uniq file name for advertising/invalidating classads
 
+        Returns (str):
+            Filename
+
+        """
         return generate_classad_filename(prefix=self.advertiseFilePrefix)
 
 

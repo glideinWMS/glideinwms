@@ -52,7 +52,7 @@ def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_D
                 fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]), uid, i))
         fd.write("GSI (.*) anonymous\n")
         # Add FS and other mappings just for completeness
-        # Should never get here
+        # Condor should never get here because these mappings are not accepted
         for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
             fd.write("%s (.*) anonymous\n"%t)
     finally:

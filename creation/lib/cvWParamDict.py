@@ -750,6 +750,9 @@ def populate_common_descript(descript_dict, params):
         if el['my_identity'][-9:] == '@fake.org':
             raise RuntimeError("my_identity for %s not set! (i.e. it is fake)" % el['node'])
         cWDictFile.validate_node(el['node'])
+        # MMDB should this be validated?
+        if el['out_node']:
+            cWDictFile.validate_node(el['out_node'])
         collectors.append((el['node'], el['factory_identity'], el['my_identity']))
     descript_dict.add('FactoryCollectors', repr(collectors))
 

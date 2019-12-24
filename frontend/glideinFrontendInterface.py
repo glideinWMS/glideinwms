@@ -185,9 +185,21 @@ def findMasterFrontendClassads(pool_name, frontend_name):
     return format_condor_dict(data)
 
 
-# can throw condorMonitor.QueryError
 def findGlideins(factory_pool, factory_identity,
                  signtype, additional_constraint=None):
+    """Query the entries (glidefactory classads) on the Factory pool
+
+    can throw condorMonitor.QueryError (via condorMonitor.CondorStatus)
+
+    Args:
+        factory_pool (str): collector string
+        factory_identity (str): factory identity for query constraint (matching AuthenticatedIdentity)
+        signtype (str): signature type for query constraint (in SupportedSignTypes)
+        additional_constraint (str): additional constraint for query
+
+    Returns:
+
+    """
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factory_id
@@ -207,7 +219,7 @@ def findGlideins(factory_pool, factory_identity,
         status_constraint += ' && (%s)' % additional_constraint
 
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
-    status.require_integrity(True) #important, especially for proxy passing
+    status.require_integrity(True)  # important, especially for proxy passing
     status.load(status_constraint)
 
     data = status.fetchStored()
@@ -701,6 +713,19 @@ def advertizeWorkFromFile(factory_pool,
                           fname,
                           remove_file=True,
                           is_multi=False):
+    """Given a file, advertise the ClassAd
+
+    Can throw a CondorExe/ExeError exception (from the  exe_condor_advertise) call
+
+    Args:
+        factory_pool (str): collector
+        fname (str): file path
+        remove_file (bool): if True, remove the file after advertising
+        is_multi (bool): if True the file contains multiple classads
+
+    Returns:
+
+    """
     try:
         exe_condor_advertise(fname, "UPDATE_MASTER_AD", factory_pool, is_multi=is_multi)
     finally:
@@ -713,10 +738,14 @@ def advertizeWorkFromFile(factory_pool,
 
 
 class MultiAdvertizeWork:
-    def __init__(self,
-                 descript_obj):        # must be of type FrontendDescript
+    def __init__(self, descript_obj):
+        """Constructor
+
+        Args:
+            descript_obj (FrontendDescript): Frontend attributes
+        """
         self.descript_obj = descript_obj
-        self.factory_queue = {}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+        self.factory_queue = {}     # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
         self.global_pool = []
         self.global_key = {}
         self.global_params = {}
@@ -729,7 +758,7 @@ class MultiAdvertizeWork:
         self.ha_mode = 'master'
         self.glidein_config_limits = {}
 
-    # add a request to the list
+
     def add(self,
             factory_pool,
             request_name, glidein_name,
@@ -745,38 +774,73 @@ class MultiAdvertizeWork:
             trust_domain="Any",
             auth_method="Any",
             ha_mode='master'):
+        """Add a request to the list
 
-        params_obj=AdvertizeParams(request_name, glidein_name,
-                                   min_nr_glideins, max_run_glideins,
-                                   idle_lifetime,
-                                   glidein_params, glidein_monitors,
-                                   glidein_monitors_per_cred,
-                                   glidein_params_to_encrypt, security_name,
-                                   remove_excess_str, remove_excess_margin)
+        Args:
+            factory_pool (str): collector name
+            request_name:
+            glidein_name:
+            min_nr_glideins:
+            max_run_glideins:
+            idle_lifetime:
+            glidein_params:
+            glidein_monitors:
+            glidein_monitors_per_cred:
+            key_obj:
+            glidein_params_to_encrypt:
+            security_name:
+            remove_excess_str:
+            remove_excess_margin:
+            trust_domain (str):
+            auth_method (str):
+            ha_mode (str): if it is `master` (also running alone) or HA `slave`
+        """
+        # TODO: MMDB should there be alt_pool or alt_pool table (data in this class)?
+
+        params_obj = AdvertizeParams(request_name, glidein_name,
+                                     min_nr_glideins, max_run_glideins,
+                                     idle_lifetime,
+                                     glidein_params, glidein_monitors,
+                                     glidein_monitors_per_cred,
+                                     glidein_params_to_encrypt, security_name,
+                                     remove_excess_str, remove_excess_margin)
 
         if factory_pool not in self.factory_queue:
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
-        self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
+        self.factory_constraint[params_obj.request_name] = (trust_domain, auth_method)
         self.ha_mode = ha_mode
 
 
     def add_global(self, factory_pool, request_name, security_name, key_obj):
-        self.global_pool.append(factory_pool)
-        self.global_key[factory_pool]=key_obj
-        self.global_params[factory_pool]=(request_name, security_name)
+        """Add a classad to the
 
-    # return the queue depth
+        Args:
+            factory_pool:
+            request_name:
+            security_name:
+            key_obj:
+
+        """
+        # TODO: MMDB should there be alt_pool or alt_pool table (data in this class)?
+        self.global_pool.append(factory_pool)
+        self.global_key[factory_pool] = key_obj
+        self.global_params[factory_pool] = (request_name, security_name)
+
     def get_queue_len(self):
+        """Return the total queue depth
+
+        Returns (int):
+            queue depth
+        """
         count = 0
-        #for factory_pool in self.factory_queue:
-        for factory_pool in self.factory_queue.keys():
+        #was self.factory_queue.keys():
+        for factory_pool in self.factory_queue:
             count += len(self.factory_queue[factory_pool])
         return count
 
     def renew_and_load_credentials(self):
-            """
-            Get the list of proxies,
+            """Get the list of proxies,
             invoke the renew scripts if any,
             and read the credentials in memory.
             Modifies the self.x509_proxies_data variable.
@@ -809,29 +873,31 @@ class MultiAdvertizeWork:
             return nr_credentials
 
     def initialize_advertize_batch(self, adname_prefix='gfi_ad_batch'):
-        """
-        Initialize the variables that are used for batch avertizement
-        Returns the adname to pass to do*advertize methods
+        """Initialize the variables that are used for batch advertisement
+
+        Returns the adname to pass to do_advertise methods
         (will have to set reset_unique_id=False there, too)
         """
-        self.unique_id=1
+        self.unique_id = 1
         return classadSupport.generate_classad_filename(prefix=adname_prefix)
 
     def do_advertize_batch(self, filename_dict, remove_files=True):
-        """
-        Advertize the classad files in the dictionary provided
-         The keys are the factory names, while the elements are lists of files
+        """Advertise the classad files in the dictionary provided
+
+        The keys are the factory names, while the elements are lists of files
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
         for factory_pool in filename_dict:
             self.do_advertize_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
 
     def do_advertize_batch_one(self, factory_pool, filename_arr, remove_files=True):
-        """
-        Advertize to a factory the clasad files provided
+        """Advertise to a factory the clasad files provided
+
         Safe to run in parallel, guaranteed to not modify the self object state.
         """
-        # Advertize all the files 
+        # Advertise all the files
+        # TODO: MMDB should pass alt_pool table (data in this class)?
+
         for filename in filename_arr:
             try:
                 advertizeWorkFromFile(factory_pool, filename, remove_file=remove_files, is_multi=frontendConfig.advertise_use_multi)
@@ -842,8 +908,8 @@ class MultiAdvertizeWork:
         return tuple(set(self.global_pool).union(set(self.factory_queue.keys())))
             
     def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
-        """
-        Advertize globals with credentials
+        """Advertise globals with credentials
+
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have been already loaded.
@@ -857,8 +923,8 @@ class MultiAdvertizeWork:
         return unpublished_files
 
     def do_global_advertize_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
-        """
-        Advertize globals with credentials to one factory
+        """Advertize globals with credentials to one factory
+
         Returns the list of files that still need to be advertised.
         Expects that the credentials have been already loaded.
         """
@@ -952,80 +1018,91 @@ class MultiAdvertizeWork:
             return [tmpname]
 
     def do_advertize(self, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
-        """
-        Do the advertizing of the requests
+        """Do the advertising of the requests
+
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have already been loaded.
         """
         if file_id_cache is None:
-            file_id_cache=CredentialCache()
+            file_id_cache = CredentialCache()
 
         unpublished_files={}
         if reset_unique_id:
-            self.unique_id=1
+            self.unique_id = 1
         for factory_pool in self.factory_queue.keys():
-            self.unique_id+=1 # make sure ads for different factories don't end in the same file
-            unpublished_files[factory_pool]=self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
+            self.unique_id += 1  # make sure ads for different factories don't end in the same file
+            unpublished_files[factory_pool] = self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
         return unpublished_files
 
     def do_advertize_one(self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
-            """
-            Do the advertizing of requests for one factory
-            Returns the list of files that still need to be advertised.
-            Expects that the credentials have already been loaded.
-            """
-            # the different indentation is due to code refactoring
-            # this way the diff was minimized
-            if not (factory_pool in self.factory_queue.keys()):
-                # nothing to be done, prevent failure
-                return []
+        """Do the advertising of requests for one factory
 
-            if file_id_cache is None:
-                file_id_cache=CredentialCache()
+        Returns the list of files that still need to be advertised.
+        Expects that the credentials have already been loaded.
 
-            if reset_unique_id:
-                self.unique_id=1
-            if adname is None:
-                self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc')
-            else:
-                self.adname = adname
+        Args:
+            factory_pool:
+            file_id_cache:
+            adname:
+            create_files_only:
+            reset_unique_id:
 
-            # this should be done in parallel, but keep it serial for now
-            filename_arr=[]
-            if (frontendConfig.advertise_use_multi==True):
-                filename_arr.append(self.adname)
-            for el in self.factory_queue[factory_pool]:
-                params_obj, key_obj = el
-                try:
-                    filename_arr_el=self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
-                    for f in filename_arr_el:
-                        if f not in filename_arr:
-                            filename_arr.append(f)
-                except NoCredentialException:
-                    filename_arr = [] # don't try to advertise
-                    logSupport.log.warning("No security credentials match for factory pool %s, not advertising request;"
-                                           " if this is not intentional, check for typos frontend's credential "
-                                           "trust_domain and type, vs factory's pool trust_domain and auth_method" %
-                                           factory_pool)
-                except condorExe.ExeError:
-                    filename_arr = [] # don't try to advertise
-                    logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: " % factory_pool)
-                    logSupport.log.error("Error creating request files for factory pool %s, unable to advertise" % factory_pool)
-                
-            del self.factory_queue[factory_pool] # clean queue for this factory
+        Returns:
 
-            if create_files_only:
-                return filename_arr
+        """
+        # the different indentation is due to code refactoring
+        # this way the diff was minimized
+        if not (factory_pool in self.factory_queue.keys()):
+            # nothing to be done, prevent failure
+            return []
 
-            # Else, advertize all the files (if multi, should only be one) 
-            for filename in filename_arr:
-                try:
-                    advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
-                except condorExe.ExeError:
-                    logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
+        if file_id_cache is None:
+            file_id_cache = CredentialCache()
 
-            return [] # No files left to be advertized
+        if reset_unique_id:
+            self.unique_id = 1
+        if adname is None:
+            self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc')
+        else:
+            self.adname = adname
+
+        # this should be done in parallel, but keep it serial for now
+        filename_arr = []
+        if (frontendConfig.advertise_use_multi==True):
+            filename_arr.append(self.adname)
+        for el in self.factory_queue[factory_pool]:
+            params_obj, key_obj = el
+            try:
+                filename_arr_el = self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj,
+                                                               file_id_cache=file_id_cache)
+                for f in filename_arr_el:
+                    if f not in filename_arr:
+                        filename_arr.append(f)
+            except NoCredentialException:
+                filename_arr = []  # don't try to advertise
+                logSupport.log.warning("No security credentials match for factory pool %s, not advertising request;"
+                                       " if this is not intentional, check for typos frontend's credential "
+                                       "trust_domain and type, vs factory's pool trust_domain and auth_method" %
+                                       factory_pool)
+            except condorExe.ExeError:
+                filename_arr = []  # don't try to advertise
+                logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: " % factory_pool)
+                logSupport.log.error("Error creating request files for factory pool %s, unable to advertise" % factory_pool)
+
+        del self.factory_queue[factory_pool]  # clean queue for this factory
+
+        if create_files_only:
+            return filename_arr
+
+        # Else, advertise all the files (if multi, should only be one)
+        for filename in filename_arr:
+            try:
+                advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
+            except condorExe.ExeError:
+                logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
+
+        return []  # No files left to be advertized
 
     def vm_attribute_from_file(self, filename, prefix):
         """
@@ -1628,7 +1705,7 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
     to the user pool
     """
 
-    def __init__(self, pool=None, multi_support=False):
+    def __init__(self, pool=None, multi_support=False, out_pool=None):
         """
         Constructor
 
@@ -1654,7 +1731,19 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
 #
 ############################################################
 
-def exe_condor_advertise(fname,command, pool, is_multi=False):
+def exe_condor_advertise(fname, command, pool, is_multi=False):
+    """Run a condor advertise command to de/advertise ClassAds
+
+    Args:
+        fname (str): file path
+        command (str): condor command
+        pool (str): condor pool
+        is_multi (bool): if True the file contains multiple ClassAds
+
+    Returns:
+
+    """
+    # TODO: MMDB good place for poool substitution (optional parameter to consider it) - alt pool or boolean passed?
     logSupport.log.debug("CONDOR ADVERTISE %s %s %s %s" % (fname, command,
                                                            pool, is_multi))
     return condorManager.condorAdvertise(fname, command, 
