@@ -15,6 +15,13 @@ Runs unit tests and exit the results to standard output. Failed tests will cause
 EOF
 }
 
+find_aux () {
+    # $1 basename of the aux file
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
+    false
+}
+
 filename=$(basename "$0")
 VERBOSE=yes
 RUN_COVERAGE=no
@@ -40,17 +47,26 @@ shift $((OPTIND-1))
 # Script setup
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE/glideinwms"
+export MYDIR=$(dirname $0)
 
-
-if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
+if [ ! -d  "$GLIDEINWMS_SRC" ]; then
+    echo "ERROR: $GLIDEINWMS_SRC not found!"
     echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
 
-if !  . "$GLIDEINWMS_SRC/build/jenkins/utils.sh" ; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+ultil_file=$(find_aux utils.sh)
+
+if [ ! -e  "$ultil_file" ]; then
+    echo "ERROR: $ultil_file not found!"
+    echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
+    echo "exiting"
+    exit 1
+fi
+
+if ! . "$ultil_file" ; then
+    echo "ERROR: $ultil_file contains errors!"
     echo "exiting"
     exit 1
 fi
