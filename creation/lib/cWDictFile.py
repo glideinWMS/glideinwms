@@ -201,15 +201,16 @@ class DictFile:
 
         filepath = os.path.join(dir, fname)
         try:
-            with open(filepath, "r") as fd:
-                try:
-                    self.load_from_fd(fd, erase_first, set_not_changed)
-                except RuntimeError as e:
-                    raise RuntimeError("File %s: %s" % (filepath, str(e)))
+            fd = open(filepath, "r")
         except IOError as e:
             print("Error opening %s: %s" % (filepath, e))
             print("Assuming blank, and re-creating...")
             return
+        try:
+            with fd:
+                self.load_from_fd(fd, erase_first, set_not_changed)
+        except RuntimeError as e:
+            raise RuntimeError("File %s: %s" % (filepath, str(e)))
 
         if change_self:
             self.dir = dir
@@ -601,7 +602,7 @@ class SimpleFileDictFile(DictFile):
             with open(filepath, "r") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
         except IOError as e:
-            raise RuntimeError("Could not open file %s" % filepath)
+            raise RuntimeError("Could not open file or write to it: %s" % filepath)
 
     def format_val(self, key, want_comments):
         """Print lines: only the file name (key) the first item of the value tuple if not None
@@ -646,13 +647,14 @@ class SimpleFileDictFile(DictFile):
             if (not allow_overwrite) and os.path.exists(filepath):
                 raise RuntimeError("File %s already exists" % filepath)
             try:
-                with open(filepath, "w") as fd:
-                    try:
-                        fd.write(fdata)
-                    except IOError as e:
-                        raise RuntimeError("Error writing into file %s" % filepath)
+                fd = open(filepath, "w")
             except IOError as e:
                 raise RuntimeError("Could not create file %s" % filepath)
+            try:
+                with fd:
+                    fd.write(fdata)
+            except IOError as e:
+                raise RuntimeError("Error writing into file %s" % filepath)
 
 
 class FileDictFile(SimpleFileDictFile):

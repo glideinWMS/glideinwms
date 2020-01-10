@@ -53,8 +53,6 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
         pilot_DNs (list): list of DNs corresponding to the pilots (mapped to pilot)
 
     """
-    # fd = open(mapfile_fname, "w")
-    # try:
     with open(mapfile_fname, "w") as fd:
         fd.write('GSI "^%s$" %s\n' % (re.escape(my_DN), 'me'))
         for (uid, dns) in (('factory', factory_DNs),

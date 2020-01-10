@@ -650,11 +650,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
                              factory_collector=factory_collector)
     finally:
         # Unable to write classad
-        try:
-            os.remove(tmpnam)
-        except:
-            # Do the possible to remove the file if there
-            pass
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
@@ -662,6 +658,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gf')
+    # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
@@ -669,10 +666,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
             fd.write('Requirements = (Name == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factory_id))
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        try:
-            os.remove(tmpnam)
-        except OSError:
-            pass
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -680,6 +674,7 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfg')
+    # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
@@ -687,10 +682,7 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
             fd.write('Requirements = (Name == "%s@%s")&&(GlideinMyType == "%s")\n' % (glidein_name, factory_name, factoryConfig.factory_id))
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        try:
-            os.remove(tmpnam)
-        except OSError:
-            pass
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -698,6 +690,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
     Deadvertize all entry and global classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_fact')
+    # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
@@ -705,10 +698,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
             fd.write('Requirements = (FactoryName =?= "%s")&&(GlideinName =?= "%s")\n' % (factory_name, glidein_name))
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        try:
-            os.remove(tmpnam)
-        except OSError:
-            pass
+        _remove_if_there(tmpnam)
 
 
 ############################################################
@@ -931,6 +921,7 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
     Deadvertize  monitoring classads for the given entry.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
+    # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
@@ -940,10 +931,7 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
-        try:
-            os.remove(tmpnam)
-        except OSError:
-            pass
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -951,6 +939,7 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
     Deadvertize all monitoring classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
+    # TODO: use tempfile
     try:
         with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
@@ -960,10 +949,7 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
-        try:
-            os.remove(tmpnam)
-        except OSError:
-            pass
+        _remove_if_there(tmpnam)
 
 
 ############################################################
@@ -971,6 +957,15 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
 # I N T E R N A L - Do not use
 #
 ############################################################
+
+def _remove_if_there(fname):
+    """Remove the file and ignore errors (e.g. file not there)"""
+    try:
+        os.remove(fname)
+    except OSError:
+        # Do the possible to remove the file if there
+        pass
+
 
 # serialize access to the Collector accross all the processes
 # these is a single Collector anyhow

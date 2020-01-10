@@ -237,12 +237,12 @@ class GlideinHandler(BaseRotatingHandler):
             if os.path.exists(dfn + ".gz"):
                 os.remove(dfn + ".gz")
             try:
+                # TODO #23166: Use context managers[with statement] when python 3
+                # once we get rid of SL6 and tarballs
+                f_out = gzip.open(dfn + ".gz", "wb")
                 with open(dfn, "rb") as f_in:
-                    #TODO #23166: Use context managers[with statement] when python 3
-                    # once we get rid of SL6 and tarballs
-                    f_out = gzip.open(dfn + ".gz", "wb")
                     f_out.writelines(f_in)
-                    f_out.close()
+                f_out.close()
                 os.remove(dfn)
             except IOError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)

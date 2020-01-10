@@ -54,13 +54,13 @@ class DowntimeFile:
 def read(fname, raise_on_error=False):
         try:
             with open(fname, 'r') as fd:
-                fcntl.flock( fd, fcntl.LOCK_SH | fcntl.LOCK_NB )
+                fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
                 lines = fd.readlines()
         except IOError as e:
             if raise_on_error:
                 raise
             else:
-                return [] # no file -> no downtimes
+                return []  # no file -> no downtimes
 #############################################################################
         out=[]
         lnr=0
@@ -124,20 +124,20 @@ def checkDowntime(fname, check_time=None):
             if check_time <= time_tuple[1]:  # within limit
                 return True
 
-        return False # not found a downtime window
+        return False  # not found a downtime window
 
 
 # just insert a new line with start time and end time
-def addPeriod( fname, start_time, end_time,  create_if_empty=True):
+def addPeriod(fname, start_time, end_time,  create_if_empty=True):
         exists = os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
-            raise IOError("[Errno 2] No such file or directory: '%s'"%fname)
+            raise IOError("[Errno 2] No such file or directory: '%s'" % fname)
        
         with open(fname, 'a+') as fd:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB )
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
             if not exists: # new file, create header
-                fd.write("#%-29s %-30s\n"%("Start", "End"))
+                fd.write("#%-29s %-30s\n" % ("Start", "End"))
 
             if end_time is not None:
                 fd.write("%-30s %-20s\n" % (timeConversion.getISO8601_Local(start_time), timeConversion.getISO8601_Local(end_time)))
@@ -153,72 +153,73 @@ def endDowntime(fname, end_time=None):
 
         if end_time is None:
             end_time = long(time.time())
-    
+
         try:
-            with open(fname, 'r+') as fd:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                # read the old info
-                inlines = fd.readlines()
-
-                outlines=[]
-                lnr=0
-                closed_nr=0
-
-
-                for long_line in inlines:
-                    lnr+=1
-                    line = long_line.strip()
-
-                    if len(line)==0:
-                        outlines.append(long_line)
-                        continue # pass on empty lines
-                    if line[0:1]=='#':
-                        outlines.append(long_line)
-                        continue # pass on comments
-
-                    arr = line.split()
-                    if len(arr)<2:
-                        outlines.append(long_line)
-                        continue # pass on malformed lines
-
-                    #make sure this is for the right entry
-                    #if ((entry!="All")and(len(arr)>2)and(entry!=arr[2])):
-                    #    outlines.append(long_line)
-                    #    continue
-                    #if ((entry=="All")and(len(arr)>2)and("factory"==arr[2])):
-                    #    outlines.append(long_line)
-                    #    continue
-                    #if ((frontend!="All")and(len(arr)>3)and(frontend!=arr[3])):
-                    #    outlines.append(long_line)
-                    #    continue
-                    #make sure that this time tuple applies to this security_class
-                    #if ((security_class!="All")and(len(arr)>4)and(security_class!=arr[4])):
-                    #    outlines.append(long_line)
-                    #    continue
-
-                    cur_start_time = 0
-                    cur_end_time = 0
-                    if arr[0] != 'None':
-                        cur_start_time = timeConversion.extractISO8601_Local(arr[0])
-                    if arr[1] != 'None':
-                        cur_end_time   = timeConversion.extractISO8601_Local(arr[1])
-                    # open period -> close
-                    if arr[1] == 'None' or ((cur_start_time < long(time.time())) and (cur_end_time > end_time)):
-                        outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
-                        outlines.append("\n")
-                        closed_nr += 1
-                    else:
-                        outlines.append(long_line) # closed just pass on
-
-                    #Keep parsing file, since there may be multiple downtimes
-                    #pass # end for
-
-                # go back to start to rewrite
-                fd.seek(0)
-                fd.writelines(outlines)
-                fd.truncate()
+            fd = open(fname, 'r+')
         except IOError:
-            return 0 # no file -> nothing to end
+            return 0  # no file -> nothing to end
+
+        with fd:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # read the old info
+            inlines = fd.readlines()
+
+            outlines = []
+            lnr = 0
+            closed_nr = 0
+
+            for long_line in inlines:
+                lnr += 1
+                line = long_line.strip()
+
+                if len(line) == 0:
+                    outlines.append(long_line)
+                    continue  # pass on empty lines
+                if line[0:1] == '#':
+                    outlines.append(long_line)
+                    continue  # pass on comments
+
+                arr = line.split()
+                if len(arr) < 2:
+                    outlines.append(long_line)
+                    continue  # pass on malformed lines
+
+                #make sure this is for the right entry
+                #if ((entry!="All")and(len(arr)>2)and(entry!=arr[2])):
+                #    outlines.append(long_line)
+                #    continue
+                #if ((entry=="All")and(len(arr)>2)and("factory"==arr[2])):
+                #    outlines.append(long_line)
+                #    continue
+                #if ((frontend!="All")and(len(arr)>3)and(frontend!=arr[3])):
+                #    outlines.append(long_line)
+                #    continue
+                #make sure that this time tuple applies to this security_class
+                #if ((security_class!="All")and(len(arr)>4)and(security_class!=arr[4])):
+                #    outlines.append(long_line)
+                #    continue
+
+                cur_start_time = 0
+                cur_end_time = 0
+                if arr[0] != 'None':
+                    cur_start_time = timeConversion.extractISO8601_Local(arr[0])
+                if arr[1] != 'None':
+                    cur_end_time = timeConversion.extractISO8601_Local(arr[1])
+                # open period -> close
+                if arr[1] == 'None' or ((cur_start_time < long(time.time())) and (cur_end_time > end_time)):
+                    outlines.append("%-30s %-30s" % (arr[0], timeConversion.getISO8601_Local(end_time)))
+                    outlines.append("\n")
+                    closed_nr += 1
+                else:
+                    outlines.append(long_line)  # closed just pass on
+
+                #Keep parsing file, since there may be multiple downtimes
+                #pass # end for
+
+            # go back to start to rewrite
+            fd.seek(0)
+            fd.writelines(outlines)
+            fd.truncate()
 
         return closed_nr
 

@@ -21,6 +21,7 @@ from . import VDTClient
 from .Configuration import Configuration
 from .Configuration import ConfigurationError
 
+
 class Condor(Configuration):
 
   def __init__(self, inifile, ini_section, ini_options):
@@ -391,14 +392,14 @@ You can only use the '--configure/--validate' options for this type.
         common.logit("... extracting tarball: %s" % self.condor_tarball())
         common.logit("    into: %s" % tar_dir)
         with tarfile.open(self.condor_tarball(), "r:gz") as fd:
-            #-- first create the regular files --
+            # -- first create the regular files --
             for f in fd.getmembers():
-              if not f.islnk():
-                fd.extract(f, tar_dir)
-            #-- then create the links --
+                if not f.islnk():
+                    fd.extract(f, tar_dir)
+            # -- then create the links --
             for f in fd.getmembers():
-              if f.islnk():
-                os.link(os.path.join(tar_dir, f.linkname), os.path.join(tar_dir, f.name))
+                if f.islnk():
+                    os.link(os.path.join(tar_dir, f.linkname), os.path.join(tar_dir, f.name))
         
         common.logit( "... running condor_configure\n")
         install_str = "%s/%s" % (tar_dir, self.condor_first_dir)
@@ -536,9 +537,13 @@ You can only use the '--configure/--validate' options for this type.
       return
     common.logit("... validating condor tarball: %s" % tarball)
     if not os.path.isfile(tarball):
-      common.logerr("File (%s) not found" % (tarball))
+      common.logerr("File (%s) not found" % (tarball,))
     try:
-      with tarfile.open(tarball, "r:gz") as fd:
+      fd = tarfile.open(tarball, "r:gz")
+    except:
+      common.logerr("File (%s) not a valid tar.gz file" % (tarball,))
+    else:
+      with fd:
           try:
               first_entry = fd.next().name
               first_el=fd.getmember(first_entry)
@@ -559,8 +564,6 @@ You can only use the '--configure/--validate' options for this type.
                   common.logerr("Condor tarball (%s) missing %s" % (tarball, self.condor_first_dir + "condor_configure"))
           except Exception as e:
               common.logerr("Condor tarball file is corrupted: %s" % (tarball))
-    except:
-      common.logerr("File (%s) not a valid tar.gz file" % (tarball))
 
   #--------------------------------
   def __create_condor_mapfile__(self, users):

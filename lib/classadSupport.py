@@ -82,15 +82,17 @@ class Classad(object):
             o_flag = "w"
 
         try:
-            with open(filename, o_flag) as f:
-                if append and f.tell() > 0:
-                    # Write empty line when in append mode to be considered a separate classad
-                    # Skip at the beginning of the file (HTCondor bug #5147)
-                    # (one or more empty lines separate multiple classads on the same file)
-                    f.write('\n')
-                f.write("%s" % self)
+            f = open(filename, o_flag)
         except:
             raise
+
+        with f:
+            if append and f.tell() > 0:
+                # Write empty line when in append mode to be considered a separate classad
+                # Skip at the beginning of the file (HTCondor bug #5147)
+                # (one or more empty lines separate multiple classads on the same file)
+                f.write('\n')
+            f.write("%s" % self)
 
     def __str__(self):
         """

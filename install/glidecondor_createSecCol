@@ -82,8 +82,12 @@ def add_collector(index, port, config_fd):
 def create_config(fname):
     global collector_ports, use_port_as_name
     try:
-        with open(fname, "w") as fd:
-             fd.write("#################################################\n" +
+        fd = open(fname, "w")
+    except IOError as e:
+        print("%s" % e)
+        sys.exit(2)
+    with fd:
+        fd.write("#################################################\n" +
                  "# Secondary Collectors\n" +
                  "#################################################\n\n" +
                  "#\n" +
@@ -99,9 +103,6 @@ def create_config(fname):
                 i = p
             add_collector(i, p, fd)
             i += 1
-    except IOError as e:
-        print("%s" % e)
-        sys.exit(2)
 
 
 def parse_args(args):

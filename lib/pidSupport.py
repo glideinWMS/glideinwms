@@ -66,12 +66,14 @@ class PidSupport:
             fd = open(self.pid_fname, "w")
             fd.close()
 
+        # Do not use 'with' or close the file. Will be closed when lock is released
+        fd = open(self.pid_fname, "r+")
         try:
-            with open(self.pid_fname, "r+") as fd:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                self.lock_in_place = True
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.lock_in_place = True
         except IOError:
-                raise AlreadyRunning("Another process already running. Unable to acquire lock %s" % self.pid_fname)
+            fd.close()
+            raise AlreadyRunning("Another process already running. Unable to acquire lock %s" % self.pid_fname)
         fd.seek(0)
         fd.truncate()
         fd.write(self.format_pid_file_content())
