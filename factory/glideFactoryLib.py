@@ -1759,6 +1759,11 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     This is useful to change to status of glidein (CondorG job) from hold to
     idle.
 
+    In 3.6.2 the behavior of the function changeg. Instead of having a list
+    of unrecoverable codes in the function (that got outdated once gt was
+    deprecated), we consider each code unrecoverable and give the operators
+    the possibility of specify a list of recoverable codes in the config.
+
     @type jobInfo: dictionary
     @param jobInfo: Dictionary containing glidein job's classad information
 
@@ -1766,57 +1771,24 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     @return: True if job is unrecoverable, False if recoverable
     """
 
-    # CondorG held jobs have HeldReasonCode 2
-    # CondorG held jobs with following HeldReasonSubCode are not recoverable
-    # 0   : Job failed, no reason given by GRAM server
-    # 4   : jobmanager unable to set default to the directory requested
-    # 7   : authentication with the remote server failed
-    # 8   : the user cancelled the job
-    # 9   : the system cancelled the job
-    # 10  : globus_xio_gsi: Token size exceeds limit
-    # 17  : the job failed when the job manager attempted to run it
-    # 22  : the job manager failed to create an internal script argument file
-    # 31  : the job manager failed to cancel the job as requested
-    # 47  : the gatekeeper failed to run the job manager
-    # 48  : the provided RSL could not be properly parsed
-    # 76  : cannot access cache files in ~/.globus/.gass_cache,
-    #       check permissions, quota, and disk space
-    # 121 : the job state file doesn't exist
-    # 122 : could not read the job state file
-
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    unrecoverable = False
-    # Dictionary of {HeldReasonCode: HeldReasonSubCode}
-    unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17,
-                               22, 27, 28, 31, 37, 47, 48,
-                               72, 76, 81, 86, 87,
-                               121, 122 ]}
-    # adding 3 more reasons that were observed that have zeros for both HoldReasonCode/SubCode
-    unrecoverable_reason_str = ['Failed to authenticate with any method', 'Job cancel did not succeed after 3 tries', 'The spot instance request ID does not exist', 'Request limit exceeded']
 
+    unrecoverable = True
+    recoverableCodes = [] # Get them from the config
     code = jobInfo.get('HoldReasonCode')
-    subCode = jobInfo.get('HoldReasonSubCode')
-    holdreason = jobInfo.get('HoldReason')
-    # Based on HoldReasonCode and HoldReasonSubCode check if the job is recoverable
-    if (code is not None) and (subCode is not None):
-        if ( (code in unrecoverableCodes) and
-             (subCode in unrecoverableCodes[code]) ):
-            unrecoverable = True
-        # As of HTCondor 8.4.4 in case of glideins submitted to AWS and CondorCE
-        # have the HoldReasonCode = HoldReasonSubCode = 0 but HoldReason is
-        # populated correctly
-        elif (code == 0) and (subCode == 0) and (holdreason is not None):
-            for rs in unrecoverable_reason_str:
-                if holdreason.find(rs) != -1:
-                    # unrecoverable substring match
-                    unrecoverable = True
-                    break
+    # Keep around HoldReasonSubCode and HoldReason for the future
+    # subCode = jobInfo.get('HoldReasonSubCode')
+    # holdreason = jobInfo.get('HoldReason')
+
+    # Based on HoldReasonCode check if the job is recoverable
+    if (code is not None) and (code in recoverableCodes):
+            recoverable = True
 
     # Following check with NumSystemHolds should only apply to recoverable jobs
     # If we have determined that job is unrecoverable, skip these checks
-    if not unrecoverable:
+    if recoverable:
         num_holds=1
         job_status = jobInfo.get('JobStatus')
         num_system_holds = jobInfo.get('NumSystemHolds')
