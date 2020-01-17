@@ -133,12 +133,17 @@ def process_global(classad, glidein_descript, frontend_descript):
     pub_key_obj = glidein_descript.data['PubKeyObj']
     if pub_key_obj is None:
         raise CredentialError("Factory has no public key.  We cannot decrypt.")
-        
+
 
     try:
         # Get the frontend security name so that we can look up the username
         sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
         request_clientname = classad['ClientName']
+        msg = "\nBEFORE\nclassad = %s\n\n" % classad
+        logSupport.log.debug(msg)
+        val = 'GlideinEncParamFrontend_token' in classad
+        msg = 'evaluation of GlideinEncParamFrontend_token in classad = %s ' % val
+        logSupport.log.debug(msg)
 
         # get all the credential ids by filtering keys by regex
         # this makes looking up specific values in the dict easier
@@ -154,20 +159,31 @@ def process_global(classad, glidein_descript, frontend_descript):
 
             msg = "updating credential for %s" % username
             logSupport.log.debug(msg)
-
+            msg = "\nAFTER\nclassad = %s\n\n" % classad
+            logSupport.log.debug(msg)
+            val = 'GlideinEncParamFrontend_token' in classad
+            msg = 'evaluation of GlideinEncParamFrontend_token in classad = %s ' % val
+            logSupport.log.debug(msg)
             crd, ccrd = update_credential_file(username, cred_id, cred_data, request_clientname)
+            if 'GlideinEncParamFrontend_token' in classad:
+                try:
+                    logSupport.log.debug('decrypting GlideinEncParamFrontend_token')
+                    token_data = sym_key_obj.decrypt_hex(classad['GlideinEncParamFrontend_token'])
+                    logSupport.log.debug('decrypted token_data = %s' % token_data)
+                except Exception as err:
+                    logSupport.log.debug(err)
             #
             # signal from security_class in config to create soft link to token
             #
-            sec_class_name = sym_key_obj.decrypt_hex(classad["GlideinEncParamSecurityClass%s" % cred_id])
-            if sec_class_name.endswith("_token"):
-		pth = os.path.dirname(crd)
-                dst = os.path.join(pth, sec_class_name)
-                logSupport.log.debug("creating link from %s  to  %s" % (crd,dst))
-		if os.path.exists(dst):
-                    os.remove(dst)
-                os.symlink(crd,dst)
-                
+            #sec_class_name = sym_key_obj.decrypt_hex(classad["GlideinEncParamSecurityClass%s" % cred_id])
+            #if sec_class_name.endswith("_token"):
+            #    pth = os.path.dirname(crd)
+            #    dst = os.path.join(pth, sec_class_name)
+            #    logSupport.log.debug("creating link from %s  to  %s" % (crd,dst))
+            #    if os.path.exists(dst):
+            #        os.remove(dst)
+            #    os.symlink(crd,dst)
+
 
 
     except:
