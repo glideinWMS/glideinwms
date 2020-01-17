@@ -23,7 +23,7 @@ setup_python_venv() {
         TESTFIXTURES="testfixtures==5.4.0"
         # htcondor is not pip for python 2.6 (will be found from the RPM)
         HTCONDOR=
-        COVERAGE="coverage"
+        COVERAGE="coverage==4.5.4"
         JSONPICKLE="jsonpickle==0.9"
         PYCODESTYLE="pycodestyle==2.4.0"
         MOCK="mock==2.0.0"
@@ -38,7 +38,7 @@ setup_python_venv() {
         TESTFIXTURES="testfixtures"
         # Installing the pip version, in case the RPM is not installed
         HTCONDOR="htcondor"
-        COVERAGE='coverage==4.5.2'
+        COVERAGE='coverage==4.5.4'
         JSONPICKLE="jsonpickle"
         PYCODESTYLE="pycodestyle"
         MOCK="mock==3.0.3"
@@ -73,7 +73,7 @@ setup_python_venv() {
     # Install dependancies first so we don't get uncompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
-    pip_packages="${PYLINT} ${PYCODESTYLE} ${ASTROID} unittest2 ${COVERAGE}" 
+    pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
     pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
