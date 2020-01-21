@@ -315,19 +315,25 @@ individual entry point configuration.
     applied within restart_interval seconds for an entry if the entry
     crashes.
     </li>
-    <LI>
+    <li>
+    <div class="xml">
+        &lt;recoverable_exitcodes=&quot;<I>N,M,...</I>&quot; &gt;
+    </div>
+        <b>Optional:</b> Comma separated list of condor HoldReasonCode that are going to be retried
+    </li>
+    <li>
     <div class="xml">
         &lt;glidein advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
     </div>
         <b>Optional:</b> Defines if the Factory should use TCP to advertise its ClassAds.
     </li>
-    <LI>
+    <li>
     <div class="xml">
         &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
     </div>
         <b>Optional:</b> Defines if the Factory should use -multiple to advertise its ClassAds.  
     </li>
-    <LI>
+    <li>
     <div class="xml">
         &lt;glidein advertise_pilot_accounting=&quot;<I>True|False</I>&quot; &gt;
     </div>

@@ -884,6 +884,7 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('RestartAttempts', conf[u'restart_attempts'])
         glidein_dict.add('RestartInterval', conf[u'restart_interval'])
         glidein_dict.add('EntryParallelWorkers', conf[u'entry_parallel_workers'])
+        glidein_dict.add('RecoverableExitcodes', conf[u'recoverable_exitcodes'])
         glidein_dict.add('LogDir', conf.get_log_dir())
         glidein_dict.add('ClientLogBaseDir', sub_el[u'base_client_log_dir'])
         glidein_dict.add('ClientProxiesBaseDir', sub_el[u'base_client_proxies_dir'])

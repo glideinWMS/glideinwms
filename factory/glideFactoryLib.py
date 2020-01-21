@@ -1754,12 +1754,13 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
 def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     """
     This function looks at the glidein job's information and returns if the
-    CondorG job is unrecoverable.
+    CondorG job is unrecoverable. Condor hold codes are available at:
+    https://htcondor.readthedocs.io/en/v8_9_4/classad-attributes/job-classad-attributes.html
 
     This is useful to change to status of glidein (CondorG job) from hold to
     idle.
 
-    In 3.6.2 the behavior of the function changeg. Instead of having a list
+    In 3.6.2 the behavior of the function changed. Instead of having a list
     of unrecoverable codes in the function (that got outdated once gt was
     deprecated), we consider each code unrecoverable and give the operators
     the possibility of specify a list of recoverable codes in the config.
@@ -1774,9 +1775,12 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
+    glideinDescript = glideFactoryConfig.GlideinDescript()
 
     unrecoverable = True
-    recoverableCodes = [] # Get them from the config
+    recoverableCodes = glideinDescript.data.get('RecoverableExitcodes', '').split(',')
+    with open('/tmp/debug.txt', 'w') as fd:
+        fd.write(str(recoverableCodes))
     code = jobInfo.get('HoldReasonCode')
     # Keep around HoldReasonSubCode and HoldReason for the future
     # subCode = jobInfo.get('HoldReasonSubCode')
