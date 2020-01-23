@@ -780,7 +780,8 @@ class glideinFrontendElement:
                 tkn = self.refresh_entry_token(glidein_el)
                 gp_encrypt = None
                 if tkn:
-                    gp_encrypt = {'Frontend_token': tkn}
+                    entry_token_name = "%s_token" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
+                    gp_encrypt = {entry_token_name: tkn}
                 advertizer.add(factory_pool_node,
                                request_name, request_name,
                                glidein_min_idle,
