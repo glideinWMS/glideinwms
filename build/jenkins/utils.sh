@@ -30,18 +30,18 @@ setup_python_venv() {
     else
         # use something more up-to-date
         PY_VER="2.7"
-        VIRTUALENV_VER=virtualenv-16.0.0
-        PYLINT='pylint==1.8.4'
-        ASTROID='astroid==1.6.0'
+        VIRTUALENV_VER=virtualenv-16.7.7
+        PYLINT='pylint'
+        ASTROID='astroid'
         HYPOTHESIS="hypothesis"
         AUTOPEP8="autopep8"
         TESTFIXTURES="testfixtures"
         # Installing the pip version, in case the RPM is not installed
         HTCONDOR="htcondor"
-        COVERAGE='coverage==4.5.2'
+        COVERAGE='coverage'
         JSONPICKLE="jsonpickle"
         PYCODESTYLE="pycodestyle"
-        MOCK="mock==3.0.3"
+        MOCK="mock"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -73,7 +73,7 @@ setup_python_venv() {
     # Install dependancies first so we don't get uncompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
-    pip_packages="${PYLINT} ${PYCODESTYLE} ${ASTROID} unittest2 ${COVERAGE}" 
+    pip_packages="${PYLINT} ${PYCODESTYLE} ${ASTROID} unittest2 ${COVERAGE}"
     pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"

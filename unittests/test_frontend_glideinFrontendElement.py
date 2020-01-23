@@ -28,13 +28,17 @@ from glideinwms.unittests.unittest_utils import FakeLogger
 
 
 LOG_DATA = []
+
+
 def log_side_effect(*args, **kwargs):
     LOG_DATA.append(args[0])
 
+
 def condor_q_side_effect():
-        fnm = 'cs.schedd.fixture'
-        return readit(fnm)
-    
+    fnm = 'cs.schedd.fixture'
+    return readit(fnm)
+
+
 def condor_status_side_effect():
     fnm = 'cs.fixture'
     return readit(fnm)
@@ -105,9 +109,9 @@ class TestGlideinFrontendElement(unittest.TestCase):
         #condorExe.exe_cmd.side_effect = condor_side_effect
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
         self.gfe = glideinFrontendElement(
-        os.getpid(), work_dir, group_name, action)
+            os.getpid(), work_dir, group_name, action)
         self.gfe.frontend_name = 'Frontend-master-v1_0'
-        #self.gfe.configure()
+        # self.gfe.configure()
         init_factory_stats_arr()
         self.verbose = os.environ.get('DEBUG_OUTPUT')
         self.gfe.get_condor_q = mock.Mock()
@@ -123,12 +127,12 @@ class TestGlideinFrontendElement(unittest.TestCase):
         self.assertTrue(isinstance(self.gfe, glideinFrontendElement))
 
     def test_configure(self):
-        v='CONDOR_CONFIG'
-        b_cc = os.environ.get(v) 
-        v='_CONDOR_CERTIFICATE_MAPFILE'
-        b_ccm  = os.environ.get(v) 
-        v='X509_USER_PROXY'
-        b_xup  = os.environ.get(v) 
+        v = 'CONDOR_CONFIG'
+        b_cc = os.environ.get(v)
+        v = '_CONDOR_CERTIFICATE_MAPFILE'
+        b_ccm = os.environ.get(v)
+        v = 'X509_USER_PROXY'
+        b_xup = os.environ.get(v)
         self.gfe.configure()
         if self.verbose:
             print('\nc.glideinFrontendElement=%s' % self.gfe)
@@ -136,12 +140,12 @@ class TestGlideinFrontendElement(unittest.TestCase):
             print(
                 '\nc.glideinFrontendElement.attr_dict=%s' %
                 self.gfe.attr_dict)
-        v='CONDOR_CONFIG'
-        a_cc = os.environ.get(v) 
-        v='_CONDOR_CERTIFICATE_MAPFILE'
-        a_ccm  = os.environ.get(v) 
-        v='X509_USER_PROXY'
-        a_xup  = os.environ.get(v) 
+        v = 'CONDOR_CONFIG'
+        a_cc = os.environ.get(v)
+        v = '_CONDOR_CERTIFICATE_MAPFILE'
+        a_ccm = os.environ.get(v)
+        v = 'X509_USER_PROXY'
+        a_xup = os.environ.get(v)
         self.assertNotEqual(b_cc, a_cc)
         self.assertNotEqual(b_ccm, a_ccm)
         self.assertNotEqual(b_xup, a_xup)
@@ -152,15 +156,14 @@ class TestGlideinFrontendElement(unittest.TestCase):
     def test_init_factory_stats_arr(self):
         arr = init_factory_stats_arr()
         for ind in range(16):
-            self.assertEqual(arr[ind],0)
+            self.assertEqual(arr[ind], 0)
 
     def test_log_factory_header(self):
         mockery = mock.MagicMock()
         glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
         mockery.info.side_effect = log_side_effect
         log_factory_header()
-        self.assertEqual(len(LOG_DATA),2)
-
+        self.assertEqual(len(LOG_DATA), 2)
 
     @unittest.skip('for now')
     def test_build_resource_classad(self):
@@ -206,8 +209,6 @@ class TestGlideinFrontendElement(unittest.TestCase):
     def test_do_match(self):
         self.gfe.do_match()
 
-
-
     @unittest.skip('for now')
     def test_identify_bad_schedds(self):
         self.gfe.identify_bad_schedds()
@@ -230,8 +231,9 @@ class TestGlideinFrontendElement(unittest.TestCase):
         #print('after iteration self.gfe=%s' % self.gfe)
         #print('dir self.gfe=%s' % dir(self.gfe))
         print('after iteration self.gfe.stats=%s' % dir(self.gfe.stats))
-        print('after iteration self.gfe.stats["group"].data=%s' % self.gfe.stats['group'].data)
-
+        print(
+            'after iteration self.gfe.stats["group"].data=%s' %
+            self.gfe.stats['group'].data)
 
     @unittest.skip('for now')
     def test_log_and_print_total_stats(self):
@@ -288,12 +290,12 @@ class TestGlideinFrontendElement(unittest.TestCase):
 
     @unittest.skip('for now')
     def test_subprocess_count_dt(self):
-        #self.gfe.subprocess_count_dt(dt)
+        # self.gfe.subprocess_count_dt(dt)
         assert False
 
     @unittest.skip('for now')
     def test_subprocess_count_glidein(self):
-        #self.gfe.subprocess_count_glidein(glidein_list)
+        # self.gfe.subprocess_count_glidein(glidein_list)
         assert False
 
     @unittest.skip('for now')
@@ -303,7 +305,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
 
     @unittest.skip('for now')
     def test_write_stats(self):
-        #write_stats(stats)
+        # write_stats(stats)
         assert False
 
     @unittest.skip('for now')
@@ -350,8 +352,6 @@ class TestCheckParent(unittest.TestCase):
     def test_check_parent(self):
         # self.assertEqual(expected, check_parent(parent_pid))
         assert False  # TODO: implement your test here
-
-
 
 
 class TestLogAndSumFactoryLine(unittest.TestCase):

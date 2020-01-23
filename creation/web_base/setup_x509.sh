@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description;
 #   This is an include file for glidein_startup.sh
@@ -112,7 +112,7 @@ function check_x509_tools {
     if [ $missing_commands -ne 0 ]; then
         if [ $missing_commands -ge 3 ]; then
 	    STR="No x509 command (grid-proxy-init, voms-proxy-init, openssl) found in path!"
-            "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" 
+            "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR"
             exit 1
         else
             STR="Not all x509 commands found in path ($missing_commands missing)!"
@@ -153,7 +153,7 @@ function copy_x509_proxy {
         STR="Failed to set umask 0077!"
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
-    fi    
+    fi
 
     local_proxy_dir=`pwd`/ticket
     mkdir -p "$local_proxy_dir"
@@ -180,16 +180,11 @@ function copy_x509_proxy {
         STR="Failed to set back umask!"
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
-    fi    
-    #if '_token' in trust_domain, copy any tokens over with x509_user_proxy
-    #trust_domain=$(grep '^GLIDEIN_TrustDomain ' "$glidein_config" | cut -d ' ' -f 2-)
-    #echo "debug trust_domain=$trust_domain"
-    #if echo $trust_domain | grep -q '_token$'; then
-    	for TK in "$x_dir/*_token" ; do
-      		echo "debug cp $TK $local_proxy_dir"
-      		cp $TK $local_proxy_dir
-    	done
-    #fi
+    fi
+    for TK in "$x_dir/*_token" ; do
+    	echo "debug cp $TK $local_proxy_dir"
+      	cp $TK $local_proxy_dir
+    done
 
     return 0
 }
@@ -255,7 +250,7 @@ function get_x509_expiration {
     fi
 
     if [ $ret -eq 0 ]; then
-	if [ $l -lt 60 ]; then 
+	if [ $l -lt 60 ]; then
 	    STR="Proxy not valid in 1 minute, only $l seconds left!\n"
 	    STR+="Not enough time to do anything with it."
 	    STR1=`echo -e "$STR"`
