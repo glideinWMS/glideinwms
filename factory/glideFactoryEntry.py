@@ -1217,11 +1217,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials = glideFactoryCredentials.SubmitCredentials(
                              credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
-    frontend_supplied_token = decrypted_params.get('Frontend_token')
+    token_name = "%s_token" % entry.name
+    frontend_supplied_token = decrypted_params.get(token_name)
     if frontend_supplied_token:
         (fd, tmpnm) = tempfile.mkstemp()
         try:
-            tkn_file = os.path.join(submit_credentials.cred_dir, 'frontend_token')
+            tkn_file = os.path.join(submit_credentials.cred_dir, token_name)
             entry.log.debug("frontend_token supplied, writing to %s" % tkn_file)
             os.chmod(tmpnm,400)
             os.write(fd, frontend_supplied_token)
