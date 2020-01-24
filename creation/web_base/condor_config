@@ -35,7 +35,7 @@ STARTD_HISTORY = $(LOG)/StartdHistoryLog
 
 ALL_DEBUG = D_PID
 STARTD_DEBUG = D_PID D_JOB
-STARTER_DEBUG = D_PID 
+STARTER_DEBUG = D_PID
 MASTER_DEBUG = D_PID
 
 # needed since Condor v6.9.2
@@ -89,8 +89,11 @@ BenchmarkTimer = (CurrentTime - LastBenchmark)
 RunBenchmarks : (LastBenchmark == 0 ) || ($(BenchmarkTimer) >= (4 * $(HOUR)))
 
 GSI_DAEMON_DIRECTORY=$(LOCAL_DIR)
+SEC_PASSWORD_DIRECTORY=$(LOCAL_DIR)
+SEC_TOKEN_SYSTEM_DIRECTORY=$(LOCAL_DIR)/ticket
+SEC_TOKEN_DIRECTORY=$(SEC_TOKEN_SYSTEM_DIRECTORY)
 SEC_DEFAULT_AUTHENTICATION = REQUIRED
-SEC_DEFAULT_AUTHENTICATION_METHODS = GSI 
+SEC_DEFAULT_AUTHENTICATION_METHODS = TOKEN,GSI
 
 
 # Allow readonly access to the site collector
@@ -106,7 +109,7 @@ DENY_NEGOTIATOR = anonymous@*
 DENY_OWNER = anonymous@*
 DENY_CONFIG = anonymous@*
 
-LOCAL_CONFIG_FILE       = 
+LOCAL_CONFIG_FILE       =
 
 GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start)) && ($(GLIDECLIENT_Start)) && ($(GLIDECLIENT_Group_Start))
 GLIDEIN_HOLD_CONDITION = ($(GLIDEIN_Hold)) || ($(GLIDEIN_Entry_Hold)) || ($(GLIDECLIENT_Hold)) || ($(GLIDECLIENT_Group_Hold))
