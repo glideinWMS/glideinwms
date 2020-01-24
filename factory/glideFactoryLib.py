@@ -464,7 +464,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     # old file exists, check if same content
     with open(fname, 'r') as fl:
         old_data = fl.read()
-
+    
     if proxy_data == old_data:
         # nothing changed, done
         return fname
@@ -997,7 +997,6 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     # Do not log decrypted values ... they are most likely sensitive
     # Just log the keys for debugging purposes
     log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
-    # log.debug("  Decrypted Params: %s" % work_el['params_decrypted'])
     # requests use GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS at the Frontend to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
     reqs = {'IdleGlideins': req_idle, 'MaxGlideins': req_max_run}
@@ -1322,7 +1321,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
     @type client_web: string
     @param client_web client_web = None means client did not pass one, backwards compatibility
     @type params: dictionary
-    @param params:
+    @param params: 
     @type  status_sf: dictionary
     @param status_sf: keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
     @type log: python logfile
