@@ -1,0 +1,30 @@
+#!/bin/bash
+
+KEY=$1
+ID=$(whoami)
+
+if [ ! "${ID}" = "frontend" ]; then
+	echo "this script may only be run by user 'frontend'"
+	exit 1
+fi
+
+
+if [ "$KEY" = "" ]; then
+	echo usage $0 entry_point
+	echo creates frontend token ~frontend/.condor/tokends.d/entry_point 
+	exit 0
+fi
+
+# create a key for creating the token if needed
+if [ ! -e /etc/condor/passwords.d/${KEY} ]; then
+    mkdir -p /etc/condor/passwords.d
+    openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${KEY} add > /dev/null 2>&1
+fi
+
+TOKEN=${KEY}.token
+TD="~/.condor/tokens.d"
+mkdir -p "${TD}"
+AUTH='-authz READ -authz WRITE -authz ADVERTISE_STARTD -authz ADVERTISE_SCHEDD -authz ADVERTISE_MASTER'
+
+# create the token, echo it to stdout
+sudo /usr/bin/condor_token_create  -lifetime 86400 -key ${KEY} ${AUTH} -identity "${ID}@${HOSTNAME}"
