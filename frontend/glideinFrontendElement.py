@@ -777,11 +777,18 @@ class glideinFrontendElement:
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
-                tkn = self.refresh_entry_token(glidein_el)
+                # determine whether to encrypt a condor token into the classad
+                tkn = None
                 gp_encrypt = None
+                # are we submitting glideins? try to get a token
+                if count_status['Total']:
+                    tkn = self.refresh_entry_token(glidein_el)
                 if tkn:
+                    # mark token for encryption
                     entry_token_name = "%s_token" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
                     gp_encrypt = {entry_token_name: tkn}
+
+                # now advertise
                 advertizer.add(factory_pool_node,
                                request_name, request_name,
                                glidein_min_idle,
@@ -850,20 +857,31 @@ class glideinFrontendElement:
 
 
     def refresh_entry_token(self, glidein_el):
-        # glidein_el['params']['CONDOR_VERSION'] > 8.9.2 is condor_token_capable
+        """
+            create or update a condor token for an entry point
+            params:  glidein_el: a glidein element data structure
+            returns:  jwt encoded condor token on success
+                      None on failure
+        """
         tkn_file = None
         tkn_str = None
+        # does condor version of entry point support condor token auth
         if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
             (fd, tmpnm) = tempfile.mkstemp()
             try:
-                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/%s.token" % glidein_el['attrs']['GLIDEIN_Site']
-                cmd = "condor_token_fetch -lifetime 86400"
+                # create a condor token named for entry point site name
+                glidein_site = glidein_el['attrs']['GLIDEIN_Site']
+                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
+                tkn_file += glidein_site
+                tkn_file += ".token"
+                cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                os.chmod(tmpnm,400)
+                os.chmod(tmpnm,0600)
                 os.write(fd, tkn_str)
                 os.close(fd)
-                #shutil.move(tmpnm, tkn_file)
+                shutil.move(tmpnm, tkn_file)
                 file_tmp2final(tkn_file, tmpnm)
+                os.chmod(tkn_file, 0600)
                 logSupport.log.debug("created token %s" % tkn_file)
             except Exception as err:
                 logSupport.log.debug('failed to fetch %s' % tkn_file)
