@@ -1779,8 +1779,6 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
 
     unrecoverable = True
     recoverableCodes = glideinDescript.data.get('RecoverableExitcodes', '').split(',')
-    with open('/tmp/debug.txt', 'w') as fd:
-        fd.write(str(recoverableCodes))
     code = jobInfo.get('HoldReasonCode')
     # Keep around HoldReasonSubCode and HoldReason for the future
     # subCode = jobInfo.get('HoldReasonSubCode')
