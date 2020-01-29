@@ -214,7 +214,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
-                             'setup_x509.sh',
                              cgWConsts.CONDOR_STARTUP_FILE]
         # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
@@ -242,6 +241,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # Add the drainer script
+        x509script = 'setup_x509.sh'
+        self.dicts['file_list'].add_from_file(x509script,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(x509script), 'exec', 60, 'NOPREFIX'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, x509script))
+
+        # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
         self.dicts['file_list'].add_from_file(drain_script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60, 'NOPREFIX'),
@@ -252,7 +257,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_from_file(mjf_script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 1800, 'MJF_'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script))
-
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE, "last_script")

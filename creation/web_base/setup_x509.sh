@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description;
 #   This is an include file for glidein_startup.sh
@@ -112,7 +112,7 @@ function check_x509_tools {
     if [ $missing_commands -ne 0 ]; then
         if [ $missing_commands -ge 3 ]; then
 	    STR="No x509 command (grid-proxy-init, voms-proxy-init, openssl) found in path!"
-            "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" 
+            "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR"
             exit 1
         else
             STR="Not all x509 commands found in path ($missing_commands missing)!"
@@ -153,7 +153,7 @@ function copy_x509_proxy {
         STR="Failed to set umask 0077!"
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
-    fi    
+    fi
 
     local_proxy_dir=`pwd`/ticket
     mkdir -p "$local_proxy_dir"
@@ -170,6 +170,7 @@ function copy_x509_proxy {
         exit 1
     fi
 
+    export X509_USER_PROXY_ORIG="$X509_USER_PROXY"
     export X509_USER_PROXY="$local_proxy_dir/myproxy"
     # protect from strange sites (only the owner should only read) was: a-wx, go-r
     chmod 0400 "$X509_USER_PROXY"
@@ -179,7 +180,7 @@ function copy_x509_proxy {
         STR="Failed to set back umask!"
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
-    fi    
+    fi
 
     return 0
 }
@@ -245,7 +246,7 @@ function get_x509_expiration {
     fi
 
     if [ $ret -eq 0 ]; then
-	if [ $l -lt 60 ]; then 
+	if [ $l -lt 60 ]; then
 	    STR="Proxy not valid in 1 minute, only $l seconds left!\n"
 	    STR+="Not enough time to do anything with it."
 	    STR1=`echo -e "$STR"`
@@ -264,11 +265,32 @@ function get_x509_expiration {
 }
 
 
+function refresh_proxy {
+    X509_USER_PROXY_ORIG="`grep '^X509_USER_PROXY_ORIG ' "$glidein_config" | cut -d ' ' -f 2-`"
+
+    # If X509_USER_PROXY_ORIG is set it means the script has run at least once
+    if [ -n "${X509_USER_PROXY_ORIG}" ]; then
+        X509_USER_PROXY="`grep '^X509_USER_PROXY ' "$glidein_config" | cut -d ' ' -f 2-`"
+
+        chmod 600 $X509_USER_PROXY
+        cp $X509_USER_PROXY_ORIG $X509_USER_PROXY 2>> ../tmp/tmp.txt
+        chmod 400 $X509_USER_PROXY
+
+        exit 0
+    fi
+
+    return 0
+}
+
+
 ############################################################
 #
 # Main
 #
 ############################################################
+
+# If it is not the first execution, but a periodic one, just refresh and exit
+refresh_proxy
 
 # Assume all functions exit on error
 check_x509_certs
@@ -280,6 +302,7 @@ X509_EXPIRE="$RETVAL"
 
 add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
+add_config_line X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"
 add_config_line X509_EXPIRE  "$X509_EXPIRE"
 
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
