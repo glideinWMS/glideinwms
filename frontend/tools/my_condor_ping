@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ "$1" = "" ]; then
+   HOST=$HOSTNAME
+else
+   HOST=$1
+fi
+condor_ping -addr "<$(host $HOST | sed -e 's/.* //'):9618>" -table ALL
