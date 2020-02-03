@@ -45,9 +45,9 @@ if [ -n "$CONFIG" ]; then
     mkdir -p $work_dir/lib/python $work_dir/lib/python2 $work_dir/lib/python3
     "$error_gen" -ok "libtest.sh" "WN_Resource" "$($PYTHON --version)"
 else
-    export PYTHONPATH=$PYTHONPATH:$my_path/lib/python
-    export PYTHONPATH=$PYTHONPATH:$my_path/lib/$PYTHON
-    exec $PYTHON $@
+    export PYTHONPATH="$PYTHONPATH:$my_path/lib/python"
+    [ "$PYTHON" != python ] && export PYTHONPATH="$PYTHONPATH:$my_path/lib/$PYTHON"
+    exec $PYTHON "$@"
     echo "$0: failed to execute $PYTHON" >&2
     exit 1
 fi
