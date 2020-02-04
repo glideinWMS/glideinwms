@@ -145,9 +145,9 @@ process_branch() {
     #else
     #    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
     #fi
-    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
     echo "-- DBG $(echo $scripts | wc -w | tr -d " ") scripts found using magic file ($FILE_MAGIC) --"
-    echo $FILES_CHECKED | grep "py3tools/process_tags" -q && echo "-- WARNING Seems python3 files are being checked: $(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | grep py3 )"
+    echo $FILES_CHECKED | grep "py3tools/process_tags" -q && echo "-- WARNING Seems python3 files are being checked: $(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | grep py3 )"
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
       #can't seem to get --ignore or --ignore-modules to work, so do it this way

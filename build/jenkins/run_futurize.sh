@@ -221,7 +221,7 @@ process_branch () {
     magic_file="$(find_aux gwms_magic)"
     FILE_MAGIC=
     [ -e  "$magic_file" ] && FILE_MAGIC="-m $magic_file"
-    scripts=$(find .  -path .git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    scripts=$(find .  -path .git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #if [ -e  "$magic_file" ]; then
     #    scripts=$(find .  -path .git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #else
