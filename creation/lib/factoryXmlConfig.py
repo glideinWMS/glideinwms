@@ -283,7 +283,15 @@ class Config(xmlConfig.DictElement):
         return self.web_url
 
     def get_entries(self):
-        return self.get_child_list(u'entries') + self.get_child_list(u'entry_sets')
+        try:
+            entries = self.get_child_list(u'entries')
+        except KeyError:
+            entries = []
+        try:
+            entry_sets = self.get_child_list(u'entry_sets')
+        except KeyError:
+            entry_sets = []
+        return entries + entry_sets
 
 
 xmlConfig.register_tag_classes({u'glidein': Config})
