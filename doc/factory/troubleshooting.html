@@ -73,6 +73,7 @@
     <li><a href="#no_resource">Resource Not Registered</a></li>
     <li><a href="#no_start">Jobs Do Not Start</a></li>
     <li><a href="#find_user">Finding the User</a></li>
+    <li><a href="#gfdiff">Checking differences in entries configuration</a></li>
 </ol>
 </div>
 <div class="related">
@@ -421,7 +422,21 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
 
 	</div>
 
-
+<div class="section">
+<h2><a name="gfdiff">Checking differences in entries configuration</a></h2>
+The gfdiff tool can be used to check differences among entries in the xml configuraiton. For example:
+        <blockquote>
+bash-4.1$ gfdiff --debug --confA=data/automatically_generated.xml --confB=/etc/osg-gfactory/10-cmst1-uscmst2-all.xml --entryA=CMSHTPC_T2_US_Florida_slurm --entryB=CMSHTPC_T2_US_Florida_slurm
+Checking entry attributes:
+    Key proxy_url(OSG) not found in CMSHTPC_T2_US_Florida_slurm
+Checking inner xml:
+        GLIDEIN_MaxMemMBs: Key glidein_publish is different: (True vs False)
+        GLIDEIN_MaxMemMBs: Key job_publish is different: (False vs True)
+        CONDOR_ARCH: not present in CMSHTPC_T2_US_Florida_slurm
+        GLIDEIN_Max_Walltime: not present in CMSHTPC_T2_US_Florida_slurm
+        GLIDEIN_SEs: not present in CMSHTPC_T2_US_Florida_slurm
+        </blockquote>
+</div>
 
 
 <div class="footer">
