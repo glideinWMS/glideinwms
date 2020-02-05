@@ -12,8 +12,7 @@
 
 if [ -f "$1" ]; then
     glidein_config="$1"
-    error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-    work_dir=`grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}'`
+    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | awk '{print $2}')
 fi
 
 [ -n "$error_gen" ] && CONFIG=TRUE
@@ -21,7 +20,7 @@ fi
 if [ -n "$CONFIG" ]; then
     "$error_gen" -ok "libtest.sh" "WN_Resource" "pychirp wrapper"
 else
-    exec $(dirname $0)/gwms-python -m htchirp "$@"
+    exec "$(dirname "$0")"/gwms-python -m htchirp "$@"
     echo "$0: failed to execute the python condor_chirp" >&2
     exit 1
 fi
