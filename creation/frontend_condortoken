@@ -1,5 +1,11 @@
 #!/bin/bash
-
+# file: frontend_condortoken
+# purpose: generates a condor token for authorizing back to the frontend
+#         from a glideinwms factory entry point
+# arguments:
+#      KEY: the name of the entry point, creates a token with the same name
+# author:  Dennis Box, dbox@fnal.gov
+#
 KEY=$1
 ID=$(whoami)
 
@@ -11,7 +17,7 @@ fi
 
 if [ "$KEY" = "" ]; then
 	echo usage $0 entry_point
-	echo creates frontend token ~frontend/.condor/tokends.d/entry_point 
+	echo creates frontend token ~frontend/.condor/tokends.d/entry_point
 	exit 0
 fi
 
