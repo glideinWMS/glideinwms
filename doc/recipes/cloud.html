@@ -58,6 +58,7 @@
                 <li><a href="./index.html">Overview</a></li>
                 <li> <a href="./batch.html">Batch (BOSCO)</a></li>
                 <li>cloud Recipes</li>
+                <li><a href="./token_auth.html">HTCondor Token Auth</a><li>
                 <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
             </ul>
             <h3>Overview</h3>
@@ -89,7 +90,7 @@
                     <tr>
                         <td>A functioning GlideinWMS  Frontend</td>
                         <td>
-                            The Frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the Factory 
+                            The Frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the Factory
                             applies here.
                         </td>
                     </tr>
@@ -105,14 +106,14 @@
         <div class="section">
             <h2 class="western">Example Factory Entry: Amazon EC2</h2>
             <pre>
-&lt;entry name="Amazon_Vandy" 
-    auth_method="key_pair+vm_id+vm_type" 
-    enabled="True" 
+&lt;entry name="Amazon_Vandy"
+    auth_method="key_pair+vm_id+vm_type"
+    enabled="True"
     gatekeeper="https://us-east-1.ec2.amazonaws.com"
-    gridtype="ec2" 
-    schedd_name="cms-xen6.fnal.gov" 
-    trust_domain="cloud" 
-    verbosity="std" 
+    gridtype="ec2"
+    schedd_name="cms-xen6.fnal.gov"
+    trust_domain="cloud"
+    verbosity="std"
     work_dir="."&gt;
 
     &lt;config&gt;
@@ -134,13 +135,13 @@
     &lt;attrs&gt;
         &lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False" 
+        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
+        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False"
               parameter="True" publish="True" type="string" value="NONE"/&gt;
-        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
+        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True"
               parameter="True" publish="True" type="string" value="Amazon_EC2"/&gt;
-        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" 
+        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False"
               parameter="True" publish="True" type="string" value="True"/&gt;
     &lt;/attrs&gt;
 
@@ -154,14 +155,14 @@
 
             <h2 class="western">Example Factory Entry: Google cloud</h2>
             <pre>
-&lt;entry name="Google_Entry" 
-    auth_method="auth_file+vm_id+vm_type" 
-    enabled="True" 
+&lt;entry name="Google_Entry"
+    auth_method="auth_file+vm_id+vm_type"
+    enabled="True"
     gatekeeper="https://www.googleapis.com/compute/v1"
-    gridtype="gce" 
-    schedd_name="cms-xen6.fnal.gov" 
-    trust_domain="Google_cloud" 
-    verbosity="std" 
+    gridtype="gce"
+    schedd_name="cms-xen6.fnal.gov"
+    trust_domain="Google_cloud"
+    verbosity="std"
     work_dir="."&gt;
 
     &lt;config&gt;
@@ -178,13 +179,13 @@
     &lt;attrs&gt;
         &lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False" 
+        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
+        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False"
               parameter="True" publish="True" type="string" value="NONE"/&gt;
-        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
+        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True"
               parameter="True" publish="True" type="string" value="Amazon_EC2"/&gt;
-        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" 
+        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False"
               parameter="True" publish="True" type="string" value="True"/&gt;
     &lt;/attrs&gt;
 
@@ -222,7 +223,7 @@
                         <td><nobr>"https://us-east-1.ec2.amazonaws.com"</nobr></td>
                         <td>
                             <p>The gatekeeper attribute in the cloud case is similar enough to a grid gatekeeper that there is no function
-                            difference as far as the GlideinWMS Factory admin is concerned.  EC2 has regional gatekeepers, so choose the 
+                            difference as far as the GlideinWMS Factory admin is concerned.  EC2 has regional gatekeepers, so choose the
                             gatekeeper for the region in which you would like to run in.  In this example, the US-EAST region has bee selected.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -251,8 +252,8 @@
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
                         <td>"."</td>
                         <td>
-                            <p>The working directory that the pilot starts up in must be "." for this example.  The reason is that the 
-                            VM that the example is pointing to makes specific use of the scratch space Amazon provides.  This is in a 
+                            <p>The working directory that the pilot starts up in must be "." for this example.  The reason is that the
+                            VM that the example is pointing to makes specific use of the scratch space Amazon provides.  This is in a
                             non-standard location.  For all intents and practical purposes, it will be the VOs responsibility to define
                             the working directory on the VM and have the contextualization scripts handle the setup of where the pilot
                             starts.</p>
@@ -264,7 +265,7 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"3"</td>
                         <td>
-                            <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the 
+                            <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the
                             computing cycles.  This is a hard limit for the number of VMs that the Factory will start.  For testing purposes
                             this example was restricted to 3 running VMs.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
@@ -285,9 +286,9 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"1"</td>
                         <td>
-                            <p>This is a limit for the number of VM requests that can be in idle state.  Ordinarily, this attribute is used to 
-                            determine "pressure" at a grid site.  However, the cloud use case is different considering that most cloud 
-                            implementations do not operate on "allocations" or something similare, but are operated on a "pay-as-you-go" 
+                            <p>This is a limit for the number of VM requests that can be in idle state.  Ordinarily, this attribute is used to
+                            determine "pressure" at a grid site.  However, the cloud use case is different considering that most cloud
+                            implementations do not operate on "allocations" or something similare, but are operated on a "pay-as-you-go"
                             principle.  Therefore, real money is exchanged for actual usage.  By setting this value to "1", we basically
                             turn off the "pressure" and ask for as many VMs as there are jobs up to the max set by the <strong>glideins</strong>
                             attribute.</p>
@@ -299,7 +300,7 @@
         </div>
         <div class="section">
             <h2 class="western">Example Frontend Configuration: Amazon EC2</h2>
-            <p>This only configuration for the Frontend in this example is for the credential setup.  The credential setup can be included 
+            <p>This only configuration for the Frontend in this example is for the credential setup.  The credential setup can be included
             in the group credential definition or in the global credential definition.
             <pre>
 &lt;credential absfname="/path/to/cloud_AccessKey"
@@ -337,7 +338,7 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"/path/to/cloud_AccessKey"</td>
                         <td>
-                            <p>This is the full path to the file containing the AccessKey for the account that will be used to submit 
+                            <p>This is the full path to the file containing the AccessKey for the account that will be used to submit
                             the VM request</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
@@ -347,7 +348,7 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"/path/to/cloud_SecretKey"</td>
                         <td>
-                            </p>This is the full path to the file containing the SectretKey for the account that will be used to submit 
+                            </p>This is the full path to the file containing the SectretKey for the account that will be used to submit
                             the VM request</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
@@ -389,7 +390,7 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"ami-7bf43812"</td>
                         <td>
-                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_id, it must be specified here. See the specific 
+                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_id, it must be specified here. See the specific
                             cloud implementation for the correct vm_id value.  In this example, a generic VM has been uploaded
                             to Amazon EC2 and is ready for use.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
@@ -400,7 +401,7 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"m1.large"</td>
                         <td>
-                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_type, it must be specified here.  See the specific 
+                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_type, it must be specified here.  See the specific
                             cloud implementation for the correct vm_type value.  In this example, a generic VM has been uploaded
                             to Amazon EC2 and is ready for use.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
@@ -444,7 +445,7 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"/path/to/pilot_proxy"</td>
                         <td>
-                            <p>A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper. 
+                            <p>A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper.
                             This is because the proxy is used to establish secure communication between the pilot and the user collector.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>

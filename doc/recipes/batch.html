@@ -58,6 +58,7 @@
                 <li><a href="./index.html">Overview</a></li>
                 <li>Batch (BOSCO)</li>
                 <li><a href="./cloud.html">Cloud Recipes</a></li>
+                 <li><a href="./token_auth.html">HTCondor Token Auth</a><li>
                 <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
             </ul>
             <h3>Overview</h3>
@@ -89,7 +90,7 @@
                     <tr>
                         <td>A functioning GlideinWMS Frontend</td>
                         <td>
-                            The Frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the Factory 
+                            The Frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the Factory
                             applies here.
                         </td>
                     </tr>
@@ -98,17 +99,17 @@
                         <td>
                             Valid, current, enabled account to access a submit host and submit to the cluster.
                             Specifically, you need the private and public ssh keys are needed for submission.
-                            Then you can add the resource by invoking the "bosco_cluster --add" command. This can be invoked 
+                            Then you can add the resource by invoking the "bosco_cluster --add" command. This can be invoked
                             from any host but we suggest to do it from the Frontend so that you don't need to transfer the ssh keys.
-                            See the <a href="https://osg-bosco.github.io/docs/BoscoInstall/#how-to-use"">BOSCO manual</a> 
+                            See the <a href="https://osg-bosco.github.io/docs/BoscoInstall/#how-to-use"">BOSCO manual</a>
                             for more information on adding a BOSCO resource.
                         </td>
                     </tr>
                 </tbody>
             </table>
             <p>
-                The BOSCO submission from the Factory uses SSH. Before being able to do ssh in batch mode for the glidein submission, you must trust the 
-keys of the BOSCO resource, the one added with "bosco_cluster --add" on the Frontend, in our example <tt>carvergrid.nersc.gov</tt>. 
+                The BOSCO submission from the Factory uses SSH. Before being able to do ssh in batch mode for the glidein submission, you must trust the
+keys of the BOSCO resource, the one added with "bosco_cluster --add" on the Frontend, in our example <tt>carvergrid.nersc.gov</tt>.
 You have a couple of options depending on how you want to configure ssh:
                  <ul>
                       <li>Build up a global fingerprint list. Collect the keys in /etc/ssh/ssh_known_hosts (or ~/.ssh/known_hosts of the users submitting glideins). Note that you'll have to update the fingerprint list if the BOSCO recource key will change or all the glidein submisison attempts will fail.
@@ -116,13 +117,13 @@ You have a couple of options depending on how you want to configure ssh:
 ssh-keyscan -t rsa,dsa carvergrid.nersc.gov >> /etc/ssh/ssh_known_hosts
 </pre>
                       </li>
-                      <li>Alternatively disable strict host key checking in ssh for the BOSCO resource adding these lines to /etc/ssh/ssh_config 
+                      <li>Alternatively disable strict host key checking in ssh for the BOSCO resource adding these lines to /etc/ssh/ssh_config
 (or ~/.ssh/config of the users submitting glideins). The syntax below can accept also IP numbers or wildcards (to include more hosts).
 <pre>
 Host carvergrid.nersc.gov
     StrictHostKeyChecking no
 </pre>
-The setting above will add the key the first time and give a warning if the key changes subsequently. To avoid host key verification, and not use known_hosts 
+The setting above will add the key the first time and give a warning if the key changes subsequently. To avoid host key verification, and not use known_hosts
 file you can do the following (not recommended unless on a local network). In this example the BOSCO resources have IPs 192.168.0.XXX.
 <pre>
 Host 192.168.0.*
@@ -130,26 +131,26 @@ Host 192.168.0.*
     UserKnownHostsFile=/dev/null
 </pre>
                       </li>
-                  </ul> 
+                  </ul>
                  If you have access to the ssh key on the Factory, it is recommended also to manually ssh to the host to see if the ssh connection works correctly.
             </p>
-            <p> 
-                The configuration fragments below highlight the parts that differ most for a BOSCO entry: the entry configuration on the Factory 
-and the credentials configuration on the Frontend. 
+            <p>
+                The configuration fragments below highlight the parts that differ most for a BOSCO entry: the entry configuration on the Factory
+and the credentials configuration on the Frontend.
             </p>
         </div>
         <div class="section">
             <h2 class="western">Example BOSCO Factory Entry</h2>
             <pre>
-&lt;entry name="BOSCO_TEST_carver" 
-    auth_method="key_pair" 
-    enabled="True" 
+&lt;entry name="BOSCO_TEST_carver"
+    auth_method="key_pair"
+    enabled="True"
     gatekeeper="cmsuser@carvergrid.nersc.gov"
-    gridtype="batch pbs" 
-    schedd_name="fermicloud199.fnal.gov" 
+    gridtype="batch pbs"
+    schedd_name="fermicloud199.fnal.gov"
     boeco_dir="altbosco"
-    trust_domain="bosco" 
-    verbosity="std" 
+    trust_domain="bosco"
+    verbosity="std"
     work_dir="AUTO"&gt;
 
     &lt;config&gt;
@@ -171,15 +172,15 @@ and the credentials configuration on the Frontend.
     &lt;attrs&gt;
         &lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False" 
+        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
+        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False"
               parameter="True" publish="True" type="string" value="NONE"/&gt;
-        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
+        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True"
               parameter="True" publish="True" type="string" value="BOSCO_PBS"/&gt;
-        &lt;attr name="USE_CCB" const="False" glidein_publish="True" job_publish="False" 
+        &lt;attr name="USE_CCB" const="False" glidein_publish="True" job_publish="False"
               parameter="True" publish="True" type="string" value="True"/&gt;
-        &lt;attr name="X509_CERT_DIR" const="True" glidein_publish="False" job_publish="True" 
+        &lt;attr name="X509_CERT_DIR" const="True" glidein_publish="False" job_publish="True"
               parameter="True" publish="True" type="string" value="/osg/certificates"/&gt;
      &lt;/attrs&gt;
     &lt;files&gt;&lt;/files&gt;
@@ -201,7 +202,7 @@ and the credentials configuration on the Frontend.
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
                         <td><nobr>"key_pair"</nobr></td>
                         <td>
-                            <p>The key pair in this case refers to the ssh keypair installed to access the BOSCO resource (remote cluster submit host).  
+                            <p>The key pair in this case refers to the ssh keypair installed to access the BOSCO resource (remote cluster submit host).
                             </p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -221,7 +222,7 @@ and the credentials configuration on the Frontend.
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
                         <td>"batch pbs"</td>
                         <td>
-                            <p>It must be the keyword "batch" followed by the batch system used in the cluster (must be one supported by HTCondor/BOSCO, 
+                            <p>It must be the keyword "batch" followed by the batch system used in the cluster (must be one supported by HTCondor/BOSCO,
                             e.g pbs, condor, lsf, sge.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -231,7 +232,7 @@ and the credentials configuration on the Frontend.
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
                         <td>"altbosco"</td>
                         <td>
-                            <p>This is optional, default is "bosco". It is the BOSCO directory on the BOSCO resource (containing BLAHP and other HTCondor sw). This is installed by "bosco_cluter -add". The value is relative to $HOME. If you move it manually note the hardcoded paths in <tt>~/bosco/glite/etc/condor_config.ft-gahp</tt>. 
+                            <p>This is optional, default is "bosco". It is the BOSCO directory on the BOSCO resource (containing BLAHP and other HTCondor sw). This is installed by "bosco_cluter -add". The value is relative to $HOME. If you move it manually note the hardcoded paths in <tt>~/bosco/glite/etc/condor_config.ft-gahp</tt>.
                             </p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -299,7 +300,7 @@ and the credentials configuration on the Frontend.
         </div>
         <div class="section">
             <h2 class="western">Example BOSCO Frontend Configuration</h2>
-            <p>The Frontend configuration fragment in this example is only for the credential setup.  The credential setup can be included 
+            <p>The Frontend configuration fragment in this example is only for the credential setup.  The credential setup can be included
             in the group credential definition or in the global credential definition.
            <pre>
 &lt;credential absfname="/path/to/grid_proxy"
@@ -312,17 +313,17 @@ and the credentials configuration on the Frontend.
             security_class="frontend"
             trust_domain="bosco"
             type="key_pair"/&gt; </pre>
-<p>Note that the ssh key pair in the configuration (/path/to/bosco_key.rsa.pub, /path/to/bosco_key.rsa) must give access to the BOSCO recource, e.g. it can be the 
-one generated by "bosco_cluster --add" (after removing the passphrase), or a different key-pair that you setup. pilotabsfname is the proxy needed by the glidein to 
-authenticate back with the User pool. 
+<p>Note that the ssh key pair in the configuration (/path/to/bosco_key.rsa.pub, /path/to/bosco_key.rsa) must give access to the BOSCO recource, e.g. it can be the
+one generated by "bosco_cluster --add" (after removing the passphrase), or a different key-pair that you setup. pilotabsfname is the proxy needed by the glidein to
+authenticate back with the User pool.
 </p>
-            <p>If you decide to use the "bosco_cluster --add" key pair, you must first remove the passphrase as mentioned above. To do so as the user that ran the BOSCO 
-            command, check first that the important files exist (<tt>$HOME/.ssh/bosco_key.rsa</tt>, <tt>$HOME/.ssh/bosco_key.rsa.pub</tt>, <tt>$HOME/.bosco.pass</tt>), 
+            <p>If you decide to use the "bosco_cluster --add" key pair, you must first remove the passphrase as mentioned above. To do so as the user that ran the BOSCO
+            command, check first that the important files exist (<tt>$HOME/.ssh/bosco_key.rsa</tt>, <tt>$HOME/.ssh/bosco_key.rsa.pub</tt>, <tt>$HOME/.bosco.pass</tt>),
             and then run:
             <pre>
-openssl rsa -in $HOME/.ssh/bosco_key.rsa -out $HOME/.ssh/bosco_key.rsa_new -passin file:$HOME/.bosco/.pass 
+openssl rsa -in $HOME/.ssh/bosco_key.rsa -out $HOME/.ssh/bosco_key.rsa_new -passin file:$HOME/.bosco/.pass
 chmod 600 $HOME/.ssh/bosco_key.rsa_new
-cp $HOME/.ssh/bosco_key.rsa_new /path/to/bosco_key.rsa 
+cp $HOME/.ssh/bosco_key.rsa_new /path/to/bosco_key.rsa
 cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
             </p>
             <p> The important pieces of the credential stanza listed above are listed below:</p>
@@ -358,7 +359,7 @@ cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"/path/to/bosco_key.rsa"</td>
                         <td>
-                            <p>This is the full path to the file containing the secret key used to access  the BOSCO resource via ssh 
+                            <p>This is the full path to the file containing the secret key used to access  the BOSCO resource via ssh
                             </p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
@@ -397,8 +398,8 @@ cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"/path/to/pilot_proxy"</td>
                         <td>
-                            <p>This is necessary for all BOSCO entries. 
-                            A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper. 
+                            <p>This is necessary for all BOSCO entries.
+                            A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper.
                             This is because the proxy is used to establish secure communication between the pilot and the user collector.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
