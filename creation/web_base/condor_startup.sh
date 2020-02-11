@@ -778,6 +778,7 @@ EOF
                     cat >> "$CONDOR_CONFIG" <<EOF
 # Declare GPUs resource, auto-discovered: ${i}
 use feature : GPUs
+use feature : GPUsMonitor
 GPU_DISCOVERY_EXTRA = -extra
 # Protect against no GPUs found
 if defined MACHINE_RESOURCE_${res_name}
