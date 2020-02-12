@@ -104,6 +104,7 @@ PUBLISH_OBITUARIES      C       False           +                               
 SiteWMS_WN_Draining  C   False       +   N   Y   -
 SiteWMS_WN_Preempt  C   False       +   N   Y   -
 GLIDEIN_PROVIDES    S	-			+   N	Y	+
+GLIDEIN_CONDOR_TOKEN        S   -               +   N   Y   @
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@

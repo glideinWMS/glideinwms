@@ -185,7 +185,7 @@ function copy_x509_proxy {
     	echo "debug cp $TK $local_proxy_dir"
       	cp $TK $local_proxy_dir
         tk_name=`basename $TK`
-        export CONDOR_TOKEN="$local_proxy_dir/$tk_name"
+        export GLIDEIN_CONDOR_TOKEN="$local_proxy_dir/$tk_name"
     done
 
     return 0
@@ -288,7 +288,7 @@ X509_EXPIRE="$RETVAL"
 add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
 add_config_line X509_EXPIRE  "$X509_EXPIRE"
-test -e "$CONDOR_TOKEN" && add_config_line CONDOR_TOKEN "$CONDOR_TOKEN"
+test -e "$GLIDEIN_CONDOR_TOKEN" && add_config_line GLIDEIN_CONDOR_TOKEN "$GLIDEIN_CONDOR_TOKEN"
 
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
