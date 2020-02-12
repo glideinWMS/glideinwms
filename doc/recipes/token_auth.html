@@ -135,9 +135,45 @@ frontend ALL=(ALL) NOPASSWD:SETENV: /usr/bin/condor_token_create
           <ul>
             <li>Upgrade condor on the frontend machine to a token supporting version.  Instructions for installing the from the official HTCondor repo are <a href="https://research.cs.wisc.edu/htcondor/instructions/"> here </a>. It is often easier to install condor from the OSG repos.  At the time of this writing (2/11/20) the easist way to install condor 8.9.5 was:
               <pre># yum -y --enablerepo osg-upcoming install condor</pre></li>
-            <li>make condor passwords and tokens directories if they don't already exist
+            <li>Make condor passwords and tokens directories if they don't already exist
               <pre># mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d</pre></li>
-            <li>add the following lines to the frontends condor configuration:
+              <li> The utility /usr/local/bin/gwms_condor_ping should be present if 3.7 has been installed correctly. If it is not present, create it now as it is useful for verifying TOKEN functionality
+                <pre>
+# cat /usr/local/bin/gwms_condor_ping
+#!/bin/sh
+# a convenience wrapper for condor_ping
+# returns a table of authorizations, useful to see
+# if token_auth has been correctly set up
+#
+if [ "$1" = "" ]; then
+   HOST=$HOSTNAME
+else
+   HOST=$1
+fi
+condor_ping -addr "<$(host $HOST | sed -e 's/.* //'):9618>" -table ALL
+
+#
+              </pre></li>
+
+            <li> As token authentication is not enabled, the output of gwms_condor_ping should show FS or GSI authentication being used:
+              <pre>
+# gwms_condor_ping
+         Instruction Authentication Encryption Integrity Decision Identity
+               ALLOW             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+                READ           none       none      none    ALLOW unauthenticated@unmapped
+               WRITE             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+          NEGOTIATOR             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+       ADMINISTRATOR             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+               OWNER             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              CONFIG             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              DAEMON             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_STARTD             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_SCHEDD             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_MASTER             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+
+              </pre>
+            </li>
+            <li>Add the following lines to the frontends condor configuration:
               <pre>
 ALLOW_READ = *
 ALLOW_DAEMON = $(ALLOW_WRITE)
@@ -148,30 +184,35 @@ SEC_DAEMON_AUTHENTICATION_METHODS = $(SEC_DEFAULT_AUTHENTICATION_METHODS)
 QUEUE_SUPER_USER = root, condor
 RUNTIME_CONFIG_ADMIN = condor@$(FULL_HOSTNAME), root@$(FULL_HOSTNAME)
 ALLOW_CONFIG = $(RUNTIME_CONFIG_ADMIN)</pre></li>
-            <li>create a condor pool password and restart condor
+              <li>Finally:<ul><li>create a condor pool password </li>
+                    <li> create a condor admin token</li>
+                      <li> restart condor</li>
+                </ul></li>
               <pre>
 # openssl rand -base64 64 | condor_store_cred -u condor_pool@$HOSTNAME \
 -f /etc/condor/passwords.d/POOL add
+# condor_token_create -identity condor@$HOSTNAME -token condor.$HOSTNAME.token
+# /bin/cp /root/.condor/tokens.d/condor.$HOSTNAME.token /etc/condor/tokens.d/admin.token
 # systemctl restart condor
             </pre></li>
             <li>The output of gwms_condor_ping for the root user should now show that it is using TOKEN authentication for  most services
 <pre>
-# gwms_condor_ping
+[root@fermicloud158 ~]# gwms_condor_ping
          Instruction Authentication Encryption Integrity Decision Identity
-               ALLOW          TOKEN       none       MD5    ALLOW condor_pool@
+               ALLOW          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
                 READ           none       none      none    ALLOW unauthenticated@unmapped
-               WRITE          TOKEN       none       MD5    ALLOW condor_pool@
-          NEGOTIATOR          TOKEN       none       MD5    ALLOW condor_pool@
-       ADMINISTRATOR          TOKEN       none       MD5    ALLOW condor_pool@
-               OWNER          TOKEN       none       MD5    ALLOW condor_pool@
-              CONFIG           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
-              DAEMON          TOKEN       none       MD5    ALLOW condor_pool@
-    ADVERTISE_STARTD          TOKEN       none       MD5    ALLOW condor_pool@
-    ADVERTISE_SCHEDD          TOKEN       none       MD5    ALLOW condor_pool@
-    ADVERTISE_MASTER          TOKEN       none       MD5    ALLOW condor_pool@
+               WRITE          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+          NEGOTIATOR          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+       ADMINISTRATOR          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+               OWNER          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              CONFIG          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              DAEMON          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_STARTD          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_SCHEDD          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_MASTER          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
 </pre>
             </li>
-            <li>Verify that <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_token_create.html">condor_token_create</a> and the other  token command line tools exist, and work as expected.  Check the condor logs for unusual authentication errors.</li>
+            <li>Check the condor logs for unusual authentication errors.</li>
           </ul>
         </div>
         <div class="section">
@@ -210,8 +251,14 @@ ALLOW_CONFIG = $(RUNTIME_CONFIG_ADMIN)</pre></li>
         <div class="section">
           <h2 id="Check" class="western">Verify Token Functionality</h2>
           <ul>
+            <li>Verify that GWMS 3.7 has been installed correctly on the Frontend.  The following scripts should exist:</li>
+            <ul>
+              <li> /usr/sbin/frontend_condor_token</li>
+              <li> /usr/bin/make_user_token</li>
+              <li> /usr/local/bin/gwms_condor_ping</li>
+            </ul>
             <li></li>
-          </ul >
+          </ul>
         </div>
         <div class="section">
           <h2 id="Revoke" class="western">Revoking Tokens/Entry Points</h2>

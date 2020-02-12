@@ -17,7 +17,7 @@ srcdir=$(dirname $0)
 yum -y --enablerepo osg-upcoming install condor
 cd $srcdir
 cd ../../frontend/tools/
-for F in make_user_token.sh	my_condor_ping token_setup.sh; do
+for F in make_user_token	gwms_condor_ping token_setup.sh; do
     cp $F  /usr/local/bin
 done
 mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d
@@ -34,7 +34,7 @@ echo 'RUNTIME_CONFIG_ADMIN = condor@$(FULL_HOSTNAME), root@$(FULL_HOSTNAME) ' >>
 echo 'ALLOW_CONFIG = $(RUNTIME_CONFIG_ADMIN) ' >> $condor_file
 openssl rand -base64 64 | condor_store_cred -u condor_pool@$HOSTNAME -f /etc/condor/passwords.d/POOL add
 cd ~
-make_user_token.sh root
+make_user_token root
 /bin/cp .condor/tokens.d/root.$HOSTNAME.token /etc/condor/tokens.d/admin.token
 systemctl restart condor
 systemctl stop gwms-factory
