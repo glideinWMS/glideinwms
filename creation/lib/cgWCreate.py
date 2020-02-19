@@ -68,7 +68,6 @@ def create_condor_tar_fd(condor_base_dir):
         # needed libraries for token auth, copy them in
         for needed in ['libSciTokens', 'libmunge']:
             pat = '/usr/lib64/%s*' % needed
-            print('DBOX_DBG looking for %s ' % needed)
             for src in glob.glob(pat):
                 dst = os.path.join('lib', os.path.basename(src))
                 copy_file(src, dst)
