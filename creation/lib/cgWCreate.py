@@ -71,7 +71,7 @@ def create_condor_tar_fd(condor_base_dir):
             print('DBOX_DBG looking for %s ' % needed)
             for src in glob.glob(pat):
                 dst = os.path.join('lib', os.path.basename(src))
-                os.copy(src, dst)
+                copy_file(src, dst)
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
         condor_bins_map = {}
