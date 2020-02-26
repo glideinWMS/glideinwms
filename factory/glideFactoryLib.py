@@ -237,18 +237,19 @@ def getCondorQCredentialList(factoryConfig=None):
 
 def getQCredentials(condorq, client_name, creds,
                    client_sa, cred_secclass_sa, cred_id_sa):
-    """
-    Get the current queue status for a given client and credential (condorQ sub-query).
-    Get the current queue status for a given client and credential (condorQ sub-query).
+    """Get the current queue status for a given client and credential (condorQ sub-query).
     v3 equivalent for getQProxySecClass
 
-    :param condorq: condor_q query to select within
-    :param client_name: client name (e.g. the Frontend requesting the jobs)
-    :param creds: credential object (to extract sec class and id)
-    :param client_sa: schedd attribute to compare the client name
-    :param cred_secclass_sa: schedd attribute to compare the security class
-    :param cred_id_sa: schedd attribute to compare the credential ID
-    :return: sub-query with only the desired jobs
+    Args:
+        condorq: condor_q query to select within
+        param client_name: client name (e.g. the Frontend requesting the jobs)
+        creds: credential object (to extract sec class and id)
+        client_sa: schedd attribute to compare the client name
+        cred_secclass_sa: schedd attribute to compare the security class
+        cred_id_sa: schedd attribute to compare the credential ID
+
+    Returns:
+        sub-query with only the desired jobs
     """
 
     entry_condorQ = condorMonitor.SubQuery(
@@ -272,8 +273,7 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
                      client_schedd_attribute=None,
                      credential_secclass_schedd_attribute=None,
                      factoryConfig=None):
-    """
-    Get the current queue status for client and security class.
+    """Get the current queue status for client and security class.
     """
 
     if factoryConfig is None:
@@ -309,8 +309,11 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
 def getQClientNames(condorq, factoryConfig=None):
     """Return a dictionary grouping the condorQ by client_names (factoryConfig.client_schedd_attribute)
 
-    :param condorq: condor_q query object from condorMonitor.CondorQ
-    :return: list of client names (factoryConfig.client_schedd_attribute)
+    Args:
+        condorq: condor_q query object from condorMonitor.CondorQ
+
+    Returns:
+        list of client names (factoryConfig.client_schedd_attribute)
     """
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
@@ -333,7 +336,7 @@ def getQClientNames(condorq, factoryConfig=None):
 
 
 def getQStatusSF(condorq):
-    """ Return a dictionary where keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
+    """Return a dictionary where keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
     NOTE: this has not the same level of detail as getQStatus, e.g. Idle jobs are not split depending on GridJobStatus
     """
     qc_status = {}
@@ -345,7 +348,7 @@ def getQStatusSF(condorq):
 
 
 def getQStatus(condorq):
-    """ Return a dictionary with detailed_jobStatus/numJobs, where detailed_jobStatus is returned by hash_status
+    """Return a dictionary with detailed_jobStatus/numJobs, where detailed_jobStatus is returned by hash_status
     Idle jobs may be: 1001, 1002, 1010 depending on the GridJobStatus
     Running maybe: 2 or 4010 if in stage-out
     1100 is used for unknown GridJobStatus
@@ -536,40 +539,28 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
                      req_max_glideins, idle_lifetime, remove_excess, submit_credentials,
                      glidein_totals, frontend_name, client_web, params,
                      log=logSupport.log, factoryConfig=None):
-    """
-    Looks at the status of the queue and determines how many glideins to submit.  Returns the number of newly submitted glideins.
+    """Looks at the status of the queue and determines how many glideins to submit.  Returns the number of newly submitted glideins.
 
     If the system is unable to submit glideins because has reached one of the limits (request, entry, frontend:security_class), and
     the frontend asks for removal (RemoveExcess) in the request, it will try to remove excess glideins.
 
-    @type client_condorq: CondorQ
-    @param client_condorq: Condor queue filtered by security class
-    @type client_int_name: string
-    @param client_int_name: internal representation of the client name
-    @type req_min_idle: int
-    @param req_min_idle: min number of idle glideins needed from the frontend request
-    @type req_max_glideins: int
-    @param req_max_glideins: max number of running glideins allowed in the frontend request
-    @type  idle_lifetime: int
-    @param idle_lifetime:
-    @type remove_excess: tuple
-    @param remove_excess: remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin
-    @type submit_credentials: SubmitCredentials
-    @param submit_credentials: all the information needed to submit the glideins
-    @type glidein_totals: GlideinTotals
-    @param glidein_totals: entry and frontend glidein counts
-    @type frontend_name: string
-    @param frontend_name: frontend name, used to map frontend totals in glidein_totals ("frontend:sec_class")
-    @type client_web: glideFactoryLib.ClientWeb
-    @param client_web: client web values
-    @type params: dict
-    @param params: params from the entry configuration or frontend to be passed to the glideins
-    @type log: logger
-    @param log: factory logger
-    @type factoryConfig:
-    @param factoryConfig: factory configuration
+    Args:
+        client_condorq (CondorQ): Condor queue filtered by security class
+        client_int_name (str): internal representation of the client name
+        req_min_idle (int): min number of idle glideins needed from the frontend request
+        req_max_glideins (int): max number of running glideins allowed in the frontend request
+        idle_lifetimei (int): how much to wait before removing glideins that are idle
+        remove_excess (tuple): remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin
+        submit_credentials (SubmitCredentials): all the information needed to submit the glideins
+        glidein_totals (GlideinTotals): entry and frontend glidein counts
+        frontend_name (str): frontend name, used to map frontend totals in glidein_totals ("frontend:sec_class")
+        client_web (glideFactoryLib.ClientWeb): client web values
+        params (dict): params from the entry configuration or frontend to be passed to the glideins
+        log (logger): factory logger
+        factoryConfig: factory configuration
 
-    Can throw a condorExe.ExeError
+    Raises:
+        condorExe.ExeError: in case of issues executing condor commands
     """
 
     if factoryConfig is None:
@@ -690,19 +681,21 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
                         factoryConfig=None):
     """Cleans up the glideins queue (removes any excesses) per the frontend request.
 
-    @param remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin
-    @param glidein_totals:
-    @param condorQ:
-    @param req_min_idle: min_idle requested by the Frontend
-    @param req_max_glideins: max_glideins requested by the Frontend
-    @param frontend_name:
-    @param log:
-    @param factoryConfig:
-    @return: 1 if some glideins were removed, 0 otherwise
-    TODO: could return the number of glideins removed
-
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
     for these totals to occur so it would be difficult to reflect the true state of the system.
+
+    Args:
+        remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin
+        glidein_totals:
+        condorQ:
+        req_min_idle: min_idle requested by the Frontend
+        req_max_glideins: max_glideins requested by the Frontend
+        frontend_name:
+        log:
+        factoryConfig:
+    Returns:
+        int: 1 if some glideins were removed, 0 otherwise
+    TODO:V could return the number of glideins removed
     """
 
     remove_excess_str, remove_excess_margin = remove_excess_tp
@@ -890,15 +883,14 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
 
 
 def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
-    """
-    Sum to the current schedd statistics of this entry (from condor_q on the Factory)
+    """Sum to the current schedd statistics of this entry (from condor_q on the Factory)
     to the values already stored in factoryConfig.client_stats, factoryConfig.qc_stats
     Do that for all the clients that have jobs on this entry
 
-    :param condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
-    :param log: to log errors/info/...
-    :param factoryConfig: common data block for the entry to get schedd statistics (client_stats, qc_stats)
-    :return:
+    Args:
+        condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
+        log: to log errors/info/...
+        factoryConfig: common data block for the entry to get schedd statistics (client_stats, qc_stats)
     """
 
     if factoryConfig is None:
@@ -932,17 +924,16 @@ def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
 
 def logStats(condorq, client_int_name, client_security_name,
              proxy_security_class, log=logSupport.log, factoryConfig=None):
-    """
-    Sum to the current schedd statistics of this entry (from condor_q on the Factory)
+    """Sum to the current schedd statistics of this entry (from condor_q on the Factory)
     to the values already stored in factoryConfig.client_stats, factoryConfig.qc_stats
 
-    :param condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
-    :param client_int_name: client name (from the requestor/Frontend)
-    :param client_security_name: security name used by the client
-    :param proxy_security_class: credential security class used by the client
-    :param log: to log errors/info/...
-    :param factoryConfig: common data block for the entry to get schedd statistics (client_stats, qc_stats)
-    :return:
+    Args:
+        condorq: condorQ object, containing a list of all jobs of the schedd (.data) for the entry invoking this
+        client_int_name: client name (from the requestor/Frontend)
+        client_security_name: security name used by the client
+        proxy_security_class: credential security class used by the client
+        log: to log errors/info/...
+        factoryConfig: common data block for the entry to get schedd statistics (client_stats, qc_stats)
     """
 
     if factoryConfig is None:
@@ -971,17 +962,17 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
                    log=logSupport.log, factoryConfig=None):
     """Logs work requests
 
-    @param client_int_name: client internal name
-    @param client_security_name: client security name
-    @param proxy_security_class: security ID
-    @param req_idle: requested idle glideins
-    @param req_max_run: max running glideins
-    @param remove_excess: tuple, remove_excess_str, remove_excess_margin
-    @param work_el: Work requests, temporary workaround; the requests should always be processed at the caller level
-    @param fraction: fraction for this entry
-    @param log:
-    @param factoryConfig:
-    @return:
+    Args:
+        client_int_name: client internal name
+        client_security_name: client security name
+        proxy_security_class: security ID
+        req_idle: requested idle glideins
+        req_max_run: max running glideins
+        remove_excess: tuple, remove_excess_str, remove_excess_margin
+        work_el: Work requests, temporary workaround; the requests should always be processed at the caller level
+        fraction: fraction for this entry
+        log:
+        factoryConfig:
     """
 
     if factoryConfig is None:
@@ -1072,8 +1063,11 @@ def hash_status(el):
 def sum_idle_count(qc_status):
     """Add the summary of idle jobs to the statistics passed as input
 
-    @param qc_status: Query count summary with job_status/number_of_jobs
-    @return:  Adds qc_status[1] to qc_status
+    Args:
+        qc_status: Query count summary with job_status/number_of_jobs
+
+    Returns:
+        Adds qc_status[1] to qc_status
     """
     #   Idle==Jobstatus(1)
     #   Have to integrate all the variants
@@ -1305,29 +1299,20 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                    submit_credentials, client_web, params, status_sf, log=logSupport.log,
                    factoryConfig=None):
 
-    """
-    @type entry_name: string
-    @param entry_name:
-    @type client_name: string
-    @param client_name:
-    @type nr_glideins: int
-    @param nr_glideins:
-    @type idle_lifetime: int
-    @param idle_lifetime:
-    @type frontend_name: string
-    @param frontend_name:
-    @type submit_credentials: dictionary
-    @param submit_credentials:
-    @type client_web: string
-    @param client_web client_web = None means client did not pass one, backwards compatibility
-    @type params: dictionary
-    @param params: 
-    @type  status_sf: dictionary
-    @param status_sf: keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
-    @type log: python logfile
-    @param log:
-    @type factoryConfig:factoryConfig
-    @param factoryConfig:factoryConfig
+    """Submit the glidein
+
+    Args:
+        entry_name (str):
+        client_name (str):
+        nr_glideins (int):
+        idle_lifetime (int):
+        frontend_name (str):
+        submit_credentials (dict):
+        client_web client_web (str): None means client did not pass one, backwards compatibility
+        params:
+        status_sf (dict): keys are GlideinEntrySubmitFile(s) and values is a  jobStatus/numJobs dict
+        log:
+        factoryConfig:
     """
 
     if factoryConfig is None:
@@ -1710,17 +1695,16 @@ email_logs = False
 
 
 def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
-    """
-    This function looks at the glidein job's information and returns if the
+    """This function looks at the glidein job's information and returns if the
     CondorG job can be released.
 
     This is useful to limit how often held jobs are released.
 
-    @type jobInfo: dictionary
-    @param jobInfo: Dictionary containing glidein job's classad information
+    Args:
+        jobInfo (dict): Dictionary containing glidein job's classad information
 
-    @rtype: bool
-    @return: True if job is within limits, False if it is not
+    Returns:
+        bool: True if job is within limits, False if it is not
     """
 
     if factoryConfig is None:
@@ -1752,8 +1736,7 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
 
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
-    """
-    This function looks at the glidein job's information and returns if the
+    """This function looks at the glidein job's information and returns if the
     CondorG job is unrecoverable. Condor hold codes are available at:
     https://htcondor.readthedocs.io/en/v8_9_4/classad-attributes/job-classad-attributes.html
 
@@ -1765,11 +1748,11 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     deprecated), we consider each code unrecoverable and give the operators
     the possibility of specify a list of recoverable codes in the config.
 
-    @type jobInfo: dictionary
-    @param jobInfo: Dictionary containing glidein job's classad information
+    Args:
+        jobInfo (dict): Dictionary containing glidein job's classad information
 
-    @rtype: bool
-    @return: True if job is unrecoverable, False if recoverable
+    Returns:
+        bool: True if job is unrecoverable, False if recoverable
     """
 
     if factoryConfig is None:
@@ -1804,17 +1787,16 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
 
 
 def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):
-    """
-    This function looks at the glidein job's information and returns if the
+    """This function looks at the glidein job's information and returns if the
     CondorG job is held for more than N(defaults to 20) iterations
 
     This is useful to remove Unrecoverable glidein (CondorG job) with forcex option.
 
-    @type jobInfo: dictionary
-    @param jobInfo: Dictionary containing glidein job's classad information
+    Args:
+        jobInfo (dict): Dictionary containing glidein job's classad information
 
-    @rtype: bool
-    @return: True if job is held more than N(defaults to 20) iterations, False if otherwise.
+    Returns:
+        bool: True if job is held more than N(defaults to 20) iterations, False if otherwise.
     """
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
@@ -1837,8 +1819,7 @@ def is_str_safe(s):
 
 
 class GlideinTotals:
-    """
-    Keeps track of all glidein totals.
+    """Keeps track of all glidein totals.
     """
 
     def __init__(self, entry_name, frontendDescript, jobDescript,
@@ -2033,11 +2014,10 @@ def set_condor_integrity_checks():
 #######################################################
 
 def which(program):
-    """
-    Implementation of which command in python.
+    """Implementation of which command in python.
 
-    @return: Path to the binary
-    @rtype: string
+    Returns:
+        str: Path to the binary
     """
 
     def is_exe(fpath):
