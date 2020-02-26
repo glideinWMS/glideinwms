@@ -1760,7 +1760,7 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
 
     glideinDescript = glideFactoryConfig.GlideinDescript()
 
-    unrecoverable = True
+    recoverable = False
     recoverableCodes = glideinDescript.data.get('RecoverableExitcodes', '').split(',')
     code = jobInfo.get('HoldReasonCode')
     # Keep around HoldReasonSubCode and HoldReason for the future
@@ -1781,7 +1781,7 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
             if job_status == 5:
                 num_holds = num_system_holds
         if num_holds>factoryConfig.max_release_count:
-            unrecoverable = True
+            recoverable = False
 
     return unrecoverable
 
