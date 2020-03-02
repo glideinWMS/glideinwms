@@ -790,6 +790,8 @@ EOF
                     cat >> "$CONDOR_CONFIG" <<EOF
 # Declare resource: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
+use feature : GPUs
+use feature : GPUsMonitor
 EOF
                 fi
                 if [ "x$res_opt" == "xextra" ]; then
