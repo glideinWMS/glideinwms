@@ -460,6 +460,8 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             and get the number from there, which could be 0 if there are no GPUs. Your job will find in the HTCondor ClassAd also
             all the special attributes about the GPUs. If no number is specified and the auto-discovery fails 0 GPUs are assumed.
             Since you don't know the number of GPUs that will be added to the main slot, the slot_layout must be partitionable.
+            We do recommend to lec HTCondor discover the number of GPUs by specifying no number. If you specify a number and is
+            different from what HTCondor detects, there may be problems if you are using the HTCondor provided GPU description and monitoring.
         </p>
  	</TD>
     </TR>

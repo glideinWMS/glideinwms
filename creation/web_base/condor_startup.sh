@@ -723,6 +723,7 @@ EOF
 
 
         # check for resource slots
+        # resource_name GPUs has special meaning, enables GPUs (including monitoring and autodetection if desired)
         condor_config_resource_slots="`grep -i "^GLIDEIN_Resource_Slots " "$config_file" | cut -d ' ' -f 2-`"
         if [ -n "$condor_config_resource_slots" ]; then
             echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
@@ -754,14 +755,15 @@ EOF
                 if [ -z "$res_name" ]; then
                     continue
                 fi
+                [[ "`echo "$res_name" | tr -s '[:upper:]' '[:lower:]'`" = "gpus" ]] && GPU_USE=True
                 if [ -z "$res_num" ]; then
-                    if [ "`echo "$res_name" | tr -s '[:upper:]' '[:lower:]'`" = "gpus" ]; then
+                    if [ -n "$GPU_USE" ]; then
                         # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
                         res_num=`find_gpus_num`
                         ec=$?
                         if [ $ec -eq 0 ]; then
                             echo "GPU autodiscovery (condor_gpu_discovery) found $res_num GPUs" 1>&2
-                            AUTO_GPU=True
+                            GPU_AUTO=True
                         else
                             echo "GPU autodiscovery (condor_gpu_discovery) failed, disabling auto discovery, assuming 0 GPUs." 1>&2
                             res_num=0
@@ -774,16 +776,27 @@ EOF
                     # Will be ignored if res_opt=main
                     let res_ram=128*${res_num}
                 fi
-                if [ -n "$AUTO_GPU" ]; then
+                if [ -n "$GPU_AUTO" ]; then
                     cat >> "$CONDOR_CONFIG" <<EOF
 # Declare GPUs resource, auto-discovered: ${i}
 use feature : GPUs
+# GPUsMonitor is automatically included in newer HTCondor
+use feature : GPUsMonitor
 GPU_DISCOVERY_EXTRA = -extra
 # Protect against no GPUs found
 if defined MACHINE_RESOURCE_${res_name}
 else
   MACHINE_RESOURCE_${res_name} = 0
 endif
+EOF
+                elif [ -n "$GPU_USE" ]; then
+                    cat >> "$CONDOR_CONFIG" <<EOF
+# Declare GPU resource, forcing ${res_num}: ${i}
+use feature : GPUs
+# GPUsMonitor is automatically included in newer HTCondor
+use feature : GPUsMonitor
+GPU_DISCOVERY_EXTRA = -extra
+MACHINE_RESOURCE_${res_name} = ${res_num}
 EOF
                 else
                     cat >> "$CONDOR_CONFIG" <<EOF
