@@ -273,13 +273,13 @@ function refresh_proxy {
         X509_USER_PROXY="`grep '^X509_USER_PROXY ' "$glidein_config" | cut -d ' ' -f 2-`"
 
         chmod 600 $X509_USER_PROXY
-        cp $X509_USER_PROXY_ORIG $X509_USER_PROXY 2>> ../tmp/tmp.txt
+        cp $X509_USER_PROXY_ORIG $X509_USER_PROXY
         chmod 400 $X509_USER_PROXY
 
-        exit 0
+        return 0
     fi
 
-    return 0
+    return 1
 }
 
 
@@ -290,7 +290,7 @@ function refresh_proxy {
 ############################################################
 
 # If it is not the first execution, but a periodic one, just refresh and exit
-refresh_proxy
+refresh_proxy && exit 0
 
 # Assume all functions exit on error
 check_x509_certs

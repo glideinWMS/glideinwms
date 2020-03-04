@@ -240,7 +240,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
-        # Add the drainer script
+        # Add the x509 setup script. It is periodical since it will refresh the pilot as well
         x509script = 'setup_x509.sh'
         self.dicts['file_list'].add_from_file(x509script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(x509script), 'exec', 60, 'NOPREFIX'),
