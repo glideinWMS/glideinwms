@@ -319,7 +319,9 @@ individual entry point configuration.
     <div class="xml">
         &lt;recoverable_exitcodes=&quot;<I>N,M,...</I>&quot; &gt;
     </div>
-        <b>Optional:</b> Comma separated list of condor HoldReasonCode that are going to be retried
+        <b>Optional:</b> Comma separated list of condor HoldReasonCode/HoldReasonSubCode that are going to be retried. For each code, a lis of space separated subcodescan be specified. Subcodes are optional. All codes must be integers.
+
+Example: recoverable_exitcodes="c1, c2 s1, c3 s1 s3 s4, ..."
     </li>
     <li>
     <div class="xml">

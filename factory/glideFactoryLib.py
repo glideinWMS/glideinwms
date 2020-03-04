@@ -1735,7 +1735,7 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
     return within_limits
 
 # Get list of CondorG job status for held jobs that are not recoverable
-def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
+def isGlideinUnrecoverable(jobInfo, factoryConfig=None, glideinDescript=None):
     """This function looks at the glidein job's information and returns if the
     CondorG job is unrecoverable. Condor hold codes are available at:
     https://htcondor.readthedocs.io/en/v8_9_4/classad-attributes/job-classad-attributes.html
@@ -1758,18 +1758,39 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    glideinDescript = glideFactoryConfig.GlideinDescript()
+    if glideinDescript is None:
+        glideinDescript = glideFactoryConfig.GlideinDescript()
 
     recoverable = False
-    recoverableCodes = glideinDescript.data.get('RecoverableExitcodes', '').split(',')
-    code = jobInfo.get('HoldReasonCode')
-    # Keep around HoldReasonSubCode and HoldReason for the future
-    # subCode = jobInfo.get('HoldReasonSubCode')
+    recoverableCodes = {}
+    for codestr in glideinDescript.data.get('RecoverableExitcodes', '').split(','):
+        splitstr = codestr.split(' ')
+        code = int(splitstr[0])
+        recoverableCodes[code] = []
+        for subcode in splitstr[1:]:
+            recoverableCodes[code].append(int(subcode))
+
+    try:
+        code = jobInfo.get('HoldReasonCode')
+        code = code and int(code)
+    except ValueError:
+        code = None
+    try:
+        subCode = jobInfo.get('HoldReasonSubCode')
+        subCode = subCode and int(subCode)
+    except ValueError:
+        subcode = None
+    # Keep around HoldReason for the future
     # holdreason = jobInfo.get('HoldReason')
 
     # Based on HoldReasonCode check if the job is recoverable
     if (code is not None) and (code in recoverableCodes):
-            recoverable = True
+            if len(recoverableCodes[code]) > 0:
+                # Check the subcode if we have any
+                if subCode in recoverableCodes[code]:
+                    recoverable = True
+            else:
+                recoverable = True
 
     # Following check with NumSystemHolds should only apply to recoverable jobs
     # If we have determined that job is unrecoverable, skip these checks
@@ -1783,7 +1804,7 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
         if num_holds>factoryConfig.max_release_count:
             recoverable = False
 
-    return unrecoverable
+    return not recoverable
 
 
 def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):

@@ -65,7 +65,7 @@ from glideinwms.factory.glideFactoryLib import getCondorStatusData
 # from glideinwms.factory.glideFactoryLib import in_submit_environment
 # from glideinwms.factory.glideFactoryLib import get_submit_environment
 # from glideinwms.factory.glideFactoryLib import isGlideinWithinHeldLimits
-# from glideinwms.factory.glideFactoryLib import isGlideinUnrecoverable
+from glideinwms.factory.glideFactoryLib import isGlideinUnrecoverable
 # from glideinwms.factory.glideFactoryLib import isGlideinHeldNTimes
 from glideinwms.factory.glideFactoryLib import is_str_safe
 # from glideinwms.factory.glideFactoryLib import GlideinTotals
@@ -683,13 +683,43 @@ class TestIsGlideinWithinHeldLimits(unittest.TestCase):
 
 
 class TestIsGlideinUnrecoverable(unittest.TestCase):
-    @unittest.skip('for now')
     def test_is_glidein_unrecoverable(self):
-        # self.assertEqual(
-        #     expected, isGlideinUnrecoverable(
-        #         jobInfo, factoryConfig))
-        # # assert False # TODO: implement your test here
-        assert False
+        class FactoryConfigMock:
+            max_release_count = 20
+        class GlideinDescriptMock:
+            data = {'RecoverableExitcodes' : '24,36 7 8'}
+        # Do not crash if jobInfo is empy
+        jobInfo = {}
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertTrue(res)
+        # 7 is not a recoverable code
+        jobInfo = { 'HoldReasonCode' : 7 }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertTrue(res)
+        # Should also work if 7 is passed as string
+        jobInfo = { 'HoldReasonCode' : '7' }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertTrue(res)
+        # now 24 is a recoverable code
+        jobInfo = { 'HoldReasonCode' : 24 }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertFalse(res)
+        # Try it as a string as well
+        jobInfo = { 'HoldReasonCode' : '24' }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertFalse(res)
+        # Non integer values are ignored
+        jobInfo = { 'HoldReasonCode' : 'aaa24' }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertTrue(res)
+        # 36 without subcode is unrecoverable
+        jobInfo = { 'HoldReasonCode' : 36 }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertTrue(res)
+        # 36 with subcode 7 is recoverable
+        jobInfo = { 'HoldReasonCode' : 36 , 'HoldReasonSubCode' : 7 }
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertFalse(res)
 
 
 class TestIsGlideinHeldNTimes(unittest.TestCase):
