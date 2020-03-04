@@ -14,14 +14,11 @@ import signal
 import os
 import os.path
 import sys
-import fcntl
 import traceback
-import time
 import string
-import math
 import copy
-import random
 import logging
+import tempfile
 
 sys.path.append(os.path.join(sys.path[0], "../../"))
 
@@ -1059,7 +1056,8 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
             glideFactoryCredentials.check_security_credentials(
-                auth_method, decrypted_params, client_int_name, entry.name)
+                auth_method, decrypted_params, client_int_name,
+                entry.name)
         except glideFactoryCredentials.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
@@ -1216,6 +1214,24 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials = glideFactoryCredentials.SubmitCredentials(
                              credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
+    token_name = "%s_token" % entry.name
+    frontend_supplied_token = decrypted_params.get(token_name)
+    if frontend_supplied_token:
+        (fd, tmpnm) = tempfile.mkstemp()
+        try:
+            tkn_file = os.path.join(submit_credentials.cred_dir, token_name)
+            entry.log.debug("frontend_token supplied, writing to %s" % tkn_file)
+            os.chmod(tmpnm,400)
+            os.write(fd, frontend_supplied_token)
+            os.close(fd)
+            util.file_tmp2final(tkn_file, tmpnm)
+        except Exception as err:
+            entry.log.error('failed to create token: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
+
+
 
     if 'grid_proxy' in auth_method:
         ########################

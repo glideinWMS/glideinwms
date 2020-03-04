@@ -1,0 +1,308 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Glidein Recipes - Token Authorization</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li>Token Authorization</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+            </map>
+
+            <h2>Token Authorization</h2>
+            <ul class="subcomponents">
+                <li><a href="./index.html">Overview</a></li>
+                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
+                <li><a href="./cloud.html">Cloud Recipes</a></li>
+                <li><a href="./token_auth.html">Token Auth</a></li>
+                <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
+            </ul>
+        <div class="space">
+          <p>&nbsp</p>
+          <p>&nbsp</p>
+        </div>
+        </div>
+        <div class="jump">
+           <u>Jump to:</u>
+            <ol>
+                <li><a href="#Description">Description</a> </li>
+                <li><a href="#Requirements">Requirements</a> </li>
+                <li><a href="#FrontendCondor">Upgrade and Configure Frontend Condor</a> </li>
+                <li><a href="#FactoryCondor">Upgrade Factory Tarballs</a> </li>
+                <li><a href="#Check">Verify Token Functionality</a> </li>
+                <li><a href="#Revoke">Revoking Tokens for Entry Points</a> </li>
+                <li><a href="#ToDo">Limitations</a> </li>
+                <li><a href="#Useful">Useful Links</a> </li>
+            </ol>
+        </div>
+        <div class="section">
+          <h2 id="Description" class="western">Description</h2
+            <p>
+             This page documents a recipe for enabling and managing HTCondor Token Authorization between Frontends and Glidein Entry Points (CE's).
+            </p>
+        </div>
+        <div class="section">
+            <h2 id="Requirements" class="western">Requirements</h2>
+            <p>
+
+            </p>
+            <table summary="Requirements for Frontend-CE Token Authorization" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Requirement</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>GWMS Factory Version&nbsp&gt=&nbsp3.7 </td>
+                        <td>
+                            The Factory can be either a fresh install from yum/RPM or a yum  upgrade, as long as it  meets the version requirements.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>GWMS  Frontend Version&nbsp&gt=&nbsp3.7 </td>
+                        <td>
+                            The Frontend, like the Factory, can be made to meet version requirements via either a fresh install or upgrade.
+                        </td>
+                    </tr>
+                    <tr>
+                      <td>HTCondor Version&nbsp&gt=&nbsp8.9.1 </td>
+                        <td>
+                          HTCondor that the Frontend uses must be a token supporting release.  The HTCondor tarballs delivered by Factory entry points
+                          also need to be a token supporting release.  It is not necessary to upgrade the main Factory HTCondor as long as the
+                          GlideinWMS version of the factory complies with the &gt= 3.7 requirement.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sudo access for 'frontend' user on gwms-frontend machine</td>
+                        <td>
+                            The frontend user needs to be able to create passwords and tokens derived from these passwords.  The following two lines must be present in
+                            /etc/sudoers on the gwms-frontend machine:
+                            <pre>
+frontend ALL=(ALL) NOPASSWD:SETENV: /usr/sbin/condor_store_cred
+frontend ALL=(ALL) NOPASSWD:SETENV: /usr/bin/condor_token_create
+                            </pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+          <h2 id="FrontendCondor" class="western">Upgrade and Configure Frontend Condor </h2>
+          <ul>
+            <li>Upgrade condor on the frontend machine to a token supporting version.  Instructions for installing the from the official HTCondor repo are <a href="https://research.cs.wisc.edu/htcondor/instructions/"> here </a>. It is often easier to install condor from the OSG repos.  At the time of this writing (2/11/20) the easist way to install condor 8.9.5 was:
+              <pre># yum -y --enablerepo osg-upcoming install condor</pre></li>
+            <li>Make condor passwords and tokens directories if they don't already exist
+              <pre># mkdir -p /etc/condor/passwords.d /etc/condor/tokens.d</pre></li>
+              <li> The utility /usr/local/bin/gwms_condor_ping should be present if 3.7 has been installed correctly. If it is not present, create it now as it is useful for verifying TOKEN functionality
+                <pre>
+# cat /usr/local/bin/gwms_condor_ping
+#!/bin/sh
+# a convenience wrapper for condor_ping
+# returns a table of authorizations, useful to see
+# if token_auth has been correctly set up
+#
+if [ "$1" = "" ]; then
+   HOST=$HOSTNAME
+else
+   HOST=$1
+fi
+condor_ping -addr "<$(host $HOST | sed -e 's/.* //'):9618>" -table ALL
+
+#
+              </pre></li>
+
+            <li> As token authentication is not enabled, the output of gwms_condor_ping should show FS or GSI authentication being used:
+              <pre>
+# gwms_condor_ping
+         Instruction Authentication Encryption Integrity Decision Identity
+               ALLOW             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+                READ           none       none      none    ALLOW unauthenticated@unmapped
+               WRITE             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+          NEGOTIATOR             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+       ADMINISTRATOR             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+               OWNER             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              CONFIG             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              DAEMON             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_STARTD             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_SCHEDD             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_MASTER             FS       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+
+              </pre>
+            </li>
+            <li>Add the following lines to the frontends condor configuration:
+              <pre>
+ALLOW_READ = *
+ALLOW_DAEMON = $(ALLOW_WRITE)
+SEC_DEFAULT_AUTHENTICATION_METHODS = TOKEN,FS,GSI
+ALL_DEBUG = D_SECURITY, D_FULLDEBUG
+SEC_NEGOTIATOR_AUTHENTICATION_METHODS = $(SEC_DEFAULT_AUTHENTICATION_METHODS)
+SEC_DAEMON_AUTHENTICATION_METHODS = $(SEC_DEFAULT_AUTHENTICATION_METHODS)
+QUEUE_SUPER_USER = root, condor
+RUNTIME_CONFIG_ADMIN = condor@$(FULL_HOSTNAME), root@$(FULL_HOSTNAME)
+ALLOW_CONFIG = $(RUNTIME_CONFIG_ADMIN)</pre></li>
+              <li>Finally:<ul><li>create a condor pool password </li>
+                    <li> create a condor admin token</li>
+                      <li> restart condor</li>
+                </ul></li>
+              <pre>
+# openssl rand -base64 64 | condor_store_cred -u condor_pool@$HOSTNAME \
+-f /etc/condor/passwords.d/POOL add
+# condor_token_create -identity condor@$HOSTNAME -token condor.$HOSTNAME.token
+# /bin/cp /root/.condor/tokens.d/condor.$HOSTNAME.token /etc/condor/tokens.d/admin.token
+# systemctl restart condor
+            </pre></li>
+            <li>The output of gwms_condor_ping for the root user should now show that it is using TOKEN authentication for  most services
+<pre>
+[root@fermicloud158 ~]# gwms_condor_ping
+         Instruction Authentication Encryption Integrity Decision Identity
+               ALLOW          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+                READ           none       none      none    ALLOW unauthenticated@unmapped
+               WRITE          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+          NEGOTIATOR          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+       ADMINISTRATOR          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+               OWNER          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              CONFIG          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+              DAEMON          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_STARTD          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_SCHEDD          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+    ADVERTISE_MASTER          TOKEN       none       MD5    ALLOW condor@fermicloud158.fnal.gov
+</pre>
+            </li>
+            <li>Check the condor logs for unusual authentication errors.</li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="FactoryCondor" class="western">Upgrade Factory Tarballs </h2>
+          <ul>
+            <li>Go to the HTCondor <a href="https://research.cs.wisc.edu/htcondor/downloads/"> Downloads </a> page and download a 64bit stripped compressed tarball from the "HTCondor Binaries and Source" section.  These instructions have been tested with tarballs 	condor-8.9.1-x86_64_RedHat7-stripped.tar.gz through condor-8.9.5-x86_64_RedHat7-stripped.tar.gz </li>
+            <li>Copy your downloaded tarball to the /var/lib/gwms-factory/condor directory on the Factory.  Untar it <pre>
+            tar xvzf condor-8.9.5-x86_64_RedHat7-stripped.tar.gz </pre></li>
+            <li>Add a line to the &lt;condor_tarballs&gt; section of the Factory XML configuration files that points to the condor tarball you just downloaded
+              <pre>
+&ltcondor_tarballs&gt
+      &ltcondor_tarball arch="x86_64" base_dir="/var/lib/gwms-factory/condor/condor-8.9.5-x86_64_RedHat7-stripped" os="rhel7" version="8.9.5"/&gt
+&lt/condor_tarballs&gt
+              </pre>
+            </li>
+            <li> Modify the &lt;attrs&gt; section of an &lt;entry&gt; configuration in the Factories XML to use the newly configured condor_tarball
+              <pre>
+&lt;entry name="some_site_being_modified" ...&gt;
+...
+&lt;attrs&gt;
+&lt;attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="x86_64"/&gt;
+&lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel7"/&gt;
+&lt;attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="8.9.5"/&gt;
+...
+&lt;/attrs&gt;
+              </pre>
+            </li>
+            <li>Reconfigure the factory so the XML changes take effect
+              <pre>
+# systemctl stop gwms-factory.service
+# /usr/sbin/gwms-factory reconfig
+# systemctl start gwms-factory.service
+            </pre></li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Check" class="western">Verify Token Functionality</h2>
+          <ul>
+            <li>Checklist for Frontend prior to full chain token authentication
+              <ul>
+            <li>GWMS &gt;= 3.7 has been installed on  Frontend, or Frontend has been modified to run git branch v37/23092.  In either case, the following scripts should exist:
+            <ul>
+              <li> /usr/sbin/frontend_condor_token</li>
+              <li> /usr/local/bin/gwms_condor_ping</li>
+            </ul></li>
+            <li> gwms_condor_ping shows TOKEN authentication for 'root' user </li>
+            <li>'frontend' user present in /etc/sudoers as documented in Requirements section</li>
+            <li>GWMS &gt;= 3.7 has been installed on  Factory, or Factory has been modified to run git branch v37/23092.
+            <li>An Entry Point on the factory has been configured to deliver a  condor tarball &gt;= 8.9.1</li>
+          </ul>
+          <li> Submit a condor job to the Frontend with condor requirements that make it run on the newly modified Factory Entry Point.  Make sure the job has a 'printenv' or equivalent in it to show the environment the job runs under.</li>
+          <li>When the job completes, check the output from the 'printenv' command.  If a token was generated by the Frontend, forwarded to the Factory, forwarded again to the CE, and integrated into the glidein enviroment, GLIDEIN_CONDOR_TOKEN will be set and its value will include the GLIDEIN_Site name, for example for GLIDEIN_Site el7_ GLIDEIN_CONDOR_TOKEN=/tmp/glide_SpYzMq/ticket/el7_osg34_token.
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Revoke" class="western">Revoking Tokens for Entry Points</h2>
+          <ul>
+            <li>Each Glidein_Site that a Frontend submits to is sent condor_tokens  generated from a unique password for that site.  If the password is changed, all existing tokens for that site become invalid, and token authentication for any running glideins at that site will stop working.  New glideins requested by the Frontend will use the new password, and valid tokens will be sent to the Factory and on to the CE's.  A quick way to change a token generating password from the command line is
+            <pre>
+            # export GLIDEIN_SITE='HCC_US_Omaha_crane_gpu'
+            # openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${GLIDEIN_SITE} add
+            </pre>
+            </li>
+
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="ToDo" class="western">Limitations</h2>
+          <ul>
+            <li>This recipe enables Condor TOKEN authentication but still allows GSI authentication if a TOKEN is revoked. This may not be the desired behavior.</li>
+            <li>More fine grained authorization scope and management of token lifetime is possible and desirable. Consider this implementation 0.1</li>
+            <li>SciToken authentication and its interactions with Condor and GlideinWMS are not addressed in this document.</li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Useful" class="western">Useful Links </h2>
+          <ul>
+            <li> <a href="https://docs.google.com/document/d/10uSYp6sePbHPFzKmkTMAwr1uKzuSxebr_Om89IUgyUs">HTCondor Token Design Document</a></li>
+            <li> <a href="https://tools.ietf.org/html/rfc7519">JWT Specification</a></li>
+            <li> <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_token_create.html">Condor Token Command Line Tools</a></li>
+          </ul>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+            GlideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>
