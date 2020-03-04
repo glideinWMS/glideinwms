@@ -1,0 +1,53 @@
+#!/bin/sh
+
+#
+# Project:
+#   glideinWMS
+#
+# File Version:
+#   1.0.0
+# Description:
+#   This script will determine the Python version and work as a wrapper for it
+#
+
+my_path=$(cd $(dirname $0); pwd)
+
+if [ -f "$1" ]; then
+    glidein_config="$1"
+    error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+    work_dir=`grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}'`
+fi
+
+[ -n "$error_gen" ] && CONFIG=TRUE
+
+if command -v python3 &> /dev/null; then
+    PYTHON="python3"
+elif command -v python &> /dev/null; then
+    PYTHON="python"
+elif command -v python2 &> /dev/null; then
+    PYTHON="python2"
+fi
+
+if [ -z "$PYTHON" ]; then
+    echo "$0: python not found" >&2
+    if [ -n "$CONFIG" ]; then
+        "$error_gen" -ok "libtest.sh" "WN_Resource" "Python not found."
+    fi
+    exit 1
+fi
+
+if [ -n "$GLIDEIN_DEBUG" ]; then
+    echo "$0: python executable: $(command -v $PYTHON)" >&2
+    echo "$0: python version: $($PYTHON --version)" >&2
+fi
+
+if [ -n "$CONFIG" ]; then
+    mkdir -p $work_dir/lib/python $work_dir/lib/python2 $work_dir/lib/python3
+    "$error_gen" -ok "libtest.sh" "WN_Resource" "$($PYTHON --version)"
+else
+    export PYTHONPATH="$PYTHONPATH:$my_path/lib/python"
+    [ "$PYTHON" != python ] && export PYTHONPATH="$PYTHONPATH:$my_path/lib/$PYTHON"
+    exec $PYTHON "$@"
+    echo "$0: failed to execute $PYTHON" >&2
+    exit 1
+fi

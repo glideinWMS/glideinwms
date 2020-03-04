@@ -214,6 +214,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
+                             'gwms-python',
                              cgWConsts.CONDOR_STARTUP_FILE]
         # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
@@ -228,7 +229,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh',]
+                                   'smart_partitionable.sh',
+                                   'condor_chirp']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
@@ -257,6 +259,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_from_file(mjf_script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 1800, 'MJF_'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script))
+
+        # Add pychirp
+        pychirp_tarball = "htchirp.tar.gz"
+        self.dicts['file_list'].add_from_file(pychirp_tarball,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(pychirp_tarball), 'untar'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, pychirp_tarball))
+        self.dicts['untar_cfg'].add(pychirp_tarball, "lib/python/htchirp")
+
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE, "last_script")

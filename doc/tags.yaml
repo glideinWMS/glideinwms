@@ -70,3 +70,13 @@ v3_6_1:
     - Removed hardcoded CVMFS requirement for Singularity
     - Improve diagnostic messages when rsa.key file is corrupted
     - Improve control of the worker node draining, avoiding to stop accepting jobs as soon as the draining file is present
+
+v3_6_2:
+  Date: January 29, 2019
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Add a portable condor_chirp for user jobs running in the glideins
+    - Make lgwms-logcat.sh work with non standard factory instance names
+  Bug fix:
+    - Pilot using an expired proxy when authenticating to the collector

@@ -1,3 +1,8 @@
+v3_6_2
+	Add a portable condor_chirp for user jobs running in the glideins
+	Make lgwms-logcat.sh work with non standard factory instance names
+	Bug fix: Pilot using an expired proxy when authenticating to the collector
+
 v3_6_1
 	Added compatibility w/ HTCondor 8.8.x in OSG 3.5
 	Monitoring pages use https if available
