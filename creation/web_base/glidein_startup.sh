@@ -15,6 +15,15 @@ GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "$
 
 export LANG=C
 
+# General options
+# Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
+# This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
+# This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
+# Comment the following line is GlExec or similar will not be used
+GWMS_MULTIUSER_GLIDEIN=true
+# Default GWMS log server
+GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
+
 ##############################
 # Utility functions to allow the script to source functions and retrieve data stored as tarball at the end of the script itself
 
@@ -32,14 +41,14 @@ source_data() {
 }
 
 list_data() {
-    # Show a list of the tarballed files in this script
+    # Show a list of the payload tarballed files in this script
     sed '1,/^#EOF$/d' < "${GWMS_STARTUP_SCRIPT}" | tar tz
 }
 
 extract_all_data() {
     # Extract and source all the tarball files
     local -a files
-    # change separator to split the output of 'tar' command
+    # change separator to split the output file list from 'tar tz' command
     local IFS_OLD="${IFS}"
     IFS=$'\n'
     files=($(list_data))
@@ -93,7 +102,7 @@ copy_all() {
    # should it copy also hidden files?
    mkdir -p "$2"
    for f in *; do
-       [[ -e "${f}" ]] || break
+       [[ -e "${f}" ]] || break    # TODO: should this be a continue?
        if [[ "${f}" = ${1}* ]]; then
            continue
        fi
@@ -710,6 +719,7 @@ tmp_par=$(params_get_simple GLIDEIN_MULTIGLIDEIN "${params}")
 
 case "${operation_mode}" in
     nodebug)
+        sleep_time=1199
         set_debug=0;;
     fast)
         sleep_time=150
@@ -723,28 +733,28 @@ case "${operation_mode}" in
 esac
 
 if [ -z "${descript_file}" ]; then
-    warn "Missing descript fname." 1>&2
+    warn "Missing descript fname."
     usage
 fi
 
 if [ -z "${descript_entry_file}" ]; then
-    warn "Missing descript fname for entry." 1>&2
+    warn "Missing descript fname for entry."
     usage
 fi
 
 if [ -z "${glidein_name}" ]; then
-    warn "Missing gliden name." 1>&2
+    warn "Missing gliden name."
     usage
 fi
 
 if [ -z "${glidein_entry}" ]; then
-    warn "Missing glidein entry name." 1>&2
+    warn "Missing glidein entry name."
     usage
 fi
 
 
 if [ -z "${repository_url}" ]; then
-    warn "Missing Web URL." 1>&2
+    warn "Missing Web URL."
     usage
 fi
 
@@ -765,12 +775,12 @@ if [ "${proxy_url}" = "OSG" ]; then
 fi
 
 if [ -z "${sign_id}" ]; then
-    warn "Missing signature." 1>&2
+    warn "Missing signature."
     usage
 fi
 
 if [ -z "${sign_entry_id}" ]; then
-    warn "Missing entry signature." 1>&2
+    warn "Missing entry signature."
     usage
 fi
 
@@ -779,7 +789,7 @@ if [ -z "${sign_type}" ]; then
 fi
 
 if [ "${sign_type}" != "sha1" ]; then
-    warn "Unsupported signtype ${sign_type} found." 1>&2
+    warn "Unsupported signtype ${sign_type} found."
     usage
 fi
     
@@ -790,24 +800,24 @@ if [ -n "${client_repository_url}" ]; then
   fi
 
   if [ "${client_sign_type}" != "sha1" ]; then
-    warn "Unsupported clientsigntype ${client_sign_type} found." 1>&2
+    warn "Unsupported clientsigntype ${client_sign_type} found."
     usage
   fi
     
   if [ -z "${client_descript_file}" ]; then
-    warn "Missing client descript fname." 1>&2
+    warn "Missing client descript fname."
     usage
   fi
 
   if [ -n "${client_repository_group_url}" ]; then
       # client group data is optional, user url as a switch
       if [ -z "${client_group}" ]; then
-          warn "Missing client group name." 1>&2
+          warn "Missing client group name."
           usage
       fi
 
       if [ -z "${client_descript_group_file}" ]; then
-          warn "Missing client descript fname for group." 1>&2
+          warn "Missing client descript fname for group."
           usage
       fi
   fi
@@ -816,6 +826,8 @@ fi
 md5wrapper() {
     # $1 - file name
     # $2 - option (quiet)
+    # Result returned on stdout
+    local ERROR_RESULT="???"
     local ONLY_SUM
     if [ "x$2" = "xquiet" ]; then
         ONLY_SUM=yes
@@ -826,7 +838,8 @@ md5wrapper() {
     else
         executable=md5
         if ! which ${executable} 1>/dev/null 2>&1; then
-            echo "md5wrapper error: can't neither find md5sum nor md5"
+            echo "${ERROR_RESULT}"
+            warn "md5wrapper error: can't neither find md5sum nor md5"
             return 1
         fi
         [ -n "${ONLY_SUM}" ] && executable="md5 -q \"$1\"" || executable="md5 \"$1\""
@@ -834,7 +847,8 @@ md5wrapper() {
     local res
     # Flagged by some checkers but OK
     if ! res="$(eval "${executable}" 2>/dev/null)"; then
-        echo "???"
+        echo "${ERROR_RESULT}"
+        warn "md5wrapper error: can't calculate md5sum using ${executable}"
         return 1
     fi
     echo "${res}"  
@@ -943,19 +957,19 @@ if [ -z "${GLOBUS_PATH}" ]; then
     elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
        GLOBUS_LOCATION=/osgroot/osgcore/globus
     else
-       warn "GLOBUS_LOCATION not defined and could not guess it." 1>&2
-       warn "Looked in:" 1>&2
-       warn ' /opt/globus/etc/globus-user-env.sh' 1>&2
-       warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
-       warn 'Continuing like nothing happened' 1>&2
+       warn "GLOBUS_LOCATION not defined and could not guess it."
+       warn "Looked in:"
+       warn ' /opt/globus/etc/globus-user-env.sh'
+       warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh'
+       warn 'Continuing like nothing happened'
     fi
   fi
 
   if [ -r "${GLOBUS_LOCATION}/etc/globus-user-env.sh" ]; then
     . "${GLOBUS_LOCATION}/etc/globus-user-env.sh"
   else
-    warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist." 1>&2
-    warn 'Continuing like nothing happened' 1>&2
+    warn "GLOBUS_PATH not defined and ${GLOBUS_LOCATION}/etc/globus-user-env.sh does not exist."
+    warn 'Continuing like nothing happened'
   fi
 fi
 
@@ -975,14 +989,21 @@ set_proxy_fullpath() {
 
 ########################################
 # prepare and move to the work directory
-case "${work_dir}" in
-    Condor|CONDOR) work_dir="${_CONDOR_SCRATCH_DIR}";;
-    OSG) work_dir="${OSG_WN_TMP}";;
-    TMPDIR) work_dir="${TMPDIR}";;
-    AUTO) automatic_work_dir;;
-    .) work_dir="$(pwd)";;
-    *) work_dir="$(pwd)";;
-esac
+
+# Replace known keywords: Condor, CONDOR, OSG, TMPDIR, AUTO, .
+# Empty $work_dir means PWD (same as ".")
+# A custom path could be provided (no "*)" in case)
+if [ -z "${work_dir}" ]; then
+    work_dir="$(pwd)"
+else
+    case "${work_dir}" in
+        Condor|CONDOR) work_dir="${_CONDOR_SCRATCH_DIR}";;
+        OSG) work_dir="${OSG_WN_TMP}";;
+        TMPDIR) work_dir="${TMPDIR}";;
+        AUTO) automatic_work_dir;;
+        .) work_dir="$(pwd)";;
+    esac
+fi
 
 if [ -z "${work_dir}" ]; then
     early_glidein_failure "Unable to identify Startup dir for the glidein."
@@ -1002,7 +1023,7 @@ if ! work_dir="$(mktemp -d "${def_work_dir}")"; then
     early_glidein_failure "Cannot create temp '${def_work_dir}'"
 else
     if ! cd "${work_dir}"; then
-        early_glidein_failure "Dir '${work_dir}' was created but I cannot cd into it."
+        early_glidein_failure "Dir '${work_dir}' was created but cannot cd into it."
     else
         echo "Running in ${work_dir}"
     fi
@@ -1020,22 +1041,22 @@ if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
 fi
 glide_local_tmp_dir_created=1
 
-# the tmpdir should be world writable
-# This way it will work even if the user spawned by the glidein is different
-# than the glidein user
-if ! chmod 1777 "${glide_local_tmp_dir}"; then
-    early_glidein_failure "Failed chmod '${glide_local_tmp_dir}'"
-fi
-
 glide_tmp_dir="${work_dir}/tmp"
 if ! mkdir "${glide_tmp_dir}"; then
     early_glidein_failure "Cannot create '${glide_tmp_dir}'"
 fi
-# the tmpdir should be world writable
-# This way it will work even if the user spawned by the glidein is different
-# than the glidein user
-if ! chmod 1777 "${glide_tmp_dir}"; then
-    early_glidein_failure "Failed chmod '${glide_tmp_dir}'"
+
+if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
+    # the tmpdirs should be world writable
+    # This way it will work even if the user spawned by the glidein is different
+    # than the glidein user
+    if ! chmod 1777 "${glide_local_tmp_dir}"; then
+        early_glidein_failure "Failed chmod '${glide_local_tmp_dir}'"
+    fi
+
+    if ! chmod 1777 "${glide_tmp_dir}"; then
+        early_glidein_failure "Failed chmod '${glide_tmp_dir}'"
+    fi
 fi
 
 short_main_dir=main
@@ -1150,18 +1171,15 @@ log_setup "${glidein_config}"
 # get the proper descript file based on id
 # Arg: type (main/entry/client/client_group)
 get_repository_url() {
-    if [ "$1" = "main" ]; then
-        echo "${repository_url}"
-    elif [ "$1" = "entry" ]; then
-        echo "${repository_entry_url}"
-    elif [ "$1" = "client" ]; then
-        echo "${client_repository_url}"
-    elif [ "$1" = "client_group" ]; then
-        echo "${client_repository_group_url}"
-    else
-        echo "[get_repository_url] Invalid id: $1" 1>&2
-        return 1
-    fi
+    case "$1" in
+        main) echo "${repository_url}";;
+        entry) echo "${repository_entry_url}";;
+        client) echo "${client_repository_url}";;
+        client_group) echo "${client_repository_group_url}";;
+        *) echo "[get_repository_url] Invalid id: $1" 1>&2
+           return 1
+           ;;
+    esac
 }
 
 #####################
@@ -1188,7 +1206,7 @@ check_file_signature() {
                 "${main_dir}"/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "${cfs_desc_fname}" "source_type" "${cfs_id}"
                 "${main_dir}"/error_augment.sh  -process ${cfs_rc} "check_file_signature" "${PWD}" "sha1sum -c ${tmp_signname}" "$(date +%s)" "(date +%s)"
                 "${main_dir}"/error_augment.sh -concat
-                warn "File ${cfs_desc_fname} is corrupted." 1>&2
+                warn "File ${cfs_desc_fname} is corrupted."
                 rm -f "${tmp_signname}"
                 return 1
             fi
@@ -1211,13 +1229,13 @@ get_untar_subdir() {
 
     gus_config_file="$(grep "^${gus_config_cfg} " glidein_config | cut -d ' ' -f 2-)"
     if [ -z "${gus_config_file}" ]; then
-        warn "Error, cannot find '${gus_config_cfg}' in glidein_config." 1>&2
+        warn "Error, cannot find '${gus_config_cfg}' in glidein_config."
         glidein_exit 1
     fi
 
     gus_dir="$(grep -i "^${gus_fname} " "${gus_config_file}" | cut -s -f 2-)"
     if [ -z "${gus_dir}" ]; then
-        warn "Error, untar dir for '${gus_fname}' cannot be empty." 1>&2
+        warn "Error, untar dir for '${gus_fname}' cannot be empty."
         glidein_exit 1
     fi
 
@@ -1304,7 +1322,7 @@ fetch_file() {
         fi
         local ifs_str
         printf -v ifs_str '%q' "${IFS}"
-        warn "Not enough arguments in fetch_file, 8 expected ($#/${ifs_str}): $*" 1>&2
+        warn "Not enough arguments in fetch_file, 8 expected ($#/${ifs_str}): $*"
         glidein_exit 1
     fi
 
@@ -1597,10 +1615,10 @@ fetch_file_base() {
     # if executable, execute
     if [ "${ffb_file_type}" = "exec" ]; then
         if ! chmod u+x "${ffb_outname}"; then
-            warn "Error making '${ffb_outname}' executable" 1>&2
+            warn "Error making '${ffb_outname}' executable"
             return 1
         fi
-        if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then # last_script global for simplicity
+        if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
         else
             echo "Executing ${ffb_outname}"
@@ -1618,7 +1636,7 @@ fetch_file_base() {
             "${main_dir}"/error_augment.sh -concat
             if [ ${ret} -ne 0 ]; then
                 echo "=== Validation error in ${ffb_outname} ===" 1>&2
-                warn "Error running '${ffb_outname}'" 1>&2
+                warn "Error running '${ffb_outname}'"
                 < otrx_output.xml awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
                 return 1
             else
@@ -1642,7 +1660,7 @@ fetch_file_base() {
             "${main_dir}"/error_gen.sh -error "tar" "Corruption" "Error untarring '${ffb_outname}'" "file" "${ffb_outname}" "source_type" "${cfs_id}"
             "${main_dir}"/error_augment.sh  -process ${cfs_rc} "tar" "${PWD}" "mkdir ${ffb_untar_dir} && cd ${ffb_untar_dir} && tar -xmzf ${ffb_outname}" "${START}" "$(date +%s)"
             "${main_dir}"/error_augment.sh -concat
-            warn "Error untarring '${ffb_outname}'" 1>&2
+            warn "Error untarring '${ffb_outname}'"
             return 1
         fi
     fi
@@ -1713,7 +1731,7 @@ do
   gs_id_descript_file="$(get_descript_file ${gs_id})"
   fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
   if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}."
       glidein_exit 1
   fi
   signature_file="$(echo "${signature_file_line}" | cut -s -f 2-)"
@@ -1723,7 +1741,7 @@ do
   fetch_file_regular "${gs_id}" "${signature_file}"
   echo "${gs_id_signature}  ${signature_file}" > "${gs_id_work_dir}/signature.sha1.test"
   if ! (cd "${gs_id_work_dir}" && sha1sum -c signature.sha1.test) 1>&2 ; then
-      warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'." 1>&2
+      warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'."
       glidein_exit 1
   fi
   # for simplicity use a fixed name for signature file
@@ -1755,7 +1773,7 @@ do
   gs_id_descript_file="$(get_descript_file ${gs_id})"
   if ! check_file_signature "${gs_id}" "${gs_id_descript_file}"; then
       gs_id_work_dir="$(get_work_dir ${gs_id})"
-      warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}."
       glidein_exit 1
   fi
 done
@@ -1766,7 +1784,7 @@ gs_id_work_dir="$(get_work_dir main)"
 gs_id_descript_file="$(get_descript_file main)"
 last_script="$(grep "^last_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
 if [ -z "${last_script}" ]; then
-    warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+    warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
     glidein_exit 1
 fi
 
@@ -1803,7 +1821,7 @@ do
               continue
           fi
       fi
-      warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
       glidein_exit 1
   fi
   # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
@@ -1857,7 +1875,7 @@ let last_script_time=${last_startup_end_time}-${last_startup_time}
 echo "=== Last script ended $(date) (${last_startup_end_time}) with code ${ret} after ${last_script_time} ==="
 echo
 if [ ${ret} -ne 0 ]; then
-    warn "Error running '${last_script}'" 1>&2
+    warn "Error running '${last_script}'"
 fi
 
 #Things like periodic scripts might put messages here if they want them printed in the (stderr) logfile
