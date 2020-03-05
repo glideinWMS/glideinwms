@@ -6,8 +6,9 @@
 # File Version:
 #
 # Description:
-# This script starts the condor daemons expects a config file as a parameter
+#   This script starts the condor daemons expects a config file as a parameter
 #
+
 function trap_with_arg {
     func="$1" ; shift
     for sig ; do

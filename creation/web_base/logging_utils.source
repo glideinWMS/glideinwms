@@ -18,6 +18,11 @@ log_initialized=0
 log_ready=0
 log_no_send=1
 
+warn_ready() {
+    # Print a warning message in the stderr about logging not being setup
+
+    [ -z "${GLIDEIN_QUIET}" ] &&  warn "$@"
+}
 
 warn() {
     # Print a warning message in the stderr
@@ -219,7 +224,7 @@ log_setup() {
 
     log_initialized="$(grep '^GLIDEIN_LOG_INITIALIZED ' "${glidein_config}" | cut -d ' ' -f 2-)"
     if [ "${log_initialized}" != 1 ]; then
-        warn "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
+        warn_ready "log_setup: apparently the logging configuration has not been initialiazed yet (${0}). Logging will not work here."
         return 1
     fi
 
@@ -257,7 +262,7 @@ get_logfile_path_relative() {
     # Get the relative path of the logfile w.r.t. the work dir
 
     if [ "${log_ready}" != 1 ]; then
-        warn "get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn_ready "get_logfile_path_relative: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 1
     fi
     echo "${logdir}/${log_logfile}"
@@ -273,7 +278,7 @@ log_write() {
     #   1:invoker, 2:type of message, 3:content/filepath, 4:severity
 
     if [ "${log_ready}" != 1 ]; then
-        warn "log_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn_ready "log_write: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 1
     fi
 
@@ -353,7 +358,7 @@ log_coalesce_shards() {
     # log_coalesce_shards until it succeeds, when you want to force the merging
 
     if [ "${log_ready}" != 1 ]; then
-        warn "log_coalesce_shards: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
+        warn_ready "log_coalesce_shards: missing logging configuration in (${0}); perhaps forgot to call log_setup before?"
         return 2
     fi
 
@@ -394,7 +399,9 @@ send_logs_to_remote() {
     # Note:
     #   it also merges the shards before sending
 
-    log_coalesce_shards
+    if ! log_coalesce_shards; then
+        return 1
+    fi
 
     # log_no_send is set when the recipients initialization failed for some
     # reason, but the system is still capable of producing logs
