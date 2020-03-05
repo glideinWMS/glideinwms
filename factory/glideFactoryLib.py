@@ -1764,6 +1764,8 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None, glideinDescript=None):
     recoverable = False
     recoverableCodes = {}
     for codestr in glideinDescript.data.get('RecoverableExitcodes', '').split(','):
+        if not codestr:
+            continue # skip empty codes
         splitstr = codestr.split(' ')
         code = int(splitstr[0])
         recoverableCodes[code] = []

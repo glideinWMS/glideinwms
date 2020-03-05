@@ -886,6 +886,8 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('EntryParallelWorkers', conf[u'entry_parallel_workers'])
         try:
             for codestr in conf[u'recoverable_exitcodes'].split(','):
+                if not codestr:
+                    continue
                 splitstr = codestr.split(' ')
                 for subcode in splitstr:
                     int(subcode)

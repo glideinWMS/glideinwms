@@ -720,6 +720,10 @@ class TestIsGlideinUnrecoverable(unittest.TestCase):
         jobInfo = { 'HoldReasonCode' : 36 , 'HoldReasonSubCode' : 7 }
         res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
         self.assertFalse(res)
+        # test what happens with an empty string
+        GlideinDescriptMock.data = {'RecoverableExitcodes' : ''}
+        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        self.assertTrue(res)
 
 
 class TestIsGlideinHeldNTimes(unittest.TestCase):
