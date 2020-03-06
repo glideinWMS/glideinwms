@@ -38,6 +38,7 @@ class FrontendConfig:
         self.signature_descript_file = "signatures.sha1"
         self.signature_type = "sha1"
         self.history_file = "history.pk"
+        self.cache_dir = "schedd_ads_cache"
 
 # global configuration of the module
 frontendConfig = FrontendConfig()

@@ -23,7 +23,6 @@ import xml.parsers.expat
 from itertools import groupby
 from . import condorExe
 from . import condorSecurity
-from glideinwms.lib.DiskCache import DiskCache
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
@@ -221,9 +220,20 @@ class LocalScheddCache(NoneScheddCache):
             return None
 
 
+class NoneDiskCache:
+    """Dummy class used if a regular DiskCache is not specified
+    """
+    def get(self, objid):
+        return None
+
+    def save(self, objid, obj):
+        return None
+
+
 # default global object
 local_schedd_cache = LocalScheddCache()
-disk_cache = DiskCache('/var/lib/gwms-frontend/vofrontend/')
+disk_cache = NoneDiskCache()
+
 
 def condorq_attrs(q_constraint, attribute_list):
     """
