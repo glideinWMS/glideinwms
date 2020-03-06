@@ -72,7 +72,7 @@ v3_6_1:
     - Improve control of the worker node draining, avoiding to stop accepting jobs as soon as the draining file is present
 
 v3_6_2:
-  Date: January 29, 2019
+  Date: March 9, 2020
   Series: Stable
   Tarball: true
   Feature:
@@ -80,3 +80,14 @@ v3_6_2:
     - Make lgwms-logcat.sh work with non standard factory instance names
   Bug fix:
     - Pilot using an expired proxy when authenticating to the collector
+
+v3_7:
+  Date: March 13, 2020
+  Series: Development
+  Tarball: true
+  Feature:
+    - Use of HTCondor token-auth for Glideins authentication
+    - Secure logging channel
+    - Refactored glidien_startup to separate out the code in heredoc sections
+    - Glidein are released when they should not
+
