@@ -79,6 +79,7 @@ Summary:        The VOFrontend for glideinWMS submission host
 Group:          System Environment/Daemons
 Requires: httpd
 Requires: condor >= 8.4.0
+Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
@@ -128,6 +129,7 @@ This is a package for a glideinwms submit host.
 Summary:        The glideinWMS common libraries.
 Group:          System Environment/Daemons
 Requires: condor-python
+Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-ldap
 Requires: m2crypto
@@ -180,6 +182,7 @@ Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= 8.4.0
 Requires: fetch-crl
+Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-argparse
 Requires: python-ldap
@@ -252,9 +255,10 @@ install -m 0500 frontend/manageFrontendDowntimes.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 frontend/stopFrontend.py $RPM_BUILD_ROOT%{_sbindir}/stopFrontend
 install -m 0500 frontend/glideinFrontend.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontend
 install -m 0500 creation/reconfig_frontend $RPM_BUILD_ROOT%{_sbindir}/reconfig_frontend
-install -m 0500 creation/frontend_condortoken $RPM_BUILD_ROOT%{_sbindir}/frontend_condortoken
 install -m 0500 frontend/gwms_renew_proxies.py $RPM_BUILD_ROOT%{_libexecdir}/gwms_renew_proxies
-install -m 0500 creation/frontend_condortoken $RPM_BUILD_ROOT%{_libexecdir}/frontend_condortoken
+install -m 0500 creation/frontend_condortoken $RPM_BUILD_ROOT%{_sbindir}/frontend_condortoken
+# TODO: /usr/libexec/frontend_condortoken not packaged, duplicate?
+# install -m 0500 creation/frontend_condortoken $RPM_BUILD_ROOT%{_libexecdir}/frontend_condortoken
 
 #install the factory executables
 install -m 0500 factory/checkFactory.py $RPM_BUILD_ROOT%{_sbindir}/
@@ -667,6 +671,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/entry_q
 %attr(755,root,root) %{_bindir}/entry_rm
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
+%attr(755,root,root) %{_bindir}/factory_tokenize.sh
 %attr(755,root,root) %{_bindir}/find_StartdLogs
 %attr(755,root,root) %{_bindir}/find_logs
 %attr(755,root,root) %{_bindir}/fact_chown
@@ -860,7 +865,7 @@ rm -rf $RPM_BUILD_ROOT
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_2/history.html
 - Release candidates: 3.6.2-0.0.rc0
 
-* Mon Nov 21 2019 Marco Mambelli <marcom@fnal.gov> - 3.6.1-1
+* Thu Nov 21 2019 Marco Mambelli <marcom@fnal.gov> - 3.6.1-1
 - GlideinWMS v3.6.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_1/history.html
 - Release candidates: 3.6.1-0.1.rc1
