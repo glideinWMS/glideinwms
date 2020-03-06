@@ -455,7 +455,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
 def clear_diskcache_dir(work_dir):
     """Clear the cache by removing the directory used for the cachedir, and recreate it.
     """
-    cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.schedd_ads_cache)
+    cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.cache_dir)
     try:
         shutil.rmtree(cache_dir)
     except OSError as ose:

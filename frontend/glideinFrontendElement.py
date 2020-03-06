@@ -182,7 +182,7 @@ class glideinFrontendElement:
         self.set_glidein_config_limits()
 
         # Initialize the cache for the schedd queries
-        cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.schedd_ads_cache)
+        cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.cache_dir)
         condorMonitor.disk_cache = DiskCache(cache_dir)
 
 
