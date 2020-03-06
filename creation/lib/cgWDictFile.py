@@ -116,11 +116,30 @@ class InfoSysDictFile(cWDictFile.DictFile):
 class CondorJDLDictFile(cWDictFile.DictFile):
     """
     Creating the condor submit file
+
+    NOTE: the 'environment' attribute should be in the new syntax format, to allow characters like ';' in the values
+      value all double quoted, var=var_val space separated, var_val can be single quoted
+
     """
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False,jobs_in_cluster=None,
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False, jobs_in_cluster=None,
                  fname_idx=None):      # if none, use fname
         cWDictFile.DictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
-        self.jobs_in_cluster=jobs_in_cluster
+        self.jobs_in_cluster = jobs_in_cluster
+
+    def append(self, key, val):
+        # TODO add_environment would allow an easier handling of the environment attribute:
+        #  - ordered dict as input
+        #  - handling quoting and escaping
+        #  - formatting and overwriting the environment attribute in the submit file dict
+        if key == 'environment':
+            # assumed to be in the new format (quoted)
+            if key not in self.keys:
+                self.add(key, val)
+            else:
+                # should add some protection about correct quoting
+                self.add('{} {}'.format(val[:-1], self[key][1:]), True)
+        else:
+            raise RuntimeError("CondorJDLDictFile append unsupported for key %s (val: %s)!" % (key, val))
 
     def file_footer(self, want_comments):
         if self.jobs_in_cluster is None:
@@ -135,32 +154,33 @@ class CondorJDLDictFile(cWDictFile.DictFile):
             return "%s = %s" % (key, self.vals[key])
 
     def parse_val(self, line):
-        if line[0]=='#':
-            return # ignore comments
+        if line[0] == '#':
+            return  # ignore comments
         arr=line.split(None, 2)
-        if len(arr)==0:
-            return # empty line
-        if arr[0]=='Queue':
+        if len(arr) == 0:
+            return  # empty line
+        if arr[0] == 'Queue':
             # this is the final line
-            if len(arr)==1:
+            if len(arr) == 1:
                 # default
-                self.jobs_in_cluster=None
+                self.jobs_in_cluster = None
             else:
-                self.jobs_in_cluster=arr[1]
+                self.jobs_in_cluster = arr[1]
             return
 
         if len(arr) <= 2:
-            return self.add(arr[0], "") # key = <empty> or placeholder for env variable
+            return self.add(arr[0], "")  # key = <empty> or placeholder for env variable
         else:
             return self.add(arr[0], arr[2])
 
-    def is_equal(self,other,         # other must be of the same class
-                 compare_dir=False,compare_fname = False,
+    def is_equal(self, other,         # other must be of the same class
+                 compare_dir=False, compare_fname=False,
                  compare_keys=None):  # if None, use order_matters
         if self.jobs_in_cluster == other.jobs_in_cluster:
             return cWDictFile.DictFile.is_equal(other, compare_dir, compare_fname, compare_keys)
         else:
             return False
+
 
 ################################################
 #

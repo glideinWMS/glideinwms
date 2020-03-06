@@ -140,6 +140,8 @@ def get_factory_log_recipients(entry):
 
 ##########################################
 # Condor submit file dictionary
+# NOTE: the 'environment' attribute should be in the new syntax format, to allow characters like ';' in the values
+#  value all double quoted, var=var_val space separated, var_val can be single quoted
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate(self, exe_fname, entry_name, conf, entry):
         """
@@ -177,7 +179,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 if fname == token_file_name:
                     pth = os.path.join(root, fname)
                     enc_input_files.append(pth)
-                    self.add('environment', "AUTH_TOKEN=%s"%fname)
+                    self.append('environment', '"AUTH_TOKEN=%s"' % fname)
                     self.add('+AUTH_TOKEN', fname)
                     break
         # Folders and files of tokens for glidein logging authentication
@@ -195,9 +197,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         factory_recipients = get_factory_log_recipients(entry)
         frontend_recipients = []    # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
         log_recipients = list(set(factory_recipients + frontend_recipients))
-        # TODO: must fix for 'batch' grid, because it already sets 'environment'
         if len(log_recipients) > 0:
-            self.add(
+            self.append(
                 'environment',
                 '"LOG_RECIPIENTS=' + "'" + ' '.join(log_recipients) + "'" + '"')
         # print("Token dir: " + token_basedir)  # DEBUG
@@ -354,7 +355,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_error ", "False")
 
     def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
-        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
+        self.append('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
         for submit_attr in submit_attrs:
