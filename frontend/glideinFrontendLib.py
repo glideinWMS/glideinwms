@@ -13,16 +13,19 @@
 #   Igor Sfiligoi (Sept 19th 2006)
 #
 
+import os
+import pickle
 import os.path
 import string
 import math
 import sys
 import traceback
 
+from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import condorMonitor, logSupport
 
-#############################################################################################
 
+#############################################################################################
 #
 # Return a dictionary of schedds containing interesting jobs
 # Each element is a condorQ
@@ -43,12 +46,13 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
         # if nothing specified, assume it wants all of them
         js_constraint="True"
     else:
-        js_arr=[]
+        js_arr = []
         for n in job_status_filter:
             js_arr.append('(JobStatus=?=%i)'%n)
-        js_constraint=string.join(js_arr, '||')
+        js_constraint = string.join(js_arr, '||')
 
     return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
+
 
 def getIdleVomsCondorQ(condorq_dict):
     out={}
@@ -58,6 +62,7 @@ def getIdleVomsCondorQ(condorq_dict):
         out[schedd_name]=sq
     return out
 
+
 def getIdleProxyCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
@@ -65,8 +70,6 @@ def getIdleProxyCondorQ(condorq_dict):
         sq.load()
         out[schedd_name]=sq
     return out
-
-
 
 
 #
@@ -83,6 +86,7 @@ def getIdleCondorQ(condorq_dict):
         out[schedd_name] = sq
     return out
 
+
 #
 # Return a dictionary of schedds containing running jobs
 # Each element is a condorQ
@@ -96,6 +100,7 @@ def getRunningCondorQ(condorq_dict):
         sq.load()
         out[schedd_name] = sq
     return out
+
 
 def appendRealRunning(condorq_dict, status_dict):
     """Adds provenance information from condor_status to the condor_q dictionary
@@ -137,6 +142,7 @@ def appendRealRunning(condorq_dict, status_dict):
             if not found:
                 condorq[jid]['RunningOn'] = 'UNKNOWN'
 
+
 #
 # Return a dictionary of schedds containing old jobs
 # Each element is a condorQ
@@ -151,6 +157,7 @@ def getOldCondorQ(condorq_dict, min_age):
         out[schedd_name] = sq
     return out
 
+
 #
 # Return the number of jobs in the dictionary
 # Use the output of getCondorQ
@@ -161,11 +168,11 @@ def countCondorQ(condorq_dict):
         count += len(condorq_dict[schedd_name].fetchStored())
     return count
 
+
 #
 # Return a set of users present in the dictionary
 # Needs "User" attribute
 #
-
 def getCondorQUsers(condorq_dict):
     users_set = set()
     for schedd_name in condorq_dict.keys():
@@ -177,20 +184,38 @@ def getCondorQUsers(condorq_dict):
     return users_set
 
 
-def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
-               condorq_match_list=None, match_policies=[]):
+# This function has been used for profiling reasons (to get a better result with cProfile)
+#Keeping it around just in case we need it again in the future
+#def countMatchInnerLoop(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job):
+#    cluster_arr=[]
+#    schedd_count = 0
+#    cpu_schedd_count = 0
+#    for jid in cq_dict_clusters_el[jh]:
+#        cluster_arr.append(jid[2])
+#        schedd_count+=1
+#
+#    # Since all jobs are same figure out how many cpus
+#    # are required for this cluster based on one job
+#    cpu_schedd_count += job.get('RequestCpus', 1) * len(cq_dict_clusters_el[jh])
+#    first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+#    all_jobs_clusters[first_t]=cluster_arr
+#    sjobs_arr+=[first_t]
+#    return schedd_count, cpu_schedd_count, first_t
+
+def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_entries,
+               condorq_match_list=None, match_policies=[], group_name=None):
     """
     Get the number of jobs that match each glidein
     
-    @param match_obj: output of re.compile(match string,'<string>','eval')
-    @type condorq_dict: dictionary: sched_name->CondorQ object
-    @param condorq_dict: output of getidleCondorQ
-    @type glidein_dict: dictionary: glidein_name->dictionary of params and attrs
-    @param glidein_dict: output of interface.findGlideins
-    @param attr_dict:  dictionary of constant attributes
-    @param condorq_match_list: list of job attributes from the XML file
+    :param match_obj: output of re.compile(match string,'<string>','eval')
+    :type condorq_dict: dictionary: sched_name->CondorQ object
+    :param condorq_dict: output of getidleCondorQ
+    :type glidein_dict: dictionary: glidein_name->dictionary of params and attrs
+    :param glidein_dict: output of interface.findGlideins
+    :param attr_dict:  dictionary of constant attributes
+    :param condorq_match_list: list of job attributes from the XML file
 
-    @return: tuple of 4 elements, where first 3 are a dictionary of
+    :return: tuple of 4 elements, where first 3 are a dictionary of
         glidein name where elements are number of jobs matching
         First tuple  : Straight match
         Second tuple : The entry proportion based on unique subsets
@@ -202,6 +227,25 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         A special 'glidein name' of (None, None, None) is used for jobs
         that don't match any 'real glidein name' in all 4 tuples above
     """
+
+    # The following lines are executed only if the corresponding line is uncommented in glideinFrontendElement.subprocess_count_dt
+    # This is intended for experts/developers only, that's why we do not have a corresponding parameter in the configuration file
+    # This was used to save real data from the CMS frontend and improve the speed of this function
+    # See https://cdcvs.fnal.gov/redmine/issues/20302
+    if group_name:
+        mydir = "/tmp/frontend_dump/" + group_name
+        try:
+            os.mkdir(mydir)
+        except:
+            pass
+        with open(mydir+'/glidein_dict.pickle', 'w') as fd:
+            pickle.dump(glidein_dict, fd)
+        with open(mydir+'/attr_dict.pickle', 'w') as fd:
+            pickle.dump(attr_dict, fd)
+        with open(mydir+'/condorq_match_list.pickle', 'w') as fd:
+            pickle.dump(condorq_match_list, fd)
+        for schedd in condorq_dict.keys():
+            pickle.dump(condorq_dict[schedd].fetchStored(), open(mydir+'/condorq_dict_%s.pickle' % schedd, 'w'))
 
     out_glidein_counts={}
     out_cpu_counts={}
@@ -223,50 +267,50 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     #  (ClusterId*max_ProcId+ProcId)*len(schedds)+scheddIdx
     #
 
-    schedds=condorq_dict.keys()
-    nr_schedds=len(schedds)
+    schedds = condorq_dict.keys()
+    nr_schedds = len(schedds)
 
     # Find max ProcId by searching through condorq output for all schedds
     #   This is needed to linearize the dictionary as per above
     #   The max ProcId will be stored in procid_mul
-    max_procid=0
+    max_procid = 0
     for scheddIdx in range(nr_schedds):
         schedd=schedds[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
-        for jid in condorq_data.keys():
-          procid=jid[1]
-          if procid>max_procid:
-           max_procid=procid
-    procid_mul=long(max_procid+1)
+        for jid in condorq_data:
+          procid = jid[1]
+          if procid > max_procid:
+           max_procid = procid
+    procid_mul = long(max_procid+1)
 
     # Group jobs into clusters of similar attributes
 
     # Results will be stored in the variables:
     #  cq_dict_clusters - dict of clusters (= list of job ids)
     #  cq_jobs - full set of job ids
-    cq_dict_clusters={}
-    cq_jobs=set()
+    cq_dict_clusters = {}
+    cq_jobs = set()
     for scheddIdx in range(nr_schedds):
         # For each schedd, look through all its job from condorq results
-        schedd=schedds[scheddIdx]
-        cq_dict_clusters[scheddIdx]={}
-        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
-        condorq=condorq_dict[schedd]
-        condorq_data=condorq.fetchStored()
-        for jid in condorq_data.keys():
+        schedd = schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx] = {}
+        cq_dict_clusters_el = cq_dict_clusters[scheddIdx]
+        condorq = condorq_dict[schedd]
+        condorq_data = condorq.fetchStored()
+        for jid in condorq_data:
             # For each job, hash the job using the attributes
             #  listed from xml under match_attrs
             # Jobs that hash to the same value should
             #  be considered equivalent and part of the same
             #  cluster for matching purposes
-            jh=hashJob(condorq_data[jid], condorq_match_list)
+            jh = hashJob(condorq_data[jid], condorq_match_list)
             if jh not in cq_dict_clusters_el:
-                cq_dict_clusters_el[jh]=[]
+                cq_dict_clusters_el[jh] = []
             # Add the job to the correct cluster according to the
             #   linearization scheme above
-            cq_dict_clusters_el[jh].append(jid)
             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+            cq_dict_clusters_el[jh].append((jid[0], jid[1], t))
             # Add jobs
             cq_jobs.add(t)
 
@@ -279,16 +323,16 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     #                   indexes representing a job cluster each
     #  all_jobs_clusters: dictionary of cluster index -> list of jobs in
     #                     the cluster (represented each by its own index)
-    list_of_all_jobs=[]
-    all_jobs_clusters={}
+    list_of_all_jobs = []
+    all_jobs_clusters = {}
     
     for glidename in glidein_dict:
-        glidein=glidein_dict[glidename]
+        glidein = glidein_dict[glidename]
         # Number of glideins to request
-        glidein_count=0
+        glidein_count = 0
         # Number of cpus required by the jobs on a glidein
-        cpu_count=0
-        jobs_arr=[]
+        cpu_count = 0
+        jobs_arr = []
 
         # Clusters are organized by schedd,
         #  so loop through each schedd
@@ -296,15 +340,15 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
             #logSupport.log.debug("****** Loop schedds ******")
             # Now, go through each unique hash in the cluster
             # and match clusters individually
-            schedd=schedds[scheddIdx]
+            schedd = schedds[scheddIdx]
             cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
-            condorq=condorq_dict[schedd]
-            condorq_data=condorq.fetchStored()
+            condorq = condorq_dict[schedd]
+            condorq_data = condorq.fetchStored()
             # Number of jobs in this schedd to request glidein
-            schedd_count=0
+            schedd_count = 0
             # Number of cpus to request for jobs on this schedd
-            cpu_schedd_count=0
-            sjobs_arr=[]
+            cpu_schedd_count = 0
+            sjobs_arr = []
 
             missing_keys = set()
             tb_count = 0
@@ -312,30 +356,38 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
-                first_jid=cq_dict_clusters_el[jh][0]
-                job=condorq_data[first_jid]
+                first_jid = cq_dict_clusters_el[jh][0]
+                job = condorq_data[(first_jid[0], first_jid[1])]
 
                 try:
-                    # Evaluate the Compiled object first.
-                    # Evaluation order does not really matter.
-                    match = eval(match_obj)
-                    for policy in match_policies:
-                        if match == True:
-                            # Policies are supposed to be ANDed
-                            match = (match and policy.pyObject.match(job, glidein))
-                        else:
-                            if match != False:
-                                # Non boolean results should be discarded
-                                # and logged
-                                logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
-                            break
+                    # Do not match downtime entries
+                    if ignore_down_entries and safe_boolcomp(glidein_dict[glidename]['attrs'].get('GLIDEIN_In_Downtime', False), True):
+                        match = False
+                    else:
+                        # Evaluate the Compiled object first.
+                        # Evaluation order does not really matter.
+                        match = eval(match_obj)
+                        for policy in match_policies:
+                            if match is True:
+                                # Policies are supposed to be ANDed: match AND policy == policy because match is True
+                                match = policy.pyObject.match(job, glidein)
+                            else:
+                                if match != False:
+                                    # Non boolean results should be discarded
+                                    # and logged
+                                    logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
+                                break
 
                     if match == True:
+                        # The lines inside this 'if' can be replaced with the following three commented lines for profiling
+                        # sc, csc, first_t = do_match(cq_dict_clusters_el, procid_mul, nr_schedds, scheddIdx, first_jid, sjobs_arr, all_jobs_clusters, jh, job)
+                        # schedd_count += sc
+                        # cpu_schedd_count += csc
+
                         # the first matched... add all jobs in the cluster
-                        cluster_arr=[]
+                        cluster_arr = []
                         for jid in cq_dict_clusters_el[jh]:
-                            t = (jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
-                            cluster_arr.append(t)
+                            cluster_arr.append(jid[2])
                             schedd_count += 1
 
                         # Since all jobs are same figure out how many cpus
@@ -380,9 +432,9 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     # END LOOP: for glidename in glidein_dict
 
     # Now split the list of sets into unique sets
-    # We will use this to count how many glideins each job matches against
-    # outvals_cl contains the new list of unique sets each element is a
-    # tuple: (set of glideins with the same jobs, set of jobs)
+    # We will use this to count how many Entries each job matches against
+    # outvals_cl contains the new list of unique sets:
+    #  each element is a tuple: (set of Entries with the same jobs, set of jobs)
     # jrange_cl contains the set of all the job clusters
     (outvals_cl, jrange_cl) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
@@ -465,23 +517,27 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     final_out_counts[(None, None, None)] = count_unmatched
     final_out_cpu_counts[(None, None, None)] = count_unmatched
     final_unique[(None, None, None)] = count_unmatched
+    # Return tuple: count, prop, hereonly, prop_mc
     return (out_glidein_counts, final_out_counts,
             final_unique, final_out_cpu_counts)
 
 
 def countRealRunning(match_obj, condorq_dict, glidein_dict,
                      attr_dict, condorq_match_list=None, match_policies=[]):
-    """
-    Counts all the running jobs on an entry
-    :param match_obj: selection for the jobs
-    :param condorq_dict: result of condor_q, keyed by schedd name
-    :param glidein_dict: glideins, keyed by entry (glidename)
-    :param attr_dict: entry attributes, NOT USED
-    :param condorq_match_list: match attributes used for clustering
-    :return: Tuple with the job counts (used for stats) and glidein counts (used for glidein_max_run)
-      Both are dictionaries keyed by glidename (entry)
-    """
+    """Counts all the running jobs on an entry
 
+    Args:
+        match_obj: selection for the jobs
+        condorq_dict: result of condor_q, keyed by schedd name
+        glidein_dict: glideins, keyed by entry (glidename)
+        attr_dict: entry attributes, NOT USED
+        condorq_match_list: match attributes used for clustering
+        match_policies:
+
+    Returns: Tuple with the job counts (used for stats) and glidein counts (used for glidein_max_run)
+      Both are dictionaries keyed by glidename (entry)
+
+    """
     out_job_counts = {}
     out_glidein_counts = {}
 
@@ -1059,6 +1115,7 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
                                       constraint, format_list,
                                       subsystem_name="schedd")
 
+
 ############################################################
 #
 # I N T E R N A L - Do not use
@@ -1149,20 +1206,20 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
 # Output: list of (index set, value subset) pairs + a set that is the union of all input sets
 #
 # Example in:
-#   [Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-#    Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#   [set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+#    set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 #         21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]),
-#    Set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])]
+#    set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])]
 # Example out:
-#   ([(Set([2]), Set([32, 33, 34, 35, 31])),
-#     (Set([0, 1, 2]), Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])),
-#     (Set([2, 3]), Set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#   ([(set([2]), set([32, 33, 34, 35, 31])),
+#     (set([0, 1, 2]), set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])),
+#     (set([2, 3]), set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 #                        21, 22, 23, 24, 25, 26, 27, 28, 29, 30]))],
-#    Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#    set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 #         21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]))
 #
 def uniqueSets(in_sets):
-    #sets is a list of sets
+    # sets is a list of sets
     sorted_sets = []
     for i in in_sets:
         common_list = []
@@ -1307,7 +1364,7 @@ def getHAMode(frontend_data):
 
     mode = 'master'
     ha = getHASettings(frontend_data)
-    if ha and (ha.get('enabled').lower() == 'true'):
+    if ha and (safe_boolcomp(ha.get('enabled'), True)):
         mode = 'slave'
     return mode
 

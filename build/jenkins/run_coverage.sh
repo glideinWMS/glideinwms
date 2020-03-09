@@ -11,6 +11,15 @@ show_help(){
 }
 [ "x$1" = "x" ]  && show_help
 
+
+find_aux () {
+    # $1 basename of the aux file
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
+    false
+}
+
+
 while getopts ":hcb" option
 do
     case "${option}"
@@ -26,21 +35,29 @@ done
 
 WORKSPACE=`pwd`
 export GLIDEINWMS_SRC=${WORKSPACE}/glideinwms
+export MYDIR=$(dirname $0)
 
-
-if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
-    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+if [ ! -d  "$GLIDEINWMS_SRC" ]; then
+    echo "ERROR: $GLIDEINWMS_SRC not found!"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
 
-if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+ultil_file=$(find_aux utils.sh)
+
+if [ ! -e  "$ultil_file" ]; then
+    echo "ERROR: $ultil_file not found!"
+    echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
     echo "exiting"
     exit 1
 fi
 
+if ! . "$ultil_file" ; then
+    echo "ERROR: $ultil_file contains errors!"
+    echo "exiting"
+    exit 1
+fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then

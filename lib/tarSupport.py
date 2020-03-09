@@ -97,6 +97,8 @@ class GlideinTar:
             invalid compression type has been passed in
         """
         tar_mode = "w:%s" % compression
+        # TODO #23166: Use context managers[with statement] when python 3
+        # once we get rid of SL6 and tarballs
         tf = glideinwms_tarfile.open(archive_full_path, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
@@ -116,6 +118,8 @@ class GlideinTar:
         from cStringIO import StringIO
         tar_mode = "w:%s" % compression
         file_out = StringIO()
+        # TODO #23166: Use context managers[with statement] when python 3
+        # once we get rid of SL6 and tarballs
         tf = glideinwms_tarfile.open(fileobj=file_out, mode=tar_mode)
         self.create_tar(tf)
         tf.close()

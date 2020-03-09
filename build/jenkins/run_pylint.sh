@@ -1,6 +1,15 @@
 #!/bin/sh
 # pep8 is now called pycodestyle. pep8 is still used in variable names and logging
 
+
+find_aux () {
+    # $1 basename of the aux file
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
+    false
+}
+
+
 process_branch() {
     local pylint_log=$1
     local pep8_log=$2
@@ -18,7 +27,7 @@ process_branch() {
     echo "GIT_BRANCH=\"$git_branch\"" >> $results
     if [ -n "$git_branch" ]; then
         cd $GLIDEINWMS_SRC
-        git checkout $git_branch
+        git checkout $GIT_FLAG $git_branch
         checkout_rc=$?
         git pull
         cd $WORKSPACE
@@ -35,16 +44,16 @@ process_branch() {
     PYLINT_RCFILE=/dev/null
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
 
-    # Some of the options in the following section depend more on the pylint version 
+    # Some of the options in the following section depend more on the pylint version
     # than the Python version
     # Make sure to check and be consistent w/ the venv setup in util.sh
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # PYLINT_IGNORE_LIST files for python 2.6 here
-        # white-space seperated list of files to be skipped by pylint 
-        # --ignore-module/--ignore  is supposed to do this but doesn't 
+        # white-space seperated list of files to be skipped by pylint
+        # --ignore-module/--ignore  is supposed to do this but doesn't
         # seem to work.  After coding this I found that it is
         # not needed with careful use of --disable: directive but its
-        # here if needed in future 
+        # here if needed in future
         PYLINT_IGNORE_LIST=""
         # pylint directives added since v1.3.1 throw bad-option-value
         # errors unless disabled at command line
@@ -55,7 +64,7 @@ process_branch() {
         # unsubscriptable-object considered to be buggy in recent pylint relases
         PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
         # Starting pylint 1.4 external modules must be whitelisted
-        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"	
+        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"
     fi
 
     # pep8 related variables
@@ -75,7 +84,7 @@ process_branch() {
     # E265 block comment should start with '# '
 
     #PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
-    
+
     #uncomment or add lines to taste
     #see tail of pep8.log for counts of
     #various pep8 errors
@@ -85,7 +94,7 @@ process_branch() {
     PEP8_OPTIONS="$PEP8_OPTIONS""E111"
     # E121 continuation line under-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
-    # E123 closing bracket does not match indentation of opening bracket’s line
+    # E123 closing bracket does not match indentation of opening bracket's line
     #PEP8_OPTIONS="$PEP8_OPTIONS,E123"
     # E126 continuation line over-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E126"
@@ -125,19 +134,28 @@ process_branch() {
 
     #uncomment to see all pep8 errors
     #PEP8_OPTIONS=""
-    
 
 
     # get list of python scripts without .py extension
-    scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    magic_file="$(find_aux gwms_magic)"
+    FILE_MAGIC=
+    [ -e  "$magic_file" ] && FILE_MAGIC="-m $magic_file"
+    #if [ -e  "$magic_file" ]; then
+    #    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    #else
+    #    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
+    #fi
+    scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
+    echo "-- DBG $(echo $scripts | wc -w | tr -d " ") scripts found using magic file ($FILE_MAGIC) --"
+    echo $FILES_CHECKED | grep "py3tools/process_tags" -q && echo "-- WARNING Seems python3 files are being checked: $(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | grep py3 )"
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
       #can't seem to get --ignore or --ignore-modules to work, so do it this way
       PYLINT_SKIP="False"
       for ignore in $PYLINT_IGNORE_LIST; do
           if [ "$ignore" = "$script" ] ; then
-             echo "pylint skipping $script" >>  "$pylint_log" 
-             PYLINT_SKIP="True"  
+             echo "pylint skipping $script" >>  "$pylint_log"
+             PYLINT_SKIP="True"
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
@@ -150,15 +168,16 @@ process_branch() {
     files_checked=`echo $scripts`
 
     #now do all the .py files
-    shopt -s globstar
-    for file in **/*.py
+    #shopt -s globstar
+    py_files=$(find . -readable -type f -name '*\.py')
+    for file in $py_files
     do
       files_checked="$files_checked $file"
       PYLINT_SKIP="False"
       for ignore in $PYLINT_IGNORE_LIST; do
           if [ "$ignore" = "$file" ] ; then
-             echo "pylint skipping $file" >>  "$pylint_log" 
-             PYLINT_SKIP="True"  
+             echo "pylint skipping $file" >>  "$pylint_log"
+             PYLINT_SKIP="True"
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
@@ -283,36 +302,69 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 ###############################################################################
 
 
-if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
-	echo "$0           Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
-	echo "$0 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (space separated list of branch names)"
+
+print_help() {
+    echo
+    echo  "Usage:"
+	echo "$1          Setup virtualenv and Run pylint and pycodestyle on the current branch in the source directory"
+	echo "$1 BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES (comma separated list of branch names)"
+    echo "$1 -f BRANCHES  Setup virtualenv and Run pylint and pycodestyle on all BRANCHES, doing a git checkout -f (force) for "
+    echo "          each new branch."
+    echo
+    echo "                    IF YOU USE -f INTERACTIVELY IT WILL ERASE UN CHECKED IN EDITS so be warned."
+    echo
 	echo "The source code (a clone of the GWMS git repository) is expected to be already in the ./glideinwms subdirectory of PWD (source dir)"
 	echo "The script will checkout one by one and run pylint and pycodestyle on all listed BRANCHES, in the listed order"
         echo "At the end of the tests the last branch will be the one in the source directory."
 	echo "The script has no cleanup. Will leave directories and result files in the working directory (virtualenv,  log files, ...)"
-	echo "$0 -h        Print this message and exit"
+	echo "$1 -h        Print this message and exit"
 	exit 0
+}
+
+if [ "x$1" = "x-h" -o "x$1" = "x--help" ]; then
+    print_help $0
 fi
 
-git_branches="$1"
+GIT_FLAG=''
+if [ "x$1" = "x-f" ]; then
+    GIT_FLAG='-f'
+    if [ "x$2" = "x-h" ]; then
+        print_help $0
+    elif [ "x$2" = "x" ]; then
+        echo "Running on the current branch with -f not allowed."
+        exit 1
+    else
+       git_branches="$2"
+    fi
+else
+    git_branches="$1"
+fi
+
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
+export MYDIR=$(dirname $0)
 
-
-
-if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
+if [ ! -d  "$GLIDEINWMS_SRC" ]; then
+    echo "ERROR: $GLIDEINWMS_SRC not found!"
     echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
 
-if ! . "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+ultil_file=$(find_aux utils.sh)
+
+if [ ! -e  "$ultil_file" ]; then
+    echo "ERROR: $ultil_file not found!"
+    echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
     echo "exiting"
     exit 1
 fi
 
+if ! . "$ultil_file" ; then
+    echo "ERROR: $ultil_file contains errors!"
+    echo "exiting"
+    exit 1
+fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then

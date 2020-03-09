@@ -20,22 +20,20 @@ import glob
 import string
 import re
 import pwd
-import binascii
 import base64
 import tempfile
 from itertools import groupby
 
 from glideinwms.lib import condorExe
-from glideinwms.lib import condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
+from glideinwms.lib import subprocessSupport
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
-
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -318,16 +316,13 @@ def getQClientNames(condorq, factoryConfig=None):
         factoryConfig = globals()['factoryConfig']
     schedd_attribute = factoryConfig.client_schedd_attribute
 
-    def group_data_func(val):
-        return val
-
     def group_key_func(val):
         try:
             return val[schedd_attribute]
         except KeyError:
             return None
 
-    client_condorQ = condorMonitor.Group(condorq, group_key_func, group_data_func)
+    client_condorQ = condorMonitor.NestedGroup(condorq, group_key_func)
     client_condorQ.schedd_name = condorq.schedd_name
     client_condorQ.factory_name = condorq.factory_name
     client_condorQ.glidein_name = condorq.glidein_name
@@ -456,66 +451,48 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     fname_short = 'x509_%s.proxy' % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 
-    if username != MY_USERNAME:
-        # use privsep
-        # all args go through the environment, so they are protected
-        update_proxy_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
-        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if var in os.environ:
-                update_proxy_env.append('%s=%s' % (var, os.environ[var]))
-
-        try:
-            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
-        except condorPrivsep.ExeError as e:
-            raise RuntimeError("Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
-        except:
-            raise RuntimeError("Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
-        return fname
-    else:
-        # do it natively when you can
-        if not os.path.isfile(fname):
-            # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
-            try:
-                os.write(fd, proxy_data)
-            finally:
-                os.close(fd)
-            return fname
-
-        # old file exists, check if same content
-        fl = open(fname, 'r')
-        try:
-            old_data = fl.read()
-        finally:
-            fl.close()
-        if proxy_data == old_data:
-            # nothing changed, done
-            return fname
-
-        #
-        # proxy changed, neeed to update
-        #
-
-        # remove any previous backup file
-        try:
-            os.remove(fname + ".old")
-        except:
-            pass # just protect
-
-        # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+    # We have no longer privilege separation so we do it natively
+    if not os.path.isfile(fname):
+        # new file, create
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, proxy_data)
         finally:
             os.close(fd)
-
-        # move the old file to a tmp and the new one into the official name
-        try:
-            os.rename(fname, fname + ".old")
-        except:
-            pass # just protect
-        os.rename(fname + ".new", fname)
         return fname
+
+    # old file exists, check if same content
+    with open(fname, 'r') as fl:
+        old_data = fl.read()
+    
+    if proxy_data == old_data:
+        # nothing changed, done
+        return fname
+
+    #
+    # proxy changed, neeed to update
+      #
+
+    # remove any previous backup file
+    try:
+        os.remove(fname + ".old")
+    except:
+       pass # just protect
+
+    # create new file
+    fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
+    try:
+        os.write(fd, proxy_data)
+    finally:
+        os.close(fd)
+
+    # move the old file to a tmp and the new one into the official name
+    try:
+        os.rename(fname, fname + ".old")
+    except:
+       pass # just protect
+    os.rename(fname + ".new", fname)
+    return fname
 
     # end of update_x509_proxy_file
     # should never reach this point
@@ -650,10 +627,10 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     else:
         # Need more idle
         # Check that adding more idle doesn't exceed request max_glideins
-        if q_idle_glideins + q_held_glideins + q_running_glideins + add_glideins >= req_max_glideins:
+        if q_idle_glideins + q_running_glideins + add_glideins >= req_max_glideins:
             # Exceeded limit, try to adjust
 
-            add_glideins = req_max_glideins - q_idle_glideins - q_held_glideins - q_running_glideins
+            add_glideins = req_max_glideins - q_idle_glideins - q_running_glideins
 
             # Have hit request limit, cannot submit
             if add_glideins < 0:
@@ -721,7 +698,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     @param frontend_name:
     @param log:
     @param factoryConfig:
-    @return: 1 if some glideins were removes, 0 otherwise
+    @return: 1 if some glideins were removed, 0 otherwise
     TODO: could return the number of glideins removed
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
@@ -1307,36 +1284,20 @@ def escapeParam(param_str):
 def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # check to see if the username for the proxy is
 # same as the factory username
-    if username != MY_USERNAME:  # Use privsep
-        try:
-            args = ["condor_submit", "-name", schedd, submitFile]
-            submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir,
-                                                      "condor_submit", args, env=exe_env)
-            log.debug(str(submit_out))
-        except condorPrivsep.ExeError as e:
-            submit_out = []
-            msg = "condor_submit failed (user %s): %s" % (username, str(e))
-            log.error(msg)
-            raise RuntimeError(msg)
-        except:
-            submit_out = []
-            msg = "condor_submit failed (user %s): Unknown privsep error" % username
-            log.error(msg)
-            raise RuntimeError(msg)
-    else:  # Do not use privsep
-        try:
-            submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
-                                            child_env=env_list2dict(exe_env))
-        except condorExe.ExeError as e:
-            submit_out = []
-            msg = "condor_submit failed: %s" % str(e)
-            log.error(msg)
-            raise RuntimeError(msg)
-        except Exception as e:
-            submit_out = []
-            msg = "condor_submit failed: Unknown error: %s" % str(e)
-            log.error(msg)
-            raise RuntimeError(msg)
+    try:
+        submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
+                                        child_env=env_list2dict(exe_env))
+
+    except condorExe.ExeError as e:
+        submit_out = []
+        msg = "condor_submit failed: %s" % str(e)
+        log.error(msg)
+        raise RuntimeError(msg)
+    except Exception as e:
+        submit_out = []
+        msg = "condor_submit failed: Unknown error: %s" % str(e)
+        log.error(msg)
+        raise RuntimeError(msg)
     return submit_out
 
 
@@ -1397,7 +1358,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         raise RuntimeError(msg)
 
     if username != MY_USERNAME:
-        # Use privsep
         # need to push all the relevant env variables through
         for var in os.environ:
             if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
@@ -1405,7 +1365,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 try:
                     entry_env.append('%s=%s' % (var, os.environ[var]))
                 except KeyError:
-                    msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
+                    msg = """KeyError: '%s' not found in execution environment!!""" % (var)
                     log.warning(msg)
     try:
         submit_files = glob.glob("entry_%s/job.*condor" % entry_name)
@@ -1422,7 +1382,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
                 if nr_submitted != 0:
                     time.sleep(factoryConfig.submit_sleep)
 
-                nr_to_submit = (nr_glideins - nr_submitted)
+                nr_to_submit = (nr_glideins_sf - nr_submitted)
                 if nr_to_submit > factoryConfig.max_cluster_size:
                     nr_to_submit = factoryConfig.max_cluster_size
 
@@ -1719,7 +1679,7 @@ email_logs = False
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 
-            # we add this here because the macros will be expanded when used in the gt2 submission
+            # TODO: we might review this part as we added this here because the macros were been expanded when used in the gt2 submission
             # we don't add the macros to the arguments for the EC2 submission since condor will never
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
@@ -2009,7 +1969,7 @@ class GlideinTotals:
             nr_allowed = self.entry_max_idle - self.entry_idle
 
         # Check entry total glideins
-        if self.entry_idle + nr_allowed + self.entry_running + self.entry_held > self.entry_max_glideins:
+        if self.entry_idle + nr_allowed + self.entry_running > self.entry_max_glideins:
             nr_allowed = self.entry_max_glideins - self.entry_idle - self.entry_running
 
         fe_limit = self.frontend_limits[frontend_name]
@@ -2019,8 +1979,8 @@ class GlideinTotals:
             nr_allowed = fe_limit['max_idle'] - fe_limit['idle']
 
         # Check frontend:sec_class total glideins
-        if fe_limit['idle'] + fe_limit['held'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']:
-            nr_allowed = fe_limit['max_glideins'] - fe_limit['idle'] - fe_limit['held'] - fe_limit['running']
+        if fe_limit['idle'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']:
+            nr_allowed = fe_limit['max_glideins'] - fe_limit['idle'] - fe_limit['running']
 
         # Return
         return nr_allowed
@@ -2053,7 +2013,7 @@ class GlideinTotals:
 
     def has_entry_exceeded_max_glideins(self):
         # max_glideins=total glidens for an entry.  Total is defined as idle+running+held
-        return self.entry_idle + self.entry_running + self.entry_held >= self.entry_max_glideins
+        return self.entry_idle + self.entry_running >= self.entry_max_glideins
 
 
     def __str__(self):

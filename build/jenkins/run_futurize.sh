@@ -1,6 +1,14 @@
 #!/bin/bash
 
 
+find_aux () {
+    # $1 basename of the aux file
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return ; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return ; }
+    false
+}
+
+
 function help_msg {
   #filename="$(basename $0)"
   cat << EOF
@@ -20,6 +28,7 @@ LOG_DIR       Directory including log files (it will be created if not existing)
   -d          print diffs about the refactoring
   -i          run in place without checking out a branch (see above)
   -s          run sequequentially invoking futurize separately for each file
+  -f          force git checkout of branch when processing multiple branches
 EOF
 }
 
@@ -27,7 +36,7 @@ FUTURIZE_STAGE='-1'
 DIFF_OPTION='--no-diffs'
 filename="$(basename $0)"
 
-while getopts ":hvldi12s" option
+while getopts ":hvldif12s" option
 do
   case "${option}"
   in
@@ -36,10 +45,11 @@ do
   l) LIST_FILES=yes;;
   d) DIFF_OPTION='';;
   i) INPLACE=yes;;
+  f) GITFLAG='-f';;
   1) FUTURIZE_STAGE='-1';;
   2) FUTURIZE_STAGE='-2';;
   s) SEQUENTIAL=yes;;
-  : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;  
+  : ) echo "$filename: illegal option: -$OPTARG requires an argument" 1>&2; help_msg 1>&2; exit 1;;
   *) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   \?) echo "$filename: illegal option: -$OPTARG" 1>&2; help_msg 1>&2; exit 1;;
   esac
@@ -53,6 +63,10 @@ shift $((OPTIND-1))
 if [ -n "$INPLACE" ]; then
   branch_names=''
   Log_Dir="$1"
+  if [ -n "$GITFLAG" ]; then
+      echo "WARNING Using -f and -i together not allowed, exiting"
+      exit 1
+  fi
 else
   branch_names=$1
   Log_Dir="$2"
@@ -89,21 +103,29 @@ echo ""
 # Setup the build environment
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
+export MYDIR=$(dirname $0)
 
-
-if [ ! -e  $GLIDEINWMS_SRC/build/jenkins/utils.sh ]; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
-    echo "script running in `pwd`, expects a git managed glideinwms subdirectory"
+if [ ! -d  "$GLIDEINWMS_SRC" ]; then
+    echo "ERROR: $GLIDEINWMS_SRC not found!"
+    echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
 
-if ! source $GLIDEINWMS_SRC/build/jenkins/utils.sh ; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+ultil_file=$(find_aux utils.sh)
+
+if [ ! -e  "$ultil_file" ]; then
+    echo "ERROR: $ultil_file not found!"
+    echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
     echo "exiting"
     exit 1
 fi
 
+if ! . "$ultil_file" ; then
+    echo "ERROR: $ultil_file contains errors!"
+    echo "exiting"
+    exit 1
+fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
@@ -153,7 +175,7 @@ process_branch () {
         echo "Now checking out branch $1"
         echo ""
 
-        git checkout "$1"
+        git checkout "$GITFLAG" "$1"
 
         if [ $? -ne 0 ]; then
             echo "~~~~~~"
@@ -180,14 +202,15 @@ process_branch () {
     echo ""
 
     if [ -n "$SEQUENTIAL" ]; then
-        shopt -s globstar
+        scripts=$(find .  -path .git -prune -o -name '*.py')
         OUTPUT1=""
-        for i in **/*.py; do
+        for i in ${scripts}; do
+            i=$(echo $i | sed -e 's/\.\///')
             OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
-            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
             if [ $? -ne 0 ]; then
                 futurize_ret1=$?
             fi
+            OUTPUT1="$OUTPUT1"$'\n'"$OUTPUT_TMP"
         done
     else
         OUTPUT1="$(futurize $FUTURIZE_STAGE $DIFF_OPTION . 2>&1)"
@@ -195,15 +218,23 @@ process_branch () {
     fi
 
     # get list of python scripts without .py extension
-    scripts=`find . -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
+    magic_file="$(find_aux gwms_magic)"
+    FILE_MAGIC=
+    [ -e  "$magic_file" ] && FILE_MAGIC="-m $magic_file"
+    scripts=$(find .  -path .git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    #if [ -e  "$magic_file" ]; then
+    #    scripts=$(find .  -path .git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    #else
+    #    scripts=$(find .  -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    #fi
     if [ -n "$SEQUENTIAL" ]; then
         OUTPUT2=""
         for i in ${scripts}; do
             OUTPUT_TMP="PROC: $i"$'\n'"$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${i} 2>&1)"
-            OUTPUT2="$OUTPUT2"$'\n'"$OUTPUT_TMP"
             if [ $? -ne 0 ]; then
                 futurize_ret2=$?
             fi
+            OUTPUT2="$OUTPUT2"$'\n'"$OUTPUT_TMP"
         done
     else
         OUTPUT2="$(futurize $FUTURIZE_STAGE $DIFF_OPTION ${scripts} 2>&1)"
@@ -224,7 +255,7 @@ process_branch () {
         refactored_file_count=$(echo "$refactored_files" | wc -l)
 
         echo ""
-	echo "There are $refactored_file_count files that need to be refactered"
+	echo "There are $refactored_file_count files that need to be refactored"
 
         if [[ $futurize_ret1 -ne 0 || $futurize_ret2 -ne 0 ]]; then
             echo "ERROR: Futurize CRASHED while analyzing branch $1"

@@ -93,6 +93,9 @@ def create_condor_tar_fd(condor_base_dir):
 
         # tar
         fd = cStringIO.StringIO()
+        # TODO #23166: Use context managers[with statement] when python 3 
+        # once we get rid of SL6 and tarballs
+ 
         tf = tarfile.open("dummy.tgz", 'w:gz', fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
@@ -121,6 +124,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         glidein_name = conf[u'glidein_name']
         gridtype = entry[u'gridtype']
         gatekeeper = entry[u'gatekeeper']
+        entry_enabled = entry[u'enabled']
         if u'rsl' in entry:
             rsl = entry[u'rsl']
         else:
@@ -155,20 +159,21 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # set up the grid specific attributes
         if gridtype == 'ec2':
-            self.populate_ec2_grid(submit_attrs)
+            self.populate_ec2_grid()
         if gridtype == 'gce':
-            self.populate_gce_grid(submit_attrs)
+            self.populate_gce_grid()
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
             # next we add the Condor-C additions
-            self.populate_condorc_grid(submit_attrs)
+            self.populate_condorc_grid()
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
-            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
+            self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
         else:
-            self.populate_standard_grid(rsl, auth_method, gridtype)
+            self.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, entry_name)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -195,10 +200,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method, gridtype):
-        if gridtype == 'gt2' or gridtype == 'gt5':
-            if "project_id" in auth_method or ((rsl is not None) and rsl != ""):
-                self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
+    def populate_standard_grid(self, rsl, auth_method, gridtype, entry_enabled, entry_name):
+        if (gridtype == 'gt2' or gridtype == 'gt5') and eval(entry_enabled):
+            raise RuntimeError(" The grid type '%s' is no longer supported. Review the attributes of the entry %s " % (gridtype, entry_name))
         elif gridtype == 'cream' and ((rsl is not None) and rsl != ""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
@@ -219,11 +223,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_error ", "False")
 
 
-    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+    def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
         input_files = []
         encrypt_input_files = []
-
-        self.populate_standard_grid(rsl, auth_method, gridtype)
 
         input_files.append('$ENV(X509_USER_PROXY)')
         encrypt_input_files.append('$ENV(X509_USER_PROXY)')
@@ -238,12 +240,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
 
-    def populate_condorc_grid(self, submit_attrs):
+    def populate_condorc_grid(self):
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
 
-    def populate_gce_grid(self, submit_attrs):
+    def populate_gce_grid(self):
         self.add("gce_image", "$ENV(IMAGE_ID)")
         self.add("gce_machine_type", "$ENV(INSTANCE_TYPE)")
         # self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
@@ -253,7 +255,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
 
-    def populate_ec2_grid(self, submit_attrs):
+    def populate_ec2_grid(self):
         self.add("ec2_ami_id", "$ENV(IMAGE_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
@@ -283,6 +285,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinWorkDir', '"$ENV(GLIDEIN_STARTUP_DIR)"')
         self.add('+GlideinSlotsLayout', '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
         self.add('+GlideinMaxWalltime', '$ENV(GLIDEIN_MAX_WALLTIME)')
+        # fename does not start with Glidein for convenience (it's short) and consistency with options of the factory tools
+        # that already use the fename naming convention. Added after the condor_privsep deprecation.
+        self.add("+fename", '"$ENV(GLIDEIN_USER)"')
         if proxy_url:
             self.add('+GlideinProxyURL', '"%s"' % proxy_url)
 
@@ -300,15 +305,12 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
     Creates the factory startup script from the template.
     """
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname, "w")
-    try:
+    with open(startup_fname, "w") as fd:
         template = template % {"factory_dir": factory_dir,
                                "glideinWMS_dir": glideinWMS_dir,
                                "default_cfg_fpath": cfg_name,
                                "rpm_install": rpm_install}
         fd.write(template)
-    finally:
-        fd.close()
 
     os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
@@ -336,9 +338,8 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
     os.chmod(os.path.join(work_dir, filename), 0o555)
 
 def get_template(template_name, glideinWMS_dir):
-    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
-    template_str = template_fd.read()
-    template_fd.close()
+    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+        template_str = template_fd.read()
 
     return template_str
 

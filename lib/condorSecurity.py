@@ -21,6 +21,7 @@ import copy
 #
 ###############
 
+
 ########################################
 # This class contains the state of the
 # Condor environment
@@ -72,24 +73,28 @@ def convert_sec_filter(sec_filter):
                 filter.append(condor_key)
         return filter
 
+
 class SecEnvState(EnvState):
     def __init__(self, sec_filter):
         # sec_filter is a dictionary of [contex]=[feature list]
         EnvState.__init__(self, convert_sec_filter(sec_filter))
         self.sec_filter=sec_filter
 
+
 ###############################################################
 # This special value will unset any value and leave the default
 # This is different than None, that will not do anything
-UNSET_VALUE='UNSET'
+UNSET_VALUE = 'UNSET'
+
 
 #############################################
 # This class handle requests for ensuring
 # the security state is in a particular state
 class SecEnvRequest:
-    def __init__(self,requests=None):
+    def __init__(self, requests=None):
         # requests is a dictionary of requests [context][feature]=VAL
-        self.requests={}
+        # TODO: requests can be a self initializinf dictionary of dictionaries in PY3
+        self.requests = {}
         if requests is not None:
             for context in requests.keys():
                 for feature in requests[context].keys():
@@ -97,18 +102,17 @@ class SecEnvRequest:
 
         self.saved_state=None
 
-
     ##############################################
-    # Methods for accessig the requests
-    def set(self, context, feature, value): # if value is None, remove the request
+    # Methods for accessing the requests
+    def set(self, context, feature, value):  # if value is None, remove the request
         if value is not None:
             if context not in self.requests:
-                self.requests[context]={}
-            self.requests[context][feature]=value
+                self.requests[context] = {}
+            self.requests[context][feature] = value
         elif context in self.requests:
             if feature in self.requests[context]:
                 del self.requests[context][feature]
-                if len(self.requests[context].keys())==0:
+                if len(self.requests[context].keys()) == 0:
                     del self.requests[context]
     
     def get(self, context, feature):
@@ -129,18 +133,18 @@ class SecEnvRequest:
     def save_state(self):
         if self.has_saved_state():
             raise RuntimeError("There is already a saved state! Restore that first.")
-        filter={}
+        filter = {}
         for c in self.requests.keys():
-            filter[c]=self.requests[c].keys()
+            filter[c] = self.requests[c].keys()
             
-        self.saved_state=SecEnvState(filter)
+        self.saved_state = SecEnvState(filter)
 
     def restore_state(self):
         if self.saved_state is None:
-            return # nothing to do
+            return  # nothing to do
 
         self.saved_state.restore()
-        self.saved_state=None
+        self.saved_state = None
 
     ##############################################
     # Methods for changing to the desired state
@@ -150,16 +154,17 @@ class SecEnvRequest:
     def enforce_requests(self):
         for context in self.requests.keys():
             for feature in self.requests[context].keys():
-                condor_key="SEC_%s_%s"%(context, feature)
-                env_key="_CONDOR_%s"%condor_key
-                val=self.requests[context][feature]
-                if val!=UNSET_VALUE:
-                    os.environ[env_key]=val
+                condor_key = "SEC_%s_%s" % (context, feature)
+                env_key = "_CONDOR_%s" % condor_key
+                val = self.requests[context][feature]
+                if val != UNSET_VALUE:
+                    os.environ[env_key] = val
                 else:
                     # unset -> make sure it is not in the env after the call
                     if env_key in os.environ:
                         del os.environ[env_key]
         return
+
 
 ########################################################################
 #
@@ -179,9 +184,10 @@ CONDOR_PROTO_FEATURE_LIST=('AUTHENTICATION',
 
 CONDOR_PROTO_VALUE_LIST=('NEVER', 'OPTIONAL', 'PREFERRED', 'REQUIRED')
 
+
 ########################################
 class EnvProtoState(SecEnvState):
-    def __init__(self,filter=None):
+    def __init__(self, filter=None):
         if filter is not None:
             # validate filter
             for c in filter.keys():
@@ -201,26 +207,28 @@ class EnvProtoState(SecEnvState):
         
         SecEnvState.__init__(self, filter)
 
+
 #########################################
 # Same as SecEnvRequest, but check that
 # the context and feature are related
 # to the Condor protocol handling
 class ProtoRequest(SecEnvRequest):
-    def set(self, context, feature, value): # if value is None, remove the request
+    def set(self, context, feature, value):  # if value is None, remove the request
         if not (context in CONDOR_CONTEXT_LIST):
-            raise ValueError("Invalid security context '%s'."%context)
+            raise ValueError("Invalid security context '%s'." % context)
         if not (feature in CONDOR_PROTO_FEATURE_LIST):
-            raise ValueError("Invalid authentication feature '%s'."%feature)
+            raise ValueError("Invalid authentication feature '%s'." % feature)
         if not (value in (CONDOR_PROTO_VALUE_LIST+(UNSET_VALUE,))):
-            raise ValueError("Invalid value type '%s'."%value)
+            raise ValueError("Invalid value type '%s'." % value)
         SecEnvRequest.set(self, context, feature, value)
 
     def get(self, context, feature):
         if not (context in CONDOR_CONTEXT_LIST):
-            raise ValueError("Invalid security context '%s'."%context)
+            raise ValueError("Invalid security context '%s'." % context)
         if not (feature in CONDOR_PROTO_FEATURE_LIST):
-            raise ValueError("Invalid authentication feature '%s'."%feature)
+            raise ValueError("Invalid authentication feature '%s'." % feature)
         return SecEnvRequest.get(self, context, feature)
+
 
 ########################################################################
 #

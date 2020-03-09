@@ -214,7 +214,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
-                             'setup_x509.sh',
+                             'gwms-python',
                              cgWConsts.CONDOR_STARTUP_FILE]
         # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
@@ -229,7 +229,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh',]
+                                   'smart_partitionable.sh',
+                                   'condor_chirp']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
@@ -240,6 +241,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(script_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
+
+        # Add the x509 setup script. It is periodical since it will refresh the pilot as well
+        x509script = 'setup_x509.sh'
+        self.dicts['file_list'].add_from_file(x509script,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(x509script), 'exec', 60, 'NOPREFIX'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, x509script))
 
         # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
@@ -252,6 +259,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_from_file(mjf_script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 1800, 'MJF_'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script))
+
+        # Add pychirp
+        pychirp_tarball = "htchirp.tar.gz"
+        self.dicts['file_list'].add_from_file(pychirp_tarball,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(pychirp_tarball), 'untar'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, pychirp_tarball))
+        self.dicts['untar_cfg'].add(pychirp_tarball, "lib/python/htchirp")
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
@@ -459,6 +473,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def save_final(self,set_readonly=True):
         sub_stage_dir = cgWConsts.get_entry_stage_dir("", self.sub_name)
 
+        # Let's remove the job.condor single entry file (in case the entry_set has the same name of an old entry)
+        if len(self.dicts['condor_jdl']) > 1:
+            fname = os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE)
+            if os.path.isfile(fname):
+                os.remove(fname)
+
         for cj in self.dicts['condor_jdl']:
             cj.finalize(self.summary_signature['main'][0], self.summary_signature[sub_stage_dir][0],
                         self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
@@ -508,8 +528,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", bool(str2bool(restrictions[u'require_voms_proxy'])), allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", bool(str2bool(restrictions[u'require_glidein_glexec_use'])), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", restrictions[u'require_voms_proxy'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", restrictions[u'require_glidein_glexec_use'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain", entry[u'trust_domain'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry[u'auth_method'], allow_overwrite=True)
             if u'rsl' in entry:
@@ -522,8 +542,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if u'proxy_url' in entry:
                 self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
 
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", bool(str2bool(restrictions[u'require_voms_proxy'])), None, False, True, True)
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", bool(str2bool(restrictions[u'require_glidein_glexec_use'])), None, False, True, True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", restrictions[u'require_voms_proxy'], None, False, True, True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", restrictions[u'require_glidein_glexec_use'], None, False, True, True)
 
         # populate infosys
         for infosys_ref in entry.get_child_list(u'infosys_refs'):
@@ -951,13 +971,13 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     job_descript_dict.add('Verbosity', entry[u'verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
     per_entry = max_jobs.get_child(u'per_entry')
-    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])/num_factories)
-    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])/num_factories)
-    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])/num_factories)
+    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])//num_factories)
+    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])//num_factories)
+    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])//num_factories)
     def_per_fe = max_jobs.get_child(u'default_per_frontend')
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])/num_factories)
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])/num_factories)
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])/num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])//num_factories)
     submit = config.get_child(u'submit')
     job_descript_dict.add('MaxSubmitRate', submit[u'max_per_cycle'])
     job_descript_dict.add('SubmitCluster', submit[u'cluster_size'])
@@ -984,9 +1004,9 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     max_glideins_frontend = ""
     for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
         frontend_name = per_fe[u'name']
-        max_held_frontend += frontend_name + ";" + int(per_fe[u'held'])/num_factories + ","
-        max_idle_frontend += frontend_name + ";" + int(per_fe[u'idle'])/num_factories + ","
-        max_glideins_frontend += frontend_name + ";" + int(per_fe[u'glideins'])/num_factories + ","
+        max_held_frontend += frontend_name + ";" + str(int(per_fe[u'held'])//num_factories) + ","
+        max_idle_frontend += frontend_name + ";" + str(int(per_fe[u'idle'])//num_factories) + ","
+        max_glideins_frontend += frontend_name + ";" + str(int(per_fe[u'glideins'])//num_factories) + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])

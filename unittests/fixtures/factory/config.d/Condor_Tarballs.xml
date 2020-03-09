@@ -1,5 +1,6 @@
 <glidein>
    <condor_tarballs>
        <condor_tarball arch="x86_64" base_dir="fixtures/factory/condor/condor-8.6.5-x86_64_RedHat6-stripped" os="rhel6" version="8.6.5"/>
+       <condor_tarball arch="x86_64" base_dir="fixtures/factory/condor/condor-8.6.11-x86_64_RedHat7-stripped" os="rhel7" version="8.6.11"/>
    </condor_tarballs>
 </glidein>

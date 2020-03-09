@@ -76,7 +76,7 @@ Install as: various daemon users or as system rpms/packages
 <div class="section">
 
 <h2 class="header">Prerequisite components</h2>
-    <p>        
+    <p>
     The following is needed by GlideinWMS.  The installer will install HTCondor but all others should be installed before you begin.  The javascriptRRD directory
     will also need to be provided to the installer.
     </p>
@@ -114,10 +114,10 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> A reasonably recent <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/current/1_5Availability.html">HTCondor-supported</a>
-             Linux OS (RH/SL5 tested at press time).</td>
+            <td> A reasonably recent <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/overview/availability.html?highlight=Availability">HTCondor-supported</a>
+             Linux OS (RH/SL 6 and 7 tested at this time).</td>
         </tr>
-        
+
         <tr>
             <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
             <td> v7.8+/<br>v8.2.3+(BOSCO or Ganglia)</td>
@@ -138,7 +138,7 @@ Install as: various daemon users or as system rpms/packages
                 can use previous recommended versions of HTCondor.
                 <br><br>
                 <b><u>HTCondor </u></b><br>
-                <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/Monitoring.html#x40-3350003.12">monitoring via Ganglia</a>.
+                <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/monitoring.html?highlight=Monitoring">monitoring via Ganglia</a>.
                 GlideinWMS provides configuration files for it.
                 </td>
         </tr>
@@ -189,9 +189,9 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
-            <td> 
-              The perl-Time-HiRes rpm is needed for this package.  Please verify all dependencies: 
-              rrdtool, perl-rrdtool and python-rrdtool. These packages are available via yum using EPEL in EL6/7 
+            <td>
+              The perl-Time-HiRes rpm is needed for this package.  Please verify all dependencies:
+              rrdtool, perl-rrdtool and python-rrdtool. These packages are available via yum using EPEL in EL6/7
               or can be searched in RPMFind.
             </td>
 
@@ -205,8 +205,8 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td> &nbsp; </td>
             <td> y </td>
-            <td> This can be installed using yum, if available. Or via 
-            <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">tarball</a>. 
+            <td> This can be installed using yum, if available. Or via
+            <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">tarball</a>.
             </td>
 
         </tr>
@@ -219,23 +219,22 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
-            <td> <b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed 
+            <td> <b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed
             separately for GlideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
         </tr>
     </tbody></table>
     <br/>
-</div>    
+</div>
 
 <div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
     <p>
-    You will need to install an HTTP server for GlideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
-    accessible to the outside.  
-    The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.  
-    In particular, the staging directory will need to be accessible 
-    to glideins so they can download appropriate software.
+    You will need to install an HTTP server for GlideinWMS to be used for staging and monitoring.  This needs to be installed on a port
+    accessible to the outside.
+    The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.
+    In particular, the staging directory will need to be accessible to glideins so they can download appropriate software.
     </p>
-    <p> 
+    <p>
         The choice of web server is independent of GlideinWMS, but this documentation will only
         show the example of Apache Web Server.  For most systems, this can be installed via
         yum:
@@ -243,11 +242,11 @@ Install as: various daemon users or as system rpms/packages
         yum install httpd </pre>
     </p>
     <p>
-        Other options are available from Apache 
+        Other options are available from Apache
         <a href="http://httpd.apache.org/download.cgi">here</a>.
-    </p> 
+    </p>
     <p>
-        There are several recommended tasks you may want to 
+        There are several recommended tasks you may want to
         also do post-installation to secure and prepare your web server.
         <ul>
             <li>Disable all unneeded modules.  Glideinwms does not any
@@ -265,19 +264,28 @@ Install as: various daemon users or as system rpms/packages
             <li>Recommended: disable indexes (Options -Indexes) in all
             directories/locations, such as frontend/factory stage/monitor
             directories.</li>
+            <li> Enable HTTPS connections for monitor pages.
+             <ul>
+               <li>If HTTPS is enabled on the Factory/Frontend web server "http:" connections to
+                 the /monitor pages will redirect to "https:". If HTTPs is not enabled, the /monitor pages behave as they did previously.
+                 <li>The /stage pages are intended to be cached and will never be redirected.
+                 <li>If for some reason https is enabled and HTTPS redirection
+                 of monitor pages is not desired the
+                 appropriate block of /etc/httpd/conf.d/gwms-(factory|frontend).conf
+                 may be commented out.
+             </ul>
+            </li>
     </ul>
-    <p>
-    </p>
 </div>
 
 
 <div class="section">
     <h2><a name="system_vdt">2. OSG Client</a></h2>
     <p>
-        The OSG Worker Node Client (formerly known as VDT Client and OSG Client) is now available as a set of RPMs. 
+        The OSG Worker Node Client (formerly known as VDT Client and OSG Client) is now available as a set of RPMs.
         OSG provides a <a href="https://opensciencegrid.org/docs/worker-node/install-wn">
         complete set of instructions</a> that that we recommend.
-        Here you can follow the instructions to install OSG Client on RHEL 6 and 7  based systems (including CentOS and SL). 
+        Here you can follow the instructions to install OSG Client on RHEL 6 and 7  based systems (including CentOS and SL).
         First you will need to enable the EPEL and OSG
         repositories.  It is also advisable to enable the yum priorities
         module in order to guarantee the correct packages.
@@ -291,7 +299,7 @@ Install as: various daemon users or as system rpms/packages
 
     <h3><a name="system_rrdtool">3. RRDTool</a></h3>
     <p>
-        You will also need the python module for <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (currently v1.7.0). Many 
+        You will also need the python module for <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (currently v1.7.0). Many
         systems come with packages for it; if possible use that.
     </p>
 
@@ -304,9 +312,9 @@ Install as: various daemon users or as system rpms/packages
         If installing as root is not an option, you can build from the sources, as the <b>glidein factory</b>
 
         user, and put the python libraries into the PYTHON_PATH.<br>
-        The source code can be downloaded from <a target="_blank" href="http://oss.oetiker.ch/rrdtool/pub/">here</a>. 
-        Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs 
-        (or similar). 
+        The source code can be downloaded from <a target="_blank" href="http://oss.oetiker.ch/rrdtool/pub/">here</a>.
+        Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs
+        (or similar).
     </p>
 </div>
 
@@ -315,15 +323,15 @@ Install as: various daemon users or as system rpms/packages
     <h3><a name="system_m2crypto">4. M2Crypto</a></h3>
 
     <p>
-        You will need the <a target="_blank" href="https://pypi.org/project/M2Crypto/">M2Crypto python library</a>. 
+        You will need the <a target="_blank" href="https://pypi.org/project/M2Crypto/">M2Crypto python library</a>.
         However, if you have the OSG repositories enabled, you can install it via yum:
         <pre> yum install m2crypto </pre>
     </p>
 
     <p>
 
-        If your system does not come with m2crypto package, or you do not can/want install it as root, compile it from source as 
-        the <b>glidein factory</b> user.<br>  The source code can be downloaded from   
+        If your system does not come with m2crypto package, or you do not can/want install it as root, compile it from source as
+        the <b>glidein factory</b> user.<br>  The source code can be downloaded from
         <a target="_blank" href="https://pypi.org/project/M2Crypto/#files">here</a>.
     </p>
 
@@ -350,14 +358,14 @@ Install as: various daemon users or as system rpms/packages
     <h3><a name="system_javascriptRRD">5. javascriptRRD</a></h3>
 
     <p>
-        You will need the <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>.  It contains the 
-        javascript libraries needed by the monitoring.  
+        You will need the <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>.  It contains the
+        javascript libraries needed by the monitoring.
         If you enabled the OSG repositories (above),
         you can install it via yum:
     </p>
     <pre> yum install javascriptrrd </pre>
     <p>
-        Otherwise, download the tarball (with flot), and untar it.  You will need to 
+        Otherwise, download the tarball (with flot), and untar it.  You will need to
         point the installer to this directory.
         The installer will copy the library files to the Web directories during the installation or reconfig steps.
     </p>

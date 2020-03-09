@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""
+Project:
+    glideinWMS
+Purpose:
+    unit test for glideinwms/creation/lib/cvWParamDict.py
+Author:
+    Dennis Box, dbox@fnal.gov
+"""
 from __future__ import absolute_import
 from __future__ import print_function
 import os

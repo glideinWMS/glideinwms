@@ -67,7 +67,7 @@
 <div class="related">
 Related Links:
 <ul>
-<li><a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor Website</a></li>
+<li><a target="_blank" href="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor Website</a></li>
 <li> <a href="condor_config.html">HTCondor configuration attributes</a></li>
 <li><a  href="index.html">More GlideinWMS HTCondor Topics</a></li>
 </ul>
@@ -121,8 +121,8 @@ Related Links:
     <!-- Shared port V2.5.2+ ----- -->
     <h4>GlideinWMS V3+ </h4>
     Additional information on this daemon can be found here:<ul>
-    <a href="http://research.cs.wisc.edu/htcondor/manual/v8.7/Introduction1.html#x29-1480003.1">HTCondor manual -  Daemons</a></br>
-    <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html?highlight=Daemons#the-htcondor-daemons">HTCondor manual -  Daemons</a></br>
+    <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=Networking%20(includes%20sections%20on%20Port%20Usage%20and%20CCB)#networking-includes-sections-on-port-usage-and-ccb">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
     </p>
     <p>
     Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
@@ -273,7 +273,7 @@ Processing schedd: SCHEDDJOBS2<br/>
      the change.  You will see these collector processes running (example has 5 secondary collectors).
     </p>
     <blockquote>
-user  17732     1  0 13:34 ?        00:00:00 /usr/local/glideins/separate-no-privsep-7-6/condor-userpool/sbin/condor_master
+user  17732     1  0 13:34 ?        00:00:00 condor_master
 user  17735 17732  0 13:34 ?        00:00:00 condor_collector -f <font color="blue">primary</font></br>
 user  17736 17732  0 13:34 ?        00:00:00 condor_negotiator -f</br>
 user  17737 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9619 <font color="blue">secondary</font></br>
@@ -350,7 +350,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
      <p/>
      The HTCondor configuration of additional (secondary) collectors is the same as in the previous section, 
      <a href="#collectors">Multiple Collectors for Scalability</a>.
-     Refer to the <a href="http://research.cs.wisc.edu/htcondor/manual/">HTCondor manual</a> section on 
+     Refer to the <a href="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor manual</a> section on 
      High Availability of the Central Manager for additional configuration requirements.
      <p> 
     <b>Important: </b>When the HTCondor High Availability feature is used in the User Collector, 
@@ -365,8 +365,8 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <div class="section">
     <h2><a name="quill">Installing Quill</a></h2>
 
-<p>The <a href="http://research.cs.wisc.edu/htcondor/manual/current/9_3Quill.html">HTCondor manual section about Quill</a>
-  may have instructions more updated than this section.
+<p>The <a href="https://htcondor.readthedocs.io/en/latest/contrib-source-modules/introduction-contrib-source-modules.html?highlight=Quill#introduction">HTCondor manual section about Quill</a> may have instructions more updated than this section. Keep in mind that Quill has been removed from HTCondor codebase in 
+  HTCondor version 8.7.6, meaning that the current version of the manual may not have mmuch reference to it.
 </p>
 <h3><a name="software">Required software</a></h3>
     <ul>

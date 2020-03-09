@@ -12,18 +12,19 @@
 #   Igor Sfiligoi (Sept 15th 2006)
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import copy
 import calendar
 import time
 import string
-import re
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
-from glideinwms.lib import pubCrypto, symCrypto
+from glideinwms.lib import symCrypto  # pubCrypto was removed because unused
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
@@ -89,8 +90,10 @@ class FrontendConfig:
 
         self.condor_reserved_names = ("MyType", "TargetType", "GlideinMyType", "MyAddress", 'UpdatesHistory', 'UpdatesTotal', 'UpdatesLost', 'UpdatesSequenced', 'UpdateSequenceNumber', 'DaemonStartTime')
 
+
 # global configuration of the module
 frontendConfig = FrontendConfig()
+
 
 #####################################################
 # Exception thrown when multiple executions are used
@@ -112,6 +115,7 @@ class MultiExeError(condorExe.ExeError):
 
         condorExe.ExeError.__init__(self, str)
 
+
 ############################################################
 #
 # Global Variables
@@ -129,6 +133,7 @@ advertizeGRCounter = {}
 
 # Advertize counter for glidefrontendmonitor
 advertizeGFMCounter = {}
+
 
 ############################################################
 #
@@ -247,9 +252,9 @@ def format_condor_dict(data):
     for k in data.keys():
         kel = data[k].copy()
 
-        el = {"params":{}, "monitor":{}}
+        el = {"params": {}, "monitor": {}}
 
-        # first remove reserved anmes
+        # first remove reserved names
         for attr in reserved_names:
             if attr in kel:
                 del kel[attr]
@@ -271,7 +276,7 @@ def format_condor_dict(data):
     return out
 
 
-## ###########################################
+#############################################
 
 # TODO: PM
 # At some point we should change this class to watch for credential file 
@@ -314,7 +319,7 @@ class Credential:
         self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
         # Following items can be None
-        self.vm_id_fname   = proxy_vmid_fname.get(proxy_fname)
+        self.vm_id_fname = proxy_vmid_fname.get(proxy_fname)
         self.vm_type_fname = proxy_vmtype_fname.get(proxy_fname)
         self.vm_id = proxy_vm_ids.get(proxy_fname)
         self.vm_type = proxy_vm_types.get(proxy_fname)
@@ -399,9 +404,8 @@ class Credential:
             # If not file specified, assume the file used to generate Id
             cred_file = self.getIdFilename()
         try:
-            data_fd = open(cred_file)
-            cred_data = data_fd.read()
-            data_fd.close()
+            with open(cred_file) as data_fd:
+                cred_data = data_fd.read()
         except:
             # This credential should not be advertised
             self.advertize = False
@@ -496,6 +500,7 @@ class Credential:
         
         return output
 
+
 # PM: Credential.getId() should be much faster way of geting the Id
 #     Maybe CredentialCache is now obsolete? Can we get rid of it?
 
@@ -508,6 +513,7 @@ class CredentialCache:
         if not (k in self.file_id_cache):
             self.file_id_cache[k] = credential_el.file_id(filename)
         return self.file_id_cache[k]
+
 
 class FrontendDescript:
     def __init__(self,
@@ -841,11 +847,11 @@ class MultiAdvertizeWork:
           The key is the factory pool, while the element is a list of file names
         Expects that the credentials have been already loaded.
         """
-        unpublished_files={}
+        unpublished_files = {}
         if reset_unique_id:
-            self.unique_id=1
+            self.unique_id = 1
         for factory_pool in self.global_pool:
-            self.unique_id+=1 # make sure ads for different factories don't end in the same file
+            self.unique_id += 1  # make sure ads for different factories don't end in the same file
             unpublished_files[factory_pool]=self.do_global_advertize_one(factory_pool, adname, create_files_only, False)
         return unpublished_files
 
@@ -860,13 +866,13 @@ class MultiAdvertizeWork:
             return []
 
         if adname is None:
-            tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
+            tmpname = classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
         else:
-            tmpname=adname 
+            tmpname = adname
 
         if reset_unique_id:
             self.unique_id=1
-        self.adname=tmpname
+        self.adname = tmpname
         filename_arr = self.createGlobalAdvertizeWorkFile(factory_pool)
         if create_files_only:
             return filename_arr
@@ -877,52 +883,51 @@ class MultiAdvertizeWork:
                 advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
-        return [] # no files left to be advertised
+        return []  # no files left to be advertised
     
     def createGlobalAdvertizeWorkFile(self, factory_pool):
-            """
-            Create the advertize file for globals with credentials
-            Expects the object variables
-             adname and x509_proxies_data
-            to be set.
-            """
-            # the different indentation is due to code refactoring
-            # this way the diff was minimized
-            global advertizeGCGounter
+        """
+        Create the advertize file for globals with credentials
+        Expects the object variables
+         adname and x509_proxies_data
+        to be set.
+        """
+        global advertizeGCGounter
 
-            tmpname=self.adname
-            glidein_params_to_encrypt={}
-            fd=file(tmpname, "a")
-            nr_credentials=len(self.x509_proxies_data)
-            if nr_credentials>0:
-                glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
+        tmpname = self.adname
+        glidein_params_to_encrypt = {}
+        with open(tmpname, "a") as fd:
+            nr_credentials = len(self.x509_proxies_data)
+            if nr_credentials > 0:
+                glidein_params_to_encrypt['NumberOfCredentials'] = "%s" % nr_credentials
 
             request_name="Global"
-            if (factory_pool in self.global_params):
-                request_name, security_name=self.global_params[factory_pool]
-                glidein_params_to_encrypt['SecurityName']=security_name
-            classad_name="%s@%s"%(request_name, self.descript_obj.my_name)
-            fd.write('MyType = "%s"\n'%frontendConfig.client_global)
-            fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_global)
-            fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
-            fd.write('Name = "%s"\n'%classad_name)
-            fd.write('FrontendName = "%s"\n'%self.descript_obj.frontend_name)
-            fd.write('FrontendHAMode = "%s"\n'%self.ha_mode)
-            fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
-            fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
+            if factory_pool in self.global_params:
+                request_name, security_name = self.global_params[factory_pool]
+                glidein_params_to_encrypt['SecurityName'] = security_name
+            classad_name = "%s@%s" % (request_name, self.descript_obj.my_name)
+            fd.write('MyType = "%s"\n' % frontendConfig.client_global)
+            fd.write('GlideinMyType = "%s"\n' % frontendConfig.client_global)
+            fd.write('GlideinWMSVersion = "%s"\n' % frontendConfig.glideinwms_version)
+            fd.write('Name = "%s"\n' % classad_name)
+            fd.write('FrontendName = "%s"\n' % self.descript_obj.frontend_name)
+            fd.write('FrontendHAMode = "%s"\n' % self.ha_mode)
+            fd.write('GroupName = "%s"\n' % self.descript_obj.group_name)
+            fd.write('ClientName = "%s"\n' % self.descript_obj.my_name)
             for i in range(nr_credentials):
-                cred_el=self.x509_proxies_data[i]
-                if cred_el.advertize==False:
-                    continue # we already determined it cannot be used
+                cred_el = self.x509_proxies_data[i]
+                if cred_el.advertize == False:
+                    continue  # we already determined it cannot be used
                 for ld_el in cred_el.loaded_data:
                     ld_fname, ld_data=ld_el
                     glidein_params_to_encrypt[cred_el.file_id(ld_fname)]=ld_data
-                    if (hasattr(cred_el, 'security_class')):
+                    if hasattr(cred_el, 'security_class'):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)]=str(cred_el.security_class)
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)] = str(cred_el.security_class)
 
-            if (factory_pool in self.global_key):
-                key_obj=self.global_key[factory_pool]
+            key_obj = None
+            if factory_pool in self.global_key:
+                key_obj = self.global_key[factory_pool]
             if key_obj is not None:
                 fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
                 for attr in glidein_params_to_encrypt.keys():
@@ -935,13 +940,12 @@ class MultiAdvertizeWork:
                 advertizeGCGounter[classad_name] += 1
             else:
                 advertizeGCGounter[classad_name] = 0
-            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
- 
+            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name])
+
             # add a final empty line... useful when appending
             fd.write('\n')
-            fd.close()
 
-            return [tmpname]
+        return [tmpname]
 
     def do_advertize(self, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
         """
@@ -951,14 +955,14 @@ class MultiAdvertizeWork:
         Expects that the credentials have already been loaded.
         """
         if file_id_cache is None:
-            file_id_cache=CredentialCache()
+            file_id_cache = CredentialCache()
 
-        unpublished_files={}
+        unpublished_files = {}
         if reset_unique_id:
-            self.unique_id=1
+            self.unique_id = 1
         for factory_pool in self.factory_queue.keys():
-            self.unique_id+=1 # make sure ads for different factories don't end in the same file
-            unpublished_files[factory_pool]=self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
+            self.unique_id += 1  # make sure ads for different factories don't end in the same file
+            unpublished_files[factory_pool] = self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
         return unpublished_files
 
     def do_advertize_one(self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
@@ -990,12 +994,12 @@ class MultiAdvertizeWork:
             for el in self.factory_queue[factory_pool]:
                 params_obj, key_obj = el
                 try:
-                    filename_arr_el=self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
+                    filename_arr_el = self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
                 except NoCredentialException:
-                    filename_arr = [] # don't try to advertise
+                    filename_arr = []  # don't try to advertise
                     logSupport.log.warning("No security credentials match for factory pool %s, not advertising request;"
                                            " if this is not intentional, check for typos frontend's credential "
                                            "trust_domain and type, vs factory's pool trust_domain and auth_method" %

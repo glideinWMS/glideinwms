@@ -15,6 +15,13 @@ Runs unit tests and exit the results to standard output. Failed tests will cause
 EOF
 }
 
+find_aux () {
+    # $1 basename of the aux file
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
+    false
+}
+
 filename=$(basename "$0")
 VERBOSE=yes
 RUN_COVERAGE=no
@@ -40,18 +47,26 @@ shift $((OPTIND-1))
 # Script setup
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE/glideinwms"
+export MYDIR=$(dirname $0)
 
-
-if [ ! -e  "$GLIDEINWMS_SRC"/build/jenkins/utils.sh ]; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh not found!"
+if [ ! -d  "$GLIDEINWMS_SRC" ]; then
+    echo "ERROR: $GLIDEINWMS_SRC not found!"
     echo "script running in $(pwd), expects a git managed glideinwms subdirectory"
     echo "exiting"
     exit 1
 fi
-. "$GLIDEINWMS_SRC/build/jenkins/utils.sh" 
-ret=$?
-if [ $ret -ne 0 ] ; then
-    echo "ERROR: $GLIDEINWMS_SRC/build/jenkins/utils.sh contains errors!"
+
+ultil_file=$(find_aux utils.sh)
+
+if [ ! -e  "$ultil_file" ]; then
+    echo "ERROR: $ultil_file not found!"
+    echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
+    echo "exiting"
+    exit 1
+fi
+
+if ! . "$ultil_file" ; then
+    echo "ERROR: $ultil_file contains errors!"
     echo "exiting"
     exit 1
 fi
@@ -62,7 +77,7 @@ if [ "x$VIRTUAL_ENV" = "x" ]; then
 fi
 
 if ! cd "$GLIDEINWMS_SRC"/unittests ; then
-    echo "cannot find  $GLIDEINWMS_SRC/unittests , exiting" 
+    echo "cannot find  '$GLIDEINWMS_SRC/unittests' , exiting" 
     exit 1
 fi
 
@@ -79,7 +94,7 @@ SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 #files="test_frontend.py test_frontend_element.py"
 
 if [ -n "$LIST_FILES" ]; then
-    files_list="$(ls test_*py)"
+    files_list="$(find . -readable -name  'test_*.py' -print)"
 else
     files_list="$*"
 fi
@@ -90,13 +105,13 @@ for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
     if [ -n "$VERBOSE" ]; then
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
+            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
         else
             ./"$file" || log_nonzero_rc "$file" $?
         fi
     else
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
+            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
         else
             ./"$file"
         fi
@@ -107,8 +122,10 @@ CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BR_NO_SLASH=$(echo "${CURR_BRANCH}" | sed -e 's/\//_/g')
 
 if [ "$RUN_COVERAGE" = "yes" ]; then
+    DATE=$(date "+%Y-%m-%d %H:%M:%S")
+    TITLE="Glideinwms Coverage Report for branch $CURR_BRANCH on $DATE"
     coverage report > "${WORKSPACE}/coverage.report.${BR_NO_SLASH}"
-    coverage html || echo "coverage html report failed"
+    coverage html --title "$TITLE" || echo "coverage html report failed"
     if [ -d htmlcov ]; then
     	mv htmlcov "${WORKSPACE}/htmlcov.${BR_NO_SLASH}"
     else

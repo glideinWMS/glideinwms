@@ -95,8 +95,7 @@ class ConfigFile:
     def load(self,fname,convert_function,
              validate=None): # if defined, must be (hash_algo,value)
         self.data={}
-        fd=self.open(fname)
-        try:
+        with self.open(fname) as fd:
             data=fd.read()
             self.validate_func(data, validate, fname)
             lines=data.splitlines()
@@ -107,8 +106,6 @@ class ConfigFile:
                 if len(string.strip(line))==0:
                     continue # empty line
                 self.split_func(line, convert_function)
-        finally:
-            fd.close()
 
     def split_func(self, line, convert_function):
         larr=string.split(line, None, 1)
@@ -364,7 +361,6 @@ class StageFiles:
                                        (validate_algo, None)) # just get the hash value... will validate later
 
         self.signature_descript=BaseSignatureDescript(base_URL, self.stage_descript.data['signature'], validate_algo, (validate_algo, signature_hash))
-        
         if self.stage_descript.hash_value!=self.signature_descript.data[descript_fname]:
             raise IOError("Descript file %s signature invalid, expected'%s' got '%s'"%(descript_fname, self.signature_descript.data[descript_fname], self.stage_descript.hash_value))
 

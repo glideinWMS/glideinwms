@@ -1562,7 +1562,17 @@ function fillIn()
 					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter]].value;
 				}
 				else
-					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;
+		                {
+					/* Check if there are entries in downtime and ignore them */
+					if((total[i].parentNode.children[0].tagName == "downtime") && (total[i].parentNode.children[0].attributes["status"].value=="False"))
+					{
+						item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter]].value;
+					}
+					else
+					{
+						item = "0"
+					}
+		                }
 				table.rows[i].cells[counter+columnArrayDesc.CM.offset].innerHTML = item;
 			}
 			else

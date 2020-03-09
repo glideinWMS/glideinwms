@@ -513,7 +513,8 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LogDir', params.log_dir)
         frontend_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
-        
+
+        frontend_dict.add('IgnoreDownEntries', params.config.ignore_down_entries)
         frontend_dict.add('MaxIdleVMsTotal', params.config.idle_vms_total.max)
         frontend_dict.add('CurbIdleVMsTotal', params.config.idle_vms_total.curb)
         frontend_dict.add('MaxIdleVMsTotalGlobal', params.config.idle_vms_total_global.max)
@@ -535,6 +536,7 @@ def populate_group_descript(work_dir, group_descript_dict,        # will be modi
     group_descript_dict.add('MapFile', os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
     group_descript_dict.add('MapFileWPilots', os.path.join(work_dir, cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
+    group_descript_dict.add('IgnoreDownEntries', sub_params.config.ignore_down_entries)
     group_descript_dict.add('MaxRunningPerEntry', sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('MinRunningPerEntry', sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add('FracRunningPerEntry', sub_params.config.running_glideins_per_entry.relative_to_queue)
@@ -587,7 +589,8 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
             match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
             ma_arr.append(('GLEXEC_BIN', 's'))
         elif (glidein_glexec_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False) is False)' % match_expr
+            # Not using glideinwms.lib.util.safe_boolcomp since this goes inside the match expression
+            match_expr = '(%s) and (str(glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False)).lower() == "false")' % match_expr
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
@@ -616,13 +619,10 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
         descript_dict.add('GLIDEIN_Singularity_Use', glidein_singularity_use)
 
         if (glidein_singularity_use == 'REQUIRED'):  # avoid NEVER and undefiled (probably will not have Singularity)
-            #query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
-            #match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
-            #ma_arr.append(('SINGULARITY_BIN', 's'))
-            # TODO: in the future remove legacy SINGULARITY_BIN support
-            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="NEVER") && (GLIDEIN_SINGULARITY_REQUIRE=!=UNDEFINED  || (SINGULARITY_BIN=!=UNDEFINED && SINGULARITY_BIN=!="NONE"))' % query_expr
-            match_expr = '(%s) and ((glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER") or (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE"))' % match_expr
-            ma_arr.append(('SINGULARITY_BIN', 's'))
+            # NOTE: 3.5 behavior is different from 3.4.x or earlier, the SINGULARITY_BIN meaning changes
+            #  SINGULARITY_BIN is no more used as flag to select Singularity, only for the binary selection
+            query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="NEVER") && (GLIDEIN_SINGULARITY_REQUIRE=!=UNDEFINED)' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "NEVER") != "NEVER")' % match_expr
             ma_arr.append(('GLIDEIN_SINGULARITY_REQUIRE', 's'))
         elif (glidein_singularity_use == 'NEVER'):  # avoid REQUIRED, REQUIRED_GWMS
             query_expr = '(%s) && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED") && (GLIDEIN_SINGULARITY_REQUIRE=!="REQUIRED_GWMS")' % query_expr

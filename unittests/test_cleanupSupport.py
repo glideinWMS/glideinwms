@@ -116,15 +116,15 @@ class TestCleanupSupport(unittest.TestCase):
                 self.keep_extension)]
         return len(files)
 
-    def test_PrivsepDirCleanupWSpace(self):
+    def test_DirCleanupWSpace(self):
         """
         Instantiate the directory cleaner and direct it to clean all cleanup files with
         the cleanup extension.  After teh cleanup method has been called, check for the
         presence of cleanup files.  Fail if any exist.  Also check for the presence of
         the other files created.  Fail if any were deleted.
         """
-        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-            None, self.cleanup_dir, ".*\%s" %
+        cleaner = cleanupSupport.DirCleanupWSpace(
+            self.cleanup_dir, ".*\%s" %
             self.cleanup_extension, 0, 0, 0)
         cleaner.cleanup()
         num_cleanup_files_left = self.check_for_cleanup_files()

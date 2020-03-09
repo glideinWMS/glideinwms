@@ -21,6 +21,7 @@ import imp
 import string
 import socket
 from glideinwms.lib import xmlParse
+from glideinwms.lib.util import safe_boolcomp
 # from glideinwms.lib import condorExe  # not used
 from . import cWParams
 from .matchPolicy import MatchPolicy
@@ -50,12 +51,15 @@ class VOFrontendParams(cWParams.CommonParams):
 
         # Config section exclusive to frontend group
         group_config_defaults=cWParams.commentedOrderedDict()
-        
+
         group_config_running_defaults=cWParams.commentedOrderedDict()
         group_config_running_defaults["max"]=['10000', "nr_jobs", "What is the max number of running glideins I want to get to", None]
         group_config_running_defaults["min"]=['0', "nr_jobs", "Min number of running glideins with an empty/small queue.", None]
         group_config_running_defaults["relative_to_queue"]=['1.15', "fraction", "Max relative to number of matching jobs in the queue.", None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
+        # This is a string because, we want to distinguish a value from missing (""), only a value overrides the corresponding  default or global setting
+        group_config_defaults['ignore_down_entries'] = ["", "String", "If set to True or False the group setting will override the global value (or its default, False)."
+                                                        " When True the frontend will ignore down entries during matching counts", None]
 
         common_config_running_total_defaults=cWParams.commentedOrderedDict()
         common_config_running_total_defaults["max"]=['100000', "nr_jobs", "What is the max number of running glideins I want to get to - globally", None]
@@ -248,6 +252,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["files"][3]["after_group"]=("False", 'Bool', 'Should this file be loaded after the group ones?', None)
 
         global_config_defaults=cWParams.commentedOrderedDict()
+        global_config_defaults['ignore_down_entries'] = ["False", "Bool", "If set the frontend will ignore down entries during matching counts", None]
         global_config_defaults['idle_vms_total']=copy.deepcopy(common_config_vms_total_defaults)
         global_config_defaults['idle_vms_total_global']=copy.deepcopy(common_config_vms_total_defaults)
         global_config_defaults['running_glideins_total']=copy.deepcopy(common_config_running_total_defaults)
@@ -298,7 +303,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         frontendVersioning = False
         if 'frontend_versioning' in self.data and \
-               self.data['frontend_versioning'].lower() == 'true':
+               safe_boolcomp(self.data['frontend_versioning'], True):
             frontendVersioning = True
         self.stage_dir=self.buildDir(frontendVersioning, self.stage.base_dir)
         self.monitor_dir=self.buildDir(frontendVersioning, self.monitor.base_dir)
@@ -369,7 +374,7 @@ class VOFrontendParams(cWParams.CommonParams):
                     pel['security_class']="group_%s"%group_name
 
         # verify and populate HA
-        if self.high_availability['enabled'].lower() == 'true':
+        if safe_boolcomp(self.high_availability['enabled'], True):
             if (len(self.high_availability['ha_frontends']) == 1):
                 haf = self.high_availability['ha_frontends'][0]
                 if not haf['frontend_name']:

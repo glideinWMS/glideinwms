@@ -22,8 +22,11 @@ setup_python_venv() {
         AUTOPEP8="autopep8==1.3"
         TESTFIXTURES="testfixtures==5.4.0"
         # htcondor is not pip for python 2.6 (will be found from the RPM)
-        HTCONDOR=" "
-        COVERAGE="coverage"
+        HTCONDOR=
+        COVERAGE="coverage==4.5.4"
+        JSONPICKLE="jsonpickle==0.9"
+        PYCODESTYLE="pycodestyle==2.4.0"
+        MOCK="mock==2.0.0"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -35,7 +38,10 @@ setup_python_venv() {
         TESTFIXTURES="testfixtures"
         # Installing the pip version, in case the RPM is not installed
         HTCONDOR="htcondor"
-        COVERAGE='coverage==4.5.2'
+        COVERAGE='coverage==4.5.4'
+        JSONPICKLE="jsonpickle"
+        PYCODESTYLE="pycodestyle"
+        MOCK="mock==3.0.3"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -66,25 +72,33 @@ setup_python_venv() {
 
     # Install dependancies first so we don't get uncompatible ones
     # Following RPMs need to be installed on the machine:
-    # 1. rrdtool-devel
-    # 2. openssl-devel
-    # 3. swig
     # pep8 has been replaced by pycodestyle
-    pip_packages="${ASTROID} ${PYLINT} pycodestyle unittest2 ${COVERAGE}" 
-    pip_packages="$pip_packages rrdtool pyyaml mock xmlrunner future importlib argparse"
+    pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
+    pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-    pip_packages="$pip_packages ${HTCONDOR}"
+    pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
-
+    failed_packages=""
     for package in $pip_packages; do
         echo "Installing $package ..."
         status="DONE"
         pip install --quiet "$package"
         if [ $? -ne 0 ]; then
             status="FAILED"
+            failed_packages="$failed_packages $package"
         fi
         echo "Installing $package ... $status"
     done
+    #try again if anything failed to install, sometimes its order
+    for package in $failed_packages; do
+        echo "REINSTALLING $package"
+        pip install "$package"
+        if [ $? -ne 0 ]; then
+            echo "ERROR $package could not be installed.  Exiting"
+            return 1
+        fi
+    done
+
     #pip install M2Crypto==0.20.2
 
     ## Need this because some strange control sequences when using default TERM=xterm
@@ -130,6 +144,6 @@ Subject: $subject;
 Content-Type: text/html;
 MIME-VERSION: 1.0;
 ;
-$(cat $contents)
+$(cat "$contents")
 " | sendmail -t
 }

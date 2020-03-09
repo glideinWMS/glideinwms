@@ -49,7 +49,7 @@ function warn {
 
 # Functions to start multiple glideins
 function copy_all {
-   # 1:prefix, 2:directory
+   # 1:prefix (of the files to skip), 2:directory
    # should it copy also hidden files?
    mkdir "$2"
    for ii in `ls`; do
@@ -61,22 +61,35 @@ function copy_all {
 }
 
 function do_start_all {
+    # 1:number of glideins
+    # GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
+    # GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
     local num_glideins=$1
     local initial_dir="$(pwd)"
+    local multiglidien_launchall=$(params_decode $(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHALL "$params"))
+    local multiglidien_launcher=$(params_decode $(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHER "$params"))
+
     local startup_script="$GWMS_STARTUP_SCRIPT"
-    if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
-        startup_script="./$(basename "$startup_script")"
-    fi
-    for i in `seq 1 $num_glideins`; do
-        g_dir="glidein_dir$i"
-        copy_all glidein_dir "$g_dir"
-        echo "Starting glidein $i in $g_dir"
-        pushd "$g_dir"
-        chmod +x "$startup_script"
-        "$startup_script" -multirestart $i $global_args &
+    if [[ -n "$multiglidien_launchall" ]]; then
+        echo "Starting multi-glidein using launcher: $multiglidien_launchall"
+        $multiglidien_launchall "$startup_script" -multirestart 0 $global_args &
         GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
-        popd
-    done
+    else
+        if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
+            startup_script="./$(basename "$startup_script")"
+        fi
+        for i in `seq 1 $num_glideins`; do
+            g_dir="glidein_dir$i"
+            copy_all glidein_dir "$g_dir"
+            echo "Starting glidein $i in $g_dir ${multiglidien_launcher:+"with launcher $GLIDEIN_MULTIGLIDEIN_LAUNCHER"}"
+            pushd "$g_dir"
+            chmod +x "$startup_script"
+            $multiglidien_launcher "$startup_script" -multirestart $i $global_args &
+            GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
+            popd
+        done
+        echo "Started multiple glideins: $GWMS_MULTIGLIDEIN_CHILDS"
+    fi
 }
 
 function usage {
@@ -735,6 +748,38 @@ function params_get_simple {
     echo ${retval%%\ *}
 }
 
+function params_decode {
+    echo "$1" | sed\
+ -e 's/\.nbsp,/ /g'\
+ -e 's/\.semicolon,/;/g'\
+ -e 's/\.colon,/:/g'\
+ -e 's/\.tilde,/~/g'\
+ -e 's/\.not,/!/g'\
+ -e 's/\.question,/?/g'\
+ -e 's/\.star,/*/g'\
+ -e 's/\.dollar,/$/g'\
+ -e 's/\.comment,/#/g'\
+ -e 's/\.sclose,/]/g'\
+ -e 's/\.sopen,/[/g'\
+ -e 's/\.gclose,/}/g'\
+ -e 's/\.gopen,/{/g'\
+ -e 's/\.close,/)/g'\
+ -e 's/\.open,/(/g'\
+ -e 's/\.gt,/>/g'\
+ -e 's/\.lt,/</g'\
+ -e 's/\.minus,/-/g'\
+ -e 's/\.plus,/+/g'\
+ -e 's/\.eq,/=/g'\
+ -e "s/\.singquot,/'/g"\
+ -e 's/\.quot,/"/g'\
+ -e 's/\.fork,/\`/g'\
+ -e 's/\.pipe,/|/g'\
+ -e 's/\.backslash,/\\/g'\
+ -e 's/\.amp,/\&/g'\
+ -e 's/\.comma,/,/g'\
+ -e 's/\.dot,/./g'
+}
+
 ###################################
 # Put parameters into the config file
 function params2file {
@@ -742,7 +787,9 @@ function params2file {
 
     while [ $# -gt 0 ]
     do
-       pfval=`echo "$2" | sed\
+        # TODO: Use params_decode. For 3.4.8, not to introduce many changes now. Use params_converter
+        #  Note the different backslash escape due to backtick \\\. Using $() would allow regular \\ like above
+        pfval=`echo "$2" | sed\
  -e 's/\.nbsp,/ /g'\
  -e 's/\.semicolon,/;/g'\
  -e 's/\.colon,/:/g'\
@@ -958,8 +1005,9 @@ if [ -n "$client_name" ]; then
     echo "client_name       = '$client_name'"
 fi
 if [ -n "$client_group" ]; then
-    echo "client_group       = '$client_group'"
+    echo "client_group      = '$client_group'"
 fi
+echo "multi_glidein/restart = '$multi_glidein'/'$multi_glidein_restart'"
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_type         = '$sign_type'"
@@ -1004,7 +1052,9 @@ if [[ -n "$multi_glidein" ]] && [[ -z "$multi_glidein_restart" ]] && [[ "$multi_
     do_start_all $multi_glidein
     # Wait for all glideins and exit 0
     # TODO: Summarize exit codes and status from all child glideins
+    echo "------ Multi-glidein parent waiting for child processes ($GWMS_MULTIGLIDEIN_CHILDS) ----------" 1>&2
     wait
+    echo "------ Exiting multi-glidein parent ----------" 1>&2
     exit 0
 fi
 

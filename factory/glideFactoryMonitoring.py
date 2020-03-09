@@ -28,7 +28,7 @@ from glideinwms.factory import glideFactoryLib
 from glideinwms.lib import util
 
 # list of rrd files that each site has
-rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
+RRD_LIST = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
 
 ############################################################
 #
@@ -60,8 +60,8 @@ class MonitoringConfig:
 
     def config_log(self, log_dir, max_days, min_days, max_mbs):
         self.log_dir = log_dir
-        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-                      None, log_dir, "(completed_jobs_.*\.log)",
+        cleaner = cleanupSupport.DirCleanupWSpace(
+                      log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
@@ -88,8 +88,7 @@ class MonitoringConfig:
 
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
         fname = os.path.join(self.log_dir, relative_fname)
-        fd = open(fname, "a")
-        try:
+        with open(fname, "a") as fd:
             for job_id in job_ids:
                 el = entered_dict[job_id]
                 username = el['username']
@@ -111,8 +110,6 @@ class MonitoringConfig:
                                                                       ('idle="%i"' % waste_mill['idle']),
                                                                       ('nosuccess="%i"' % waste_mill['nosuccess']),
                                                                       ('badput="%i"' % waste_mill['badput']))))
-        finally:
-            fd.close()
 
     def write_file(self, relative_fname, output_str):
         """
@@ -122,11 +119,8 @@ class MonitoringConfig:
         """
         fname = os.path.join(self.monitor_dir, relative_fname)
         # print "Writing "+fname
-        fd = open(fname + ".tmp", "w")
-        try:
+        with open(fname + ".tmp", "w") as fd:
             fd.write(output_str + "\n")
-        finally:
-            fd.close()
 
         util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
         return
@@ -476,8 +470,15 @@ class condorQStats:
 
         return data1
 
-    def get_xml_data(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        data = self.get_data()
+    @staticmethod
+    def get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """
+        Return a string with the XML formatted statistic data
+        @param data: self.get_data()
+        @param indent_tab: indentation space
+        @param leading_tab: leading space
+        @return: XML string
+        """
         return xmlFormat.dict2string(data,
                                      dict_name="frontends", el_name="frontend",
                                      subtypes_params={"class": {'subclass_params': {'Requested': {'dicts_params': {'Parameters': {'el_name': 'Parameter'}}}}}},
@@ -539,8 +540,15 @@ class condorQStats:
             history['set_to_zero'] = set_to_zero
         return total
 
-    def get_xml_total(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
-        total = self.get_total()
+    @staticmethod
+    def get_xml_total(total, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+        """
+        Return formatted XML for the total statistics
+        @param total: self.get_total()
+        @param indent_tab: indentation space
+        @param leading_tab: leading space
+        @return: XML string
+        """
         return xmlFormat.class2string(total,
                                       inst_name="total",
                                       indent_tab=indent_tab, leading_tab=leading_tab)
@@ -556,7 +564,13 @@ class condorQStats:
         xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='', params={'status':self.downtime}, leading_tab=leading_tab)
         return xml_downtime
 
-    def write_file(self, monitoringConfig=None):
+    def write_file(self, monitoringConfig=None, alt_stats=None):
+        """
+        Calculate a summary for the entry and write statistics to files
+        @param monitoringConfig: used to pass information from the Entry
+        @param alt_stats: an alternative condorQStats object to use if self has no data
+        @return:
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
@@ -566,18 +580,23 @@ class condorQStats:
             # files updated recently, no need to redo it
             return
 
+        # Retrieve and calculate data
+        data = self.get_data()
+
+        if not data and alt_stats is not None:
+            total_el = alt_stats.get_total()
+        else:
+            total_el = self.get_total()
+
         # write snapshot file
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryEntryQStats>\n' +
                    self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
                    self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                   self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-                   self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_data(data, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+                   self.get_xml_total(total_el, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
                    "</glideFactoryEntryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml", xml_str)
-
-        data = self.get_data()
-        total_el = self.get_total()
 
         # update RRDs
         type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
@@ -1215,13 +1234,12 @@ class condorLogSummary:
             completed_wastetime_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_WasteTime.json"
 
             try:
-                completed_fp = open(completed_filename)
-                completed_stats_fp = open(completed_stats_filename)
-                completed_wastetime_fp = open(completed_wastetime_filename)
-
-                completed_data = json.load(completed_fp)
-                completed_stats_data = json.load(completed_stats_fp)
-                completed_wastetime_data = json.load(completed_wastetime_fp)
+                with open(completed_filename) as completed_fp:
+                    completed_data = json.load(completed_fp)
+                with open(completed_stats_filename) as completed_stats_fp:
+                    completed_stats_data = json.load(completed_stats_fp)
+                with open(completed_wastetime_filename) as completed_wastetime_fp:
+                    completed_wastetime_data = json.load(completed_wastetime_fp)
 
                 entry_data['frontends'][frontend] = {'completed':completed_data,
                                                  'completed_stats':completed_stats_data,
@@ -1230,10 +1248,6 @@ class condorLogSummary:
                 self.log.info("Could not find files to aggregate in frontend %s" % fe_dir)
                 self.log.info(str(e))
                 continue
-            finally:
-                completed_fp.close()
-                completed_stats_fp.close()
-                completed_wastetime_fp.close()
 
         monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
@@ -1299,12 +1313,12 @@ class FactoryStatusData:
     """this class handles the data obtained from the rrd files"""
     def __init__(self, log=logSupport.log, base_dir=None):
         self.data = {}
-        for rrd in rrd_list:
+        for rrd in RRD_LIST:
             self.data[rrd] = {}
         # KEL why are we setting time here and not just getting the current time (like in Descript2XML)
         self.updated = time.time()
         self.tab = xmlFormat.DEFAULT_TAB
-        self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
+        self.resolution = (7200, 86400, 604800)  # 2hr, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
         if base_dir is None:
@@ -1323,7 +1337,7 @@ class FactoryStatusData:
         [1] returns the names of the datasets.  These names are listed in the key.
         [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
 
-        #use rrdtool to fetch data
+        # use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
         try:
             fetched = baseRRDSupport.fetch_rrd(pathway + rrd_file, 'AVERAGE', resolution=res, start=start, end=end)
@@ -1332,20 +1346,20 @@ class FactoryStatusData:
             self.log.debug("Failed to load %s" % (pathway + rrd_file))
             return {}
 
-        #converts fetched from tuples to lists
+        # converts fetched from tuples to lists
         fetched_names = list(fetched[1])
 
-        fetched_data_raw = fetched[2][:-1] # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
+        fetched_data_raw = fetched[2][:-1]  # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
         fetched_data = []
         for data in fetched_data_raw:
             fetched_data.append(list(data))
 
-        #creates a dictionary to be filled with lists of data
+        # creates a dictionary to be filled with lists of data
         data_sets = {}
         for name in fetched_names:
             data_sets[name] = []
 
-        #check to make sure the data exists
+        # check to make sure the data exists
         all_empty = True
         for data_set in data_sets:
             index = fetched_names.index(data_set)
@@ -1372,7 +1386,15 @@ class FactoryStatusData:
             return
 
     def getData(self, input_val, monitoringConfig=None):
-        """returns the data fetched by rrdtool in a xml readable format"""
+        """Return the data fetched by rrdtool as a dictionary
+
+        This also modifies the rrd data dictionary for the client (input_val) in all RRD files
+        and appends the client to the list of frontends
+
+        Where this side effect is used:
+        - totals are updated in Entry.writeStats (writing the XML)
+        - frontend data in check_and_perform_work
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
@@ -1386,7 +1408,7 @@ class FactoryStatusData:
             if client not in self.frontends:
                 self.frontends.append(client)
 
-        for rrd in rrd_list:
+        for rrd in RRD_LIST:
             self.data[rrd][client] = {}
             for res_raw in self.resolution:
                 # calculate the best resolution
@@ -1417,10 +1439,19 @@ class FactoryStatusData:
         return self.data
 
     def getXMLData(self, rrd):
-        "writes an xml file for the data fetched from a given site."
+        """Return a XML formatted string the specific RRD file for the data fetched from a given site (all clients+total).
+
+        This also has side effects in the getData(self.total) invocation:
+        - modifies the rrd data dictionary (all RRDs) for the total for this entry
+        - and appends the total (self.total aka 'total/') to the list of clients (frontends)
+
+        @param rrd:
+        @return: XML formatted string with stats data
+        """
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
+        # this is invoked to trigger the side effect but the data is retrieved directly from self.data dict below
         get_data_total = self.getData(self.total)
         try:
             total_data = self.data[rrd][self.total]
@@ -1447,11 +1478,19 @@ class FactoryStatusData:
         return data_str
 
     def writeFiles(self,  monitoringConfig=None):
+        """Write an xml file for the data fetched from a given site.
+        Write rrd files
+
+        NOTE: writeFiles triggers the side effect of updating the rrd for totals (via getXMLData/getData)
+
+        @param monitoringConfig:
+        @return: None
+        """
 
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
 
-        for rrd in rrd_list:
+        for rrd in RRD_LIST:
             file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
             xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                        '<glideFactoryEntryRRDStats>\n' +
@@ -1553,11 +1592,8 @@ class Descript2XML:
                    '<' + root_el + '>\n' + self.getUpdated() + "\n" + xml_str +
                    '</' + root_el + '>')
         fname = path + 'descript.xml'
-        f = open(fname + '.tmp', 'wb')
-        try:
+        with open(fname + '.tmp', 'wb') as f:
             f.write(output)
-        finally:
-            f.close()
 
         util.file_tmp2final(fname)
         return

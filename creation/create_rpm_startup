@@ -15,8 +15,7 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
     template = get_template(template_fname, glideinWMS_dir_template)
-    fd = open(startup_fname, "w")
-    try:
+    with open(startup_fname, "w") as fd:
         if template_fname.startswith('frontend'):
             template = template % {"frontend_dir": work_dir, 
                                    "glideinWMS_dir": glideinWMS_dir, 
@@ -28,8 +27,6 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
                                    "default_cfg_fpath": cfg_name,
                                    "rpm_install": rpm_install}
         fd.write(template)
-    finally:
-        fd.close()
 
     os.chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH | stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
 
@@ -38,19 +35,22 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
 
 # Read startup file template
 def get_template(template_name, glideinWMS_dir):
-    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
-    template_str = template_fd.read()
-    template_fd.close()
+    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+        template_str = template_fd.read()
     return template_str
 
 
 def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend, sfile_factory):
     # Recreate the init.d startup files
 
-    # Remove startup file if already exists
-    for startup_fname in [sfile_frontend, sfile_factory]:
-        if os.path.exists(os.path.join(gwms_src_root_dir, startup_fname)):
-            os.remove(os.path.join(gwms_src_root_dir, startup_fname))
+    # Commenting this out
+    # This is removing the files from          gwms_src_root_dir + file_name
+    # The function create_initd_startup is creating the file as    file_name 
+    # and the open in write mode will delete an old file anyway
+    ## Remove startup file if already exists
+    #for startup_fname in [sfile_frontend, sfile_factory]:
+    #    if os.path.exists(os.path.join(gwms_src_root_dir, startup_fname)):
+    #        os.remove(os.path.join(gwms_src_root_dir, startup_fname))
 
     # Frontend
     create_initd_startup(gwms_src_root_dir, template_frontend,
@@ -72,7 +72,9 @@ def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend,
 
 
 if __name__ == '__main__':
-    usage = "create_rpm_startup GWMS_DIR FRONTEND_STARTUP FACTORY_STARTUP"
+    usage = """create_rpm_startup GWMS_DIR FRONTEND_STARTUP_TEMPLATE FACTORY_STARTUP_TEMPLATE FRONTEND_STARTUP FACTORY_STARTUP
+    Create or replace the FRONTEND_STARTUP FACTORY_STARTUP files in GWMS_DIR using the templates.
+    Both startup and template file names are relative to GWMS_DIR"""
     argv = sys.argv[1:]
     if len(argv) == 5 and not argv[0] in ['-h', '--help', '-help']:
         if os.path.isdir(argv[0]):

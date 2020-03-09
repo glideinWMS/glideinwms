@@ -28,7 +28,7 @@
       <attr name="USE_MATCH_AUTH" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
    </attrs>
    <entries>
-      <entry name="TEST_ENTRY" enabled="False" gatekeeper="gatekeeper.domain.tld/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins2@FACTORY_HOSTNAME" verbosity="std" work_dir="OSG">
+      <entry name="TEST_ENTRY" enabled="False" gatekeeper="gatekeeper.domain.tld gatekeeper.domain.tld:port" gridtype="condor" rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins2@FACTORY_HOSTNAME" verbosity="std" work_dir="OSG">
          <config>
             <max_jobs>
                 <per_entry held="1000" idle="4000" glideins="10000"/>

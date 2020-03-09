@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+Project: 
+    glideinwms
+Purpose:
+    unit test of glideinwms/lib/x509Support.py
+
+Author:
+    Dennis Box dbox@fnal.gov
+"""
 from __future__ import absolute_import
 from __future__ import print_function
 import glideinwms.lib.subprocessSupport
