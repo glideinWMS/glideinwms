@@ -214,7 +214,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
-                             'setup_x509.sh',
                              'gwms-python',
                              cgWConsts.CONDOR_STARTUP_FILE]
         # The order in the following list is important
@@ -242,6 +241,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(script_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
+
+        # Add the x509 setup script. It is periodical since it will refresh the pilot as well
+        x509script = 'setup_x509.sh'
+        self.dicts['file_list'].add_from_file(x509script,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(x509script), 'exec', 60, 'NOPREFIX'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, x509script))
 
         # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
