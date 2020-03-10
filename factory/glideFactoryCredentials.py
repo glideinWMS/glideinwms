@@ -1,15 +1,18 @@
-"""
-Created on Jun 21, 2011
+#
+# Project:
+#   glideinWMS
+#
+# File Version:
+#
 
-@author: tiradani
-"""
 from __future__ import absolute_import
 import os
+import shutil
 import re
-import sys
+#import sys
 import pwd
-import binascii
-import traceback
+#import binascii
+#import traceback
 import gzip
 import cStringIO
 import base64
@@ -108,7 +111,8 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 
     safe_update(fname, credential_data)
     compressed_credential = compress_credential(credential_data)
-    safe_update(fname_compressed, compressed_credential)
+    # Compressed+encoded credentials are used for GCE and AWS and have a key=value format (glidein_credentials= ...)
+    safe_update(fname_compressed, 'glidein_credentials=%s' % compressed_credential)
 
     return fname, fname_compressed
 
@@ -117,13 +121,13 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 # This functionality should really be in glideFactoryInterface module
 # Making a minimal patch now to get the desired functionality
 def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
-    if factory_collector==glideFactoryInterface.DEFAULT_VAL:
-        factory_collector=glideFactoryInterface.factoryConfig.factory_collector
+    if factory_collector == glideFactoryInterface.DEFAULT_VAL:
+        factory_collector = glideFactoryInterface.factoryConfig.factory_collector
 
     status_constraint = '(GlideinMyType=?="glideclientglobal")'
 
     status = condorMonitor.CondorStatus("any", pool_name=factory_collector)
-    status.require_integrity(True) # important, this dictates what gets submitted
+    status.require_integrity(True)  # important, this dictates what gets submitted
 
     status.load(status_constraint)
 
@@ -355,7 +359,16 @@ def compress_credential(credential_data):
     f.close()
     return base64.b64encode(cfile.getvalue())
 
+# TODO: replace comppress_credentials - for when py2.6 is no more supported (v3.7)
+# def compress_credential(credential_data):
+#     with cStringIO.StringIO() as cfile:
+#         with gzip.GzipFile(fileobj=cfile, mode='wb') as f:
+#             # Calling a GzipFile object’s close() method does not close fileobj, so cfile is available outside
+#             f.write(credential_data)
+#         return base64.b64encode(cfile.getvalue())
 
+
+# TODO: py2.7 , v3.7, add with for the 2 os.open calls
 def safe_update(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
@@ -366,18 +379,17 @@ def safe_update(fname, credential_data):
             os.close(fd)
     else:
         # old file exists, check if same content
-        fl = open(fname, 'r')
-        try:
+        with open(fname, 'r') as fl:
             old_data = fl.read()
-        finally:
-            fl.close()
 
         #  if proxy_data == old_data nothing changed, done else
         if not (credential_data == old_data):
             # proxy changed, neeed to update
             # remove any previous backup file, if it exists
-            if os.path.isfile(fname + ".old"):
+            try:
                 os.remove(fname + ".old")
+            except OSError:
+                pass  # just protect
 
             # create new file
             fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
@@ -386,10 +398,11 @@ def safe_update(fname, credential_data):
             finally:
                 os.close(fd)
 
-            # move the old file to a tmp and the new one into the official name
+            # copy the old file to a tmp bck and rename new one to the official name
             try:
-                os.rename(fname, fname + ".old")
-            except:
+                shutil.copy2(fname, fname + ".old")
+            except (IOError, shutil.Error):
+                # file not found, permission error, same file
                 pass  # just protect
 
             os.rename(fname + ".new", fname)
