@@ -17,6 +17,9 @@ def get_lock(name):
     """Create a "name".lock file and, using fcnt,
     lock it (or wait for the lock to be released) before proceeding
 
+    N.B. The "name".lock file is not removed after the lock is released, it is kept to be reused:
+    we only care about the lock status.
+
     Params:
         name (str): the name of the file you want to lock. A lockfile name.lock will be created
     """
@@ -56,6 +59,9 @@ class DiskCache(object):
 
         Args:
             objid (str): the string representing the object id you want to get
+
+        Returns:
+            The cached object, or None if the object does not exist or the cache is expired
         """
         obj = None
         saved_time = 0

@@ -24,7 +24,7 @@ except ImportError:
 
 import xmlrunner
 
-from DiskCache import DiskCache
+from disk_cache import DiskCache
 
 
 class TestDiskCache(unittest.TestCase):
