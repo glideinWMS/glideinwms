@@ -220,6 +220,9 @@ class LocalScheddCache(NoneScheddCache):
             return None
 
 
+# The class does not belong here, it should be in the disk_cache module.
+# However, condorMonitor is not importing anything from glideinwms.lib, it is a standalon module
+# We might revisit this in the future
 class NoneDiskCache:
     """Dummy class used if a regular DiskCache is not specified
     """

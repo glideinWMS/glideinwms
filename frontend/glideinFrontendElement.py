@@ -36,7 +36,7 @@ from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import servicePerformance
-from glideinwms.lib.DiskCache import DiskCache
+from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
