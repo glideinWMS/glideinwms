@@ -363,7 +363,7 @@ def compress_credential(credential_data):
 # def compress_credential(credential_data):
 #     with cStringIO.StringIO() as cfile:
 #         with gzip.GzipFile(fileobj=cfile, mode='wb') as f:
-#             # Calling a GzipFile object’s close() method does not close fileobj, so cfile is available outside
+#             # Calling a GzipFile object's close() method does not close fileobj, so cfile is available outside
 #             f.write(credential_data)
 #         return base64.b64encode(cfile.getvalue())
 
