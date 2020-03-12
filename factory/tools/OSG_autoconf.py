@@ -25,6 +25,7 @@ def load_config():
 
     return config
 
+
 def get_vos(allowed_vos):
     """This function converts the list of VO from the collector to the frontend ones
 
@@ -158,13 +159,13 @@ def get_entries_configuration(data):
                 # Can we get these information (next two keys)?
                 entry_configuration["attrs"]["GLEXEC_BIN"] = {"value": "NONE"}
                 entry_configuration["attrs"]["GLIDEIN_REQUIRED_OS"] = (
-                    {"comment" : "This value has been hardcoded", "value": "any"}
+                    {"comment": "This value has been hardcoded", "value": "any"}
                 )
                 # Probably we can use port from attribute AddressV1 or CollectorHost
                 entry_configuration["gatekeeper"] = celem + " " + celem + ":9619"
                 entry_configuration["rsl"] = ""
                 entry_configuration["attrs"] = get_attr_str(entry_configuration["attrs"])
-                if  "submit_attrs" in entry_configuration:
+                if "submit_attrs" in entry_configuration:
                     entry_configuration["submit_attrs"] = (
                         get_submit_attr_str(entry_configuration["submit_attrs"])
                     )
@@ -189,7 +190,6 @@ def merge_yaml(config):
         dict: a dict similar to the one returned by ``get_information``, but with all the defaults
             and the operators overrides in place (only whitelisted entries are returned).
     """
-    out = {}
     out = get_yaml_file_info(config["OSG_WHITELIST"])
     osg_info = get_yaml_file_info(config["OSG_YAML"])
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
