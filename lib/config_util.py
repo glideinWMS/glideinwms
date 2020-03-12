@@ -113,7 +113,11 @@ def get_yaml_file_info(file_name):
 
     Args:
         file_name (str): The file to load
-        error_code (int): The error code to return if the file does not exist
+
+    Returns:
+
+    Raises:
+        ProgramError
     """
     if not os.path.isfile(file_name):
         print("Cannot find file %s" % file_name)
@@ -155,7 +159,7 @@ def get_attr_str(attrs):
         if "comment" not in data:
             data["comment"] = ""
         else:
-            data["comment"] = ' comment="' + data["comment"]  + '"'
+            data["comment"] = ' comment="' + data["comment"] + '"'
         if "value" in data:
             # pylint: disable=line-too-long
             out += '            <attr name="%(name)s"%(comment)s const="%(const)s" glidein_publish="%(glidein_publish)s" job_publish="%(job_publish)s" parameter="%(parameter)s" publish="%(publish)s" type="%(type)s" value="%(value)s"/>\n' % data

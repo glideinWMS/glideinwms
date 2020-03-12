@@ -72,7 +72,7 @@ def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True
     """
     tmp_dict_a = dict(itemfunc(dict_a))
     tmp_dict_b = dict(itemfunc(dict_b))
-    SKIP_KEYS = ['name', 'comment']#, 'gatekeeper']
+    SKIP_KEYS = ['name', 'comment']  #, 'gatekeeper']
     for key, val in tmp_dict_a.items():
         last_key.append(key)
         #print("\t"*tabs + "Checking %s" % key)
@@ -153,9 +153,9 @@ def handle_mergely(entry_a, conf_a, entry_b, conf_b, mergely_only):
     key = base64.b32encode(myhash.digest())[0:8]
 
     payload = {
-        "key" : key,
-        "name" : "lhs",
-        "content" : get_entry_text(entry_a, conf_a)
+        "key": key,
+        "name": "lhs",
+        "content": get_entry_text(entry_a, conf_a)
     }
     requests.post(url, data=payload)
     payload["name"] = "rhs"
@@ -202,7 +202,6 @@ def main():
         sys.exit(1)
     g_entry_a = entry_a[0]
     g_entry_b = entry_b[0]
-
 
     print("Checking entry attributes:")
     check_dict_diff(entry_a, entry_b, print_name=False)
