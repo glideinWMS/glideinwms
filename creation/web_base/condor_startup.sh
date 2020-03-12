@@ -759,7 +759,7 @@ EOF
                 if [ -z "$res_num" ]; then
                     if [ -n "$GPU_USE" ]; then
                         # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
-			res_num=$(find_gpus_num)
+                        res_num=$(find_gpus_num)
                         ec=$?
                         if [ $ec -eq 0 ]; then
                             echo "GPU autodiscovery (condor_gpu_discovery) found $res_num GPUs" 1>&2
