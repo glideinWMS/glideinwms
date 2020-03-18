@@ -204,7 +204,7 @@ def main():
     g_entry_b = entry_b[0]
 
     print("Checking entry attributes:")
-    check_dict_diff(entry_a, entry_b, print_name=False)
+    check_dict_diff(g_entry_a, g_entry_b, print_name=False)
     print("Checking inner xml:")
     check_dict_diff(entry_a.children, entry_b.children, dict.items)
 
