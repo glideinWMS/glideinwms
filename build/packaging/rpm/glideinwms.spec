@@ -130,6 +130,7 @@ Group:          System Environment/Daemons
 Requires: condor-python
 Requires: python-rrdtool
 Requires: python-ldap
+Requires: python2-jwt
 Requires: m2crypto
 %description libs
 This package provides common libraries used by glideinwms.
