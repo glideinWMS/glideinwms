@@ -188,9 +188,9 @@ def main():
     conf_a = _parse(options.conf_a)
     conf_b = _parse(options.conf_b)
 
-    # pylint: disable=no-member
+    # pylint: disable=no-member, maybe-no-member
     entry_a = [e for e in conf_a.get_entries() if e.getName() == entry_a]
-    # pylint: disable=no-member
+    # pylint: disable=no-member, maybe-no-member
     entry_b = [e for e in conf_b.get_entries() if e.getName() == entry_b]
     if len(entry_a) != 1:
         print("Cannot find entry %s in the configuration file %s" %
