@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6_2_rc3
+# GLIDEINWMS_VERSION v3_6_2
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -24,7 +24,7 @@ fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
 003648b0c16bb7c6b0c3fb740b1e2168  ./creation/lib/cvWDictFile.py
 00889673a6784984eb90516e76ea5337  ./creation/lib/cvWParamDict.py
 c9b0300da5738d55a350e5ff2d114d90  ./creation/lib/cvWParams.py
-ee9cb6269677199508b96ce2b79007e3  ./creation/lib/factoryXmlConfig.py
+64bfd42fde0f36b3d8d483d9d8350865  ./creation/lib/factoryXmlConfig.py
 04e53ddf2dbb496884734149c0603a31  ./creation/lib/factory_defaults.xml
 7382aae30e1f14818c86b48c572be081  ./creation/lib/matchPolicy.py
 1fcf4ac71dcfa7a13810b2f0d4657c82  ./creation/lib/xmlConfig.py
@@ -67,7 +67,7 @@ ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/factory/images/frontendStatus.small.png
 f447660440eb339d83e638c2f5a0f319  ./creation/web_base/factory/index.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-b1a1edb64ee49a5b40101b7d839bd1e2  ./creation/web_base/frontend/default_singularity_wrapper.sh
+836c2efba1c2f0230537092f45da0a71  ./creation/web_base/frontend/default_singularity_wrapper.sh
 323b5dd91f3df1c0aab5679cdbf1fb86  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
@@ -94,7 +94,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-32908f1edce6a12b0e66a86469e06119  ./creation/web_base/singularity_lib.sh
+e7a8b137fb3d52c72737203dada1c6ef  ./creation/web_base/singularity_lib.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -156,6 +156,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
 47a5fcf23afbb4a60475685f138f30a6  ./lib/condorMonitor.py
 02a66f5b321cc476470976cd2b6edb50  ./lib/condorSecurity.py
+0b3b7f17bcead052397d125df15fcef5  ./lib/config_util.py
 a8cccdecf7b460b1b37c02da0190e99d  ./lib/disk_cache.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 fb537b1b763a733eda24e21658043f6d  ./lib/exprParser.py

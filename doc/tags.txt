@@ -1,7 +1,18 @@
 v3_6_2
 	Add a portable condor_chirp for user jobs running in the glideins
+	Automate the generation of factory configuration
+	Improve control of setup of module and spack in Singularity using MODULE_USE
+	Adding GPU monitor as default for pilots
+	Reduce number of queries from Frontend to User collector
 	Make lgwms-logcat.sh work with non standard factory instance names
 	Bug fix: Pilot using an expired proxy when authenticating to the collector
+	Bug fix: CI issues (coverage broken in SL6, script selection affected by file name)
+	Bug fix: Incorrect CERTIFICATE_MAPFILE used when using HTCondor python binding (failed schedd authentication)
+	Bug fix: Fix release manager relative imports
+	Bug fix: Broken submission to GCE and AWS
+	Bug fix: Correct how entry_ls detect an rpm installation
+	Bug fix: Adjust size of ClusterId and ProcessId fields for the condor_q custom format
+	Bug fix: Total of frontend info is 0 in Factory monitring
 
 v3_6_1
 	Added compatibility w/ HTCondor 8.8.x in OSG 3.5
