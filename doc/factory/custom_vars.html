@@ -928,8 +928,18 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
         <TD> Str </TD>
         <TD>
 		<P>Comma separated list of keywords affecting Glidein debug. Possible options are:<br>
-		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper) 
+		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
 		nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes
+                </P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>MODULE_USE</b> </td>
+
+        <TD> Expr (Bool) </TD>
+        <TD>
+		<P>Module and Spack provided by OSG on CVMFS are setup if this is true (1), the default. To avoid the setup set this to 0 (false).
+		This can be set on the Factory, Frontend and in the Job submit file (+MODULE_USE), each overriding the previous ones in this list.
                 </P>
         </TD>
     </TR>
