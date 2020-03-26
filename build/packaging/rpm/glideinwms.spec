@@ -132,6 +132,7 @@ Requires: condor-python
 Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-ldap
+Requires: python2-jwt
 Requires: m2crypto
 %description libs
 This package provides common libraries used by glideinwms.
@@ -367,6 +368,7 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server/factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/client
 install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/client-proxies
+install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials
 
 # Install frontend temp dir, for all the frontend.xml.<checksum>
 install -d $RPM_BUILD_ROOT%{frontend_dir}/lock
@@ -704,6 +706,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/clone_glidein
 %attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
 %attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/client-proxies
+%attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials
 %attr(-, gfactory, gfactory) %{factory_web_dir}
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
