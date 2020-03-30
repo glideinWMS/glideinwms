@@ -173,15 +173,19 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # if a token is found in the client proxies dir, add it to
         # the transfer/encrypt input file list
         base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
-        token_file_name = "%s_token" % entry_name
+        condor_token = "%s_token" % entry_name
+        sci_token = "%s_scitoken" % entry_name
+        token_list = []
         for root, dirs, files  in os.walk(base_client_proxies_dir):
             for fname in files:
-                if fname == token_file_name:
+                # send along condor_token with glidein if present
+                if fname == condor_token:
+                    token_list.append(fname)
                     pth = os.path.join(root, fname)
                     enc_input_files.append(pth)
-                    self.append('environment', '"AUTH_TOKEN=%s"' % fname)
-                    self.add('+AUTH_TOKEN', fname)
-                    break
+                # try to authenticate glidein with scitoken if present
+                if fname == sci_token:
+                    self.add('+SciTokensFile', '"'+pth+'"')
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
         token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
@@ -189,9 +193,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
         if os.path.exists(token_tgz_file):
             enc_input_files.append(token_tgz_file)
+            token_list.append(token_tgz_file)
         url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
         if os.path.exists(url_dirs_desc_file):
             enc_input_files.append(url_dirs_desc_file)
+        if token_list:
+            self.append('environment', "JOB_TOKENS='"+','.join(token_list)+"'")
+
 
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)
