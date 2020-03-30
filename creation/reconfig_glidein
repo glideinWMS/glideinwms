@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This program updates a glidein factory directory structure
@@ -60,21 +60,21 @@ class ReconfigError(Exception): pass
 
 def logReconfig(msg):
     glideinDescript = glideFactoryConfig.GlideinDescript()
-    # Set the Log directory 
+    # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
     # Configure factory process logging
     process_logs = eval(glideinDescript.data['ProcessLogs'])
     for plog in process_logs:
         if 'ADMIN' in plog['msg_types']:
-            logSupport.add_processlog_handler("factoryadmin", 
-                logSupport.log_dir, "DEBUG,INFO,WARN,ERR", 
+            logSupport.add_processlog_handler("factoryadmin",
+                logSupport.log_dir, "DEBUG,INFO,WARN,ERR",
                 plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
                 int(float(plog['max_mbytes'])),
                 plog['compression'])
         else:
-            logSupport.add_processlog_handler("factoryadmin", 
+            logSupport.add_processlog_handler("factoryadmin",
                 logSupport.log_dir, plog['msg_types'], plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
@@ -112,7 +112,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
                     print2("Aborting reconfig since this is just too scary.")
                     print2("Enable -force_delete if you really want to delete it.")
                     sys.exit(1)
-        
+
         glidein_dicts_obj.reuse(old_glidein_dicts_obj)
     else:
         # If no old params exist, make sure to create the new directory, (no reuse)
@@ -138,9 +138,6 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         except tarfile.TarError as te:
             print2("Unable to pack the startup file payload. TarError: %s" % str(te))
             sys.exit(1)
-        for util_file in tar_file_list:
-            util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
-            tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
         # append the the tarball to glidein_startup.sh
         try:
             with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "a") as st_file:
@@ -165,7 +162,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # This will never happen in RPM installations (because of the init.d file)
         startup_fname = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE)
         factory_dir = glidein_dicts_obj.main_dicts.work_dir
-        
+
         # Remove startup file if already exists
         if os.path.exists(os.path.join(factory_dir, startup_fname)):
             os.remove(os.path.join(factory_dir, startup_fname))
@@ -197,7 +194,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 if __name__ == '__main__':
@@ -275,9 +272,9 @@ if __name__ == '__main__':
         try:
             # This is the current running version, saved in the glidein work dir
             submit_dir = conf.get_submit_dir()
-            
+
             main(conf, update_scripts, update_def_cfg, comment=comment)
-    
+
         except RuntimeError as e:
             raise ReconfigError(str(e))
 
