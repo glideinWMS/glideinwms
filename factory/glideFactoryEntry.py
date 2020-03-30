@@ -1214,22 +1214,30 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials = glideFactoryCredentials.SubmitCredentials(
                              credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
-    token_name = "%s_token" % entry.name
-    frontend_supplied_token = decrypted_params.get(token_name)
-    if frontend_supplied_token:
+
+    condortoken = "%s_token" % entry.name
+    condortoken_file = os.path.join(submit_credentials.cred_dir, condortoken)
+    condortoken_data = decrypted_params.get(condortoken)
+    if condortoken_data:
         (fd, tmpnm) = tempfile.mkstemp()
         try:
-            tkn_file = os.path.join(submit_credentials.cred_dir, token_name)
-            entry.log.debug("frontend_token supplied, writing to %s" % tkn_file)
+            entry.log.debug("frontend_token supplied, writing to %s" % condortoken_file)
             os.chmod(tmpnm,400)
-            os.write(fd, frontend_supplied_token)
+            os.write(fd, condortoken_data)
             os.close(fd)
-            util.file_tmp2final(tkn_file, tmpnm)
+            util.file_tmp2final(condortoken_file, tmpnm)
         except Exception as err:
             entry.log.error('failed to create token: %s' % err)
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
+    if os.path.exists(condortoken_file):
+        submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file)
+
+    scitoken = "%s_scitoken" % entry.name
+    scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
+    if os.path.exists(scitoken_file):
+        submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file)
 
 
 
@@ -1435,6 +1443,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         submit_credentials.add_identity_credential('RemoteUsername', remote_username)
 
 
+    entry.log.debug("DBOX_DBG submit_credentials are %s" % submit_credentials)
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads
     entry.setDowntime(in_downtime)
