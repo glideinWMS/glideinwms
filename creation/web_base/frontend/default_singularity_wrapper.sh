@@ -273,14 +273,20 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Disabling outside LD_LIBRARY_PATH and PATH to avoid problems w/ different OS
     if [[ -n "$LD_LIBRARY_PATH" ]]; then
-        info "OSG Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset LD_LIBRARY_PATH
     fi
     OLD_PATH=
     if [[ -n "$PATH" ]]; then
         OLD_PATH="$PATH"
-        info "OSG Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset PATH
+    fi
+    OLD_PYTHONPATH=
+    if [[ -n "$PYTHONPATH" ]]; then
+        OLD_PYTHONPATH="$PYTHONPATH"
+        info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset PYTHONPATH
     fi
 
     if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
