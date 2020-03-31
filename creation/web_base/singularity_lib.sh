@@ -72,6 +72,7 @@
 
 OSG_SINGULARITY_BINARY_DEFAULT="${OSG_SINGULARITY_BINARY:-/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity}"
 
+# For shell, for HTCondor is the opposite
 # 0 = true
 # 1 = false
 
@@ -81,6 +82,9 @@ OSG_SINGULARITY_BINARY_DEFAULT="${OSG_SINGULARITY_BINARY:-/cvmfs/oasis.openscien
 # GLIDEIN_SINGULARITY_IMAGE_CHECKS
 # GLIDEIN_SINGULARITY_FEATURES
 #
+
+# By default Module and Spack are enabled (1=true), MODULE_USE can override this
+GWMS_MODULE_USE_DEFAULT=1
 
 
 # Output log levels:
@@ -310,6 +314,8 @@ get_prop_bool () {
     #  echo "1" for true, "$default" for empty value/undefined, "0" for false/failure (bad invocation, no ClassAd file)
     #  return the opposite to allow shell truth values true,1->0 , false,0->1
     # NOTE Spaces are trimmed, so strings like "T RUE" are true
+    # TODO: replace grep w/ case insensitive comparison, currently any string containng 'true' case insensitive is
+    #       considered true, e.g. trueval, NotTrue, ...
 
     local default=${3:-0}
     local val
@@ -1087,56 +1093,59 @@ setup_classad_variables () {
     fi
 
     # For OSG - from Job ClassAd
-    export OSGVO_PROJECT_NAME=$(get_prop_str $_CONDOR_JOB_AD ProjectName)
-    export OSGVO_SUBMITTER=$(get_prop_str $_CONDOR_JOB_AD User)
+    export OSGVO_PROJECT_NAME=$(get_prop_str ${_CONDOR_JOB_AD} ProjectName)
+    export OSGVO_SUBMITTER=$(get_prop_str ${_CONDOR_JOB_AD} User)
 
     # from singularity_setup.sh executed earlier (Machine ClassAd)
-    export HAS_SINGULARITY=$(get_prop_bool $_CONDOR_MACHINE_AD HAS_SINGULARITY 0)
-    export GWMS_SINGULARITY_STATUS=$(get_prop_str $_CONDOR_MACHINE_AD GWMS_SINGULARITY_STATUS)
-    export GWMS_SINGULARITY_PATH=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_PATH)
-    export GWMS_SINGULARITY_VERSION=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_VERSION)
+    export HAS_SINGULARITY=$(get_prop_bool ${_CONDOR_MACHINE_AD} HAS_SINGULARITY 0)
+    export GWMS_SINGULARITY_STATUS=$(get_prop_str ${_CONDOR_MACHINE_AD} GWMS_SINGULARITY_STATUS)
+    export GWMS_SINGULARITY_PATH=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_PATH)
+    export GWMS_SINGULARITY_VERSION=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_VERSION)
     # Removed old GWMS_SINGULARITY_IMAGE_DEFAULT6 GWMS_SINGULARITY_IMAGE_DEFAULT7, now in _DICT
     # TODO: send also the image used during test in setup? in case the VO does not care
     # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
-    export GWMS_SINGULARITY_IMAGES_DICT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGES_DICT)
-    export GWMS_SINGULARITY_IMAGE_RESTRICTIONS=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_RESTRICTIONS)
-    export OSG_MACHINE_GPUS=$(get_prop_str $_CONDOR_MACHINE_AD GPUs 0)
+    export GWMS_SINGULARITY_IMAGES_DICT=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_IMAGES_DICT)
+    export GWMS_SINGULARITY_IMAGE_RESTRICTIONS=$(get_prop_str ${_CONDOR_MACHINE_AD} SINGULARITY_IMAGE_RESTRICTIONS)
+    export OSG_MACHINE_GPUS=$(get_prop_str ${_CONDOR_MACHINE_AD} GPUs 0)
     # Setting below 0 as default for GPU_USE, to distinguish when undefined in machine AD
-    export GPU_USE=$(get_prop_str $_CONDOR_MACHINE_AD GPU_USE)
+    export GPU_USE=$(get_prop_str ${_CONDOR_MACHINE_AD} GPU_USE)
     # http_proxy from OSG advertise script
-    export http_proxy=$(get_prop_str $_CONDOR_MACHINE_AD http_proxy)
+    export http_proxy=$(get_prop_str ${_CONDOR_MACHINE_AD} http_proxy)
     [[ -z "$http_proxy" ]] && unset http_proxy
-    export GLIDEIN_REQUIRED_OS=$(get_prop_str $_CONDOR_MACHINE_AD GLIDEIN_REQUIRED_OS)
-    export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str $_CONDOR_MACHINE_AD GLIDEIN_DEBUG_OUTPUT)
+    export GLIDEIN_REQUIRED_OS=$(get_prop_str ${_CONDOR_MACHINE_AD} GLIDEIN_REQUIRED_OS)
+    export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str ${_CONDOR_MACHINE_AD} GLIDEIN_DEBUG_OUTPUT)
+    export MODULE_USE=$(get_prop_bool ${_CONDOR_MACHINE_AD} MODULE_USE ${GWMS_MODULE_USE_DEFAULT})
 
     # from Job ClassAd
-    export REQUIRED_OS=$(get_prop_str $_CONDOR_JOB_AD REQUIRED_OS)
-    export GWMS_SINGULARITY_IMAGE=$(get_prop_str $_CONDOR_JOB_AD SingularityImage)
+    export REQUIRED_OS=$(get_prop_str ${_CONDOR_JOB_AD} REQUIRED_OS)
+    export GWMS_SINGULARITY_IMAGE=$(get_prop_str ${_CONDOR_JOB_AD} SingularityImage)
     # If not provided default to whatever is Singularity availability
-    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool $_CONDOR_JOB_AD SingularityAutoLoad $HAS_SINGULARITY)
-    export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool $_CONDOR_JOB_AD SingularityBindCVMFS 1)
-    export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool $_CONDOR_JOB_AD SingularityBindGPULibs 1)
-    export CVMFS_REPOS_LIST=$(get_prop_str $_CONDOR_JOB_AD CVMFSReposList)
+    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad $HAS_SINGULARITY)
+    export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)
+    export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindGPULibs 1)
+    export CVMFS_REPOS_LIST=$(get_prop_str ${_CONDOR_JOB_AD} CVMFSReposList)
     # StashCache
-    export STASHCACHE=$(get_prop_bool $_CONDOR_JOB_AD WantsStashCache 0)
-    export STASHCACHE_WRITABLE=$(get_prop_bool $_CONDOR_JOB_AD WantsStashCacheWritable 0)
-    export POSIXSTASHCACHE=$(get_prop_bool $_CONDOR_JOB_AD WantsPosixStashCache 0)
+    export STASHCACHE=$(get_prop_bool ${_CONDOR_JOB_AD} WantsStashCache 0)
+    export STASHCACHE_WRITABLE=$(get_prop_bool ${_CONDOR_JOB_AD} WantsStashCacheWritable 0)
+    export POSIXSTASHCACHE=$(get_prop_bool ${_CONDOR_JOB_AD} WantsPosixStashCache 0)
+
     # OSG Modules
-    export MODULE_USE=$(get_prop_str $_CONDOR_JOB_AD MODULE_USE 1)
-    # Don't load modules for LIGO
+    # For MODULE_USE, the Factory and Frontend (machine ad) set the default. Job can override
+    # TODO: TO REMOVE. For now don't load modules for LIGO. Later they will have to set MODULE_USE=0/false in the frontend
     if (echo "X$GLIDEIN_Client" | grep ligo) >/dev/null 2>&1; then
-        export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 0)
+        export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE 0)
+        export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv 0)
     else
-        export InitializeModulesEnv=$(get_prop_bool $_CONDOR_JOB_AD InitializeModulesEnv 1)
+        export MODULE_USE=$(get_prop_bool ${_CONDOR_JOB_AD} MODULE_USE ${MODULE_USE})
+        export InitializeModulesEnv=$(get_prop_bool ${_CONDOR_JOB_AD} InitializeModulesEnv ${MODULE_USE})
     fi
 
-    export LoadModules=$(get_prop_str $_CONDOR_JOB_AD LoadModules)   # List of modules to load
-    export LMOD_BETA=$(get_prop_bool $_CONDOR_JOB_AD LMOD_BETA 0)
+    export LoadModules=$(get_prop_str ${_CONDOR_JOB_AD} LoadModules)   # List of modules to load
 
     # These attributes may have been defined in the machine AD above (takes precedence)
-    [[ -z "$GLIDEIN_DEBUG_OUTPUT" ]] && export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str $_CONDOR_JOB_AD GLIDEIN_DEBUG_OUTPUT)
+    [[ -z "$GLIDEIN_DEBUG_OUTPUT" ]] && export GLIDEIN_DEBUG_OUTPUT=$(get_prop_str ${_CONDOR_JOB_AD} GLIDEIN_DEBUG_OUTPUT)
     # Setting here default for GPU_USE, to distinguish when undefined in machine AD
-    [[ -z "$GPU_USE" ]] && export GPU_USE=$(get_prop_str $_CONDOR_JOB_AD GPU_USE 0)
+    [[ -z "$GPU_USE" ]] && export GPU_USE=$(get_prop_str ${_CONDOR_JOB_AD} GPU_USE 0)
 
     # CHECKS
     # SingularityAutoLoad is deprecated, see https://opensciencegrid.atlassian.net/browse/SOFTWARE-2770

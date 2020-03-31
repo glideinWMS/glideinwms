@@ -24,7 +24,7 @@ source "$add_config_line_source"
 error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
 
 # check that x509 certificates exist and set the env variable if needed
-function check_x509_certs {
+check_x509_certs() {
     if [ -e "$X509_CERT_DIR" ]; then
 	  export X509_CERT_DIR
     elif [ -e "$HOME/.globus/certificates/" ]; then
@@ -52,7 +52,7 @@ function check_x509_certs {
 }
 
 
-function get_x509_proxy {
+get_x509_proxy() {
     # Look for the certificates in $1, $X509_USER_PROXY, (not /tmp/x509up_u`id -u`)
     # $1 - optional certificate file name
     # This function is also setting/changing the value of X509_USER_PROXY
@@ -80,7 +80,7 @@ function get_x509_proxy {
 }
 
 
-function check_x509_tools {
+check_x509_tools() {
     # Failing only if all commands are missing (grid-proxy-info, voms=proxy-info, openssl)
     # If only some are missing only prints warning on stderr
     # All functions have to be modified to work with any of the 3 commands
@@ -124,7 +124,7 @@ function check_x509_tools {
 }
 
 
-function copy_x509_proxy {
+copy_x509_proxy() {
     if [ -a "$X509_USER_PROXY" ]; then
 	export X509_USER_PROXY
     else
@@ -171,6 +171,8 @@ function copy_x509_proxy {
     fi
     x_dir=$(dirname "$X509_USER_PROXY")
     echo "debug x_dir=$x_dir"
+
+    export X509_USER_PROXY_ORIG="$X509_USER_PROXY"
     export X509_USER_PROXY="$local_proxy_dir/myproxy"
     # protect from strange sites (only the owner should only read) was: a-wx, go-r
     chmod 0400 "$X509_USER_PROXY"
@@ -192,7 +194,7 @@ function copy_x509_proxy {
 }
 
 
-function openssl_get_x509_timeleft {
+openssl_get_x509_timeleft() {
     # $1 cert pathname
     if [ ! -r "$1" ]; then
         return 1
@@ -228,7 +230,7 @@ function openssl_get_x509_timeleft {
 
 # returns the expiration time of the proxy
 # return value in RETVAL
-function get_x509_expiration {
+get_x509_expiration() {
     RETVAL=0
     now=`date +%s`
     if [ $? -ne 0 ]; then
@@ -271,11 +273,32 @@ function get_x509_expiration {
 }
 
 
+refresh_proxy() {
+    X509_USER_PROXY_ORIG="`grep '^X509_USER_PROXY_ORIG ' "$glidein_config" | cut -d ' ' -f 2-`"
+
+    # If X509_USER_PROXY_ORIG is set it means the script has run at least once
+    if [ -n "${X509_USER_PROXY_ORIG}" ]; then
+        X509_USER_PROXY="`grep '^X509_USER_PROXY ' "$glidein_config" | cut -d ' ' -f 2-`"
+
+        chmod 600 $X509_USER_PROXY
+        cp $X509_USER_PROXY_ORIG $X509_USER_PROXY
+        chmod 400 $X509_USER_PROXY
+
+        return 0
+    fi
+
+    return 1
+}
+
+
 ############################################################
 #
 # Main
 #
 ############################################################
+
+# If it is not the first execution, but a periodic one, just refresh and exit
+refresh_proxy && exit 0
 
 # Assume all functions exit on error
 check_x509_certs
@@ -287,6 +310,7 @@ X509_EXPIRE="$RETVAL"
 
 add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
+add_config_line X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"
 add_config_line X509_EXPIRE  "$X509_EXPIRE"
 test -e "$GLIDEIN_CONDOR_TOKEN" && add_config_line GLIDEIN_CONDOR_TOKEN "$GLIDEIN_CONDOR_TOKEN"
 

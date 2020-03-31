@@ -460,6 +460,8 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             and get the number from there, which could be 0 if there are no GPUs. Your job will find in the HTCondor ClassAd also
             all the special attributes about the GPUs. If no number is specified and the auto-discovery fails 0 GPUs are assumed.
             Since you don't know the number of GPUs that will be added to the main slot, the slot_layout must be partitionable.
+            We do recommend to lec HTCondor discover the number of GPUs by specifying no number. If you specify a number and is
+            different from what HTCondor detects, there may be problems if you are using the HTCondor provided GPU description and monitoring.
         </p>
  	</TD>
     </TR>
@@ -578,11 +580,11 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
     <TR>
         <td> <b>USE_MATCH_AUTH</b> </td>
         <TD> Expr (Bool) </td>
-        <TD> False </TD>
+        <TD> True </TD>
         <TD>
 
             <P>Another security setting.</P>
-            <P>If set to True, the schedd and the startd will use a low
+            <P>If set to True (default), the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
             page</A> or the <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Configuration%20Macros">HTCondor
             manual</A>.</P>
@@ -926,8 +928,18 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
         <TD> Str </TD>
         <TD>
 		<P>Comma separated list of keywords affecting Glidein debug. Possible options are:<br>
-		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper) 
+		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
 		nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes
+                </P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>MODULE_USE</b> </td>
+
+        <TD> Expr (Bool) </TD>
+        <TD>
+		<P>Module and Spack provided by OSG on CVMFS are setup if this is true (1), the default. To avoid the setup set this to 0 (false).
+		This can be set on the Factory, Frontend and in the Job submit file (+MODULE_USE), each overriding the previous ones in this list.
                 </P>
         </TD>
     </TR>

@@ -39,6 +39,8 @@ from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import servicePerformance
 from glideinwms.lib import subprocessSupport
+from glideinwms.lib import condorMonitor
+from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
@@ -182,6 +184,10 @@ class glideinFrontendElement:
 
         self.glidein_config_limits = {}
         self.set_glidein_config_limits()
+
+        # Initialize the cache for the schedd queries
+        cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.cache_dir)
+        condorMonitor.disk_cache = DiskCache(cache_dir)
 
 
     def configure(self):

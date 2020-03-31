@@ -72,22 +72,33 @@ v3_6_1:
     - Improve control of the worker node draining, avoiding to stop accepting jobs as soon as the draining file is present
 
 v3_6_2:
-  Date: March 9, 2020
+  Date: March 26, 2020
   Series: Stable
   Tarball: true
   Feature:
     - Add a portable condor_chirp for user jobs running in the glideins
+    - Automate the generation of factory configuration
+    - Improve control of setup of module and spack in Singularity using MODULE_USE
+    - Adding GPU monitor as default for pilots
+    - Reduce number of queries from Frontend to User collector
     - Make lgwms-logcat.sh work with non standard factory instance names
   Bug fix:
     - Pilot using an expired proxy when authenticating to the collector
+    - CI issues (coverage broken in SL6, script selection affected by file name)
+    - Incorrect CERTIFICATE_MAPFILE used when using HTCondor python binding (failed schedd authentication)
+    - Fix release manager relative imports
+    - Broken submission to GCE and AWS
+    - Correct how entry_ls detect an rpm installation
+    - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
+    - Total of frontend info is 0 in Factory monitring
 
 v3_7:
-  Date: March 13, 2020
+  Date: March 31, 2020
   Series: Development
   Tarball: true
   Feature:
+    - Includes all features and fixes of 3.6.2
     - Use of HTCondor token-auth for Glideins authentication
     - Secure logging channel
     - Refactored glidien_startup to separate out the code in heredoc sections
-    - Glidein are released when they should not
-
+    - More restrictive HTCondor release of Glideins
