@@ -101,4 +101,3 @@ v3_7:
     - Use of HTCondor token-auth for Glideins authentication
     - Secure logging channel
     - Refactored glidien_startup to separate out the code in heredoc sections
-    - More restrictive HTCondor release of Glideins
