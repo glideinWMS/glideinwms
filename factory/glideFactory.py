@@ -184,6 +184,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
     # Retrieve the factory secret key (manually delivered) for token generation
     credentials_dir = os.path.realpath(os.path.join(startup_dir, '..', 'server-credentials'))
     jwt_key = os.path.join(credentials_dir, 'jwt_secret.key')
+    # TODO: for 3.7.1 the key creation/verification should go in reconfig, see v37/24256 for changes done
     if not os.path.exists(jwt_key):
         # create one and log if it doesnt exist, otherwise needs a
         # manual undocumented step to start factory
