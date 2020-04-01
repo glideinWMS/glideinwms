@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_rc2
+# GLIDEINWMS_VERSION v3_7_rc3
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -30,7 +30,7 @@ c9b0300da5738d55a350e5ff2d114d90  ./creation/lib/cvWParams.py
 7382aae30e1f14818c86b48c572be081  ./creation/lib/matchPolicy.py
 1fcf4ac71dcfa7a13810b2f0d4657c82  ./creation/lib/xmlConfig.py
 6eaf9f903474ff91d0fef1d479e4ee3a  ./creation/lib/xslt.py
-64880d1bd39731c0c6c1f7c8adf87461  ./creation/reconfig_frontend
+e4c3ead00451d5330b67dca53f156f77  ./creation/reconfig_frontend
 24b9675a39e2acedaba3efcd05859596  ./creation/templates/factory_initd_startup_template
 c1af588966133decb724ac4e61555127  ./creation/templates/factory_initd_startup_template_sl7
 85b92c2afbd9ce4092039aab20a55739  ./creation/templates/frontend_initd_startup_template

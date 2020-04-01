@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_rc2
+# GLIDEINWMS_VERSION v3_7_rc3
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -104,7 +104,7 @@ f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 140d57df3ac7cd73ef77fde4336210e4  ./factory/checkFactory.py
-23cde248c6b16ade42547b1297c3feb1  ./factory/glideFactory.py
+2c3c85472b4192cf88bf96b0c55ca34e  ./factory/glideFactory.py
 348b14c55e29e17ab2c42f685078953d  ./factory/glideFactoryConfig.py
 36a70ff7bf90c96f3583c1fc2f3b54a2  ./factory/glideFactoryCredentials.py
 8726ae6b79f921d3ba618fb640c7c9e4  ./factory/glideFactoryDowntimeLib.py

@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_rc2
+# GLIDEINWMS_VERSION v3_7_rc3
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -37,7 +37,7 @@ c9b0300da5738d55a350e5ff2d114d90  ./creation/lib/cvWParams.py
 7382aae30e1f14818c86b48c572be081  ./creation/lib/matchPolicy.py
 1fcf4ac71dcfa7a13810b2f0d4657c82  ./creation/lib/xmlConfig.py
 6eaf9f903474ff91d0fef1d479e4ee3a  ./creation/lib/xslt.py
-64880d1bd39731c0c6c1f7c8adf87461  ./creation/reconfig_frontend
+e4c3ead00451d5330b67dca53f156f77  ./creation/reconfig_frontend
 44a6bb158aa9d0a67647476f3dab7d1f  ./creation/reconfig_glidein
 24b9675a39e2acedaba3efcd05859596  ./creation/templates/factory_initd_startup_template
 c1af588966133decb724ac4e61555127  ./creation/templates/factory_initd_startup_template_sl7
@@ -132,7 +132,7 @@ f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 140d57df3ac7cd73ef77fde4336210e4  ./factory/checkFactory.py
-23cde248c6b16ade42547b1297c3feb1  ./factory/glideFactory.py
+2c3c85472b4192cf88bf96b0c55ca34e  ./factory/glideFactory.py
 348b14c55e29e17ab2c42f685078953d  ./factory/glideFactoryConfig.py
 36a70ff7bf90c96f3583c1fc2f3b54a2  ./factory/glideFactoryCredentials.py
 8726ae6b79f921d3ba618fb640c7c9e4  ./factory/glideFactoryDowntimeLib.py
