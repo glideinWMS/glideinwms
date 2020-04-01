@@ -22,11 +22,11 @@ import os.path
 # import shutil
 # import traceback
 
-STARTUP_DIR=sys.path[0]
+STARTUP_DIR = sys.path[0]
 
 # Change this if you have changed the source for the 
 # For instance, in the frontend RPM
-WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
+WEB_BASE_DIR = os.path.join(STARTUP_DIR,"web_base")
 fix_rrd = False
 
 
