@@ -43,6 +43,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import util
+from glideinwms.lib.pubCrypto import RSAKey
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
@@ -165,13 +166,13 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
     Args:
         startup_dir: Path to the glideinsubmit directory
-        glideinDescript: Factory config's glidein description object 
+        glideinDescript: Factory config's glidein description object
 
     Returns:
         None
 
     Raises:
-        IOError: If can't open/read/write a file (key/token) 
+        IOError: If can't open/read/write a file (key/token)
     """
 
     logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
@@ -182,6 +183,17 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
     # Retrieve the factory secret key (manually delivered) for token generation
     credentials_dir = os.path.realpath(os.path.join(startup_dir, '..', 'server-credentials'))
+    jwt_key = os.path.join(credentials_dir, 'jwt_secret.key')
+    # TODO: for 3.7.1 the key creation/verification should go in reconfig, see v37/24256 for changes done
+    if not os.path.exists(jwt_key):
+        # create one and log if it doesnt exist, otherwise needs a
+        # manual undocumented step to start factory
+        logSupport.log.info("creating %s -manually install  this key for "
+                             % (jwt_key) + "authenticating to external web sites")
+        rsa = RSAKey()
+        rsa.new(2048)
+        rsa.save(jwt_key)
+
     try:
         with open(os.path.join(credentials_dir, 'jwt_secret.key'), "r") as keyfile:
             secret = keyfile.readline().strip()
@@ -193,7 +205,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
     # Issue a token for each entry-recipient pair
     for entry in entries:
-        
+
         # Get the list of recipients
         if 'LOG_RECIPIENTS_FACTORY' in glideFactoryConfig.JobParams(entry).data:
             log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS_FACTORY'].split()
@@ -220,7 +232,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
         for recipient_url in log_recipients:
             # Obtain a legal filename from the url, escaping "/" and other tricky symbols
-            recipient_safe_url = urllib.quote(recipient_url, '')    
+            recipient_safe_url = urllib.quote(recipient_url, '')
 
             # Generate the token
             # TODO: in the future must include Frontend tokens as well
@@ -464,8 +476,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     def _set_rlimit(soft_l=None, hard_l=None):
         #set new hard and soft open file limits
         #if setting limits fails or no input parameters use inherited limits
-        #from parent process 
-        #nb 1.  it is possible to raise limits 
+        #from parent process
+        #nb 1.  it is possible to raise limits
         #up to [hard_l,hard_l] but once lowered they cannot be raised
         #nb 2. it may be better just to omit calling this function at
         #all from subprocess - in which case it inherits limits from
@@ -477,7 +489,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 hard_l = soft_l
             if not soft_l:
                 soft_l=hard_l
-            try:    
+            try:
                 new_lim = [soft_l, hard_l]
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
             except:
@@ -678,7 +690,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                                          stdout=subprocess.PIPE,
                                                          stderr=subprocess.PIPE,
                                                          close_fds=True,
-                                                         preexec_fn=_set_rlimit)                                                         
+                                                         preexec_fn=_set_rlimit)
 
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
@@ -920,13 +932,13 @@ def main(startup_dir):
         except KeyboardInterrupt as e:
             raise e
         except HUPException as e:
-            # inside spawn(), outermost try will catch HUPException, 
+            # inside spawn(), outermost try will catch HUPException,
             # then the code within the finally will run
             # which will terminate glideFactoryEntryGroup children processes
             # and then the following 3 lines will be executed.
             logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid())
-            # must empty the lock file so that when the thread returns from reconfig_glidein and 
-            # begins from the beginning, it will not error out which will happen 
+            # must empty the lock file so that when the thread returns from reconfig_glidein and
+            # begins from the beginning, it will not error out which will happen
             # if the lock file is not empty
             pid_obj.relinquish()
             os.execv(os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"),
