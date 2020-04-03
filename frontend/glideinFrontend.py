@@ -23,6 +23,7 @@ import subprocess
 import traceback
 import signal
 import time
+import shutil
 import logging
 
 STARTUP_DIR = sys.path[0]
@@ -435,7 +436,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
                     msg = "Failed to talk to the factory_pool %s to get the status of Master frontend %s" % (factory_pool_node, master_frontend_name)
                     logSupport.log.warn(msg)
                     msg = "Exception talking to the factory_pool %s to get the status of Master frontend %s: " % (factory_pool_node, master_frontend_name)
-                    logSupport.log.exception(msg )
+                    logSupport.log.exception(msg)
 
         # Cleanup the env
         clean_htcondor_env()
@@ -449,6 +450,19 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
 
     servicePerformance.endPerfMetricEvent('frontend', 'ha_check')
     return False
+
+
+def clear_diskcache_dir(work_dir):
+    """Clear the cache by removing the directory used for the cachedir, and recreate it.
+    """
+    cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.cache_dir)
+    try:
+        shutil.rmtree(cache_dir)
+    except OSError as ose:
+        if ose.errno is not 2: # errno 2 is ok, dir is missing. Maybe it's the first execution?
+            logSupport.log.exception("Error removing cache directory %s" % cache_dir)
+            raise
+    os.mkdir(cache_dir)
 
 
 def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
@@ -523,6 +537,8 @@ def main(work_dir, action):
     logSupport.log = logging.getLogger("frontend")
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
+
+    clear_diskcache_dir(work_dir)
 
     try:
         cleanup_environ()

@@ -282,6 +282,7 @@ rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/chksum.sh
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/LICENSE
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/README.md
 
 # Following files are Put in other places. Remove them from python_sitelib
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/web_base
@@ -671,6 +672,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/fact_chown_check
 %attr(755,root,root) %{_bindir}/gwms-logcat.sh
 %attr(755,root,root) %{_bindir}/manual_glidein_submit
+%attr(755,root,root) %{_bindir}/OSG_autoconf
+%attr(755,root,root) %{_bindir}/gfdiff
 %attr(755,root,root) %{_sbindir}/checkFactory.py
 %attr(755,root,root) %{_sbindir}/stopFactory.py
 %attr(755,root,root) %{_sbindir}/glideFactory.py
@@ -846,12 +849,12 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Wed Jan 29 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.2-0.0
+* Thu Mar 26 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.2-1
 - GlideinWMS v3.6.2
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_2/history.html
-- Release candidates: 3.6.2-0.0.rc0
+- Release candidates: 3.6.2-0.0.rc0 to 3.6.2-0.3.rc3
 
-* Mon Nov 21 2019 Marco Mambelli <marcom@fnal.gov> - 3.6.1-1
+* Mon Nov 25 2019 Marco Mambelli <marcom@fnal.gov> - 3.6.1-1
 - GlideinWMS v3.6.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_1/history.html
 - Release candidates: 3.6.1-0.1.rc1

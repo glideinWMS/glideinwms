@@ -5,9 +5,11 @@ EXITSLEEP=10m
 GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
-GWMS_VERSION_SINGULARITY_WRAPPER=20191029
+GWMS_VERSION_SINGULARITY_WRAPPER=20200325
 # Updated using OSG wrapper #394b564
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
+# Link to the CMS wrapper
+# https://gitlab.cern.ch/CMSSI/CMSglideinWMSValidation/-/blob/master/singularity_wrapper.sh
 
 ################################################################################
 #
@@ -390,18 +392,13 @@ if [[ "x$GLIDEIN_Proxy_URL" = "x"  ||  "$GLIDEIN_Proxy_URL" = "None" ]]; then
     fi
 fi
 
-# load modules, if available
+# load modules and spack, if available
 # InitializeModulesEnv and MODULE_USE are 2 variables to enable the use of modules
-[[ "x$LMOD_BETA" = "x1" ]] && MODULE_USE=1
 [[ "x$InitializeModulesEnv" = "x1" ]] && MODULE_USE=1
 
 if [[ "x$MODULE_USE" = "x1" ]]; then
-    if [[ "x$LMOD_BETA" = "x1" ]]; then
-        # used for testing the new el6/el7 modules
-        if [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
-            . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh
-        fi
-    elif [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
+    # Removed LMOD_BETA (/cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh), obsolete
+    if [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
         . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
     fi
     module -v >/dev/null 2>&1

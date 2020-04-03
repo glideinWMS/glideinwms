@@ -183,11 +183,15 @@ class LocalScheddCache(NoneScheddCache):
     # return None if not found
     # Can raise exceptions
     def iGetEnv(self, schedd_name, pool_name):
-        cs = CondorStatus('schedd', pool_name)
-        data = cs.fetch(constraint='Name=?="%s"' % schedd_name,
-                        format_list=[('ScheddIpAddr', 's'),
-                                     ('SPOOL_DIR_STRING', 's'),
-                                     ('LOCAL_DIR_STRING', 's')])
+        global disk_cache
+        data = disk_cache.get(schedd_name + '.igetenv')
+        if data is None:
+            cs = CondorStatus('schedd', pool_name)
+            data = cs.fetch(constraint='Name=?="%s"' % schedd_name,
+                            format_list=[('ScheddIpAddr', 's'),
+                                         ('SPOOL_DIR_STRING', 's'),
+                                         ('LOCAL_DIR_STRING', 's')])
+            disk_cache.save(schedd_name + '.igetenv', data)
         if schedd_name not in data:
             raise RuntimeError("Schedd '%s' not found" % schedd_name)
 
@@ -216,8 +220,22 @@ class LocalScheddCache(NoneScheddCache):
             return None
 
 
+# The class does not belong here, it should be in the disk_cache module.
+# However, condorMonitor is not importing anything from glideinwms.lib, it is a standalon module
+# We might revisit this in the future
+class NoneDiskCache:
+    """Dummy class used if a regular DiskCache is not specified
+    """
+    def get(self, objid):
+        return None
+
+    def save(self, objid, obj):
+        return None
+
+
 # default global object
 local_schedd_cache = LocalScheddCache()
+disk_cache = NoneDiskCache()
 
 
 def condorq_attrs(q_constraint, attribute_list):
@@ -322,6 +340,7 @@ class CondorQEdit:
         """ Given equal sized lists of job ids, attributes and values,
             executes in one large transaction a single qedit for each job.
         """
+        global disk_cache
         joblist = joblist or []
         attributes = attributes or []
         values = values or []
@@ -335,8 +354,12 @@ class CondorQEdit:
                 collector = htcondor.Collector()
 
             if self.schedd_name:
-                schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
-                                             self.schedd_name)
+                schedd_ad = disk_cache.get(self.schedd_name + '.locate')
+                if schedd_ad is None:
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
+                                                 self.schedd_name)
+                    disk_cache.save(self.schedd_name + '.locate', schedd_ad)
+
                 schedd = htcondor.Schedd(schedd_ad)
             else:
                 schedd = htcondor.Schedd()
@@ -586,6 +609,7 @@ class CondorQ(CondorQuery):
         Returns (dict): Dict containing the results
 
         """
+        global disk_cache
         results_dict = {}  # defined here in case of exception
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
@@ -602,8 +626,11 @@ class CondorQ(CondorQuery):
             if self.schedd_name is None:
                 schedd = htcondor.Schedd()
             else:
-                schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
-                                             self.schedd_name)
+                schedd_ad = disk_cache.get(self.schedd_name + '.locate')
+                if schedd_ad is None:
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
+                                                 self.schedd_name)
+                    disk_cache.save(self.schedd_name + '.locate', schedd_ad)
                 schedd = htcondor.Schedd(schedd_ad)
             results = schedd.query(constraint, attrs)
             results_dict = list2dict(results, self.group_attribute)
