@@ -232,11 +232,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 #Change src_dir in reconfig_Frontend
-sed -i "s/WEB_BASE_DIR=.*/WEB_BASE_DIR=\"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
-sed -i "s/STARTUP_DIR=.*/STARTUP_DIR=\"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
-sed -i "s/WEB_BASE_DIR=.*/WEB_BASE_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" creation/lib/cgWConsts.py
-sed -i "s/STARTUP_DIR =.*/STARTUP_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" creation/reconfig_glidein
-sed -i "s/STARTUP_DIR =.*/STARTUP_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
+sed -i "s/WEB_BASE_DIR *=.*/WEB_BASE_DIR = \"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
+sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-frontend\/web-base\"/" creation/reconfig_frontend
+sed -i "s/WEB_BASE_DIR *=.*/WEB_BASE_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/lib/cgWConsts.py
+sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/reconfig_glidein
+sed -i "s/STARTUP_DIR *=.*/STARTUP_DIR = \"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
 
 #Create the RPM startup files (init.d) from the templates
 creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE6}
