@@ -1,8 +1,8 @@
 v3_7
 	Includes all features and fixes of 3.6.2
 	Use of HTCondor token-auth for Glideins authentication
-	Secure logging channel
-	Refactored glidien_startup to separate out the code in heredoc sections
+	Added secure logging channel
+	Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
 
 v3_6_2
 	Add a portable condor_chirp for user jobs running in the glideins

@@ -1,8 +1,10 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_rc3
+# GLIDEINWMS_VERSION v3_7
 ###################################################################
 063814e8a07e3fbb21c59fac696a07cf  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
+f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
+b15323467d693d59cd03a9d34f9daae8  ./.travis.yaml
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 6f1c5269e2f53fb5c5195d866060c036  ./README.md
@@ -188,6 +190,7 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 5319b0045ea9c48d8cf5a3b0535165d1  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
+5d8bd6c22bc24a4c4392fa3d7406cb2f  ./requirements.txt
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 1c9c14257fa443e0aa031ae44f867122  ./tools/glidein_cat.py
 543db027e898d6b9960ecd44f513086e  ./tools/glidein_gdb.py
