@@ -1,0 +1,20 @@
+# for runtime
+htcondor
+
+# commented out until we drop python2 support
+## classad ##
+
+#for verifications
+pylint
+pycodestyle
+astroid
+hypothesis
+autopep8
+testfixtures
+coverage
+
+# for tests
+jsonpickle
+mock
+pytest
+tabulate
