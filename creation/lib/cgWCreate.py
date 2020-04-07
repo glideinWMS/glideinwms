@@ -66,12 +66,6 @@ def create_condor_tar_fd(condor_base_dir):
             'libexec/condor_gpu_discovery',
         ]
 
-        # needed libraries for token auth, copy them in
-        for needed in ['libSciTokens', 'libmunge']:
-            pat = '/usr/lib64/%s*' % needed
-            for src in glob.glob(pat):
-                dst = os.path.join('lib', os.path.basename(src))
-                copy_file(src, dst)
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
         condor_bins_map = {}
@@ -94,6 +88,14 @@ def create_condor_tar_fd(condor_base_dir):
                     os.path.join(
                         condor_base_dir, f))
 
+        # needed libraries for token auth, copy them in
+        token_libs = []
+        for needed in ['libSciTokens', 'libmunge']:
+            pat = '/usr/lib64/%s*' % needed
+            for src in glob.glob(pat):
+                token_libs.append(src)
+                dst = os.path.join('lib/condor', os.path.basename(src))
+                condor_bins_map[src] = dst
         # Get the list of dlls required
         dlls = get_condor_dlls(
             condor_base_dir,
@@ -111,7 +113,7 @@ def create_condor_tar_fd(condor_base_dir):
         # once we get rid of SL6 and tarballs
 
         tf = tarfile.open("dummy.tgz", 'w:gz', fd)
-        for f in condor_bins:
+        for f in (condor_bins + token_libs):
             tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
         tf.close()
         # rewind the file to the beginning
