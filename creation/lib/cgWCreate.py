@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import stat
 import tarfile
-import urllib
+#import urllib
 import cStringIO
 import glob
 from . import cgWDictFile
@@ -26,8 +26,17 @@ from . import cgWDictFile
 ##############################
 
 
-# Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
+    """
+    Extract only components from a full condor distribution needed to run a
+    glidein on a CE.  This code is only run when a factory reconfig or upgrade
+    is triggered.
+
+    Input Param: condor_base_dir (str) :  an untarred tarball of an HTCondor Distribution
+
+    Returns:  fd: (StringIO) representation of tarfile.
+    """
+    print("create_condor_tar_fd(%s)"% condor_base_dir)
     try:
         # List of required files
         condor_bins = [
@@ -89,13 +98,19 @@ def create_condor_tar_fd(condor_base_dir):
                         condor_base_dir, f))
 
         # needed libraries for token auth, copy them in
+        # TODO this only works for RedHat - 7 like
+        # factories - We will at least support RH8
+        # in the future. I am  OK putting it in a
+        # development release until we figure out the
+        # right way to do this
         token_libs = []
-        for needed in ['libSciTokens', 'libmunge']:
-            pat = '/usr/lib64/%s*' % needed
-            for src in glob.glob(pat):
-                token_libs.append(src)
-                dst = os.path.join('lib/condor', os.path.basename(src))
-                condor_bins_map[src] = dst
+        if 'RedHat7' in condor_base_dir:
+            for needed in ['libSciTokens', 'libmunge']:
+                pat = '/usr/lib64/%s*' % needed
+                for src in glob.glob(pat):
+                    token_libs.append(src)
+                    dst = os.path.join('lib/condor', os.path.basename(src))
+                    condor_bins_map[src] = dst
         # Get the list of dlls required
         dlls = get_condor_dlls(
             condor_base_dir,
