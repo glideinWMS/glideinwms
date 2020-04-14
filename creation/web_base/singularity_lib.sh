@@ -585,6 +585,7 @@ singularity_exec () {
     #  4 - Singularity extra options (NOTE: this is not quoted, so spaces will be interpreted as separators)
     #  5 - Singularity global options, before the exec command (NOTE: this is not quoted, so spaces will be interpreted as separators)
     #  6 - Execution options: exec (exec singularity)
+    #  7 and more - Command to be executed and its options
     #  PWD
     # Out:
     # Return:
@@ -786,7 +787,10 @@ singularity_test_bin () {
         sin_path=$(which singularity)
     fi
     local bread_crumbs=" $step($sin_path):"
-    [[ -z "$sin_path" ]] && { echo "$bread_crumbs"; false; return; }
+    if [[ -z "$sin_path" ]]; then
+        [[ "$step" = module || "$step" = PATH ]] && info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
+        echo "$bread_crumbs"; false; return;
+    fi
     sin_version=$("$sin_path" --version 2>/dev/null)
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
     if [[ -z "$sin_image" ]]; then
@@ -1180,11 +1184,11 @@ singularity_setup_inside () {
     local val
     # Adapt for changes in filesystem space
     for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
-               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_JOB_AD \
+               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
                _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
                OSG_WN_TMP ; do
         # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
-        val="`echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,"`"
+        val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
         eval ${key}="${val}"
         info_dbg "changed $key => $val"
     done
@@ -1218,6 +1222,7 @@ singularity_setup_inside () {
     # Override some OSG specific variables if defined
     [[ -n "$OSG_WN_TMP" ]] && export OSG_WN_TMP=/tmp
 
+    # TODO: setup "pychirp" instead
     # From CMS
     # Add Glidein provided HTCondor back to the environment (so that we can call chirp)
     # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
