@@ -307,6 +307,14 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         unset PYTHONPATH
     fi
 
+    # Add --clearenv if requested
+    GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
+
+    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options
+    if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}" ; then
+        env_preserve "${GLIDEIN_CONTAINER_ENV}"
+    fi
+
     # The new OSG wrapper is not exec-ing singularity to continue after and inspect if it ran correctly or not
     # This may be causing problems w/ signals (sig-term/quit) propagation - [#24306]
     if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
@@ -321,6 +329,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
+    env_restore "${GLIDEIN_CONTAINER_ENV}"
     [[ -n "$OLD_PATH" ]] && PATH="$OLD_PATH"
     exit_or_fallback "exec of singularity failed" $?
 }
