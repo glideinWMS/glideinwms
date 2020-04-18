@@ -70,7 +70,7 @@
 <ol>
     <LI><A HREF="#location">Variable location</A>
     <LI><A HREF="#condor_vars">HTCondor vars file</A>
-    <LI><A HREF="#vars">Variables used</A> 
+    <LI><A HREF="#vars">Variables used</A>
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
     <LI><A HREF="#singularity_vars">Singularity variables </A>
@@ -88,7 +88,7 @@ Related Links: <br/>
 </ul>
 </div>
 <div class="section">
- 
+
 <H2>Description</H2>
 <P>This document describes what configuration variables are used by
 the glideins. Most administrators never need to touch most of them, but a
@@ -111,7 +111,7 @@ files)</I>:</P>
 <P>The two files are equivalent, but were split for historical
 reasons, and the second one is meant to contain site specific
 configuration variables.<BR><B>These files should never be modified,
-and represent just the default shipped by the software!</B> 
+and represent just the default shipped by the software!</B>
 </P>
 <P>A GlideinWMS administrator can change the values of the predefined
 variables (with some exceptions, see <A HREF="#dyn_vars">below</A>),
@@ -216,7 +216,7 @@ Factory configuration XML using the following tags:</P>
     <p>Attr tags can be in both the Factory and Frontend configuration, available types are <i>Int</i>
         (I in HTCondor vars file), <i>String</i> (S) or <i>Expr</i> (C). String and Expr values are treated literally
         (no need to escape them) and Strings are quoted when passed to HTCondor.</p>
-<P>More information on the XML format can be found in 
+<P>More information on the XML format can be found in
 <A HREF="configuration.html#args">Glidein Factory configuration</A> section.
 <BR/>
 If not specified in the XML, most of these variables have
@@ -241,8 +241,8 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <td>Entry name</td>
         <td> <P>
 
-            Logical name of the Grid site where 
-            the glidein is running. This information is 
+            Logical name of the Grid site where
+            the glidein is running. This information is
             published both in the startd ClassAd and
             in the user job environment.</P>
         </TD>
@@ -253,7 +253,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
 
         <TD> True </TD>
         <TD>
-            <P>HTCondor expression to use to specify when a user job in the glideins should be held. 
+            <P>HTCondor expression to use to specify when a user job in the glideins should be held.
             If any expression is true, the glidein is held.  This is usually done to specify "bad"
             jobs, such as those that claim too much memory.
         </TD>
@@ -264,8 +264,8 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> Expr (Bool)</td>
         <TD>True </TD>
         <TD ROWSPAN=2>
-            <P>HTCondor expression to use to specify when a user job in the glideins should be preempted. 
-            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            <P>HTCondor expression to use to specify when a user job in the glideins should be preempted.
+            If any expression is true, the glidein is preempted.  This is usually done to specify
             custom preemption policies for user jobs.
         </TD>
 
@@ -300,7 +300,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <td>1200 <br/>(20 mins) </TD>
         <TD>
 
-            <P>Max amount of time a condor_startd will wait 
+            <P>Max amount of time a condor_startd will wait
             to be matched before giving up and terminating.</P>
         </TD>
     </TR>
@@ -324,7 +324,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> Int </TD>
         <TD> 21600 <br/>(6 hours) </TD>
         <TD ROWSPAN=2>
-            <P>How long the condor_startd be running before 
+            <P>How long the condor_startd be running before
             no longer accepting jobs.
             <br/>
             The random spread
@@ -346,12 +346,12 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> N/A </TD>
 
         <TD>
-            <P>Max allowed time for the glidein.<BR>This variable is optional.  If you specify this variable, 
-            then HTCondor startup scripts will calculate the GLIDEIN_Retire_Time for the glidein as GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time.  
+            <P>Max allowed time for the glidein.<BR>This variable is optional.  If you specify this variable,
+            then HTCondor startup scripts will calculate the GLIDEIN_Retire_Time for the glidein as GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time.
             If GLIDEIN_Retire_Time is also specified, it will be ignored and only the calculated value is used.  Note that if GLIDEIN_Job_Max_Time is
-            specified but is greater than GLIDEIN_Max_Walltime or 
+            specified but is greater than GLIDEIN_Max_Walltime or
             does not allow enough time for graceful shutdown, it will
-            be reduced by the glidein.  
+            be reduced by the glidein.
             See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
     </TR>
@@ -360,8 +360,8 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <TD> Int </TD>
         <TD> 120 </TD>
         <TD>
-            <P>Once DAEMON_SHUTDOWN is reached and the glidein pilot enters the 
-            <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts"><I>Retiring</I> state</a>, 
+            <P>Once DAEMON_SHUTDOWN is reached and the glidein pilot enters the
+            <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts"><I>Retiring</I> state</a>,
             this amount passes to allow the startd and job to gracefully shutdown before forcefully terminating the glidein.
             See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
@@ -381,7 +381,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         <td> 10000000 </td>
         <td>
             This value affects the condor value "MaxJobRetirementtime"
-            and it's an integer value representing the number of seconds 
+            and it's an integer value representing the number of seconds
             a preempted job will be allowed to run before being evicted.
             This only affects behaviour if PREEMPT=True. After 12 hours,
             a glidein is removed from the factory queue anyway.
@@ -396,7 +396,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             and is an integer value representing the number of seconds
             a job that triggers WANT_HOLD will be allowed to run before being evicted.
             This only affects behaviour if GLIDEIN_HOLD, GLIDEIN_Entry_HOLD,
-            GLIDECLIENT_HOLD, or GLIDECLIENT_Group_HOLD are specified and 
+            GLIDECLIENT_HOLD, or GLIDECLIENT_Group_HOLD are specified and
             become true.  By default, these "bad" jobs are immediately evicted.
         </td>
     </tr>
@@ -493,7 +493,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             UID as the user job</A>. This has security implications.</P>
             <P>NOTE: It is recommended to turn
             this on and have the condor_starter be protected from the user
-            jobs. 
+            jobs.
             </P>
 
         </td>
@@ -649,7 +649,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
 
         <TD> 1200<BR>(20 mins) </TD>
         <TD>
-            <P>Specifies how long should a glidein wait 
+            <P>Specifies how long should a glidein wait
             before giving up on a
             GCB, if network connectivity is lost.</P>
         </TD>
@@ -753,7 +753,7 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
               <li><b>ALIVEONLY</b> - The glidein will advertise a Master ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
               <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
             </ul>
-            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
+            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>,
                the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
                   <i>GLIDEIN_EXIT_CODE</i> attributes, and
                the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
@@ -784,7 +784,7 @@ They cannot be changed by an administrator in any other way.
             &lt;glidein factory_name=&quot;<B>value</B>&quot;&gt;
         </TD>
         <TD>
-            <P>Logical name of the Glidein Factory machine 
+            <P>Logical name of the Glidein Factory machine
             (like &ldquo;osg1&rdquo;).</P>
 
         </TD>
@@ -797,7 +797,7 @@ They cannot be changed by an administrator in any other way.
             &lt;glidein glidein_name=&quot;<B>value</B>&quot;&gt;
         </TD>
         <TD>
-            <P>Identification name of the Glidein Factory 
+            <P>Identification name of the Glidein Factory
             instance (like &ldquo;v1_0&rdquo;).</P>
         </TD>
     </TR>
@@ -810,7 +810,7 @@ They cannot be changed by an administrator in any other way.
 
             </TD>
             <TD>
-                <P>Identification name of the entry point 
+                <P>Identification name of the entry point
                 (like &ldquo;ucsd5&rdquo;).</P>
             </TD>
         </TR>
@@ -847,7 +847,7 @@ They cannot be changed by an administrator in any other way.
 
             </TD>
             <TD>
-                <P>Optional RSL string 
+                <P>Optional RSL string
                 (like &quot;(condor_submit=('+ProdSlot'
                 'TRUE'))&quot;)</P>
             </TD>
@@ -916,7 +916,7 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
 
         <TD> Str </TD>
         <TD>
-            <P>If True enables debug output from the Glidein (more verbose messages). 
+            <P>If True enables debug output from the Glidein (more verbose messages).
 	    The messages printed are affected also by GLIDEIN_DEBUG_OPTIONS.
 	    If not empty is considered True.
             </P>
@@ -1018,7 +1018,7 @@ described below are the most often used.</P>
         <TD> Expr (Bool)</td>
 
         <TD ROWSPAN=2>
-            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            <P>Condor expression to use to specify when a user job in the glideins should be held.
             If any expression is true, the glidein is held.  This is usually done to specify "bad"
             jobs, such as those that claim too much memory.
         </TD>
@@ -1034,8 +1034,8 @@ described below are the most often used.</P>
         <TD> Expr (Bool)</td>
 
         <TD ROWSPAN=2>
-            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
-            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            <P>Condor expression to use to specify when a user job in the glideins should be preempted.
+            If any expression is true, the glidein is preempted.  This is usually done to specify
             custom preemption policies.
         </TD>
 
@@ -1083,12 +1083,12 @@ described below are the most often used.</P>
         <TD>
             <P>Max allowed time for the job to end.<BR>
             This is used by the
-            condor_startd.  Once the GLIDEIN_Retire_Time expires, 
+            condor_startd.  Once the GLIDEIN_Retire_Time expires,
             the glidein will allow the job to run for this amount
-            of time before activating DAEMON_SHUTDOWN and 
-            killing the job. 
+            of time before activating DAEMON_SHUTDOWN and
+            killing the job.
             Note that, if GLIDEIN_Max_Walltime is specified,
-            this variable could be reduced by the glidein in order 
+            this variable could be reduced by the glidein in order
             to fit within Glidein_Max_Walltime.
             See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
@@ -1101,7 +1101,7 @@ described below are the most often used.</P>
             <P>If False, the user job environment will contain only glidein
             Factory provided variables.</P>
             <P>If True, the user job environment will also contain the
-            environment variables defined at glidein startup. 
+            environment variables defined at glidein startup.
             </P>
             <P>See <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=JOB_INHERITS_STARTER_ENVIRONMENT#htcondor-wide-configuration-file-entries">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
         </TD>
@@ -1111,7 +1111,7 @@ described below are the most often used.</P>
         <td> Expr (Bool) </TD>
 
         <TD>
-            <p>By default, the glidein will unset the variable 
+            <p>By default, the glidein will unset the variable
             X509_USER_PROXY for security reasons to prevent the user
             jobs from accessing the pilot proxy.  Setting this
             to true will override this behavior and keep the X509_USER_PROXY
@@ -1128,7 +1128,7 @@ described below are the most often used.</P>
             There are only two legal values:
             <ul>
               <li><b>fixed</b> - create N single core slots, and split memory and disk equally mong them
-              <li><b>partitionable</b> - start up with 
+              <li><b>partitionable</b> - start up with
                         <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html?highlight=Policy%20configuration#policy-configuration-for-execute-hosts-and-for-submit-hosts">a single partitionable slot and let HTCondor do the spliting as needed</a>
               </ul>
 
@@ -1141,7 +1141,7 @@ described below are the most often used.</P>
         <td> String (Bool) </TD>
 
         <TD>
-            By default, single core glideins will never be configured as partitionable, 
+            By default, single core glideins will never be configured as partitionable,
             independently of the value of <b>SLOTS_LAYOUT</b>.<br><br>
 
             If partitionable slots are desired also for single-core glideins, set this variable to <b>"True"</b>.
@@ -1158,7 +1158,7 @@ described below are the most often used.</P>
               <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
               <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
             </ul>
-            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
+            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>,
                the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
                   <i>GLIDEIN_EXIT_CODE</i> attributes, and
                the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
@@ -1287,7 +1287,7 @@ cannot directly change them.</P>
 
             <P>The cluster and process id assigned by the Glidein Factory
             schedd to this glidein.</P>
-            <P>These variables are exported as <B>GLIDEIN_ClusterId</B> and 
+            <P>These variables are exported as <B>GLIDEIN_ClusterId</B> and
             <B>GLIDEIN_ProcId</B> both in the glidein ClassAd and to the user
             job environment.</P>
         </TD>
@@ -1332,7 +1332,7 @@ the working directory specified by</P>
             <P>Path to the directory on the local file system
             for storing temporary data.<br>
             <B>Note:</B> Only use for things that absolutely need the guarantee
-                of residing in the local file system. 
+                of residing in the local file system.
                 Prefer <b>TMP_DIR</b> above for everything else.
             </P>
             <P>This variable is exported to the user job environment.</P>
@@ -1398,13 +1398,13 @@ the working directory specified by</P>
         <td> <b>GLIDEIN_WRAPPER_EXEC</b> </td>
         <TD>
             <P>
-                This is the executable that glideins will run (ie what to 
+                This is the executable that glideins will run (ie what to
                 put after "exec" in the condor job wrapper).  By default,
                 glideins will perform <tt>exec "\$@"</tt> to run the pilot.
-                For other modes of execution, you may need different 
-                arguments.  For example, to run a program under parrot, you 
-                may need 
-                <tt>exec "$GLIDEIN_PARROT/parrot_run" 
+                For other modes of execution, you may need different
+                arguments.  For example, to run a program under parrot, you
+                may need
+                <tt>exec "$GLIDEIN_PARROT/parrot_run"
                 -t "$parrot_tmp" "$@" </tt>.<br/>
                 Note, the syntax of this command is very sensitive
                 This needs to be double-escaped in order to function correctly.
@@ -1769,6 +1769,17 @@ or by running a pre_singularity setup script.
             </P>
         </td>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_CONTAINER_ENV</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Frontend Factory</td>
+        <td><P>Controls which environment variables will be cleared or restored in Singularity. Can have the following values: clearall - clear all from the environment (at your own risk);  osgset - set of OSG variables (get it from OSG wrapper);
+            gwmsset - set of GWMS utilities variables; clear - same as: clearall,gwmsset,osgset; clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default);
+            keepall - clear no variable, incompatible w/ any clear... option
+            </P>
+        </td>
+    </TR>
 </TABLE>
 </div>
 
@@ -1868,41 +1879,41 @@ startup scripts.</P>
 <div class="section">
 <a name="cpuscalculation" />
 <h2>Set and discover available CPUs</h2>
-<p>For this explanation the term CPUs refers to the number of cores, provided by one or more CPUs. 
+<p>For this explanation the term CPUs refers to the number of cores, provided by one or more CPUs.
 It is whatever is detected or provided and will set the level of parallelism (NUM_CPUS) used by the HTCondor startd started
 by the Glidein.
 </p>
-<p>Jobs express the number of CPUs they require via RequestCpus. 
+<p>Jobs express the number of CPUs they require via RequestCpus.
 </p>
-<p>You can force HTCondor to assume it has a certain number of CPUs by setting GLIDEIN_CPUS to a number or let the Glidein 
-discover the number of physical CPUs in the worker node (<tt>node</tt>) or the number of CPUs received from the job manager 
+<p>You can force HTCondor to assume it has a certain number of CPUs by setting GLIDEIN_CPUS to a number or let the Glidein
+discover the number of physical CPUs in the worker node (<tt>node</tt>) or the number of CPUs received from the job manager
 (<tt>slot</tt>, <tt>auto</tt>).
 </p>
-<p>If GLIDEIN_CPUS is set to <tt>auto</tt> (or <tt>slot</tt>, <tt>node</tt>). When the Frontend does provisioning, 
-it triggers requests to resources 
-where RequestCpus&lt;=GLIDEIN_ESTIMATED_CPUS (1 if GLIDEIN_ESTIMATED_CPUS is not set) and it is dimensioning the request 
-expecting to receive CPUs = GLIDEIN_ESTIMATED_CPUS * number_of_glidiens. 
+<p>If GLIDEIN_CPUS is set to <tt>auto</tt> (or <tt>slot</tt>, <tt>node</tt>). When the Frontend does provisioning,
+it triggers requests to resources
+where RequestCpus&lt;=GLIDEIN_ESTIMATED_CPUS (1 if GLIDEIN_ESTIMATED_CPUS is not set) and it is dimensioning the request
+expecting to receive CPUs = GLIDEIN_ESTIMATED_CPUS * number_of_glidiens.
 <br/>
-When Glideins actually start at the site, they advertise the CPUs they actually discover, ignoring what is set in 
+When Glideins actually start at the site, they advertise the CPUs they actually discover, ignoring what is set in
 GLIDEIN_ESTIMATED_CPUS and will match jobs with RequestCpus&lt;=CPUs discovered.
-This is different from setting GLIDEIN_CPUS, that artificially tells HTCondor in the Glidein that it has those CPUs, 
+This is different from setting GLIDEIN_CPUS, that artificially tells HTCondor in the Glidein that it has those CPUs,
 over- or under-provisioning if the number of CPUs discovered is different.
 </p>
-<p>So if you have a site with a variable number of CPUs you can set GLIDEIN_ESTIMATED_CPUS to the min number of CPUs you will 
-be receiving (for ease call it MinCpus). All jobs triggering Glideins on that site will be able to run on them. Multiple 
+<p>So if you have a site with a variable number of CPUs you can set GLIDEIN_ESTIMATED_CPUS to the min number of CPUs you will
+be receiving (for ease call it MinCpus). All jobs triggering Glideins on that site will be able to run on them. Multiple
 jobs will run on the same Glidein if it receives more CPUs.
-If you need to run jobs w/ RequestCpus&gt;MinCpus, you can set GLIDEIN_ESTIMATED_CPUS to a bigger number but be aware that 
-some Glideins (the ones that received less than GLIDEIN_ESTIMATED_CPUS CPUs) will not match jobs that triggered their 
+If you need to run jobs w/ RequestCpus&gt;MinCpus, you can set GLIDEIN_ESTIMATED_CPUS to a bigger number but be aware that
+some Glideins (the ones that received less than GLIDEIN_ESTIMATED_CPUS CPUs) will not match jobs that triggered their
 submission (those Glideins will probably be wasted).
 </p>
-<p>Another attribute changing the number of CPUs is GLIDEIN_Resource_Slots. When you add resource slots of type 
-<tt>extra</tt>, <tt>partitionable</tt> or <tt>static</tt>, these increase the number of CPUs set in HTCondor, independently 
-from whether the initial number was set with GLIDEIN_CPUS or discovered. 
-These virtual CPUs are though not considered in provisioning, are frequently reserved for jobs matching the special resources 
+<p>Another attribute changing the number of CPUs is GLIDEIN_Resource_Slots. When you add resource slots of type
+<tt>extra</tt>, <tt>partitionable</tt> or <tt>static</tt>, these increase the number of CPUs set in HTCondor, independently
+from whether the initial number was set with GLIDEIN_CPUS or discovered.
+These virtual CPUs are though not considered in provisioning, are frequently reserved for jobs matching the special resources
 (<tt>partitionable</tt>, <tt>static</tt>) and are available also for regular jobs only when the slot type <tt>extra</tt>
 is used.
 </p>
-<p>For more information, see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_Resource_Slots above. And 
+<p>For more information, see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_Resource_Slots above. And
  <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=NUM_CPUS#condor-starter-configuration-file-entries">NUM_CPUS</a> in the HTCondor manual.
 </p>
 </div>
@@ -1914,18 +1925,18 @@ is used.
 <p>
 All the various variables in the glidein configuration can be confusing.
 The above diagram illustrates the lifetime of a glidein pilot that has a
-long-running job.  
+long-running job.
 </p>
 <ul>
 <li><font color="499946"><i>Green</i></font>:
 For the first GLIDEIN_Retire_Time seconds (modified by
 a random spread GLIDEIN_Retire_Spread to smooth out glideins all ending
-simultaneously), jobs can start on the glidein pilot.  
+simultaneously), jobs can start on the glidein pilot.
 </li>
 <li><font color="f8d844"><i>Yellow</i></font>:
-During the yellow period, START will evauluate to FALSE, 
+During the yellow period, START will evauluate to FALSE,
 so no new jobs will start.  However,
-already running jobs will continue to run for GLIDEIN_Job_Max_Time.  
+already running jobs will continue to run for GLIDEIN_Job_Max_Time.
 (Note that the glideins will end during this period if the job ends.
 They will not idle afterwards since no new jobs can start anyway).
 </li>
@@ -1933,13 +1944,13 @@ They will not idle afterwards since no new jobs can start anyway).
 Once this period is done, the DAEMON_SHUTDOWN variable will be true.</li>
 <li><font color="f8bb44"><i>Orange</i></font>:
 There can be a delay of up to UPDATE_INTERVAL (usually about 5 minutes)
-between when DAEMON_SHUTDOWN becomes true and when it is actually 
+between when DAEMON_SHUTDOWN becomes true and when it is actually
 updated in the collector.  This is because the collector only reevaluates
 this expression periodically.
 </li>
 <li><font color="c7484c"><i>Red</i></font>:
 Once DAEMON_SHUTDOWN is true, condor gives a short grace period of
-GLIDEIN_Graceful_Shutdown before forcefully terminating everything and 
+GLIDEIN_Graceful_Shutdown before forcefully terminating everything and
 shutting down.  All of these periods are totalled and calculated to fit
 within GLIDEIN_MAX_WALLTIME if specified.
 </li>
