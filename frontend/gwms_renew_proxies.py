@@ -22,6 +22,8 @@ DEFAULTS = {'use_voms_server': 'false',
             'fqan': '/Role=NULL/Capability=NULL',
             'frequency': '1',
             'lifetime': '24',
+            'path-length': '20',
+            'rfc': 'true',
             'owner': 'frontend'}
 
 
@@ -34,7 +36,7 @@ class ConfigError(BaseException):
 class Proxy(object):
     """Class for holding information related to the proxy
     """
-    def __init__(self, cert, key, output, lifetime, uid=0, gid=0):
+    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength='20'):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
@@ -42,6 +44,8 @@ class Proxy(object):
         self.lifetime = lifetime
         self.uid = uid
         self.gid = gid
+        self.rfc = rfc
+        self.pathlength = pathlength
 
     def _voms_proxy_info(self, *opts):
         """Run voms-proxy-info. Returns stdout, stderr, and return code of voms-proxy-info
@@ -88,6 +92,8 @@ class VO(object):
         self.name = vo
         if fqan.startswith('/%s/Role=' % vo):
             pass
+        elif fqan.startswith('/%s/' % vo):
+            pass
         elif fqan.startswith('/Role='):
             fqan = '/%s%s' % (vo, fqan)
         else:
@@ -98,7 +104,6 @@ class VO(object):
         self.cert = None
         self.key = None
         self.uri = None
-
 
 def _safe_int(string_var):
     """Convert a string to an integer. If the string cannot be cast, return 0.
@@ -119,11 +124,8 @@ def _run_command(command):
 
 def parse_vomses(vomses_contents):
     """Parse the contents of a vomses file with the the following format per line:
-
     "<VO ALIAS> " "<VOMS ADMIN HOSTNAME>" "<VOMS ADMIN PORT>" "<VOMS CERT DN>" "<VO NAME>"
-
     And return two mappings:
-
     1. Case insensitive VO name to their canonical versions
     2. VO certificate DN to URI, i.e. HOSTNAME:PORT
     """
@@ -180,7 +182,9 @@ def voms_proxy_fake(proxy, vo_info):
            '-hostkey', vo_info.key,
            '-uri', vo_info.uri,
            '-fqan', vo_info.fqan,
-           '-rfc']
+           '-path-length', proxy.pathlength]
+    if proxy.rfc:
+        cmd.append('-rfc')
     return _run_command(cmd)
 
 
@@ -213,9 +217,18 @@ def main():
     proxies.remove('COMMON')  # no proxy renewal info in the COMMON section
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
+        if 'rfc' not in proxy_config:
+            proxy_config['rfc'] = True
+        else:
+            if safe_boolcomp(proxy_config['rfc'], False):
+                proxy_config['rfc'] = False
+            else:
+                proxy_config['rfc'] = True
+        if 'path_length' not in proxy_config:
+             proxy_config['path_length'] = '20'
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
                       proxy_config['output'], proxy_config['lifetime'],
-                      fe_user.pw_uid, fe_user.pw_gid)
+                      fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], proxy_config['path_length'])
 
         # Users used to be able to control the frequency of the renewal when they were instructed to write their own
         # script and cronjob. Since the automatic proxy renewal cron/timer runs every hour, we allow the users to
