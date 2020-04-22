@@ -15,7 +15,8 @@ fi
 
 gwms_tag=$1
 username=$2
-osg_buildmachine="library.cs.wisc.edu"
+# At the end of 2019 OSG switched to moria. library still works but is deprecated. was: osg_buildmachine="library.cs.wisc.edu"
+osg_buildmachine="moria.cs.wisc.edu"
 osg_uploaddir="/p/vdt/public/html/upstream/glideinwms/$gwms_tag"
 
 gwms_repo="ssh://p-glideinwms@cdcvs.fnal.gov/cvs/projects/glideinwms"

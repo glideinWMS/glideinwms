@@ -74,15 +74,12 @@ def exe_cmd_script(argv_func,argv=sys.argv):
 def monitorScriptFromList(monitor_file_name, monitor_control_relname,
                           script_list):
     # create the command file
-    fd=open(monitor_file_name, "w")
-    try:
+    with open(monitor_file_name, "w") as fd:
         fd.write("#!/bin/sh\n")
         fd.write("glidein_cmd_startdir=$PWD\n")
         for script_line in script_list:
             fd.write("%s\n"%script_line)
         fd.write('echo Done > "$glidein_cmd_startdir/%s"\n'%monitor_control_relname)
-    finally:
-        fd.close()
 
     os.chmod(monitor_file_name, stat.S_IRWXU)
 

@@ -21,6 +21,7 @@ from glideinwms.factory.glideFactoryLib import FactoryConfig
 from glideinwms.factory.glideFactoryLib import submitGlideins
 from glideinwms.factory.glideFactoryCredentials import SubmitCredentials
 from glideinwms.factory.glideFactoryCredentials import validate_frontend
+from glideinwms.factory.glideFactoryLib import set_condor_integrity_checks
 
 
 def parse_opts():
@@ -34,15 +35,15 @@ def parse_opts():
 
     parser.add_argument(
         '--wms-collector', type=str, action='store', dest='wms_collector',
-        help='COLLECTOR_HOST for WMS Collector (default: current hostname)')
+        help='COLLECTOR_HOST for WMS Collector (current hostname is the default)')
 
     parser.add_argument(
-        '--req-name', type=str, action='store', dest='req_name',
-        help='Factory submission info: Name of the glideclient classad')
+        '--fe-name', type=str, action='store', dest='fe_name',
+        help='Name of the frontend client to use (e.g.: frontent, fecmsglobal, ...). Its credential will be used for submission')
 
     parser.add_argument(
         '--entry-name', type=str, action='store', dest='entry_name',
-        help='Factory entry info: Name of the glideclient classad')
+        help='Name of the entry you want to submit a pilot for')
 
     parser.add_argument(
         '--debug', action='store_true', dest='debug',
@@ -51,10 +52,8 @@ def parse_opts():
 
     options = parser.parse_args()
 
-    if options.req_name is None:
-        logging.error('Missing required option "--req-name"')
-        logging.error(('Example copmmand to find the request name for user fecmsglobal:\n"condor_status -any -const \'MyType=="glideclient" && '
-                      'regexp("^fecmsglobal@.*$", AuthenticatedIdentity)\' -af Name | head -n 1"'))
+    if options.fe_name is None:
+        logging.error('Missing required option "--fe-name"')
         sys.exit(1)
 
     if options.entry_name is None:
@@ -67,9 +66,10 @@ def parse_opts():
 
     # Initialize logging
     if options.debug:
-        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s')
+        logging.getLogger().setLevel(logging.DEBUG)
     else:
-        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+        logging.getLogger().setLevel(logging.INFO)
 
     return options
 
@@ -82,6 +82,18 @@ def log_debug(msg, header=''):
         logging.debug(' %s ', header)
         logging.debug('=' * (len(header) + 2))
     logging.debug(pprint.pformat(msg))
+
+
+def get_reqname(collector, fe_name, entry_name):
+    constraint = 'MyType=="glideclient" && regexp("^%s@.*$", AuthenticatedIdentity) && regexp("^%s@.*$", ReqName)' % (fe_name, entry_name)
+    res = collector.query(htcondor.AdTypes.Any, constraint, ["Name"])
+
+    if len(res) == 0:
+        logging.error("Could not find any frontend request for the specified entry/frontend pair using:")
+        logging.error("condor_status -any -const '%s' -af Name" % constraint)
+        sys.exit(1)
+
+    return res[0]['Name']
 
 
 def main():
@@ -99,7 +111,6 @@ def main():
 
     # Parse command line options
     options = parse_opts()
-    req_name = options.req_name
     entry_name = options.entry_name
     wms_collector = options.wms_collector
 
@@ -107,11 +118,15 @@ def main():
     params = {}
     status_sf = {}
     nr_glideins = 1
-    idle_lifetime = 3600
+    idle_lifetime = 3600 * 24
     factory_config = FactoryConfig()
     glidein_descript = gfc.GlideinDescript()
     frontend_descript = gfc.FrontendDescript()
     collector = htcondor.Collector(wms_collector)
+
+    req_name = get_reqname(collector, options.fe_name, entry_name)
+    logging.debug("Using reques name %s" % req_name)
+
     factory_config.submit_dir = '/var/lib/gwms-factory/work-dir'
     constraint_gc = '(MyType=="glideclient") && (Name=="%s")' % (req_name)
 
@@ -133,9 +148,6 @@ def main():
         proxyid = sym_key_obj.decrypt_hex(ad_gc['GlideinEncParamSubmitProxy'])
         user_name = frontend_descript.get_username(
             frontend_sec_name, security_class)
-        client_name = ad_gc['ClientName'] # GlideinClient
-        # GlideinFrontendName
-        frontend_name = "%s:%s" % (frontend_sec_name, security_class)
 
         # Prepare some values that ends up in the Arguments classad
         # of the pilot, i.e., the ClientWeb instance
@@ -165,28 +177,30 @@ def main():
                          " Check file %s permissions"), fname)
 
         # Set the arguments
+        # I was using escapeParam for GLIDECLIENT_ReqNode and GLIDECLIENT_Collector but turned out it's not necessary
         params['CONDOR_VERSION'] = 'default'
         params['CONDOR_OS'] = 'default'
         params['CONDOR_ARCH'] = 'default'
-        params['GLIDECLIENT_ReqNode'] = escapeParam(ad_gc['GlideinParamGLIDECLIENT_ReqNode'])
+        params['GLIDECLIENT_ReqNode'] = ad_gc['GlideinParamGLIDECLIENT_ReqNode']
         params['GLIDECLIENT_Rank'] = ad_gc.get('GlideinParamGLIDECLIENT_Rank', "1")
-        params['GLIDEIN_Collector'] = escapeParam(ad_gc['GlideinParamGLIDEIN_Collector'])
+        params['GLIDEIN_Collector'] = ad_gc['GlideinParamGLIDEIN_Collector']
         params['USE_MATCH_AUTH'] = ad_gc['GlideinParamUSE_MATCH_AUTH']
         params['Report_Failed'] = 'NEVER'
 
         # Now that we have everything submit the pilot!
         logging.getLogger().setLevel(logging.DEBUG)
-        submitGlideins(entry_name, client_name, int(nr_glideins), idle_lifetime,
-                       frontend_name, credentials, client_web, params,
-                       status_sf, log=logging, factoryConfig=factory_config)
+        submitGlideins(entry_name, "test.test", int(nr_glideins), idle_lifetime,
+                       "test:test", credentials, client_web, params,
+                       status_sf, log=logging.getLogger(), factoryConfig=factory_config)
 
         return 0
 
 if __name__ == '__main__':
+    set_condor_integrity_checks()
     try:
         sys.exit(main())
     except IOError as ioe:
-        if ioe.errno==13:  # Permission denied when accessing the credential
+        if ioe.errno==13: # Permission denied when accessing the credential
             logging.error("Try to run the command as gfactory. Error: %s" % ioe)
         else:
             raise

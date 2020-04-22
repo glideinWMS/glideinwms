@@ -86,25 +86,23 @@ def create_config(fname):
     except IOError as e:
         print("%s" % e)
         sys.exit(2)
+    with fd:
+        fd.write("#################################################\n" +
+                 "# Secondary Collectors\n" +
+                 "#################################################\n\n" +
+                 "#\n" +
+                 "# This file has been dynamically generated\n" +
+                 "# and thus may be different than the templates\n" +
+                 "#\n\n" +
+                 "# Define sub-collectors, their ports and their log files\n")
 
-    fd.write("#################################################\n" +
-             "# Secondary Collectors\n" +
-             "#################################################\n\n" +
-             "#\n" +
-             "# This file has been dynamically generated\n" +
-             "# and thus may be different than the templates\n" +
-             "#\n\n" +
-             "# Define sub-collectors, their ports and their log files\n")
-
-    # still name collector 0,1,etc.
-    i = 0
-    for p in collector_ports:
-        if use_port_as_name:
-            i = p
-        add_collector(i, p, fd)
-        i += 1
-
-    fd.close()
+        # still name collector 0,1,etc.
+        i = 0
+        for p in collector_ports:
+            if use_port_as_name:
+                i = p
+            add_collector(i, p, fd)
+            i += 1
 
 
 def parse_args(args):

@@ -38,6 +38,7 @@ class FrontendConfig:
         self.signature_descript_file = "signatures.sha1"
         self.signature_type = "sha1"
         self.history_file = "history.pk"
+        self.cache_dir = "schedd_ads_cache"
 
 # global configuration of the module
 frontendConfig = FrontendConfig()
@@ -95,8 +96,7 @@ class ConfigFile:
     def load(self,fname,convert_function,
              validate=None): # if defined, must be (hash_algo,value)
         self.data={}
-        fd=self.open(fname)
-        try:
+        with self.open(fname) as fd:
             data=fd.read()
             self.validate_func(data, validate, fname)
             lines=data.splitlines()
@@ -107,8 +107,6 @@ class ConfigFile:
                 if len(string.strip(line))==0:
                     continue # empty line
                 self.split_func(line, convert_function)
-        finally:
-            fd.close()
 
     def split_func(self, line, convert_function):
         larr=string.split(line, None, 1)

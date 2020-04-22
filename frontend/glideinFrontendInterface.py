@@ -404,9 +404,8 @@ class Credential:
             # If not file specified, assume the file used to generate Id
             cred_file = self.getIdFilename()
         try:
-            data_fd = open(cred_file)
-            cred_data = data_fd.read()
-            data_fd.close()
+            with open(cred_file) as data_fd:
+                cred_data = data_fd.read()
         except:
             # This credential should not be advertised
             self.advertize = False
@@ -887,25 +886,23 @@ class MultiAdvertizeWork:
         return []  # no files left to be advertised
     
     def createGlobalAdvertizeWorkFile(self, factory_pool):
-            """
-            Create the advertize file for globals with credentials
-            Expects the object variables
-             adname and x509_proxies_data
-            to be set.
-            """
-            # the different indentation is due to code refactoring
-            # this way the diff was minimized
-            global advertizeGCGounter
+        """
+        Create the advertize file for globals with credentials
+        Expects the object variables
+         adname and x509_proxies_data
+        to be set.
+        """
+        global advertizeGCGounter
 
-            tmpname = self.adname
-            glidein_params_to_encrypt = {}
-            fd = file(tmpname, "a")
+        tmpname = self.adname
+        glidein_params_to_encrypt = {}
+        with open(tmpname, "a") as fd:
             nr_credentials = len(self.x509_proxies_data)
             if nr_credentials > 0:
                 glidein_params_to_encrypt['NumberOfCredentials'] = "%s" % nr_credentials
 
             request_name="Global"
-            if (factory_pool in self.global_params):
+            if factory_pool in self.global_params:
                 request_name, security_name = self.global_params[factory_pool]
                 glidein_params_to_encrypt['SecurityName'] = security_name
             classad_name = "%s@%s" % (request_name, self.descript_obj.my_name)
@@ -929,7 +926,7 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)] = str(cred_el.security_class)
 
             key_obj = None
-            if (factory_pool in self.global_key):
+            if factory_pool in self.global_key:
                 key_obj = self.global_key[factory_pool]
             if key_obj is not None:
                 fd.write(string.join(key_obj.get_key_attrs(), '\n')+"\n")
@@ -943,13 +940,12 @@ class MultiAdvertizeWork:
                 advertizeGCGounter[classad_name] += 1
             else:
                 advertizeGCGounter[classad_name] = 0
-            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
- 
+            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name])
+
             # add a final empty line... useful when appending
             fd.write('\n')
-            fd.close()
 
-            return [tmpname]
+        return [tmpname]
 
     def do_advertize(self, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
         """
@@ -959,14 +955,14 @@ class MultiAdvertizeWork:
         Expects that the credentials have already been loaded.
         """
         if file_id_cache is None:
-            file_id_cache=CredentialCache()
+            file_id_cache = CredentialCache()
 
-        unpublished_files={}
+        unpublished_files = {}
         if reset_unique_id:
-            self.unique_id=1
+            self.unique_id = 1
         for factory_pool in self.factory_queue.keys():
-            self.unique_id+=1 # make sure ads for different factories don't end in the same file
-            unpublished_files[factory_pool]=self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
+            self.unique_id += 1  # make sure ads for different factories don't end in the same file
+            unpublished_files[factory_pool] = self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
         return unpublished_files
 
     def do_advertize_one(self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
@@ -998,12 +994,12 @@ class MultiAdvertizeWork:
             for el in self.factory_queue[factory_pool]:
                 params_obj, key_obj = el
                 try:
-                    filename_arr_el=self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
+                    filename_arr_el = self.createAdvertizeWorkFile(factory_pool, params_obj, key_obj, file_id_cache=file_id_cache)
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
                 except NoCredentialException:
-                    filename_arr = [] # don't try to advertise
+                    filename_arr = []  # don't try to advertise
                     logSupport.log.warning("No security credentials match for factory pool %s, not advertising request;"
                                            " if this is not intentional, check for typos frontend's credential "
                                            "trust_domain and type, vs factory's pool trust_domain and auth_method" %

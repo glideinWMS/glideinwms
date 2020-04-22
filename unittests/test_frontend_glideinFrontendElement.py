@@ -46,17 +46,15 @@ def condor_status_side_effect():
 #        fnm = 'cs.fixture'
 
 def readit(fnm):
-    fdd = open(fnm)
-    lines = fdd.readlines()
-    fdd.close()
+    with open(fnm) as fdd:
+        lines = fdd.readlines()
     return lines
 
 
 def query_factory_side_effect(*args, **kwargs):
     fnm = 'fixtures/frontend/query_factory.fixture'
-    fdd = open(fnm)
-    blob = fdd.read()
-    fdd.close()
+    with open(fnm) as fdd:
+        blob = fdd.read()
     return eval(blob)
 
 

@@ -32,10 +32,10 @@ function exit_script {
     #  1: Error message
     #  2: Exit code (1 by default)
     #  3: sleep time (default: $EXITSLEEP)
-    [ -n "$1" ] && warn_raw "ERROR: $1"
+    [[ -n "$1" ]] && warn_raw "ERROR: $1"
     local exit_code=${2:-1}
     # Publish the error so that HTCondor understands that is a wrapper error and retries the job
-    if [ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]; then
+    if [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]]; then
         warn "Example script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
     fi
     sleep $EXITSLEEP
@@ -47,19 +47,19 @@ function warn_raw {
     echo "$@" 1>&2
 }
 
-[ -z "$glidein_config" ] && [ -e "$GWMS_THIS_SCRIPT_DIR/../glidein_config" ] &&
+[[ -z "$glidein_config" ]] && [[ -e "$GWMS_THIS_SCRIPT_DIR/../glidein_config" ]] &&
     glidein_config="$GWMS_THIS_SCRIPT_DIR/../glidein_config"
 
 # error_gen defined in singularity_lib.sh
-[ -e "$glidein_config" ] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
+[[ -e "$glidein_config" ]] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
 
 # Source utility files, outside and inside Singularity
 # condor_job_wrapper is in the base directory, singularity_lib.sh in main
 # and copied to RUNDIR/$GWMS_AUX_SUBDIR (RUNDIR becomes /srv in Singularity)
-if [ -e "$GWMS_THIS_SCRIPT_DIR/singularity_lib.sh" ]; then
+if [[ -e "$GWMS_THIS_SCRIPT_DIR/singularity_lib.sh" ]]; then
     GWMS_AUX_DIR="$GWMS_THIS_SCRIPT_DIR/"
-elif [ -e /srv/$GWMS_AUX_SUBDIR/singularity_lib.sh ]; then
+elif [[ -e /srv/$GWMS_AUX_SUBDIR/singularity_lib.sh ]]; then
     # In Singularity
     GWMS_AUX_DIR="/srv/$GWMS_AUX_SUBDIR/"
 else
@@ -69,7 +69,7 @@ else
 fi
 source "${GWMS_AUX_DIR}singularity_lib.sh"
 
-info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_util.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
+info_dbg "GWMS singularity wrapper starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config). $GWMS_THIS_SCRIPT, in `pwd`: `ls -al`"
 
 function exit_or_fallback {
     # An error in Singularity occurred. Fallback to no Singularity if preferred or fail if required
@@ -80,12 +80,12 @@ function exit_or_fallback {
     #  2: Exit code (1 by default)
     #  3: sleep time (default: $EXITSLEEP)
     #  $GWMS_SINGULARITY_STATUS
-    if [ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]; then
+    if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]]; then
         # Fall back to no Singularity
         export HAS_SINGULARITY=0
         export GWMS_SINGULARITY_PATH=
         export GWMS_SINGULARITY_REEXEC=
-        [ -n "$1" ] && warn "$1"
+        [[ -n "$1" ]] && warn "$1"
         warn "An error in Singularity occurred, but can fall-back to no Singularity ($GWMS_SINGULARITY_STATUS). Continuing"
     else
         exit_script "${@}"
@@ -101,25 +101,25 @@ function prepare_and_invoke_singularity {
 
     # If  image is not provided, load the default one
     # Custom URIs: http://singularity.lbl.gov/user-guide#supported-uris
-    if [ -z "$GWMS_SINGULARITY_IMAGE" ]; then
+    if [[ -z "$GWMS_SINGULARITY_IMAGE" ]]; then
         # No image requested by the job
         # Use OS matching to determine default; otherwise, set to the global default.
         DESIRED_OS="`list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}"`"
-        if [ -z "$DESIRED_OS" ]; then
+        if [[ -z "$DESIRED_OS" ]]; then
             msg="ERROR   VO (or job) REQUIRED_OS and Entry GLIDEIN_REQUIRED_OS have no intersection. Cannot select a Singularity image."
             exit_or_fallback "$msg" 1
             return
         fi
-        if [ "x$DESIRED_OS" = xany ]; then
+        if [[ "x$DESIRED_OS" = xany ]]; then
             # Prefer the platforms default,rhel7,rhel6, otherwise pick the first one available
-            GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 ${SINGULARITY_IMAGE_RESTRICTIONS:+$SINGULARITY_IMAGE_RESTRICTIONS,}any`"
+            GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any`"
         else
-            GWMS_SINGULARITY_IMAGE="`singularity_get_image "$DESIRED_OS" $SINGULARITY_IMAGE_RESTRICTIONS`"
+            GWMS_SINGULARITY_IMAGE="`singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS`"
         fi
     fi
 
     # At this point, GWMS_SINGULARITY_IMAGE is still empty, something is wrong
-    if [ -z "$GWMS_SINGULARITY_IMAGE" ]; then
+    if [[ -z "$GWMS_SINGULARITY_IMAGE" ]]; then
         msg="\
 ERROR   If you get this error when you did not specify required OS, your VO does not support any valid default Singularity image
         If you get this error when you specified required OS, your VO does not support any valid image for that OS"
@@ -128,7 +128,7 @@ ERROR   If you get this error when you did not specify required OS, your VO does
     fi
 
     # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
-    if [ ! -e "$GWMS_SINGULARITY_IMAGE" ]; then
+    if [[ ! -e "$GWMS_SINGULARITY_IMAGE" ]]; then
         msg="\
 ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         Site and node: $OSG_SITE_NAME `hostname -f`"
@@ -148,7 +148,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         if (cd "$GWMS_SINGULARITY_IMAGE") >/dev/null 2>&1; then
             # This will fail for images that are not expanded in CVMFS, just ignore the failure
             NEW_IMAGE_PATH="`(cd "$GWMS_SINGULARITY_IMAGE" && pwd -P) 2>/dev/null`"
-            if [ "x$NEW_IMAGE_PATH" != "x" ]; then
+            if [[ "x$NEW_IMAGE_PATH" != "x" ]]; then
                 GWMS_SINGULARITY_IMAGE="$NEW_IMAGE_PATH"
             fi
         fi
@@ -158,8 +158,12 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Singularity image is OK, continue w/ other init
 
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
-    if [ "x$GLIDEIN_Tmp_Dir" != "x" -a -e "$GLIDEIN_Tmp_Dir" ]; then
-        export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+    if [[ "x$GLIDEIN_Tmp_Dir" != "x"  &&  -e "$GLIDEIN_Tmp_Dir" ]]; then
+        if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$" ; then
+            export SINGULARITY_WORKDIR="$GLIDEIN_Tmp_Dir/singularity-work.$$"
+        else
+            warn "Unable to set SINGULARITY_WORKDIR to $GLIDEIN_Tmp_Dir/singularity-work.$$. Leaving it undefined."
+        fi
     fi
 
     GWMS_SINGULARITY_EXTRA_OPTS="$GLIDEIN_SINGULARITY_OPTS"
@@ -170,23 +174,23 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
 
     # CVMFS access inside container (default, but optional)
-    if [ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]; then
+    if [[ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]]; then
         GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs`"
     fi
 
     # GPUs - bind outside GPU library directory to inside /host-libs
-    if [ $OSG_MACHINE_GPUS -gt 0 ]; then
-        if [ "x$OSG_SINGULARITY_BIND_GPU_LIBS" = "x1" ]; then
+    if [[ "$OSG_MACHINE_GPUS" -gt 0 ]]; then
+        if [[ "x$OSG_SINGULARITY_BIND_GPU_LIBS" = "x1" ]]; then
             HOST_LIBS=""
-            if [ -e "/usr/lib64/nvidia" ]; then
+            if [[ -e "/usr/lib64/nvidia" ]]; then
                 HOST_LIBS=/usr/lib64/nvidia
             elif create_host_lib_dir; then
                 HOST_LIBS="$PWD/.host-libs"
             fi
-            if [ "x$HOST_LIBS" != "x" ]; then
+            if [[ "x$HOST_LIBS" != "x" ]]; then
                 GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "$HOST_LIBS" /host-libs`"
             fi
-            if [ -e /etc/OpenCL/vendors ]; then
+            if [[ -e /etc/OpenCL/vendors ]]; then
                 GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
             fi
         fi
@@ -198,7 +202,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
-    # notably the user-job-wrapper.sh (this script!) and singularity_util.sh (in $GWMS_AUX_SUBDIR)
+    # notably the user-job-wrapper.sh (this script!) and singularity_lib.sh (in $GWMS_AUX_SUBDIR)
     cp "$GWMS_THIS_SCRIPT" .gwms-user-job-wrapper.sh
     export JOB_WRAPPER_SINGULARITY="/srv/.gwms-user-job-wrapper.sh"
     mkdir -p "$GWMS_AUX_SUBDIR"
@@ -206,7 +210,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to somewhere inside that dir (for example, X509_USER_PROXY)
-    if [ "x$_CONDOR_JOB_IWD" != "x" ]; then
+    if [[ "x$_CONDOR_JOB_IWD" != "x" ]]; then
         export GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
     else
         export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
@@ -222,7 +226,8 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
     singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
-            "$GWMS_SINGULARITY_EXTRA_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY"  "${GWMS_RETURN[@]}"
+             "$GWMS_SINGULARITY_EXTRA_OPTS" "$GWMS_SINGULARITY_GLOBAL_OPTS" "exec" "$JOB_WRAPPER_SINGULARITY" \
+             "${GWMS_RETURN[@]}"
 
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
@@ -239,7 +244,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 #
 
 
-if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
+if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
 
     ################################################################################
     #
@@ -262,7 +267,7 @@ if [ -z "$GWMS_SINGULARITY_REEXEC" ]; then
     #################
 
 
-    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
+    if [[ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]]; then
         #############################################################################
         #
         # Will run w/ Singularity - prepare for it

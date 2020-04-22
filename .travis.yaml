@@ -1,0 +1,45 @@
+language: python
+python:
+  - "2.7"
+# Travis will create a virtualenv by default. The base system is Ubuntu
+
+# Just some useful info and prep work
+before_install:
+  - uname -a
+  - pip install -U pip
+  - pip install -U pytest
+
+  # setup the 'simple major ver' link, missing for some versions on travis-ci....
+  - if [[ ! -e /opt/python/${TRAVIS_PYTHON_VERSION} ]]; then
+        sudo ln -s /opt/python/$(python -c 'import sys;print("%d.%d.%d" % sys.version_info[:3])') /opt/python/${TRAVIS_PYTHON_VERSION};
+    fi
+    
+# command to install dependencies
+install:
+  # see decisionengine_modules if classads need to be extracted from apt package
+  # We should already be here - cd ${TRAVIS_BUILD_DIR}
+  # 
+  - pip install -r requirements.txt
+  - pip install coveralls
+
+# Environment variables
+env:
+  - GLIDEINWMS_SRC="${TRAVIS_BUILD_DIR}"
+  - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
+
+# command to run tests
+script:
+  # - pytest
+  - cd ${GLIDEINWMS_SRC}/unittests
+  - coverage erase
+  - for TST in $(ls test*.py); do
+      echo '========>' $TST
+      coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $TST
+    done
+  - coverage report
+  # - cd `dirname ${TRAVIS_BUILD_DIR}`
+  # - coverage run -m pytest -v -l --tb=native glideinwms
+
+# hook into coveralls
+#after_success:
+#  - coveralls

@@ -77,6 +77,19 @@ class DictFile:
         self.is_readonly=readonly
 
     def add(self, key, val, allow_overwrite=False):
+        """
+
+        Args:
+            key:
+            val:
+            allow_overwrite:
+
+        Returns:
+
+        Raises:
+            RuntimeError
+
+        """
         if key in self.keys:
             if self.vals[key] == val:
                 return  # already exists, nothing to do
@@ -126,13 +139,10 @@ class DictFile:
             os.makedirs(dir)
         filepath=os.path.join(dir, fname)
         try:
-            fd=open(filepath, "w")
+            with open(filepath, "w") as fd:
+                self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating %s: %s"%(filepath, e))
-        try:
-            self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
-        finally:
-            fd.close()
+            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -197,12 +207,10 @@ class DictFile:
             print("Assuming blank, and re-creating...")
             return
         try:
-            try:
+            with fd:
                 self.load_from_fd(fd, erase_first, set_not_changed)
-            except RuntimeError as e:
-                raise RuntimeError("File %s: %s" % (filepath, str(e)))
-        finally:
-            fd.close()
+        except RuntimeError as e:
+            raise RuntimeError("File %s: %s" % (filepath, str(e)))
 
         if change_self:
             self.dir = dir
@@ -278,6 +286,17 @@ class DictFile:
         return "%s \t%s" % (key, self.vals[key])
 
     def parse_val(self, line):
+        """
+        Parse a line and add it to the dictionary
+
+        Args:
+            line:
+
+        Returns:
+
+        Raises:
+            RuntimeError, from self.add()
+        """
         if not line or line[0] == '#':
             return  # ignore comments
         arr = line.split(None, 1)
@@ -583,7 +602,7 @@ class SimpleFileDictFile(DictFile):
             with open(filepath, "r") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
         except IOError as e:
-            raise RuntimeError("Could not open file %s" % filepath)
+            raise RuntimeError("Could not open file or write to it: %s" % filepath)
 
     def format_val(self, key, want_comments):
         """Print lines: only the file name (key) the first item of the value tuple if not None
@@ -628,13 +647,14 @@ class SimpleFileDictFile(DictFile):
             if (not allow_overwrite) and os.path.exists(filepath):
                 raise RuntimeError("File %s already exists" % filepath)
             try:
-                with open(filepath, "w") as fd:
-                    try:
-                        fd.write(fdata)
-                    except IOError as e:
-                        raise RuntimeError("Error writing into file %s" % filepath)
+                fd = open(filepath, "w")
             except IOError as e:
                 raise RuntimeError("Could not create file %s" % filepath)
+            try:
+                with fd:
+                    fd.write(fdata)
+            except IOError as e:
+                raise RuntimeError("Error writing into file %s" % filepath)
 
 
 class FileDictFile(SimpleFileDictFile):
@@ -1039,13 +1059,10 @@ class ExeFile(SimpleFile):
 
         filepath=os.path.join(dir, fname)
         try:
-            fd=open(filepath, "w")
+            with open(filepath, "w") as fd:
+                self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating %s: %s"%(filepath, e))
-        try:
-            self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
-        finally:
-            fd.close()
+            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
         os.chmod(filepath, 0o755)
 
         return

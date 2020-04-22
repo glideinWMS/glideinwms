@@ -68,8 +68,7 @@ class GlideinWMSDistro:
 
             # Load the distro file hastable
             distroFileHash = {}
-            try:
-                distroChksumFd = open(self.distroChksumFile)
+            with open(self.distroChksumFile) as distroChksumFd:
                 for line in distroChksumFd.readlines():
                     if not line.strip().startswith('#'):
                         file = os.path.normpath(((line.split('  '))[1]).strip())
@@ -81,8 +80,6 @@ class GlideinWMSDistro:
                             v = (line[idx+len(self.versionIdentifier):]).strip()
                             if v != "":
                                 ver = v
-            finally:
-                distroChksumFd.close()
 
             if ver != 'UNKNOWN':
                 # Read the dir contents of distro and compute the md5sum

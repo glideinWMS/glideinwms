@@ -66,6 +66,7 @@ class PidSupport:
             fd = open(self.pid_fname, "w")
             fd.close()
 
+        # Do not use 'with' or close the file. Will be closed when lock is released
         fd = open(self.pid_fname, "r+")
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -105,19 +106,17 @@ class PidSupport:
         if not os.path.isfile(self.pid_fname):
             return
 
-        fd = open(self.pid_fname, "r")
-        try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fd.close()
-            # if I can get a lock, it means that there is no process
-            return
-        except IOError:
-            # there is a process
-            # I will read it even if locked, so that I can report what the PID is
-            # if the data is corrupted, I will deal with it later
-            lines = fd.readlines()
-            fd.close()
-            self.lock_in_place = True
+        with open(self.pid_fname, "r") as fd:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # if I can get a lock, it means that there is no process
+                return
+            except IOError:
+                # there is a process
+                # I will read it even if locked, so that I can report what the PID is
+                # if the data is corrupted, I will deal with it later
+                lines = fd.readlines()
+                self.lock_in_place = True
 
         try:
             self.parse_pid_file_content(lines)

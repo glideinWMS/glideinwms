@@ -88,8 +88,7 @@ class MonitoringConfig:
 
         relative_fname = "completed_jobs_%s.log" % time.strftime("%Y%m%d", time.localtime(now))
         fname = os.path.join(self.log_dir, relative_fname)
-        fd = open(fname, "a")
-        try:
+        with open(fname, "a") as fd:
             for job_id in job_ids:
                 el = entered_dict[job_id]
                 username = el['username']
@@ -111,8 +110,6 @@ class MonitoringConfig:
                                                                       ('idle="%i"' % waste_mill['idle']),
                                                                       ('nosuccess="%i"' % waste_mill['nosuccess']),
                                                                       ('badput="%i"' % waste_mill['badput']))))
-        finally:
-            fd.close()
 
     def write_file(self, relative_fname, output_str):
         """
@@ -122,11 +119,8 @@ class MonitoringConfig:
         """
         fname = os.path.join(self.monitor_dir, relative_fname)
         # print "Writing "+fname
-        fd = open(fname + ".tmp", "w")
-        try:
+        with open(fname + ".tmp", "w") as fd:
             fd.write(output_str + "\n")
-        finally:
-            fd.close()
 
         util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
         return
@@ -1240,13 +1234,12 @@ class condorLogSummary:
             completed_wastetime_filename = os.path.join(monitoringConfig.monitor_dir, fe_dir) + "/Log_Completed_WasteTime.json"
 
             try:
-                completed_fp = open(completed_filename)
-                completed_stats_fp = open(completed_stats_filename)
-                completed_wastetime_fp = open(completed_wastetime_filename)
-
-                completed_data = json.load(completed_fp)
-                completed_stats_data = json.load(completed_stats_fp)
-                completed_wastetime_data = json.load(completed_wastetime_fp)
+                with open(completed_filename) as completed_fp:
+                    completed_data = json.load(completed_fp)
+                with open(completed_stats_filename) as completed_stats_fp:
+                    completed_stats_data = json.load(completed_stats_fp)
+                with open(completed_wastetime_filename) as completed_wastetime_fp:
+                    completed_wastetime_data = json.load(completed_wastetime_fp)
 
                 entry_data['frontends'][frontend] = {'completed':completed_data,
                                                  'completed_stats':completed_stats_data,
@@ -1255,10 +1248,6 @@ class condorLogSummary:
                 self.log.info("Could not find files to aggregate in frontend %s" % fe_dir)
                 self.log.info(str(e))
                 continue
-            finally:
-                completed_fp.close()
-                completed_stats_fp.close()
-                completed_wastetime_fp.close()
 
         monitoringConfig.write_completed_json("completed_data", updated, entry_data)
 
@@ -1603,11 +1592,8 @@ class Descript2XML:
                    '<' + root_el + '>\n' + self.getUpdated() + "\n" + xml_str +
                    '</' + root_el + '>')
         fname = path + 'descript.xml'
-        f = open(fname + '.tmp', 'wb')
-        try:
+        with open(fname + '.tmp', 'wb') as f:
             f.write(output)
-        finally:
-            f.close()
 
         util.file_tmp2final(fname)
         return

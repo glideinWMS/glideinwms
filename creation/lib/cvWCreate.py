@@ -17,6 +17,7 @@ import re
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorSecurity
 
+
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
@@ -24,41 +25,50 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
     template = get_template("frontend_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname, "w")
-    try:
-        template = template % {"frontend_dir": frontend_dir, 
-                               "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name,
-                               "rpm_install": rpm_install}
+    template = template % {"frontend_dir": frontend_dir,
+                           "glideinWMS_dir": glideinWMS_dir,
+                           "default_cfg_fpath": cfg_name,
+                           "rpm_install": rpm_install}
+    with open(startup_fname, "w") as fd:
         fd.write(template)
-    finally:
-        fd.close()
 
     os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
     return
 
+
 #########################################
 # Create frontend-specific mapfile
-def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs,pilot_DNs=[]):
-    fd=open(mapfile_fname, "w")
-    try:
-        fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN), 'me'))
+def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collector_DNs, pilot_DNs=[]):
+    """Write a HTCondor map file and add all the provided DNs and map them to the corresponding condor user
+
+    Used to create a frontend-specific mapfile used by the tools
+
+    Args:
+        mapfile_fname (str): path to the map file
+        my_DN (list): list of DNs corresponding to the Frontend (mapped to me)
+        factory_DNs (list): list of DNs corresponding to the Factory (mapped to factory)
+        schedd_DNs (list): list of DNs corresponding to the User schedds (mapped to schedd)
+        collector_DNs (list): list of DNs corresponding to the User collector/s (mapped to collector)
+        pilot_DNs (list): list of DNs corresponding to the pilots (mapped to pilot)
+
+    """
+    with open(mapfile_fname, "w") as fd:
+        fd.write('GSI "^%s$" %s\n' % (re.escape(my_DN), 'me'))
         for (uid, dns) in (('factory', factory_DNs),
-                          ('schedd', schedd_DNs),
-                          ('collector', collector_DNs),
-                          ('pilot', pilot_DNs)):
+                           ('schedd', schedd_DNs),
+                           ('collector', collector_DNs),
+                           ('pilot', pilot_DNs)):
             for i in range(len(dns)):
-                fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]), uid, i))
+                fd.write('GSI "^%s$" %s%i\n' % (re.escape(dns[i]), uid, i))
         fd.write("GSI (.*) anonymous\n")
         # Add FS and other mappings just for completeness
-        # Should never get here
+        # Condor should never get here because these mappings are not accepted
         for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
             fd.write("%s (.*) anonymous\n"%t)
-    finally:
-        fd.close()
         
     return
+
 
 #########################################
 # Create frontend-specific condor_config
@@ -66,8 +76,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
     attrs = condorExe.exe_cmd('condor_config_val', '-dump')
     def_attrs = filter_unwanted_config_attrs(attrs)
 
-    fd=open(config_fname, "w")
-    try:
+    with open(config_fname, "w") as fd:
         fd.write("############################################\n")
         fd.write("#\n")
         fd.write("# Condor config file used by the VO Frontend\n")
@@ -153,9 +162,6 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("########################################################\n")
         fd.write("GSI_DAEMON_PROXY = %s\n" % classad_proxy)
 
-    finally:
-        fd.close()
-        
     return
 
 def filter_unwanted_config_attrs(attrs):
@@ -201,8 +207,7 @@ def filter_unwanted_config_attrs(attrs):
     return attrs
 
 def get_template(template_name, glideinWMS_dir):
-    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
-    template_str = template_fd.read()
-    template_fd.close()
+    with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:
+        template_str = template_fd.read()
 
     return template_str

@@ -198,8 +198,7 @@ def validateMonitorVMStatus(condor_status, monitorVM):
 def createSubmitFile(work_dir,sfile,mlog,
                      mfname,mfout,mferr,
                      monitorVM,timeout,x509_file=None):
-    fd=open(sfile, "w")
-    try:
+    with open(sfile, "w") as fd:
         fd.write("universe=vanilla\n")
         fd.write("executable=%s\n"%mfname)
         fd.write("initialdir=%s\n"%work_dir)
@@ -216,8 +215,6 @@ def createSubmitFile(work_dir,sfile,mlog,
         fd.write('Requirements=(Name=?="%s")&&(Arch=!="Absurd")\n'%monitorVM)
         fd.write("periodic_remove=(CurrentTime>%li)\n"%(long(time.time())+timeout+30)) # karakiri after timeout+delta
         fd.write("queue\n")
-    finally:
-        fd.close()
 
 def checkFile(fname, schedd_name, pool_name,
               timeout, reschedule_freq):
@@ -233,10 +230,6 @@ def checkFile(fname, schedd_name, pool_name,
     raise RuntimeError("Command did not reply within timeout (%ss)"%timeout)
 
 def printFile(fname, outfd):
-    fd=open(fname)
-    try:
+    with open(fname) as fd:
         data=fd.read()
         outfd.write(data)
-    finally:
-        fd.close()
-

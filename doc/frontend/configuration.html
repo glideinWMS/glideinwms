@@ -6,6 +6,7 @@
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+  <link rel="canonical" href="https://glideinwms.fnal.gov/doc.prd/frontend/configuration.html" />
 </head>
 
 <body lang="en-US" dir="ltr">
@@ -356,7 +357,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         &lt;frontend&gt;&lt;match&gt;&lt;job
         query_expr=&quot;<I>expression</I>&quot; &gt;
         </div>
-    A <A HREF="http://research.cs.wisc.edu/htcondor/manual/current/condor_q.html">
+    A <A HREF="https://htcondor.readthedocs.io/en/latest/man-pages/condor_q.html?highlight=condor_q">
     HTCondor constraint</A> to be used with condor_q when looking for user
     jobs.  (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs). If you
     want to consider all user jobs, this can be set to TRUE.
@@ -1003,9 +1004,9 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         <div class="xml">
         &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" group="<i>Group name</i>" /&gt;
         </div>
-        List of <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">
+        List of <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#htcondor-connection-brokering-ccb">
 HTCondor Connection Brokering, or CCB,</a> servers. These are collector daemons that allow communications with HTCondor daemons behind a firewall.
-See the  <a href="https://research.cs.wisc.edu/htcondor/manual/v8.7/NetworkingincludessectionsonPortUsageandCCB.html#x37-3020003.9">HTCondor manual</a>
+See the  <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=CCB#htcondor-connection-brokering-ccb">HTCondor manual</a>
 for more information on CCB. A switch in the entry section of the Factory configuration determines wether the daemons started by Glideins on that entry
 will use CCBs or not.<br><br>
 <b>Normally this section is empty and the main User Pool Collector acts also as CCB if needed</b>.
@@ -1017,7 +1018,7 @@ Only very specific setups need to change this section.
     When you configure a list of CCB servers to use, each daemon will register with all of the given CCB servers and include all of them in its sinful string (the information
     given to others for how to contact it).
     When a client tool or other daemon wishes to contact that daemon, it will try the CCB servers in random order until it gets a successful connection.
-    For more details, (<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_9Networking_includes.html#43687"> see the HTCondor manual</a>).
+    For more details, (<a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=network%20includes#networking-includes-sections-on-port-usage-and-ccb"> see the HTCondor manual</a>).
     Daemons on the same host using a shared port daemon will share the same CCBs.<br>
     NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
     any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>

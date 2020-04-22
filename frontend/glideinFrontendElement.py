@@ -34,7 +34,9 @@ from glideinwms.lib import symCrypto, pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
+from glideinwms.lib import condorMonitor
 from glideinwms.lib import servicePerformance
+from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
@@ -178,6 +180,10 @@ class glideinFrontendElement:
 
         self.glidein_config_limits = {}
         self.set_glidein_config_limits()
+
+        # Initialize the cache for the schedd queries
+        cache_dir = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.cache_dir)
+        condorMonitor.disk_cache = DiskCache(cache_dir)
 
 
     def configure(self):
@@ -1628,6 +1634,14 @@ class glideinFrontendElement:
 
 
     def get_condor_q(self, schedd_name):
+        """Retrieve the jobs a schedd is requesting
+
+        Args:
+            schedd_name (str): the schedd name
+
+        Returns (dict): a dictionary with all the jobs
+
+        """
         condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
@@ -1635,9 +1649,9 @@ class glideinFrontendElement:
                 condorq_format_list = list(condorq_format_list) + list(self.x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509userproxy', 's'),))
+            condorq_format_list = list(condorq_format_list)+list((('x509UserProxyFirstFQAN', 's'),))
+            condorq_format_list = list(condorq_format_list)+list((('x509UserProxyFQAN', 's'),))
+            condorq_format_list = list(condorq_format_list)+list((('x509userproxy', 's'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
                                expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),
@@ -1793,8 +1807,20 @@ class glideinFrontendElement:
 
 
     def do_match(self):
-        """Do the actual matching.  This forks subprocess_count as children
-        to do the work in parallel. """
+        """Do the actual matching.
+
+        This forks subprocess_count... methods as children to do the work in parallel:
+        - self.subprocess_count_glidein
+        - self.subprocess_count_real
+        - self.subprocess_count_dt
+
+        The results are stored in 2 dictionaries:
+        - self.count_status_multi, self.count_status_multi_per_cred
+        - self.count_real_jobs, self.count_real_glideins
+        - self.condorq_dict_types
+
+        :return:
+        """
 
         # IS: Heuristics of 100 glideins per fork
         #     Based on times seen by CMS
@@ -1803,7 +1829,8 @@ class glideinFrontendElement:
         glidein_list = self.glidein_dict.keys()
         # split the list in equal pieces
         # the result is a list of lists
-        split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
+        split_glidein_list = [glidein_list[i:i+glideins_per_fork]
+                              for i in range(0, len(glidein_list), glideins_per_fork)]
 
         forkm_obj = ForkManager()
 
@@ -1846,10 +1873,11 @@ class glideinFrontendElement:
 
 
     def subprocess_count_dt(self, dt):
-        """Make match calculations of glideins matching entries (invoked in parallel)
+        """Count the matches (glideins matching entries) using glideinFrontendLib.countMatch
+        Will make calculations in parallel, using multiple processes
 
-        @param dt: index within the data dictionary
-        @return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
+        :param dt: index within the data dictionary
+        :return: Tuple of 5 elements: count, prop, hereonly, prop_mc, total
         """
 
         out = ()
@@ -1867,14 +1895,18 @@ class glideinFrontendElement:
 # Data will be saved into /tmp/frontend_dump/ . Make sure to create the dir beforehand.
 #                        group_name=self.group_name
                         )
-        t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+        t = glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out = (c, p, h, pmc, t)
 
         return out
 
     def subprocess_count_real(self):
-        # will make calculations in parallel,using multiple processes
+        """Count the jobs running on the glideins for these requests using glideinFrontendLib.countRealRunning
+        Will make calculations in parallel,using multiple processes
+
+        :return: count_real_jobs, count_real_glideins
+        """
         out = glideinFrontendLib.countRealRunning(
                   self.elementDescript.merged_data['MatchExprCompiledObj'],
                   self.condorq_dict_running,
@@ -1885,20 +1917,21 @@ class glideinFrontendElement:
         return out
 
     def subprocess_count_glidein(self, glidein_list):
-        """
+        """Count glideins statistics
         Will make calculations in parallel, using multiple processes
-        @param glidein_list:
-        @return:
+
+        :param glidein_list:
+        :return:
         """
         out = ()
 
-        count_status_multi={}
+        count_status_multi = {}
         # Count distribution per credentials
         count_status_multi_per_cred = {}
         for glideid in glidein_list:
-            request_name=glideid[1]
+            request_name = glideid[1]
 
-            count_status_multi[request_name]={}
+            count_status_multi[request_name] = {}
             count_status_multi_per_cred[request_name] = {}
             for cred in self.x509_proxy_plugin.cred_list:
                 count_status_multi_per_cred[request_name][cred.getId()] = {}
@@ -1964,7 +1997,7 @@ def check_parent(parent_pid):
 ############################################################
 def write_stats(stats):
     for k in stats.keys():
-        stats[k].write_file();
+        stats[k].write_file()
 
 
 ############################################################

@@ -346,8 +346,7 @@ def extractLogData(fname):
     size = os.path.getsize(fname)
     if size<10:
         return copy.deepcopy(EMPTY_LOG_DATA)
-    fd=open(fname, 'r')
-    try:
+    with open(fname, 'r') as fd:
         buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
         try:
             buf_idx=0
@@ -425,8 +424,6 @@ def extractLogData(fname):
 
         finally:
             buf.close()
-    finally:
-        fd.close()
 
     out={'condor_started':condor_starting}
     if validation_duration is not None:

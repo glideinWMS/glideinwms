@@ -1,3 +1,49 @@
+v3_6_2
+	Add a portable condor_chirp for user jobs running in the glideins
+	Automate the generation of factory configuration
+	Improve control of setup of module and spack in Singularity using MODULE_USE
+	Adding GPU monitor as default for pilots
+	Reduce number of queries from Frontend to User collector
+	Make lgwms-logcat.sh work with non standard factory instance names
+	Bug fix: Pilot using an expired proxy when authenticating to the collector
+	Bug fix: CI issues (coverage broken in SL6, script selection affected by file name)
+	Bug fix: Incorrect CERTIFICATE_MAPFILE used when using HTCondor python binding (failed schedd authentication)
+	Bug fix: Fix release manager relative imports
+	Bug fix: Broken submission to GCE and AWS
+	Bug fix: Correct how entry_ls detect an rpm installation
+	Bug fix: Adjust size of ClusterId and ProcessId fields for the condor_q custom format
+	Bug fix: Total of frontend info is 0 in Factory monitring
+
+v3_6_1
+	Added compatibility w/ HTCondor 8.8.x in OSG 3.5
+	Monitoring pages use https if available
+	Improved search and testing of Singularity binary
+	Unset LD_LIBRARY_PATH and PATH for jobs in Singularity
+	Updated documentation links and Google search
+	Improved CI testing
+	Stop considering held limits when counting maximum jobs in Factory
+	Bug fix: Fix Fatcory tools (entry_rm, entry_q and entry_ls) to be more verbose with single user Factory
+	Bug fix: Removed hardcoded CVMFS requirement for Singularity
+	Bug fix: Improve diagnostic messages when rsa.key file is corrupted
+	Bug fix: Improve control of the worker node draining, avoiding to stop accepting jobs as soon as the draining file is present
+
+v3_6
+	Renaming of v3_5_1 (released on 9/18) to respect the odd/even numbering
+	Includes all 3.4.6 features
+	Updated SW and docs for the change in OSG factories
+	Updated all the obsolete links to HTCondor manual in GlideinWMS website
+	Set up an ITB Frontend for GWMS and FIFE testing
+	Updated gitattributes to resolve conflicts w/ checksum files
+	Added editorconfig and default encoding
+	GlideinWMS code will use now Google docstring format
+	Advertise if a Glidein can use privileged or unprivileged Singularity
+	Check if single user factory migration script has been run before startup
+	Bug fix: pip errors in nightly CI
+	Bug fix: Unittest failing at times on SL7
+	Bug fix: Factory could start also w/ a GT2 entry enabled
+	NOTE: v3_6 is fully interoperable w/ v3_5 and v3_4. I.e. You can mix v3_6_x, v3_5_x and v3_4_x Factories and Frontends in your system
+	NOTE-FACTORY: The v3.6 Factory (like v3.5) is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to:\ 1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. For detailed instructions see http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
+
 v3_5    Removed support for Globus GRAM (GT2/GT5)
         Removed dependency on condor_root_switchboard
         Improved release scripts release.py and osg-release.sh (better help and error messages)
@@ -7,11 +53,21 @@ v3_5    Removed support for Globus GRAM (GT2/GT5)
         Bug fix: Incorrect exception handling glideinFrontendElement.py::populate_pubkey
         Bug fix: Entries in downtime setting seems not to work correctly
         Bug fix: GlideinWMS proxy renewal service broken for Xenon
-	NOTE: v3_5 and v3_4 are fully interoperable. I.e. You can mic v3_5 and v3_4_x Factories and Frontends in your system
+        NOTE: v3_5 and v3_4 are fully interoperable. I.e. You can mic v3_5 and v3_4_x Factories and Frontends in your system
         NOTE-FACTORY: The v3.5 Factory is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to: 
           1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. 
           For detailed instructions see: http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
 
+v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings (Fermilab Frontend not communicating w/ upgraded Factory)
+        Backport: GlideinWMS proxy renewal service broken for Xenon
+        Add always --contain to the Singularity invocation and update wrapper adding improvement in the OSG one
+        Document and expand multi-node Glidein
+        Document usage of ignore_down_entries
+        Bug fix: Not escaped comma in GSI_DAEMON_NAME causing problems
+        Bug fix: Debug options causing Singularity invocation to fail
+        Bug fix: Singularity workdir creation failing at some sites
+        Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758) 
+        
 v3_4_5  Add a bind mount for /etc/localtime in Singularity
         Bug fix: Strings evaluated as boolean (New error preventing the Frontend fo match jobs)
 

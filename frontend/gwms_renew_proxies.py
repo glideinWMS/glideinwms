@@ -179,7 +179,8 @@ def voms_proxy_fake(proxy, vo_info):
            '-hostcert', vo_info.cert,
            '-hostkey', vo_info.key,
            '-uri', vo_info.uri,
-           '-fqan', vo_info.fqan]
+           '-fqan', vo_info.fqan,
+           '-rfc']
     return _run_command(cmd)
 
 

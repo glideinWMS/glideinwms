@@ -228,16 +228,12 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
             # could be a race condition
             pass
 
-    fd = open(lock_fname, "r+")
-
-    try:
+    with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             status.load(status_constraint)
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
-    finally:
-        fd.close()
 
     data = status.fetchStored()
 
@@ -296,6 +292,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
         invalid_classad = False
 
         for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
+            # TODO: useless for, only one element
             plen = len(prefix)
             for attr in kel:
                 if attr in reserved_names:
@@ -406,15 +403,12 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
             # could be a race condition
             pass
 
-    fd=open(lock_fname, "r+")
-    try:
+    with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             status.load(status_constraint)
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
-    finally:
-        fd.close()
 
     data = status.fetchStored()
 
@@ -656,11 +650,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
                              factory_collector=factory_collector)
     finally:
         # Unable to write classad
-        try:
-            os.remove(tmpnam)
-        except:
-            # Do the possible to remove the file if there
-            pass
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
@@ -668,18 +658,15 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gf')
-    fd = file(tmpnam, "w")
+    # TODO: use tempfile
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
             fd.write('Requirements = (Name == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factory_id))
-        finally:
-            fd.close()
-
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -687,36 +674,31 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfg')
-    fd = file(tmpnam, "w")
+    # TODO: use tempfile
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_global)
             fd.write('Requirements = (Name == "%s@%s")&&(GlideinMyType == "%s")\n' % (glidein_name, factory_name, factoryConfig.factory_id))
-        finally:
-            fd.close()
-
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        _remove_if_there(tmpnam)
+
 
 def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Deadvertize all entry and global classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_fact')
-    fd = file(tmpnam, "w")
+    # TODO: use tempfile
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
             fd.write('Requirements = (FactoryName =?= "%s")&&(GlideinName =?= "%s")\n' % (factory_name, glidein_name))
-        finally:
-            fd.close()
-
         exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        _remove_if_there(tmpnam)
 
 
 ############################################################
@@ -851,9 +833,8 @@ def createGlideinClientMonitoringFile(fname,
     else:
         open_type = "w"
 
-    fd = file(fname, open_type)
     try:
-        try:
+        with open(fname, open_type) as fd:
             limits = ('IdleGlideinsPerEntry', 'HeldGlideinsPerEntry', 'TotalGlideinsPerEntry')
             for limit in limits:
                 if limit in limits_triggered:
@@ -893,11 +874,10 @@ def createGlideinClientMonitoringFile(fname,
                         fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
             # add a final empty line... useful when appending
             fd.write('\n')
-        finally:
-            fd.close()
     except:
         # remove file in case of problems
-        os.remove(fname)
+        if os.path.exists(fname):
+            os.remove(fname)
         raise
 
 
@@ -941,18 +921,17 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
     Deadvertize  monitoring classads for the given entry.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
-    fd = file(tmpnam, "w")
+    # TODO: use tempfile
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id))
-        finally:
-            fd.close()
+            fd.write('Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n' %
+                     (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id))
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        _remove_if_there(tmpnam)
 
 
 def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
@@ -960,18 +939,17 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
     Deadvertize all monitoring classads for this factory.
     """
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
-    fd = file(tmpnam, "w")
+    # TODO: use tempfile
     try:
-        try:
+        with open(tmpnam, "w") as fd:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")' % (factory_name, glidein_name, factoryConfig.factoryclient_id))
-        finally:
-            fd.close()
+            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")' %
+                     (factory_name, glidein_name, factoryConfig.factoryclient_id))
 
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
-        os.remove(tmpnam)
+        _remove_if_there(tmpnam)
 
 
 ############################################################
@@ -979,6 +957,15 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
 # I N T E R N A L - Do not use
 #
 ############################################################
+
+def _remove_if_there(fname):
+    """Remove the file and ignore errors (e.g. file not there)"""
+    try:
+        os.remove(fname)
+    except OSError:
+        # Do the possible to remove the file if there
+        pass
+
 
 # serialize access to the Collector accross all the processes
 # these is a single Collector anyhow
@@ -998,15 +985,12 @@ def exe_condor_advertise(fname, command,
             # could be a race condition
             pass
 
-    fd = open(lock_fname, "r+")
-    try:
+    with open(lock_fname, "r+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             ret = condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp,
                                                 is_multi, factory_collector)
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
-    finally:
-        fd.close()
 
     return ret

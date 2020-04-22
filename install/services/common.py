@@ -38,14 +38,11 @@ def write_file(mode,perm,filename,data,SILENT=False):
       logit("Appending to file: %s" % filename)
   else:
     logerr("Internal error in accessing write_file method: Invalid mode(%s)" % mode)
-  fd = open(filename, mode)
-  try:
-    try:    
-      fd.write(data)
-    except Exception as e:
-      logerr("Problem writing %s: %s" % (filename, e))
-  finally:
-    fd.close()
+  with open(filename, mode) as fd:
+      try:    
+        fd.write(data)
+      except Exception as e:
+        logerr("Problem writing %s: %s" % (filename, e))
   os.chmod(filename, perm) 
 
 #--------------------------
@@ -98,9 +95,9 @@ this node.  Not something you really want to do""")
 def not_writeable(dirname):
   test_fname=os.path.join(dirname, "test.txt")
   try:
-    fd=open(test_fname, "w")
-    fd.close()
-    os.unlink(test_fname)
+     fd=open(test_fname, "w")
+     fd.close()
+     os.unlink(test_fname)
   except:
     return True
   return False
@@ -167,12 +164,9 @@ def cron_append(lines,tmp_dir='/tmp'):
   try:
     cmd = "crontab -l >%s" % tmp_fname
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
-    fd=open(tmp_fname, 'a')
-    try:
-      for line in lines:
-        fd.writelines(line)
-    finally:
-      fd.close()
+    with open(tmp_fname, 'a') as fd:
+        for line in lines:
+          fd.writelines(line)
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd("cat %s" % tmp_fname)
     logit(stdout)
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd("crontab %s" % tmp_fname)

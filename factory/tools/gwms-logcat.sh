@@ -4,6 +4,7 @@
 TOOLDIR="`python -c 'import glideinwms; print glideinwms.__path__[0]'`/factory/tools"
 JOBLOGROOTPREFIX=/var/log/gwms-factory/client
 FEUSER=user_frontend
+INSTANCE_NAME=glidein_gfactory_instance
 JOBLOGPREFIX=/var/log/gwms-factory/client/user_frontend/glidein_gfactory_instance/entry_
 #server logs JOBLOGPREFIX=/var/log/gwms-factory/server/entry_
 # TODO: substitute with a real temp file and delete after use (or print file name)
@@ -29,7 +30,8 @@ $0 -l
   -l       list all entries (arguments are ignored)
   -a       list only entries that were active (has at least one job) - used with '-l', ignored otherwise
   -u USER  to use a different user (job owner) from the default frontend one
-  -r       Remote running jobs. pilot_launcher.log is fetched from the VM 
+  -i INAME to use a different factory instance name from the default glidein_gfactory_instance one
+  -r       Remote running jobs. pilot_launcher.log is fetched from the VM
   -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
   -f URL   Forward the information (to a folder: file:///path/ via copy or a URL http:// via post)
 EOF
@@ -83,7 +85,7 @@ function list_all_entries {
   echo "$ulist"
   for i in $ulist; do
     echo "#ENTRY LIST for USER: $i"
-    JOBLOGPREFIX="$JOBLOGROOTPREFIX/$i/glidein_gfactory_instance/entry_"
+    JOBLOGPREFIX="$JOBLOGROOTPREFIX/$i/$INSTANCE_NAME/entry_"
     [ -n "$FORWARD_URL" ] && forward_entries || list_entries
   done
 }
@@ -168,7 +170,7 @@ function forward_entries {
 }
 
 
-while getopts "lhc:o:u:f:rav" option
+while getopts "lhc:o:u:f:i:rav" option
 do
   case "${option}"
   in
@@ -179,12 +181,13 @@ do
   c) CONFIG_FNAME=$OPTARG;;
   u) FEUSER=$OPTARG;;
   f) FORWARD_URL=$OPTARG;; 
+  i) INSTANCE_NAME=$OPTARG;;
   a) ACTIVE=yes
   esac
 done
 
 find_dirs
-JOBLOGPREFIX="$JOBLOGROOTPREFIX/$FEUSER/glidein_gfactory_instance/entry_"
+JOBLOGPREFIX="$JOBLOGROOTPREFIX/$FEUSER/$INSTANCE_NAME/entry_"
 
 if [ -n "$LIST_ENTRIES" ]; then 
   list_all_entries 

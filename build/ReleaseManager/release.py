@@ -1,12 +1,16 @@
 #!/usr/bin/python -B
 
+from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import os
-import getopt
 import optparse
 
-import ReleaseManagerLib
+# Necessary to allow relative import when started as executable
+if __name__ == "__main__" and __package__ is None:
+    sys.path.append(os.path.join(sys.path[0], '..'))
+    __package__ = "ReleaseManager"
+from ReleaseManager import ReleaseManagerLib
 
 
 def manager_version():
