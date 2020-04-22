@@ -105,6 +105,7 @@ class VO(object):
         self.key = None
         self.uri = None
 
+
 def _safe_int(string_var):
     """Convert a string to an integer. If the string cannot be cast, return 0.
     """
@@ -124,8 +125,11 @@ def _run_command(command):
 
 def parse_vomses(vomses_contents):
     """Parse the contents of a vomses file with the the following format per line:
+
     "<VO ALIAS> " "<VOMS ADMIN HOSTNAME>" "<VOMS ADMIN PORT>" "<VOMS CERT DN>" "<VO NAME>"
+
     And return two mappings:
+
     1. Case insensitive VO name to their canonical versions
     2. VO certificate DN to URI, i.e. HOSTNAME:PORT
     """
