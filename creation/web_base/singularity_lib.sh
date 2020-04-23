@@ -103,11 +103,13 @@ SCRIPT_LOG=
 
 info_stdout () {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"
+    true  # Needed not to return false if the test if the test above is false
 }
 
 info_raw () {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
+    true  # Needed not to return false if the test if the test above is false
 }
 
 info () {
@@ -129,6 +131,7 @@ warn () {
 warn_raw () {
     echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
+    true  # Needed not to return false if the test if the test above is false
 }
 
 
@@ -403,12 +406,12 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
             # make sure we don't source a second time inside the container
             export SOURCED_ADD_CONFIG_LINE=1
         else
-            warn "glidein_config defined but add_config_line ($add_config_line_source) not available. Some functions like advertise will be limited."
+            warn "glidein_config defined but add_config_line ($add_config_line_source) not available. Some functions like advertise will be limited." || true
         fi
     fi
 else
     # glidein_config not available
-    warn "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited."
+    warn "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited." || true
     [[ -z "$error_gen" ]] && error_gen=warn
     glidein_config=NONE
 fi
@@ -469,6 +472,284 @@ advertise_safe () {
         echo "$key = \"$value\""
     else
         echo "$key = $value"
+    fi
+}
+
+
+# The following four functions (htc_...) are based mostly on Carl Edquist's code to parse the HTCondor file
+htc_setmatch () {
+  local __=("$@")
+  set -- "${BASH_REMATCH[@]}"
+  shift
+  eval "${__[@]}"
+}
+
+htc_rematch () {
+  [[ $1 =~ $2 ]] || return 1
+  shift 2
+  htc_setmatch "$@"
+}
+
+
+htc_get_vars_from_env_str () {
+  local str_arr condor_var_string=""
+  env_str=${env_str#'"'}
+  env_str=${env_str%'"'}
+  # Strip out escaped whitespace
+  while htc_rematch "$env_str" "(.*)'([[:space:]]+)'(.*)" env_str='$1$3'
+  do :; done
+
+  # Now, split the string on whitespace
+  read -ra str_arr <<<"${env_str}"
+
+  # Finally, parse each element of the array.
+  # They should each be name=value assignments,
+  # and we only need to grab the name
+  vname_regex="(^[_a-zA-Z][_a-zA-Z0-9]*)(=)[.]*"
+  for assign in "${str_arr[@]}"; do
+      if [[ "$assign" =~ $vname_regex ]]; then
+	  condor_var_string="$condor_var_string ${BASH_REMATCH[1]}"
+      fi
+  done
+  echo "$condor_var_string"
+}
+
+
+htc_parse_env_file () {
+    shopt -s nocasematch
+    while read -r attr eq env_str; do
+	if [[ $attr = Environment && $eq = '=' ]]; then
+	    htc_get_vars_from_env_str
+	    break
+	fi
+    done < "$1"
+    shopt -u nocasematch
+}
+
+
+env_clear_one () {
+    # Clear the environment variable and print a info message
+    # In
+    #  1 - name of the variable to clear, e.g. LD_LIBRARY_PATH
+    local varname="GWMS_OLDENV_$1"
+    if [[ -n "${!1}" ]]; then
+        info "GWMS Singularity wrapper: $1 is set to ${!1} outside Singularity. This will not be propagated to inside the container instance."
+        export ${varname}="${!1}"
+        unset $1
+    fi
+}
+
+
+env_process_options () {
+    # The options string is a list of any of the following:
+    #   clearall - clear all from the environment (at your own risk)
+    #   condorset - _CONDOR_ env variables AND variables set in the job ClassAd (Environment)
+    #   osgset - set of OSG variables (get it from OSG wrapper). Implied condorset
+    #   gwmsset - set of GWMS utilities variables
+    #   clear - same as: clearall,gwmsset,osgset,condorset
+    #   clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default)
+    #   keepall - clear no variable, incompatible w/ any clear... option
+    # Inconsistencies should be checked by configuration validation
+    # In
+    #  1 - environment options
+    # Out
+    #  stdout - normalized environment options
+    local retval
+    if [[ -z "$1" ]]; then
+        retval=clearpath
+    else
+        # Verify consistency and normalize
+        [[ ",${1}," = *",clear"* && ",${1}," = *",keepall,"* ]] &&
+            warn "Inconsistent container environment options: keepall will be ignored because a clear option is present"
+        retval=${1}
+        [[ ",${retval}," = *",clear,"* ]] && retval="${retval},clearall,gwmsset,osgset,condorset"
+        [[ ",${retval}," = *",osgset,"* && ! ",${retval}," = *",condorset,"* ]] && retval="${retval},condorset"
+
+    fi
+    echo "$retval"
+}
+
+
+env_clear () {
+    # If requested in the env options, clear the PATH vasiables and add the singularity option
+    # In
+    #  1 - list of environment options (see env_process_options)
+    #  2 - singularity options (GWMS_SINGULARITY_EXTRA_OPTS)
+    # Out
+    #  stdout - modified singularity option (w/ cleanenv option added if needed)
+    local env_options=",$(env_process_options "$1"),"
+    local singularity_opts="$2"
+    if [[ "${env_options}" = *",clearall,"* ]]; then
+        # add cleanenv option to singularity
+        singularity_opts="$singularity_opts --cleanenv"
+        info "Instructing Singularity to clean the environment as requested"
+    fi
+    if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
+        # clear the ...PATH variables
+        # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+            env_clear_one ${i}
+        done
+    fi
+    echo "${singularity_opts}"
+}
+
+
+env_gets_cleared () {
+    # True if Singularity is set to clear the environment
+    [[ " ${1} " = *" --cleanenv "* ]]
+}
+
+
+env_preserve () {
+    # If we are cleaning the environment, then we also need to "protect" (by exporting)
+    # variables that will be transformed into certain critical variables
+    # inside the container.
+    # Note, we don't deal with PATH, which requires
+    # requires some care, as a user could conceivably set not just
+    # SINGULARITYENV_PATH, but also either of SINGULARITYENV_PREPEND_PATH
+    # or SINGULARITYENV_APPEND_PATH.
+    #
+    # The list of variables below that are transformed should be any variable
+    # that is exported during the first execution of this script (above), or
+    # which is inspected or manipulated during the second execution of this
+    # script.  Maybe also others...
+    #
+    # Note on future proofing: if additional variables are exported above
+    # or referenced during the second execution of this script, they will
+    # also need to be added to this list.  I don't know an elegant way
+    # to automate that process.
+
+    # In
+    #  1 - list of environment options (see env_process_options)
+
+    # Variables used in the "inside Singularity" and "Setup for job execution" of the singularity_wrapper
+    # Other important GWMS variables
+    envvars_gwmsset="GWMS_SINGULARITY_REEXEC \
+    GLIDEIN_Proxy_URL \
+    MODULE_USE \
+    InitializeModulesEnv \
+    XRD_PLUGINCONFDIR \
+    POSIXSTASHCACHE \
+    STASHCACHE \
+    STASHCACHE_WRITABLE \
+    LoadModules \
+    GWMS_AUX_SUBDIR"
+
+    envvars_osgset="OSG_SINGULARITY_REEXEC \
+    _CHIRP_DELAYED_UPDATE_PREFIX \
+    CONDOR_PARENT_ID \
+    GLIDEIN_ResourceName \
+    GLIDEIN_Site \
+    HAS_SINGULARITY \
+    http_proxy \
+    InitializeModulesEnv \
+    LIGO_DATAFIND_SERVER \
+    OSG_MACHINE_GPUS \
+    OSG_SINGULARITY_AUTOLOAD \
+    OSG_SINGULARITY_BIND_CVMFS \
+    OSG_SINGULARITY_CLEAN_ENV \
+    OSG_SINGULARITY_IMAGE \
+    OSG_SINGULARITY_IMAGE_DEFAULT \
+    OSG_SINGULARITY_IMAGE_HUMAN \
+    OSG_SINGULARITY_OUTSIDE_PWD \
+    OSG_SINGULARITY_PATH \
+    OSG_SITE_NAME \
+    OSGVO_PROJECT_NAME \
+    OSGVO_SUBMITTER \
+    OSG_WN_TMP \
+    POSIXSTASHCACHE \
+    SINGULARITY_WORKDIR \
+    STASHCACHE \
+    STASHCACHE_WRITABLE \
+    TZ \
+    X509_USER_CERT \
+    X509_USER_KEY \
+    X509_USER_PROXY"
+
+    local env_options=",$(env_process_options "$1"),"
+    local env_preserve=
+    local all_condor_set_envvars varname singenv_condor_set_envvars="" singenv_regex="^SINGULARITYENV_"
+    # Protect GWMS variables all the time the environment is cleared
+    env_preserve="$env_preserve $envvars_gwmsset"
+#    if [[ "${env_options}" = *",gwmsset,"* ]]; then
+#        # protect the variables in GWMS set
+#        env_preserve="$env_preserve $envvars_gwmsset"
+#    fi
+    if [[ "${env_options}" = *",osgset,"* ]]; then
+        # protect the variables in OSG set
+        env_preserve="$env_preserve $envvars_osgset"
+    fi
+    if [[ "${env_options}" = *",condorset,"* ]]; then
+        # protect the variables in HTCondor set
+
+        # Determine all the _CONDOR_* variable names
+        env_preserve="$env_preserve $(env -0 | tr '\n' '\\n' | tr '\0' '\n' | tr '=' ' ' | awk '{print $1;}' | grep ^_CONDOR_)"
+        # Determine all the environment variables from the job ClassAd
+        if [[ -e "$_CONDOR_JOB_AD" ]]; then
+            all_condor_set_envvars=$(htc_parse_env_file "$_CONDOR_JOB_AD")
+            for varname in ${all_condor_set_envvars}; do
+                if [[ "$varname" =~ ${singenv_regex} ]]; then
+                    singenv_condor_set_envvars="$singenv_condor_set_envvars $varname"
+                else
+                    envvars_condorset="$envvars_condorset $varname"
+                fi
+            done
+            # If the user set variables of the form SINGULARITYENV_VARNAME,
+            # then warn them and unset those variables
+            if [ -n "${singenv_condor_set_envvars}" ]; then
+                warn "The following variables beginning with 'SINGULARITYENV_' were set in the HTCondor " \
+                     "submission file and will not be propagated: ${singenv_condor_set_envvars}"
+                for varname in ${singenv_condor_set_envvars}; do
+                    unset $varname
+                done
+            fi
+        fi
+    fi
+    # should it do something for keepall?
+
+    # Add to the list to preserve to Singularity
+    # TODO: revise this once Singularity supports env-file (3.6)
+    info_dbg "Protecting the following variables by setting SINGULARITYENV_ variables: $env_preserve"
+    for varname in ${env_preserve}; do
+        # If any of the variables above are unset, we don't want to
+        # accidentally propagate that into the container as set but empty.
+        # Note the test below could be simplified in bash 4.2+ using -v, but not
+        # sure what we can assume.
+        if [[ -n "${!varname+x}" ]]; then
+            newname="SINGULARITYENV_${varname}"
+            # If there's already a variable of the form SINGULARITYENV_varname set,
+            # then do nothing.  Unsure if this should  be removed if setting up
+            # the condor-specified environment inside the container is implemented.
+            if [[ -z ${!newname+x} ]]; then
+                export $newname=${!varname}
+            fi
+        fi
+    done
+
+}
+
+
+env_restore () {
+    # Restore the environment if the Singularity invocation fails
+    # Nothing to do for the env cleared by Singularity, we are ourside of it.
+    # The PATH... variables may need to be restored.
+    #
+    # In Singularity there is nothing to do.
+    # The PATH... variables are not desirable. Using SINGULARITYENV_ Singularity will do the rest
+    #
+    # In
+    #  1 - list of environment options (see env_process_options)
+    local env_options=",$(env_process_options "$1"),"
+    local varname
+    if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
+        # clear the ...PATH variables
+        # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
+        info "Restoring the cleared PATH, LD_LIBRARY_PATH, PYTHONPATH"
+        for i in PATH LD_LIBRARY_PATH PYTHONPATH ; do
+            varname="GWMS_OLDENV_$i"
+            export ${i}="${!varname}"
+        done
     fi
 }
 
@@ -585,6 +866,7 @@ singularity_exec () {
     #  4 - Singularity extra options (NOTE: this is not quoted, so spaces will be interpreted as separators)
     #  5 - Singularity global options, before the exec command (NOTE: this is not quoted, so spaces will be interpreted as separators)
     #  6 - Execution options: exec (exec singularity)
+    #  7 and more - Command to be executed and its options
     #  PWD
     # Out:
     # Return:
@@ -786,7 +1068,10 @@ singularity_test_bin () {
         sin_path=$(which singularity)
     fi
     local bread_crumbs=" $step($sin_path):"
-    [[ -z "$sin_path" ]] && { echo "$bread_crumbs"; false; return; }
+    if [[ -z "$sin_path" ]]; then
+        [[ "$step" = module || "$step" = PATH ]] && info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
+        echo "$bread_crumbs"; false; return;
+    fi
     sin_version=$("$sin_path" --version 2>/dev/null)
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
     if [[ -z "$sin_image" ]]; then
@@ -1180,11 +1465,11 @@ singularity_setup_inside () {
     local val
     # Adapt for changes in filesystem space
     for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
-               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_JOB_AD \
+               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
                _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
                OSG_WN_TMP ; do
         # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
-        val="`echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,"`"
+        val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
         eval ${key}="${val}"
         info_dbg "changed $key => $val"
     done
@@ -1218,6 +1503,7 @@ singularity_setup_inside () {
     # Override some OSG specific variables if defined
     [[ -n "$OSG_WN_TMP" ]] && export OSG_WN_TMP=/tmp
 
+    # TODO: setup "pychirp" instead
     # From CMS
     # Add Glidein provided HTCondor back to the environment (so that we can call chirp)
     # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?

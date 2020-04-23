@@ -5,8 +5,8 @@ EXITSLEEP=10m
 GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
-GWMS_VERSION_SINGULARITY_WRAPPER=20200325
-# Updated using OSG wrapper #394b564
+GWMS_VERSION_SINGULARITY_WRAPPER=20200413
+# Updated using OSG wrapper #5d8b3fa9b258ea0e6640727405f20829d2c5d4b9
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
 # Link to the CMS wrapper
 # https://gitlab.cern.ch/CMSSI/CMSglideinWMSValidation/-/blob/master/singularity_wrapper.sh
@@ -169,7 +169,22 @@ ERROR   If you get this error when you did not specify required OS, your VO does
     # Whether user-provided or default image, we make sure it exists and make sure CVMFS has not fallen over
     # TODO: better -e or ls?
     #if ! ls -l "$GWMS_SINGULARITY_IMAGE/" >/dev/null; then
+    #if [[ ! -e "$GWMS_SINGULARITY_IMAGE" ]]; then
     # will both work for non expanded images?
+
+    # check that the image is actually available (but only for /cvmfs ones)
+    if (echo "$GWMS_SINGULARITY_IMAGE" | grep '^/cvmfs') >/dev/null 2>&1; then
+        if ! ls -l "$GWMS_SINGULARITY_IMAGE" >/dev/null; then
+            EXITSLEEP=10m
+            msg="\
+ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
+        Site and node: $OSG_SITE_NAME `hostname -f`"
+            # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
+            exit_or_fallback "$msg" 1
+            return
+        fi
+    fi
+
     if [[ ! -e "$GWMS_SINGULARITY_IMAGE" ]]; then
         EXITSLEEP=10m
         msg="\
@@ -215,7 +230,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Binding different mounts (they will be removed if not existent on the host)
     # OSG: checks also in image, may not work if not expanded. And Singularity will not fail if missing, only give a warning
     #  if [ -e $MNTPOINT/. -a -e $OSG_SINGULARITY_IMAGE/$MNTPOINT ]; then
-    GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
+    GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="/hadoop,/ceph,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs,/etc/hosts,/etc/localtime"
 
     # CVMFS access inside container (default, but optional)
     if [[ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]]; then
@@ -255,11 +270,14 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Remember what the outside pwd dir is so that we can rewrite env vars
     # pointing to somewhere inside that dir (for example, X509_USER_PROXY)
-    if [[ -n "$_CONDOR_JOB_IWD" ]]; then
-        export GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
-    else
-        export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
-    fi
+    #if [[ -n "$_CONDOR_JOB_IWD" ]]; then
+    #    export GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
+    #else
+    #    export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
+    #fi
+    # Do not trust _CONDOR_JOB_IWD when it comes to finding pwd for the job - M.Rynge
+    export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
+
 
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN
     singularity_update_path /srv "$@"
@@ -289,6 +307,16 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         unset PYTHONPATH
     fi
 
+    # Add --clearenv if requested
+    GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
+
+    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options
+    if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}" ; then
+        env_preserve "${GLIDEIN_CONTAINER_ENV}"
+    fi
+
+    # The new OSG wrapper is not exec-ing singularity to continue after and inspect if it ran correctly or not
+    # This may be causing problems w/ signals (sig-term/quit) propagation - [#24306]
     if [[ -z "$GWMS_SINGULARITY_LIB_VERSION" ]]; then
         # GWMS 3.4.5 or lower, no GWMS_SINGULARITY_GLOBAL_OPTS, no GWMS_SINGULARITY_LIB_VERSION
         singularity_exec "$GWMS_SINGULARITY_PATH" "$GWMS_SINGULARITY_IMAGE" "$singularity_binds" \
@@ -301,6 +329,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
+    env_restore "${GLIDEIN_CONTAINER_ENV}"
     [[ -n "$OLD_PATH" ]] && PATH="$OLD_PATH"
     exit_or_fallback "exec of singularity failed" $?
 }
@@ -359,8 +388,6 @@ else
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
     info_dbg "GWMS singularity wrapper, running inside singularity env = "`printenv`
-
-
 
 fi
 
@@ -422,7 +449,7 @@ fi
 
 setup_stashcp () {
     if [[ "x$MODULE_USE" != "x1" ]]; then
-        warn "Module unavailable. Unable to setup Stash cache."
+        warn "Module unavailable. Unable to setup Stash cache if not in the environment."
         return 1
     fi
 
@@ -430,7 +457,8 @@ setup_stashcp () {
     if ! which stashcp >/dev/null 2>&1; then
         module load stashcache >/dev/null 2>&1 || module load stashcp >/dev/null 2>&1
 
-        # we need xrootd, which is available both in the OSG software stack
+        # The OSG wrapper (as of 5d8b3fa9b258ea0e6640727405f20829d2c5d4b9) removed this xrdcp setup
+        # We need xrootd, which is available both in the OSG software stack
         # as well as modules - use the system one by default
         if ! which xrdcp >/dev/null 2>&1; then
             module load xrootd >/dev/null 2>&1
@@ -438,8 +466,10 @@ setup_stashcp () {
 
         # Determine XRootD plugin directory.
         # in lieu of a MODULE_<name>_BASE from lmod, this will do:
-        export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
-        export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
+        if [ -n "$XRD_PLUGINCONFDIR" ]; then
+            export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
+            export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
+        fi
     fi
 
 }
