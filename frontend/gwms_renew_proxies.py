@@ -22,7 +22,7 @@ DEFAULTS = {'use_voms_server': 'false',
             'fqan': '/Role=NULL/Capability=NULL',
             'frequency': '1',
             'lifetime': '24',
-            'path-length': '20',
+            'path_length': '20',
             'rfc': 'true',
             'owner': 'frontend'}
 
