@@ -90,9 +90,7 @@ class VO(object):
         uri - hostname and port of the VO's VOMS Admin Server, e.g. voms.opensciencegrid.org:15001
         """
         self.name = vo
-        if fqan.startswith('/%s/Role=' % vo):
-            pass
-        elif fqan.startswith('/%s/' % vo):
+        if fqan.startswith('/%s/' % vo):
             pass
         elif fqan.startswith('/Role='):
             fqan = '/%s%s' % (vo, fqan)
@@ -221,15 +219,6 @@ def main():
     proxies.remove('COMMON')  # no proxy renewal info in the COMMON section
     for proxy_section in proxies:
         proxy_config = dict(config.items(proxy_section))
-        if 'rfc' not in proxy_config:
-            proxy_config['rfc'] = True
-        else:
-            if safe_boolcomp(proxy_config['rfc'], False):
-                proxy_config['rfc'] = False
-            else:
-                proxy_config['rfc'] = True
-        if 'path_length' not in proxy_config:
-             proxy_config['path_length'] = '20'
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
                       proxy_config['output'], proxy_config['lifetime'],
                       fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], proxy_config['path_length'])
