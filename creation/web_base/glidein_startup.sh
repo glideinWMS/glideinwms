@@ -12,6 +12,7 @@ IFS=$' \t\n'
 global_args="$@"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+GWMS_PATH=""
 
 export LANG=C
 
@@ -1159,6 +1160,12 @@ else
 fi
 work_dir_created=1
 
+gwms_dir="gwms"
+mkdir "$gwms_dir"
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Cannot create '$gwms_dir'"
+fi
+
 # mktemp makes it user readable by definition (ignores umask)
 chmod a+rx "$work_dir"
 if [ $? -ne 0 ]; then
@@ -1841,6 +1848,13 @@ function fetch_file_base {
    return 0
 }
 
+# Adds $1 to GWMS_PATH and update PATH
+function add_to_path {
+    PATH="${PATH//$GWMS_PATH/}"
+    export GWMS_PATH="$1:$GWMS_PATH"
+    export PATH="$GWMS_PATH:$PATH"
+}
+
 echo "Downloading files from Factory and Frontend"
 
 #####################################
@@ -1982,6 +1996,20 @@ do
     fi
   done < "${gs_id_work_dir}/${gs_file_list}"
 
+  # Files to go into the GWMS_PATH
+  if [ "$gs_file_id" = "main after_file_list" ]; then
+    gwms_lib_dir="${gwms_dir}/lib"
+    gwms_bin_dir="${gwms_dir}/bin"
+
+    cp -r "${gs_id_work_dir}/lib" "$gwms_lib_dir"
+
+    mkdir "$gwms_bin_dir"
+    add_to_path "$PWD/$gwms_bin_dir"
+    for file in "gwms-python" "condor_chirp"
+    do
+        cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
+    done
+  fi
 done
 
 ###############################
