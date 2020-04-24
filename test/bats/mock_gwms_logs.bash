@@ -5,6 +5,7 @@ info_stdout () {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "STDOUT - " "$@" >&3
     true
 }
+export -f info_stdout
 
 
 info_raw () {
@@ -12,6 +13,7 @@ info_raw () {
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
     true
 }
+export -f info_raw
 
 
 warn_raw () {
@@ -19,3 +21,4 @@ warn_raw () {
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
     true
 }
+export -f warn_raw

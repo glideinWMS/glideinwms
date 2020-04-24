@@ -2,8 +2,8 @@
 #load 'libs/bats-support/load'
 #load 'libs/bats-assert/load'
 # On the Mac, installed w/ Homebrew
-load '/usr/local/lib/bats-support/load.bash'
-load '/usr/local/lib/bats-assert/load.bash'
+load 'lib/bats-support/load.bash'
+load 'lib/bats-assert/load.bash'
 
 #load 'helper'
 
