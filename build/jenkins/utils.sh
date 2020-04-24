@@ -1,7 +1,38 @@
 #!/bin/sh
 
+loginfo() {
+    [[ -n "$VERBOSE" ]] && echo "$1"
+}
+
+
+logwarn(){
+    echo "$filename WARNING: $1" >&2
+}
+
+
+logerror() {
+    echo "$filename ERROR: $1" >&2
+}
+
+
+logexit() {
+    # Fail: log the error and exit
+    logerror "$1"
+    # logerror "exiting"
+    exit ${2:-1}
+}
+
+
 log_nonzero_rc() {
     echo "$(date) ERROR: $1 failed with non zero exit code ($2)" 1>&2
+    return $2
+}
+
+
+robust_realpath() {
+    if ! realpath "$1" 2>/dev/null; then
+        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
+    fi
 }
 
 
@@ -118,6 +149,19 @@ setup_python_venv() {
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/frontend
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
+}
+
+
+get_source_directories() {
+    # Return to stdout a comma separated list of source directories
+    # 1 - glideinwms directory, root of the source tree
+    local src_dir="${1:-.}"
+    sources="${src_dir},${src_dir}/factory/"
+    sources="${sources},${src_dir}/factory/tools,${src_dir}/frontend"
+    sources="${sources},${src_dir}/frontend/tools,${src_dir}/install"
+    sources="${sources},${src_dir}/install/services,${src_dir}/lib"
+    sources="${sources},${src_dir}/tools,${src_dir}/tools/lib"
+    echo "$sources"
 }
 
 
