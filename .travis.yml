@@ -24,13 +24,17 @@ install:
 
 # Environment variables
 env:
-  - GLIDEINWMS_SRC="${TRAVIS_BUILD_DIR}"
-  - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
+  - global:
+    - GLIDEINWMS_SRC="${TRAVIS_BUILD_DIR}"
+    - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
+    - PYTHONPATH="${GLIDEINWMS_SRC}/doc/api:${GLIDEINWMS_SRC}"
 
 # command to run tests
 script:
   # - pytest
   - cd ${GLIDEINWMS_SRC}/unittests
+  - echo "PPATH ${PYTHONPATH}"
+  - echo "Folders in ${GLIDEINWMS_SRC}/doc/api/glideinwms are $(ls -l ${GLIDEINWMS_SRC}/doc/api/glideinwms)"
   - coverage erase
   - for TST in $(ls test*.py); do 
       echo '========>' "$TST"; 
