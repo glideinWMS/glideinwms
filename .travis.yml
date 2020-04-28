@@ -32,9 +32,9 @@ script:
   # - pytest
   - cd ${GLIDEINWMS_SRC}/unittests
   - coverage erase
-  - for TST in $(ls test*.py); do
-      echo '========>' $TST
-      coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $TST
+  - for TST in $(ls test*.py); do 
+      echo '========>' "$TST"; 
+      coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$TST"; 
     done
   - coverage report
   # - cd `dirname ${TRAVIS_BUILD_DIR}`

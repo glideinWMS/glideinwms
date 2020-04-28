@@ -12,9 +12,16 @@ hypothesis
 autopep8
 testfixtures
 coverage
+future
+importlib
+argparse
+pyyaml
 
 # for tests
 jsonpickle
 mock
 pytest
 tabulate
+unittest2
+xmlrunner
+
