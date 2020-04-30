@@ -185,6 +185,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                     enc_input_files.append(pth)
                 # try to authenticate glidein with scitoken if present
                 if fname == sci_token:
+                    pth = os.path.join(root, fname)
                     self.add('+SciTokensFile', '"'+pth+'"')
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
