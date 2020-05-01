@@ -1,6 +1,7 @@
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
 ]
@@ -11,7 +12,6 @@ extensions = [
 #
 import os
 import sys
-#sys.path.insert(0, u'/Users/marcom/prog/repos/git-gwms/gwms191003/glideinwms/doc/api/glideinwms')
 sys.path.insert(0, os.path.abspath('.'))
 
 # To add summaries:

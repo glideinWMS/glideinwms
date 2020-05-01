@@ -6,3 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
+# ci byproducts (tox, sphinx)
+doc/api/code
+doc/api/html
+.tox
