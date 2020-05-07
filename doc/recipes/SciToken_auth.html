@@ -195,13 +195,46 @@ trust_domain="OSG" verbosity="fast" work_dir="OSG"&gt;
 [root@fermicloud359 config.d]#
 [root@fermicloud359 config.d]#
           </pre>
-          <p> In this example, the SciToken must be named 'el7_osg35_scitoken' so the factory knows to submit it to host/port fermicloud349.fnal.gov:9619
+          <p> In this example, the SciToken must be named <b>el7_osg35_scitoken</b> so the factory knows to associate it with entry point el7_osg35 and submit it to fermicloud349.fnal.gov:9619.  The SciToken goes in directory <br>/var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance. <br> In other words:
+          <pre>
+[root@fermicloud359 ~]# ls /var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance/el7_osg35_scitoken
+/var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance/el7_osg35_scitoken
+[root@fermicloud359 ~]#
+          </pre>
 
+          <p> As SciTokens expire, a mechanism must be in place to renew it periodically.  A cron job running 'scitokens-admin-create-token' would suffice for development purposes, but some other mechanism would be used in a production environment.
           </ol>
         </div>
         <div class="section">
           <h2 id="CEConfig" class="western">Configure CE to accept your SciToken</h2>
-          <p> placeholder
+          <p>
+          <ol>
+            <li> Check that htcondor on your CE accepts SCITOKENS as an authentication method:
+              <pre>
+root@fermicloud349 ~]# condor_ce_config_val -dump | grep SCITOKENS
+COLLECTOR.SEC_ADVERTISE_STARTD_AUTHENTICATION_METHODS = FS,SCITOKENS,GSI
+COLLECTOR.SEC_READ_AUTHENTICATION_METHODS = FS,SCITOKENS,GSI
+COLLECTOR.SEC_WRITE_AUTHENTICATION_METHODS = FS,SCITOKENS,GSI
+MASTER.SEC_DEFAULT_AUTHENTICATION_METHODS = SCITOKENS, FS, GSI
+SCHEDD.SEC_READ_AUTHENTICATION_METHODS = FS,SCITOKENS,GSI
+SCHEDD.SEC_WRITE_AUTHENTICATION_METHODS = FS,SCITOKENS,GSI
+SCITOKENS_SERVER_AUDIENCE = $(COLLECTOR_HOST)
+SEC_CLIENT_AUTHENTICATION_METHODS = SCITOKENS, FS, GSI, PASSWORD
+SEC_DEFAULT_AUTHENTICATION_METHODS = SCITOKENS,FS, GSI
+              </pre>
+            <li>Check that an entry in the CE's mapfile assigns your SciToken to a valid user.  In this example SciTokens issued by 'https://jobsub.fnal.gov' are mapped to user 'osg'
+              <pre>
+[root@fermicloud349 ~]# condor_ce_config_val -dump | grep mapfile
+CERTIFICATE_MAPFILE = /etc/condor-ce/condor_mapfile
+[root@fermicloud349 ~]# cat /etc/condor-ce/condor_mapfile
+SCITOKENS https://jobsub.fnal.gov osg
+GSI (.*) GSS_ASSIST_GRIDMAP
+GSI "(/CN=[-.A-Za-z0-9/= ]+)" \1@unmapped.htcondor.org
+CLAIMTOBE .* anonymous@claimtobe
+FS "^(root|condor)$" \1@daemon.htcondor.org
+FS "(.*)" \1
+[root@fermicloud349 ~]#
+              </pre>
         </div>
         <div class="section">
           <h2 id="Check" class="western">Verify Token Functionality</h2>
