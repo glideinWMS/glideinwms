@@ -58,6 +58,10 @@ fi
 
 RELEASE_BRANCH=$2
 if [[ -z "$RELEASE_BRANCH" ]]; then
+    if [[ $RELEASE = v3_4* ]]; then
+        RELEASE_BRANCH=master
+    if [[ $RELEASE = v3_5* ]]; then
+        RELEASE_BRANCH=master
     if [[ $RELEASE = v3_6* ]]; then
         RELEASE_BRANCH=master
     elif [[ $RELEASE = v3_7* ]]; then
@@ -129,6 +133,7 @@ if [[ -n  "$VERBOSE" ]]; then
     for i in $VER_NOBRANCH; do
         tmp=$(echo "$VER_ISSUES_EXT" | jq '. | select(.id == '$i') | .subject ')
         echo "  $i: " ${tmp}
+        echo "$REDMINE/issues/$i"
     done
 fi
 
