@@ -30,7 +30,7 @@ Name:           glideinwms
 Version:        %{version}
 Release:        %{release}%{?dist}
 Summary:        The glidein Workload Management System (glideinWMS)
-Group:          System Environment/Daemons
+# Group: has been deprecated, removing it from all specifications, wes "System Environment/Daemons"
 License:        Fermitools Software Legal Information (Modified BSD License)
 URL:            http://glideinwms.fnal.gov
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,7 +58,6 @@ resources through a dynamic condor pool of grid-submitted resources.
 
 %package vofrontend
 Summary:        The VOFrontend for glideinWMS submission host
-Group:          System Environment/Daemons
 Provides:       GlideinWMSFrontend = %{version}-%{release}
 Obsoletes:      GlideinWMSFrontend < 2.5.1-11
 Requires: glideinwms-vofrontend-standalone = %{version}-%{release}
@@ -76,7 +75,6 @@ vofrontend install (userschedd, submit, vofrontend).
 
 %package vofrontend-standalone
 Summary:        The VOFrontend for glideinWMS submission host
-Group:          System Environment/Daemons
 Requires: httpd
 Requires: condor >= 8.4.0
 Requires: python-rrdtool
@@ -103,7 +101,6 @@ This package is for a standalone vofrontend install
 
 %package usercollector
 Summary:        The VOFrontend glideinWMS collector host
-Group:          System Environment/Daemons
 Requires: condor >= 8.4.0
 Requires: ganglia
 Requires: glideinwms-minimal-condor = %{version}-%{release}
@@ -115,7 +112,6 @@ It can be installed independently.
 
 %package userschedd
 Summary:        The VOFrontend glideinWMS submission host
-Group:          System Environment/Daemons
 Requires: condor >= 8.4.0
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
@@ -126,7 +122,6 @@ This is a package for a glideinwms submit host.
 
 %package libs
 Summary:        The glideinWMS common libraries.
-Group:          System Environment/Daemons
 Requires: condor-python
 Requires: python-rrdtool
 Requires: python-ldap
@@ -137,7 +132,6 @@ This package provides common libraries used by glideinwms.
 
 %package glidecondor-tools
 Summary:        Condor tools useful with the glideinWMS.
-Group:          System Environment/Daemons
 Requires: glideinwms-libs = %{version}-%{release}
 %description glidecondor-tools
 This package provides common libraries used by glideinwms.
@@ -145,7 +139,6 @@ This package provides common libraries used by glideinwms.
 
 %package minimal-condor
 Summary:        The VOFrontend minimal condor config
-Group:          System Environment/Daemons
 Provides:       gwms-condor-config
 Requires: glideinwms-condor-common-config = %{version}-%{release}
 %description minimal-condor
@@ -155,7 +148,6 @@ needed for VOFrontend.
 
 %package condor-common-config
 Summary:        Shared condor config files
-Group:          System Environment/Daemons
 %description condor-common-config
 This contains condor config files shared between alternate
 condor config setups (minimal-condor and factory-condor).
@@ -163,7 +155,6 @@ condor config setups (minimal-condor and factory-condor).
 
 %package common-tools
 Summary:        Shared tools
-Group:          System Environment/Daemons
 %description common-tools
 This contains tools common to both the glideinwms factory and vofrontend
 standalone packages.
@@ -171,7 +162,6 @@ standalone packages.
 
 %package factory
 Summary:        The Factory for glideinWMS
-Group:          System Environment/Daemons
 Provides:       GlideinWMSFactory = %{version}-%{release}
 Requires: httpd
 Requires: glideinwms-factory-condor = %{version}-%{release}
@@ -198,7 +188,6 @@ for scheduling and job control.
 
 %package factory-condor
 Summary:        The GWMS Factory condor config
-Group:          System Environment/Daemons
 Provides:       gwms-factory-config
 Requires: glideinwms-condor-common-config = %{version}-%{release}
 %description factory-condor
