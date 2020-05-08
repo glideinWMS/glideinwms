@@ -238,7 +238,41 @@ FS "(.*)" \1
         </div>
         <div class="section">
           <h2 id="Check" class="western">Verify Token Functionality</h2>
-          <p> placeholder
+          <p>Here we see that the freshly installed SciToken can be decoded by command line tools and that condor_ping to the CE's collector authenticates some condor operations as user 'osg' as configured earlier in fermicloud349's  condor_mapfile:
+<pre>
+[root@fermicloud359 ~]# export SCF=/var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance/el7_osg35_scitoken
+[root@fermicloud359 ~]# ~dbox/bin/decode_jwt_human $SCF
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "kid": "7b50"
+}
+{
+  "jti": "9186e3ab-5664-448c-a57c-69745967ec91",
+  "sub": "condor",
+  "exp": "Wed Jun 10 06:25:18 CDT 2020",
+  "iat": "Wed Apr 29 14:25:18 CDT 2020",
+  "iss": "https://jobsub.fnal.gov",
+  "scope": "condor",
+  "nbf": "Wed Apr 29 14:25:18 CDT 2020",
+  "aud": "fermicloud349.fnal.gov:9619"
+}
+[root@fermicloud359 ~]# _condor_SCITOKENS_FILE=$SCF _condor_SSL_SKIP_HOST_CHECK=true condor_ping -address "<$(host fermicloud349.fnal.gov | awk '{print $4}'):9619>" -table ALL
+         Instruction Authentication Encryption Integrity Decision Identity
+               ALLOW      SCITOKENS       none       MD5    ALLOW osg@users.htcondor.org
+                READ           none       none      none    ALLOW unauthenticated@unmapped
+               WRITE           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+          NEGOTIATOR           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+       ADMINISTRATOR           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+               OWNER           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+              CONFIG           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+              DAEMON           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+    ADVERTISE_STARTD      SCITOKENS       none       MD5    ALLOW osg@users.htcondor.org
+    ADVERTISE_SCHEDD           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+    ADVERTISE_MASTER           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
+[root@fermicloud359 ~]#
+</pre>
+<p> Verify that submitting a job to the Factories entry point uses SciTokens authentication by setting condor DEBUG levels to D_AUTHENTCAION and reading the condor logs.
         </div>
         <div class="section">
           <h2 id="Useful" class="western">Useful Links</h2>
