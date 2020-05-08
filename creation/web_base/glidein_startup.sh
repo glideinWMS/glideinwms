@@ -1161,9 +1161,18 @@ fi
 work_dir_created=1
 
 gwms_dir="gwms"
-mkdir "$gwms_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$gwms_dir" ; then
     early_glidein_failure "Cannot create '$gwms_dir'"
+fi
+
+gwms_lib_dir="${gwms_dir}/lib"
+if ! mkdir -p "$gwms_lib_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_lib_dir'"
+fi
+
+gwms_bin_dir="${gwms_dir}/bin"
+if ! mkdir -p "$gwms_bin_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_bin_dir'"
 fi
 
 # mktemp makes it user readable by definition (ignores umask)
@@ -1850,9 +1859,14 @@ function fetch_file_base {
 
 # Adds $1 to GWMS_PATH and update PATH
 function add_to_path {
-    PATH="${PATH//$GWMS_PATH/}"
-    export GWMS_PATH="$1:$GWMS_PATH"
-    export PATH="$GWMS_PATH:$PATH"
+    local old_path=":${PATH%:}:"
+    old_path="${old_path//:$GWMS_PATH:/}"
+    local old_gwms_path=":${GWMS_PATH%:}:"
+    old_gwms_path="${old_gwms_path//:$1:/}"
+    old_gwms_path="${1%:}:${old_gwms_path#:}"
+    export GWMS_PATH="${old_gwms_path%:}"
+    old_path="${GWMS_PATH}:${old_path#:}"
+    export PATH="${old_path%:}"
 }
 
 echo "Downloading files from Factory and Frontend"
@@ -1998,12 +2012,7 @@ do
 
   # Files to go into the GWMS_PATH
   if [ "$gs_file_id" = "main after_file_list" ]; then
-    gwms_lib_dir="${gwms_dir}/lib"
-    gwms_bin_dir="${gwms_dir}/bin"
-
-    cp -r "${gs_id_work_dir}/lib" "$gwms_lib_dir"
-
-    mkdir "$gwms_bin_dir"
+    cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
     add_to_path "$PWD/$gwms_bin_dir"
     for file in "gwms-python" "condor_chirp"
     do
