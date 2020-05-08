@@ -272,7 +272,7 @@ FS "(.*)" \1
     ADVERTISE_MASTER           FAIL       FAIL      FAIL     FAIL FAIL  (use -verbose for more info)
 [root@fermicloud359 ~]#
 </pre>
-<p> Verify that submitting a job to the Factories entry point uses SciTokens authentication by setting condor DEBUG levels to D_AUTHENTCAION and reading the condor logs.
+<p> Verify that submitting a job to the Factories entry point uses SciTokens authentication by adding D_SECURITY to the ALL_DEBUG condor setting on the appropriate condor daemons.  The condor logs will show what authentication was used, and it should be SCITOKENS between the factory collector and the CE schedd.
         </div>
         <div class="section">
           <h2 id="Useful" class="western">Useful Links</h2>
