@@ -145,10 +145,10 @@ prepare_and_invoke_singularity () {
             return
         fi
         if [[ "x$DESIRED_OS" = xany ]]; then
-            # Prefer the platforms default,rhel7,rhel6, otherwise pick the first one available
-            GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any`"
+            # Prefer the platforms default,rhel7,rhel6,rhel8, otherwise pick the first one available
+            GWMS_SINGULARITY_IMAGE="$(singularity_get_image default,rhel7,rhel6,rhel8 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)"
         else
-            GWMS_SINGULARITY_IMAGE="`singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS`"
+            GWMS_SINGULARITY_IMAGE="$(singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS)"
         fi
     fi
 

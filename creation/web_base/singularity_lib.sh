@@ -282,7 +282,7 @@ list_get_intersection () {
     #   Return 1 if the intersection is empty, 0 otherwise
     # This can be used to evaluate the desired OS (platform) that works for both Entry and VO,
     # intersection of GLIDEIN_REQUIRED_OS and REQUIRED_OS
-    # Valid values: rhel6, rhel7, default
+    # Valid values: rhelNN, default
     local intersection
     [[ -z "$1"  ||  -z "$2" ]] && return 1
     if [[ "x$1" = "xany" ]]; then
