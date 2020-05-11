@@ -22,6 +22,8 @@ DEFAULTS = {'use_voms_server': 'false',
             'fqan': '/Role=NULL/Capability=NULL',
             'frequency': '1',
             'lifetime': '24',
+            'path_length': '20',
+            'rfc': 'true',
             'owner': 'frontend'}
 
 
@@ -34,7 +36,7 @@ class ConfigError(BaseException):
 class Proxy(object):
     """Class for holding information related to the proxy
     """
-    def __init__(self, cert, key, output, lifetime, uid=0, gid=0):
+    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength='20'):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
@@ -42,6 +44,8 @@ class Proxy(object):
         self.lifetime = lifetime
         self.uid = uid
         self.gid = gid
+        self.rfc = rfc
+        self.pathlength = pathlength
 
     def _voms_proxy_info(self, *opts):
         """Run voms-proxy-info. Returns stdout, stderr, and return code of voms-proxy-info
@@ -86,7 +90,7 @@ class VO(object):
         uri - hostname and port of the VO's VOMS Admin Server, e.g. voms.opensciencegrid.org:15001
         """
         self.name = vo
-        if fqan.startswith('/%s/Role=' % vo):
+        if fqan.startswith('/%s/' % vo):
             pass
         elif fqan.startswith('/Role='):
             fqan = '/%s%s' % (vo, fqan)
@@ -180,7 +184,9 @@ def voms_proxy_fake(proxy, vo_info):
            '-hostkey', vo_info.key,
            '-uri', vo_info.uri,
            '-fqan', vo_info.fqan,
-           '-rfc']
+           '-path-length', proxy.pathlength]
+    if proxy.rfc:
+        cmd.append('-rfc')
     return _run_command(cmd)
 
 
@@ -215,7 +221,7 @@ def main():
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
                       proxy_config['output'], proxy_config['lifetime'],
-                      fe_user.pw_uid, fe_user.pw_gid)
+                      fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], proxy_config['path_length'])
 
         # Users used to be able to control the frequency of the renewal when they were instructed to write their own
         # script and cronjob. Since the automatic proxy renewal cron/timer runs every hour, we allow the users to
