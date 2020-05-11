@@ -1169,7 +1169,9 @@ singularity_locate_bin () {
     export GWMS_SINGULARITY_PATH=""
     export GWMS_SINGULARITY_VERSION=""
     export GWMS_SINGULARITY_MODE=""
-    warn "Singularity not found$s_location_msg in PATH, OSG_SINGULARITY_BINARY_DEFAULT and module"
+    warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY_DEFAULT, PATH and module"
+    # TODO: Adding as warning to troubleshoot [#24282]. This extra message should be debug information
+    warn "PATH(${PATH}), attempt results(${bread_crumbs})"
     false
 }
 
