@@ -216,6 +216,18 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "using image $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE)"
     # Singularity image is OK, continue w/ other init
 
+    # If gwms dir is present, then copy it inside the container.
+    if [[ -d ../../gwms ]]; then
+        if mkdir -p gwms && cp -r ../../gwms/* gwms/; then
+            # Should copy only lib and bin instead?
+            # TODO: change the message when condor_chirp requires no more special treatment
+            info_dbg "copied GlideinWMS utilities (bin and libs, including condor_chirp) inside the container ($(pwd)/gwms)"
+        fi
+    else
+        warn "Unable to find GlideinWMS utilities (../../gwms from $(pwd))"
+    fi
+
+    # TODO: this is no more needed once 'pychirp' in gwms is tried and tested
     # If condor_chirp is present, then copy it inside the container.
     # This is used in singularity_lib.sh/singularity_setup_inside()
     if [ -e ../../main/condor/libexec/condor_chirp ]; then
@@ -300,6 +312,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     export GWMS_SINGULARITY_REEXEC=1
 
     # Disabling outside LD_LIBRARY_PATH and PATH to avoid problems w/ different OS
+    # Singularity is supposed to handle this, but different versions behave differently
     if [[ -n "$LD_LIBRARY_PATH" ]]; then
         info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset LD_LIBRARY_PATH
@@ -320,7 +333,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Add --clearenv if requested
     GWMS_SINGULARITY_EXTRA_OPTS=$(env_clear "${GLIDEIN_CONTAINER_ENV}" "${GWMS_SINGULARITY_EXTRA_OPTS}")
 
-    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options
+    # If there is clearenv protect the variables (it may also have been added by the custom Singularity options)
     if env_gets_cleared "${GWMS_SINGULARITY_EXTRA_OPTS}" ; then
         env_preserve "${GLIDEIN_CONTAINER_ENV}"
     fi
@@ -392,6 +405,7 @@ else
 
     # Need to start in /srv (Singularity's --pwd is not reliable)
     # /srv should always be there in Singularity, we set the option '--home \"$PWD\":/srv'
+    # TODO: double check robustness, we allow users to override --home
     [[ -d /srv ]] && cd /srv
     export HOME=/srv
 
@@ -417,15 +431,19 @@ info_dbg "GWMS singularity wrapper, final setup."
 #  modules and env
 #
 
+# TODO: to remove for sure once 'pychirp' is tried and tested
 # TODO: not needed here? It is in singularity_setup_inside for when Singularity is invoked, and should be already in the PATH when it is not
 # Checked - glidin_startup seems not to add condor to the path
 # Add Glidein provided HTCondor back to the environment (so that we can call chirp) - same is in
 # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
-if [[ -e ../../main/condor/libexec ]]; then
-    DER="`(cd ../../main/condor; pwd)`"
-    export PATH="$DER/libexec:$PATH"
-    # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
-    # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
+if ! command -v condor_chirp > /dev/null 2>&1; then
+    # condor_chirp not found, setting up form the condor library
+    if [[ -e ../../main/condor/libexec ]]; then
+        DER="`(cd ../../main/condor; pwd)`"
+        export PATH="$DER/libexec:$PATH"
+        # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
+        # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
+    fi
 fi
 
 # fix discrepancy for Squid proxy URLs
