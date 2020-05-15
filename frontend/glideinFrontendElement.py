@@ -781,17 +781,15 @@ class glideinFrontendElement:
                 ctkn = ''
                 stkn = ''
                 gp_encrypt = {}
-                # are we submitting glideins?
-                #if count_status['Total']:
-                    # try to get condor token
+                # see if site supports condor token
                 ctkn = self.refresh_entry_token(glidein_el)
                 if ctkn:
-                    # mark token for encryption
+                    # mark token for encrypted advertisement
                     logSupport.log.info("found condor token: %s" % ctkn)
                     entry_token_name = "%s_token" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
                     gp_encrypt[entry_token_name] = ctkn
+                # now see if theres a scitoken for this site
                 entry_scitoken_name = "%s_scitoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                # now look for a scitoken
                 spath = "/var/lib/gwms-frontend/.condor/tokens.d"
                 scitoken_fullpath = os.path.join(spath, entry_scitoken_name)
                 if os.path.exists(scitoken_fullpath):
@@ -807,23 +805,23 @@ class glideinFrontendElement:
 
 
                 # now advertise
-                if gp_encrypt:
-                    advertizer.add(factory_pool_node,
-                               request_name, request_name,
-                               glidein_min_idle,
-                               glidein_max_run,
-                               self.idle_lifetime,
-                               glidein_params=glidein_params,
-                               glidein_monitors=glidein_monitors,
-                               glidein_monitors_per_cred=glidein_monitors_per_cred,
-                               remove_excess_str=remove_excess_str,
-                               remove_excess_margin=remove_excess_margin,
-                               key_obj=key_obj,
-                               glidein_params_to_encrypt=gp_encrypt,
-                               security_name=self.security_name,
-                               trust_domain=trust_domain,
-                               auth_method=auth_method,
-                               ha_mode=self.ha_mode)
+                logSupport.log.info('advertising tokens %s' % gp_encrypt.keys())
+                advertizer.add(factory_pool_node,
+                           request_name, request_name,
+                           glidein_min_idle,
+                           glidein_max_run,
+                           self.idle_lifetime,
+                           glidein_params=glidein_params,
+                           glidein_monitors=glidein_monitors,
+                           glidein_monitors_per_cred=glidein_monitors_per_cred,
+                           remove_excess_str=remove_excess_str,
+                           remove_excess_margin=remove_excess_margin,
+                           key_obj=key_obj,
+                           glidein_params_to_encrypt=gp_encrypt,
+                           security_name=self.security_name,
+                           trust_domain=trust_domain,
+                           auth_method=auth_method,
+                           ha_mode=self.ha_mode)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" %
                                        (request_name, factory_pool_node))
@@ -892,7 +890,7 @@ class glideinFrontendElement:
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
                 tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
                 tkn_file += glidein_site
-                tkn_file += ".token"
+                tkn_file += "_token"
                 cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
                 os.chmod(tmpnm,0600)
