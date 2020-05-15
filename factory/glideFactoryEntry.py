@@ -1221,13 +1221,13 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     if condortoken_data:
         (fd, tmpnm) = tempfile.mkstemp()
         try:
-            entry.log.debug("frontend_token supplied, writing to %s" % condortoken_file)
+            entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
             os.chmod(tmpnm,400)
             os.write(fd, condortoken_data)
             os.close(fd)
             util.file_tmp2final(condortoken_file, tmpnm)
         except Exception as err:
-            entry.log.error('failed to create token: %s' % err)
+            entry.log.exception('failed to create token: %s' % err)
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
@@ -1236,6 +1236,20 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     scitoken = "%s_scitoken" % entry.name
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
+    scitoken_data = decrypted_params.get(scitoken)
+    if scitoken_data:
+        (fd, tmpnm) = tempfile.mkstemp()
+        try:
+            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+            os.chmod(tmpnm,400)
+            os.write(fd, scitoken_data)
+            os.close(fd)
+            util.file_tmp2final(scitoken_file, tmpnm)
+        except Exception as err:
+            entry.log.exception('failed to create scitoken: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
     if os.path.exists(scitoken_file):
         submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file)
 
@@ -1443,7 +1457,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         submit_credentials.add_identity_credential('RemoteUsername', remote_username)
 
 
-    entry.log.debug("DBOX_DBG submit_credentials are %s" % submit_credentials)
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads
     entry.setDowntime(in_downtime)

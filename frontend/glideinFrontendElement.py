@@ -777,19 +777,38 @@ class glideinFrontendElement:
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
-                # determine whether to encrypt a condor token into the classad
-                tkn = None
-                gp_encrypt = None
-                # are we submitting glideins? try to get a token
-                if count_status['Total']:
-                    tkn = self.refresh_entry_token(glidein_el)
-                if tkn:
+                # determine whether to encrypt a condor token or scitoken into the classad
+                ctkn = ''
+                stkn = ''
+                gp_encrypt = {}
+                # are we submitting glideins?
+                #if count_status['Total']:
+                    # try to get condor token
+                ctkn = self.refresh_entry_token(glidein_el)
+                if ctkn:
                     # mark token for encryption
+                    logSupport.log.info("found condor token: %s" % ctkn)
                     entry_token_name = "%s_token" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                    gp_encrypt = {entry_token_name: tkn}
+                    gp_encrypt[entry_token_name] = ctkn
+                entry_scitoken_name = "%s_scitoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
+                # now look for a scitoken
+                spath = "/var/lib/gwms-frontend/.condor/tokens.d"
+                scitoken_fullpath = os.path.join(spath, entry_scitoken_name)
+                if os.path.exists(scitoken_fullpath):
+                    try:
+                        logSupport.log.info('found scitoken %s' % scitoken_fullpath)
+                        with open(scitoken_fullpath,'r') as fbuf:
+                            for line in fbuf:
+                                stkn += line
+                        if stkn:
+                            gp_encrypt[entry_scitoken_name] =  stkn
+                    except Exception as err:
+                        logSupport.log.exception("failed to read scitoken: %s" % err)
+
 
                 # now advertise
-                advertizer.add(factory_pool_node,
+                if gp_encrypt:
+                    advertizer.add(factory_pool_node,
                                request_name, request_name,
                                glidein_min_idle,
                                glidein_max_run,
@@ -882,10 +901,9 @@ class glideinFrontendElement:
                 shutil.move(tmpnm, tkn_file)
                 file_tmp2final(tkn_file, tmpnm)
                 os.chmod(tkn_file, 0600)
-                logSupport.log.debug("created token %s" % tkn_file)
+                logSupport.log.info("created token %s" % tkn_file)
             except Exception as err:
-                logSupport.log.debug('failed to fetch %s' % tkn_file)
-                logSupport.log.debug('%s' % err)
+                logSupport.log.exception('failed to fetch %s - %s' % (tkn_file,err))
             finally:
                 if os.path.exists(tmpnm):
                     os.remove(tmpnm)
