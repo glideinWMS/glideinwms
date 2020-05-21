@@ -882,29 +882,30 @@ class glideinFrontendElement:
         """
         tkn_file = None
         tkn_str = None
-        # does condor version of entry point support condor token auth
-        if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
-            (fd, tmpnm) = tempfile.mkstemp()
-            try:
-                # create a condor token named for entry point site name
-                glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
-                tkn_file += glidein_site
-                tkn_file += "_token"
-                cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                os.chmod(tmpnm,0600)
-                os.write(fd, tkn_str)
-                os.close(fd)
-                shutil.move(tmpnm, tkn_file)
-                file_tmp2final(tkn_file, tmpnm)
-                os.chmod(tkn_file, 0600)
-                logSupport.log.info("created token %s" % tkn_file)
-            except Exception as err:
-                logSupport.log.exception('failed to fetch %s - %s' % (tkn_file,err))
-            finally:
-                if os.path.exists(tmpnm):
-                    os.remove(tmpnm)
+        if not glidein_el['attrs']['GLIDEIN_In_Downtime']:
+            # does condor version of entry point support condor token auth
+            if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
+                (fd, tmpnm) = tempfile.mkstemp()
+                try:
+                    # create a condor token named for entry point site name
+                    glidein_site = glidein_el['attrs']['GLIDEIN_Site']
+                    tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
+                    tkn_file += glidein_site
+                    tkn_file += "_token"
+                    cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    os.chmod(tmpnm,0600)
+                    os.write(fd, tkn_str)
+                    os.close(fd)
+                    shutil.move(tmpnm, tkn_file)
+                    file_tmp2final(tkn_file, tmpnm)
+                    os.chmod(tkn_file, 0600)
+                    logSupport.log.info("created token %s" % tkn_file)
+                except Exception as err:
+                    logSupport.log.exception('failed to fetch %s - %s' % (tkn_file,err))
+                finally:
+                    if tmpnm and os.path.exists(tmpnm):
+                        os.remove(tmpnm)
         return tkn_str
 
     def populate_pubkey(self):
