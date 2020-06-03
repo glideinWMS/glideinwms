@@ -39,10 +39,10 @@ fi
 # Note that you can add SINGULARITY_IMAGES_DICT also as attribute in the Factory or Frontend configuration
 
 # Note the legacy variables/attributes  SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6 and SINGULARITY_IMAGE_DEFAULT7 will override the
-# dictionary values fro 'rhel6' and 'rhel7' respectively
+# dictionary values fro 'rhel7', 'rhel6' and 'rhel8' respectively
 # you have to comment out both export and advertise lines together!!
 
-export SINGULARITY_IMAGES_DICT="rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
+export SINGULARITY_IMAGES_DICT="rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest,rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel8:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el8:latest"
 advertise SINGULARITY_IMAGES_DICT "$SINGULARITY_IMAGES_DICT" "S"
 
 exit 0
