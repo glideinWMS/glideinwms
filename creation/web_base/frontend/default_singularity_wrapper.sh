@@ -222,6 +222,8 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
             # Should copy only lib and bin instead?
             # TODO: change the message when condor_chirp requires no more special treatment
             info_dbg "copied GlideinWMS utilities (bin and libs, including condor_chirp) inside the container ($(pwd)/gwms)"
+        else
+	    warn "Unable to copy GlideinWMS utilities inside the container (to $(pwd)/gwms)"
         fi
     else
         warn "Unable to find GlideinWMS utilities (../../gwms from $(pwd))"
