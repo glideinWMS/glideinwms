@@ -1505,7 +1505,7 @@ singularity_setup_inside () {
 
     # TODO: setup "pychirp" instead
     # From CMS
-    # Add Glidein provided HTCondor back to the environment (so that we can call chirp)
+    # Add condor_chirp from Glidein provided HTCondor back to the environment (so that we can call chirp)
     # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
     if [[ -e "$PWD/condor/libexec/condor_chirp" ]]; then
         export PATH="$PWD/condor/libexec:$PATH"

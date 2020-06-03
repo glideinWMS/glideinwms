@@ -216,6 +216,16 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "using image $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE)"
     # Singularity image is OK, continue w/ other init
 
+    # If condor_chirp is present, then copy it inside the container.
+    # This is used in singularity_lib.sh/singularity_setup_inside()
+    if [ -e ../../main/condor/libexec/condor_chirp ]; then
+        mkdir -p condor/libexec
+        cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
+        mkdir -p condor/lib
+        cp -r ../../main/condor/lib condor/
+        info_dbg "copied condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
+    fi
+
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
     if [[ "x$GLIDEIN_Tmp_Dir" != "x"  &&  -e "$GLIDEIN_Tmp_Dir" ]]; then
         if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$" ; then
