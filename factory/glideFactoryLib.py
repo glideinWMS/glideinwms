@@ -1057,7 +1057,7 @@ def hash_status(el):
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING", "INLRMS:R"):
                 return 2
-            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "FINISHED", "DONE", "INLRMS:E"):
+            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "FINISHED", "DONE", "INLRMS:E", "COMPLETED"):
                 return 4010
             else:
                 return 1100
