@@ -1348,7 +1348,7 @@ To specify the image dictionary you have a couple of options:
     </li>
         <li><b>2b.</b> You can set directly SINGULARITY_IMAGES_DICT in your group attributes adding a line like:
 <blockquote>
-            &lt;attr name="SINGULARITY_IMAGES_DICT" glidein_publish="True" job_publish="True" parameter="False" type="string" value="default:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el6,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el7"/>
+            &lt;attr name="SINGULARITY_IMAGES_DICT" glidein_publish="True" job_publish="True" parameter="False" type="string" value="rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest,rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel8:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el8:latest"/>
 </blockquote>
 Then you can use REQUIRED_OS to select one of the images.
         </li>

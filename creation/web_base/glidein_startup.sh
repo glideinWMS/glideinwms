@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 
 # default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
@@ -13,6 +13,8 @@ global_args="$@"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 GWMS_PATH=""
+# Relative to the work directory
+GWMS_DIR="gwms"
 
 export LANG=C
 
@@ -235,7 +237,7 @@ function extract_parent_fname {
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result=`cat otrx_output.xml`
- 
+
       if [ "$exitcode" -eq 0 ]; then
           echo "SUCCESS"
       else
@@ -243,7 +245,7 @@ function extract_parent_fname {
           echo ${last_script_name}
       fi
   else
-      echo "Unknown" 
+      echo "Unknown"
   fi
 }
 
@@ -254,7 +256,7 @@ function extract_parent_xml_detail {
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result=`cat otrx_output.xml`
- 
+
       if [ "$exitcode" -eq 0 ]; then
           echo "  <result>"
           echo "    <status>OK</status>"
@@ -350,7 +352,7 @@ function print_tail {
   glidein_end_time=`date +%s`
   let total_time=$glidein_end_time-$startup_time
   echo "=== Glidein ending `date` ($glidein_end_time) with code ${exit_code} after $total_time ==="
- 
+
   echo ""
   echo "=== XML description of glidein activity ==="
   echo  "${final_result_simple}" | grep -v "<cmd>"
@@ -374,7 +376,7 @@ function early_glidein_failure {
 
   warn "${error_msg}"
 
-  sleep $sleep_time 
+  sleep $sleep_time
   # wait a bit in case of error, to reduce lost glideins
 
   glidein_end_time=`date +%s`
@@ -388,7 +390,7 @@ function early_glidein_failure {
   final_result_simple=`basexml2simplexml "${final_result}"`
   # have no global section
   final_result_long=`simplexml2longxml "${final_result_simple}" ""`
-  
+
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
@@ -405,7 +407,7 @@ function early_glidein_failure {
 
 # use this one once the most basic ops have been done
 function glidein_exit {
-  # lock file for whole machine 
+  # lock file for whole machine
   if [ "x$lock_file" != "x" ]; then
     rm -f $lock_file
   fi
@@ -653,7 +655,7 @@ function add_condor_vars_line {
 EOF
 }
 
-# Create a script that defines various id based functions 
+# Create a script that defines various id based functions
 # This way other depending scripts can use it
 function create_get_id_selectors {
     cat > "$1" << EOF
@@ -855,7 +857,7 @@ elif [ "$operation_mode" = "check" ]; then
  sleep_time=150
  set_debug=2
 fi
- 
+
 if [ -z "$descript_file" ]; then
     warn "Missing descript fname." 1>&2
     usage
@@ -919,7 +921,7 @@ else
     warn "Unsupported signtype $sign_type found." 1>&2
     usage
 fi
-    
+
 if [ -n "$client_repository_url" ]; then
   # client data is optional, user url as a switch
   if [ -z "$client_sign_type" ]; then
@@ -932,7 +934,7 @@ if [ -n "$client_repository_url" ]; then
     warn "Unsupported clientsigntype $client_sign_type found." 1>&2
     usage
   fi
-    
+
   if [ -z "$client_descript_file" ]; then
     warn "Missing client descript fname." 1>&2
     usage
@@ -986,7 +988,7 @@ function md5wrapper {
         echo "???"
         return 1
     fi
-    echo "$res"  
+    echo "$res"
 }
 
 
@@ -1160,24 +1162,24 @@ else
 fi
 work_dir_created=1
 
-gwms_dir="gwms"
-if ! mkdir "$gwms_dir" ; then
-    early_glidein_failure "Cannot create '$gwms_dir'"
+# GWMS_DIR defined on top
+if ! mkdir "$GWMS_DIR" ; then
+    early_glidein_failure "Cannot create '$GWMS_DIR'"
 fi
 
-gwms_lib_dir="${gwms_dir}/lib"
+gwms_lib_dir="${GWMS_DIR}/lib"
 if ! mkdir -p "$gwms_lib_dir" ; then
     early_glidein_failure "Cannot create '$gwms_lib_dir'"
 fi
 
-gwms_bin_dir="${gwms_dir}/bin"
+gwms_bin_dir="${GWMS_DIR}/bin"
 if ! mkdir -p "$gwms_bin_dir" ; then
     early_glidein_failure "Cannot create '$gwms_bin_dir'"
 fi
 
 # mktemp makes it user readable by definition (ignores umask)
-chmod a+rx "$work_dir"
-if [ $? -ne 0 ]; then
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
+if ! chmod a+rx "$work_dir" ; then
     early_glidein_failure "Failed chmod '$work_dir'"
 fi
 
@@ -1188,54 +1190,48 @@ if [ $? -ne 0 ]; then
 fi
 glide_local_tmp_dir_created=1
 
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
 # the tmpdir should be world writable
-# This way it will work even if the user spawned by the glidein is different
-# than the glidein user
-chmod 1777 "$glide_local_tmp_dir"
-if [ $? -ne 0 ]; then
+# This way it will work even if the user spawned by the glidein is different than the glidein user
+# This happened in GlExec, outside user stays the same in Singularity
+if ! chmod 1777 "$glide_local_tmp_dir" ; then
     early_glidein_failure "Failed chmod '$glide_local_tmp_dir'"
 fi
 
 glide_tmp_dir="${work_dir}/tmp"
-mkdir "$glide_tmp_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$glide_tmp_dir" ; then
     early_glidein_failure "Cannot create '$glide_tmp_dir'"
 fi
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
 # the tmpdir should be world writable
-# This way it will work even if the user spawned by the glidein is different
-# than the glidein user
-chmod 1777 "$glide_tmp_dir"
-if [ $? -ne 0 ]; then
+# This way it will work even if the user spawned by the glidein is different than the glidein user
+if ! chmod 1777 "$glide_tmp_dir" ; then
     early_glidein_failure "Failed chmod '$glide_tmp_dir'"
 fi
 
 short_main_dir=main
 main_dir="${work_dir}/${short_main_dir}"
-mkdir "$main_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$main_dir" ; then
     early_glidein_failure "Cannot create '$main_dir'"
 fi
 
 short_entry_dir=entry_${glidein_entry}
 entry_dir="${work_dir}/${short_entry_dir}"
-mkdir "$entry_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$entry_dir" ; then
     early_glidein_failure "Cannot create '$entry_dir'"
 fi
 
 if [ -n "$client_repository_url" ]; then
     short_client_dir=client
     client_dir="${work_dir}/${short_client_dir}"
-    mkdir "$client_dir"
-    if [ $? -ne 0 ]; then
+    if ! mkdir "$client_dir" ; then
         early_glidein_failure "Cannot create '$client_dir'"
     fi
 
     if [ -n "$client_repository_group_url" ]; then
         short_client_group_dir=client_group_${client_group}
         client_group_dir="${work_dir}/${short_client_group_dir}"
-        mkdir "$client_group_dir"
-        if [ $? -ne 0 ]; then
+        if ! mkdir "$client_group_dir" ; then
             early_glidein_failure "Cannot create '$client_group_dir'"
         fi
     fi
@@ -1273,7 +1269,7 @@ echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
-echo "GLIDEIN_STARTUP_PID $$" >> glidein_config 
+echo "GLIDEIN_STARTUP_PID $$" >> glidein_config
 echo "GLIDEIN_WORK_DIR $main_dir" >> glidein_config
 echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
@@ -1532,11 +1528,11 @@ function perform_wget {
         wget_cmd=$(echo "wget ${wget_args[@]}"| sed 's/"/\\\"/g')
         wget_resp=$(wget "${wget_args[@]}" 2>&1)
         wget_retval=$?
-    fi    
+    fi
 
     if [ $wget_retval -ne 0 ]; then
         wget_version=$(wget --version 2>&1 | head -1)
-        warn "$wget_cmd failed. version:$wget_version  exit code $wget_retval stderr: $wget_resp " 
+        warn "$wget_cmd failed. version:$wget_version  exit code $wget_retval stderr: $wget_resp "
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
         echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
@@ -1562,7 +1558,7 @@ function perform_wget {
   Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.  $wget_resp
   </detail>
 </OSGTestResult>" > otrb_output.xml
-        warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 
+        warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'."
 
         if [ -f otr_outlist.list ]; then
             chmod u+w otr_outlist.list
@@ -1574,7 +1570,7 @@ function perform_wget {
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
         chmod a-w otr_outlist.list
-    fi 
+    fi
     return $wget_retval
 }
 
@@ -1606,7 +1602,7 @@ function perform_curl {
 
     if [ $curl_retval -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
-        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp " 
+        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
         echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
@@ -1632,7 +1628,7 @@ function perform_curl {
   Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.  ${curl_resp}
   </detail>
 </OSGTestResult>" > otrb_output.xml
-        warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 
+        warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'."
 
         if [ -f otr_outlist.list ]; then
             chmod u+w otr_outlist.list
@@ -1644,7 +1640,7 @@ function perform_curl {
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
         chmod a-w otr_outlist.list
-    fi 
+    fi
     return $curl_retval
 }
 
@@ -1697,9 +1693,9 @@ function fetch_file_base {
     ffb_url="$ffb_repository/$ffb_real_fname"
     curl_version=$(curl --version | head -1 )
     wget_version=$(wget --version | head -1 )
-    #old wget command: 
+    #old wget command:
     #wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" "$ffb_nocache_str" -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
-    #equivalent to: 
+    #equivalent to:
     #wget ${ffb_url} --user-agent=${user_agent} -q  -O "${ffb_tmp_outname}" "${ffb_nocache_str}"
     #with env http_proxy=$proxy_url set if proxy_url != "None"
     #
@@ -1719,9 +1715,9 @@ function fetch_file_base {
             elif wget --help |grep -q "\-\-cache="; then
                 wget_args+=("--cache=off")
             else
-                warn "wget $wget_version cannot disable caching" 
+                warn "wget $wget_version cannot disable caching"
             fi
-         fi    
+         fi
     fi
 
     if [ "$proxy_url" != "None" ];then
@@ -1761,7 +1757,7 @@ function fetch_file_base {
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
         mv "$ffb_tmp_outname" "$ffb_outname"
         if [ $? -ne 0 ]; then
-            warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 
+            warn "Failed to rename $ffb_tmp_outname into $ffb_outname"
             return 1
         fi
     fi
@@ -1980,10 +1976,10 @@ do
   fi
 
   gs_file_list_id=`echo $gs_file_id |awk '{print $2}'`
-  
+
   gs_id_work_dir=`get_work_dir $gs_id`
   gs_id_descript_file=`get_descript_file $gs_id`
-  
+
   # extract list file name
   gs_file_list_line="`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`"
   if [ $? -ne 0 ]; then
