@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Allows to retrieve information from the OSG collector and generate the factory xml file
 """
 

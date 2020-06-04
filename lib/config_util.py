@@ -13,16 +13,13 @@ import yaml
 # pylint: disable=line-too-long
 ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="grid_proxy" comment="Entry automatically generated" enabled="%(enabled)s" gatekeeper="%(gatekeeper)s" gridtype="%(gridtype)s"%(rsl)s proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="%(work_dir)s">
          <config>
-            <max_jobs>
-               <default_per_frontend glideins="5000" held="50" idle="100"/>
-               <per_entry glideins="10000" held="1000" idle="4000"/>
+            <max_jobs>%(limits)s
                <per_frontends>
                </per_frontends>
             </max_jobs>
             <release max_per_cycle="20" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
-            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
-            <submit cluster_size="10" max_per_cycle="25" sleep="2" slots_layout="fixed">
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>%(submission_speed)s
                <submit_attrs>%(submit_attrs)s
                </submit_attrs>
             </submit>
@@ -90,6 +87,39 @@ GLIDEIN_SUPPORTED_VO_MAP = {
     "osgedu": "OSGEDU",
     "uc3": "UC3VO",
     "virgo": "VIRGO"
+}
+
+SUBMISSION_SPEED_MAP = {
+    "super slow": {
+        "cluster_size": 1,
+        "max_per_cycle": 1,
+        "sleep": 2,
+        "slots_layout": "fixed"
+    },
+    "slow": {
+        "cluster_size": 5,
+        "max_per_cycle": 5,
+        "sleep": 2,
+        "slots_layout": "fixed"
+    },
+    "normal": {
+        "cluster_size": 10,
+        "max_per_cycle": 10,
+        "sleep": 2,
+        "slots_layout": "fixed"
+    },
+    "fast": {
+        "cluster_size": 15,
+        "max_per_cycle": 15,
+        "sleep": 2,
+        "slots_layout": "fixed"
+    },
+    "super fast": {
+        "cluster_size": 20,
+        "max_per_cycle": 20,
+        "sleep": 2,
+        "slots_layout": "fixed"
+    }
 }
 
 
@@ -182,6 +212,53 @@ def get_submit_attr_str(submit_attrs):
         for name, value in sorted(submit_attrs.items()):
             if value is not None:
                 out += '\n                  <submit_attr name="%s" value="%s"/>' % (name, value)
+
+    return out
+
+
+# Collect all pilots limits
+def get_limits_str(limits):
+    """Convert pilots limits from a dictionary form to the corresponding configuration string
+
+    Args:
+        limits (dict): the dictionary containing the pilots limits
+
+    Returns:
+        string: the string representing the xml pilots limits section for a single entry
+    """
+    out = ""
+    if limits:
+        for name, value in reversed(sorted(limits.items())):
+            if value and value.get('glideins') and value.get('held') and value.get('idle'):
+                glideins = value['glideins']
+                held = max(1, min(int(glideins * value['held'] / 100), glideins))
+                idle = max(1, min(int(glideins * value['idle'] / 100), glideins))
+                if name == 'entry':
+                    out += '\n               <per_entry glideins="%s" held="%s" idle="%s"/>' % (glideins, held, idle)
+                elif name == 'frontend':
+                    out += '\n               <default_per_frontend glideins="%s" held="%s" idle="%s"/>' % (glideins, held, idle)
+
+    return out
+
+
+# Collect submission speed
+def get_submission_speed(submission_speed):
+    """Convert submission speed from a name to the corresponding configuration string
+
+    Args:
+        submission_speed (string): the string containing the submission speed name
+
+    Returns:
+        string: the string representing the xml submission speed section for a single entry
+    """
+    out = ""
+    if submission_speed:
+        if submission_speed in SUBMISSION_SPEED_MAP:
+            submission_speed_dictionary = SUBMISSION_SPEED_MAP[submission_speed]
+        else:
+            submission_speed_dictionary = SUBMISSION_SPEED_MAP["normal"]
+            print("Submission speed with name " + submission_speed + " is not in SUBMISSION_SPEED_MAP, therefore submission speed is set to normal.")
+        out += '\n            <submit cluster_size="%(cluster_size)s" max_per_cycle="%(max_per_cycle)s" sleep="%(sleep)s" slots_layout="%(slots_layout)s">' % submission_speed_dictionary
 
     return out
 
