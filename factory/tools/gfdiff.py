@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ This script allows to compare two different entries
 """
 
@@ -206,7 +207,7 @@ def main():
     print("Checking entry attributes:")
     check_dict_diff(g_entry_a, g_entry_b, print_name=False)
     print("Checking inner xml:")
-    check_dict_diff(entry_a.children, entry_b.children, dict.items)
+    check_dict_diff(g_entry_a.children, g_entry_b.children, dict.items)
 
 
 if __name__ == "__main__":

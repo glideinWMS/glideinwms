@@ -12,7 +12,8 @@ import fractions
 import htcondor
 
 from glideinwms.lib.config_util import ENTRY_STUB, GLIDEIN_SUPPORTED_VO_MAP, ProgramError, get_attr_str, update, \
-     get_yaml_file_info, write_to_yaml_file, get_submit_attr_str, write_to_xml_file
+     get_yaml_file_info, write_to_yaml_file, get_submit_attr_str, write_to_xml_file, get_limits_str, \
+     get_submission_speed
 
 
 def load_config():
@@ -172,6 +173,8 @@ def get_entries_configuration(data):
                     )
                 else:
                     entry_configuration["submit_attrs"] = ""
+                entry_configuration["limits"] = get_limits_str(entry_configuration["limits"])
+                entry_configuration["submission_speed"] = get_submission_speed(entry_configuration["submission_speed"])
                 entries_configuration += ENTRY_STUB % entry_configuration
 
     return entries_configuration
