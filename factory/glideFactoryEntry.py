@@ -23,8 +23,6 @@ import copy
 import random
 import logging
 
-sys.path.append(os.path.join(sys.path[0], "../../"))
-
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
