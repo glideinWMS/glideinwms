@@ -123,7 +123,7 @@ class Entry:
         self.gfiFactoryConfig.factory_collector = self.glideinDescript.data['FactoryCollector']
 
         try:
-            self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0])), 'checksum.factory').version()
+            self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro('checksum.factory').version()
         except:
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
