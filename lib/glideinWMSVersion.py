@@ -36,32 +36,25 @@ class GlideinWMSDistro:
     class __impl:
         """ Implementation of the singleton interface """
 
-        def __init__(self, dir, chksumFile='checksum'):
+        def __init__(self, chksumFile='checksum'):
             self.versionIdentifier = 'GLIDEINWMS_VERSION'
-            self.type="TARBALL"
-            self.distroChksumFile = os.path.join(dir, 'etc', chksumFile)
 
-            # If the default location does not exist, try RPM location
-            if not os.path.exists(self.distroChksumFile):
-                rpm_workdir = ''
-                if chksumFile.endswith('.factory'):
-                    rpm_workdir = '/var/lib/gwms-factory/work-dir/'
-                elif chksumFile.endswith('.frontend'):
-                    rpm_workdir = '/var/lib/gwms-frontend/vofrontend/'
-                else:
-                    rpm_workdir = 'UNKNOWN'
+            rpm_workdir = ''
+            if chksumFile.endswith('.factory'):
+                rpm_workdir = '/var/lib/gwms-factory/work-dir/'
+            elif chksumFile.endswith('.frontend'):
+                rpm_workdir = '/var/lib/gwms-frontend/vofrontend/'
+            else:
+                rpm_workdir = 'UNKNOWN'
 
-                self.distroChksumFile = os.path.join(rpm_workdir, chksumFile)
-                self.type="RPM"
-                if not os.path.exists(self.distroChksumFile):
-                    self.type="UNKNOWN"
+            self.distroChksumFile = os.path.join(rpm_workdir, chksumFile)
 
             try:
-                self.createVersionString(dir)
+                self.createVersionString()
             except:
                 self._version = 'glideinWMS UNKNOWN'
 
-        def createVersionString(self, dir):
+        def createVersionString(self):
             ver = 'UNKNOWN'
             patch = ""
             modifiedFiles = []
@@ -87,16 +80,14 @@ class GlideinWMSDistro:
                 for file in distroFileHash.keys():
                     fd = None
                     try:
-                        if (self.type != "RPM"):
-                            fd = open(os.path.join(dir, file), 'r')
-                        else:
-                            # In the RPM, all files are in site-packages
-                            rpm_dir = os.path.dirname(
-                                          os.path.dirname(
-                                              sys.modules[__name__].__file__))
-                            fd = open(os.path.join(rpm_dir,
-                                                   os.path.dirname(file),
-                                                   os.path.basename(file)), 'r')
+                        # In the RPM, all files are in site-packages
+                        rpm_dir = os.path.dirname(
+                                        os.path.dirname(
+                                            sys.modules[__name__].__file__))
+                        fd = open(os.path.join(rpm_dir,
+                                                os.path.dirname(file),
+                                                os.path.basename(file)), 'r')
+
                         chksum = md5(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
                             modifiedFiles.append(file)
@@ -117,9 +108,9 @@ class GlideinWMSDistro:
     # storage for the instance reference
     __instance = None
 
-    def __init__(self, dir, chksumFile='checksum'):
+    def __init__(self, chksumFile='checksum'):
         if GlideinWMSDistro.__instance is None:
-            GlideinWMSDistro.__instance = GlideinWMSDistro.__impl(dir, chksumFile=chksumFile)
+            GlideinWMSDistro.__instance = GlideinWMSDistro.__impl(chksumFile=chksumFile)
 
         self.__dict__['_GlideinWMSDistro__instance'] = GlideinWMSDistro.__instance
 
@@ -132,8 +123,8 @@ class GlideinWMSDistro:
         return setattr(self.__instance, attr, value)
 
 
-def version(dir, chksumFile=None):
-     return GlideinWMSDistro(dir, chksumFile=chksumFile).version()
+def version(chksumFile=None):
+     return GlideinWMSDistro(chksumFile=chksumFile).version()
 #   version
 
 def usage():
@@ -144,10 +135,10 @@ def usage():
 ##############################################################################
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        print("%s " % (GlideinWMSDistro(sys.argv[1]).version()))
-    elif len(sys.argv) == 3:
-        print("%s " % (GlideinWMSDistro(sys.argv[1], chksumFile=sys.argv[2]).version()))
+    if len(sys.argv) == 1:
+        print("%s " % (GlideinWMSDistro().version()))
+    elif len(sys.argv) == 2:
+        print("%s " % (GlideinWMSDistro(chksumFile=sys.argv[1]).version()))
     else:
         usage()
         sys.exit(1)

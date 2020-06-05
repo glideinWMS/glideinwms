@@ -30,8 +30,7 @@ def manager_version():
             chksum_file = "checksum.frontend"
         else:
             return "UNKNOWN"
-        return glideinWMSVersion.GlideinWMSDistro(glidein_dir,
-                                                  chksum_file).version()
+        return glideinWMSVersion.GlideinWMSDistro(chksum_file).version()
     except RuntimeError:
         return "UNKNOWN"
 
