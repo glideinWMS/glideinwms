@@ -177,11 +177,6 @@ def main():
     global g_entry_b
     options = parse_opts()
 
-    if options.mergely:
-        handle_mergely(options.entry_a, options.conf_a, options.entry_b,
-                       options.conf_b, options.mergely)
-        return
-
     entry_a = options.entry_a
     entry_b = options.entry_b
 
@@ -203,6 +198,11 @@ def main():
         sys.exit(1)
     g_entry_a = entry_a[0]
     g_entry_b = entry_b[0]
+
+    if options.mergely:
+        handle_mergely(options.entry_a, options.conf_a, options.entry_b,
+                       options.conf_b, options.mergely)
+        return
 
     print("Checking entry attributes:")
     check_dict_diff(g_entry_a, g_entry_b, print_name=False)
