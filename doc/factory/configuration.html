@@ -83,6 +83,7 @@
         <li><a href="#tarballs">Multiple HTCondor Tarballs</a> </li>
         <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
         <li><a href="#sitecollector">Glidein's Startd Advertising to Site HTCondor-CE Collector</a> </li>
+        <li><a href="#reconfigure_hooks">Running pre/post reconfigure hooks</a> </li>
 </ol>
 </div>
 <div class="related">
@@ -2305,6 +2306,14 @@ The default behavior can be overridden by specifying the option -xslt_plugin_dir
 
         </p>
     </div>
+
+<div>
+    <a name="#reconfigure_hooks"/>
+    <h3 class="western">Running pre/post reconfigure hooks</h3>
+    <p>
+    You can put executable scipts in the <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre> or the <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre> directories. These scripts will be executed every time you reconfigure the factory. The <pre>.pre</pre> scripts will be executed before the recofniguration process begins. The <pre>.post</pre> will be executed after the reconfigurations has been done.
+    </p>
+</div>
 
 <div class="footer">
 Banner image by
