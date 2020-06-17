@@ -121,7 +121,7 @@ def get_information(host):
                     if resource:
                         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": site}
                     if len(vos) > 0:
-                        edict["attrs"]["GLIDEIN_Supported_vos"] = {"value": ",".join(vos)}
+                        edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
                     else:
                         print(gatekeeper + " CE does not have VOs")
                     edict["submit_attrs"] = {}
