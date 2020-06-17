@@ -17,7 +17,6 @@ import shutil
 import subprocess
 import stat
 import tarfile
-import urllib
 import cStringIO
 import glob
 from . import cgWDictFile
@@ -28,6 +27,17 @@ from . import cgWDictFile
 
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
+    """Extract only components from a full condor distribution needed to run a
+    glidein on a CE.  This code is only run when a factory reconfig or upgrade
+    is triggered.
+ 
+    Args:
+        condor_base_dir (str):  an untarred tarball of an HTCondor Distribution
+
+    Returns:
+        StringIO: representation of tarfile.
+    """
+
     try:
         # List of required files
         condor_bins = [
@@ -65,17 +75,6 @@ def create_condor_tar_fd(condor_base_dir):
             'libexec/condor_chirp',
             'libexec/condor_gpu_discovery',
         ]
-
-        # TODO: remove these commanted lines after checking w/ Dennis
-        # 1. libmunge is not in the condor distribution. Is it needed, by what?
-        # stripped tar ball files should come from the full tar ball, not from the system
-        # these lines copy to the workdir, in a missing directory, not to the tar ball. Did it ever worl?
-        # needed libraries for token auth, copy them in
-        #for needed in ['libSciTokens', 'libmunge']:
-        #    pat = '/usr/lib64/%s*' % needed
-        #    for src in glob.glob(pat):
-        #        dst = os.path.join('lib', os.path.basename(src))
-        #        copy_file(src, dst)
 
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
