@@ -176,7 +176,7 @@ def handle_hooks(basedir, script_dir):
         return
     for fname in os.listdir(dirname):
         script_name = os.path.join(dirname, fname)
-        print(script_name)
+        print("\nExecuting reconfigure hook: " + script_name)
         if os.path.isfile(script_name) and os.access(script_name, os. X_OK):
             subprocess.call(script_name)
 
@@ -284,7 +284,7 @@ if __name__ == '__main__':
         print2(e)
         exit_code = 1
 
-    handle_hooks(os.path.dirname(os.path.abspath(xml), "hooks.reconfig.post"))
+    handle_hooks(os.path.dirname(os.path.abspath(xml)), "hooks.reconfig.post")
 
     if sighupreload:
         print2("switching back to the main glideFactory process")
