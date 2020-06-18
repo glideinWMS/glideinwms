@@ -83,10 +83,10 @@ def get_information(host):
             continue
         if "OSG_ResourceGroup" in celem:
             site = celem["OSG_ResourceGroup"]
+            gatekeeper = celem["Name"].lower()
             if site:
                 if site not in result:
                     result[site] = {}
-                gatekeeper = celem["Name"].lower()
                 result[site][gatekeeper] = {}
                 resource = ""
                 if "OSG_Resource" in celem:
