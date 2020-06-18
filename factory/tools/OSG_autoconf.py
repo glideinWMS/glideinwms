@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+import logging
 import argparse
 import fractions
 
@@ -241,5 +242,10 @@ if __name__ == "__main__":
     try:
         main()
     except ProgramError as merr:
-        print("Error! " + ProgramError.codes_map[merr.code])
+        print("\033[91mError! \033[0m" + ProgramError.codes_map[merr.code])
         sys.exit(merr.code)
+    except:
+        logging.exception("")
+        print("\033[91mUnexpected exception. Aborting automatic configuration generation!\033[0m")
+        raise
+    sys.exit(0)
