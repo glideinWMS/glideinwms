@@ -146,12 +146,12 @@ def voms_proxy_init(proxy, voms_attr=None):
     """
     cmd = ['voms-proxy-init',
            '-debug',
-           '-old',
            '-cert', proxy.cert,
            '-key', proxy.key,
            '-out', proxy.tmp_output_fd.name,
            '-valid', '%s:00' % proxy.lifetime]
-
+    if proxy.rfc:
+        cmd.append('-rfc')
     if voms_attr:
         # Some VOMS servers don't support capability/role/group selection so we just use the VO name when making
         # the request. We don't handle this in the VO class because voms-proxy-fake requires the full VO name
