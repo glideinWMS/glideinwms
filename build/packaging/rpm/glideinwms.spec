@@ -370,6 +370,7 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server/factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/client
 install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/client-proxies
 install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials
+touch $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
 
 # Install frontend temp dir, for all the frontend.xml.<checksum>
 install -d $RPM_BUILD_ROOT%{frontend_dir}/lock
@@ -710,6 +711,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
 %attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/client-proxies
 %attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials
+%attr(0600, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
 %attr(-, gfactory, gfactory) %{factory_web_dir}
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
