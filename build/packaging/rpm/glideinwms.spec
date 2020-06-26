@@ -20,6 +20,8 @@
 %define web_dir %{_localstatedir}/lib/gwms-frontend/web-area
 %define web_base %{_localstatedir}/lib/gwms-frontend/web-base
 %define frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
+%define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens
+%define factory_token_dir %{_localstatedir}/lib/gwms-factory/tokens
 %define factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -334,12 +336,14 @@ install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sys
 
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
+install -d $RPM_BUILD_ROOT%{frontend_token_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
 install -d $RPM_BUILD_ROOT%{web_dir}/stage/
 install -d $RPM_BUILD_ROOT%{web_dir}/stage/group_main
 install -d $RPM_BUILD_ROOT%{factory_dir}
+install -d $RPM_BUILD_ROOT%{factory_token_dir}
 install -d $RPM_BUILD_ROOT%{factory_web_base}
 install -d $RPM_BUILD_ROOT%{factory_web_dir}
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
@@ -677,7 +681,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/entry_q
 %attr(755,root,root) %{_bindir}/entry_rm
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
-%attr(755,root,root) %{_bindir}/factory_tokenize.sh
 %attr(755,root,root) %{_bindir}/find_StartdLogs
 %attr(755,root,root) %{_bindir}/find_logs
 %attr(755,root,root) %{_bindir}/fact_chown
@@ -718,6 +721,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
 %attr(-, gfactory, gfactory) %{factory_dir}
+%attr(-, gfactory, gfactory) %{factory_token_dir}
 %attr(-, gfactory, gfactory) %dir %{condor_dir}
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory/client
@@ -780,6 +784,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %{web_dir}
 %attr(-, frontend, frontend) %{web_base}
 %attr(-, frontend, frontend) %{frontend_dir}
+%attr(-, frontend, frontend) %{frontend_token_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %{python_sitelib}/glideinwms/frontend
 %{python_sitelib}/glideinwms/creation/lib/cvWConsts.py
