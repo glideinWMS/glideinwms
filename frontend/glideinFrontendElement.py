@@ -18,13 +18,13 @@
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
 #
 
-import signal
+#import signal
 import sys
 import os
 import copy
 import traceback
 import time
-import string
+#import string
 import logging
 import re
 import tempfile
@@ -32,7 +32,7 @@ import shutil
 
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
-from glideinwms.lib import symCrypto, pubCrypto
+from glideinwms.lib import pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
@@ -877,11 +877,16 @@ class glideinFrontendElement:
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
-                tkn_file += glidein_site
-                tkn_file += ".token"
+                tkn_dir = "/var/lib/gwms-frontend/tokens/%s" % (glidein_site)
+                tkn_bn = "%s.idtoken" % (glidein_site)
+                tkn_file = os.path.join(tkn_dir, tkn_bn)
+
+                if not os.path.exists(tkn_dir):
+                    os.mkdir(tkn_dir, 0755)
+
                 cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+
                 os.chmod(tmpnm,0600)
                 os.write(fd, tkn_str)
                 os.close(fd)
@@ -890,7 +895,7 @@ class glideinFrontendElement:
                 os.chmod(tkn_file, 0600)
                 logSupport.log.debug("created token %s" % tkn_file)
             except Exception as err:
-                logSupport.log.debug('failed to fetch %s' % tkn_file)
+                logSupport.log.debug('failed to create %s' % tkn_file)
                 logSupport.log.debug('%s' % err)
             finally:
                 if os.path.exists(tmpnm):
