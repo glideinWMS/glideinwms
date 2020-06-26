@@ -368,6 +368,8 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server/factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/client
+
+# Create some credential directories
 install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/client-proxies
 install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials
 touch $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
