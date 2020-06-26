@@ -16,21 +16,34 @@ fi
 
 
 if [ "$KEY" = "" ]; then
-	echo usage $0 entry_point
-	echo creates frontend token ~frontend/.condor/tokends.d/entry_point
+	echo "usage $0 entry_point"
+	echo creates frontend token for entry_point and echos it to stdout
 	exit 0
 fi
 
 # create a key for creating the token if needed
-if [ ! -e /etc/condor/passwords.d/${KEY} ]; then
+if [ ! -e "/etc/condor/passwords.d/${KEY}" ]; then
     mkdir -p /etc/condor/passwords.d
-    openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${KEY} add > /dev/null 2>&1
+    openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u "frontend@${HOSTNAME}" -f "/etc/condor/passwords.d/${KEY}" add > /dev/null 2>&1
 fi
 
-TOKEN=${KEY}.token
-TD="~/.condor/tokens.d"
-mkdir -p "${TD}"
-AUTH='-authz READ -authz WRITE -authz ADVERTISE_STARTD -authz ADVERTISE_SCHEDD -authz ADVERTISE_MASTER'
+TOKEN=${KEY}.idtoken
+TD="/var/lib/gwms-frontend/tokens/${KEY}"
+#mkdir -p "${TD}"
+AUTH='-authz condor:/READ -authz condor:/WRITE -authz condor:/ADVERTISE_STARTD -authz condor:/ADVERTISE_SCHEDD -authz condor:/ADVERTISE_MASTER'
 
-# create the token, echo it to stdout
-sudo /usr/bin/condor_token_create  -lifetime 86400 -key ${KEY} ${AUTH} -identity "${ID}@${HOSTNAME}"
+REUSE_TOKEN=1
+if [ -e "$TD/$TOKEN" ]; then
+  AGE=$(date -r "$TD/$TOKEN" +%s)
+  ONE_HR_AGO=$(( $(date +%s) - 3600 ))
+  if [ "$AGE" -gt "$ONE_HR_AGO" ]; then
+     REUSE_TOKEN=0
+  fi
+fi
+
+if [ $REUSE_TOKEN -eq 0 ]; then
+  cat "$TD/$TOKEN"
+else
+  # create the token, echo it to stdout
+  sudo /usr/bin/condor_token_create  -lifetime 86400 -key ${KEY} ${AUTH} -identity "${ID}@${HOSTNAME}"
+fi
