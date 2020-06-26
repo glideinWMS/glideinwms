@@ -674,7 +674,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/entry_q
 %attr(755,root,root) %{_bindir}/entry_rm
 %attr(755,root,root) %{_bindir}/extract_EC2_Address
-%attr(755,root,root) %{_bindir}/factory_tokenize.sh
 %attr(755,root,root) %{_bindir}/find_StartdLogs
 %attr(755,root,root) %{_bindir}/find_logs
 %attr(755,root,root) %{_bindir}/fact_chown
