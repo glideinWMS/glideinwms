@@ -1,7 +1,7 @@
 import string
 import os.path
 import urllib
-import cPickle
+import pickle
 import copy
 import sys
 

@@ -5,7 +5,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-import ConfigParser
+import configparser
 import os
 import pwd
 import re
@@ -186,7 +186,7 @@ def voms_proxy_fake(proxy, vo_info):
 def main():
     """Main entrypoint
     """
-    config = ConfigParser.ConfigParser(DEFAULTS)
+    config = configparser.ConfigParser(DEFAULTS)
     config.read(CONFIG)
     proxies = config.sections()
 

@@ -12,8 +12,8 @@ import string
 import sys
 import time
 import traceback
-import ConfigParser
-import StringIO
+import configparser
+import io
 
 import inspect
 
@@ -30,12 +30,12 @@ class Configuration:
     try:
       #-- check version of parser to use ---
       if sys.version_info[0] >= 2 and sys.version_info[1] >= 3:
-        self.cp = ConfigParser.SafeConfigParser()
+        self.cp = configparser.SafeConfigParser()
       else:
-        self.cp = ConfigParser.ConfigParser()
+        self.cp = configparser.ConfigParser()
       #-- read the ini file ---
       real_fp = open(self.inifile, 'r')
-      string_fp = StringIO.StringIO(real_fp.read())
+      string_fp = io.StringIO(real_fp.read())
       self.cp.readfp(string_fp, self.inifile)
     except Exception as e:
       common.logerr("%s" % e)

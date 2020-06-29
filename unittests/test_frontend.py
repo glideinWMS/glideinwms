@@ -17,7 +17,7 @@ from __future__ import print_function
 import dis
 import re
 import sys
-import StringIO
+import io
 import xmlrunner
 import mock
 import unittest2 as unittest
@@ -40,8 +40,8 @@ def compareLambdas(func1, func2):
         code[0] = r.group(1)
 
     def disassemble(func):
-        out = StringIO.StringIO()
-        err = StringIO.StringIO()
+        out = io.StringIO()
+        err = io.StringIO()
         saved = (sys.stdout, sys.stderr)
         sys.stdout = out
         sys.stderr = err

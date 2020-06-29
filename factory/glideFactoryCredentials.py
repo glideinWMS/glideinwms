@@ -14,7 +14,7 @@ import pwd
 #import binascii
 #import traceback
 import gzip
-import cStringIO
+import io
 import base64
 
 from . import glideFactoryLib
@@ -353,7 +353,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
 
 
 def compress_credential(credential_data):
-    cfile = cStringIO.StringIO()
+    cfile = io.StringIO()
     f = gzip.GzipFile(fileobj=cfile, mode='wb')
     f.write(credential_data)
     f.close()

@@ -15,7 +15,7 @@ import re
 import shutil
 import copy
 import socket
-import cStringIO
+import io
 from glideinwms.lib import hashCrypto
 
 
@@ -183,7 +183,7 @@ class DictFile:
     def save_into_str(self,
                       sort_keys=None,set_readonly=True,reset_changed=True,
                       want_comments=True):
-        fd=cStringIO.StringIO()
+        fd=io.StringIO()
         self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         fd.seek(0)
         data=fd.read()
@@ -244,7 +244,7 @@ class DictFile:
     def load_from_str(self, data,
                       erase_first=True,        # if True, delete old content first
                       set_not_changed=True):   # if True, set self.changed to False
-        fd = cStringIO.StringIO()
+        fd = io.StringIO()
         fd.write(data)
         fd.seek(0)
         try:

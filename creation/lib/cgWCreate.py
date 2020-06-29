@@ -18,7 +18,7 @@ import subprocess
 import stat
 import tarfile
 import urllib
-import cStringIO
+import io
 import glob
 from . import cgWDictFile
 
@@ -106,7 +106,7 @@ def create_condor_tar_fd(condor_base_dir):
                 condor_bins.append(f)
 
         # tar
-        fd = cStringIO.StringIO()
+        fd = io.StringIO()
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
 

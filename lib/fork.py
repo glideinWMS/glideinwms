@@ -15,7 +15,7 @@ from __future__ import absolute_import
 #
 # TODO: This could be rewritten so that the polling lists are registered once and the fd are removed only when
 #       not needed anymore (currently there is an extrnal structure and the poll object is a new one each time)
-import cPickle
+import pickle
 import os
 import sys
 import time
@@ -55,7 +55,7 @@ def fork_in_bg(function_torun, *args):
         os.close(r)
         try:
             out = function_torun(*args)
-            os.write(w, cPickle.dumps(out))
+            os.write(w, pickle.dumps(out))
         except:
             logSupport.log.warning("Forked process '%s' failed" % str(function_torun))
             logSupport.log.exception("Forked process '%s' failed" % str(function_torun))
@@ -101,8 +101,8 @@ def fetch_fork_result(r, pid):
             rin += s
             s = os.read(r, 1024*1024)
         # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.' 
-        out = cPickle.loads(rin)
-    except (OSError, IOError, EOFError, cPickle.UnpicklingError) as err:
+        out = pickle.loads(rin)
+    except (OSError, IOError, EOFError, pickle.UnpicklingError) as err:
         etype, evalue, etraceback = sys.exc_info()
         # Adding message in case close/waitpid fail and preempt raise
         logSupport.log.exception('Re-raising exception during read: %s' % err)

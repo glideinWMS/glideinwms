@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import os
 from . import glideinwms_tarfile
-import cStringIO
+import io
 
 class FileDoesNotExist(Exception):
     """File does not exist exception
@@ -75,7 +75,7 @@ class GlideinTar:
                 tf.add(file)
 
         for filename, string in list(self.strings.items()):
-            fd_str = cStringIO.StringIO(string)
+            fd_str = io.StringIO(string)
             fd_str.seek(0)
             ti = glideinwms_tarfile.TarInfo()
             ti.size = len(string)
@@ -115,7 +115,7 @@ class GlideinTar:
         @raise glideinwms_tarfile.CompressionError: This exception can be raised is an
             invalid compression type has been passed in
         """
-        from cStringIO import StringIO
+        from io import StringIO
         tar_mode = "w:%s" % compression
         file_out = StringIO()
         # TODO #23166: Use context managers[with statement] when python 3

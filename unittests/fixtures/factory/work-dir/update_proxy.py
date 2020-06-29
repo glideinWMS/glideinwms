@@ -24,7 +24,7 @@ import os
 import sys
 import binascii
 import gzip
-import cStringIO
+import io
 import traceback
 import base64
 import shutil
@@ -34,7 +34,7 @@ class CompressionError(Exception): pass
 
 def compress_credential(credential_data):
     try:
-        cfile = cStringIO.StringIO()
+        cfile = io.StringIO()
         f = gzip.GzipFile(fileobj=cfile, mode='wb')
         f.write(credential_data)
         f.close()
