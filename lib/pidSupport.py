@@ -150,7 +150,7 @@ class PidSupport:
             raise RuntimeError("Corrupted lock file: no PID")
 
         try:
-            pid = long(pidarr[1])
+            pid = int(pidarr[1])
         except:
             raise RuntimeError("Corrupted lock file: invalid PID")
         
@@ -202,7 +202,7 @@ class PidWParentSupport(PidSupport):
             raise RuntimeError("Corrupted lock file: no PID")
 
         try:
-            pid = long(pidarr[1])
+            pid = int(pidarr[1])
         except:
             raise RuntimeError("Corrupted lock file: invalid PID")
         
@@ -211,7 +211,7 @@ class PidWParentSupport(PidSupport):
             raise RuntimeError("Corrupted lock file: no Parent PID")
 
         try:
-            parent_pid = long(pidarr[1])
+            parent_pid = int(pidarr[1])
         except:
             raise RuntimeError("Corrupted lock file: invalid Parent PID")
         

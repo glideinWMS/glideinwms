@@ -54,7 +54,7 @@ def machine_cmp(x, y):
 
 
 def fmt_time(t):
-    now=long(time.time())
+    now=int(time.time())
     diff=now-t
     diff_secs=diff%60
     diff=diff/60
@@ -251,7 +251,7 @@ def main():
             else:
                 cel[a]='???'
         if cel['EnteredCurrentActivity']!='???':
-            cel['EnteredCurrentActivity']=fmt_time(long(cel['EnteredCurrentActivity']))
+            cel['EnteredCurrentActivity']=fmt_time(int(cel['EnteredCurrentActivity']))
 
         state=cel['State']
         activity=cel['Activity']

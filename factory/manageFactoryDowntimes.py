@@ -63,17 +63,17 @@ def strtxt2time(timeStr):
     darr=timeStr.split('-')
     if len(darr)>1: # we have at least part of the date
         timeStr=darr[-1]
-        day=long(darr[-2])
+        day=int(darr[-2])
         if len(darr)>2:
-            month=long(darr[-3])
+            month=int(darr[-3])
             if len(darr)>3:
-                year=long(darr[-4])
+                year=int(darr[-4])
 
     tarr=timeStr.split(':')
-    hours=long(tarr[0])
-    minutes=long(tarr[1])
+    hours=int(tarr[0])
+    minutes=int(tarr[1])
     if len(tarr)>2:
-        seconds=long(tarr[2])
+        seconds=int(tarr[2])
     outtime=time.mktime((year, month, day, hours, minutes, seconds, 0, 0, -1))
     return outtime
 
@@ -90,7 +90,7 @@ def str2time(timeStr):
     else:
         print(timeStr)
         # should be a simple number
-        return long(timeStr)
+        return int(timeStr)
 
 # Create an array for each value in the frontend descript file
 def get_security_classes(factory_dir):
@@ -156,16 +156,16 @@ def delay2time(delayStr):
     seconds=0
     harr=delayStr.split('h', 1)
     if len(harr)==2:
-        hours=long(harr[0])
+        hours=int(harr[0])
         delayStr=harr[1]
     marr=delayStr.split('m', 1)
     if len(marr)==2:
-        minutes=long(marr[0])
+        minutes=int(marr[0])
         delayStr=marr[1]
     if delayStr[-1:]=='s':
         delayStr=delayStr[:-1] # remove final s if present
     if len(delayStr)>0:
-        seconds=long(delayStr)
+        seconds=int(delayStr)
     
     return seconds+60*(minutes+60*hours)
 
@@ -174,7 +174,7 @@ def down(entry_name, opt_dict):
     down_fd=get_downtime_fd(entry_name, opt_dict["dir"])
     when=delay2time(opt_dict["delay"])
     if (opt_dict["start"]=="None"):
-        when+=long(time.time())
+        when+=int(time.time())
     else:
         when+=str2time(opt_dict["start"])
     if (opt_dict["end"]=="None"):
@@ -197,7 +197,7 @@ def up(entry_name, opt_dict):
     frontend=opt_dict["frontend"]
     comment=opt_dict["comment"]
     if (opt_dict["end"]=="None"):
-        when+=long(time.time())
+        when+=int(time.time())
     else:
         when+=str2time(opt_dict["end"])
     # commenting this check out since we could be in a downtime
@@ -218,7 +218,7 @@ def up(entry_name, opt_dict):
 # security class
 def printtimes(entry_or_id, opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
-    when=delay2time(opt_dict["delay"])+long(time.time())
+    when=delay2time(opt_dict["delay"])+int(time.time())
     entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         down_fd=config_els[entry]
@@ -231,7 +231,7 @@ def check(entry_or_id, opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
     when=delay2time(opt_dict["delay"])
     sec_name=opt_dict["sec"]
-    when+=long(time.time())
+    when+=int(time.time())
 
     entry_keys=sorted(config_els.keys())
     for entry in entry_keys:

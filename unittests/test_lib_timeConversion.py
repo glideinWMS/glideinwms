@@ -100,7 +100,7 @@ class TestTimeFunctions(unittest.TestCase):
     # unix 4-byte time overflow that get and extract are symmetric
     @hypothesis.given(st.floats(min_value=0, max_value=2147483647.0))
     def test_ISO8601_Local__symmetric(self, flt_time):
-        t = long(flt_time)
+        t = int(flt_time)
         tstr = getISO8601_Local(flt_time)
         self.assertEqual(t, extractISO8601_Local(getISO8601_Local(flt_time)))
         self.assertEqual(tstr, getISO8601_Local(extractISO8601_Local(tstr)))
@@ -123,7 +123,7 @@ class TestTimeFunctions(unittest.TestCase):
     # unix 4-byte time overflow that get and extract are symmetric
     @hypothesis.given(st.floats(min_value=0, max_value=2147483647.0))
     def test_rf_c2822_local_symmetric(self, flt_time):
-        t = long(flt_time)
+        t = int(flt_time)
         tstr = getRFC2822_Local(flt_time)
         self.assertEqual(t, extractRFC2822_Local(getRFC2822_Local(flt_time)))
         self.assertEqual(tstr, getRFC2822_Local(extractRFC2822_Local(tstr)))

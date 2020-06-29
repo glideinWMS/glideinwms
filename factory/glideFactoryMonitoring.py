@@ -63,7 +63,7 @@ class MonitoringConfig:
         cleaner = cleanupSupport.DirCleanupWSpace(
                       log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
-                      long(max_mbs * (1024.0 * 1024.0)))
+                      int(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
     def logCompleted(self, client_name, entered_dict):
@@ -442,7 +442,7 @@ class condorQStats:
             el['InfoAgeAvgCounter'] = 0  # used for totals since we need an avg in totals, not absnum
 
         if 'LastHeardFrom' in client_internals:
-            el['InfoAge'] += (int(time.time() - long(client_internals['LastHeardFrom'])) * fraction)
+            el['InfoAge'] += (int(time.time() - int(client_internals['LastHeardFrom'])) * fraction)
             el['InfoAgeAvgCounter'] += fraction
 
         self.updated = time.time()
