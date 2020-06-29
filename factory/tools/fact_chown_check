@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 The script check if the factory setup is 3.5 ready. This means the client and proxies

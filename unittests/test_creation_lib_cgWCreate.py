@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
    Project: glideinwms
    File: test_creation_lib_cgWCreate.py
