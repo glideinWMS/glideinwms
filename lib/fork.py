@@ -106,7 +106,7 @@ def fetch_fork_result(r, pid):
         etype, evalue, etraceback = sys.exc_info()
         # Adding message in case close/waitpid fail and preempt raise
         logSupport.log.exception('Re-raising exception during read: %s' % err)
-        raise FetchError, 'Exception during read probably due to worker failure, original exception and trace %s: %s' % (etype, evalue), etraceback
+        raise FetchError('Exception during read probably due to worker failure, original exception and trace %s: %s' % (etype, evalue)).with_traceback(etraceback)
     finally:
         os.close(r)
         os.waitpid(pid, 0)
