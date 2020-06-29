@@ -1221,7 +1221,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         try:
             tkn_file = os.path.join(submit_credentials.cred_dir, token_name)
             entry.log.debug("frontend_token supplied, writing to %s" % tkn_file)
-            os.chmod(tmpnm,400)
+            os.chmod(tmpnm, 400)
             os.write(fd, frontend_supplied_token)
             os.close(fd)
             util.file_tmp2final(tkn_file, tmpnm)

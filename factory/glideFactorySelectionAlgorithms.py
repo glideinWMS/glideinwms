@@ -23,7 +23,7 @@ def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log)
     """
     log.debug("submit_files %s, status_sf %s, jobDescript %s, nr_glideins %s, log %s" % (submit_files, status_sf, jobDescript, nr_glideins, log))
     # Create empty return dictionary
-    res = dict((sf,0) for sf in submit_files) # e.g.: {'job.entry1.condor' : 0, 'job.entry2.condor' : 0}
+    res = dict((sf, 0) for sf in submit_files) # e.g.: {'job.entry1.condor' : 0, 'job.entry2.condor' : 0}
     # At CERN /dev/random always returns the same seed
     random.seed(time.time())
     # Randomize the entries in case (for example) always: nr_glideins < len(submit_files)

@@ -882,7 +882,7 @@ class glideinFrontendElement:
                 tkn_file += ".token"
                 cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                os.chmod(tmpnm,0o600)
+                os.chmod(tmpnm, 0o600)
                 os.write(fd, tkn_str)
                 os.close(fd)
                 shutil.move(tmpnm, tkn_file)

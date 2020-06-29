@@ -33,7 +33,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
             if self.entry_name == entr.getName():
                 self.entry = entr
 
-        self.gsdf = GlideinSubmitDictFile('fixtures/factory/work-dir',self.entry_name)
+        self.gsdf = GlideinSubmitDictFile('fixtures/factory/work-dir', self.entry_name)
 
 
     def test_populate(self):

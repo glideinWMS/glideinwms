@@ -423,7 +423,7 @@ def aggregateStatus(in_downtime):
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
 
     # write json
-    glideFactoryMonitoring.monitoringConfig.write_completed_json(monitorAggregatorConfig.completed_data_relname.split('.')[0],updated,completed_data_tot)
+    glideFactoryMonitoring.monitoringConfig.write_completed_json(monitorAggregatorConfig.completed_data_relname.split('.')[0], updated, completed_data_tot)
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")

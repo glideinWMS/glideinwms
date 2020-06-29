@@ -481,7 +481,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         for cj in self.dicts['condor_jdl']:
             cj.finalize(self.summary_signature['main'][0], self.summary_signature[sub_stage_dir][0],
-                        self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
+                        self.summary_signature['main'][1], self.summary_signature[sub_stage_dir][1])
             cj.save(set_readonly=set_readonly)
 
     def populate(self, entry, schedd):
@@ -889,7 +889,7 @@ def populate_factory_descript(work_dir, glidein_dict,
             else:
                 disabled_sub_list.append(entry.getName())
 
-        glidein_dict.add('Entries', string.join(active_sub_list,','))
+        glidein_dict.add('Entries', string.join(active_sub_list, ','))
         glidein_dict.add('AdvertiseWithTCP', conf['advertise_with_tcp'])
         glidein_dict.add('AdvertiseWithMultiple', conf['advertise_with_multiple'])
         glidein_dict.add('LoopDelay', conf['loop_delay'])

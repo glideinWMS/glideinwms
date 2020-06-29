@@ -844,10 +844,10 @@ def calc_glidein_collectors(collectors):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
             if 'sock=' in el.node:
-                cWDictFile.validate_node(el.node,allow_range=True)
+                cWDictFile.validate_node(el.node, allow_range=True)
                 collector_nodes[el.group]['secondary'].append(el.node)
             else:  # single port in secondary
-                cWDictFile.validate_node(el.node,allow_range=True)
+                cWDictFile.validate_node(el.node, allow_range=True)
                 collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
