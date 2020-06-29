@@ -108,7 +108,7 @@ class TestDictFile(unittest.TestCase):
         expected = True
         key = 'GLIDEIN_Expose_Grid_Env'
         # TODO change this method name to has_key1()
-        self.assertEqual(expected, self.dict_file.has_key(key))
+        self.assertEqual(expected, key in self.dict_file)
 
     def test_is_compatible(self):
         old_val = 'foo'

@@ -100,7 +100,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
         expected = True
         key = 'GLIDECLIENT_Group_Start'
         # has_key should be renamed has_key1
-        self.assertEqual(expected, self.dict_file.has_key(key))
+        self.assertEqual(expected, key in self.dict_file)
 
     def test_is_compatible2(self):
         self.assertTrue(self.dict_file.is_compatible2("foo", "bar"))
