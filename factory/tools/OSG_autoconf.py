@@ -92,8 +92,8 @@ def get_information(host):
                 #TODO The following "if" should be put in a function to make pylint happy
                 if "OSG_ResourceCatalog" in celem:
                     vos = set()
-                    memory = sys.maxint
-                    walltime = sys.maxint
+                    memory = sys.maxsize
+                    walltime = sys.maxsize
                     cpus = ""
                     for osg_catalog in celem["OSG_ResourceCatalog"]:
                         if "AllowedVOs" in osg_catalog:
@@ -126,11 +126,11 @@ def get_information(host):
                     if cpus != "":
                         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
                         edict["submit_attrs"]["+xcount"] = cpus
-                    if walltime != sys.maxint:
+                    if walltime != sys.maxsize:
                         glide_walltime = walltime * 60 - 1800
                         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
                         edict["submit_attrs"]["+maxWallTime"] = walltime
-                    if memory != sys.maxint:
+                    if memory != sys.maxsize:
                         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
                         edict["submit_attrs"]["+maxMemory"] = memory
                 else:
