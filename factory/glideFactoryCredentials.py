@@ -268,14 +268,14 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
         return
 
     params_keys = set(params.keys())
-    relevant_keys = set(['SubmitProxy', 'GlideinProxy', 'Username', 'Password',
+    relevant_keys = {'SubmitProxy', 'GlideinProxy', 'Username', 'Password',
                          'PublicCert', 'PrivateCert', 'PublicKey', 'PrivateKey',
-                         'VMId', 'VMType', 'AuthFile'])
+                         'VMId', 'VMType', 'AuthFile'}
 
     if 'grid_proxy' in auth_method_list:
         if 'SubmitProxy' in params:
             # v3+ protocol
-            valid_keys = set(['SubmitProxy'])
+            valid_keys = {'SubmitProxy'}
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
@@ -299,7 +299,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                 raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping " %
                                       (client_int_name, entry_name))
             # Verify no other credentials were passed
-            valid_keys = set(['GlideinProxy', 'PublicCert', 'PrivateCert', 'VMId', 'VMType'])
+            valid_keys = {'GlideinProxy', 'PublicCert', 'PrivateCert', 'VMId', 'VMType'}
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
@@ -312,7 +312,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                 raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping " %
                                       (client_int_name, entry_name))
             # Verify no other credentials were passed
-            valid_keys = set(['GlideinProxy', 'PublicKey', 'PrivateKey', 'VMId', 'VMType'])
+            valid_keys = {'GlideinProxy', 'PublicKey', 'PrivateKey', 'VMId', 'VMType'}
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
@@ -325,7 +325,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                 raise CredentialError("Client '%s' did not specify the auth_file in the request, this is required by entry %s, skipping " %
                                       (client_int_name, entry_name))
             # Verify no other credentials were passed
-            valid_keys = set(['GlideinProxy', 'AuthFile', 'VMId', 'VMType'])
+            valid_keys = {'GlideinProxy', 'AuthFile', 'VMId', 'VMType'}
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %
@@ -338,7 +338,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                 raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping " %
                                       (client_int_name, entry_name))
             # Verify no other credentials were passed
-            valid_keys = set(['GlideinProxy', 'Username', 'Password', 'VMId', 'VMType'])
+            valid_keys = {'GlideinProxy', 'Username', 'Password', 'VMId', 'VMType'}
             invalid_keys = relevant_keys.difference(valid_keys)
             if params_keys.intersection(invalid_keys):
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" %

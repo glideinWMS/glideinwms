@@ -337,7 +337,7 @@ def getQStatusSF(condorq):
     NOTE: this has not the same level of detail as getQStatus, e.g. Idle jobs are not split depending on GridJobStatus
     """
     qc_status = {}
-    submit_files = set(v.get('GlideinEntrySubmitFile') for k,v in list(condorq.stored_data.items())) - set([None])
+    submit_files = set(v.get('GlideinEntrySubmitFile') for k,v in list(condorq.stored_data.items())) - {None}
     for sf in submit_files:
         sf_status = sorted(v['JobStatus'] for k,v in list(condorq.stored_data.items()) if v.get('GlideinEntrySubmitFile')==sf)
         qc_status[sf] = dict( (key, len(list(group))) for key, group in groupby(sf_status))
@@ -915,7 +915,7 @@ def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
         qc_status = dict((key, len(list(group))) for key, group in groupby([i for i in data_list if i is not None]))
         # getQStatusSF() equivalent
         qc_status_sf = {}
-        submit_files = set(v.get('GlideinEntrySubmitFile') for k, v in list(client_data.items())) - set([None])
+        submit_files = set(v.get('GlideinEntrySubmitFile') for k, v in list(client_data.items())) - {None}
         for sf in submit_files:
             sf_status = sorted(v['JobStatus'] for k,v in list(client_data.items()) if v.get('GlideinEntrySubmitFile')==sf)
             qc_status_sf[sf] = dict( (key, len(list(group))) for key, group in groupby(sf_status))

@@ -991,7 +991,7 @@ def countGlideinsCondorStatus(status_dict):
     count = 0
     for collector_name in status_dict:
         slots_dict = status_dict[collector_name].fetchStored()
-        count += len(set([i.split('@', 1)[1] for i in list(slots_dict.keys())]))
+        count += len({i.split('@', 1)[1] for i in list(slots_dict.keys())})
     return count
 
 
