@@ -12,8 +12,8 @@ Project:
 
 #   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import dis
 import re
 import sys

@@ -11,7 +11,7 @@
 # Usage: cat_MasterLog.py logname
 #
 
-from __future__ import print_function
+
 import os.path
 import sys
 STARTUP_DIR=sys.path[0]

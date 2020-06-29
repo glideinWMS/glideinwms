@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Script to check that /etc/gwms-frontend/frontend.xml is compatible w/ connected Factories
 
-from __future__ import print_function
+
 import xml.etree.ElementTree as ET
 import htcondor
 import sys

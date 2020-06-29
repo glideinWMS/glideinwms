@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+
 import sys
 
 # Attempt to fill the write buffer and exit abnormally

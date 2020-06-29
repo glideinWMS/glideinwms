@@ -1,8 +1,8 @@
 """This module contains a list of shared utility function used by the both OSG collector and CRIC
 configuration generation helper tools
 """
-from __future__ import division
-from __future__ import print_function
+
+
 
 import collections
 

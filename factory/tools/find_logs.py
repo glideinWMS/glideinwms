@@ -11,7 +11,7 @@
 # Usage: find_logs.py <factory> YY/MM/DD [hh:mm:ss]
 #
 
-from __future__ import print_function
+
 import sys
 import os
 import os.path

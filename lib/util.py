@@ -12,7 +12,7 @@
 #   Marco Mambelli (some functions are from other modules and hardened)
 #
 
-from __future__ import print_function
+
 import os
 import shutil
 import pickle as pickle

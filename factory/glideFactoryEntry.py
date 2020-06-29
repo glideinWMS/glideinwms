@@ -9,7 +9,7 @@
 #   Entry class
 #
 
-from __future__ import print_function
+
 import signal
 import os
 import os.path

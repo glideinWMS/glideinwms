@@ -5,8 +5,8 @@
     Purpose: unit test of glideinwms/creation/lib/cgWDictFile.py
     Author:  Dennis Box, dbox@fnal.gov
 """
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import getpass
 import unittest2 as unittest
 import os

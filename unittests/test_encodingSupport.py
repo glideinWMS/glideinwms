@@ -11,7 +11,7 @@ Project:
 """
 
 
-from __future__ import absolute_import
+
 import tempfile
 import unittest2 as unittest
 import xmlrunner

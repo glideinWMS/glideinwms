@@ -1,8 +1,8 @@
 """ Allows to retrieve information from the OSG collector and generate the factory xml file
 """
 
-from __future__ import division
-from __future__ import print_function
+
+
 
 import sys
 import argparse

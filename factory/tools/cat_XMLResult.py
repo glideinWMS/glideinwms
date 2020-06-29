@@ -13,7 +13,7 @@
 #        If -forcemulti is present, make it a ResultSet even if only one file present
 #
 
-from __future__ import print_function
+
 import os.path
 import string
 import sys

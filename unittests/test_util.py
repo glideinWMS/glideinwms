@@ -10,8 +10,8 @@
 #   Marco Mascheroni
 #
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import xmlrunner
 import unittest2 as unittest
 

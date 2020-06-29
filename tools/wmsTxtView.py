@@ -16,7 +16,7 @@
 #   Igor Sfiligoi (May 9th 2007)
 #
 
-from __future__ import print_function
+
 import string
 import os.path
 import sys

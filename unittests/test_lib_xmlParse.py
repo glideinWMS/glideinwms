@@ -10,8 +10,8 @@
 #   Dennis Box dbox@fnal.gov
 #
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import unittest2 as unittest
 import xmlrunner
 import xml

@@ -7,8 +7,8 @@ Purpose:
 Author:
     Dennis Box, dbox@fnal.gov
 """
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import mock
 import os
 import unittest2 as unittest

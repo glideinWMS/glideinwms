@@ -15,7 +15,7 @@
 #   Igor Sfiligoi May 6th 2008
 #
 
-from __future__ import print_function
+
 import signal
 import sys
 import os
