@@ -882,12 +882,12 @@ class glideinFrontendElement:
                 tkn_file += ".token"
                 cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                os.chmod(tmpnm,0600)
+                os.chmod(tmpnm,0o600)
                 os.write(fd, tkn_str)
                 os.close(fd)
                 shutil.move(tmpnm, tkn_file)
                 file_tmp2final(tkn_file, tmpnm)
-                os.chmod(tkn_file, 0600)
+                os.chmod(tkn_file, 0o600)
                 logSupport.log.debug("created token %s" % tkn_file)
             except Exception as err:
                 logSupport.log.debug('failed to fetch %s' % tkn_file)
