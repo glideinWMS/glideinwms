@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import os, sys, getopt, re
 import datetime
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 # Convert particularly large numbers
 #    into kilo/mega; keeps 3 sig figs

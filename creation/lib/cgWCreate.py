@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import stat
 import tarfile
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import io
 import glob
 from . import cgWDictFile

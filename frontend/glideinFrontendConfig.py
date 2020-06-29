@@ -1,6 +1,6 @@
 import string
 import os.path
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import pickle
 import copy
 import sys
@@ -80,7 +80,7 @@ class ConfigFile:
     def open(self, fname):
         if (fname[:5]=="http:") or (fname[:6]=="https:") or (fname[:4]=="ftp:"):
             # one of the supported URLs
-            return urllib.urlopen(fname)
+            return urllib.request.urlopen(fname)
         else:
             # local file
             return open(fname, "r")

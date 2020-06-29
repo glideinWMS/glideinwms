@@ -31,7 +31,7 @@ import math
 # from datetime import datetime
 import glob
 import jwt
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import tarfile
 
 from M2Crypto.RSA import RSAError
@@ -232,7 +232,7 @@ def generate_log_tokens(startup_dir, glideinDescript):
 
         for recipient_url in log_recipients:
             # Obtain a legal filename from the url, escaping "/" and other tricky symbols
-            recipient_safe_url = urllib.quote(recipient_url, '')
+            recipient_safe_url = urllib.parse.quote(recipient_url, '')
 
             # Generate the token
             # TODO: in the future must include Frontend tokens as well
