@@ -134,11 +134,11 @@ def monitor(jid,schedd_name,pool_name,
 def getRemoteVM(pool_name, schedd_name, constraint):
     cq=condorMonitor.CondorQ(schedd_name=schedd_name, pool_name=pool_name)
     data=cq.fetch(constraint)
-    if len(data.keys())==0:
+    if len(list(data.keys()))==0:
         raise RuntimeError("Job not found")
-    if len(data.keys())>1:
+    if len(list(data.keys()))>1:
         raise RuntimeError("Can handle only one job at a time")
-    el=data.values()[0]
+    el=list(data.values())[0]
     if ('JobStatus' not in el) or (el['JobStatus']!=2):
         raise RuntimeError("Job not running")
     if 'RemoteHost' not in el:

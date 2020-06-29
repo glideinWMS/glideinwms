@@ -151,9 +151,9 @@ def get_entries_configuration(data):
         str: The factory cml file as a string
     """
     entries_configuration = ""
-    for _, site_information in data.items():
-        for celem, ce_information in site_information.items():
-            for entry, entry_information in ce_information.items():
+    for _, site_information in list(data.items()):
+        for celem, ce_information in list(site_information.items()):
+            for entry, entry_information in list(ce_information.items()):
                 entry_configuration = entry_information
                 entry_configuration["entry_name"] = entry
                 # Can we get these information (next two keys)?
@@ -193,17 +193,17 @@ def merge_yaml(config):
     out = get_yaml_file_info(config["OSG_WHITELIST"])
     osg_info = get_yaml_file_info(config["OSG_YAML"])
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
-    for site, site_information in out.items():
+    for site, site_information in list(out.items()):
         if site not in osg_info:
             print("You put %s in the whitelist file, but the site is not present in the collector"
                   % site)
             raise ProgramError(2)
-        for celem, ce_information in site_information.items():
+        for celem, ce_information in list(site_information.items()):
             if celem not in osg_info[site]:
                 print ("Working on whitelisted site %s: cant find ce %s in the generated OSG.yaml"
                        % (site, celem))
                 raise ProgramError(3)
-            for entry, entry_information in ce_information.items():
+            for entry, entry_information in list(ce_information.items()):
                 if entry_information is None:
                     out[site][celem][entry] = osg_info[site][celem]["DEFAULT_ENTRY"]
                     entry_information = out[site][celem][entry]

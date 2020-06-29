@@ -296,7 +296,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # validate data and add additional attributes if needed
     def derive(self):
-        if len(self.groups.keys())==0:
+        if len(list(self.groups.keys()))==0:
             raise ValueError("No groups defined!")
             
         self.validate_names()
@@ -322,7 +322,7 @@ class VOFrontendParams(cWParams.CommonParams):
         if not has_collector:
             # collector not defined at global level, must be defined in every group
             has_collector=True
-            for  group_name in self.groups.keys():
+            for  group_name in list(self.groups.keys()):
                 has_collector&='GLIDEIN_Collector' in self.groups[group_name].attrs
 
         if has_collector:
@@ -333,7 +333,7 @@ class VOFrontendParams(cWParams.CommonParams):
         if not has_collector:
             # collector not defined at global level, must be defined in every group
             has_ccb=True
-            for  group_name in self.groups.keys():
+            for  group_name in list(self.groups.keys()):
                 has_ccb&='GLIDEIN_CCB' in self.groups[group_name].attrs
 
         if has_ccb:
@@ -351,7 +351,7 @@ class VOFrontendParams(cWParams.CommonParams):
         if not has_security_name:
             # security_name not defined at global level, look if defined in every group
             has_security_name=True
-            for  group_name in self.groups.keys():
+            for  group_name in list(self.groups.keys()):
                 has_security_name&=(self.groups[group_name].security.security_name is not None)
 
         if not has_security_name:
@@ -365,7 +365,7 @@ class VOFrontendParams(cWParams.CommonParams):
             if pel['security_class'] is None:
                 # define an explicit security, so the admin is aware of it
                 pel['security_class']="frontend"
-        group_names=self.groups.keys()
+        group_names=list(self.groups.keys())
         for group_name in group_names:
             for i in range(len(self.groups[group_name].security.credentials)):
                 pel=self.subparams.data['groups'][group_name]['security']['credentials'][i]
@@ -398,7 +398,7 @@ class VOFrontendParams(cWParams.CommonParams):
                             self.match.job.match_attrs, self.attrs,
                             policy_modules)
 
-        for group_name in self.groups.keys():
+        for group_name in list(self.groups.keys()):
             # Merge group match info and attrs from
             # global section with those sepcific to group
             # Match and query expressions are ANDed
@@ -415,33 +415,33 @@ class VOFrontendParams(cWParams.CommonParams):
             #    policy_modules.append(self.match_policy_modules['groups'][group_name])
             # Construct group specific dict of attrs in <attrs>
             attrs_dict = {}
-            for attr_name in self.attrs.keys():
+            for attr_name in list(self.attrs.keys()):
                 attrs_dict[attr_name] = self.attrs[attr_name]
-            for attr_name in self.groups[group_name].attrs.keys():
+            for attr_name in list(self.groups[group_name].attrs.keys()):
                 attrs_dict[attr_name] = self.groups[group_name].attrs[attr_name]
 
             # Construct group specific dict of factory_attrs in <match_attrs>
             # and those from the policy_modules
             factory_attrs = {}
-            for attr_name in self.match.factory.match_attrs.keys():
+            for attr_name in list(self.match.factory.match_attrs.keys()):
                 factory_attrs[attr_name] = self.match.factory.match_attrs[attr_name]
-            for attr_name in self.groups[group_name].match.factory.match_attrs.keys():
+            for attr_name in list(self.groups[group_name].match.factory.match_attrs.keys()):
                 factory_attrs[attr_name] = self.groups[group_name].match.factory.match_attrs[attr_name]
             for pmodule in pmodules:
                 if pmodule.factoryMatchAttrs:
-                    for attr_name in pmodule.factoryMatchAttrs.keys():
+                    for attr_name in list(pmodule.factoryMatchAttrs.keys()):
                         factory_attrs[attr_name] = pmodule.factoryMatchAttrs[attr_name]
 
             # Construct group specific dict of job_attrs in <match_attrs>
             # and those from the policy_modules
             job_attrs = {}
-            for attr_name in self.match.job.match_attrs.keys():
+            for attr_name in list(self.match.job.match_attrs.keys()):
                 job_attrs[attr_name] = self.match.job.match_attrs[attr_name]
-            for attr_name in self.groups[group_name].match.job.match_attrs.keys():
+            for attr_name in list(self.groups[group_name].match.job.match_attrs.keys()):
                 job_attrs[attr_name] = self.groups[group_name].match.job.match_attrs[attr_name]
             for pmodule in pmodules:
                 if pmodule.jobMatchAttrs:
-                    for attr_name in pmodule.jobMatchAttrs.keys():
+                    for attr_name in list(pmodule.jobMatchAttrs.keys()):
                         job_attrs[attr_name] = pmodule.jobMatchAttrs[attr_name]
 
             # AND global and group specific match_expr 
@@ -483,7 +483,7 @@ class VOFrontendParams(cWParams.CommonParams):
         if self.frontend_name.find('.') != -1:
             raise RuntimeError("Invalid frontend name '%s', contains a point." % self.frontend_name)
 
-        group_names = self.groups.keys()
+        group_names = list(self.groups.keys())
         for group_name in group_names:
             if group_name.find(' ') != -1:
                 raise RuntimeError("Invalid group name '%s', contains a space." % group_name)
@@ -494,12 +494,12 @@ class VOFrontendParams(cWParams.CommonParams):
             if group_name.find('.') != -1:
                 raise RuntimeError("Invalid group name '%s', contains a point." % group_name)
 
-        attr_names = self.attrs.keys()
+        attr_names = list(self.attrs.keys())
         for attr_name in attr_names:
             if not cWParams.is_valid_name(attr_name):
                 raise RuntimeError("Invalid global attribute name '%s'." % attr_name)
         for group_name in group_names:
-            attr_names = self.groups[group_name].attrs.keys()
+            attr_names = list(self.groups[group_name].attrs.keys())
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
                     raise RuntimeError("Invalid group '%s' attribute name '%s'." % (group_name, attr_name))
@@ -514,7 +514,7 @@ class VOFrontendParams(cWParams.CommonParams):
         translations = {'string': 'a', 'int': 1, 'bool': True, 'real': 1.0}
         translated_attrs = {}
 
-        for attr_name in match_attrs.keys():
+        for attr_name in list(match_attrs.keys()):
             attr_type = match_attrs[attr_name]['type']
             try:
                 translated_attrs[attr_name] = translations[attr_type]
@@ -561,7 +561,7 @@ class VOFrontendParams(cWParams.CommonParams):
         env['job'] = self.translate_match_attrs(loc_str, 'job', job_attrs)
 
         # Validate attr
-        for attr_name in attr_dict.keys():
+        for attr_name in list(attr_dict.keys()):
             attr_type=attr_dict[attr_name]['type']
             if attr_type=='string':
                 attr_val='a'
@@ -616,7 +616,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         # Load per group policy module
         self.match_policy_modules['groups'] = {}
-        for group_name in self.groups.keys():
+        for group_name in list(self.groups.keys()):
             # Only load if the group is enabled
             policy_file = self.groups[group_name].match.policy_file
             if self.groups[group_name].enabled and policy_file:
@@ -634,7 +634,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 self.match.job.match_attrs.data = self.match_policy_modules['frontend'].jobMatchAttrs
 
         # Load group match_attrs from externally loaded match_policies
-        for group_name in self.groups.keys():
+        for group_name in list(self.groups.keys()):
             # Shorthand for easy access
             group_module = self.match_policy_modules['groups'].get(group_name)
             if group_module:

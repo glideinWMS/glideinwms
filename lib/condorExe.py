@@ -93,7 +93,7 @@ def generate_bash_script(cmd, environment):
     # script.append('-' * 20 + ' begin script ' + '-' * 20)
     # script.append('#!/bin/bash')
 
-    script += ['%s=%s' % (k, v) for k, v in environment.iteritems()]
+    script += ['%s=%s' % (k, v) for k, v in environment.items()]
     script.append(cmd)
     script.append('-'*20 + '  end script  ' + '-'*20)
     cmd_list = cmd.split()

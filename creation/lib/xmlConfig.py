@@ -36,11 +36,11 @@ class Handler(xml.sax.ContentHandler):
                 el = ListElement(name, parent=self.ancestry[-1:])
             elif name in TAG_CLASS_MAPPING:
                 el = TAG_CLASS_MAPPING[name](name)
-                for k in attrs.keys():
+                for k in list(attrs.keys()):
                     el.attrs[k] = attrs[k]
             else:
                 el = DictElement(name, parent=self.ancestry[-1:])
-                for k in attrs.keys():
+                for k in list(attrs.keys()):
                     el.attrs[k] = attrs[k]
         else:
             # _locator is an undocumented feature of SAX...
@@ -48,11 +48,11 @@ class Handler(xml.sax.ContentHandler):
                 el = ListElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
             elif name in TAG_CLASS_MAPPING:
                 el = TAG_CLASS_MAPPING[name](name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
-                for k in attrs.keys():
+                for k in list(attrs.keys()):
                     el.attrs[k] = attrs[k]
             else:
                 el = DictElement(name, self.file, self._locator.getLineNumber(), parent=self.ancestry[-1:])
-                for k in attrs.keys():
+                for k in list(attrs.keys()):
                     el.attrs[k] = attrs[k]
 
         if name == DOCUMENT_ROOT:

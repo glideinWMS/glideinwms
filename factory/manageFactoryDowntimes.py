@@ -96,7 +96,7 @@ def str2time(timeStr):
 def get_security_classes(factory_dir):
     sec_array=[]
     frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript", lambda s:s)
-    for fe in frontendDescript.data.keys():
+    for fe in list(frontendDescript.data.keys()):
         for sec_class in frontendDescript.data[fe]['usermap']:
             sec_array.append(sec_class)
     return sec_array
@@ -104,7 +104,7 @@ def get_security_classes(factory_dir):
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
     frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript", lambda s:s)
-    return frontendDescript.data.keys()
+    return list(frontendDescript.data.keys())
 
 # Create an array for each entry in the glidein descript file
 def get_entries(factory_dir):
@@ -260,7 +260,7 @@ def get_production_ress_entries(server, ref_dict_list):
 
     condor_obj=condorMonitor.CondorStatus(pool_name=server)
     condor_obj.load(constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(GlueCEStateStatus=?="Production")', format_list=[])
-    condor_refs=condor_obj.fetchStored().keys()
+    condor_refs=list(condor_obj.fetchStored().keys())
     #del condor_obj
 
     for el in ref_dict_list:
@@ -277,7 +277,7 @@ def get_production_bdii_entries(server, ref_dict_list):
     bdii_obj=ldapMonitor.BDIICEQuery(server)
     bdii_obj.load()
     bdii_obj.filterStatus(usable=True)
-    bdii_refs=bdii_obj.fetchStored().keys()
+    bdii_refs=list(bdii_obj.fetchStored().keys())
     #del bdii_obj
 
     for el in ref_dict_list:
@@ -304,7 +304,7 @@ def infosys_based(entry_name, opt_dict, infosys_types):
 
     # load the infosys info
 
-    for entry in config_els.keys():
+    for entry in list(config_els.keys()):
         infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.', entry), cgWConsts.INFOSYS_FILE)
         infosys_fd.load()
 
@@ -326,13 +326,13 @@ def infosys_based(entry_name, opt_dict, infosys_types):
             
         config_els[entry]['infosys_fd']=infosys_fd
 
-    if len(config_els.keys())==0:
+    if len(list(config_els.keys()))==0:
         return 0 # nothing to do
     # all the remaining entries are handled by one of the supported infosys
 
     # summarize
     infosys_data={}
-    for entry in config_els.keys():
+    for entry in list(config_els.keys()):
         infosys_fd=config_els[entry]['infosys_fd']
         for k in infosys_fd.keys:
             infosys_type=infosys_fd[k][0]
@@ -347,10 +347,10 @@ def infosys_based(entry_name, opt_dict, infosys_types):
 
     # get production entries
     production_entries=[]
-    for infosys_type in infosys_data.keys():
+    for infosys_type in list(infosys_data.keys()):
         if infosys_type in infosys_types:
             infosys_data_type=infosys_data[infosys_type]
-            for server in infosys_data_type.keys():
+            for server in list(infosys_data_type.keys()):
                 infosys_data_server=infosys_data_type[server]
                 if infosys_type=="RESS":
                     production_entries+=get_production_ress_entries(server, infosys_data_server)

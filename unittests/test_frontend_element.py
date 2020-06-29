@@ -50,7 +50,7 @@ def uni_to_str_JSON(obj):
     """
     if isinstance(obj, dict):
         newobj = {}
-        for key, value in obj.iteritems():
+        for key, value in obj.items():
             keyobj = uni_to_str_JSON(key)
             newobj[keyobj] = uni_to_str_JSON(value)
     elif isinstance(obj, list):
@@ -229,7 +229,7 @@ class FEElementTestCase(unittest.TestCase):
                 cq = self.gfe.get_condor_q('schedd1')
 
         self.assertItemsEqual(
-            cq['schedd1'].fetchStored().keys(), [
+            list(cq['schedd1'].fetchStored().keys()), [
                 (12345, x) for x in xrange(
                     0, 13)])
 

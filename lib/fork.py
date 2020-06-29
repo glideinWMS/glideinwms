@@ -193,7 +193,7 @@ def fetch_ready_fork_result_list(pipe_ids):
         # Level Trigger behavior (default)
         poll_obj = select.epoll()
         poll_type = "epoll"
-        for read_fd in fds_to_entry.keys():
+        for read_fd in list(fds_to_entry.keys()):
             try:
                 poll_obj.register(read_fd, select.EPOLLIN | select.EPOLLHUP | select.EPOLLERR | select.EPOLLRDBAND | select.EPOLLRDNORM)
             except IOError as err:
@@ -217,13 +217,13 @@ def fetch_ready_fork_result_list(pipe_ids):
             # tested faster than select() on linux when multiple forks configured
             poll_obj = select.poll()
             poll_type = "poll"
-            for read_fd in fds_to_entry.keys():
+            for read_fd in list(fds_to_entry.keys()):
                 poll_obj.register(read_fd, select.POLLIN | select.POLLHUP | select.POLLERR)
             readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
         except (AttributeError, IOError) as err:
             logSupport.log.warning("Failed to load select.poll() '%s'" % str(err))
             # no epoll() or poll(), use select()
-            readable_fds = select.select(fds_to_entry.keys(), [], [], POLL_TIMEOUT/1000.0)[0]
+            readable_fds = select.select(list(fds_to_entry.keys()), [], [], POLL_TIMEOUT/1000.0)[0]
             poll_type = "select"
 
     count = 0
@@ -256,7 +256,7 @@ def fetch_ready_fork_result_list(pipe_ids):
     
     if time_this:
         logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %
-            ('fetch_ready_fork_result_list', poll_type, count, len(fds_to_entry.keys()), time.time()-t_begin))
+            ('fetch_ready_fork_result_list', poll_type, count, len(list(fds_to_entry.keys())), time.time()-t_begin))
 
     return work_info
 
@@ -349,7 +349,7 @@ class ForkManager:
                 forks_remaining += len(post_work_info_subset)
                 functions_remaining -= len(post_work_info_subset)
 
-                for i in (post_work_info_subset.keys() + failed_keys):
+                for i in (list(post_work_info_subset.keys()) + failed_keys):
                     if pipe_ids.get(i):
                         del pipe_ids[i]
                 # end for
@@ -385,7 +385,7 @@ class ForkManager:
             forks_remaining += len(post_work_info_subset)
             functions_remaining -= len(post_work_info_subset)
 
-            for i in (post_work_info_subset.keys() + failed_keys):
+            for i in (list(post_work_info_subset.keys()) + failed_keys):
                 del pipe_ids[i]
 
             if len(post_work_info_subset)>0:

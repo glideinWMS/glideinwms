@@ -29,7 +29,7 @@ def has_file_wrapper(dicts):
         if file_dict in dicts:
             # dicts[file_dict] contains information about status, ..., vals are the tuples w/ files info and content
             # tuples are (fname, type, ...)
-            for file_info in dicts[file_dict].vals.values():
+            for file_info in list(dicts[file_dict].vals.values()):
                 if file_info[1] == 'wrapper':
                     return True
     return False

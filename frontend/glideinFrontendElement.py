@@ -224,7 +224,7 @@ class glideinFrontendElement:
             if not proxy_plugins.get(self.elementDescript.merged_data['ProxySelectionPlugin']):
                 logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" % (
                     self.elementDescript.merged_data['ProxySelectionPlugin']),
-                    proxy_plugins.keys())
+                    list(proxy_plugins.keys()))
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](
                 group_dir, glideinFrontendPlugins.createCredentialList(self.elementDescript))
@@ -559,7 +559,7 @@ class glideinFrontendElement:
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
 
         # Add globals
-        for globalid, globals_el in self.globals_dict.iteritems():
+        for globalid, globals_el in self.globals_dict.items():
             if 'PubKeyObj' in globals_el['attrs']:
                 key_obj = key_builder.get_key_obj(
                               globals_el['attrs']['FactoryPoolId'],
@@ -602,7 +602,7 @@ class glideinFrontendElement:
             # proportional subset of jobs for this entry scaled also for multicore (requested cores/available cores)
             prop_mc_jobs = {}
             hereonly_jobs = {}  # can only run on this site
-            for dt in condorq_dict_types.keys():
+            for dt in list(condorq_dict_types.keys()):
                 count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
                 prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
                 prop_mc_jobs[dt] = condorq_dict_types[dt]['prop_mc'][glideid]
@@ -707,7 +707,7 @@ class glideinFrontendElement:
 
             # get the parameters
             glidein_params = copy.deepcopy(self.paramsDescript.const_data)
-            for k in self.paramsDescript.expr_data.keys():
+            for k in list(self.paramsDescript.expr_data.keys()):
                 kexpr = self.paramsDescript.expr_objs[k]
                 # convert kexpr -> kval
                 glidein_params[k] = glideinFrontendLib.evalParamExpr(kexpr, self.paramsDescript.const_data, glidein_el)
@@ -899,7 +899,7 @@ class glideinFrontendElement:
 
     def populate_pubkey(self):
         bad_id_list = []
-        for globalid, globals_el in self.globals_dict.iteritems():
+        for globalid, globals_el in self.globals_dict.items():
             try:
                 globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
             except:
@@ -1881,7 +1881,7 @@ class glideinFrontendElement:
         #     Based on times seen by CMS
         glideins_per_fork = 100
 
-        glidein_list = self.glidein_dict.keys()
+        glidein_list = list(self.glidein_dict.keys())
         # split the list in equal pieces
         # the result is a list of lists
         split_glidein_list = [glidein_list[i:i+glideins_per_fork]
@@ -1907,7 +1907,7 @@ class glideinFrontendElement:
             return
         logSupport.log.info("All children terminated - took %s seconds" % t_end)
 
-        for dt, el in self.condorq_dict_types.iteritems():
+        for dt, el in self.condorq_dict_types.items():
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)
             (el['count'], el['prop'], el['hereonly'], el['prop_mc'], el['total']) = pipe_out[dt]
 
@@ -2051,7 +2051,7 @@ def check_parent(parent_pid):
 
 ############################################################
 def write_stats(stats):
-    for k in stats.keys():
+    for k in list(stats.keys()):
         stats[k].write_file()
 
 

@@ -337,9 +337,9 @@ def getQStatusSF(condorq):
     NOTE: this has not the same level of detail as getQStatus, e.g. Idle jobs are not split depending on GridJobStatus
     """
     qc_status = {}
-    submit_files = set(v.get('GlideinEntrySubmitFile') for k,v in condorq.stored_data.items()) - set([None])
+    submit_files = set(v.get('GlideinEntrySubmitFile') for k,v in list(condorq.stored_data.items())) - set([None])
     for sf in submit_files:
-        sf_status = sorted(v['JobStatus'] for k,v in condorq.stored_data.items() if v.get('GlideinEntrySubmitFile')==sf)
+        sf_status = sorted(v['JobStatus'] for k,v in list(condorq.stored_data.items()) if v.get('GlideinEntrySubmitFile')==sf)
         qc_status[sf] = dict( (key, len(list(group))) for key, group in groupby(sf_status))
     return qc_status
 
@@ -908,16 +908,16 @@ def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
     clients_condorq = getQClientNames(condorq, factoryConfig)
     data = clients_condorq.fetchStored()
 
-    for client_name, client_data in data.items():
+    for client_name, client_data in list(data.items()):
         # Count glideins by status
         # getQStatus() equivalent
-        data_list = sorted(hash_status(v) for v in client_data.values())
+        data_list = sorted(hash_status(v) for v in list(client_data.values()))
         qc_status = dict((key, len(list(group))) for key, group in groupby([i for i in data_list if i is not None]))
         # getQStatusSF() equivalent
         qc_status_sf = {}
-        submit_files = set(v.get('GlideinEntrySubmitFile') for k, v in client_data.items()) - set([None])
+        submit_files = set(v.get('GlideinEntrySubmitFile') for k, v in list(client_data.items())) - set([None])
         for sf in submit_files:
-            sf_status = sorted(v['JobStatus'] for k,v in client_data.items() if v.get('GlideinEntrySubmitFile')==sf)
+            sf_status = sorted(v['JobStatus'] for k,v in list(client_data.items()) if v.get('GlideinEntrySubmitFile')==sf)
             qc_status_sf[sf] = dict( (key, len(list(group))) for key, group in groupby(sf_status))
 
         sum_idle_count(qc_status)
@@ -996,7 +996,7 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     log.info("  Params: %s" % work_el['params'])
     # Do not log decrypted values ... they are most likely sensitive
     # Just log the keys for debugging purposes
-    log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
+    log.info("  Decrypted Param Names: %s" % list(work_el['params_decrypted'].keys()))
     # requests use GLIDEIN_CPUS and GLIDEIN_ESTIMATED_CPUS at the Frontend to estimate cores
     # TODO: this may change for multi_node requests (GLIDEIN_NODES)
     reqs = {'IdleGlideins': req_idle, 'MaxGlideins': req_max_run}
@@ -1078,7 +1078,7 @@ def sum_idle_count(qc_status):
     #   Idle==Jobstatus(1)
     #   Have to integrate all the variants
     qc_status[1] = 0
-    for k in qc_status.keys():
+    for k in list(qc_status.keys()):
         if (k >= 1000) and (k <= 1100):
             qc_status[1] += qc_status[k]
     return
@@ -1118,7 +1118,7 @@ def extractStaleSimple(q, factoryConfig=None):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
     qstale = q.fetchStored(lambda el: (hash_statusStale(el) == [1, 1]))
-    qstale_list = qstale.keys()
+    qstale_list = list(qstale.keys())
 
     return qstale_list
 
@@ -1127,7 +1127,7 @@ def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable
     # qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 
@@ -1135,7 +1135,7 @@ def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 iterations
     qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
                                       and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 
@@ -1143,56 +1143,56 @@ def extractRecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld = q.fetchStored(lambda el: (el["JobStatus"] == 5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 
 def extractRecoverableHeldSimpleWithinLimits(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     qheld=q.fetchStored(lambda el: (el["JobStatus"]==5 and not isGlideinUnrecoverable(el, factoryConfig=factoryConfig) and isGlideinWithinHeldLimits(el, factoryConfig=factoryConfig)))
-    qheld_list=qheld.keys()
+    qheld_list=list(qheld.keys())
     return qheld_list
 
 
 def extractHeldSimple(q, factoryConfig=None):
     #  Held==5
     qheld = q.fetchStored(lambda el: el["JobStatus"] == 5)
-    qheld_list = qheld.keys()
+    qheld_list = list(qheld.keys())
     return qheld_list
 
 
 def extractIdleSimple(q, factoryConfig=None):
     #  Idle==1
     qidle = q.fetchStored(lambda el: el["JobStatus"] == 1)
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 
 def extractIdleUnsubmitted(q, factoryConfig=None):
     #  1001 == Unsubmitted
     qidle = q.fetchStored(lambda el: hash_status(el) == 1001)
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 
 def extractIdleQueued(q, factoryConfig=None):
     #  All 1xxx but 1001
     qidle = q.fetchStored(lambda el: (hash_status(el) in (1002, 1010, 1100)))
-    qidle_list = qidle.keys()
+    qidle_list = list(qidle.keys())
     return qidle_list
 
 
 def extractNonRunSimple(q, factoryConfig=None):
     #  Run==2
     qnrun = q.fetchStored(lambda el: el["JobStatus"] != 2)
-    qnrun_list = qnrun.keys()
+    qnrun_list = list(qnrun.keys())
     return qnrun_list
 
 
 def extractRunSimple(q, factoryConfig=None):
     #  Run==2
     qrun = q.fetchStored(lambda el: el["JobStatus"] == 2)
-    qrun_list = qrun.keys()
+    qrun_list = list(qrun.keys())
     return qrun_list
 
 
@@ -1200,7 +1200,7 @@ def extractRunStale(q, factoryConfig=None):
     # first find out the stale running jids
     #  hash: (Running==2, Stale==1)
     qstale = q.fetchStored(lambda el: (hash_statusStale(el) == [2, 1]))
-    qstale_list = qstale.keys()
+    qstale_list = list(qstale.keys())
 
     # these glideins were running for too long, period!
     return qstale_list
@@ -1375,7 +1375,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         else:
             submit_files = { submit_files[0]: nr_glideins }
 
-        for submit_file, nr_glideins_sf in submit_files.items():
+        for submit_file, nr_glideins_sf in list(submit_files.items()):
             nr_submitted = 0
             while (nr_submitted < nr_glideins_sf):
                 sub_env = []
@@ -1508,7 +1508,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         if client_web is not None:
             params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
-        for k, v in params.iteritems():
+        for k, v in params.items():
             # Remove the null parameters and warn
             if not str(v).strip():
                 log.warning('Skipping empty job parameter (%s)' % k)
@@ -2035,7 +2035,7 @@ class GlideinTotals:
         output += "     default frontend-sec class max_held=%s\n" % self.default_fesc_max_held
         output += "     default frontend-sec class max_glideins=%s\n" % self.default_fesc_max_glideins
 
-        for frontend in self.frontend_limits.keys():
+        for frontend in list(self.frontend_limits.keys()):
             fe_limit = self.frontend_limits[frontend]
             output += "GlideinTotals FRONTEND NAME = %s\n" % frontend
             output += "     idle = %s\n" % fe_limit['idle']

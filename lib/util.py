@@ -73,7 +73,7 @@ def flattenDict(d, join=add, lift=lambda x: x):
     results = []
 
     def visit(subdict, results, partialKey):
-        for k, v in subdict.items():
+        for k, v in list(subdict.items()):
             newKey = lift(k) if partialKey == _FLAG_FIRST else join(partialKey, lift(k))
             if isinstance(v, Mapping):
                 visit(v, results, newKey)
@@ -121,9 +121,9 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
     :return: flattened dictionary
     """
     out_dict = {}
-    for k, v in in_dict.items():
+    for k, v in list(in_dict.items()):
         if isinstance(v, dict):
-            for k2, v2 in dict_to_flat(v).items():
+            for k2, v2 in list(dict_to_flat(v).items()):
                 out_dict["%s%s%s%s" % (prefix, k, k2, suffix)] = v2
         else:
             out_dict["%s%s%s" % (prefix, k, suffix)] = v
@@ -142,7 +142,7 @@ def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
     """
     out_dict = {}
     if not keys:
-        keys = in_dict.keys()
+        keys = list(in_dict.keys())
     for k in keys:  # glideFactoryMonitoring.getAllJobRanges():
         out_dict["%s%s%s" % (prefix, k, suffix)] = in_dict.get(k, default)
     return out_dict

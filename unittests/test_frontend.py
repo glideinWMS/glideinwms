@@ -281,20 +281,20 @@ class FETestCaseCondorStatus(FETestCaseBase):
                                                                   ('State', 's'), ('Activity', 's')],
                                                               want_format_completion=True)
 
-        machines = condorStatus['coll1'].stored_data.keys()
+        machines = list(condorStatus['coll1'].stored_data.keys())
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
                                          'glidein_3@cmswn003.local', 'glidein_4@cmswn004.local',
                                          'glidein_5@cmswn005.local', 'glidein_1@cmswn006.local'])
 
     def test_getIdleCondorStatus(self):
         condorStatus = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
-        machines = condorStatus['coll1'].stored_data.keys()
+        machines = list(condorStatus['coll1'].stored_data.keys())
         self.assertItemsEqual(machines, ['glidein_4@cmswn004.local'])
 
     def test_getRunningCondorStatus(self):
         condorStatus = glideinFrontendLib.getRunningCondorStatus(
             self.status_dict)
-        machines = condorStatus['coll1'].stored_data.keys()
+        machines = list(condorStatus['coll1'].stored_data.keys())
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
                                          'glidein_3@cmswn003.local', 'glidein_5@cmswn005.local',
                                          'glidein_1@cmswn006.local'])
@@ -302,7 +302,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
     def test_getClientCondorStatus(self):
         condorStatus = glideinFrontendLib.getClientCondorStatus(
             self.status_dict, 'frontend_v3', 'maingroup', 'Site_Name1@v3_0@factory1')
-        machines = condorStatus['coll1'].stored_data.keys()
+        machines = list(condorStatus['coll1'].stored_data.keys())
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local'])
 
     def test_getClientCondorStatusCredIdOnly(self):
@@ -337,7 +337,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             f = open('cs.schedd.fixture')
             m_exe_cmd.return_value = f.readlines()
             condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
-            self.assertItemsEqual(condorStatus['coll1'].stored_data.keys(),
+            self.assertItemsEqual(list(condorStatus['coll1'].stored_data.keys()),
                                   ['schedd%s.local' % x for x in xrange(1, 4)])
 
 
@@ -377,7 +377,7 @@ class FETestCaseMisc(FETestCaseBase):
 
         self.assertItemsEqual(
             [x['RunningOn']
-             for x in cq_run_dict['sched1'].fetchStored().values()],
+             for x in list(cq_run_dict['sched1'].fetchStored().values())],
             expected)
 
     def test_getGlideinCpusNum(self):
@@ -422,7 +422,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         getClientCondorStatusCredIdOnly(self.status_dict, self.cred_id)
         self.assertEqual(
             m_subquery.call_args[0][0],
-            self.status_dict.values()[0])
+            list(self.status_dict.values())[0])
 
     @mock.patch.object(glideinFrontendLib, 'getCondorQConstrained')
     def test_getCondorQ_no_constraints(self, m_getCondorQConstrained):
@@ -464,8 +464,8 @@ class FETestCaseCondorQ(FETestCaseBase):
 
     def test_getRunningCondorQ(self):
         condor_ids = \
-            glideinFrontendLib.getRunningCondorQ(
-                self.condorq_dict)['sched1'].fetchStored().keys()
+            list(glideinFrontendLib.getRunningCondorQ(
+                self.condorq_dict)['sched1'].fetchStored().keys())
 
         self.assertItemsEqual(
             condor_ids, [
@@ -473,8 +473,8 @@ class FETestCaseCondorQ(FETestCaseBase):
 
     def test_getIdleCondorQ(self):
         condor_ids = \
-            glideinFrontendLib.getIdleCondorQ(
-                self.condorq_dict)['sched1'].fetchStored().keys()
+            list(glideinFrontendLib.getIdleCondorQ(
+                self.condorq_dict)['sched1'].fetchStored().keys())
 
         self.assertItemsEqual(
             condor_ids, [
@@ -482,15 +482,15 @@ class FETestCaseCondorQ(FETestCaseBase):
 
     def test_getIdleVomsCondorQ(self):
         condor_ids = \
-            glideinFrontendLib.getIdleVomsCondorQ(
-                self.condorq_dict)['sched1'].fetchStored().keys()
+            list(glideinFrontendLib.getIdleVomsCondorQ(
+                self.condorq_dict)['sched1'].fetchStored().keys())
 
         self.assertEqual(condor_ids, [(12345, 2)])
 
     def test_getIdleProxyCondorQ(self):
         condor_ids = \
-            glideinFrontendLib.getIdleProxyCondorQ(
-                self.condorq_dict)['sched1'].fetchStored().keys()
+            list(glideinFrontendLib.getIdleProxyCondorQ(
+                self.condorq_dict)['sched1'].fetchStored().keys())
 
         self.assertItemsEqual(
             condor_ids, [
@@ -499,8 +499,8 @@ class FETestCaseCondorQ(FETestCaseBase):
     def test_getOldCondorQ(self):
         min_age = 100
         condor_ids = \
-            glideinFrontendLib.getOldCondorQ(self.condorq_dict, min_age)[
-                'sched1'].fetchStored().keys()
+            list(glideinFrontendLib.getOldCondorQ(self.condorq_dict, min_age)[
+                'sched1'].fetchStored().keys())
         self.assertEqual(condor_ids, [(12345, 0)])
 
     def test_countCondorQ(self):
@@ -518,7 +518,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         m_exe_cmd.return_value = f.readlines()
 
         cq = glideinFrontendLib.getCondorQ(['sched1'])
-        condor_ids = cq['sched1'].fetchStored().keys()
+        condor_ids = list(cq['sched1'].fetchStored().keys())
 
         self.assertItemsEqual(
             condor_ids, [

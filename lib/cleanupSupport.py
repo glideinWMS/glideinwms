@@ -82,7 +82,7 @@ class DirCleanup:
         treshold_time = time.time() - self.maxlife
         files_wstats = self.get_files_wstats()
 
-        for fpath in files_wstats.keys():
+        for fpath in list(files_wstats.keys()):
             fstat = files_wstats[fpath]
 
             update_time = fstat[stat.ST_MTIME]
@@ -140,7 +140,7 @@ class DirCleanupWSpace(DirCleanup):
         treshold_time = time.time() - self.maxlife
 
         files_wstats = self.get_files_wstats()
-        fpaths = files_wstats.keys()
+        fpaths = list(files_wstats.keys())
         # order based on time (older first)
         fpaths.sort(lambda i, j:cmp(files_wstats[i][stat.ST_MTIME], files_wstats[j][stat.ST_MTIME]))
 
@@ -191,7 +191,7 @@ class DirCleanupCredentials(DirCleanup):
         threshold_time = curr_time - self.maxlife
 
         files_wstats = self.get_files_wstats()
-        fpaths = files_wstats.keys()
+        fpaths = list(files_wstats.keys())
 
         for fpath in fpaths:            
             fstat = files_wstats[fpath]

@@ -120,7 +120,7 @@ class MatchPolicy:
                 # TODO: Also need to check that match_attr is of string/int/bool
                 if isinstance(ma_attr, dict):
                     data = xmlParse.OrderedDict()
-                    for k, v in ma_attr.iteritems():
+                    for k, v in ma_attr.items():
                         data[k] = xmlParse.OrderedDict(v)
                     match_attrs[ma_name] = data
                 else:

@@ -99,7 +99,7 @@ if factory_name is not None:
 clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name, None, factoryclient_constraints)
 
 # extract data
-glideins=glideins_obj.keys()
+glideins=list(glideins_obj.keys())
 for glidein in glideins:
     glidein_el=glideins_obj[glidein]
 
@@ -130,7 +130,7 @@ for glidein in glideins:
 
     clients_obj=glideFactoryInterface.findWork(factory_name, glidein_name, entry_name, None, key_obj, additional_constraints=frontend_constraints)
     glidein_el['clients']=clients_obj
-    clients=clients_obj.keys()
+    clients=list(clients_obj.keys())
 
     if (frontend_name is not None) and (len(clients)==0):
         # if user requested to see only one frontend
@@ -150,7 +150,7 @@ for glidein in glideins:
         if client in clientsmon_obj:
             clients_obj[client]['factory_monitor']=clientsmon_obj[client]['monitor']
 
-        for pd_key in clients_obj[client]["params_decrypted"].keys():
+        for pd_key in list(clients_obj[client]["params_decrypted"].keys()):
             if clients_obj[client]["params_decrypted"][pd_key] is None:
                 clients_obj[client]["params_decrypted"][pd_key]="ENCRYPTED"
 

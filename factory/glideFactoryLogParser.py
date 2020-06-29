@@ -113,7 +113,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         self.data['Completed']=new_completed
 
         # append log name prefix
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             new_karr=[]
             for el in self.data[k]:
                 job_id=rawJobId2Nr(el[0])
@@ -139,12 +139,12 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         if other is None:
             outdata={}
             if self.data is not None:
-                for k in self.data.keys():
+                for k in list(self.data.keys()):
                     outdata[k]={'Exited':[],'Entered':self.data[k]}
             return outdata
         elif self.data is None:
             outdata={}
-            for k in other.keys():
+            for k in list(other.keys()):
                 outdata[k]={'Entered':[],'Exited':other[k]}
             return outdata
         else:
@@ -152,10 +152,10 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
             keys={} # keys will contain the merge of the two lists
 
-            for s in (self.data.keys()+other.keys()):
+            for s in (list(self.data.keys())+list(other.keys())):
                 keys[s]=None
 
-            for s in keys.keys():
+            for s in list(keys.keys()):
                 sel=[]
                 if s in self.data:
                     for sel_e in self.data[s]:

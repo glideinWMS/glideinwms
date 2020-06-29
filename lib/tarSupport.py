@@ -74,7 +74,7 @@ class GlideinTar:
             else:
                 tf.add(file)
 
-        for filename, string in self.strings.items():
+        for filename, string in list(self.strings.items()):
             fd_str = cStringIO.StringIO(string)
             fd_str.seek(0)
             ti = glideinwms_tarfile.TarInfo()

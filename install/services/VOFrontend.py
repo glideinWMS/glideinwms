@@ -272,7 +272,7 @@ class VOFrontend(Condor):
     for subdir in ["monitor", "stage"]:
       dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(), subdir, instance_dir)
     #--- check them --
-    for type in dirs.keys():
+    for type in list(dirs.keys()):
       if os.path.isdir(dirs[type]): 
         if len(os.listdir(dirs[type])) == 0:
           os.rmdir(dirs[type])
@@ -292,7 +292,7 @@ class VOFrontend(Condor):
       common.logit("""  %(type)s: %(dir)s""" % \
                         { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
-    for type in dirs.keys():
+    for type in list(dirs.keys()):
       common.remove_dir_contents(dirs[type])
       os.rmdir(dirs[type])
     time.sleep(3)
@@ -523,14 +523,14 @@ An empty DN entry means you are done.  """)
         if a_uid.find(" ") >= 0:
           print("WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname." % a_uid)
           continue
-        if a_uid in dns.keys():
+        if a_uid in list(dns.keys()):
           print("WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname." % a_uid)
           continue
         dns[a_uid] = a_dn
 
       print("""
 The following DNs are in your grid_mapfile:""")
-      for a_uid in dns.keys():
+      for a_uid in list(dns.keys()):
         print('"%s" %s' % (dns[a_uid], a_uid))
       yn = "n"
       yn = raw_input("Do you want to proceed or try again? (y/n) [%s]: " % yn)
@@ -1088,7 +1088,7 @@ please verify and correct if needed.
     global valid_options
     print("; ------------------------------------------")
     print("; %s minimal ini options template" % self.ini_section)
-    for section in valid_options.keys():
+    for section in list(valid_options.keys()):
       print("; ------------------------------------------")
       print("[%s]" % section)
       for option in valid_options[section]:

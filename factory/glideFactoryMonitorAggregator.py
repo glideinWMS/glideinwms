@@ -149,8 +149,8 @@ def verifyRRD(fix_rrd=False):
     counts_dict = {}
 
     # initialize the RRD dictionaries to match the current schema for verification
-    for tp in status_attributes.keys():
-        if tp in type_strings.keys():
+    for tp in list(status_attributes.keys()):
+        if tp in list(type_strings.keys()):
             tp_str = type_strings[tp]
             attributes_tp = status_attributes[tp]
             for a in attributes_tp:
@@ -222,7 +222,7 @@ def verifyRRD(fix_rrd=False):
 
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:
-            if file_name in rrdict.keys(): 
+            if file_name in list(rrdict.keys()): 
                 verifyHelper(os.path.join(dir_name, file_name),
                              rrdict[file_name],
                              fix_rrd)
@@ -254,9 +254,9 @@ def aggregateStatus(in_downtime):
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict = {}
-    for tp in global_total.keys():
+    for tp in list(global_total.keys()):
         # type - status or requested
-        if not (tp in status_attributes.keys()):
+        if not (tp in list(status_attributes.keys())):
             continue
 
         tp_str = type_strings[tp]
@@ -392,10 +392,10 @@ def aggregateStatus(in_downtime):
                     tel[a] = tel[a]/nr_entries
 
     # do average for per-fe stat--'InfoAge' only
-    for fe in status_fe['frontends'].keys():
-        for w in status_fe['frontends'][fe].keys():
+    for fe in list(status_fe['frontends'].keys()):
+        for w in list(status_fe['frontends'][fe].keys()):
             tel = status_fe['frontends'][fe][w]
-            for a in tel.keys():
+            for a in list(tel.keys()):
                 if a in avgEntries and fe in nr_feentries:
                     tel[a] = tel[a]/nr_feentries[fe]  # divide per fe
 
@@ -430,7 +430,7 @@ def aggregateStatus(in_downtime):
     # Total rrd across all frontends and factories
     for tp in global_total:
         # type - status or requested
-        if not (tp in status_attributes.keys()):
+        if not (tp in list(status_attributes.keys())):
             continue
 
         tp_str = type_strings[tp]
@@ -438,7 +438,7 @@ def aggregateStatus(in_downtime):
 
         tp_el = global_total[tp]
 
-        for a in tp_el.keys():
+        for a in list(tp_el.keys()):
             if a in attributes_tp:
                 a_el = int(tp_el[a])
                 val_dict["%s%s" % (tp_str, a)] = a_el
@@ -447,18 +447,18 @@ def aggregateStatus(in_downtime):
                                                             "GAUGE", updated, val_dict)
 
     # Frontend total rrds across all factories
-    for fe in status_fe['frontends'].keys():
+    for fe in list(status_fe['frontends'].keys()):
         glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s" % ("frontend_"+fe))
-        for tp in status_fe['frontends'][fe].keys():
+        for tp in list(status_fe['frontends'][fe].keys()):
             # type - status or requested
-            if not (tp in type_strings.keys()):
+            if not (tp in list(type_strings.keys())):
                 continue
             tp_str = type_strings[tp]
             attributes_tp = status_attributes[tp]
 
             tp_el = status_fe['frontends'][fe][tp]
 
-            for a in tp_el.keys():
+            for a in list(tp_el.keys()):
                 if a in attributes_tp:
                     a_el = int(tp_el[a])
                     val_dict["%s%s" % (tp_str, a)] = a_el
@@ -575,16 +575,16 @@ def aggregateLogSummary():
 
         # update entry
         out_data = {}
-        for frontend in entry_data['frontends'].keys():
+        for frontend in list(entry_data['frontends'].keys()):
             fe_el = entry_data['frontends'][frontend]
             out_fe_el = {}
             for k in ['Current', 'Entered', 'Exited']:
                 out_fe_el[k] = {}
-                for s in fe_el[k].keys():
+                for s in list(fe_el[k].keys()):
                     out_fe_el[k][s] = int(fe_el[k][s])
             out_fe_el['CompletedCounts'] = {'Waste': {}, 'WasteTime': {}, 'Lasted': {}, 'JobsNr': {},
                                             'JobsDuration': {}, 'Sum': {}}
-            for tkey in fe_el['CompletedCounts']['Sum'].keys():
+            for tkey in list(fe_el['CompletedCounts']['Sum'].keys()):
                 out_fe_el['CompletedCounts']['Sum'][tkey] = int(fe_el['CompletedCounts']['Sum'][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
                 for w in ("Waste", "WasteTime"):
@@ -609,12 +609,12 @@ def aggregateLogSummary():
 
             for k in ['Current', 'Entered', 'Exited']:
                 local_total[k] = {}
-                for s in global_total[k].keys():
+                for s in list(global_total[k].keys()):
                     local_total[k][s] = int(entry_data['total'][k][s])
                     global_total[k][s] += int(entry_data['total'][k][s])
             local_total['CompletedCounts'] = {'Sum': {}, 'Waste': {}, 'WasteTime': {},
                                               'Lasted': {}, 'JobsNr': {}, 'JobsDuration': {}}
-            for tkey in entry_data['total']['CompletedCounts']['Sum'].keys():
+            for tkey in list(entry_data['total']['CompletedCounts']['Sum'].keys()):
                 local_total['CompletedCounts']['Sum'][tkey] = int(entry_data['total']['CompletedCounts']['Sum'][tkey])
                 global_total['CompletedCounts']['Sum'][tkey] += int(entry_data['total']['CompletedCounts']['Sum'][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
@@ -734,28 +734,28 @@ def writeLogSummaryRRDs(fe_dir, status_el):
             count_waste_mill=completed_counts['Waste']
             time_waste_mill=completed_counts['WasteTime']
             # save run times
-            for timerange in count_entered_times.keys():
+            for timerange in list(count_entered_times.keys()):
                 val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
                 # they all use the same indexes
                 val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration[timerange]
 
             # save jobsnr
-            for jobrange in count_jobnrs.keys():
+            for jobrange in list(count_jobnrs.keys()):
                 val_dict_stats['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
 
             # save simple vals
-            for tkey in completed_counts['Sum'].keys():
+            for tkey in list(completed_counts['Sum'].keys()):
                 val_dict_completed[tkey]=completed_counts['Sum'][tkey]
 
             # save waste_mill
-            for w in count_waste_mill.keys():
+            for w in list(count_waste_mill.keys()):
                 count_waste_mill_w=count_waste_mill[w]
-                for p in count_waste_mill_w.keys():
+                for p in list(count_waste_mill_w.keys()):
                     val_dict_waste['%s_%s'%(w, p)]=count_waste_mill_w[p]
 
-            for w in time_waste_mill.keys():
+            for w in list(time_waste_mill.keys()):
                 time_waste_mill_w=time_waste_mill[w]
-                for p in time_waste_mill_w.keys():
+                for p in list(time_waste_mill_w.keys()):
                     val_dict_wastetime['%s_%s'%(w, p)]=time_waste_mill_w[p]
 
     # write the data to disk
@@ -796,7 +796,7 @@ def aggregateRRDStats(log=logSupport.log):
                 else:
                     log.debug("aggregateRRDStats %s exception: parse_xml, IOError, File not existing (OK if first time)" % rrd_fname)
 
-        stats_entries=stats.keys()
+        stats_entries=list(stats.keys())
         if len(stats_entries)==0:
             continue # skip this RRD... nothing to aggregate
         stats_entries.sort()
@@ -806,13 +806,13 @@ def aggregateRRDStats(log=logSupport.log):
         frontends = set([])
         data_sets = set([])
         for entry in stats_entries:
-            entry_resolution = stats[entry]['total']['periods'].keys()
+            entry_resolution = list(stats[entry]['total']['periods'].keys())
             if len(entry_resolution)==0:
                 continue # not an interesting entry
             resolution=resolution.union(entry_resolution)
             entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
             data_sets=data_sets.union(entry_data_sets)
-            entry_frontends = stats[entry]['frontends'].keys()
+            entry_frontends = list(stats[entry]['frontends'].keys())
             frontends=frontends.union(entry_frontends)
             entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
 

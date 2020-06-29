@@ -58,7 +58,7 @@ class TestVOFrontendSubParams(unittest.TestCase):
         self.assertTrue(len(list(self.sub_params.keys())) > 0)
         # for k in self.sub_params: FAILS in the __getitem__ step
         # for k in self.sub_params.keys(): PASSES __getitem__
-        for k in self.sub_params.keys():
+        for k in list(self.sub_params.keys()):
             self.assertTrue(k in self.sub_params)
             val1 = self.sub_params.__getitem__(k)
             val2 = self.sub_params[k]

@@ -199,7 +199,7 @@ class ParametryzedSymKey(SymKey):
     def __init__(self, cypher_name,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
-        if not (cypher_name in cypher_dict.keys()):
+        if not (cypher_name in list(cypher_dict.keys())):
             raise KeyError("Unsupported cypher %s" % cypher_name)
         cypher_params = cypher_dict[cypher_name]
         SymKey.__init__(self, cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str, key_iv_code)

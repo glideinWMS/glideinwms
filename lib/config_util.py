@@ -194,7 +194,7 @@ def update(data, update_data, overwrite=True):
         update_data (dict): The dictionary that contains the new data
         overwrite (bool): wether existing keys are going to be overwritten
     """
-    for key, value in update_data.items():
+    for key, value in list(update_data.items()):
         if value is None:
             if key in data:
                 del data[key]

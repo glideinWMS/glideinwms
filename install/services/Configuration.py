@@ -284,7 +284,7 @@ def run_unit_tests(pgm):
     }
     #---- run tests -----
     n=0
-    for test in tests.keys():
+    for test in list(tests.keys()):
       n = n + 1
       args = tests[test]
       expected_rtn = args[0]

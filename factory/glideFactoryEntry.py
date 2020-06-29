@@ -637,9 +637,9 @@ class Entry:
             except:
                 fparams = {}
             params = self.jobParams.data.copy()
-            for p in fparams.keys():
+            for p in list(fparams.keys()):
                 # Can only overwrite existing params, not create new ones
-                if p in params.keys():
+                if p in list(params.keys()):
                     params[p] = fparams[p]
 
             advertizer.add(client_internals["CompleteName"],

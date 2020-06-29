@@ -82,10 +82,10 @@ class SubmitCredentials:
         output += "id = %s; " % self.id
         output += "cedential dir = %s; " % self.cred_dir
         output += "security credentials: "
-        for sck, scv in self.security_credentials.iteritems():
+        for sck, scv in self.security_credentials.items():
             output += "    %s : %s; " % (sck, scv)
         output += "identity credentials: "
-        for ick, icv in self.identity_credentials.iteritems():
+        for ick, icv in self.identity_credentials.items():
             output += "    %s : %s; " % (ick, icv)
         return output
 
@@ -149,7 +149,7 @@ def process_global(classad, glidein_descript, frontend_descript):
         # get all the credential ids by filtering keys by regex
         # this makes looking up specific values in the dict easier
         r = re.compile("^GlideinEncParamSecurityClass")
-        mkeys = filter(r.match, classad.keys())
+        mkeys = filter(r.match, list(classad.keys()))
         for key in mkeys:
             prefix_len = len("GlideinEncParamSecurityClass")
             cred_id = key[prefix_len:]

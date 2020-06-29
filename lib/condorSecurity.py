@@ -37,7 +37,7 @@ class EnvState:
     # Restore back to what you found
     # when creating this object
     def restore(self):
-        for condor_key in self.state.keys():
+        for condor_key in list(self.state.keys()):
             env_key="_CONDOR_%s"%condor_key
             old_val=self.state[condor_key]
             if old_val is not None:
@@ -67,7 +67,7 @@ class EnvState:
 
 def convert_sec_filter(sec_filter):
         filter=[]
-        for context in sec_filter.keys():
+        for context in list(sec_filter.keys()):
             for feature in sec_filter[context]:
                 condor_key="SEC_%s_%s"%(context, feature)
                 filter.append(condor_key)
@@ -96,8 +96,8 @@ class SecEnvRequest:
         # TODO: requests can be a self initializinf dictionary of dictionaries in PY3
         self.requests = {}
         if requests is not None:
-            for context in requests.keys():
-                for feature in requests[context].keys():
+            for context in list(requests.keys()):
+                for feature in list(requests[context].keys()):
                     self.set(context, feature, requests[context][feature])
 
         self.saved_state=None
@@ -112,7 +112,7 @@ class SecEnvRequest:
         elif context in self.requests:
             if feature in self.requests[context]:
                 del self.requests[context][feature]
-                if len(self.requests[context].keys()) == 0:
+                if len(list(self.requests[context].keys())) == 0:
                     del self.requests[context]
     
     def get(self, context, feature):
@@ -134,8 +134,8 @@ class SecEnvRequest:
         if self.has_saved_state():
             raise RuntimeError("There is already a saved state! Restore that first.")
         filter = {}
-        for c in self.requests.keys():
-            filter[c] = self.requests[c].keys()
+        for c in list(self.requests.keys()):
+            filter[c] = list(self.requests[c].keys())
             
         self.saved_state = SecEnvState(filter)
 
@@ -152,8 +152,8 @@ class SecEnvRequest:
     # you should call save_state before this one,
     # if you want to ever get back
     def enforce_requests(self):
-        for context in self.requests.keys():
-            for feature in self.requests[context].keys():
+        for context in list(self.requests.keys()):
+            for feature in list(self.requests[context].keys()):
                 condor_key = "SEC_%s_%s" % (context, feature)
                 env_key = "_CONDOR_%s" % condor_key
                 val = self.requests[context][feature]
@@ -190,7 +190,7 @@ class EnvProtoState(SecEnvState):
     def __init__(self, filter=None):
         if filter is not None:
             # validate filter
-            for c in filter.keys():
+            for c in list(filter.keys()):
                 if not (c in CONDOR_CONTEXT_LIST):
                     raise ValueError("Invalid contex '%s'. Must be one of %s"%(c, CONDOR_CONTEXT_LIST))
                 for f in filter[c]:

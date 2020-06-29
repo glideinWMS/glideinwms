@@ -90,14 +90,14 @@ class TestOrderedDict(unittest.TestCase):
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
         self.assertEqual(ordered_dict_items_repr,
-                         ordered_dict.items().__repr__())
+                         list(ordered_dict.items()).__repr__())
 
     def test_keys(self):
         dict1 = xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
         self.assertEqual("[u'date', u'files', u'params', u'temperature']",
-                         ordered_dict.keys().__repr__())
+                         list(ordered_dict.keys()).__repr__())
 
     def test_popitem(self):
         dict1 = xmlstring2dict(xmlstr, use_ord_dict=False,
@@ -131,7 +131,7 @@ class TestOrderedDict(unittest.TestCase):
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
         self.assertEqual(ordered_dict_values_repr,
-                         ordered_dict.values().__repr__())
+                         list(ordered_dict.values()).__repr__())
 
 
 class TestXmlfile2dict(unittest.TestCase):

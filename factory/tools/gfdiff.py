@@ -47,7 +47,7 @@ def check_list_diff(list_a, list_b):
                 return
             #TODO what if B does not have it
             check_dict_diff(list_a.children[0], list_b.children[0],
-                            lambda e: e.children.items())
+                            lambda e: list(e.children.items()))
         elif isinstance(elem, FactAttrElement):
             #print("\t"*tabs + "Checking %s" % elem['name'])
             elem_b = [x for x in list_b.children if x['name'] == elem['name']]
@@ -73,7 +73,7 @@ def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True
     tmp_dict_a = dict(itemfunc(dict_a))
     tmp_dict_b = dict(itemfunc(dict_b))
     SKIP_KEYS = ['name', 'comment']  #, 'gatekeeper']
-    for key, val in tmp_dict_a.items():
+    for key, val in list(tmp_dict_a.items()):
         last_key.append(key)
         #print("\t"*tabs + "Checking %s" % key)
         if key in SKIP_KEYS:
@@ -84,14 +84,14 @@ def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True
             check_list_diff(tmp_dict_a[key], tmp_dict_b[key])
         elif isinstance(val, DictElement):
             check_dict_diff(tmp_dict_a[key], tmp_dict_b[key],
-                            lambda e: e.children.items() if len(e.children) > 0 else e.items())
+                            lambda e: list(e.children.items()) if len(e.children) > 0 else list(e.items()))
         elif tmp_dict_a[key] != tmp_dict_b[key]:
             keystr = (tmp_dict_a["name"] + ": " if print_name and "name" in tmp_dict_a
                       else last_key[-2] + ": ")
             print("\t"*tabs + "%sKey %s is different: (%s vs %s)" %
                   (keystr, key, tmp_dict_a[key], tmp_dict_b[key]))
         last_key.pop()
-    for key, val in tmp_dict_b.items():
+    for key, val in list(tmp_dict_b.items()):
         if key in SKIP_KEYS:
             continue
         if key not in tmp_dict_a:

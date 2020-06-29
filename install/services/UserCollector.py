@@ -168,7 +168,7 @@ If present, are you really installing both services on the same node.
     global valid_options
     print("; ------------------------------------------")
     print("; UserCollector minimal ini options template")
-    for section in valid_options.keys():
+    for section in list(valid_options.keys()):
       print("; ------------------------------------------")
       print("[%s]" % section)
       for option in valid_options[section]:
