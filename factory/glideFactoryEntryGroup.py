@@ -552,14 +552,14 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 cpuCount = int(glideinDescript.data['MonitorUpdateThreadCount'])
                 logSupport.log.info("Number of parallel writes for stats: %i" % cpuCount)
 
-                entrylists = [list(my_entries.values())[cpu::cpuCount] for cpu in xrange(cpuCount)]
+                entrylists = [list(my_entries.values())[cpu::cpuCount] for cpu in range(cpuCount)]
 
                 # Fork's keyed by cpu number. Actual key is irrelevant
                 pipe_ids = {}
 
                 post_writestats_info = {}
 
-                for cpu in xrange(cpuCount):
+                for cpu in range(cpuCount):
                     r, w = os.pipe()
                     unregister_sighandler()
                     pid = os.fork()

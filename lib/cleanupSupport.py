@@ -21,8 +21,8 @@ class Cleanup:
                                    self.cleanup_pids)
         else:
             num_forks = 4 # arbitrary - could be configurable
-            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in xrange(num_forks)]
-            for i in xrange(num_forks):
+            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in range(num_forks)]
+            for i in range(num_forks):
                 unregister_sighandler()
                 cl_pid = os.fork()
                 if cl_pid != 0:

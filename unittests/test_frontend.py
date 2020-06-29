@@ -324,7 +324,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             ('Site_Name%s@v3_0@factory1' %
              (x),
              'frontend%s.local' %
-             x) for x in xrange(
+             x) for x in range(
                  1,
                  5)]
         expected.append(('Site_Name2@v3_0@factory1', 'frontend1.local'))
@@ -338,7 +338,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             m_exe_cmd.return_value = f.readlines()
             condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
             self.assertItemsEqual(list(condorStatus['coll1'].stored_data.keys()),
-                                  ['schedd%s.local' % x for x in xrange(1, 4)])
+                                  ['schedd%s.local' % x for x in range(1, 4)])
 
 
 class FETestCaseMisc(FETestCaseBase):
@@ -522,7 +522,7 @@ class FETestCaseCondorQ(FETestCaseBase):
 
         self.assertItemsEqual(
             condor_ids, [
-                (12345, x) for x in xrange(
+                (12345, x) for x in range(
                     0, self.total_jobs)])
 
 

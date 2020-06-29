@@ -230,7 +230,7 @@ class FEElementTestCase(unittest.TestCase):
 
         self.assertItemsEqual(
             list(cq['schedd1'].fetchStored().keys()), [
-                (12345, x) for x in xrange(
+                (12345, x) for x in range(
                     0, 13)])
 
     def test_compute_glidein_max_run(self):
