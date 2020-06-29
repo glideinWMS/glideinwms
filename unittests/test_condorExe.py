@@ -71,7 +71,7 @@ class TestCondorExe(unittest.TestCase):
         # Execution should exit with an exception.  If no exception, then fail
         for script in self.abnormal_exit_scripts:
             cmd = os.path.join(condorExe.condor_bin_path, script)
-            self.failUnlessRaises(ExeError, iexe_cmd, cmd)
+            self.assertRaises(ExeError, iexe_cmd, cmd)
 
     def test_exe_cmd(self):
         """
@@ -87,7 +87,7 @@ class TestCondorExe(unittest.TestCase):
 
         # Execution should exit with an exception.  If no exception, then fail
         for script in self.abnormal_exit_scripts:
-            self.failUnlessRaises(ExeError, exe_cmd, script, self.dummy_args)
+            self.assertRaises(ExeError, exe_cmd, script, self.dummy_args)
 
     def test_exe_cmd_sbin(self):
         """
@@ -103,7 +103,7 @@ class TestCondorExe(unittest.TestCase):
 
         # Execution should exit with an exception.  If no exception, then fail
         for script in self.abnormal_exit_scripts:
-            self.failUnlessRaises(
+            self.assertRaises(
                 ExeError, exe_cmd_sbin, script, self.dummy_args)
 
 

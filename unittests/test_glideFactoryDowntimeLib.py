@@ -58,7 +58,7 @@ class TestDowntimes(unittest.TestCase):
                 entry="James",
                 check_time=None))
         # Test downtime comments
-        self.assertEquals(self.downtime.downtime_comment, "unittest downtime")
+        self.assertEqual(self.downtime.downtime_comment, "unittest downtime")
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
        
         # Use now+1 since we just ended the downtime
