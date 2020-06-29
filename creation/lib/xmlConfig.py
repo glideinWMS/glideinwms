@@ -15,8 +15,8 @@ import xml.sax
 INDENT_WIDTH = 3
 
 LIST_TAGS = { 
-    u'attrs': lambda d: d[u'name'],
-    u'files': lambda d: d[u'absfname']
+    'attrs': lambda d: d['name'],
+    'files': lambda d: d['absfname']
 }
 
 TAG_CLASS_MAPPING = {}
@@ -187,7 +187,7 @@ class DictElement(Element, mutablemap):
         return '%s:%s: %s: %s' % (self.file, self.line_no, self.tag, str)
 
     def check_boolean(self, flag):
-        if self[flag] != u'True' and self[flag] != u'False':
+        if self[flag] != 'True' and self[flag] != 'False':
             raise RuntimeError(self.err_str('%s must be "True" or "False"' % flag))
 
     def check_missing(self, attr):
@@ -256,54 +256,54 @@ class ListElement(Element):
 
 class AttrElement(DictElement):
     def get_val(self):
-        if self[u'type'] in ("string", "expr"):
-            return str(self[u'value'])
+        if self['type'] in ("string", "expr"):
+            return str(self['value'])
         else:
-            return int(self[u'value'])
+            return int(self['value'])
 
     def validate(self):
-        self.check_missing(u'name')
-        self.check_missing(u'value')
-        if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'expr':
+        self.check_missing('name')
+        self.check_missing('value')
+        if self['type'] != 'string' and self['type'] != 'int' and self['type'] != 'expr':
             raise RuntimeError(self.err_str('type must be "int", "string", or "expr"'))
-        self.check_boolean(u'glidein_publish')
-        self.check_boolean(u'job_publish')
-        self.check_boolean(u'parameter')
+        self.check_boolean('glidein_publish')
+        self.check_boolean('job_publish')
+        self.check_boolean('parameter')
 
 TAG_CLASS_MAPPING.update({'attr': AttrElement})
 
 
 class FileElement(DictElement):
     def validate(self):
-        self.check_missing(u'absfname')
-        if len(os.path.basename(self[u'absfname'])) < 1:
+        self.check_missing('absfname')
+        if len(os.path.basename(self['absfname'])) < 1:
             raise RuntimeError(self.err_str('absfname is an invalid file path'))
-        if u'relfname' in self and len(self[u'relfname']) < 1:
+        if 'relfname' in self and len(self['relfname']) < 1:
             raise RuntimeError(self.err_str('relfname cannot be empty'))
 
-        self.check_boolean(u'const')
-        self.check_boolean(u'executable')
-        self.check_boolean(u'wrapper')
-        self.check_boolean(u'untar')
+        self.check_boolean('const')
+        self.check_boolean('executable')
+        self.check_boolean('wrapper')
+        self.check_boolean('untar')
 
-        is_exec = eval(self[u'executable'])
-        is_wrapper = eval(self[u'wrapper'])
-        is_tar = eval(self[u'untar'])
+        is_exec = eval(self['executable'])
+        is_wrapper = eval(self['wrapper'])
+        is_tar = eval(self['untar'])
 
         try:
-            period = int(self[u'period'])
+            period = int(self['period'])
         except ValueError:
             raise RuntimeError(self.err_str('period must be an int'))
 
         if is_exec + is_wrapper + is_tar > 1:
             raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
 
-        if (is_exec or is_wrapper or is_tar) and not eval(self[u'const']):
+        if (is_exec or is_wrapper or is_tar) and not eval(self['const']):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
         if not is_exec and period > 0:
             raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
-TAG_CLASS_MAPPING.update({u'file': FileElement})
+TAG_CLASS_MAPPING.update({'file': FileElement})
 
 #######################
 #

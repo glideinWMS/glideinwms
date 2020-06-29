@@ -41,10 +41,10 @@ class UnconfiguredScheddError(Exception):
 def str2bool(val):
     """ Convert u"True" or u"False" to boolean or raise ValueError
     """
-    if val not in [u"True", u"False"]:
+    if val not in ["True", "False"]:
         # Not using ValueError intentionally: all config errors are RuntimeError
         raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
-    elif val == u"True":
+    elif val == "True":
         return True
     else:
         return False
@@ -126,7 +126,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
-        condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
+        condor_tarballs = self.conf.get_child_list('condor_tarballs')
 
         prev_tar_dir_map = {}
         if other is not None and 'CondorTarballDirMap' in other.main_dicts.dicts['glidein']:
@@ -145,18 +145,18 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_FILE % condor_idx)
             condor_fd = None
 
-            if u'tar_file' in condor_el:
+            if 'tar_file' in condor_el:
                 # Condor tarball available. Just add it to the list of tarballs
                 # with every possible condor_platform string
-                condor_tarfile = condor_el[u'tar_file']
+                condor_tarfile = condor_el['tar_file']
             # already built this tarball, just reuse it
-            elif condor_el[u'base_dir'] in prev_tar_dir_map:
-                condor_tarfile = prev_tar_dir_map[condor_el[u'base_dir']]
-                tar_dir_map[condor_el[u'base_dir']] = condor_tarfile
+            elif condor_el['base_dir'] in prev_tar_dir_map:
+                condor_tarfile = prev_tar_dir_map[condor_el['base_dir']]
+                tar_dir_map[condor_el['base_dir']] = condor_tarfile
             else:
                 # Create a new tarball as usual
-                condor_fd = cgWCreate.create_condor_tar_fd(condor_el[u'base_dir'])
-                tar_dir_map[condor_el[u'base_dir']] = os.path.join(self.dicts['file_list'].dir, condor_fname)
+                condor_fd = cgWCreate.create_condor_tar_fd(condor_el['base_dir'])
+                tar_dir_map[condor_el['base_dir']] = os.path.join(self.dicts['file_list'].dir, condor_fname)
 
             for tar in condor_el_valid_tarballs:
                 condor_platform = "%s-%s-%s" % (tar['version'], tar['os'],
@@ -207,7 +207,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add the factory monitoring collector parameter, if any collectors are defined
         # this is purely a factory thing
-        factory_monitoring_collector=calc_monitoring_collectors_string(self.conf.get_child_list(u'monitoring_collectors'))
+        factory_monitoring_collector=calc_monitoring_collectors_string(self.conf.get_child_list('monitoring_collectors'))
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector', str(factory_monitoring_collector))
         populate_gridmap(self.conf, self.dicts['gridmap'])
@@ -275,11 +275,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # talk to the FE collector
 
         # put user files in stage
-        for file in self.conf.get_child_list(u'files'):
+        for file in self.conf.get_child_list('files'):
             add_file_unparsed(file, self.dicts, True)
 
         # put user attributes into config files
-        for attr in self.conf.get_child_list(u'attrs'):
+        for attr in self.conf.get_child_list('attrs'):
             add_attr_unparsed(attr, self.dicts, "main")
 
         # add additional system scripts
@@ -296,7 +296,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
 
         # populate the monitor files
-        javascriptrrd_dir = self.conf.get_child(u'monitor')[u'javascriptRRD_dir']
+        javascriptrrd_dir = self.conf.get_child('monitor')['javascriptRRD_dir']
         for mfarr in ((cgWConsts.WEB_BASE_DIR, 'factory_support.js'),
                       (javascriptrrd_dir, 'javascriptrrd.wlibs.js')):
             mfdir, mfname=mfarr
@@ -364,10 +364,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     ########################################
 
     def save_pub_key(self):
-        sec_el = self.conf.get_child(u'security')
-        if u'pub_key' not in sec_el:
+        sec_el = self.conf.get_child('security')
+        if 'pub_key' not in sec_el:
             pass # nothing to do
-        elif sec_el[u'pub_key']=='RSA':
+        elif sec_el['pub_key']=='RSA':
             rsa_key_fname=os.path.join(self.work_dir, cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
@@ -379,10 +379,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 os.close(fd)
 
                 key_obj=pubCrypto.RSAKey()
-                key_obj.new(int(sec_el[u'key_length']))
+                key_obj.new(int(sec_el['key_length']))
                 key_obj.save(rsa_key_fname)
         else:
-            raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key'])
+            raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el['pub_key'])
 
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
@@ -405,11 +405,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         try:
             try:
                 for entry in self.conf.get_entries():
-                    if eval(entry[u'enabled'], {}, {}):
+                    if eval(entry['enabled'], {}, {}):
                         monitor_config_line.append("    <entry name=\"%s\">" % entry.getName())
                         monitor_config_line.append("      <monitorgroups>")
-                        for group in entry.get_child_list(u'monitorgroups'):
-                            monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group[u'group_name'])
+                        for group in entry.get_child_list('monitorgroups'):
+                            monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group['group_name'])
                             monitor_config_line.append("        </monitorgroup>")
 
                         monitor_config_line.append("      </monitorgroups>")
@@ -507,51 +507,51 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['vars'].load(cgWConsts.WEB_BASE_DIR, 'condor_vars.lst.entry', change_self=False, set_not_changed=False)
 
         # put user files in stage
-        for user_file in entry.get_child_list(u'files'):
+        for user_file in entry.get_child_list('files'):
             add_file_unparsed(user_file, self.dicts, True)
 
         # Add attribute for voms
 
         # put user attributes into config files
-        for attr in entry.get_child_list(u'attrs'):
+        for attr in entry.get_child_list('attrs'):
             add_attr_unparsed(attr, self.dicts, self.sub_name)
 
         # put standard attributes into config file
         # override anything the user set
-        config = entry.get_child(u'config')
-        restrictions = config.get_child(u'restrictions')
-        submit = config.get_child(u'submit')
+        config = entry.get_child('config')
+        restrictions = config.get_child('restrictions')
+        submit = config.get_child('submit')
         for dtype in ('attrs', 'consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper", entry[u'gatekeeper'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType", entry[u'gridtype'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper", entry['gatekeeper'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType", entry['gridtype'], allow_overwrite=True)
             # MERGENOTE:
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", restrictions[u'require_voms_proxy'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", restrictions[u'require_glidein_glexec_use'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_TrustDomain", entry[u'trust_domain'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry[u'auth_method'], allow_overwrite=True)
-            if u'rsl' in entry:
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL', entry[u'rsl'], allow_overwrite=True)
-            if u'bosco_dir' in entry:
-                self.dicts[dtype].add('GLIDEIN_BoscoDir', entry[u'bosco_dir'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit[u'slots_layout'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_WorkDir", entry[u'work_dir'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_Verbosity", entry[u'verbosity'], allow_overwrite=True)
-            if u'proxy_url' in entry:
-                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", restrictions['require_voms_proxy'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", restrictions['require_glidein_glexec_use'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain", entry['trust_domain'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry['auth_method'], allow_overwrite=True)
+            if 'rsl' in entry:
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL', entry['rsl'], allow_overwrite=True)
+            if 'bosco_dir' in entry:
+                self.dicts[dtype].add('GLIDEIN_BoscoDir', entry['bosco_dir'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit['slots_layout'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_WorkDir", entry['work_dir'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Verbosity", entry['verbosity'], allow_overwrite=True)
+            if 'proxy_url' in entry:
+                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry['proxy_url'], allow_overwrite=True)
 
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", restrictions[u'require_voms_proxy'], None, False, True, True)
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", restrictions[u'require_glidein_glexec_use'], None, False, True, True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", restrictions['require_voms_proxy'], None, False, True, True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", restrictions['require_glidein_glexec_use'], None, False, True, True)
 
         # populate infosys
-        for infosys_ref in entry.get_child_list(u'infosys_refs'):
-            self.dicts['infosys'].add_extended(infosys_ref[u'type'], infosys_ref[u'server'], infosys_ref[u'ref'], allow_overwrite=True)
+        for infosys_ref in entry.get_child_list('infosys_refs'):
+            self.dicts['infosys'].add_extended(infosys_ref['type'], infosys_ref['server'], infosys_ref['ref'], allow_overwrite=True)
 
         # populate monitorgroups
-        for monitorgroup in entry.get_child_list(u'monitorgroups'):
-            self.dicts['mongroup'].add_extended(monitorgroup[u'group_name'], allow_overwrite=True)
+        for monitorgroup in entry.get_child_list('monitorgroups'):
+            self.dicts['mongroup'].add_extended(monitorgroup['group_name'], allow_overwrite=True)
 
         # populate complex files
         populate_job_descript(self.work_dir, self.dicts['job_descript'], self.conf.num_factories,
@@ -559,10 +559,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # Now that we have the EntrySet fill the condor_jdl for its entries
         if isinstance(entry, factoryXmlConfig.EntrySetElement):
-            for subentry in entry.get_child_list(u'entries'):
+            for subentry in entry.get_child_list('entries'):
                 entry.select(subentry)
                 # Find subentry
-                for cj in self.dicts[u'condor_jdl']:
+                for cj in self.dicts['condor_jdl']:
                     cj_entryname = cj.fname.split('.')[1]
                     if cj_entryname==subentry.getName():
                         cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
@@ -582,7 +582,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
             # to the function and call it a day.
             ################################################################################################################
-            self.dicts[u'condor_jdl'][0].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
+            self.dicts['condor_jdl'][0].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
@@ -621,7 +621,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.main_dicts.populate(other)
         self.active_sub_list=self.main_dicts.active_sub_list
 
-        schedds = self.conf[u'schedd_name'].split(u',')
+        schedds = self.conf['schedd_name'].split(',')
         schedd_counts = {}
         for s in schedds:
             schedd_counts[s] = 0
@@ -637,7 +637,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                     if schedd in schedd_counts:
                         prev_entries[entry_name] = schedd
                         # always reuse the old schedd but only count it against us if the entry is active
-                        if eval(entry[u'enabled']):
+                        if eval(entry['enabled']):
                             schedd_counts[schedd] += 1
 
         # now that we have the counts, populate with the best schedd
@@ -649,7 +649,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 # pick the schedd with the lowest count
                 schedd = sorted(schedd_counts, key=schedd_counts.get)[0]
                 # only count it against us if new entry is active
-                if eval(entry[u'enabled']):
+                if eval(entry['enabled']):
                     schedd_counts[schedd] += 1
             self.sub_dicts[entry_name].populate(entry, schedd)
 
@@ -743,7 +743,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                                            absfname)
     elif do_untar:  # a tarball
         untar_opts = user_file.get_child('untar_options')
-        if u'dir' in untar_opts:
+        if 'dir' in untar_opts:
             wnsubdir = untar_opts['dir']
         else:
             wnsubdir = string.split(relfname, '.', 1)[0]  # deafult is relfname up to the first .
@@ -781,7 +781,7 @@ def add_attr_unparsed(attr, dicts, description):
     try:
         add_attr_unparsed_real(attr, dicts)
     except RuntimeError as e:
-        raise RuntimeError("Error parsing attr %s[%s]: %s" % (description, attr[u'name'], str(e)))
+        raise RuntimeError("Error parsing attr %s[%s]: %s" % (description, attr['name'], str(e)))
 
 
 def validate_attribute(attr_name, attr_val):
@@ -799,10 +799,10 @@ def validate_attribute(attr_name, attr_val):
 
 
 def add_attr_unparsed_real(attr, dicts):
-    attr_name = attr[u'name']
-    do_publish = eval(attr[u'publish'], {}, {})
-    is_parameter = eval(attr[u'parameter'], {}, {})
-    is_const = eval(attr[u'const'], {}, {})
+    attr_name = attr['name']
+    do_publish = eval(attr['publish'], {}, {})
+    is_parameter = eval(attr['parameter'], {}, {})
+    is_const = eval(attr['const'], {}, {})
     attr_val = attr.get_val()
 
     validate_attribute(attr_name, attr_val)
@@ -820,8 +820,8 @@ def add_attr_unparsed_real(attr, dicts):
     else:  # do not publish, only to glidein
         dicts['consts'].add(attr_name, attr_val)
 
-    do_glidein_publish = eval(attr[u'glidein_publish'], {}, {})
-    do_job_publish = eval(attr[u'job_publish'], {}, {})
+    do_glidein_publish = eval(attr['glidein_publish'], {}, {})
+    do_job_publish = eval(attr['job_publish'], {}, {})
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
@@ -829,10 +829,10 @@ def add_attr_unparsed_real(attr, dicts):
                 # already in the var file, check if compatible
                 attr_var_el = dicts['vars'][attr_name]
                 attr_var_type = attr_var_el[0]
-                if (((attr[u'type'] == "int") and (attr_var_type != 'I')) or
-                    ((attr[u'type'] == "expr") and (attr_var_type == 'I')) or
-                    ((attr[u'type'] == "string") and (attr_var_type == 'I'))):
-                    raise RuntimeError("Types not compatible (%s,%s)" % (attr[u'type'], attr_var_type))
+                if (((attr['type'] == "int") and (attr_var_type != 'I')) or
+                    ((attr['type'] == "expr") and (attr_var_type == 'I')) or
+                    ((attr['type'] == "string") and (attr_var_type == 'I'))):
+                    raise RuntimeError("Types not compatible (%s,%s)" % (attr['type'], attr_var_type))
                 attr_var_export = attr_var_el[4]
                 if do_glidein_publish and (attr_var_export == 'N'):
                     raise RuntimeError("Cannot force glidein publishing")
@@ -840,7 +840,7 @@ def add_attr_unparsed_real(attr, dicts):
                 if do_job_publish and (attr_var_job_publish == '-'):
                     raise RuntimeError("Cannot force job publishing")
             else:
-                dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False,
+                dicts['vars'].add_extended(attr_name, attr['type'], None, None, False,
                                            do_glidein_publish, do_job_publish)
 
 
@@ -866,51 +866,51 @@ def populate_factory_descript(work_dir, glidein_dict,
 
         down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
 
-        sec_el = conf.get_child(u'security')
-        sub_el = conf.get_child(u'submit')
-        mon_foot_el = conf.get_child(u'monitor_footer')
-        if u'factory_collector' in conf:
-            glidein_dict.add('FactoryCollector', conf[u'factory_collector'])
+        sec_el = conf.get_child('security')
+        sub_el = conf.get_child('submit')
+        mon_foot_el = conf.get_child('monitor_footer')
+        if 'factory_collector' in conf:
+            glidein_dict.add('FactoryCollector', conf['factory_collector'])
         else:
             glidein_dict.add('FactoryCollector', None)
-        glidein_dict.add('FactoryName', conf[u'factory_name'])
-        glidein_dict.add('GlideinName', conf[u'glidein_name'])
+        glidein_dict.add('FactoryName', conf['factory_name'])
+        glidein_dict.add('GlideinName', conf['glidein_name'])
         glidein_dict.add('WebURL', conf.get_web_url())
-        glidein_dict.add('PubKeyType', sec_el[u'pub_key'])
-        glidein_dict.add('OldPubKeyGraceTime', sec_el[u'reuse_oldkey_onstartup_gracetime'])
-        glidein_dict.add('MonitorUpdateThreadCount', conf.get_child(u'monitor')[u'update_thread_count'])
-        glidein_dict.add('RemoveOldCredFreq', sec_el[u'remove_old_cred_freq'])
-        glidein_dict.add('RemoveOldCredAge', sec_el[u'remove_old_cred_age'])
+        glidein_dict.add('PubKeyType', sec_el['pub_key'])
+        glidein_dict.add('OldPubKeyGraceTime', sec_el['reuse_oldkey_onstartup_gracetime'])
+        glidein_dict.add('MonitorUpdateThreadCount', conf.get_child('monitor')['update_thread_count'])
+        glidein_dict.add('RemoveOldCredFreq', sec_el['remove_old_cred_freq'])
+        glidein_dict.add('RemoveOldCredAge', sec_el['remove_old_cred_age'])
         del active_sub_list[:]  # clean
 
         for entry in conf.get_entries():
-            if eval(entry[u'enabled'], {}, {}):
+            if eval(entry['enabled'], {}, {}):
                 active_sub_list.append(entry.getName())
             else:
                 disabled_sub_list.append(entry.getName())
 
         glidein_dict.add('Entries', string.join(active_sub_list,','))
-        glidein_dict.add('AdvertiseWithTCP', conf[u'advertise_with_tcp'])
-        glidein_dict.add('AdvertiseWithMultiple', conf[u'advertise_with_multiple'])
-        glidein_dict.add('LoopDelay', conf[u'loop_delay'])
-        glidein_dict.add('AdvertisePilotAccounting', conf[u'advertise_pilot_accounting'])
-        glidein_dict.add('AdvertiseDelay', conf[u'advertise_delay'])
-        glidein_dict.add('RestartAttempts', conf[u'restart_attempts'])
-        glidein_dict.add('RestartInterval', conf[u'restart_interval'])
-        glidein_dict.add('EntryParallelWorkers', conf[u'entry_parallel_workers'])
+        glidein_dict.add('AdvertiseWithTCP', conf['advertise_with_tcp'])
+        glidein_dict.add('AdvertiseWithMultiple', conf['advertise_with_multiple'])
+        glidein_dict.add('LoopDelay', conf['loop_delay'])
+        glidein_dict.add('AdvertisePilotAccounting', conf['advertise_pilot_accounting'])
+        glidein_dict.add('AdvertiseDelay', conf['advertise_delay'])
+        glidein_dict.add('RestartAttempts', conf['restart_attempts'])
+        glidein_dict.add('RestartInterval', conf['restart_interval'])
+        glidein_dict.add('EntryParallelWorkers', conf['entry_parallel_workers'])
         glidein_dict.add('LogDir', conf.get_log_dir())
-        glidein_dict.add('ClientLogBaseDir', sub_el[u'base_client_log_dir'])
-        glidein_dict.add('ClientProxiesBaseDir', sub_el[u'base_client_proxies_dir'])
+        glidein_dict.add('ClientLogBaseDir', sub_el['base_client_log_dir'])
+        glidein_dict.add('ClientProxiesBaseDir', sub_el['base_client_proxies_dir'])
         glidein_dict.add('DowntimesFile', down_fname)
 
-        glidein_dict.add('MonitorDisplayText', mon_foot_el[u'display_txt'])
-        glidein_dict.add('MonitorLink', mon_foot_el[u'href_link'])
+        glidein_dict.add('MonitorDisplayText', mon_foot_el['display_txt'])
+        glidein_dict.add('MonitorLink', mon_foot_el['href_link'])
 
-        monitoring_collectors=calc_primary_monitoring_collectors(conf.get_child_list(u'monitoring_collectors'))
+        monitoring_collectors=calc_primary_monitoring_collectors(conf.get_child_list('monitoring_collectors'))
         if monitoring_collectors is not None:
             glidein_dict.add('PrimaryMonitoringCollectors', str(monitoring_collectors))
 
-        log_retention = conf.get_child(u'log_retention')
+        log_retention = conf.get_child('log_retention')
         for lel in (("job_logs", 'JobLog'), ("summary_logs", 'SummaryLog'), ("condor_logs", 'CondorLog')):
             param_lname, str_lname=lel
             for tel in (("max_days", 'MaxDays'), ("min_days", 'MinDays'), ("max_mbytes", 'MaxMBs')):
@@ -919,7 +919,7 @@ def populate_factory_descript(work_dir, glidein_dict,
 
         # convert to list of dicts so that str() below gives expected results
         proc_logs = []
-        for pl in log_retention.get_child_list(u'process_logs'):
+        for pl in log_retention.get_child_list('process_logs'):
             try:
                 di_pl = dict(pl)
             except ValueError:
@@ -947,51 +947,51 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
 
     down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
 
-    config = entry.get_child(u'config')
-    max_jobs = config.get_child(u'max_jobs')
+    config = entry.get_child('config')
+    max_jobs = config.get_child('max_jobs')
     num_factories = int(max_jobs.get('num_factories', num_factories))  # prefer entry settings
 
     job_descript_dict.add('EntryName', sub_name)
-    job_descript_dict.add('GridType', entry[u'gridtype'])
-    job_descript_dict.add('Gatekeeper', entry[u'gatekeeper'])
-    job_descript_dict.add('AuthMethod', entry[u'auth_method'])
-    job_descript_dict.add('TrustDomain', entry[u'trust_domain'])
-    if u'vm_id' in entry:
-        job_descript_dict.add('EntryVMId', entry[u'vm_id'])
-    if u'vm_type' in entry:
-        job_descript_dict.add('EntryVMType', entry[u'vm_type'])
-    if u'rsl' in entry:
-        job_descript_dict.add('GlobusRSL', entry[u'rsl'])
-    if u'bosco_dir' in entry:
-        job_descript_dict.add('BoscoDir', entry[u'bosco_dir'])
+    job_descript_dict.add('GridType', entry['gridtype'])
+    job_descript_dict.add('Gatekeeper', entry['gatekeeper'])
+    job_descript_dict.add('AuthMethod', entry['auth_method'])
+    job_descript_dict.add('TrustDomain', entry['trust_domain'])
+    if 'vm_id' in entry:
+        job_descript_dict.add('EntryVMId', entry['vm_id'])
+    if 'vm_type' in entry:
+        job_descript_dict.add('EntryVMType', entry['vm_type'])
+    if 'rsl' in entry:
+        job_descript_dict.add('GlobusRSL', entry['rsl'])
+    if 'bosco_dir' in entry:
+        job_descript_dict.add('BoscoDir', entry['bosco_dir'])
     job_descript_dict.add('Schedd', schedd)
-    job_descript_dict.add('StartupDir', entry[u'work_dir'])
-    if u'proxy_url' in entry:
-        job_descript_dict.add('ProxyURL', entry[u'proxy_url'])
-    job_descript_dict.add('Verbosity', entry[u'verbosity'])
+    job_descript_dict.add('StartupDir', entry['work_dir'])
+    if 'proxy_url' in entry:
+        job_descript_dict.add('ProxyURL', entry['proxy_url'])
+    job_descript_dict.add('Verbosity', entry['verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
-    per_entry = max_jobs.get_child(u'per_entry')
-    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])//num_factories)
-    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])//num_factories)
-    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])//num_factories)
-    def_per_fe = max_jobs.get_child(u'default_per_frontend')
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])//num_factories)
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])//num_factories)
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])//num_factories)
-    submit = config.get_child(u'submit')
-    job_descript_dict.add('MaxSubmitRate', submit[u'max_per_cycle'])
-    job_descript_dict.add('SubmitCluster', submit[u'cluster_size'])
-    job_descript_dict.add('SubmitSlotsLayout', submit[u'slots_layout'])
-    job_descript_dict.add('SubmitSleep', submit[u'sleep'])
-    remove = config.get_child(u'remove')
-    job_descript_dict.add('MaxRemoveRate', remove[u'max_per_cycle'])
-    job_descript_dict.add('RemoveSleep', remove[u'sleep'])
-    release = config.get_child(u'release')
-    job_descript_dict.add('MaxReleaseRate', release[u'max_per_cycle'])
-    job_descript_dict.add('ReleaseSleep', release[u'sleep'])
-    restrictions = config.get_child(u'restrictions')
-    job_descript_dict.add('RequireVomsProxy', restrictions[u'require_voms_proxy'])
-    job_descript_dict.add('RequireGlideinGlexecUse', restrictions[u'require_glidein_glexec_use'])
+    per_entry = max_jobs.get_child('per_entry')
+    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry['glideins'])//num_factories)
+    job_descript_dict.add('PerEntryMaxIdle', int(per_entry['idle'])//num_factories)
+    job_descript_dict.add('PerEntryMaxHeld', int(per_entry['held'])//num_factories)
+    def_per_fe = max_jobs.get_child('default_per_frontend')
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe['glideins'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe['idle'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe['held'])//num_factories)
+    submit = config.get_child('submit')
+    job_descript_dict.add('MaxSubmitRate', submit['max_per_cycle'])
+    job_descript_dict.add('SubmitCluster', submit['cluster_size'])
+    job_descript_dict.add('SubmitSlotsLayout', submit['slots_layout'])
+    job_descript_dict.add('SubmitSleep', submit['sleep'])
+    remove = config.get_child('remove')
+    job_descript_dict.add('MaxRemoveRate', remove['max_per_cycle'])
+    job_descript_dict.add('RemoveSleep', remove['sleep'])
+    release = config.get_child('release')
+    job_descript_dict.add('MaxReleaseRate', release['max_per_cycle'])
+    job_descript_dict.add('ReleaseSleep', release['sleep'])
+    restrictions = config.get_child('restrictions')
+    job_descript_dict.add('RequireVomsProxy', restrictions['require_voms_proxy'])
+    job_descript_dict.add('RequireGlideinGlexecUse', restrictions['require_glidein_glexec_use'])
 
     # Job submit file pick algorithm. Only present for metasites, will be Default otherwise
     if 'entry_selection' in config.children:
@@ -1002,11 +1002,11 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     max_held_frontend = ""
     max_idle_frontend = ""
     max_glideins_frontend = ""
-    for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
-        frontend_name = per_fe[u'name']
-        max_held_frontend += frontend_name + ";" + str(int(per_fe[u'held'])//num_factories) + ","
-        max_idle_frontend += frontend_name + ";" + str(int(per_fe[u'idle'])//num_factories) + ","
-        max_glideins_frontend += frontend_name + ";" + str(int(per_fe[u'glideins'])//num_factories) + ","
+    for per_fe in entry.get_child('config').get_child('max_jobs').get_child_list('per_frontends'):
+        frontend_name = per_fe['name']
+        max_held_frontend += frontend_name + ";" + str(int(per_fe['held'])//num_factories) + ","
+        max_idle_frontend += frontend_name + ";" + str(int(per_fe['idle'])//num_factories) + ","
+        max_glideins_frontend += frontend_name + ";" + str(int(per_fe['glideins'])//num_factories) + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
@@ -1016,11 +1016,11 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     #  to it.
     white_mode = "Off"
     allowed_vos = ""
-    allowed_fes = entry.get_child_list(u'allow_frontends')
+    allowed_fes = entry.get_child_list('allow_frontends')
     if len(allowed_fes) > 0:
         white_mode = "On"
     for allowed_fe in allowed_fes:
-        allowed_vos = allowed_vos + allowed_fe[u'name'] + ":" + allowed_fe[u'security_class'] + ","
+        allowed_vos = allowed_vos + allowed_fe['name'] + ":" + allowed_fe['security_class'] + ","
     job_descript_dict.add("WhitelistMode", white_mode)
     job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
@@ -1029,13 +1029,13 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
 # Create the frontend descript file
 def populate_frontend_descript(frontend_dict,     # will be modified
                                conf):
-    for fe_el in conf.get_child(u'security').get_child_list(u'frontends'):
-        fe_name = fe_el[u'name']
+    for fe_el in conf.get_child('security').get_child_list('frontends'):
+        fe_name = fe_el['name']
 
         ident=fe_el['identity']
         maps={}
-        for sc_el in fe_el.get_child_list(u'security_classes'):
-            sc_name = sc_el[u'name']
+        for sc_el in fe_el.get_child_list('security_classes'):
+            sc_name = sc_el['name']
             username=sc_el['username']
             maps[sc_name]=username
 
@@ -1046,8 +1046,8 @@ def populate_frontend_descript(frontend_dict,     # will be modified
 # Populate gridmap to be used by the glideins
 def populate_gridmap(conf, gridmap_dict):
     collector_dns=[]
-    for el in conf.get_child_list(u'monitoring_collectors'):
-        dn=el[u'DN']
+    for el in conf.get_child_list('monitoring_collectors'):
+        dn=el['DN']
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn, 'fcollector%i'%len(collector_dns))
@@ -1069,19 +1069,19 @@ def copy_file(infile, outfile):
 # Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
 def validate_condor_tarball_attrs(conf):
-    valid_tarballs = get_valid_condor_tarballs(conf.get_child_list(u'condor_tarballs'))
+    valid_tarballs = get_valid_condor_tarballs(conf.get_child_list('condor_tarballs'))
 
     common_version = None
     common_os = None
     common_arch = None
 
-    for attr in conf.get_child_list(u'attrs'):
-        if attr[u'name'] == u'CONDOR_VERSION':
-            common_version = attr[u'value']
-        elif attr[u'name'] == u'CONDOR_OS':
-            common_os = attr[u'value']
-        elif attr[u'name'] == u'CONDOR_ARCH':
-            common_arch = attr[u'value']
+    for attr in conf.get_child_list('attrs'):
+        if attr['name'] == 'CONDOR_VERSION':
+            common_version = attr['value']
+        elif attr['name'] == 'CONDOR_OS':
+            common_os = attr['value']
+        elif attr['name'] == 'CONDOR_ARCH':
+            common_arch = attr['value']
         if common_version is not None and common_os is not None and common_arch is not None:
             break
 
@@ -1099,13 +1099,13 @@ def validate_condor_tarball_attrs(conf):
         my_arch = None
         match_found = False
 
-        for attr in entry.get_child_list(u'attrs'):
-            if attr[u'name'] == u'CONDOR_VERSION':
-                my_version = attr[u'value']
-            elif attr[u'name'] == u'CONDOR_OS':
-                my_os = attr[u'value']
-            elif attr[u'name'] == u'CONDOR_ARCH':
-                my_arch = attr[u'value']
+        for attr in entry.get_child_list('attrs'):
+            if attr['name'] == 'CONDOR_VERSION':
+                my_version = attr['value']
+            elif attr['name'] == 'CONDOR_OS':
+                my_os = attr['value']
+            elif attr['name'] == 'CONDOR_ARCH':
+                my_arch = attr['value']
             if my_version is not None and my_os is not None and my_arch is not None:
                 break
 
@@ -1141,7 +1141,7 @@ def validate_condor_tarball_attrs(conf):
                 match_found = True
 
         if match_found == False:
-            raise RuntimeError("Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry[u'name']))
+            raise RuntimeError("Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry['name']))
 
 
 ####################################################
@@ -1203,14 +1203,14 @@ def calc_monitoring_collectors_string(collectors):
     monitoring_collectors = []
 
     for el in collectors:
-        if el[u'group'] not in collector_nodes:
-            collector_nodes[el[u'group']] = {'primary': [], 'secondary': []}
-        if eval(el[u'secondary']):
-            cWDictFile.validate_node(el[u'node'])
-            collector_nodes[el[u'group']]['secondary'].append(el[u'node'])
+        if el['group'] not in collector_nodes:
+            collector_nodes[el['group']] = {'primary': [], 'secondary': []}
+        if eval(el['secondary']):
+            cWDictFile.validate_node(el['node'])
+            collector_nodes[el['group']]['secondary'].append(el['node'])
         else:
-            cWDictFile.validate_node(el[u'node'])
-            collector_nodes[el[u'group']]['primary'].append(el[u'node'])
+            cWDictFile.validate_node(el['node'])
+            collector_nodes[el['group']]['primary'].append(el['node'])
 
     for group in list(collector_nodes.keys()):
         if len(collector_nodes[group]['secondary']) > 0:
@@ -1230,13 +1230,13 @@ def calc_primary_monitoring_collectors(collectors):
     collector_nodes = {}
 
     for el in collectors:
-        if not eval(el[u'secondary']):
+        if not eval(el['secondary']):
             # only consider the primary collectors
-            cWDictFile.validate_node(el[u'node'])
+            cWDictFile.validate_node(el['node'])
             # we only expect one per group
-            if el[u'group'] in collector_nodes:
-                raise RuntimeError("Duplicate primary monitoring collector found for group %s"%el[u'group'])
-            collector_nodes[el[u'group']]=el[u'node']
+            if el['group'] in collector_nodes:
+                raise RuntimeError("Duplicate primary monitoring collector found for group %s"%el['group'])
+            collector_nodes[el['group']]=el['node']
 
     if len(collector_nodes) == 0:
         return None

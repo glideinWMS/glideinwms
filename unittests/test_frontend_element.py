@@ -61,7 +61,7 @@ def uni_to_str_JSON(obj):
         newobj = ()
         for value in obj:
             newobj = newobj + (uni_to_str_JSON(value),)
-    elif isinstance(obj, unicode):
+    elif isinstance(obj, str):
         newobj = str(obj)
     else:
         newobj = obj

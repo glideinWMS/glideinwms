@@ -62,7 +62,7 @@ class TestFactoryConfig(unittest.TestCase):
 
     def test_get_all_usernames(self):
         all = self.frontend_descript.get_all_usernames()
-        self.assertEqual([u'frontend'], all)
+        self.assertEqual(['frontend'], all)
 
     def test_get_identity(self):
         id = self.frontend_descript.get_identity('vofrontend_service')
@@ -75,7 +75,7 @@ class TestFactoryConfig(unittest.TestCase):
 
     def test_get_all_frontend_sec_classes(self):
         id = self.frontend_descript.get_all_frontend_sec_classes()
-        self.assertEqual([u'vofrontend_service:frontend'], id)
+        self.assertEqual(['vofrontend_service:frontend'], id)
 
     def test_get_frontend_name(self):
         id = self.frontend_descript.get_frontend_name(

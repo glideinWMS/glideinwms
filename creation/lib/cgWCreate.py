@@ -131,10 +131,10 @@ def get_factory_log_recipients(entry):
     Returns:
         list: list contaning the URLs of the log servers, empty if none present
     """
-    entr_attrs = entry.get_child_list(u'attrs')
+    entr_attrs = entry.get_child_list('attrs')
     for attr in entr_attrs:
-        if attr[u'name'] == 'LOG_RECIPIENTS_FACTORY':
-            return attr[u'value'].split()
+        if attr['name'] == 'LOG_RECIPIENTS_FACTORY':
+            return attr['value'].split()
     return []
 
 
@@ -154,25 +154,25 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         another parameter to the function.
         """
 
-        glidein_name = conf[u'glidein_name']
-        gridtype = entry[u'gridtype']
-        gatekeeper = entry[u'gatekeeper']
-        entry_enabled = entry[u'enabled']
-        if u'rsl' in entry:
-            rsl = entry[u'rsl']
+        glidein_name = conf['glidein_name']
+        gridtype = entry['gridtype']
+        gatekeeper = entry['gatekeeper']
+        entry_enabled = entry['enabled']
+        if 'rsl' in entry:
+            rsl = entry['rsl']
         else:
             rsl = None
-        auth_method = entry[u'auth_method']
-        if u'proxy_url' in entry:
-            proxy_url = entry[u'proxy_url']
+        auth_method = entry['auth_method']
+        if 'proxy_url' in entry:
+            proxy_url = entry['proxy_url']
         else:
             proxy_url = None
-        client_log_base_dir = conf.get_child(u'submit')[u'base_client_log_dir']
-        submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
+        client_log_base_dir = conf.get_child('submit')['base_client_log_dir']
+        submit_attrs = entry.get_child('config').get_child('submit').get_child_list('submit_attrs')
         enc_input_files = []
         # if a token is found in the client proxies dir, add it to
         # the transfer/encrypt input file list
-        base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
+        base_client_proxies_dir = conf.get_child('submit')['base_client_proxies_dir']
         token_file_name = "%s_token" % entry_name
         for root, dirs, files  in os.walk(base_client_proxies_dir):
             for fname in files:
@@ -211,8 +211,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
             # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username from env
             # This returns always the host:port part: gatekeeper.split('@')[-1]
-            if u'bosco_dir' in entry:
-                bosco_dir = "--rgahp-glite ~/%s/glite" % entry[u'bosco_dir']
+            if 'bosco_dir' in entry:
+                bosco_dir = "--rgahp-glite ~/%s/glite" % entry['bosco_dir']
             else:
                 bosco_dir = ''
             self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
@@ -276,7 +276,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
         max_walltime = next(iter([x for x in entry.get_child_list(
-            u'attrs') if x['name'] == 'GLIDEIN_Max_Walltime']), None)  # Get the GLIDEIN_Max_Walltime attribute
+            'attrs') if x['name'] == 'GLIDEIN_Max_Walltime']), None)  # Get the GLIDEIN_Max_Walltime attribute
         if max_walltime:
             remove_expr += " || (JobStatus==2 && ((time() - EnteredCurrentStatus) > (GlideinMaxWalltime + 12*60*60)))"
         self.add("periodic_remove", remove_expr)
@@ -359,13 +359,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
         for submit_attr in submit_attrs:
-            if submit_attr.get(u'all_grid_types', 'False') == 'True' or gridtype.startswith(
+            if submit_attr.get('all_grid_types', 'False') == 'True' or gridtype.startswith(
                     'batch ') or gridtype in ('condor', 'gce', 'ec2'):
                 self.add(
                     '%s%s' %
                     (attr_prefix,
-                     submit_attr[u'name']),
-                    submit_attr[u'value'])
+                     submit_attr['name']),
+                    submit_attr['value'])
 
     def populate_condorc_grid(self):
         self.add('+TransferOutput', '""')
