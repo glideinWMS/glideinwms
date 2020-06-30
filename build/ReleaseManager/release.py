@@ -15,6 +15,10 @@ from ReleaseManager import ReleaseManagerLib
 
 def manager_version():
     try:
+        if os.path.exists("/var/lib/gwms-factory/work-dir/checksum.factory"):
+            chksum_file = "checksum.factory"
+        elif os.path.exists("/var/lib/gwms-frontend/vofrontend/checksum.frontend"):
+            chksum_file = "checksum.frontend"
         from glideinwms.lib import glideinWMSVersion
     except ImportError:
         return "UNKNOWN"
