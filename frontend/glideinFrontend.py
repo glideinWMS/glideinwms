@@ -404,8 +404,8 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
         master_frontend_name = str(ha.get('ha_frontends')[0].get('frontend_name'))
 
         for group in groups:
-            element = glideinFrontendElement.glideinFrontendElement(os.getpid(), work_dir,
-                                             group, "run")
+            element = glideinFrontendElement.glideinFrontendElement(
+                os.getpid(), work_dir, group, "run")
             # Set environment required to query factory collector
             set_frontend_htcondor_env(work_dir, frontendDescript, element)
 
@@ -462,8 +462,8 @@ def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
     groups = frontendDescript.data['Groups'].split(',')
     if groups:
         if element is None:
-            element = glideinFrontendElement.glideinFrontendElement(os.getpid(), work_dir,
-                                             groups[0], "run")
+            element = glideinFrontendElement.glideinFrontendElement(
+                os.getpid(), work_dir, groups[0], "run")
         htc_env = {
             'CONDOR_CONFIG': frontendDescript.data['CondorConfig'],
             'X509_USER_PROXY': frontendDescript.data['ClassAdProxy'],
@@ -583,7 +583,10 @@ def main(work_dir, action):
         except HUPException:
             logSupport.log.info("Received SIGHUP, reload config")
             pid_obj.relinquish()
-            os.execv( os.path.join(glideinFrontendLib.__file__, "../creation/reconfig_frontend"), ['reconfig_frontend', '-sighupreload', '-xml', '/etc/gwms-frontend/frontend.xml'] )
+            os.execv(
+                os.path.join(glideinFrontendLib.__file__, "../creation/reconfig_frontend"),
+                ['reconfig_frontend', '-sighupreload', '-xml', '/etc/gwms-frontend/frontend.xml']
+            )
         except:
             logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
