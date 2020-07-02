@@ -11,7 +11,7 @@
 #
 
 import xml.dom.minidom
-from UserDict import UserDict
+from collections import UserDict
 
 class CorruptXML(Exception):
     pass
