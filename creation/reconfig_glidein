@@ -33,6 +33,7 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
 from glideinwms.factory import glideFactoryLib
+from glideinwms.lib.util import handle_hooks, HOOK_PRE_RECONFIG_DIRNAME, HOOK_POST_RECONFIG_DIRNAME
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
 # necessary because systemd is not on rhel6
@@ -167,20 +168,6 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         logReconfig("Reconfig successful with options update_def_cfg='%s' update_scripts='%s' comment='%s'" % (update_def_cfg, update_scripts, comment))
 
 
-def handle_hooks(basedir, script_dir):
-    """The function itaretes over the hooks.reconfig.pre directory and executes any script found there
-    """
-
-    dirname = os.path.join(basedir, script_dir)
-    if not os.path.isdir(dirname):
-        return
-    for fname in os.listdir(dirname):
-        script_name = os.path.join(dirname, fname)
-        print("\nExecuting reconfigure hook: " + script_name)
-        if os.path.isfile(script_name) and os.access(script_name, os. X_OK):
-            subprocess.call(script_name)
-
-
 ############################################################
 #
 # S T A R T U P
@@ -234,7 +221,7 @@ if __name__ == '__main__':
             print2(usage)
             sys.exit(1)
 
-    handle_hooks(os.path.dirname(os.path.abspath(xml)), "hooks.reconfig.pre")
+    handle_hooks(os.path.dirname(os.path.abspath(xml)), HOOK_PRE_RECONFIG_DIRNAME)
 
     if sighupreload:
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
@@ -284,7 +271,7 @@ if __name__ == '__main__':
         print2(e)
         exit_code = 1
 
-    handle_hooks(os.path.dirname(os.path.abspath(xml)), "hooks.reconfig.post")
+    handle_hooks(os.path.dirname(os.path.abspath(xml)), HOOK_POST_RECONFIG_DIRNAME)
 
     if sighupreload:
         print2("switching back to the main glideFactory process")

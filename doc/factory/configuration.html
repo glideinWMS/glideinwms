@@ -2311,7 +2311,7 @@ The default behavior can be overridden by specifying the option -xslt_plugin_dir
     <a name="#reconfigure_hooks"/>
     <h3 class="western">Running pre/post reconfigure hooks</h3>
     <p>
-    You can put executable scipts in the <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre> or the <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre> directories. These scripts will be executed every time you reconfigure the factory. The <pre>.pre</pre> scripts will be executed before the recofniguration process begins. The <pre>.post</pre> will be executed after the reconfigurations has been done.
+    You can put executable scipts in the <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre> or the <pre>/etc/gwms-factory/hooks.reconfig.pre/</pre> directories. These scripts will be executed every time you reconfigure the factory. The <pre>.pre</pre> scripts will be executed before the reconfiguration process begins. The <pre>.post</pre> will be executed after the reconfigurations has been done. Scripts will be executed in <pre>/var/lib/gwms-factory/work-dir</pre> as user <pre>gfactory</pre>. Only executable scripts will be executed.
     </p>
 </div>
 
