@@ -1,4 +1,3 @@
-
 #
 # Project:
 #   glideinWMS
@@ -15,7 +14,7 @@
 
 import os
 from . import logSupport
-import subprocess
+#import subprocess
 from . import subprocessSupport
 import string
 
@@ -34,22 +33,39 @@ class ExeError(RuntimeError):
 # Configuration
 #
 
-# Set path to condor binaries, if needed
 def set_path(new_condor_bin_path, new_condor_sbin_path=None):
+    """Set path to condor binaries, if needed
+
+    Args:
+        new_condor_bin_path:
+        new_condor_sbin_path:
+
+    Returns:
+
+    """
     global condor_bin_path, condor_sbin_path
     condor_bin_path = new_condor_bin_path
     if new_condor_sbin_path is not None:
         condor_sbin_path = new_condor_sbin_path
 
 
-#
-# Execute an arbitrary condor command and return its output as a list of lines
-#  condor_exe uses a relative path to $CONDOR_BIN
-# Fails if stderr is not empty
-#
-
-# can throw UnconfigError or ExeError
 def exe_cmd(condor_exe, args, stdin_data=None, env={}):
+    """Execute an arbitrary condor command and return its output as a list of lines
+    Fails if stderr is not empty
+
+    Args:
+        condor_exe (str): condor_exe uses a relative path to $CONDOR_BIN
+        args (str): arguments for the command
+        stdin_data (str): Data that will be fed to the command via stdin
+        env (dict): Environment to be set before execution
+
+    Returns:
+        Lines of stdout from the command
+
+    Raises:
+        UnconfigError:
+        ExeError:
+    """
     global condor_bin_path
 
     if condor_bin_path is None:
@@ -79,13 +95,15 @@ def exe_cmd_sbin(condor_exe, args, stdin_data=None, env={}):
 #
 ############################################################
 def generate_bash_script(cmd, environment):
-    """
-    Print to a string a shell script setting the environment in 'environment' and running 'cmd'
+    """Print to a string a shell script setting the environment in 'environment' and running 'cmd'
     If 'cmd' last argument is a file it will be printed as well in the string
 
-    @param cmd: command string
-    @param environment: environment as a dictionary
-    @return: multi-line string with environment, command and eventually the input file
+    Args:
+        cmd (str): command string
+        environment (dict): environment as a dictionary
+
+    Returns:
+        str: multi-line string with environment, command and eventually the input file
     """
     script = ['script to reproduce failure:', '-' * 20 + ' begin script ' + '-' * 20, '#!/bin/bash']
     # FROM:migration_3_1, 3 lines
@@ -112,16 +130,16 @@ def generate_bash_script(cmd, environment):
 
 # can throw ExeError
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
-    """
-    Fork a process and execute cmd - rewritten to use select to avoid filling
+    """Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
 
-    @type cmd: string
-    @param cmd: Sting containing the entire command including all arguments
-    @type stdin_data: string
-    @param stdin_data: Data that will be fed to the command via stdin
-    @type child_env: dict
-    @param child_env: Environment to be set before execution
+    Args:
+        cmd (str): Sting containing the entire command including all arguments
+        stdin_data (str): Data that will be fed to the command via stdin
+        child_env (dict): Environment to be set before execution
+
+    Returns:
+        Lines of stdout from the command
     """
     stdoutdata = ""
     try:
@@ -130,7 +148,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     except Exception as ex:
         msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdoutdata)
         try:
-            logSupport.log.debug(msg)
+            logSupport.log.error(msg)
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
         except:
             pass
