@@ -28,8 +28,8 @@ def get_timestr(when=time.time()):
 TIMESTR=get_timestr()
 
 # insert timestr just before the last .
-def insert_timestr(str):
-    arr=str.split(str, '.')
+def insert_timestr(input_str):
+    arr=str.split(input_str, '.')
     if len(arr)==1:
       arr.append(TIMESTR)
     else:  
