@@ -746,7 +746,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if 'dir' in untar_opts:
             wnsubdir = untar_opts['dir']
         else:
-            wnsubdir = string.split(relfname, '.', 1)[0]  # deafult is relfname up to the first .
+            wnsubdir = str.split(relfname, '.', 1)[0]  # deafult is relfname up to the first .
 
         if 'absdir_outattr' in untar_opts:
             config_out = untar_opts['absdir_outattr']

@@ -73,7 +73,7 @@ def monitor(jid,schedd_name,pool_name,
             stdout_fd=sys.stdout,
             stderr_fd=sys.stderr):
     try:
-        jid_cluster, jid_proc=string.split(jid, ".", 1)
+        jid_cluster, jid_proc=str.split(jid, ".", 1)
     except:
         raise RuntimeError('Invalid JID %s, expected Cluster.Proc'%jid)
     

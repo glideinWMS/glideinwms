@@ -51,7 +51,7 @@ class Configuration:
       for option in self.options(section):
         value = self.option_value(section, option)
         if "\n" in value:
-          line = string.split(value, "\n")
+          line = str.split(value, "\n")
           common.logerr("Section [%s]: this line starts with whitespace ( %s)\n       Please remove the leading space or comment (;) the line." % (section, line[1]))
 
   #----------------

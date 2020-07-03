@@ -115,7 +115,7 @@ for glidein in glideins:
         for attr in ('EntryName', 'GlideinName', 'FactoryName'):
             del glidein_el['attrs'][attr]
         
-    entry_name, glidein_name, factory_name=string.split(glidein, "@")
+    entry_name, glidein_name, factory_name=str.split(glidein, "@")
 
     frontend_constraints=None
     if frontend_name is not None:

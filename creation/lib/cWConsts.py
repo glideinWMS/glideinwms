@@ -29,7 +29,7 @@ TIMESTR=get_timestr()
 
 # insert timestr just before the last .
 def insert_timestr(str):
-    arr=string.split(str, '.')
+    arr=str.split(str, '.')
     if len(arr)==1:
       arr.append(TIMESTR)
     else:  

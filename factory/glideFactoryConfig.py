@@ -62,7 +62,7 @@ class ConfigFile:
                     continue # comment
                 if len(string.strip(line))==0:
                     continue # empty line
-                larr=string.split(line, None, 1)
+                larr=str.split(line, None, 1)
                 lname=larr[0]
                 if len(larr)==1:
                     lval=""
@@ -389,7 +389,7 @@ class SignatureFile(ConfigFile):
                     continue # comment
                 if len(string.strip(line)) == 0:
                     continue # empty line
-                larr = string.split(line, None)
+                larr = str.split(line, None)
                 lsign = larr[0]
                 ldescript = larr[1]
                 lname = larr[2]

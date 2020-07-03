@@ -210,7 +210,7 @@ class VOFrontend(Condor):
   #--------------------------------
   def glidein_proxy_dns(self):
     dns = self.option_value(self.ini_section, "glidein_proxy_dns")
-    dn_list = string.split(dns, ";")
+    dn_list = str.split(dns, ";")
     list = []
     for dn in dn_list:
       list.append(dn.strip())
@@ -715,7 +715,7 @@ please verify and correct if needed.
     if factory_attributes == "":
         factory_attributes = []
     else:
-        factory_attributes = string.split(factory_attributes, ',')
+        factory_attributes = str.split(factory_attributes, ',')
 
     #--- job_attributes --
     print("""
@@ -730,7 +730,7 @@ please verify and correct if needed.
     if job_attributes == "":
       job_attributes = []
     else:
-      job_attributes = string.split(job_attributes, ',')
+      job_attributes = str.split(job_attributes, ',')
 
     #--- create xml ----
     data  = """

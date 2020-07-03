@@ -83,7 +83,7 @@ class Glidein(Configuration):
   def ress_vo_constraint(self):
     constraint = '(GlueCEInfoContactString=!=UNDEFINED)'
     if len(self.entry_vos()) > 0:
-      vos = string.split(self.entry_vos(), ",")
+      vos = str.split(self.entry_vos(), ",")
       if len(vos) > 0:
         constraint = constraint + '&&('
         constraint = constraint + 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
@@ -95,7 +95,7 @@ class Glidein(Configuration):
   def bdii_vo_constraint(self):
     constraint = None 
     if len(self.entry_vos()) > 0:
-      vos = string.split(self.entry_vos(), ",")
+      vos = str.split(self.entry_vos(), ",")
       constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
       if len(vos) > 0:
         for vo in vos[1:]:

@@ -120,7 +120,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
         wnsubdir = user_file.untar_options.dir
         if wnsubdir is None:
-            wnsubdir = string.split(relfname, '.', 1)[0]  # default is relfname up to the first .
+            wnsubdir = str.split(relfname, '.', 1)[0]  # default is relfname up to the first .
 
         config_out = user_file.untar_options.absdir_outattr
         if config_out is None:

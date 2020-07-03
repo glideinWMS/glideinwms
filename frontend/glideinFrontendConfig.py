@@ -109,7 +109,7 @@ class ConfigFile:
                 self.split_func(line, convert_function)
 
     def split_func(self, line, convert_function):
-        larr=string.split(line, None, 1)
+        larr=str.split(line, None, 1)
         lname=larr[0]
         if len(larr)==1:
             lval=""
@@ -205,7 +205,7 @@ class SignatureDescript(ConfigFile):
         self.signature_type=frontendConfig.signature_type
 
     def split_func(self, line, convert_function):
-        larr=string.split(line, None)
+        larr=str.split(line, None)
         if len(larr)!=3:
             raise RuntimeError("Invalid line (expected 3 elements, found %i)"%len(larr))
         self.data[larr[2]]=(larr[0], larr[1])
@@ -220,7 +220,7 @@ class BaseSignatureDescript(ConfigFile):
         self.signature_type = signature_type
 
     def split_func(self, line, convert_function):
-        larr = string.split(line, None, 1)
+        larr = str.split(line, None, 1)
         if len(larr) != 2:
             raise RuntimeError("Invalid line (expected 2 elements, found %i)" % len(larr))
         lval = larr[1]
@@ -238,7 +238,7 @@ class BaseSignatureDescript(ConfigFile):
 class ElementMergedDescript:
     def __init__(self, base_dir, group_name):
         self.frontend_data = FrontendDescript(base_dir).data
-        if not (group_name in string.split(self.frontend_data['Groups'], ',')):
+        if not (group_name in str.split(self.frontend_data['Groups'], ',')):
             raise RuntimeError("Group '%s' not supported: %s" % (group_name, self.frontend_data['Groups']))
         
         self.element_data=ElementDescript(base_dir, group_name).data
@@ -335,7 +335,7 @@ class ElementMergedDescript:
         elif val == '':
             return []
         else:
-            return string.split(val, ',')
+            return str.split(val, ',')
 
 
 class GroupSignatureDescript:
@@ -375,7 +375,7 @@ class StageFiles:
 
         list_fname=self.stage_descript.data[list_type]
         return self.get_stage_file(self.stage_descript.data[list_type],
-                                   lambda x:string.split(x, None, 4))
+                                   lambda x:str.split(x, None, 4))
 
 # this class knows how to interpret some of the files in the Stage area
 class ExtStageFiles(StageFiles):
@@ -389,7 +389,7 @@ class ExtStageFiles(StageFiles):
 
     def get_condor_vars(self):
         self.load_preentry_file_list()
-        return self.get_stage_file(self.preentry_file_list.data['condor_vars.lst'][0], lambda x:string.split(x, None, 6))
+        return self.get_stage_file(self.preentry_file_list.data['condor_vars.lst'][0], lambda x:str.split(x, None, 6))
 
     # internal
     def load_preentry_file_list(self):

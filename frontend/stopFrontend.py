@@ -31,7 +31,7 @@ from glideinwms.frontend import glideinFrontendConfig
 def get_element_pids(work_dir, frontend_pid):
     # get element pids
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
-    groups = sorted(string.split(frontendDescript.data['Groups'], ','))
+    groups = sorted(str.split(frontendDescript.data['Groups'], ','))
 
     element_pids = {}
     for group in groups:
