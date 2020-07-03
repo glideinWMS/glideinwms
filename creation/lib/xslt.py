@@ -6,10 +6,18 @@ from distutils.spawn import find_executable
 # pylint: enable=no-name-in-module,import-error
 
 def xslt_xml(old_xmlfile, xslt_plugin_dir):
-    ''' Take an XML file, transform it via any XSLT in the
-    xslt_plugin_dir, and return the output.'''
+    """Take an XML file, transform it via any XSLT in the
+    xslt_plugin_dir, and return the output.
 
-    old_xml_fd = open(old_xmlfile)
+    Args:
+        old_xmlfile (str): Path of the XML file
+        xslt_plugin_dir:
+
+    Returns:
+
+    """
+
+    old_xml_fd = open(old_xmlfile, "rb")  # Opening as binary, to be consistent w/ the pipe from Popen
     if not xslt_plugin_dir:
         return old_xml_fd.read()
 
