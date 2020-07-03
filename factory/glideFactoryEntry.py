@@ -395,7 +395,7 @@ class Entry:
             self.log.info("Schedd %s not responding, skipping"%self.scheddName)
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb, ''))
+            self.log.warning("getCondorQData failed, traceback: %s"%str.join(tb, ''))
             raise e
 
     def glideinsWithinLimits(self, condorQ):

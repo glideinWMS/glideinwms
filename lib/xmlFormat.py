@@ -174,7 +174,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
     else:
         head_arr.append('>')
         is_complete = 0
-    head_str = string.join(head_arr, '')
+    head_str = str.join(head_arr, '')
 
     return (head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs)
 
@@ -227,7 +227,7 @@ def class2string(inst, inst_name, params={}, subclass_params={},
         t = tree_params[attr]
         res_arr.append(tree2string(inst[attr], attr, t["child_element"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (inst_name, attr))))
     res_arr.append(leading_tab + ('</%s>' % inst_name))
-    return string.join(res_arr, '\n')
+    return str.join(res_arr, '\n')
 
 # Write a class as XML into an open file
 # all the simple attributes will be put in the header
@@ -311,7 +311,7 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
         else:
             raise RuntimeError("Param attr %s is not a simple type (%s) (%s)" % (attr, type(el), debug_str))
     head_arr.append('>')
-    head_str = string.join(head_arr, '')
+    head_str = str.join(head_arr, '')
     res_arr.append(head_str)
     #print head_str
 
@@ -361,7 +361,7 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
 
     res_arr.append(leading_tab + ('</%s>' % dict_name))
 
-    return string.join(res_arr, '\n')
+    return str.join(res_arr, '\n')
 
 # Write a dictionary formatted as XML into an open file
 # all elements should be of the same type, although this is not enforced
@@ -386,7 +386,7 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
         else:
             raise RuntimeError("Param attr %s is not a simple type (%s) (%s)" % (attr, type(el), debug_str))
     head_arr.append('>\n')
-    head_str = string.join(head_arr, '')
+    head_str = str.join(head_arr, '')
     fd.write(head_str)
     #print head_str
 
@@ -476,7 +476,7 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
         else:
             raise RuntimeError("Param attr %s is not a simple type (%s) (%s)" % (attr, type(el), debug_str))
     head_arr.append('>')
-    head_str = string.join(head_arr, '')
+    head_str = str.join(head_arr, '')
     res_arr.append(head_str)
 
     #print head_str
@@ -526,7 +526,7 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
 
     res_arr.append(leading_tab + ('</%s>' % list_name))
 
-    return string.join(res_arr, '\n')
+    return str.join(res_arr, '\n')
 
 # Write a list formatted as XML in an open file
 # Do not show the indexes, use dict2file if that is needed
@@ -552,7 +552,7 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
         else:
             raise RuntimeError("Param attr %s is not a simple type (%s) (%s)" % (attr, type(el), debug_str))
     head_arr.append('>\n')
-    head_str = string.join(head_arr, '')
+    head_str = str.join(head_arr, '')
     fd.write(head_str)
 
     #print head_str
@@ -631,7 +631,7 @@ def tree2string(tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
     else:
         res.append(line + "/>")
     
-    return string.join(res, "\n")
+    return str.join(res, "\n")
 
 # Write a tree as XML into an open file
 # a tree is a dictionary that have inside other dictionaries of the same type

@@ -215,7 +215,7 @@ class TaskTar(TaskRelease):
     def execute(self):
         exclude = ""
         if len(self.excludePattern) > 0:
-            exclude = "--exclude='" +  string.join(self.excludePattern, "' --exclude='") + "'"
+            exclude = "--exclude='" +  str.join(self.excludePattern, "' --exclude='") + "'"
         #cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
         src_dir = '%s/../src/%s' % (self.release.releaseDir,
@@ -282,7 +282,7 @@ class TaskVersionFile(TaskRelease):
     def checksumRelease(self, chksumFile, exclude):
         excludePattern = self.checksumFilePattern + " install/templates CVS config_examples " 
         if len(exclude) > 0:
-            excludePattern = "\"" + "%s "%excludePattern + string.join(exclude, " ") + "\""
+            excludePattern = "\"" + "%s "%excludePattern + str.join(exclude, " ") + "\""
         cmd = "cd %s; %s %s %s %s" % (self.release.sourceDir, self.chksumBin,
                                       self.release.version, chksumFile,
                                       excludePattern)

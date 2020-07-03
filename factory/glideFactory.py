@@ -499,7 +499,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
     try:
         for group in range(len(entry_groups)):
-            entry_names = string.join(entry_groups[group], ':')
+            entry_names = str.join(entry_groups[group], ':')
             logSupport.log.info("Starting EntryGroup %s: %s" % \
                 (group, entry_groups[group]))
 
@@ -643,7 +643,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
             logSupport.log.info("Checking EntryGroups %s" % list(childs.keys()))
             for group in childs:
-                entry_names = string.join(entry_groups[group], ':')
+                entry_names = str.join(entry_groups[group], ':')
                 child = childs[group]
 
                 # empty stdout and stderr

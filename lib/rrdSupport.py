@@ -174,8 +174,8 @@ class BaseRRDSupport:
             return
 
         args.append('-t')
-        args.append(string.join(ds_names_real, ':'))
-        args.append(('%li:' % time) + string.join(ds_vals, ':'))
+        args.append(str.join(ds_names_real, ':'))
+        args.append(('%li:' % time) + str.join(ds_vals, ':'))
     
         lck = self.get_disk_lock(rrdfname)
         try:
@@ -523,7 +523,7 @@ def string_quote_join(arglist):
     l2 = []
     for e in arglist:
         l2.append('"%s"' % e)
-    return string.join(l2)
+    return str.join(l2)
 
 #################################
 # this class is used in place of the rrdtool

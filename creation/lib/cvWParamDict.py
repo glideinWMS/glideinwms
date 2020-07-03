@@ -496,7 +496,7 @@ def populate_frontend_descript(work_dir,
         for sub in list(params.groups.keys()):
             if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
-        frontend_dict.add('Groups', string.join(active_sub_list, ','))
+        frontend_dict.add('Groups', str.join(active_sub_list, ','))
 
         frontend_dict.add('LoopDelay', params.loop_delay)
         frontend_dict.add('AdvertiseDelay', params.advertise_delay)
@@ -757,7 +757,7 @@ def populate_common_descript(descript_dict, params):
     for el in params.match.job.schedds:
         cWDictFile.validate_node(el['fullname'])
         schedds.append(el['fullname'])
-    descript_dict.add('JobSchedds', string.join(schedds, ','))
+    descript_dict.add('JobSchedds', str.join(schedds, ','))
 
     if params.security.proxy_selection_plugin is not None:
         descript_dict.add('ProxySelectionPlugin', params.security.proxy_selection_plugin)
@@ -855,10 +855,10 @@ def calc_glidein_collectors(collectors):
 
     for group in list(collector_nodes.keys()):
         if len(collector_nodes[group]['secondary']) > 0:
-            glidein_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
+            glidein_collectors.append(str.join(collector_nodes[group]['secondary'], ","))
         else:
-            glidein_collectors.append(string.join(collector_nodes[group]['primary'], ","))
-    return string.join(glidein_collectors, ";")
+            glidein_collectors.append(str.join(collector_nodes[group]['primary'], ","))
+    return str.join(glidein_collectors, ";")
 
 
 #####################################################
@@ -882,9 +882,9 @@ def calc_glidein_ccbs(collectors):
             ccb_nodes[el.group].append(el.node)
 
     for group in list(ccb_nodes.keys()):
-        glidein_ccbs.append(string.join(ccb_nodes[group], ","))
+        glidein_ccbs.append(str.join(ccb_nodes[group], ","))
 
-    return string.join(glidein_ccbs, ";")
+    return str.join(glidein_ccbs, ";")
 
 
 #####################################################
