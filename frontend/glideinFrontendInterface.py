@@ -111,9 +111,9 @@ class MultiExeError(condorExe.ExeError):
         for e in arr:
             str_arr.append('%s' % e)
 
-        str = str.join('\\n', str_arr)
+        str_out = str.join('\\n', str_arr)
 
-        condorExe.ExeError.__init__(self, str)
+        condorExe.ExeError.__init__(self, str_out)
 
 
 ############################################################
