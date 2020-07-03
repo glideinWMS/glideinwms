@@ -449,7 +449,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         entry.unsetInDowntime()
 
     if ((do_advertize) or (done_something > 0)):
-        logSupport.log.debug("Generated glidefactory and glidefactoryclient classads for entries: %s" % str.join(entries_to_advertise, ', '))
+        logSupport.log.debug("Generated glidefactory and glidefactoryclient classads for entries: %s" % str.join(', ', entries_to_advertise))
         # ADVERTISE: glidefactory classads
         gfi.advertizeGlideinFromFile(gf_filename,
                                      remove_file=True,

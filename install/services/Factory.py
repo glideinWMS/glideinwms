@@ -349,7 +349,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % \
 { "service_name"  : self.glidein.service_name(), 
   "instance_name" : self.glidein.instance_name(), 
-  "schedds"       : str.join(self.schedds(), ',')
+  "schedds"       : str.join(',', self.schedds())
 }
 
     data += """\

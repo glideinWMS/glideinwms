@@ -111,7 +111,7 @@ class MultiExeError(condorExe.ExeError):
         for e in arr:
             str_arr.append('%s' % e)
 
-        str = str.join(str_arr, '\\n')
+        str = str.join('\\n', str_arr)
 
         condorExe.ExeError.__init__(self, str)
 
@@ -929,7 +929,7 @@ class MultiAdvertizeWork:
             if factory_pool in self.global_key:
                 key_obj = self.global_key[factory_pool]
             if key_obj is not None:
-                fd.write(str.join(key_obj.get_key_attrs(), '\n')+"\n")
+                fd.write(str.join('\n', key_obj.get_key_attrs())+"\n")
                 for attr in list(glidein_params_to_encrypt.keys()):
                     el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                     escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
@@ -1183,17 +1183,17 @@ class MultiAdvertizeWork:
                 fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
                 fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
                 fd.write('Name = "%s"\n'%classad_name)
-                fd.write(str.join(descript_obj.get_id_attrs(), '\n')+"\n")
+                fd.write(str.join('\n', descript_obj.get_id_attrs())+"\n")
                 fd.write('ReqName = "%s"\n'%params_obj.request_name)
                 fd.write('ReqGlidein = "%s"\n'%params_obj.glidein_name)
 
-                fd.write(str.join(descript_obj.get_web_attrs(), '\n')+"\n")
+                fd.write(str.join('\n', descript_obj.get_web_attrs())+"\n")
 
                 if params_obj.security_name is not None:
                     glidein_params_to_encrypt['SecurityName']=params_obj.security_name
                                   
                 if key_obj is not None:
-                    fd.write(str.join(key_obj.get_key_attrs(), '\n')+"\n")
+                    fd.write(str.join('\n', key_obj.get_key_attrs())+"\n")
                     for attr in list(glidein_params_to_encrypt.keys()):
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                    

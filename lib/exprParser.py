@@ -41,22 +41,22 @@ def unparse(obj,raise_on_unknown=False):
         strs=[]
         for n in obj.nodes:
             strs.append("%s"%unparse(n, raise_on_unknown))
-        return "[%s]"%str.join(strs, ",")
+        return "[%s]"%str.join(",", strs)
     elif isinstance(obj, Tuple):
         strs=[]
         for n in obj.nodes:
             strs.append("%s"%unparse(n, raise_on_unknown))
-        return "(%s)"%str.join(strs, ",")
+        return "(%s)"%str.join(",", strs)
     elif isinstance(obj, And):
         strs=[]
         for n in obj.nodes:
             strs.append("(%s)"%unparse(n, raise_on_unknown))
-        return str.join(strs, " and ")
+        return str.join(" and ", strs)
     elif isinstance(obj, Or):
         strs=[]
         for n in obj.nodes:
             strs.append("(%s)"%unparse(n, raise_on_unknown))
-        return str.join(strs, " or ")
+        return str.join(" or ", strs)
     elif isinstance(obj, Not):
         return "not (%s)"%unparse(obj.expr, raise_on_unknown)
     elif isinstance(obj, UnaryAdd):
@@ -101,7 +101,7 @@ def unparse(obj,raise_on_unknown=False):
         for a in obj.args:
             args.append("%s"%unparse(a, raise_on_unknown))
         if (obj.star_args is None) and (obj.dstar_args is None):
-            return "%s(%s)"%(unparse(obj.node, raise_on_unknown), str.join(args, ','))
+            return "%s(%s)"%(unparse(obj.node, raise_on_unknown), str.join(',', args))
         else:
             if raise_on_unknown:
                 if obj.star_args is not None:
@@ -109,7 +109,7 @@ def unparse(obj,raise_on_unknown=False):
                 else:
                     raise ValueError("CallFunc.dstar_args is not None")
             else:
-                return "%s(%s,<unknown args>)"%(unparse(obj.node, raise_on_unknown), str.join(args, ','))
+                return "%s(%s,<unknown args>)"%(unparse(obj.node, raise_on_unknown), str.join(',', args))
     elif isinstance(obj, Getattr):
         return "%s.%s"%(unparse(obj.expr, raise_on_unknown), obj.attrname)
     elif isinstance(obj, Subscript):
@@ -150,7 +150,7 @@ def unparse(obj,raise_on_unknown=False):
                     astrs.append("%s=%s"%(a, unparse(d, raise_on_unknown)))
                 else:
                     astrs.append(a)
-            return "lambda %s:%s"%(str.join(astrs, ","), unparse(obj.code, raise_on_unknown))
+            return "lambda %s:%s"%(str.join(",", astrs), unparse(obj.code, raise_on_unknown))
         else:
             if raise_on_unknown:
                 raise ValueError("Lambda.flags!=0")

@@ -89,7 +89,7 @@ def main(args):
                     x.append("  "+l);
                 if x[-1]=="  ":
                     x=x[:-1]
-                xmls.append(str.join(x, "\n"))
+                xmls.append(str.join("\n", x))
             except OSError as e:
                 # just warn
                 sys.stderr.write("Error reading file: %s\n"%e)

@@ -640,7 +640,7 @@ def sanitize(name):
             outarr.append(name[i])
         else:
             outarr.append("_")
-    return str.join(outarr, "")
+    return str.join("", outarr)
 
 ##################################################
 
