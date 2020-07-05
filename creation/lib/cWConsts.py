@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Keep all the constants used in the glideinWMS
@@ -22,20 +22,27 @@ def get_timestr(when=time.time()):
              string.printable[start_time_tuple[2]]+      #day
              string.printable[start_time_tuple[3]]+      #hour
              string.printable[start_time_tuple[4]]+      #minute
-             string.printable[start_time_tuple[5]])      #first minute digit 
+             string.printable[start_time_tuple[5]])      #first minute digit
     return timestr
 
 TIMESTR=get_timestr()
 
-# insert timestr just before the last .
 def insert_timestr(input_str):
-    arr=str.split(input_str, '.')
-    if len(arr)==1:
-      arr.append(TIMESTR)
-    else:  
-      arr.insert(-1, TIMESTR)
-    return str.join('.', arr)
-    
+    """insert TIMESTR just before the last .
+
+    Args:
+        input_str (str): TIMESTR
+
+    Returns:
+        str: string with added TIMESTR
+    """
+    arr = input_str.split('.')
+    if len(arr) == 1:
+        arr.append(TIMESTR)
+    else:
+        arr.insert(-1, TIMESTR)
+    return '.'.join(arr)
+
 # these two are in the work dir, so they can be changed
 SUMMARY_SIGNATURE_FILE="signatures.sha1"
 

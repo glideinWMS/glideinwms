@@ -215,7 +215,7 @@ class TaskTar(TaskRelease):
     def execute(self):
         exclude = ""
         if len(self.excludePattern) > 0:
-            exclude = "--exclude='" +  str.join("' --exclude='", self.excludePattern) + "'"
+            exclude = "--exclude='" + "' --exclude='".join(self.excludePattern) + "'"
         #cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
         src_dir = '%s/../src/%s' % (self.release.releaseDir,
@@ -280,7 +280,7 @@ class TaskVersionFile(TaskRelease):
 
 
     def checksumRelease(self, chksumFile, exclude):
-        excludePattern = self.checksumFilePattern + " install/templates CVS config_examples " 
+        excludePattern = self.checksumFilePattern + " install/templates CVS config_examples "
         if len(exclude) > 0:
             excludePattern = "\"" + "%s "%excludePattern + str.join(" ", exclude) + "\""
         cmd = "cd %s; %s %s %s %s" % (self.release.sourceDir, self.chksumBin,
@@ -339,7 +339,7 @@ class TaskRPM(TaskTar):
         #fdin = open(self.specFileTemplate, 'r')
         with open(self.specFileTemplate, 'r') as fdin:
             lines = fdin.readlines()
-        
+
         with open(self.specFile, 'w') as fdout:
             for line in lines:
                 line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)

@@ -23,7 +23,7 @@ from glideinwms.lib import condorSecurity
 def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
-    """            
+    """
     template = get_template("frontend_initd_startup_template", glideinWMS_dir)
     template = template % {"frontend_dir": frontend_dir,
                            "glideinWMS_dir": glideinWMS_dir,
@@ -66,7 +66,7 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
         # Condor should never get here because these mappings are not accepted
         for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
             fd.write("%s (.*) anonymous\n"%t)
-        
+
     return
 
 
@@ -103,7 +103,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
-        fd.write("COLLECTOR_HOST = %s\n"%str.join(",", collector_nodes))
+        fd.write("COLLECTOR_HOST = %s\n" % ",".join(collector_nodes))
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")
@@ -147,7 +147,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("## map COLLECTOR DN to anonymous. Just disable it.\n")
         fd.write("######################################################\n")
         fd.write("USE_VOMS_ATTRIBUTES = False\n")
-        
+
         fd.write("\n######################################################\n")
         fd.write("## Newer versions of Condor will try to enforce hostname\n")
         fd.write("## mapping in the server DN. This does not work for\n")
@@ -155,7 +155,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("## we explicitly whitelist all DNs.\n")
         fd.write("######################################################\n")
         fd.write("GSI_SKIP_HOST_CHECK = True\n")
-        
+
         fd.write("\n######################################################\n")
         fd.write("## Add GSI DAEMON PROXY based on the frontend config and \n")
         fd.write("## not what is in the condor configs from install \n")
