@@ -200,7 +200,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
         status_constraint += ' && stringListMember(%s%s,"%s")' % \
             (factoryConfig.client_web_prefix,
              factoryConfig.client_web_signtype_suffix,
-             string.join(supported_signtypes, ","))
+             ",".join(supported_signtypes))
 
     if (pub_key_obj is not None):
         # Get only classads that have my key or no key at all
@@ -382,7 +382,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
     status_constraint = '(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")' % (factoryConfig.client_id, entry_name, glidein_name, factory_name)
 
     if supported_signtypes is not None:
-        status_constraint += ' && stringListMember(%s%s,"%s")' % (factoryConfig.client_web_prefix, factoryConfig.client_web_signtype_suffix, string.join(supported_signtypes, ","))
+        status_constraint += ' && stringListMember(%s%s,"%s")' % (factoryConfig.client_web_prefix, factoryConfig.client_web_signtype_suffix, ",".join(supported_signtypes))
 
     if additional_constraints is not None:
         status_constraint = "((%s)&&(%s))" % (status_constraint, additional_constraints)
@@ -529,7 +529,7 @@ class EntryClassad(classadSupport.Classad):
         self.adParams['FactoryName'] = "%s" % factory_name
         self.adParams['GlideinName'] = "%s" % glidein_name
         self.adParams['EntryName'] = "%s" % entry_name
-        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % ','.join(supported_signtypes)
         self.adParams['DaemonStartTime'] = int(start_time)
         advertizeGFCounter[classad_name] = advertizeGFCounter.get(classad_name, -1) + 1
         self.adParams['UpdateSequenceNumber'] = advertizeGFCounter[classad_name]
@@ -607,7 +607,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams['Name'] = classad_name
         self.adParams['FactoryName'] = "%s" % factory_name
         self.adParams['GlideinName'] = "%s" % glidein_name
-        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % ','.join(supported_signtypes)
         self.adParams['DaemonStartTime'] = int(start_time)
         self.adParams['UpdateSequenceNumber'] = advertizeGlobalCounter
         advertizeGlobalCounter += 1

@@ -472,5 +472,5 @@ def defdict2string(defaults,indent,width=80):
                     outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent, k, ktype, txt), width, wrap_indent)+"\n"+defdict2string(subdef, indent+"\t", width))
             else:
                 outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent, k, ktype, txt, defvalue), width, wrap_indent))
-    return string.join(outstrarr, "\n")
+    return "\n".join(outstrarr)
     

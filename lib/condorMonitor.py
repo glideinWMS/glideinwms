@@ -516,7 +516,7 @@ class CondorQuery(StoredQuery):
                 attr_name, attr_type = format_el
                 attr_format = {'s': '%s', 'i': '%i', 'r': '%f', 'b': '%i'}[attr_type]
                 format_arr.append('-format "%s" "%s"' % (attr_format, attr_name))
-            format_str = string.join(format_arr, " ")
+            format_str = " ".join(format_arr)
 
         # set environment for security settings
         self.security_obj.save_state()
@@ -982,7 +982,7 @@ def xml2list(xml_data):
 
     if found_xml >= 0:
         try:
-            p.Parse(string.join(xml_data[found_xml:]), 1)
+            p.Parse(" ".join(xml_data[found_xml:]), 1)
         except TypeError as e:
             raise RuntimeError("Failed to parse XML data, TypeError: %s" % e)
         except:

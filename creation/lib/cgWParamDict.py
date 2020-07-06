@@ -889,7 +889,7 @@ def populate_factory_descript(work_dir, glidein_dict,
             else:
                 disabled_sub_list.append(entry.getName())
 
-        glidein_dict.add('Entries', string.join(active_sub_list, ','))
+        glidein_dict.add('Entries', ','.join(active_sub_list))
         glidein_dict.add('AdvertiseWithTCP', conf['advertise_with_tcp'])
         glidein_dict.add('AdvertiseWithMultiple', conf['advertise_with_multiple'])
         glidein_dict.add('LoopDelay', conf['loop_delay'])
@@ -1214,14 +1214,14 @@ def calc_monitoring_collectors_string(collectors):
 
     for group in list(collector_nodes.keys()):
         if len(collector_nodes[group]['secondary']) > 0:
-            monitoring_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
+            monitoring_collectors.append(",".join(collector_nodes[group]['secondary']))
         else:
-            monitoring_collectors.append(string.join(collector_nodes[group]['primary'], ","))
+            monitoring_collectors.append(",".join(collector_nodes[group]['primary']))
 
     if len(monitoring_collectors) == 0:
         return None
     else:
-        return string.join(monitoring_collectors, ";")
+        return ";".join(monitoring_collectors)
 
 
 # Returns a string listing the primary monitoring collectors
@@ -1241,5 +1241,5 @@ def calc_primary_monitoring_collectors(collectors):
     if len(collector_nodes) == 0:
         return None
     else:
-        return string.join(list(collector_nodes.values()), ",")
+        return ",".join(list(collector_nodes.values()))
 

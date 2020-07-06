@@ -90,7 +90,7 @@ def argv2cmd(argv):
     eargv=[]
     for arg in argv:
         eargv.append(string.replace(arg, ' ', '\ '))
-    return string.join(eargv)
+    return " ".join(eargv)
 
 # callback function for glideinMonitor.monitor
 # changes to the work dir and executes the command

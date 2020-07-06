@@ -34,7 +34,7 @@ def insert_timestr(str):
       arr.append(TIMESTR)
     else:  
       arr.insert(-1, TIMESTR)
-    return string.join(arr, '.')
+    return '.'.join(arr)
     
 # these two are in the work dir, so they can be changed
 SUMMARY_SIGNATURE_FILE="signatures.sha1"

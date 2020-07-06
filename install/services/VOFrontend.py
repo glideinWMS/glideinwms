@@ -708,7 +708,7 @@ What glidein/factory attributres are you using in the match expression?
 I have computed my best estimate for your match string,
 please verify and correct if needed.
 """)
-    default_factory_attributes = string.join(self.extract_factory_attrs(), ',')
+    default_factory_attributes = ','.join(self.extract_factory_attrs())
     factory_attributes = input("Factory attributes: [%s] "%default_factory_attributes)
     if factory_attributes == "":
         factory_attributes = default_factory_attributes
@@ -723,7 +723,7 @@ What job attributes are you using in the match expression?
 I have computed my best estimate for your match string,
 please verify and correct if needed.
 """)
-    default_job_attributes = string.join(self.extract_job_attrs(), ',')
+    default_job_attributes = ','.join(self.extract_job_attrs())
     job_attributes = input("Job attributes: [%s] " % default_job_attributes)
     if job_attributes == "":
       job_attributes = default_job_attributes
@@ -764,7 +764,7 @@ please verify and correct if needed.
 %(indent5)s<match_attrs> """ % \
  { "indent4": common.indent(4),
    "indent5": common.indent(5),
-   "expr": glideinwms.lib.xmlFormat.xml_quoteattr(string.join(attr_query_arr, " && ")),}
+   "expr": glideinwms.lib.xmlFormat.xml_quoteattr(" && ".join(attr_query_arr)),}
 
       for attr in attributes:
         data = data + """
@@ -792,7 +792,7 @@ please verify and correct if needed.
 %(indent5)s<match_attrs> """ % \
  { "indent4": common.indent(4),
    "indent5": common.indent(5),
-   "expr": glideinwms.lib.xmlFormat.xml_quoteattr(string.join(attr_query_arr, " && ")),}
+   "expr": glideinwms.lib.xmlFormat.xml_quoteattr(" && ".join(attr_query_arr)),}
 
       for attr in attributes:
         data = data + """

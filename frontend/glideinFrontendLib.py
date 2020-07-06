@@ -49,7 +49,7 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
         js_arr = []
         for n in job_status_filter:
             js_arr.append('(JobStatus=?=%i)'%n)
-        js_constraint = string.join(js_arr, '||')
+        js_constraint = '||'.join(js_arr)
 
     return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
 

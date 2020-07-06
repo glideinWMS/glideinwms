@@ -103,7 +103,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
-        fd.write("COLLECTOR_HOST = %s\n"%string.join(collector_nodes, ","))
+        fd.write("COLLECTOR_HOST = %s\n"%",".join(collector_nodes))
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")

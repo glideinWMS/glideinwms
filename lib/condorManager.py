@@ -54,7 +54,7 @@ def condorSubmitOne(submit_file,schedd_name=None,pool_name=None,
                           schedd_name, pool_name, schedd_lookup_cache)
 
     #extract 'submitted to cluster xxx.' part
-    j = re.search(r'submitted to cluster [0-9]+\.', string.join(outstr))
+    j = re.search(r'submitted to cluster [0-9]+\.', " ".join(outstr))
     sstr = j.string[j.start(0):j.end(0)]
     #extract the number
     j = re.search(r'[0-9]+', sstr)
