@@ -1,0 +1,272 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Glidein Recipes - HTCondor IDTokens Authorization</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li><a href="./token_auth.html">IDTokens Authorization</a></li>
+        <li>HTCondor IDTokens Authorization</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+            </map>
+
+            <h2>HTCondor IDTokens Authorization</h2>
+            <ul class="subcomponents">
+                <li><a href="./index.html">Overview</a></li>
+                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
+                <li><a href="./cloud.html">Cloud Recipes</a></li>
+                <li><a href="./token_auth.html">Token Auth</a></li>
+                <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
+            </ul>
+        <div class="space">
+          <p>&nbsp</p>
+          <p>&nbsp</p>
+        </div>
+        </div>
+        <div class="jump">
+           <u>Jump to:</u>
+            <ol>
+                <li><a href="#Overview">Overview</a> </li>
+                <li><a href="#RequirementsFF">Enable Frontend-Factory IDTokens</a> </li>
+                <li><a href="#RequirementsCE">Enable Frontend-CE IDTokens</a> </li>
+                <li><a href="#FactoryCondor">Upgrade Factory Tarballs</a> </li>
+                <li><a href="#Check">Verify IDTokens Functionality</a> </li>
+                <li><a href="#Revoke">Revoking IDTokens for Entry Points</a> </li>
+                <li><a href="#ToDo">Limitations</a> </li>
+                <li><a href="#Useful">Useful Links</a> </li>
+            </ol>
+        </div>
+        <div class="section">
+          <h2 id="Overview" class="western">Overview</h2>
+            <p> This page documents the steps needed to enable and manage  HTCondor IDTokens Authorization between various GlideinWMS and HTCondor daemons.
+            <p> Starting with GlideinWMS 3.7.1, Condor IDTokens authentication is enabled and is the first authentication method attempted in the
+            default configuration.  If token auth fails  FS and  GSI authentication are tried next.
+            <p>For processes and daemons running under the 'condor' uid on the same machine, IDTokens are automatically generated and used.
+            <p>For processes authenticating from external machines or  running under a uid other than 'condor' a seperate manual step is required.
+            The condor admin generates a token with the 'condor_token_create' command. This token is placed in the SEC_TOKEN_DIRECTORY for
+            the authenticating  process, enabling IDTokens communication.
+            <p> The following two functions can be defined at the bash command line. They are useful for confirming functionality and debugging, and
+            will be used later in this page:
+<pre>
+gwms_status(){ echo; echo "MyType    Name        AuthenticatedIdentity AuthenticationMethod";
+echo; condor_status -any -af MyType  Name AuthenticatedIdentity AuthenticationMethod ; }
+
+condor_authtable(){ condor_ping -addr "<$(host $1 | sed -e 's/.* //'):9618>" -table ALL; }
+</pre>
+
+            </p>
+        </div>
+        <div class="section">
+            <h2 id="RequirementsFF" class="western">Enable Frontend-Factory IDTokens Authorization</h2>
+            <p>
+            <h3 id="FrontendToken" class="western">IDTokens To Be Generated by VOFrontend Admin</h3>
+            <p> The VOFrontend runs processes under the uid 'frontend' The VOFrontend admin must generate an IDToken for this user using
+            the condor_token_create command and place it in the frontend users SEC_TOKEN_DIRECTORY, currently /var/lib/gwms-frontend/tokens.
+<pre>
+condor_token_create -id frontend@$HOSTNAME -key POOL > frontend.idtoken
+/bin/mv frontend.idtoken /var/lib/gwms-frontend/tokens
+chown frontend:frontend /var/lib/gwms-frontend/tokens/frontend.idtoken
+chmod 400 /var/lib/gwms-frontend/tokens/frontend.idtoken
+systemctl restart condor
+systemctl stop gwms-frontend
+gwms-frontend upgrade
+systemctl start gwms-frontend
+</pre>
+            <h3 id="FactoryToken" class="western">IDTokens To Be Generated by Factory Admin</h3>
+            <p> The GWMS Factory runs processes under the uid 'gfactory'. The Factory admin must generate an IDToken using condor_token_create
+            and place it in gfactory users SEC_TOKEN_DIRECTORY which is currently ~gfactory/.condor/tokens.d
+<pre>
+mkdir -p ~gfactory/.condor/tokens.d
+FTOKEN=~gfactory/.condor/tokens.d/gfactory.$HOSTNAME.idtoken
+condor_token_create -id gfactory@$HOSTNAME -key POOL > $FTOKEN
+chown -R gfactory:gfactory ~gfactory/.condor/tokens.d/
+chmod 400 $FTOKEN
+systemctl restart condor
+systemctl restart gwms-factory
+</pre>
+            <p> The frontend user from the VOFrontend must also authenticate with Factory daemons. To do this the Factory admin has to
+            generate an IDToken and supply
+            it to the VOFrontend admin, who places it in /var/lib/gwms-frontend/tokens on the frontend.
+            <p> The Factory admin first finds the identity that the Factory expects the frontend user to present:
+
+<pre>
+[root@fermicloud368 ~]# grep 'identity=' /etc/gwms-factory/glideinWMS.xml
+          &ltfrontend name="vofrontend_service" identity="vofrontend_service@fermicloud368.fnal.gov"&gt
+[root@fermicloud368 ~]#
+
+</pre>
+            <p>The factory admin now creates a token with this identity
+<pre>
+[root@fermicloud368 ~]# condor_token_create -id vofrontend_service@$HOSTNAME -key POOL > a_token
+</pre>
+            <p> The factory admin securely passes the new token to the frontend admin, who places it in frontend users SEC_TOKEN_DIRECTORY\
+            with the correct ownership and permissions.
+
+
+            </p>
+        </div>
+        <div class="section">
+            <h2 id="RequirementsCE" class="western">Enable Frontend-Compute Element  IDTokens Authorization</h2>
+            <p>:
+
+            </p>
+            <table summary="Requirements for Frontend-CE IDTokens Authorization" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Requirement</td>
+                        <td scope="col">Overview</td>
+                    </tr>
+                    <tr>
+                      <td>Compatible HTCondor and GlideinWMS Versions in Frontend</td>
+                        <td>
+                          <a href="token_auth.html#Requirements">Version numbers and installation instructions</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sudo access for 'frontend' user on gwms-frontend machine</td>
+                        <td>
+                            The frontend user needs to be able to create passwords and tokens derived from these passwords.  The following two lines must be present in
+                            /etc/sudoers on the gwms-frontend machine:
+                            <pre>
+frontend ALL=(ALL) NOPASSWD:SETENV: /usr/sbin/condor_store_cred
+frontend ALL=(ALL) NOPASSWD:SETENV: /usr/bin/condor_token_create
+                            </pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+          <h2 id="FactoryCondor" class="western">Upgrade Factory Tarballs </h2>
+          <ul>
+            <li>Go to the HTCondor <a href="https://research.cs.wisc.edu/htcondor/downloads/"> Downloads </a> page and download a 64bit stripped compressed tarball from the "HTCondor Binaries and Source" section.  These instructions have been tested with tarballs 	condor-8.9.1-x86_64_RedHat7-stripped.tar.gz through condor-8.9.5-x86_64_RedHat7-stripped.tar.gz </li>
+            <li>Copy your downloaded tarball to the /var/lib/gwms-factory/condor directory on the Factory.  Untar it <pre>
+            tar xvzf condor-8.9.5-x86_64_RedHat7-stripped.tar.gz </pre></li>
+            <li>Add a line to the &lt;condor_tarballs&gt; section of the Factory XML configuration files that points to the condor tarball you just downloaded
+              <pre>
+&ltcondor_tarballs&gt
+      &ltcondor_tarball arch="x86_64" base_dir="/var/lib/gwms-factory/condor/condor-8.9.5-x86_64_RedHat7-stripped" os="rhel7" version="8.9.5"/&gt
+&lt/condor_tarballs&gt
+              </pre>
+            </li>
+            <li> Modify the &lt;attrs&gt; section of an &lt;entry&gt; configuration in the Factories XML to use the newly configured condor_tarball
+              <pre>
+&lt;entry name="some_site_being_modified" ...&gt;
+...
+&lt;attrs&gt;
+&lt;attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="x86_64"/&gt;
+&lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="rhel7"/&gt;
+&lt;attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="8.9.5"/&gt;
+...
+&lt;/attrs&gt;
+              </pre>
+            </li>
+            <li>Reconfigure the factory so the XML changes take effect
+              <pre>
+# systemctl stop gwms-factory.service
+# /usr/sbin/gwms-factory reconfig
+# systemctl start gwms-factory.service
+            </pre></li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Check" class="western">Verify IDTokens Functionality</h2>
+          <ul>
+            <li>Checklist for Frontend prior to full chain token authentication
+              <ul>
+            <li>GWMS &gt;= 3.7 has been installed on  Frontend, or Frontend has been modified to run git branch v37/23092.  In either case, the following scripts should exist:
+            <ul>
+              <li> /usr/sbin/frontend_condor_token</li>
+              <li> /usr/local/bin/gwms_condor_ping</li>
+            </ul></li>
+            <li> gwms_condor_ping shows TOKEN authentication for 'root' user </li>
+            <li>'frontend' user present in /etc/sudoers as documented in Requirements section</li>
+            <li>GWMS &gt;= 3.7 has been installed on  Factory, or Factory has been modified to run git branch v37/23092.
+            <li>An Entry Point on the factory has been configured to deliver a  condor tarball &gt;= 8.9.1</li>
+          </ul>
+          <li> Submit a condor job to the Frontend with condor requirements that make it run on the newly modified Factory Entry Point.  Make sure the job has a 'printenv' or equivalent in it to show the environment the job runs under.</li>
+          <li>When the job completes, check the output from the 'printenv' command.  If a token was generated by the Frontend, forwarded to the Factory, forwarded again to the CE, and integrated into the glidein enviroment, GLIDEIN_CONDOR_TOKEN will be set and its value will include the GLIDEIN_Site name, for example for GLIDEIN_Site el7_ GLIDEIN_CONDOR_TOKEN=/tmp/glide_SpYzMq/ticket/el7_osg34_token.
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Revoke" class="western">Revoking IDTokens for Entry Points</h2>
+          <ul>
+            <li>Each Glidein_Site that a Frontend submits to is sent condor_tokens  generated from a unique password for that site.  If the password is changed, all existing tokens for that site become invalid, and token authentication for any running glideins at that site will stop working.  New glideins requested by the Frontend will use the new password, and valid tokens will be sent to the Factory and on to the CE's.  A quick way to change a token generating password from the command line is
+            <pre>
+            # export GLIDEIN_SITE='HCC_US_Omaha_crane_gpu'
+            # openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${GLIDEIN_SITE} add
+            </pre>
+            </li>
+
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="ToDo" class="western">Limitations</h2>
+          <ul>
+            <li>This recipe enables Condor TOKEN authentication but still allows GSI authentication if a TOKEN is revoked. This may not be the desired behavior.</li>
+            <li>More fine grained authorization scope and management of token lifetime is possible and desirable. Consider this implementation 0.1</li>
+            <li>SciIDTokens authentication and its interactions with Condor and GlideinWMS are addressed  <a href="SciIDTokens_auth.html">here</a>.</li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Useful" class="western">Useful Links </h2>
+          <ul>
+            <li> <a href="https://docs.google.com/document/d/10uSYp6sePbHPFzKmkTMAwr1uKzuSxebr_Om89IUgyUs">HTCondor IDTokens Design Document</a></li>
+            <li> <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_token_create.html">Condor IDTokens Command Line Tools</a></li>
+          </ul>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+            GlideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>
