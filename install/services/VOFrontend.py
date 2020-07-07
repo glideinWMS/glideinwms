@@ -6,13 +6,10 @@ import traceback
 import sys
 import os
 import os.path
-import string
 import time
-import stat
 import re
-import xml.sax.saxutils
 import optparse
-#-------------------------
+
 import glideinwms.lib.subprocessSupport
 import glideinwms.lib.xmlFormat
 from . import common
@@ -28,21 +25,21 @@ from .Configuration import ConfigurationError
 #os.environ["PYTHONPATH"] = ""
 
 frontend_options = [ "install_type",
-"hostname", 
-"username", 
-"service_name", 
-"condor_location", 
-"install_location", 
-"logs_dir", 
-"instance_name", 
+"hostname",
+"username",
+"service_name",
+"condor_location",
+"install_location",
+"logs_dir",
+"instance_name",
 "x509_cert_dir",
-"x509_proxy", 
-"x509_gsi_dn", 
-"glidein_proxy_files", 
-"glidein_proxy_dns", 
-"condor_tarball", 
-"condor_admin_email", 
-"install_vdt_client", 
+"x509_proxy",
+"x509_gsi_dn",
+"glidein_proxy_files",
+"glidein_proxy_dns",
+"condor_tarball",
+"condor_admin_email",
+"install_vdt_client",
 "glexec_use",
 "group_name",
 "match_string",
@@ -56,31 +53,31 @@ frontend_options = [ "install_type",
 "pacman_location",
 ]
 
-wmscollector_options = [ 
+wmscollector_options = [
 "hostname",
 "service_name",
 "x509_gsi_dn",
 ]
 
-factory_options = [ 
+factory_options = [
 "username",
 ]
 
-submit_options = [ 
+submit_options = [
 "hostname",
 "service_name",
 "condor_location",
 "x509_gsi_dn"
 ]
 
-usercollector_options = [ 
+usercollector_options = [
 "hostname",
 "service_name",
 "x509_gsi_dn",
 "condor_location",
 ]
 
-valid_options = { 
+valid_options = {
 "VOFrontend": frontend_options,
 "UserCollector": usercollector_options,
 "WMSCollector": wmscollector_options,
@@ -101,7 +98,7 @@ class VOFrontend(Condor):
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self, self.inifile, self.ini_section, valid_options[self.ini_section])
-    self.daemon_list = "" 
+    self.daemon_list = ""
     self.colocated_services = []
     self.not_validated = True  # switch so we only validate once
 
@@ -203,24 +200,24 @@ class VOFrontend(Condor):
     return self.option_value(self.ini_section, "expose_grid_env")
   #--------------------------------
   def glexec_use(self):
-    return string.upper(self.option_value(self.ini_section, "glexec_use"))
+    return self.option_value(self.ini_section, "glexec_use").upper()
   #--------------------------------
   def glidein_proxy_files(self):
     return   self.option_value(self.ini_section, "glidein_proxy_files")
   #--------------------------------
   def glidein_proxy_dns(self):
     dns = self.option_value(self.ini_section, "glidein_proxy_dns")
-    dn_list = string.split(dns, ";")
+    dn_list = dns.split(";")
     list = []
     for dn in dn_list:
       list.append(dn.strip())
     return list
-    
+
   #--------------------------------
   def get_new_config_group(self):
-    """This method is intended to create a new group element after the initial 
+    """This method is intended to create a new group element after the initial
        installation is complete.  It will create a file containing the group
-       and job selection/matchin criteria.  This can then be manually merged 
+       and job selection/matchin criteria.  This can then be manually merged
        into the existing frontend configuration file.
     """
     filename = "%(config_dir)s/%(group)s.%(time)s" % \
@@ -262,30 +259,30 @@ class VOFrontend(Condor):
       return  # For RPM install we don't want to clean anything
 
     instance_dir = "frontend_%(service)s-%(instance)s" % \
-                     { "service": self.service_name(), 
+                     { "service": self.service_name(),
                        "instance": self.glidein.instance_name(), }
     #-- directories to check ---
     dirs = {}
     dirs["logs........"] = os.path.join(self.logs_dir(), instance_dir)
-    dirs["install....."] = os.path.join(self.install_location(), instance_dir) 
+    dirs["install....."] = os.path.join(self.install_location(), instance_dir)
     dirs["config......"] = self.config_dir()
     for subdir in ["monitor", "stage"]:
       dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(), subdir, instance_dir)
     #--- check them --
     for type in list(dirs.keys()):
-      if os.path.isdir(dirs[type]): 
+      if os.path.isdir(dirs[type]):
         if len(os.listdir(dirs[type])) == 0:
           os.rmdir(dirs[type])
           del dirs[type]  # remove from dict
       else:
         del dirs[type]  # it does not exist, remove from dict
 
-    #--- if all are empty, return      
+    #--- if all are empty, return
     if len(dirs) == 0:
       time.sleep(3)
       return  # all directories are empty
 
-    #--- See if we can remove them --- 
+    #--- See if we can remove them ---
     common.logit("""The following directories must be empty for the install to succeed: """)
     types = sorted(dirs.keys())
     for type in types:
@@ -297,17 +294,17 @@ class VOFrontend(Condor):
       os.rmdir(dirs[type])
     time.sleep(3)
     return
-    
+
   #-----------------------------
   def validate(self):
     if self.not_validated:
-      self.get_wms() 
+      self.get_wms()
       self.get_factory()
       self.get_submit()
       self.get_usercollector()
       self.determine_colocated_services()
       self.install_vdtclient()
-      self.install_certificates()   
+      self.install_certificates()
       self.validate_condor_install()
       self.validate_frontend()
     self.not_validated = False
@@ -330,7 +327,7 @@ class VOFrontend(Condor):
 
   #-----------------------------
   def configure(self):
-    self.validate() 
+    self.validate()
     self.validate_condor_installation()
     self.configure_condor()
     self.configure_frontend()
@@ -388,16 +385,16 @@ class VOFrontend(Condor):
   #-----------------------------
   def determine_colocated_services(self):
     """ The VOFrontend service can share the same instance of Condor with
-        the UserCollector and/or Schedd services.  
-        So we want to check and see if this is the case.  
-        We will skip the installation of Condor and just perform the 
+        the UserCollector and/or Schedd services.
+        So we want to check and see if this is the case.
+        We will skip the installation of Condor and just perform the
         configuration of the condor_config file.
     """
     if self.install_type() == "rpm":
       return # Not needed for RPM install
     services = ""
     # -- if not on same node, we don't have any co-located
-    if self.hostname()           == self.usercollector.hostname(): 
+    if self.hostname()           == self.usercollector.hostname():
       if  self.condor_location() == self.usercollector.condor_location():
         self.daemon_list += " %s" % self.usercollector.daemon_list
         self.colocated_services.append("usercollector")
@@ -431,12 +428,12 @@ Do you want to continue.""" % { "services" : self.colocated_services,
   def validate_glidein_proxies(self):
     common.logit("... validating glidein_proxy_files and glidein_proxy_dns")
     reinstall_msg = """You will need to reinstall the UserCollector so these pilot dns are used for
-authentification/authorizaton of the glidein pilots""" 
+authentification/authorizaton of the glidein pilots"""
     reinstall_msg = """You will need to reinstall the UserCollector so these pilot dns are used for
-authentification/authorizaton of the glidein pilots.""" 
+authentification/authorizaton of the glidein pilots."""
 
     if len(self.glidein_proxy_files()) == 0:
-      common.logerr("""The Factory requires that you 
+      common.logerr("""The Factory requires that you
 provide proxies using the VOFrontend glidein_proxy_files and
 glidein_proxy_dns option.  These are not populated.
 %(reinstall)s.""" % \
@@ -464,11 +461,11 @@ glidein_proxy_dns option.  These are not populated.
 option: %(option_dn)s
   file: %(dn_in_file)s
 %(reinstall)s.""" % \
-             { "dn_in_file": dn_in_file, 
+             { "dn_in_file": dn_in_file,
                "option_dn": proxy_dns[cnt],
-               "reinstall": reinstall_msg, 
+               "reinstall": reinstall_msg,
              })
-      cnt = cnt + 1 
+      cnt = cnt + 1
     common.logit("")
 
   #---------------------------------
@@ -506,7 +503,7 @@ option: %(option_dn)s
 The frontend proxy, user pool collector and submit host DNs are required in
 your grid_mapfile.
 
-If there are other DNs needed in the glidein grid_mapfile, please add all 
+If there are other DNs needed in the glidein grid_mapfile, please add all
 the DNs that this glidein will connect to.
 
 Please insert all such DNs, together with a user nickname.
@@ -537,9 +534,9 @@ The following DNs are in your grid_mapfile:""")
       if yn == "y":
         break
       common.logit("... try again")
-      
+
     return dns
-      
+
   #---------------------------
   ## def create_config(self,config_xml,gridmap_data):
   def create_config(self, config_xml):
@@ -555,7 +552,7 @@ The following DNs are in your grid_mapfile:""")
 #    else:
 #      startup_file = "%s/frontend_startup" % (self.frontend_dir())
 #      if os.path.isfile(startup_file): # indicates frontend has been created
-#        common.stop_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+#        common.stop_service(self.glideinwms_location(),self.ini_section,self.inifile)
   #-----------------------
   def start(self):
     if self.install_type() == 'rpm':
@@ -563,7 +560,7 @@ The following DNs are in your grid_mapfile:""")
     else:
       startup_file = "%s/frontend_startup" % (self.frontend_dir())
       if os.path.isfile(startup_file): # indicates frontend has been created
-        common.start_service(self.glideinwms_location(), self.ini_section, self.inifile) 
+        common.start_service(self.glideinwms_location(), self.ini_section, self.inifile)
 
   #-----------------------
   def reconfig(self):
@@ -572,7 +569,7 @@ The following DNs are in your grid_mapfile:""")
 #    else:
 #      startup_file = "%s/frontend_startup" % (self.frontend_dir())
 #      if os.path.isfile(startup_file): # indicates frontend has been created
-#        common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+#        common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
   #-----------------------
   def create_env_script(self):
     common.logit("\nCreating VO frontend env script.")
@@ -626,7 +623,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     cmd = ""
     if self.install_type() != "rpm":
       cmd += ". %s/condor.sh;" % self.condor_location()
-    cmd += "condor_status -schedd -format \'%s\\n\' Name "  
+    cmd += "condor_status -schedd -format \'%s\\n\' Name "
     lines = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     if lines is None: # submit schedds not accessible
         common.logerr("None Failed to fetch list of schedds running condor_status -schedd\n       Your submit host condor needs to be running.")
@@ -643,7 +640,7 @@ Your collector and submit host's condor need to be running.
 or you have not defined any schedds on the submit host.""")
 
     return self.select_schedds(default_schedds)
-  
+
   #---------------------------
   def select_schedds(self, default_schedds):
     if len(default_schedds) == 1:
@@ -655,7 +652,7 @@ or you have not defined any schedds on the submit host.""")
     for i in range(len(schedds)):
       common.logit(" [%i] %s"%(i+1, schedds[i]))
     return schedds
-    
+
 
   #------------------------------------
   def select_schedds_to_monitor(self, default_schedds):
@@ -696,7 +693,7 @@ or you have not defined any schedds on the submit host.""")
         break
       yn = input("Do you want to use these or try again?: (y/n) ")
       if yn == "y":
-        break 
+        break
     return schedds
 
   #---------------------------------------
@@ -715,7 +712,7 @@ please verify and correct if needed.
     if factory_attributes == "":
         factory_attributes = []
     else:
-        factory_attributes = string.split(factory_attributes, ',')
+        factory_attributes = factory_attributes.split(',')
 
     #--- job_attributes --
     print("""
@@ -730,7 +727,7 @@ please verify and correct if needed.
     if job_attributes == "":
       job_attributes = []
     else:
-      job_attributes = string.split(job_attributes, ',')
+      job_attributes = job_attributes.split(',')
 
     #--- create xml ----
     data  = """
@@ -749,7 +746,7 @@ please verify and correct if needed.
   "factory_attributes": self.factory_data(factory_attributes),
   "job_attributes": self.job_data(job_attributes),
 }
-    return data 
+    return data
 
   #-----------------------
   def factory_data(self, attributes):
@@ -809,7 +806,7 @@ please verify and correct if needed.
 
 
   #--------------------------------
-  def config_data(self, schedds, match_criteria): 
+  def config_data(self, schedds, match_criteria):
     data = """<frontend frontend_name="%s"
          advertise_delay="5"
          advertise_with_multiple="True"
@@ -829,7 +826,7 @@ please verify and correct if needed.
             <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO,ERR,EXCEPTION,WARN" extension="info"/>
          </process_logs>
       </log_retention>
-    """ 
+    """
 
     data += """\
 %(work)s
@@ -848,14 +845,14 @@ please verify and correct if needed.
         "collector": self.config_collectors_data(),
         "security": self.config_security_data(),
         "match": self.config_match_data(schedds),
-        "attrs": self.config_attrs_data(), 
+        "attrs": self.config_attrs_data(),
         "groups": self.config_groups_data(match_criteria),
         "files": self.config_files_data(),}
     return data
   #---------------------------
   def config_work_data(self):
     return """
-%(indent1)s<work base_dir="%(install_location)s" 
+%(indent1)s<work base_dir="%(install_location)s"
 %(indent1)s      base_log_dir="%(logs_dir)s"/>""" % \
 { "indent1": common.indent(1),
   "install_location": self.glidein.install_location(),
@@ -874,9 +871,9 @@ please verify and correct if needed.
   #---------------------------
   def config_monitor_data(self):
     return """
-%(indent1)s<monitor base_dir="%(web_location)s/monitor" 
-%(indent1)s         javascriptRRD_dir="%(javascriptrrd)s" 
-%(indent1)s         flot_dir="%(flot)s" 
+%(indent1)s<monitor base_dir="%(web_location)s/monitor"
+%(indent1)s         javascriptRRD_dir="%(javascriptrrd)s"
+%(indent1)s         flot_dir="%(flot)s"
 %(indent1)s         jquery_dir="%(jquery)s"/>""" % \
 { "indent1": common.indent(1),
   "web_location": self.glidein.web_location(),
@@ -888,8 +885,8 @@ please verify and correct if needed.
   def config_collectors_data(self):
     data = """
 %(indent1)s<collectors>
-%(indent2)s<collector node="%(usercollector_node)s:%(usercollector_port)s" 
-%(indent2)s           DN="%(usercollector_gsi_dn)s" 
+%(indent2)s<collector node="%(usercollector_node)s:%(usercollector_port)s"
+%(indent2)s           DN="%(usercollector_gsi_dn)s"
 %(indent2)s           secondary="False"/>
 """ % \
 { "indent1": common.indent(1),
@@ -899,14 +896,14 @@ please verify and correct if needed.
   "usercollector_gsi_dn": self.usercollector.x509_gsi_dn(),
 }
 
-    #--- secondary collectors -- 
+    #--- secondary collectors --
     if self.usercollector.secondary_collectors() != 0:
-      first_port = self.usercollector.secondary_collector_ports()[0] 
+      first_port = self.usercollector.secondary_collector_ports()[0]
       last_port  = self.usercollector.secondary_collector_ports()[int(self.usercollector.secondary_collectors()) - 1]
       port_range = "%s-%s" % (first_port, last_port)
       data += """
 %(indent2)s<collector node="%(usercollector_node)s:%(usercollector_port)s"
-%(indent2)s           DN="%(usercollector_gsi_dn)s" 
+%(indent2)s           DN="%(usercollector_gsi_dn)s"
 %(indent2)s           secondary="True"/>
 %(indent1)s
 """ % \
@@ -923,10 +920,10 @@ please verify and correct if needed.
     data = """
 %(indent1)s<security security_name="%(service_name)s" proxy_selection_plugin="ProxyAll" classad_proxy="%(x509_proxy)s" proxy_DN="%(x509_gsi_dn)s">
 %(indent2)s<credentials>""" % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
-  "service_name": self.service_name(), 
-  "x509_proxy": self.x509_proxy(), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
+  "service_name": self.service_name(),
+  "x509_proxy": self.x509_proxy(),
   "x509_gsi_dn": self.x509_gsi_dn(),
 }
     proxies = self.glidein_proxy_files()
@@ -939,8 +936,8 @@ please verify and correct if needed.
     data = data + """
 %(indent2)s</credentials>
 %(indent1)s</security>""" % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
 }
     return data
 
@@ -955,10 +952,10 @@ please verify and correct if needed.
 %(indent2)s</factory>
 %(indent2)s<job query_expr=%(job_constraints)s  comment="Define job constraint and schedds globally for simplicity">
 %(indent3)s<schedds>""" % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
-  "indent3": common.indent(3), 
-  "indent4": common.indent(4), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
+  "indent3": common.indent(3),
+  "indent4": common.indent(4),
   "wms_node": self.wms.hostname(),
   "wms_collector_port": self.wms.collector_port(),
   "wms_gsi_gn": self.wms.x509_gsi_dn(),
@@ -980,9 +977,9 @@ please verify and correct if needed.
 %(indent2)s</job>
 %(indent1)s</match>
 """ % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
-  "indent3": common.indent(3), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
+  "indent3": common.indent(3),
 }
     return data
   #------------------------------------------
@@ -991,13 +988,13 @@ please verify and correct if needed.
 %(indent1)s<attrs>
 %(indent2)s<attr name="GLIDEIN_Glexec_Use"      value="%(glexec_use)s"      glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="GLIDEIN_Expose_Grid_Env" value="%(expose_grid_env)s" glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
-%(indent2)s<attr name="USE_MATCH_AUTH"          value="True"              glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
+%(indent2)s<attr name="USE_MATCH_AUTH"          value="True"              glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent2)s<attr name="GLIDECLIENT_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
-%(indent1)s</attrs> 
+%(indent1)s</attrs>
 """ % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
-  "indent3": common.indent(3), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
+  "indent3": common.indent(3),
   "glexec_use": self.glexec_use(),
   "expose_grid_env": self.expose_grid_env(),
   "entry_start": "True",
@@ -1011,8 +1008,8 @@ please verify and correct if needed.
 %(indent2)s%(match_criteria)s
 %(indent1)s</groups>
 """ % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
   "match_criteria": match_criteria,
 }
 
@@ -1022,15 +1019,15 @@ please verify and correct if needed.
 %(indent1)s<files>
 %(indent1)s</files>
 """ % \
-{ "indent1": common.indent(1), 
-  "indent2": common.indent(2), 
+{ "indent1": common.indent(1),
+  "indent2": common.indent(2),
 }
 
   #---------------------------------
   def extract_factory_attrs(self):
     glidein_attrs = []
     regex = (
-      re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"), 
+      re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"),
       re.compile("glidein\[\"attrs\"\]\.get\(['\"](?P<attr>[^'\"]+)['\"\)]")
     )
 

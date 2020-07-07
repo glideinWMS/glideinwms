@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements helper functions
@@ -17,7 +17,6 @@
 #   Igor Sfiligoi (May 2007)
 #
 
-import string
 import time
 import tempfile
 import shutil
@@ -64,7 +63,7 @@ def parseArgs(argv):
     outdict['jid']=jid
     outdict['argv']=argv[i:]
     return outdict
-    
+
 # createMonitorFile is a callback with the following arguments:
 #    (monitor_file_name,monitor_control_relname,argv,condor_status,monitorVM):
 def monitor(jid,schedd_name,pool_name,
@@ -73,10 +72,10 @@ def monitor(jid,schedd_name,pool_name,
             stdout_fd=sys.stdout,
             stderr_fd=sys.stderr):
     try:
-        jid_cluster, jid_proc=string.split(jid, ".", 1)
+        jid_cluster, jid_proc = jid.split(".", 1)
     except:
         raise RuntimeError('Invalid JID %s, expected Cluster.Proc'%jid)
-    
+
     constraint="(ClusterId=?=%s) && (ProcId=?=%s)"%(jid_cluster, jid_proc)
 
     remoteVM=getRemoteVM(pool_name, schedd_name, constraint)
@@ -101,7 +100,7 @@ def monitor(jid,schedd_name,pool_name,
         x509_file=os.environ['X509_USER_PROXY']
     else:
         x509_file=None
-        
+
 
     tmpdir=tempfile.mkdtemp(prefix="glidein_intmon_")
     try:
@@ -143,7 +142,7 @@ def getRemoteVM(pool_name, schedd_name, constraint):
         raise RuntimeError("Job not running")
     if 'RemoteHost' not in el:
         raise RuntimeError("Job still starting")
-    
+
     return el['RemoteHost']
 
 def getMonitorVM(pool_name, jobVM):
@@ -179,7 +178,7 @@ def validateMonitorVMStatus(condor_status, monitorVM):
     if not (condor_status['IS_MONITOR_VM']==True):
         raise RuntimeError("Slot %s is not a monitoring slot!"%monitorVM)
 
-    # Since we will be queueing anyhow, do not check if it is ready right now 
+    # Since we will be queueing anyhow, do not check if it is ready right now
     #if condor_status['State']=='Claimed':
     #    raise RuntimeError, "Job cannot be monitored right now"
 

@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  Helper module for all glideinWMS pseudo-interactive commands
@@ -13,7 +13,7 @@
 #   Igor Sfiligoi (May 2008)
 #
 
-import sys, string, os, stat
+import sys, os, stat
 from . import glideinMonitor
 
 
@@ -89,7 +89,7 @@ def argv2cmd(argv):
     # everything else should be passed to the cmsdline as it is
     eargv=[]
     for arg in argv:
-        eargv.append(string.replace(arg, ' ', '\ '))
+        eargv.append(arg.replace(' ', '\ '))
     return " ".join(eargv)
 
 # callback function for glideinMonitor.monitor

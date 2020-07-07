@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This program creates a frontend directory structure
@@ -13,16 +13,11 @@
 
 from __future__ import print_function
 import os
-# import copy
 import sys
 import os.path
-import string
-# import shutil
-# import traceback
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 from glideinwms.creation.lib import cvWParams
-# from glideinwms.creation.lib import cvWDictFile
 from glideinwms.creation.lib import cvWConsts,cWConsts
 from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
@@ -70,7 +65,7 @@ def main(params):
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 if __name__ == '__main__':
@@ -87,7 +82,7 @@ if __name__ == '__main__':
             argv=argv[0:1]+argv[2:]
         else:
             break
-            
+
     try:
         params = cvWParams.VOFrontendParams(usage, os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:
@@ -95,16 +90,16 @@ if __name__ == '__main__':
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
         print(e)
         sys.exit(1)
-        
+
     if not (writeback in ('yes', 'no')):
         print(usage)
         print("")
         print("-writeback must be yes or no, found '%s'" % writeback)
         sys.exit(1)
-        
+
     try:
         main(params)
     except RuntimeError as e:
@@ -112,7 +107,7 @@ if __name__ == '__main__':
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
         print(usage)
         print("")
         print(e)
@@ -126,6 +121,6 @@ if __name__ == '__main__':
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
         print("Writing back config file failed")
         sys.exit(1)

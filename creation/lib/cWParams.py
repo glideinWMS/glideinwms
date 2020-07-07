@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Desscription:
 #   This module contains the generic params classes
@@ -49,7 +49,7 @@ class SubParams:
     def __contains__(self, name):
         return name in self.data
     def __getitem__(self, name):
-        return self.get_el(name)    
+        return self.get_el(name)
     def __repr__(self):
         return str(self.data)
     def __str__(self):
@@ -133,7 +133,7 @@ class SubParams:
                         self.data[k]=copy.deepcopy(defvalue)
                     # else nothing to do, already set
 
-            
+
 
     #
     # PRIVATE
@@ -176,7 +176,7 @@ class Params:
 
             if argv[1]=="-help":
                 raise RuntimeError("\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  "))
-                
+
             self.cfg_name=os.path.abspath(argv[1])
             self.load_file(self.cfg_name)
 
@@ -186,7 +186,7 @@ class Params:
             self.org_data=copy.deepcopy(self.data)
 
             self.subparams.use_defaults(self.defaults)
-            
+
             # create derived values
             self.derive()
         except RuntimeError as e:
@@ -251,7 +251,7 @@ class Params:
         if set_ro:
             os.chmod(fname, os.stat(fname)[0]&0o444)
         return
-    
+
     #save into a file (making a backup)
     #The file should be usable for reload
     def save_into_file_wbackup(self,fname,set_ro=False):
@@ -275,7 +275,7 @@ class Params:
             os.chmod(backup_name, (os.stat(backup_name)[0]&0o666)|0o200)
         except:
             pass # just protect
-        
+
         # finally rename to the proper name
         os.rename(tmp_name, fname)
         if set_ro:
@@ -371,7 +371,7 @@ def is_valid_name(name):
         return False
     if name=="":
         return False
-    
+
     for c in name:
         if not (c in VALID_NAME_CHARS):
             return False
@@ -381,7 +381,7 @@ def is_valid_name(name):
 ############################################################
 #
 # P R I V A T E - Do not use
-# 
+#
 ############################################################
 
 #######################################################
@@ -399,7 +399,7 @@ def col_wrap(text, width, indent):
                 break
             next_char=short_text[-1]
             short_text=short_text[:-1]
-        
+
         if len(short_text)<=len(indent):
             # too short, just split as it was
             short_text=org_short_text
@@ -427,7 +427,7 @@ def shorten_text(text, width):
         else:
             count=count+1
             idx=idx+1
-        
+
     return (text[:idx], '')
 
 ##################################################
@@ -462,7 +462,7 @@ def defdict2string(defaults,indent,width=80):
         else:
             #print el
             defvalue, ktype, txt, subdef=el
-            wrap_indent=indent+string.ljust("", len("%s(%s) - "%(k, ktype)))
+            wrap_indent = indent + " "*len("%s(%s) - "%(k, ktype))
             if subdef is not None:
                 if isinstance(defvalue, xmlParse.OrderedDict):
                     dict_subdef=copy.deepcopy(subdef)
@@ -473,4 +473,4 @@ def defdict2string(defaults,indent,width=80):
             else:
                 outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent, k, ktype, txt, defvalue), width, wrap_indent))
     return "\n".join(outstrarr)
-    
+

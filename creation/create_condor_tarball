@@ -13,7 +13,6 @@ import tempfile
 import shutil
 import tarfile
 import os.path
-import string
 import traceback
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
@@ -31,8 +30,8 @@ Usage: create_condor_tarball output_filename input_tarfile_or_dir
 
 This utility can be used to create an condor tarball for use by the glideinwms
 pilot process for various entry points.  The glideinwms pilot does not need all
-the files/processes contained in a normal HTCondor tarfile.  This utility 
-extracts only the needed processes/libraries thereby reducing the space needed 
+the files/processes contained in a normal HTCondor tarfile.  This utility
+extracts only the needed processes/libraries thereby reducing the space needed
 on your factory node.
 
 This takes an HTCondor tarfile (or expanded one) as input.
@@ -91,7 +90,7 @@ def main(argv):
             usage()
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
             sys.exit(3)
 
         delete_at_end = True  # cleanup by default
@@ -107,7 +106,7 @@ def main(argv):
                     print("Tarball %s deleted" % out_fname)
                 except:
                     # never throw an error in the file deletion
-                    pass 
+                    pass
     finally:
         if tmpdir is not None:
             # always remove the tmpdir before exiting
@@ -117,7 +116,7 @@ def main(argv):
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 if __name__ == '__main__':

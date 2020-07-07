@@ -16,7 +16,6 @@
 
 import os
 import sys
-import string
 import copy
 import socket
 import xml.parsers.expat
@@ -956,7 +955,7 @@ def xml2list_char_data(data):
         # nothing to do, value was in attribute
         pass
     else:
-        unescaped_data = string.replace(data, '\\"', '"')
+        unescaped_data = data.replace('\\"', '"')
         xml2list_inattr["val"] += unescaped_data
 
 
@@ -993,31 +992,33 @@ def xml2list(xml_data):
 
 
 def list2dict(list_data, attr_name):
+    """Convert a list to a dictionary where the keys are tuples with the values of the attributes listed in attr_name
+
+    Original description: Convert a list to a dictionary and group the results based on
+    attributes specified by attr_name
+
+    This function has a couple of quirks, but is OK because the ways it is used (MM)
+    The way it is used, attr_name is the job cluster, process, which are both present in all jobs from condor_q and unique,
+    or the Name that is always present and unique in condor_status, so the quirks should not cause problems
+    1. Type checking (of attr_name) probably should use isistance()
+    2. dict_name is a tuple including elements of attr_name translated to value in list_el
+       if them or the lowercase is a key in list_el
+       BUT from the value ( dict_data[dict_name] ) only exact match is excluded, not the lowercase version
+    3. keys (dict_name) may have different cardinality if one or some of the elements is not matching list_el keys
+    4. if 2 or more list_el have the same dict_name (same valies in attr_list attributes), the newest ones overwrite
+       the older ones without any warning
+       AND the original description mentions ... "and group the results" ... there is no grouping
+    5. 'Undefined' attributes are not added to the dict_el (dict elements may have different keys)
+    6. using '%s'%a_value != 'Undefined' and  str(list_el[a]) != 'Undefined' for the same. Use twice the better one
+
+    Args:
+        list_data: list of dictionaries to convert
+        attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
+
+    Returns:
+        dict: dictionary of dictionaries
+
     """
-    Convert a list to a dictionary where the keys are tuples with the values of the attributes listed in attr_name
-
-    :param list_data: list of dictionaries to convert
-    :param attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
-    :return: dictionary of dictionaries
-    """
-
-    # Original description: Convert a list to a dictionary and group the results based on
-    #     attributes specified by attr_name
-
-    # This function has a couple of quirks, but is OK because the ways it is used (MM)
-    # The way it is used, attr_name is the job cluster, process, which are both present in all jobs from condor_q and unique,
-    # or the Name that is always present and unique in condor_status
-    # so the quirks should not cause problems
-    # 1. Type checking (of attr_name) probably should use isistance()
-    # 2. dict_name is a tuple including elements of attr_name translated to value in list_el
-    #  if them or the lowercase is a key in list_el
-    #  BUT from the value ( dict_data[dict_name] ) only exact match is excluded, not the lowercase version
-    # 3. keys (dict_name) may have different cardinality if one or some of the elements is not matching list_el keys
-    # 4. if 2 or more list_el have the same dict_name (same valies in attr_list attributes), the newest ones overwrite
-    #  the older ones without any warning
-    #  AND the original description mentions ... "and group the results" ... there is no grouping
-    # 5. 'Undefined' attributes are not added to the dict_el (dict elements may have different keys)
-    # 6. using '%s'%a_value != 'Undefined' and  str(list_el[a]) != 'Undefined' for the same. Use twice the better one
 
     if type(attr_name) in (type([]), type((1, 2))):
         attr_list = attr_name
@@ -1069,9 +1070,15 @@ def list2dict(list_data, attr_name):
 
 
 def applyConstraint(data, constraint_func):
-    """
-    Return a subset of data that satisfies constraint_function
+    """Return a subset of data that satisfies constraint_function
     If constraint_func is None, return back entire data
+
+    Args:
+        data:
+        constraint_func:
+
+    Returns:
+
     """
 
     if constraint_func is None:
@@ -1085,11 +1092,18 @@ def applyConstraint(data, constraint_func):
 
 
 def doGroup(indata, group_key_func, group_data_func):
-    """
-    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    """Group the indata based on the keys that satisfy group_key_func (applied to the value)
     Return a dict of groups summarized by group_data_func
     Each group returned by group_data_func must be a dictionary,
     possibly similar to the original value of the indata elements
+
+    Args:
+        indata:
+        group_key_func:
+        group_data_func:
+
+    Returns:
+        dict of groups summarized by group_data_func
     """
 
     gdata = {}
@@ -1109,8 +1123,7 @@ def doGroup(indata, group_key_func, group_data_func):
 
 
 def doNestedGroup(indata, group_key_func, group_element_func=None):
-    """
-    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    """Group the indata based on the keys that satisfy group_key_func (applied to the value)
     Return a dict of dictionaries created by group_element_func
     Each each value of the dictionaries returned by group_element_func
     must be a dictionary, possibly similar to the original value of the indata elements
@@ -1118,10 +1131,14 @@ def doNestedGroup(indata, group_key_func, group_element_func=None):
     If group_element_func is None (not provided), then the dictionaries in the groups are a copy of the
     original dictionaries in indata
 
-    @param indata: data to group
-    @param group_key_func: group_by function
-    @param group_element_func: how to handle the data in each group (by default is a copy of the original one)
-    @return: dictionary of dictionaries with grouped indata
+    Args:
+        indata: data to group
+        group_key_func: group_by function
+        group_element_func: how to handle the data in each group (by default is a copy of the original one)
+
+    Returns:
+        dict: dictionary of dictionaries with grouped indata
+
     """
 
     gdata = {}
@@ -1145,19 +1162,22 @@ def doNestedGroup(indata, group_key_func, group_element_func=None):
     return outdata
 
 
-#
-# Inputs
-#  data        - data from a fetch()
-#  hash_func   - Hashing function
-#                One argument: classad dictionary
-#                Returns: hash value
-#                          if None, will not be counted
-#                          if a list, all elements will be used
-#
-# Returns a dictionary of hash values
-#    Elements are counts (or more dictionaries if hash returns lists)
-#
 def fetch2count(data, hash_func):
+    """Nested count of the hash values returned from all the elements in data
+
+    Args:
+        data: data from a fetch()
+        hash_func: Hashing function
+            One argument: classad dictionary
+            Returns: hash value
+                if None, will not be counted
+                if a list, all elements will be used
+
+    Returns:
+        dict: dictionary of hash values
+            Elements are counts (or more dictionaries if hash returns lists)
+
+    """
     count = {}
     for k in list(data.keys()):
         el = data[k]
@@ -1246,12 +1266,15 @@ def fetch2list(data, hash_func):
     return return_list
 
 
-#
-# Recursivelly add two dictionaries
-# Do it in place, using the first one
-#
 def addDict(base_dict, new_dict):
-    for k in list(new_dict.keys()):
+    """Recursively add two dictionaries
+    Do it in place, using the first one
+
+    Args:
+        base_dict: first dictionary
+        new_dict: dictionary to be added
+    """
+    for k in new_dict:
         new_el = new_dict[k]
         if k not in base_dict:
             # nothing there?, just copy
@@ -1269,8 +1292,7 @@ def addDict(base_dict, new_dict):
 ################################################################################
 
 def resource_str_to_py_adtype(resource_str):
-    """
-    Given the resource string return equivalent classad type
+    """Given the resource string return equivalent classad type
     """
 
     adtype = resource_str
@@ -1294,8 +1316,7 @@ def resource_str_to_py_adtype(resource_str):
 
 
 def bindings_friendly_constraint(constraint):
-    """
-    Convert the constraint to format that can be used with python bindings
+    """Convert the constraint to format that can be used with python bindings
     """
     if constraint is None:
         return True
@@ -1303,8 +1324,7 @@ def bindings_friendly_constraint(constraint):
 
 
 def bindings_friendly_attrs(format_list):
-    """
-    Convert the format_list into attrs that can be used with python bindings
+    """Convert the format_list into attrs that can be used with python bindings
     Python bindings should take care of the typing
     """
     if format_list is not None:

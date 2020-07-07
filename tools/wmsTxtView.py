@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This tool displays the status of the glideinWMS pool
@@ -17,7 +17,6 @@
 #
 
 
-import string
 import os.path
 import sys
 sys.path.append(os.path.join(sys.path[0], "../.."))
@@ -87,8 +86,8 @@ for glidein in glideins:
         key=glidein_el['attrs']['GLIDEIN_Gatekeeper']
     else:
         raise RuntimeError("Unknwon type '%s'"%txt_type)
-    
-        
+
+
     if key in txt_data:
         key_el=txt_data[key]
     else:
@@ -103,12 +102,11 @@ for glidein in glideins:
             key_el['MaxGlideins']+=glidein_el['monitor']['TotalRequestedMaxGlideins']
 
 #print data
-txt_keys=sorted(txt_data.keys())
+txt_keys = sorted(txt_data.keys())
 
-print('%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry', 48))
+print('%s ReqIdle  Idle   Running  MaxGlideins' % 'Entry'.ljust(48))
 print('================================================-=======-=======-=======-=======')
 for key in txt_keys:
-    key_el=txt_data[key]
-    print("%s %7i %7i %7i %7i"%(string.ljust(key, 48), key_el['RequestedIdle'], key_el['Idle'], key_el['Running'], key_el['MaxGlideins']))
-
-
+    key_el = txt_data[key]
+    print("%s %7i %7i %7i %7i" % (key.ljust(48), key_el['RequestedIdle'], key_el['Idle'],
+                                  key_el['Running'], key_el['MaxGlideins']))

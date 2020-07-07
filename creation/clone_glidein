@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This program clones (a subset of) entries
@@ -17,9 +17,7 @@ import sys
 import os.path
 import copy
 import re
-import string
-# not used  import shutil
-# not used  import traceback
+
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
@@ -107,7 +105,7 @@ def merge_entry(params, other_params, entry_name, preserve_enable, preserve_comm
     org_entry = params.subparams.data['entries'][entry_name]
     params.subparams.data['entries'][entry_name] = copy.deepcopy(other_params.subparams.data['entries'][entry_name])
     new_entry = params.subparams.data['entries'][entry_name]
-    
+
     preserve_els = ['schedd_name', 'allow_frontends', 'downtimes']
     if preserve_enable:
         preserve_els.append('enable')
@@ -128,7 +126,7 @@ def disable_entry(params, entry_name):
     else:
         base_comment = ""
     eel['comment'] = base_comment + "Disabled because obsoleted during cloning."
-    
+
 
 ################################################################################
 def main(params, other_params,
@@ -162,7 +160,7 @@ def main(params, other_params,
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 def load():
     usage_prefix="clone_glidein -other config [-out fname] [-debug] [-include attr regexp] [-exclude attr regexp] [-merge yes|no|only] [-preserve_enable] [-disable_old] [-preserve_comments]"
@@ -209,7 +207,7 @@ def load():
             argv=argv[0:1]+argv[2:]
         else:
             break
-            
+
     if other_fname is None:
         print("Missing -other")
         print()
@@ -224,7 +222,7 @@ def load():
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
         print(e)
         sys.exit(1)
 
@@ -237,7 +235,7 @@ def load():
             import traceback
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
         print(e)
         sys.exit(1)
 
@@ -248,7 +246,7 @@ def load():
     print()
     print("Writing out %s" % out_fname)
     params.save_into_file(out_fname)
-    
+
 
 if __name__ == '__main__':
     load()

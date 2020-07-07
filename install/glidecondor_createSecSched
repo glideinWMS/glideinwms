@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This tool creates the configuration file containing
@@ -54,10 +54,10 @@ def get_config_val(attr, fail_if_missing=True):
             sys.exit(2)
         else:
             return None
-    
+
     res = p.communicate()
     return res[0].strip('\n')  # only the first line, and no trailing newline
-    
+
 
 def extract_condor_info():
     global config_dir
@@ -106,8 +106,8 @@ def add_schedd(schedd, config_fd):
                                                        }))
 
     expenv_str = '%(attrname)s_EXPENV = ' % {'attrname': attrname}
-    condor_env_str = string.join(condor_env_arr, " \\\n"+(" "*len(expenv_str)))
-    
+    condor_env_str = " \\\n"+(" "*len(expenv_str)).join(condor_env_arr)
+
     config_fd.write(("# Secondary schedd %(schedd)s\n" +
                      "%(attrname)s             = $(SCHEDD)\n" +
                      "%(attrname)s_EXPENV = %(envstr)s\n" +
@@ -200,7 +200,7 @@ def parse_args(args):
             usage()
             sys.exit(1)
         args = args[1:]
-        
+
     schedd_list_str = args[0]
     schedds = schedd_list_str.split(',')
 
@@ -208,13 +208,13 @@ def parse_args(args):
 def main(args):
     global common_log, create_dirs, schedds
     parse_args(args)
-    
+
     extract_condor_info()
     global config_dir
     conf_fname = os.path.join(config_dir, "11_gwms_secondary_schedds.config")
 
     create_config(conf_fname, schedds)
-    
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

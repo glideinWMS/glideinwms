@@ -7,22 +7,18 @@
 from . import common
 #-----
 import re
-import os
-import string
 import sys
-import time
 import traceback
 import configparser
 import io
 
-import inspect
 
 #### Class Configuration ############################
 class Configuration:
 
   def __init__ (self, fileName):
-    self.cp       = None 
-    self.inifile = fileName 
+    self.cp       = None
+    self.inifile = fileName
 
     #-- check for duplicate sections in config file --
     self.check_for_duplicate_sections()
@@ -51,7 +47,7 @@ class Configuration:
       for option in self.options(section):
         value = self.option_value(section, option)
         if "\n" in value:
-          line = string.split(value, "\n")
+          line = value.split("\n")
           common.logerr("Section [%s]: this line starts with whitespace ( %s)\n       Please remove the leading space or comment (;) the line." % (section, line[1]))
 
   #----------------
@@ -67,7 +63,7 @@ class Configuration:
 
   #----------------
   def check_for_duplicate_sections(self):
-    """ Check for duplicate sections in a config file ignoring commented ones. 
+    """ Check for duplicate sections in a config file ignoring commented ones.
         In addition, checks to verify there is no whitespace preceding or
         appending the section name in brackets as the ini parser does not
         validate for this.
@@ -101,7 +97,7 @@ class Configuration:
   def validate_section(self, section, valid_option_list):
     if not self.has_section(section):
       common.logerr("Section (%s) does not exist in ini file (%s)" % (section, self.inifile))
-    errors = [] 
+    errors = []
     for option in valid_option_list:
       if self.has_option(section, option):
         continue
@@ -158,7 +154,7 @@ class Configuration:
   #----------------
   def delete_section(self, section):
     self.cp.remove_section(section)
-    return 
+    return
 
 #### Exceptions #####################################
 class ConfigurationError(Exception):
@@ -199,15 +195,15 @@ def compare_ini_files (file_1, file_2, no_local_settings):
       compare_options(ini_2, ini_1)
       rtn = 1
   except:
-    raise 
-  return rtn  
+    raise
+  return rtn
 
 #--------------------------------
 def compare_sections(ini1, ini2):
   print("""
-... Sections     in %s 
+... Sections     in %s
        NOT FOUND in %s""" % (ini1.filename(), ini2.filename()))
-  for section in ini1.sections(): 
+  for section in ini1.sections():
     if ( ini2.has_section(section) ):
       continue
     else:
@@ -216,16 +212,16 @@ def compare_sections(ini1, ini2):
 #--------------------------------
 def compare_options(ini1, ini2):
   print("""
-... Section/objects in %s 
+... Section/objects in %s
           NOT FOUND in %s""" % (ini1.filename(), ini2.filename()))
   for section in ini1.sections():
-    for option in ini1.options(section): 
+    for option in ini1.options(section):
       ## if (section == "SE CHANGEME"):
       ##   if (option == "enable"):
       ##     print section,option
       if ( ini2.has_option(section, option) == False):
         print("    %-20s/%s" % (section, option))
- 
+
 #--------------------------------
 def usage(pgm):
   print()
@@ -235,7 +231,7 @@ def usage(pgm):
   print("       " + pgm + " --validate file")
   print("       " + pgm + " --help | -h ")
   print("""
-   compare .......... Shows the differences between the 
+   compare .......... Shows the differences between the
                       section/objects (not values) of the 2 ini files
                         returns 0 if identical
                         returns 1 if any differences
@@ -300,7 +296,7 @@ def run_unit_tests(pgm):
       else:
         raise ConfigurationError("-- Test %d: %s - FAILED" % (n, test))
   except:
-    raise 
+    raise
   print("**********## All %d tests passed ***************" % n)
 
 #--------------------
@@ -312,7 +308,7 @@ def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
     return "%s line %s" % (z[2], z[1])
-  
+
 ############################# Main Program ##############################
 
 def main(opts=None):

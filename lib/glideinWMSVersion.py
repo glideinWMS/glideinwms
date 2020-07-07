@@ -29,7 +29,6 @@ try:
 except ImportError:
     from md5 import md5
 
-import string
 
 class GlideinWMSDistro:
 
@@ -109,7 +108,7 @@ class GlideinWMSDistro:
             #if len(modifiedFiles) > 0:
             #    print "Modified files: %s" % " ".join(modifiedFiles)
 
-            self._version = string.strip("glideinWMS %s %s" % (ver, patch))
+            self._version = "glideinWMS %s %s" % (ver, patch).strip()
 
         def version(self):
             return self._version

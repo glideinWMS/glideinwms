@@ -3,7 +3,7 @@
 
 
 import traceback
-import sys, os, os.path, string, time
+import sys, os, os.path
 import optparse
 
 from . import common
@@ -83,7 +83,7 @@ class Glidein(Configuration):
   def ress_vo_constraint(self):
     constraint = '(GlueCEInfoContactString=!=UNDEFINED)'
     if len(self.entry_vos()) > 0:
-      vos = string.split(self.entry_vos(), ",")
+      vos = self.entry_vos().split(",")
       if len(vos) > 0:
         constraint = constraint + '&&('
         constraint = constraint + 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
@@ -93,9 +93,9 @@ class Glidein(Configuration):
     return constraint
   #---------------------
   def bdii_vo_constraint(self):
-    constraint = None 
+    constraint = None
     if len(self.entry_vos()) > 0:
-      vos = string.split(self.entry_vos(), ",")
+      vos = self.entry_vos().split(",")
       constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
       if len(vos) > 0:
         for vo in vos[1:]:
@@ -177,7 +177,7 @@ def show_line():
 #---------------------------
 def validate_args(args):
     usage = """Usage: %prog --ini ini_file
-    
+
 This will install a Factory service for glideinWMS using the ini file
 specified.
 """

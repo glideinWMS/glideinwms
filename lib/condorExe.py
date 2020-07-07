@@ -14,9 +14,7 @@
 
 import os
 from . import logSupport
-#import subprocess
 from . import subprocessSupport
-import string
 
 
 class UnconfigError(RuntimeError):
@@ -186,12 +184,12 @@ def init1():
                 try:
                     # BIN = <path>
                     bin_def = iexe_cmd('grep "^ *BIN" %s' % condor_config)
-                    condor_bin_path = string.split(bin_def[0].strip())[2]
+                    condor_bin_path = bin_def[0].strip().split()[2]
                 except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
                         release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
-                        condor_bin_path = os.path.join(string.split(release_def[0].strip())[2], "bin")
+                        condor_bin_path = os.path.join(release_def[0].strip().split()[2], "bin")
                     except ExeError as e:
                         pass  # don't know what else to try
 
@@ -225,12 +223,12 @@ def init2():
                 try:
                     # BIN = <path>
                     bin_def = iexe_cmd('grep "^ *SBIN" %s'%condor_config)
-                    condor_sbin_path = string.split(bin_def[0].strip())[2]
+                    condor_sbin_path = bin_def[0].strip().split()[2]
                 except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
                         release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
-                        condor_sbin_path = os.path.join(string.split(release_def[0].strip())[2], "sbin")
+                        condor_sbin_path = os.path.join(release_def[0].strip().split()[2], "sbin")
                     except ExeError as e:
                         pass  # don't know what else to try
 

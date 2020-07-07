@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This tool displays the status of the glideinWMS pool
@@ -17,7 +17,6 @@
 #
 
 
-import string
 import os.path
 import sys
 sys.path.append(os.path.join(sys.path[0], "../.."))
@@ -101,7 +100,7 @@ clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name, N
 # extract data
 glideins=list(glideins_obj.keys())
 for glidein in glideins:
-    glidein_el=glideins_obj[glidein]
+    glidein_el = glideins_obj[glidein]
 
     # Remove diagnostics attributes, if needed
     if remove_condor_stats:
@@ -114,23 +113,24 @@ for glidein in glideins:
     if remove_internals:
         for attr in ('EntryName', 'GlideinName', 'FactoryName'):
             del glidein_el['attrs'][attr]
-        
-    entry_name, glidein_name, factory_name=string.split(glidein, "@")
+
+    entry_name, glidein_name, factory_name = glidein.split("@")
 
     frontend_constraints=None
     if frontend_name is not None:
-        farr=frontend_name.split('.')
-        if len(farr)==1:
+        farr = frontend_name.split('.')
+        if len(farr) == 1:
             # just the generic frontend name
-            frontend_constraints='FrontendName=?="%s"'%frontend_name
-        elif len(farr)==2:
-            frontend_constraints='(FrontendName=?="%s")&&(GroupName=?="%s")'%(farr[0], farr[1])
+            frontend_constraints = 'FrontendName=?="%s"' % frontend_name
+        elif len(farr) == 2:
+            frontend_constraints = '(FrontendName=?="%s")&&(GroupName=?="%s")' % (farr[0], farr[1])
         else:
             raise RuntimeError("Invalid frontend name; more than one dot found")
 
-    clients_obj=glideFactoryInterface.findWork(factory_name, glidein_name, entry_name, None, key_obj, additional_constraints=frontend_constraints)
-    glidein_el['clients']=clients_obj
-    clients=list(clients_obj.keys())
+    clients_obj = glideFactoryInterface.findWork(factory_name, glidein_name, entry_name, None, key_obj,
+                                                 additional_constraints=frontend_constraints)
+    glidein_el['clients'] = clients_obj
+    clients = list(clients_obj.keys())
 
     if (frontend_name is not None) and (len(clients)==0):
         # if user requested to see only one frontend
@@ -142,7 +142,7 @@ for glidein in glideins:
     for client in clients:
         if remove_internals:
             del clients_obj[client]['internals']
-        
+
         # rename monitor into client_monitor
         clients_obj[client]['client_monitor']=clients_obj[client]['monitor']
         del clients_obj[client]['monitor']

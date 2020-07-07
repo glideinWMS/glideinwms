@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This program creates a glidein factory directory structure
@@ -14,14 +14,11 @@
 from __future__ import print_function
 import os
 import sys
-import string
 import traceback
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-# from glideinwms.creation.lib import cgWParams
-# from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts, cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
@@ -78,7 +75,7 @@ def main(conf):
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 if __name__ == '__main__':
@@ -110,7 +107,7 @@ if __name__ == '__main__':
     except RuntimeError as e:
         if debug:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            print(string.join(tb, '\n'))
+            print('\n'.join(tb))
         print(usage)
         print("")
         print(e)
