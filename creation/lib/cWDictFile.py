@@ -543,6 +543,7 @@ class SimpleFileDictFile(DictFile):
     Each item is a file, identified by a file name, with an optional attribute (value) and the file content.
     File names are key. All files are in the same directory of the dictionary (self.dir).
     The values are a tuple and the last item is the file content.
+    The file content in the value can be a binary blob (bytes) so it should read accordingly w/o attempting a decode.
     Only the file name and the first element of the value are saved in the dictionary file (serialized dictionary).
     SimpleFileDictFile is used for file lists.
     """
@@ -555,51 +556,76 @@ class SimpleFileDictFile(DictFile):
     def add(self, key, val, allow_overwrite=False):
         """Add an entry to the dictionary, e.g. a file to the list
 
-        :param key: file name (dictionary key)
-        :param val: parameters (not the file content), usually file attributes
-        :param allow_overwrite: (Default: False)
-        :return:
+        Args:
+            key (str): file name (dictionary key)
+            val: parameters (not the file content), usually file attributes
+            allow_overwrite (bool): if True, allows to override existing content in the dictionary (Default: False)
         """
         return self.add_from_file(key, val, os.path.join(self.dir, self.get_file_fname(key)), allow_overwrite)
 
-    def add_from_str(self, key, val, data, allow_overwrite=False):
+    def add_from_bytes(self, key, val, data, allow_overwrite=False):
         """Add an entry to the dictionary, parameters and content are both available
 
-        :param key: file name (key)
-        :param val: parameters (not the file content), usually file attributes
-        :param data: string with the file content added to the dictionary
-        :param allow_overwrite:
-        :return:
+        Same as add_from_str(), but the value is here is binary, utf-8 encoded if it was text
+
+        Args:
+            key (str): file name (key)
+            val: parameters (not the file content), usually file attributes
+            data (bytes): bytes string with the file content added to the dictionary
+                (this is binary or utf-8 encoded text)
+            allow_overwrite (bool): if True, allows to override existing content in the dictionary
         """
         # make it generic for use by children
+        # TODO: make sure that DictFile.add() is compatible w/ binary data
         if not (type(val) in (type(()), type([]))):
             DictFile.add(self, key, (val, data), allow_overwrite)
         else:
             DictFile.add(self, key, tuple(val)+(data,), allow_overwrite)
 
+    def add_from_str(self, key, val, data, allow_overwrite=False):
+        """Add an entry to the dictionary, parameters and content are both available
+
+        Same as add_from_bytes(), but the value is here is text, will be utf-8 encoded before calling add_from_bytes()
+
+        Args:
+            key (str): file name (key)
+            val: parameters (not the file content), usually file attributes
+            data (str): string with the file content added to the dictionary (this is decoded, not bytes)
+                It will be encoded using utf-8
+            allow_overwrite (bool): if True, allows to override existing content in the dictionary
+        """
+        # make it generic for use by children
+        bindata = data.encode('utf-8')
+        self.add_from_bytes(key, val, bindata, allow_overwrite)
+
     def add_from_fd(self, key, val, fd, allow_overwrite=False):
         """Add an entry to the dictionary using a file object - has a read() method that provides the content
 
-        :param key: file name (key)
-        :param val: parameters (not the file content), usually file attributes
-        :param fd: file object - has a read() method
-        :param allow_overwrite:
-        :return:
+        Args:
+            key (str): file name (key)
+            val: parameters (not the file content), usually file attributes
+            fd: file object - has a read() method, opened in binary mode not to try a decode of the content
+            allow_overwrite (bool): if True, allows to override existing content in the dictionary
         """
         data = fd.read()
-        self.add_from_str(key, val, data, allow_overwrite)
+        self.add_from_bytes(key, val, data, allow_overwrite)
 
     def add_from_file(self, key, val, filepath, allow_overwrite=False):
-        """add data from a file
+        """Add data from a file. Add an entry to the dictionary using a file path
 
-        :param key: file name (key)
-        :param val: parameters (not the file content), usually file attributes
-        :param filepath: full path of the file (
-        :param allow_overwrite:
-        :return:
+        The file could be either a text or a binary file
+
+        Args:
+            key (str): file name (key)
+            val: parameters (not the file content), usually file attributes
+            filepath: full path of the file
+            allow_overwrite (bool): if True, allows to override existing content in the dictionary
+
+        Raises:
+            RuntimeError: if the file could not be opened (IOError from the system)
         """
         try:
-            with open(filepath, "r") as fd:
+            with open(filepath, "rb") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
         except IOError as e:
             raise RuntimeError("Could not open file or write to it: %s" % filepath)
@@ -607,9 +633,14 @@ class SimpleFileDictFile(DictFile):
     def format_val(self, key, want_comments):
         """Print lines: only the file name (key) the first item of the value tuple if not None
 
-        :param key: file name (dictionary key)
-        :param want_comments:
-        :return:
+        Args:
+            key: file name (dictionary key)
+            want_comments: NOT USED, required by inheritance
+
+        Returns:
+            str: Formatted string with key (file name) and values (tuple of options for that file)
+            Only the file name if there are no values
+
         """
         if self.vals[key][0] is not None:
             return "%s \t%s" % (key, self.vals[key][0])
@@ -621,8 +652,11 @@ class SimpleFileDictFile(DictFile):
 
         Skip comments (start with #) or empty lines and do nothing, otherwise add to the dictionary:
         First item is the file name (key), the rest are the parameter, data is read form the file (file name)
-        :param line: line to be parsed
-        :return: None
+        Used to parse the line of a file list and add the files to a DictFile object
+
+        Args:
+            line: line to be parsed
+
         """
         if not line or line[0] == '#':
             return  # ignore comments
