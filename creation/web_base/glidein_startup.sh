@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 
 # default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
@@ -12,6 +12,9 @@ IFS=$' \t\n'
 global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+GWMS_PATH=""
+# Relative to the work directory
+GWMS_DIR="gwms"
 
 export LANG=C
 
@@ -255,7 +258,7 @@ extract_parent_fname() {
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result=$(cat otrx_output.xml)
- 
+
       if [ "${exitcode}" -eq 0 ]; then
           echo "SUCCESS"
       else
@@ -263,7 +266,7 @@ extract_parent_fname() {
           echo "${last_script_name}"
       fi
   else
-      echo "Unknown" 
+      echo "Unknown"
   fi
 }
 
@@ -274,7 +277,7 @@ extract_parent_xml_detail() {
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result="$(cat otrx_output.xml)"
- 
+
       if [ "${exitcode}" -eq 0 ]; then
           echo "  <result>"
           echo "    <status>OK</status>"
@@ -370,7 +373,6 @@ print_tail() {
   glidein_end_time="$(date +%s)"
   let total_time=${glidein_end_time}-${startup_time}
   echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
- 
   echo ""
   echo "=== XML description of glidein activity ==="
   echo  "${final_result_simple}" | grep -v "<cmd>"
@@ -408,7 +410,7 @@ early_glidein_failure() {
   final_result_simple="$(basexml2simplexml "${final_result}")"
   # have no global section
   final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
-  
+
   if ! cd "${start_dir}"; then
       warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
       exit "$1"
@@ -428,6 +430,7 @@ early_glidein_failure() {
 
 # use this one once the most basic ops have been done
 glidein_exit() {
+  # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
 
   global_result=""
   if [ -f otr_outlist.list ]; then
@@ -573,7 +576,7 @@ glidein_exit() {
 ####################################################
 # automatically determine and setup work directories
 automatic_work_dir() {
-    declare -a targets=("${_CONDOR_SCRATCH_DIR}" 
+    declare -a targets=("${_CONDOR_SCRATCH_DIR}"
                         "${OSG_WN_TMP}"
                         "${TG_NODE_SCRATCH}"
                         "${TG_CLUSTER_SCRATCH}"
@@ -792,7 +795,7 @@ if [ "${sign_type}" != "sha1" ]; then
     warn "Unsupported signtype ${sign_type} found."
     usage
 fi
-    
+
 if [ -n "${client_repository_url}" ]; then
   # client data is optional, user url as a switch
   if [ -z "${client_sign_type}" ]; then
@@ -803,7 +806,7 @@ if [ -n "${client_repository_url}" ]; then
     warn "Unsupported clientsigntype ${client_sign_type} found."
     usage
   fi
-    
+
   if [ -z "${client_descript_file}" ]; then
     warn "Missing client descript fname."
     usage
@@ -851,7 +854,7 @@ md5wrapper() {
         warn "md5wrapper error: can't calculate md5sum using ${executable}"
         return 1
     fi
-    echo "${res}"  
+    echo "${res}"
 }
 
 # Generate glidein UUID
@@ -1030,7 +1033,23 @@ else
 fi
 work_dir_created=1
 
+# GWMS_DIR defined on top
+if ! mkdir "$GWMS_DIR" ; then
+    early_glidein_failure "Cannot create '$GWMS_DIR'"
+fi
+
+gwms_lib_dir="${GWMS_DIR}/lib"
+if ! mkdir -p "$gwms_lib_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_lib_dir'"
+fi
+
+gwms_bin_dir="${GWMS_DIR}/bin"
+if ! mkdir -p "$gwms_bin_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_bin_dir'"
+fi
+
 # mktemp makes it user readable by definition (ignores umask)
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
 if ! chmod a+rx "${work_dir}"; then
     early_glidein_failure "Failed chmod '${work_dir}'"
 fi
@@ -1041,15 +1060,17 @@ if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
 fi
 glide_local_tmp_dir_created=1
 
+<<<<<<< HEAD
 glide_tmp_dir="${work_dir}/tmp"
 if ! mkdir "${glide_tmp_dir}"; then
     early_glidein_failure "Cannot create '${glide_tmp_dir}'"
 fi
 
 if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
+    # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
     # the tmpdirs should be world writable
-    # This way it will work even if the user spawned by the glidein is different
-    # than the glidein user
+    # This way it will work even if the user spawned by the glidein is different than the glidein user
+    # This happened in GlExec, outside user stays the same in Singularity
     if ! chmod 1777 "${glide_local_tmp_dir}"; then
         early_glidein_failure "Failed chmod '${glide_local_tmp_dir}'"
     fi
@@ -1265,8 +1286,8 @@ add_periodic_script() {
         rm -f ${include_fname}
     fi
 
-    let add_startd_cron_counter=add_startd_cron_counter+1   
-    local name_prefix=GLIDEIN_PS_   
+    let add_startd_cron_counter=add_startd_cron_counter+1
+    local name_prefix=GLIDEIN_PS_
     local s_name="${name_prefix}${add_startd_cron_counter}"
 
     # Append the following to the startd configuration
@@ -1384,11 +1405,11 @@ perform_wget() {
         wget_cmd=$(echo "wget" "${wget_args[@]}"| sed 's/"/\\\"/g')
         wget_resp=$(wget "${wget_args[@]}" 2>&1)
         wget_retval=$?
-    fi    
+    fi
 
     if [ ${wget_retval} -ne 0 ]; then
         wget_version=$(wget --version 2>&1 | head -1)
-        warn "${wget_cmd} failed. version:${wget_version}  exit code ${wget_retval} stderr: ${wget_resp}" 
+        warn "${wget_cmd} failed. version:${wget_version}  exit code ${wget_retval} stderr: ${wget_resp}"
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
         echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
@@ -1414,7 +1435,7 @@ perform_wget() {
   Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${wget_resp}
   </detail>
 </OSGTestResult>" > otrb_output.xml
-        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'." 
+        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
 
         if [ -f otr_outlist.list ]; then
             chmod u+w otr_outlist.list
@@ -1426,7 +1447,7 @@ perform_wget() {
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
         chmod a-w otr_outlist.list
-    fi 
+    fi
     return ${wget_retval}
 }
 
@@ -1455,10 +1476,9 @@ perform_curl() {
     fi
 
 
-
     if [ "${curl_retval}" -ne 0 ]; then
         curl_version="$(curl --version 2>&1 | head -1)"
-        warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} " 
+        warn "${curl_cmd} failed. version:${curl_version}  exit code ${curl_retval} stderr: ${curl_resp} "
         # cannot use error_*.sh helper functions
         # may not have been loaded yet, and wget fails often
         echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
@@ -1484,7 +1504,7 @@ perform_curl() {
   Failed to load file '${ffb_real_fname}' from '${ffb_repository}' using proxy '${proxy_url}'.  ${curl_resp}
   </detail>
 </OSGTestResult>" > otrb_output.xml
-        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'." 
+        warn "Failed to load file '${ffb_real_fname}' from '${ffb_repository}'."
 
         if [ -f otr_outlist.list ]; then
             chmod u+w otr_outlist.list
@@ -1496,7 +1516,7 @@ perform_curl() {
         cat otrb_output.xml >> otrx_output.xml
         rm -f otrb_output.xml
         chmod a-w otr_outlist.list
-    fi 
+    fi
     return ${curl_retval}
 }
 
@@ -1544,9 +1564,9 @@ fetch_file_base() {
     ffb_url="${ffb_repository}/${ffb_real_fname}"
     curl_version=$(curl --version | head -1 )
     wget_version=$(wget --version | head -1 )
-    #old wget command: 
+    #old wget command:
     #wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" "$ffb_nocache_str" -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
-    #equivalent to: 
+    #equivalent to:
     #wget ${ffb_url} --user-agent=${user_agent} -q  -O "${ffb_tmp_outname}" "${ffb_nocache_str}"
     #with env http_proxy=$proxy_url set if proxy_url != "None"
     #
@@ -1566,9 +1586,9 @@ fetch_file_base() {
             elif wget --help |grep -q "\-\-cache="; then
                 wget_args+=("--cache=off")
             else
-                warn "wget ${wget_version} cannot disable caching" 
+                warn "wget ${wget_version} cannot disable caching"
             fi
-         fi    
+         fi
     fi
 
     if [ "${proxy_url}" != "None" ];then
@@ -1607,7 +1627,7 @@ fetch_file_base() {
     # rename it to the correct final name, if needed
     if [ "${ffb_tmp_outname}" != "${ffb_outname}" ]; then
         if ! mv "${ffb_tmp_outname}" "${ffb_outname}"; then
-            warn "Failed to rename ${ffb_tmp_outname} into ${ffb_outname}" 
+            warn "Failed to rename ${ffb_tmp_outname} into ${ffb_outname}"
             return 1
         fi
     fi
@@ -1698,6 +1718,18 @@ fetch_file_base() {
     fi
 
    return 0
+}
+
+# Adds $1 to GWMS_PATH and update PATH
+function add_to_path {
+    local old_path=":${PATH%:}:"
+    old_path="${old_path//:$GWMS_PATH:/}"
+    local old_gwms_path=":${GWMS_PATH%:}:"
+    old_gwms_path="${old_gwms_path//:$1:/}"
+    old_gwms_path="${1%:}:${old_gwms_path#:}"
+    export GWMS_PATH="${old_gwms_path%:}"
+    old_path="${GWMS_PATH}:${old_path#:}"
+    export PATH="${old_path%:}"
 }
 
 echo "Downloading files from Factory and Frontend"
@@ -1809,10 +1841,10 @@ do
   fi
 
   gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
-  
+
   gs_id_work_dir="$(get_work_dir "${gs_id}")"
   gs_id_descript_file="$(get_descript_file "${gs_id}")"
-  
+
   # extract list file name
   if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
       if [ -z "${client_repository_group_url}" ]; then
@@ -1840,6 +1872,15 @@ do
     fi
   done < "${gs_id_work_dir}/${gs_file_list}"
 
+  # Files to go into the GWMS_PATH
+  if [ "$gs_file_id" = "main after_file_list" ]; then
+    cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+    add_to_path "$PWD/$gwms_bin_dir"
+    for file in "gwms-python" "condor_chirp"
+    do
+        cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
+    done
+  fi
 done
 
 ##############################

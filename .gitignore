@@ -1,0 +1,12 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# ci byproducts (tox, sphinx)
+doc/api/code
+doc/api/html
+.tox
