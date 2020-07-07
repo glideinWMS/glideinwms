@@ -538,7 +538,7 @@ class EntryClassad(classadSupport.Classad):
         if pub_key_obj is not None:
             self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
             self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-            self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
+            self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace('\n', '\\n')
         if 'grid_proxy' in auth_method:
             self.adParams['GlideinAllowx509_Proxy'] = '%s' % True
             self.adParams['GlideinRequirex509_Proxy'] = '%s' % True
@@ -560,7 +560,7 @@ class EntryClassad(classadSupport.Classad):
                     # don't quote ints
                     self.adParams['%s%s' % (prefix, attr)] = el
                 else:
-                    escaped_el = string.replace(str(el), '\n', '\\n')
+                    escaped_el = str(el).replace('\n', '\\n')
                     self.adParams['%s%s' % (prefix, attr)] = "%s" % escaped_el
 
         # write job completion statistics
@@ -614,7 +614,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
         self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
         self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-        self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
+        self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace('\n', '\\n')
 
 
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
@@ -870,7 +870,7 @@ def createGlideinClientMonitoringFile(fname,
                         # don't quote ints
                         fd.write('%s%s = %s\n' % (prefix, attr, el))
                     else:
-                        escaped_el = string.replace(str(el), '"', '\\"')
+                        escaped_el = str(el).replace('"', '\\"')
                         fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
             # add a final empty line... useful when appending
             fd.write('\n')

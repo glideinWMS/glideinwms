@@ -110,7 +110,7 @@ def get_frontends(factory_dir):
 def get_entries(factory_dir):
     glideinDescript=glideFactoryConfig.GlideinDescript()
     #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
-    return string.split(glideinDescript.data['Entries'], ',')
+    return glideinDescript.data['Entries'].split(',')
 #
 #
 def get_downtime_fd(entry_name, cmdname):
@@ -130,7 +130,7 @@ def get_downtime_fd_dict(entry_or_id, cmdname, opt_dict):
     out_fds={}
     if entry_or_id in ('entries', 'All'):
         glideinDescript=glideFactoryConfig.GlideinDescript()
-        entries=string.split(glideinDescript.data['Entries'], ',')
+        entries=glideinDescript.data['Entries'].split(',')
         for entry in entries:
             out_fds[entry]=get_downtime_fd(entry, cmdname)
         if (entry_or_id=='All') and ("entries" not in opt_dict):
@@ -296,7 +296,7 @@ def infosys_based(entry_name, opt_dict, infosys_types):
     elif entry_name in ('entries', 'all'):
         # all==entries in this case, since there is nothing to do for the factory
         glideinDescript=glideFactoryConfig.GlideinDescript()
-        entries=string.split(glideinDescript.data['Entries'], ',')
+        entries=glideinDescript.data['Entries'].split(',')
         for entry in entries:
             config_els[entry]={}
     else:

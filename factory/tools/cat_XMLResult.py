@@ -58,7 +58,7 @@ def main(args):
             sys.stderr.write("%s\n"%USAGE)
             sys.exit(1)
 
-        for l in string.split(out, "\n"):
+        for l in out.split("\n"):
             if raw_out and (l[:2]=="<?"):
                 #skip comments for raw output
                 continue
@@ -79,7 +79,7 @@ def main(args):
                     continue
 
                 x=[]
-                for l in string.split(rawx, "\n"):
+                for l in rawx.split("\n"):
                     if l[:2]=="<?":
                         #skip comments
                         continue

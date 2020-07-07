@@ -932,7 +932,7 @@ class MultiAdvertizeWork:
                 fd.write('\n'.join(key_obj.get_key_attrs())+"\n")
                 for attr in list(glidein_params_to_encrypt.keys()):
                     el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
-                    escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
+                    escaped_el = str(el).replace('"', '\\"').replace('\n', '\\n')
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
 
             # Update Sequence number information
@@ -1270,7 +1270,7 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
         # don't quote numeric values
         fd.write('%s = %s\n' % (attr_name, attr_value))
     else:
-        escaped_value = string.replace(string.replace(str(attr_value), '"', '\\"'), '\n', '\\n')
+        escaped_value = str(attr_value).replace('"', '\\"').replace('\n', '\\n')
         fd.write('%s = "%s"\n' % (attr_name, escaped_value))
 
 

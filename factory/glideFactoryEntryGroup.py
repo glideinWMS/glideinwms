@@ -714,8 +714,8 @@ def main(parent_pid, sleep_time, advertize_rate,
     logSupport.log.info("Entries processed by %s: %s " % (group_name, entry_names))
 
     # Check if all the entries in this group are valid
-    for entry in string.split(entry_names, ':'):
-        if not (entry in string.split(glidein_entries, ',')):
+    for entry in entry_names.split(':'):
+        if not (entry in glidein_entries.split(',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
             logSupport.log.warning(msg)
             raise RuntimeError(msg)

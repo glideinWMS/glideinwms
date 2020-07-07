@@ -60,9 +60,9 @@ class ConfigFile:
             for line in lines:
                 if line[0]=="#":
                     continue # comment
-                if len(string.strip(line))==0:
+                if len(line.strip())==0:
                     continue # empty line
-                larr=string.split(line, None, 1)
+                larr=line.split(None, 1)
                 lname=larr[0]
                 if len(larr)==1:
                     lval=""
@@ -387,9 +387,9 @@ class SignatureFile(ConfigFile):
             for line in lines:
                 if line[0] == "#":
                     continue # comment
-                if len(string.strip(line)) == 0:
+                if len(line.strip()) == 0:
                     continue # empty line
-                larr = string.split(line, None)
+                larr = line.split(None)
                 lsign = larr[0]
                 ldescript = larr[1]
                 lname = larr[2]
