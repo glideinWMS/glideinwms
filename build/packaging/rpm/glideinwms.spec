@@ -122,6 +122,7 @@ This is a package for a glideinwms submit host.
 
 %package libs
 Summary:        The glideinWMS common libraries.
+Requires: python >= 2.7
 Requires: condor-python
 Requires: python-rrdtool
 Requires: python-ldap
