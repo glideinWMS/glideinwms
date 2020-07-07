@@ -674,7 +674,7 @@ class FileDictFile(SimpleFileDictFile):
     6. config_out has a special value of FALSE
     7. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
-     serialized (saved into file). Empty strings would cause error when parsed back.
+    serialized (saved into file). Empty strings would cause error when parsed back.
     """
     DATA_LENGTH = 7  # Length of value (attributes + data)
     PLACEHOLDER_VALUE = ("", "", 0, "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
@@ -725,7 +725,9 @@ class FileDictFile(SimpleFileDictFile):
             allow_overwrite=False,
             allow_overwrite_placeholder=True):
         """Add a file to the list
-        invokes add_from_str if the content is provided (6th component of val), add_from_file otherwise
+
+        Invoke add_from_str if the content is provided (6th component of val), add_from_file otherwise
+
         :param key: file ID
         :param val: lists of 6 or 7 components (see class definition)
         :param allow_overwrite: if True the existing files can be replaced (default: False)

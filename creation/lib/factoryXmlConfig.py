@@ -187,6 +187,18 @@ class Config(xmlConfig.DictElement):
         for mon_coll in self.get_child_list('monitoring_collectors'):
             mon_coll.check_missing('DN')
             mon_coll.check_missing('node')
+        self.check_recoverable_exitcodes()
+
+    def check_recoverable_exitcodes(self):
+        try:
+            for codestr in self.get('recoverable_exitcodes', '').split(','):
+                if not codestr:
+                    continue
+                splitstr = codestr.split(' ')
+                for subcode in splitstr:
+                    int(subcode)
+        except ValueError:
+            raise RuntimeError("recoverable_exitcodes should be list of integers. See configuration.html for more info")
 
     #######################
     #

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Allows to retrieve information from the OSG collector and generate the factory xml file
 """
 
@@ -5,13 +6,13 @@
 
 
 import sys
+import logging
 import argparse
 import fractions
 
 import htcondor
 
-from glideinwms.lib.config_util import ENTRY_STUB, GLIDEIN_SUPPORTED_VO_MAP, ProgramError, get_attr_str, update, \
-     get_yaml_file_info, write_to_yaml_file, get_submit_attr_str, write_to_xml_file
+import glideinwms.lib.config_util as config_util
 
 
 def load_config():
@@ -21,7 +22,7 @@ def load_config():
     parser.add_argument('config', nargs=1, help='The configuration file')
     args = parser.parse_args()
 
-    config = get_yaml_file_info(args.config[0])
+    config = config_util.get_yaml_file_info(args.config[0])
 
     return config
 
@@ -37,8 +38,8 @@ def get_vos(allowed_vos):
     """
     vos = set()
     for vorg in allowed_vos:
-        if vorg in GLIDEIN_SUPPORTED_VO_MAP:
-            vos.add(GLIDEIN_SUPPORTED_VO_MAP[vorg])
+        if vorg in config_util.GLIDEIN_SUPPORTED_VO_MAP:
+            vos.add(config_util.GLIDEIN_SUPPORTED_VO_MAP[vorg])
         else:
             print(vorg + " VO is not in GLIDEIN_Supported_VOs_map")
 
@@ -81,10 +82,10 @@ def get_information(host):
             continue
         if "OSG_ResourceGroup" in celem:
             site = celem["OSG_ResourceGroup"]
+            gatekeeper = celem["Name"].lower()
             if site:
                 if site not in result:
                     result[site] = {}
-                gatekeeper = celem["Name"].lower()
                 result[site][gatekeeper] = {}
                 resource = ""
                 if "OSG_Resource" in celem:
@@ -119,7 +120,7 @@ def get_information(host):
                     if resource:
                         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": site}
                     if len(vos) > 0:
-                        edict["attrs"]["GLIDEIN_Supported_vos"] = {"value": ",".join(vos)}
+                        edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
                     else:
                         print(gatekeeper + " CE does not have VOs")
                     edict["submit_attrs"] = {}
@@ -164,14 +165,22 @@ def get_entries_configuration(data):
                 # Probably we can use port from attribute AddressV1 or CollectorHost
                 entry_configuration["gatekeeper"] = celem + " " + celem + ":9619"
                 entry_configuration["rsl"] = ""
-                entry_configuration["attrs"] = get_attr_str(entry_configuration["attrs"])
+                entry_configuration["attrs"] = config_util.get_attr_str(
+                    entry_configuration["attrs"]
+                )
                 if "submit_attrs" in entry_configuration:
                     entry_configuration["submit_attrs"] = (
-                        get_submit_attr_str(entry_configuration["submit_attrs"])
+                        config_util.get_submit_attr_str(entry_configuration["submit_attrs"])
                     )
                 else:
                     entry_configuration["submit_attrs"] = ""
-                entries_configuration += ENTRY_STUB % entry_configuration
+                entry_configuration["limits"] = config_util.get_limits_str(
+                    entry_configuration["limits"]
+                )
+                entry_configuration["submission_speed"] = config_util.get_submission_speed(
+                    entry_configuration["submission_speed"]
+                )
+                entries_configuration += config_util.ENTRY_STUB % entry_configuration
 
     return entries_configuration
 
@@ -190,27 +199,27 @@ def merge_yaml(config):
         dict: a dict similar to the one returned by ``get_information``, but with all the defaults
             and the operators overrides in place (only whitelisted entries are returned).
     """
-    out = get_yaml_file_info(config["OSG_WHITELIST"])
-    osg_info = get_yaml_file_info(config["OSG_YAML"])
-    default_information = get_yaml_file_info(config["OSG_DEFAULT"])
-    for site, site_information in list(out.items()):
+    out = config_util.get_yaml_file_info(config["OSG_WHITELIST"])
+    osg_info = config_util.get_yaml_file_info(config["OSG_YAML"])
+    default_information = config_util.get_yaml_file_info(config["OSG_DEFAULT"])
+    for site, site_information in out.items():
         if site not in osg_info:
             print("You put %s in the whitelist file, but the site is not present in the collector"
                   % site)
-            raise ProgramError(2)
-        for celem, ce_information in list(site_information.items()):
+            raise config_util.ProgramError(2)
+        for celem, ce_information in site_information.items():
             if celem not in osg_info[site]:
                 print ("Working on whitelisted site %s: cant find ce %s in the generated OSG.yaml"
                        % (site, celem))
-                raise ProgramError(3)
-            for entry, entry_information in list(ce_information.items()):
+                raise config_util.ProgramError(3)
+            for entry, entry_information in ce_information.items():
                 if entry_information is None:
                     out[site][celem][entry] = osg_info[site][celem]["DEFAULT_ENTRY"]
                     entry_information = out[site][celem][entry]
                 else:
-                    update(entry_information, osg_info[site][celem]["DEFAULT_ENTRY"],
-                           overwrite=False)
-                update(
+                    config_util.update(entry_information, osg_info[site][celem]["DEFAULT_ENTRY"],
+                                       overwrite=False)
+                config_util.update(
                     entry_information,
                     default_information["DEFAULT_SITE"]["DEFAULT_GETEKEEPER"]["DEFAULT_ENTRY"],
                     overwrite=False
@@ -224,18 +233,23 @@ def main():
     # Queries the OSG collector
     result = get_information(config["OSG_COLLECTOR"])
     # Write the received information to the OSG.yml file
-    write_to_yaml_file(config["OSG_YAML"], result)
+    config_util.write_to_yaml_file(config["OSG_YAML"], result)
     # Merges different yaml files: the defaults, the generated one, and the factory overrides
     result = merge_yaml(config)
     # Convert the resoruce dictionary obtained this way into a string (xml)
     entries_configuration = get_entries_configuration(result)
     # Write the factory configuration file on the disk
-    write_to_xml_file("entries.xml", entries_configuration)
+    config_util.write_to_xml_file("entries.xml", entries_configuration)
 
 
 if __name__ == "__main__":
     try:
         main()
-    except ProgramError as merr:
-        print("Error! " + ProgramError.codes_map[merr.code])
+    except config_util.ProgramError as merr:
+        print("\033[91mError! \033[0m" + config_util.ProgramError.codes_map[merr.code])
         sys.exit(merr.code)
+    except:
+        logging.exception("")
+        print("\033[91mUnexpected exception. Aborting automatic configuration generation!\033[0m")
+        raise
+    sys.exit(0)

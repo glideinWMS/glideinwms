@@ -56,17 +56,17 @@ if [ ! -d  "$GLIDEINWMS_SRC" ]; then
     exit 1
 fi
 
-ultil_file=$(find_aux utils.sh)
+util_file=$(find_aux utils.sh)
 
-if [ ! -e  "$ultil_file" ]; then
-    echo "ERROR: $ultil_file not found!"
+if [ ! -e  "$util_file" ]; then
+    echo "ERROR: $util_file not found!"
     echo "script running in $(pwd), expects a util.sh file there or in the glideinwms src tree"
     echo "exiting"
     exit 1
 fi
 
-if ! . "$ultil_file" ; then
-    echo "ERROR: $ultil_file contains errors!"
+if ! . "$util_file" ; then
+    echo "ERROR: $util_file contains errors!"
     echo "exiting"
     exit 1
 fi
@@ -77,7 +77,7 @@ if [ "x$VIRTUAL_ENV" = "x" ]; then
 fi
 
 if ! cd "$GLIDEINWMS_SRC"/unittests ; then
-    echo "cannot find  '$GLIDEINWMS_SRC/unittests' , exiting" 
+    echo "cannot find  '$GLIDEINWMS_SRC/unittests' , exiting"
     exit 1
 fi
 
@@ -111,7 +111,7 @@ for file in $files_list ; do
         fi
     else
         if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" 
+            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file"
         else
             ./"$file"
         fi

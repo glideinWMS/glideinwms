@@ -246,7 +246,7 @@ SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config"
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 # TODO Should the image be on CVMFS or anywhere is OK?
 info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] with restrictions $image_restrictions"
-GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 $image_restrictions`"
+GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6,rhel8 $image_restrictions`"
 ec=$?
 if [[ $ec -ne 0 ]]; then
     out_str="ERROR selecting a Singularity image ($ec, $GWMS_SINGULARITY_IMAGE)"
