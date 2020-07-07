@@ -22,7 +22,6 @@
 from __future__ import print_function
 import os
 import sys
-import string
 import optparse
 
 sys.path.append(os.path.join(sys.path[0],"../../.."))
@@ -52,13 +51,13 @@ def main(argv):
         log_type = other_args[1]
     else:
         log_type = "STARTD"
-        
+
     feconfig.load_frontend_config(options)
     feconfig.set_environment(wpilots=True)
-    
+
     try:
         out = condorExe.exe_cmd_sbin("condor_fetchlog","-startd %s %s" % (glidein_name,log_type))
-        print(string.join(out, "\n"))
+        print("\n".join(out))
     except condorExe.ExeError as e:
         sys.stderr.write("%s\n" % e)
         return 1

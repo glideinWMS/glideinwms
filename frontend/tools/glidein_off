@@ -46,7 +46,6 @@
 
 import os
 import sys
-import string
 import time
 import threading
 import optparse
@@ -59,48 +58,61 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 
 
-############################################################################
-# condor_off supports nonstandard arguments
-# we want to support that, but optparse does not
-# so we do the transform in place
 def convert_legacy_args(args):
-    i=0
-    while i<len(args):
-        el=args[i]
-        if el in ('-graceful', '-fast', '-peaceful' ,'-force-graceful'):
-            args[i]=args[i][1:] # just remove the leading -
-            args.insert(i,'--type') # prepend the --type 
-            i+=1
+    """Transform in place the argument list from condor_off to optparse arguments
+
+    condor_off supports nonstandard arguments
+    we want to support that, but optparse does not
+    so we do the transform in place
+
+    Args:
+        args (list): arguments list
+    """
+    i = 0
+    while i < len(args):
+        el = args[i]
+        if el in ('-graceful', '-fast', '-peaceful', '-force-graceful'):
+            args[i] = args[i][1:]  # just remove the leading -
+            args.insert(i,'--type')  # prepend the --type
+            i += 1
         elif el.startswith("-const"):
-            args[i]="--constraint"
+            args[i] = "--constraint"
         elif el == "-name":
-            args[i]="--name"
+            args[i] = "--name"
         elif el == "-addr":
-            args[i]="--addr"
+            args[i] = "--addr"
         elif el == "-all":
-            args[i]="--all"
-        i+=1
+            args[i] = "--all"
+        i += 1
 
 
-#################################################
-# Interpret the arguments and return the constraint to use
 def build_glidein_constraint(options, other_args):
-    constraint_list=[]
-    if len(other_args)>=1:
-        constraint_list.append('(Name=?="%s")'%other_args[0])
+    """Interpret the arguments and return the constraint to use
+
+    Args:
+        options:
+        other_args:
+
+    Returns:
+        str: constraints string
+
+    """
+    constraint_list = []
+    if len(other_args) >= 1:
+        constraint_list.append('(Name=?="%s")' % other_args[0])
     if options.glidein_name is not None:
-        constraint_list.append('(Name=?="%s")'%options.glidein_name)
+        constraint_list.append('(Name=?="%s")' % options.glidein_name)
     if options.glidein_addr is not None:
-        constraint_list.append('(MyAddress=?="%s")'%options.glidein_addr)
+        constraint_list.append('(MyAddress=?="%s")' % options.glidein_addr)
     if options.constr is not None:
-        constraint_list.append('(%s)'%options.constr)
-    if options.off_all==True:
+        constraint_list.append('(%s)' % options.constr)
+    if options.off_all == True:
         constraint_list.append('True')
 
-    if len(constraint_list)==0:
+    if len(constraint_list) == 0:
         raise ValueError("No selection arguments/options given, aborting")
-        
-    constraint=string.join(constraint_list,'||')
+
+    constraint = '||'.join(constraint_list)
     return constraint
 
 ############################################################################
@@ -114,65 +126,65 @@ def lookup_addrs(constr):
     failures=False
 
     # get the adds for all the requested glideins
-    sts=condorMonitor.CondorStatus()
-    sts.require_integrity(True) # we do not want to get tricked into shutting down unrelated masters
+    sts = condorMonitor.CondorStatus()
+    sts.require_integrity(True)  # we do not want to get tricked into shutting down unrelated masters
     try:
         data = sts.fetch(constr,[('GLIDEIN_MASTER_NAME','s'),('GLIDEIN_COLLECTOR_NAME','s')])
     except:
-        time.sleep(1) #retry once
+        time.sleep(1)  #retry once
         data = sts.fetch(constr,[('GLIDEIN_MASTER_NAME','s'),('GLIDEIN_COLLECTOR_NAME','s')])
     del sts
-        
-    if len(data)==0:
+
+    if len(data) == 0:
         raise ValueError("No glideins matched your selection")
 
     # find the master names
     master_collectors={}
     for glidein_name in data:
-        glidein_ad=data[glidein_name]
+        glidein_ad = data[glidein_name]
         if (('GLIDEIN_MASTER_NAME' in glidein_ad) and
             ('GLIDEIN_COLLECTOR_NAME' in glidein_ad)):
-            #ignore any malformed ads
+            # ignore any malformed ads
             master_collector=glidein_ad['GLIDEIN_COLLECTOR_NAME']
 
             # many glideins may share the same master, so use a set
             if master_collector not in master_collectors:
-                master_collectors[master_collector]=set()
+                master_collectors[master_collector] = set()
             master_collectors[master_collector].add(glidein_ad['GLIDEIN_MASTER_NAME'])
 
-    addrs=[]
+    addrs = []
     # extract the addresses for them, querying all the affected collectors
     # not doing it in parallel, since all collectors likely share the same HW
     for collector_name_arr_str in master_collectors:
-        master_names=master_collectors[collector_name_arr_str]
-        master_list_str=string.join(master_names,",")
-        master_constr='stringListMember(Name,"%s")'%master_list_str
-        coll_error="No collector name???"
+        master_names = master_collectors[collector_name_arr_str]
+        master_list_str = ",".join(master_names)
+        master_constr = 'stringListMember(Name,"%s")' % master_list_str
+        coll_error = "No collector name???"
         collector_name_arr = collector_name_arr_str.split(',')
         # pick them in random order... they should all be the same
         # but this way we distribute better the load
         random.shuffle(collector_name_arr)
         for collector_name in collector_name_arr:
-            sts=condorMonitor.CondorStatus(subsystem_name="master", pool_name=collector_name)
-            sts.require_integrity(True) # same as above
+            sts = condorMonitor.CondorStatus(subsystem_name="master", pool_name=collector_name)
+            sts.require_integrity(True)  # same as above
             try:
                 data = sts.fetch(master_constr,[('MyAddress','s')])
-                coll_error=None
+                coll_error = None
                 break
             except:
-                time.sleep(1) #retry once
+                time.sleep(1)  #retry once
                 try:
                     data = sts.fetch(master_constr,[('MyAddress','s')])
-                    coll_error=None
+                    coll_error = None
                     break
                 except condorExe.ExeError as e:
                     # still continue, partial success is better than nothing
-                    coll_error=str(e)
+                    coll_error = str(e)
             del sts
 
         if coll_error is not None:
             sys.stderr.write("%s\n"%coll_error)
-            failures=True
+            failures = True
         else:
             for master_name in data:
                 try:
@@ -186,7 +198,7 @@ def lookup_addrs(constr):
 
     return (addrs, failures)
 
-        
+
 #############################################################################
 TP_FAIL=False
 
@@ -198,7 +210,7 @@ def run_off(addr, off_type):
     except condorExe.ExeError as e:
         sys.stderr.write("%s\n"%e)
         TP_FAIL=True # setting the value should be thread safe
-    
+
 
 ############################################################
 # Main function
@@ -260,7 +272,7 @@ def main(argv):
     off_type=options.off_type
     if off_type not in ('graceful','fast','peaceful','force-graceful'):
         raise ValueError("Unknown off type '%s'"%off_type)
-        
+
     feconf = feconfig.load_frontend_config(options)
     feconfig.set_environment(wpilots=True)
 
@@ -318,6 +330,6 @@ def main(argv):
 if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
-    except Exception as e:
-        sys.stderr.write("ERROR: Exception msg %s\n" % str(e))
+    except Exception as ee:
+        sys.stderr.write("ERROR: Exception msg %s\n" % str(ee))
         sys.exit(9)
