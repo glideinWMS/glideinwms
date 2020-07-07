@@ -201,7 +201,7 @@ class DictFile:
 
         filepath = os.path.join(dir, fname)
         try:
-            fd = open(filepath, "r")
+            fd = open(filepath, "rb")
         except IOError as e:
             print("Error opening %s: %s" % (filepath, e))
             print("Assuming blank, and re-creating...")
@@ -229,11 +229,11 @@ class DictFile:
         idx = 0
         for line in lines:
             idx += 1
-            if line[-1] == '\n':
+            if line[-1] == b'\n':
                 # strip newline
                 line = line[:-1]
             try:
-                self.parse_val(line)
+                self.parse_val(line.decode('utf-8'))
             except RuntimeError as e:
                 raise RuntimeError("Line %i: %s" % (idx, str(e)))
 
@@ -244,8 +244,9 @@ class DictFile:
     def load_from_str(self, data,
                       erase_first=True,        # if True, delete old content first
                       set_not_changed=True):   # if True, set self.changed to False
-        fd = io.StringIO()
-        fd.write(data)
+        fd = io.BytesIO()
+        # TODO: there may be an optimization here adding a load_from_strfd() method to avoid the encode+decode steps
+        fd.write(data.encode('utf-8'))
         fd.seek(0)
         try:
             self.load_from_fd(fd, erase_first, set_not_changed)
@@ -743,6 +744,17 @@ class FileDictFile(SimpleFileDictFile):
     def get_file_fname(self, key):
         return self.val_to_file_name(self.vals[key])
 
+    def add_from_bytes(self, key, val,
+                     data,
+                     allow_overwrite=False,
+                     allow_overwrite_placeholder=True):
+
+        if key in self and allow_overwrite_placeholder:
+            if self.is_placeholder(key):
+                # since the other functions know nothing about placeholders, need to force overwrite
+                allow_overwrite = True
+        return SimpleFileDictFile.add_from_bytes(self, key, val, data, allow_overwrite)
+
     def add_from_str(self, key, val,
                      data,
                      allow_overwrite=False,
@@ -925,6 +937,11 @@ class StrDictFile(DictFile):
 # while populating, it may hold other types
 # not guaranteed to have typed values on (re-)load
 class StrWWorkTypeDictFile(StrDictFile):
+    """will save only strings
+    while populating, it may hold other types
+    not guaranteed to have typed values on (re-)load
+    """
+
     def __init__(self, dir, fname, sort_keys=False, order_matters=False,
                  fname_idx=None):      # if none, use fname
         StrDictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
@@ -947,8 +964,10 @@ class StrWWorkTypeDictFile(StrDictFile):
         self.typed_vals[key] = val
 
 
-# values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):
+    """DictFile class, values are (Type,Default,CondorName,Required,Export,UserName)
+    """
+
     def is_compatible(self, old_val, new_val):
         return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
 
@@ -1033,10 +1052,12 @@ class VarsDictFile(DictFile):
         return self.add(key, arr[1:])
 
 
-# This class holds the content of the whole file in the single val
-# with key 'content'
-# Any other key is invalid
 class SimpleFile(DictFile):
+    """This class holds the content of the whole file in the single val
+    with key 'content'
+    Any other key is invalid
+    """
+
     def add(self, key, val, allow_overwrite=False):
         if key != 'content':
             raise RuntimeError("Invalid key '%s'!='content'" % key)
@@ -1060,7 +1081,7 @@ class SimpleFile(DictFile):
         data = fd.read()
 
         # remove final newline, since it will be added at save time
-        if data[-1:] == '\n':
+        if data[-1:] == b'\n':
             data = data[:-1]
 
         self.add('content', data)
@@ -1073,11 +1094,13 @@ class SimpleFile(DictFile):
         raise RuntimeError("Not defined in SimpleFile")
 
 
-# This class holds the content of the whole file in the single val
-# with key 'content'
-# Any other key is invalid
-# When saving, it will make it executable
 class ExeFile(SimpleFile):
+    """This class holds the content of the whole file in the single val
+    with key 'content'
+    Any other key is invalid
+    When saving the content to the file, it will make it executable
+    """
+
     def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
              sort_keys=None,set_readonly=True,reset_changed=True,
              save_only_if_changed=True,
@@ -1103,12 +1126,30 @@ class ExeFile(SimpleFile):
 
         return
 
-########################################################################################################################
 
-# abstract class for a directory creation
+########################################################################################################################
+#
+# Classes to manage directories and symlinks to directories
+#
+###########################################################
+
 class dirSupport:
-    # returns a bool: True if the dir was created, false else
+    """abstract class for a directory creation
+    """
+
     def create_dir(self,fail_if_exists=True):
+        """Create the directory
+
+        Args:
+            fail_if_exists (bool): fail with RuntimeError if the directory exists already
+
+        Returns:
+            bool: True if the dir was created, false else
+
+        Raises:
+            RuntimeError: if failed the operation failed and the dircetory is not already there
+                or if it is there and fail_if_exists is True
+        """
         raise RuntimeError("Undefined")
 
     def delete_dir(self):
@@ -1117,6 +1158,12 @@ class dirSupport:
 
 class simpleDirSupport(dirSupport):
     def __init__(self, dir, dir_name):
+        """Constructor
+
+        Args:
+            dir: the path of the directory
+            dir_name: name of the directory to be used in error messages
+        """
         self.dir=dir
         self.dir_name=dir_name
 
@@ -1136,6 +1183,7 @@ class simpleDirSupport(dirSupport):
     def delete_dir(self):
         shutil.rmtree(self.dir)
 
+
 class chmodDirSupport(simpleDirSupport):
     def __init__(self, dir, chmod, dir_name):
         simpleDirSupport.__init__(self, dir, dir_name)
@@ -1154,7 +1202,10 @@ class chmodDirSupport(simpleDirSupport):
             raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
         return True
 
+
 class symlinkSupport(dirSupport):
+    """Symlink to a directory"""
+
     def __init__(self, target_dir, symlink, dir_name):
         self.target_dir=target_dir
         self.symlink=symlink
