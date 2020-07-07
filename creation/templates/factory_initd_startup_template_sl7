@@ -425,7 +425,7 @@ reconfig() {
             writeback="$GLIDEIN_WRITEBACK"
 	fi
 
-	echo -n "Reconfiguring the factory"
+	echo -n "Reconfiguring the factory... "
 	pushd $factory_dir 1>/dev/null
 	if [ "$RPM_INSTALL" = "True" ]; then
             extra_options=
