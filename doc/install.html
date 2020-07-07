@@ -49,7 +49,7 @@
         src="./images/simple_diagram.png" usemap="#rightimage">
     <map name="rightimage">
         <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/user_pool.html" />
         <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
     </map>
 
@@ -79,13 +79,11 @@
 <div class="related">
 Install documents:
     <ol>
-      <li><a href="./components/prerequisites.html">Pre-requisites</a></li>
-      <li><a href="./factory/install.html">WMS Pool and Factory</a></li>
-      <li><a href="./components/collector_install.html">User Pool Collector</a> </li>
-      <li><a href="./components/pool_install.html">User Pool Schedd</a> </li>
-      <li><a href="./frontend/install.html">Glidein Frontend</a> </li>
+	  <li><a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">GlideinWMS Factory</a></li>
+	  <li><a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">GlideinWMS Frontend</a> </li>
+      <li><a href="./components/user_pool.html">User Pool Collector</a> </li>
+      <li><a href="./components/user_schedd.html">User Pool Schedd</a> </li>
     </ol>
-    <a href="upgrade.html">Upgrade Guide</a><br/>
     <a href="download.html">Download Page</a><br/>
 </div>
 
@@ -126,7 +124,7 @@ Install documents:
 	    glidein Factory node</a> </li>
 	
 	  <li>A node containing the <a href="frontend/install.html">Glidein Frontend</a>,
-	    the <a href="components/collector_install.html">glidein User Pool</a> together with the <a href="components/pool_install.html">scheduler for user submissions</a>
+	    the <a href="components/user_pool.html">glidein User Pool</a> together with the <a href="components/user_schedd.html">scheduler for user submissions</a>
 	  </li>
 	</ul>
 	</p>
@@ -135,9 +133,9 @@ Install documents:
 	<ul>
 	  <li><a href="factory/install.html">The glidein WMS Pool and colocated
 	    glidein Factory node</a> </li>
-	  <li>A node containing the <a href="components/collector_install.html">glidein User Pool</a> together with the 
+	  <li>A node containing the <a href="components/user_pool.html">glidein User Pool</a> together with the 
             <a href="frontend/install.html">glidein Frontend</a> </li>
-	  <li>A node containing the <a href="components/pool_install.html">scheduler for user
+	  <li>A node containing the <a href="components/user_schedd.html">scheduler for user
 	    submissions</a> </li>
 	</ul>
 	</p>
@@ -147,8 +145,8 @@ Install documents:
 	  <li><a href="factory/install.html">The GlideinWMS Pool and colocated
 	    glidein Factory node</a>, with the collector of the WMS Pool running on port 8618.
 	    <a href="frontend/install.html">Glidein Frontend</a>,
-	    the <a href="components/collector_install.html">glidein User Pool</a> 
-	    (collector running on default port 9618) together with the <a href="components/pool_install.html">scheduler for user submissions</a>.
+	    the <a href="components/user_pool.html">glidein User Pool</a> 
+	    (collector running on default port 9618) together with the <a href="components/user_schedd.html">scheduler for user submissions</a>.
 	    With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
 	    when running commands.
 	   </li>
@@ -159,8 +157,8 @@ Install documents:
 	    Members of the Open Science Grid can use the OSG Factory at UCSD or GOC.    
 	    In this case, they need to install only the following services:
 	    <ul>
-	    <li><a href="components/collector_install.html">glidein User Pool</a></li> 
-	    <li><a href="components/pool_install.html">scheduler for user submissions</a></li> 
+	    <li><a href="components/user_pool.html">glidein User Pool</a></li> 
+	    <li><a href="components/user_schedd.html">scheduler for user submissions</a></li> 
 	    <li><a href="frontend/install.html">Glidein Frontend</a></li>
 	    </ul>
 	</p>

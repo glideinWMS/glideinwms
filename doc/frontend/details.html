@@ -16,7 +16,7 @@
     <ul class="breadcrumbs">
         <li><a href="../index.html">Home</a></li>
         <li><a href="./index.html">Glidein Frontend</a></li>
-        <li>Installation</li>
+        <li>Details</li>
     </ul>
     <div class="clear" />
     <div class="leftmenu">
@@ -50,20 +50,20 @@
         src="../images/simple_diagram.png" usemap="#rightimage">
     <map name="rightimage">
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/user_pool.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
     </map>
 
     <h2>Glidein Frontend</h2>
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
-	     <li> Install</li>
+	     <li> Details</li>
 	     <li> <a href="./configuration.html">Configuration</a></li>
 	     <li> <a href="./design.html">Design</a></li>
          <li> <a href="./monitoring.html">Monitoring</a></li>
 	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
 	</ul>
-        <h3>Installation</h3>
+        <h3>Details</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
@@ -77,16 +77,7 @@
     <li><a href="#frontend">Frontend installation</a></li>
 </ol>
 </div>
-<div class="related">
-<u><b>Installation Procedure</b></u><br/><br/>
 
-<a href="../install.html">Installation Overview</a><br/><br/>
-<a href="../install.html#osg">Connecting to OSG Factory</a><br/><br/>
-
-Preceded by: <a href="../components/pool_install.html">User Pool Schedd</a><br/>
-Followed by: <a href="../components/index.html">Other Components</a><br/>
-Install as: <b>VO Frontend User</b><br/>
-</div>
 <div class="section">
 
             <h2><a name="description">1. Description</a></h2>
@@ -128,122 +119,9 @@ Install as: <b>VO Frontend User</b><br/>
 
 
 <div class="section">
-    <h2><a name="software">3. Needed software</a></h2>
-    <p>See the <a href="../components/prerequisites.html">prerequisites</a> page for a list of software requirements.
-</div>
 
-    <div class="section">
-
-    <h2><a name="before_install">4. Before you begin...</a></h2>
-    <h3><a name="before_install_users">4.1 Required Users</a></h3>
-    <p>
-        The installer requires a non-privileged user.  This will be created by the GlideinWMS RPM installer.
-    </p>
+    <h2><a name="frontend">3. Downtime handling</a></h2>
     
-    <table class="requirements">
-    <tr class="head">
-
-        <td>User</td>
-        <td>Notes</td>
-    </tr>
-    <tr>
-        <td>VO Frontend User (<b>frontend</b>)</td>
-        <td>
-            The Glidein Frontend should be installed as a non-privilged user.
-        </td>
-
-    </tr>
-    </table>
-    <br>
-    
-   <h3><a name="before_install_certs">4.2 Required Certificates/Proxies</a></h3>
-    <p>
-        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
-        created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
-        <ul>
-            <li>WMS Pool (Collector) cert/proxy DN</li>
-            <li>User Pool (Collector) cert/proxy DN</li>
-            <li>User Submitter cert/proxy DN</li>
-            <li>Glidein Frontend HTCondor proxy DN (cannot use a cert here)</li>
-        </ul>
-    </p>
-</div>
-
-
-<div class="section">
-    
-    <h2><a name="system">5. HTCondor installation instructions</a></h2>
-
-    <p>
-        The Glidein Frontend will need the the HTCondor binaries. You can reuse an existing installation, if available, like if you host
-        the Glidein Frontend on the <a href="../components/pool_install.html">a submitter node</a>
-or on <a href="../components/pool_install.html">a submitter node</a>.
-    </p>
-
-
-</div>
-
-
-<div class="section">
-
-    <h2><a name="frontend">6. Glidein Frontend installation</a></h2>
-    <p>
-        The Glidein Frontend needs a x509 proxy to communicate with the glidein Factory. You need to create such proxy before starting a VO 
-        Frontend and then keep it valid for the life of the Frontend (see <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#vo-frontend-proxy">here</a>). If used for glidein submission (i.e. if it is passed to the glidein Factory), this proxy must at any point in time have a validity of at least the longest expected job being run by the GlideinWMS
-        (and not less than 12 hours).<br><br>
-        How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a local certificate, scp from other nodes, or other methods), 
-        is beyond the scope of this document.
-    </p>
-
-    <p>
-        The VO Frontend can also host the x509 proxies used for glidein submission. If you do use this (recommended) method, you need to
-        keep these proxies valid at all times, as you do for the main Frontend proxy.
-    </p>
-
-    <p>
-        Instructions on how to install the GlideinWMS VO Frontend are provided <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">here</a>.
-	</p>
-
-	<p>
-        Example configuration files, are available <a href="../components/configuration_install.html">here</a>.
-	</p>
-
-    <h3>6.1. Starting the Glidein Frontend</h3>
-
-    <p>Starting as a service:</p>
-    <blockquote>
-        systemctl start gwms-frontend
-    </blockquote>
-
-    <p>Using the startup script:</p>
-    <blockquote>
-        gwms-frontend start
-    </blockquote>
-
-    <p>The same method can be used to stop, reconfig and restart the Glidein Frontend.</p>
-
-    <h3>6.2. Reconfiguring the Glidein Frontend</h3>
-    <p>
-	After changing the frontend configuration file (i.e. frontend.xml), you must run the following command for your changes to take effect:
-	</p>
-	<blockquote>
-	    gwms-frontend reconfig
-	</blockquote>
-	<p>
-	This will update the directory tree and restart the Frontend and group daemons. (If the Frontend wasn't running at the time of reconfig it
-	will only update the directory tree.)
-	</p>
-	
-	<p>
-	Please notice that if you make any errors in the new configuration file, the reconfig 
-	script will throw an error and do nothing. If you executed the reconfig command while the Frontend was running, it will revert to 
-	the last config file and restart with those settings.  As long as you use this tool, you should never corrupt the installation tree.
-	</p>
-	<p><b>NOTE</b>: The reconfig tool does not kill the Frontend in case of errors.
-	It is also recommended that you disable any groups that will not be used.  Never remove them from the config file.</p>
-
-
-    <h3>6.3 Downtime handling</h3>
     <p>The glidein Frontend supports the dynamic handling of downtimes.</p>
     <p>You (Frontend admins) should add the following attribute for the Frontend tag in frontend.xml manually:
     <blockquote>
@@ -282,8 +160,8 @@ or on <a href="../components/pool_install.html">a submitter node</a>.
         such as "2011-11-28:23:01:00."
     </p>
 
+</div>
 
-    </div>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
