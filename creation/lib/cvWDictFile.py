@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   VO Frontend creation module
@@ -48,12 +48,12 @@ class ParamsDictFile(cWDictFile.DictFile):
             type_str='EXPR'
         else:
             type_str='CONST'
-            
+
         self.add(key, (type_str, val), allow_overwrite)
-        
+
     def format_val(self, key, want_comments):
         return "%s \t%s \t%s"%(key, self.vals[key][0], repr(self.vals[key][1]))
-        
+
 
     def parse_val(self, line):
         if len(line)==0:
@@ -101,7 +101,7 @@ def get_main_dicts(work_dir, stage_dir, simple_work_dir, assume_groups):
     if assume_groups:
         main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir, cWConsts.insert_timestr(cvWConsts.AFTERGROUP_FILE_LISTFILE), fname_idx=cvWConsts.AFTERGROUP_FILE_LISTFILE)
         main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir, cWConsts.insert_timestr(cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE), fname_idx=cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
-        
+
     return main_dicts
 
 def get_group_dicts(group_work_dir, group_stage_dir, group_name, simple_work_dir):
@@ -154,7 +154,7 @@ def load_main_dicts(main_dicts): # update in place
     load_common_dicts(main_dicts, main_dicts['description'])
 
 def load_group_dicts(group_dicts,                   # update in place
-                     group_name, summary_signature): 
+                     group_name, summary_signature):
     group_dicts['group_descript'].load()
     # load the description (name from summary_signature)
     group_dicts['description'].load(fname=summary_signature[cvWConsts.get_group_stage_dir("", group_name)][1])
@@ -179,26 +179,26 @@ def refresh_description(dicts):  # update in place
 def refresh_file_list(dicts, is_main,  # update in place
                       files_set_readonly=True, files_reset_changed=True):
     file_dict = dicts['preentry_file_list']
-    file_dict.add_from_str(
+    file_dict.add_from_bytes(
             cWConsts.CONSTS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['consts'].get_fname(), 'regular', config_out='CONSTS_FILE'),
             dicts['consts'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
-    file_dict.add_from_str(
+    file_dict.add_from_bytes(
             cWConsts.VARS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['vars'].get_fname(), 'regular', config_out='CONDOR_VARS_FILE'),
             dicts['vars'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
-    file_dict.add_from_str(
+    file_dict.add_from_bytes(
             cWConsts.UNTAR_CFG_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['untar_cfg'].get_fname(), 'regular', config_out='UNTAR_CFG_FILE'),
             dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     if is_main:
-        file_dict.add_from_str(
+        file_dict.add_from_bytes(
                 cWConsts.GRIDMAP_FILE,
                 cWDictFile.FileDictFile.make_val_tuple(dicts['gridmap'].get_fname(), 'regular', config_out='GRIDMAP'),
                 dicts['gridmap'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
@@ -300,7 +300,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
     for k in ('consts', 'untar_cfg', 'vars', 'gridmap'):
         if k in dicts:
             all_reused=reuse_simple_dict(dicts, other_dicts, k) and all_reused
-    # since the file names may have changed, refresh the file_list    
+    # since the file names may have changed, refresh the file_list
     refresh_file_list(dicts, is_main)
     # check file-based dictionaries
     for k in ('preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list'):
@@ -314,7 +314,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
             dicts[k]=copy.deepcopy(other_dicts[k])
             dicts[k].changed=False
             dicts[k].set_readonly(True)
-            
+
     # check the mutable ones
     for k in ('params', 'attrs'):
         if k in dicts:
@@ -355,7 +355,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
                  log_dir=None):         # used only if simple_work_dir=False
         self.assume_groups=assume_groups
         cWDictFile.fileMainDicts.__init__(self, work_dir, stage_dir, workdir_name, simple_work_dir, log_dir)
-        
+
 
     ######################################
     # Redefine methods needed by parent
@@ -380,8 +380,8 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
     # Overwritting the empty one
     def get_main_dicts(self):
         return get_main_dicts(self.work_dir, self.stage_dir, self.simple_work_dir, self.assume_groups)
-    
-        
+
+
 ################################################
 #
 # This Class contains the group dicts
@@ -399,7 +399,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
 
     def save_final(self,set_readonly=True):
         pass # nothing to do
-    
+
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         cWDictFile.fileSubDicts.reuse(self, other)
@@ -411,19 +411,19 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
 
     def get_sub_work_dir(self, base_dir):
         return cvWConsts.get_group_work_dir(base_dir, self.sub_name)
-    
+
     def get_sub_log_dir(self, base_dir):
         return cvWConsts.get_group_log_dir(base_dir, self.sub_name)
-    
+
     def get_sub_stage_dir(self, base_dir):
         return cvWConsts.get_group_stage_dir(base_dir, self.sub_name)
-    
+
     def get_sub_dicts(self):
         return get_group_dicts(self.work_dir, self.stage_dir, self.sub_name, self.simple_work_dir)
-    
+
     def reuse_nocheck(self, other):
         reuse_group_dicts(self.dicts, other.dicts, self.sub_name)
-        
+
 ################################################
 #
 # This Class contains both the main and
@@ -451,4 +451,4 @@ class frontendDicts(cWDictFile.fileDicts):
 
     def get_sub_name_from_sub_stage_dir(self, sign_key):
         return cvWConsts.get_group_name_from_group_stage_dir(sign_key)
-    
+

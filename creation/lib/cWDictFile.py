@@ -162,16 +162,16 @@ class DictFile:
 
         header=self.file_header(want_comments)
         if header is not None:
-            fd.write("%s\n"%header)
+            fd.write(b"%s\n"%header.encode('utf-8'))
         if sort_keys:
             keys=sorted(self.keys[0:])  # makes a copy
         else:
             keys=self.keys
         for k in keys:
-            fd.write("%s\n"%self.format_val(k, want_comments))
+            fd.write(b"%s\n"%self.format_val(k, want_comments).encode('utf-8'))
         footer=self.file_footer(want_comments)
         if footer is not None:
-            fd.write("%s\n"%footer)
+            fd.write(b"%s\n"%footer.encode('utf-8'))
 
         if set_readonly:
             self.set_readonly(True)
@@ -183,7 +183,7 @@ class DictFile:
     def save_into_str(self,
                       sort_keys=None,set_readonly=True,reset_changed=True,
                       want_comments=True):
-        fd=io.StringIO()
+        fd=io.BytesIO()
         self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         fd.seek(0)
         data=fd.read()
