@@ -139,7 +139,7 @@ class DictFile:
             os.makedirs(dir)
         filepath=os.path.join(dir, fname)
         try:
-            with open(filepath, "w") as fd:
+            with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
             raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
@@ -229,8 +229,8 @@ class DictFile:
         idx = 0
         for line in lines:
             idx += 1
-            if line[-1] == b'\n':
-                # strip newline
+            if line[-1:] == b'\n':
+                # strip newline, colon is needed, otherwise the number 10 is returned for \n
                 line = line[:-1]
             try:
                 self.parse_val(line.decode('utf-8'))
@@ -682,7 +682,7 @@ class SimpleFileDictFile(DictFile):
             if (not allow_overwrite) and os.path.exists(filepath):
                 raise RuntimeError("File %s already exists" % filepath)
             try:
-                fd = open(filepath, "w")
+                fd = open(filepath, "wb")
             except IOError as e:
                 raise RuntimeError("Could not create file %s" % filepath)
             try:
@@ -1082,6 +1082,7 @@ class SimpleFile(DictFile):
 
         # remove final newline, since it will be added at save time
         if data[-1:] == b'\n':
+            # strip newline, colon is needed, otherwise the number 10 is returned for \n
             data = data[:-1]
 
         self.add('content', data)
@@ -1106,7 +1107,7 @@ class ExeFile(SimpleFile):
              save_only_if_changed=True,
              want_comments=True):
         if save_only_if_changed and (not self.changed):
-            return # no change -> don't save
+            return  # no change -> don't save
 
         if dir is None:
             dir=self.dir
@@ -1118,7 +1119,7 @@ class ExeFile(SimpleFile):
 
         filepath=os.path.join(dir, fname)
         try:
-            with open(filepath, "w") as fd:
+            with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
             raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
