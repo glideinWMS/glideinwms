@@ -1896,7 +1896,7 @@ do
   fetch_file_regular "$gs_id" "$gs_id_descript_file"
   signature_file_line="`grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}"`"
   if [ $? -ne 0 ]; then
-      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
       glidein_exit 1
   fi
   signature_file="`echo "$signature_file_line" | cut -s -f 2-`"
