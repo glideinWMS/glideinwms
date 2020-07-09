@@ -52,7 +52,6 @@ ${filename} [options] COMMAND [command options]
   bats - run Shell unit tests and coverage
   unittest - run Python unit test and coverage
   pylint - run pylint and pycodestyle (pep8)
-  futurize - run futurize
   shellcheck - run shellcheck
  Options:
   -h          print this message

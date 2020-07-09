@@ -105,7 +105,7 @@ setup_python_venv() {
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
     pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-    pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
+    pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner importlib argparse"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
