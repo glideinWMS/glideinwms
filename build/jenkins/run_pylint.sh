@@ -1,5 +1,4 @@
 #!/bin/sh
-# pep8 is now called pycodestyle. pep8 is still used in variable names and logging
 
 
 find_aux () {
@@ -40,99 +39,226 @@ process_branch() {
     # Consider success if no git checkout was done
     echo "GIT_CHECKOUT=\"PASSED\"" >> $results
 
+    ################
+    # pylint
+    ################
+
     # pylint related variables
     PYLINT_RCFILE=/dev/null
     PYLINT_OPTIONS="--errors-only --rcfile=$PYLINT_RCFILE"
+    # Starting pylint 1.4 external modules must be whitelisted
+    PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"
 
-    # Some of the options in the following section depend more on the pylint version
-    # than the Python version
-    # Make sure to check and be consistent w/ the venv setup in util.sh
-    if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
-        # PYLINT_IGNORE_LIST files for python 2.6 here
-        # white-space seperated list of files to be skipped by pylint
-        # --ignore-module/--ignore  is supposed to do this but doesn't
-        # seem to work.  After coding this I found that it is
-        # not needed with careful use of --disable: directive but its
-        # here if needed in future
-        PYLINT_IGNORE_LIST=""
-        # pylint directives added since v1.3.1 throw bad-option-value
-        # errors unless disabled at command line
-        PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable bad-option-value"
-    else
-        #PYLINT_IGNORE_LIST files for python 2.7+ here
-        PYLINT_IGNORE_LIST=""
-        # unsubscriptable-object considered to be buggy in recent pylint relases
-        PYLINT_OPTIONS="$PYLINT_OPTIONS  --disable unsubscriptable-object"
-        # Starting pylint 1.4 external modules must be whitelisted
-        PYLINT_OPTIONS="$PYLINT_OPTIONS --extension-pkg-whitelist=htcondor,classad"
-    fi
+    ################
+    # pycodestyle
+    ################
 
-    # pep8 related variables
-    # default: E121,E123,E126,E226,E24,E704
-    # E501 line too long (90 > 79 characters)
-    # E251 unexpected spaces around keyword / parameter equals
-    # E303 too many blank lines (2)
-    # E225 missing whitespace around operator
-    # E231 missing whitespace after ','
-    # E228 missing whitespace around modulo operator
-    # E302 expected 2 blank lines, found 1
-    # E221 multiple spaces before operator
-    # E261 at least two spaces before inline comment
-    # E111 indentation is not a multiple of four
-    # W293 blank line contains whitespace
-    # W291 trailing whitespace
-    # E265 block comment should start with '# '
-
-    #PEP8_OPTIONS="--ignore=E121,E123,E126,E226,E24,E704,E501,E251,E303,E225,E231,E228,E302,E221,E261,E111,W293,W291,E265"
+    # Formorally pep8, which the name is still used in logging
 
     #uncomment or add lines to taste
     #see tail of pep8.log for counts of
     #various pep8 errors
 
+    # Note:  Uncommenting the first line  should be
+    # ="$PEP8_OPTIONS""CODE"
+
     PEP8_OPTIONS="--ignore="
-    # E111 indentation is not a multiple of four
+
+
+    # E1    Indentation
+    # E101  indentation contains mixed spaces and tabs
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E101"
+    # E111  indentation is not a multiple of four
     PEP8_OPTIONS="$PEP8_OPTIONS""E111"
-    # E121 continuation line under-indented for hanging indent
+    # E112  expected an indented block
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E112"
+    # E113  unexpected indentation
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E113"
+    # E114  indentation is not a multiple of four (comment)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E114"
+    # E115  expected an indented block (comment)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E115"
+    # E116  unexpected indentation (comment)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E116"
+    # E117  over-indented
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E117"
+    # E121 (*^) continuation line under-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E121"
-    # E123 closing bracket does not match indentation of opening bracket's line
+    # E122 (^)  continuation line missing indentation or outdented
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E122"
+    # E123 (*)  closing bracket does not match indentation of opening bracket’s line
     #PEP8_OPTIONS="$PEP8_OPTIONS,E123"
-    # E126 continuation line over-indented for hanging indent
+    # E124 (^)  closing bracket does not match visual indentation
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E124"
+    # E125 (^)  continuation line with same indent as next logical line
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E125"
+    # E126 (*^) continuation line over-indented for hanging indent
     #PEP8_OPTIONS="$PEP8_OPTIONS,E126"
-    # E221 multiple spaces before operator
+    # E127 (^)  continuation line over-indented for visual indent
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E127"
+    # E128 (^)  continuation line under-indented for visual indent
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E128"
+    # E129 (^)  visually indented line with same indent as next logical line
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E129"
+    # E131 (^)  continuation line unaligned for hanging indent
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E131"
+    # E133 (*)  closing bracket is missing indentation
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E13
+    # E2    Whitespace3"
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E2"
+    # E201  whitespace after ‘(‘
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E201"
+    # E202  whitespace before ‘)’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E202"
+    # E203  whitespace before ‘:’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E203"
+    # E211  whitespace before ‘(‘
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E211"
+    # E221  multiple spaces before operator
     #PEP8_OPTIONS="$PEP8_OPTIONS,E221"
-    # E225 missing whitespace around operator
+    # E222  multiple spaces after operator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E222"
+    # E223  tab before operator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E223"
+    # E224  tab after operator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E224"
+    # E225  missing whitespace around operator
     PEP8_OPTIONS="$PEP8_OPTIONS,E225"
-    # E226 missing whitespace around arithmetic operator
+    # E226 (*)  missing whitespace around arithmetic operator
     PEP8_OPTIONS="$PEP8_OPTIONS,E226"
-    # E228 missing whitespace around modulo operator
+    # E227  missing whitespace around bitwise or shift operator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E227"
+    # E228  missing whitespace around modulo operator    
     PEP8_OPTIONS="$PEP8_OPTIONS,E228"
-    # E231 missing whitespace after ','
+    # E231  missing whitespace after ‘,’, ‘;’, or ‘:’ 
     PEP8_OPTIONS="$PEP8_OPTIONS,E231"
-    # E251 unexpected spaces around keyword / parameter equals
+    # E241 (*)  multiple spaces after ‘,’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E241"
+    # E242 (*)  tab after ‘,’    
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E242"
+    # E251  unexpected spaces around keyword / parameter equals  
     #PEP8_OPTIONS="$PEP8_OPTIONS,E251"
-    # E261 at least two spaces before inline comment
+    # E261  at least two spaces before inline comment
     PEP8_OPTIONS="$PEP8_OPTIONS,E261"
-    # E265 block comment should start with '# '
+    # E262  inline comment should start with ‘# ‘
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E262"
+    # E265  block comment should start with ‘# ‘
     PEP8_OPTIONS="$PEP8_OPTIONS,E265"
-    # E302 expected 2 blank lines, found 1
+    # E266  too many leading ‘#’ for block comment 
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E266"
+    # E271  multiple spaces after keyword
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E271"
+    # E272  multiple spaces before keyword
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E272"
+    # E273  tab after keyword
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E273"
+    # E274  tab before keyword
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E274"
+    # E275  missing whitespace after keyword
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E275"
+         
+    # E3    Blank line
+    # E301  expected 1 blank line, found 0
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E301"
+    # E302  expected 2 blank lines, found 0
     PEP8_OPTIONS="$PEP8_OPTIONS,E302"
-    # E303 too many blank lines (3)
+    # E303  too many blank lines (3)
     #PEP8_OPTIONS="$PEP8_OPTIONS,E303"
-    # E402 module level import not at top of file
+    # E304  blank lines found after function decorator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E304"
+    # E305  expected 2 blank lines after end of function or class
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E305"
+    # E306  expected 1 blank line before a nested definition
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E306"
+         
+    # E4    Import
+    # E401  multiple imports on one line
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E401"
+    # E402  module level import not at top of file
     #PEP8_OPTIONS="$PEP8_OPTIONS,E402"
-    # E501 line too long
+         
+    # E5    Line length
+    # E501 (^)  line too long (82 > 79 characters)
     PEP8_OPTIONS="$PEP8_OPTIONS,E501"
-    # E704 multiple statements on one line (def)
+    # E502  the backslash is redundant between brackets
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E502"
+         
+    # E7    Statement
+    # E701  multiple statements on one line (colon)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E701"
+    # E702  multiple statements on one line (semicolon)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E702"
+    # E703  statement ends with a semicolon
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E703"
+    # E704 (*)  multiple statements on one line (def)
     #PEP8_OPTIONS="$PEP8_OPTIONS,E704"
-    # W291 trailing whitespace
+    # E711 (^)  comparison to None should be ‘if cond is None:’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E711"
+    # E712 (^)  comparison to True should be ‘if cond is True:’ or ‘if cond:’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E712"
+    # E713  test for membership should be ‘not in’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E713"
+    # E714  test for object identity should be ‘is not’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E714"
+    # E721 (^)  do not compare types, use ‘isinstance()’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E721"
+    # E722  do not use bare except, specify exception instead
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E722"
+    # E731  do not assign a lambda expression, use a def
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E731"
+    # E741  do not use variables named ‘l’, ‘O’, or ‘I’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E741"
+    # E742  do not define classes named ‘l’, ‘O’, or ‘I’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E742"
+    # E743  do not define functions named ‘l’, ‘O’, or ‘I’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E743"
+         
+    # E9    Runtime
+    # E901  SyntaxError or IndentationError
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E901"
+    # E902  IOError
+    #PEP8_OPTIONS="$PEP8_OPTIONS,E902"
+         
+    # W1    Indentation warning
+    # W191  indentation contains tabs
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W191"
+         
+    # W2    Whitespace warning
+    # W291  trailing whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W291"
-    # W293 blank line contains whitespace
+    # W292  no newline at end of file
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W292"
+    # W293  blank line contains whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W293"
-    # W504 line break after binary operator
+         
+    # W3    Blank line warning
+    # W391  blank line at end of file
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W391"
+         
+    # W5    Line break warning
+    # W503 (*)  line break before binary operator
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W503"
+    # W504 (*)  line break after binary operator
     #PEP8_OPTIONS="$PEP8_OPTIONS,W504"
+    # W505 (*^) doc line too long (82 > 79 characters)
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W505"
+         
+    # W6    Deprecation warning
+    # W601  .has_key() is deprecated, use ‘in’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W601"
+    # W602  deprecated form of raising exception
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W602"
+    # W603  ‘<>’ is deprecated, use ‘!=’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W603"
+    # W604  backticks are deprecated, use ‘repr()’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W604"
+    # W605  invalid escape sequence ‘x’
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W605"
+    # W606  ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
+    #PEP8_OPTIONS="$PEP8_OPTIONS,W606"
 
 
-    #uncomment to see all pep8 errors
+    # Uncomment to see all pep8 errors
     #PEP8_OPTIONS=""
 
 
@@ -147,7 +273,6 @@ process_branch() {
     #fi
     scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
     echo "-- DBG $(echo $scripts | wc -w | tr -d " ") scripts found using magic file ($FILE_MAGIC) --"
-    echo $FILES_CHECKED | grep "py3tools/process_tags" -q && echo "-- WARNING Seems python3 files are being checked: $(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | grep py3 )"
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
       #can't seem to get --ignore or --ignore-modules to work, so do it this way
@@ -159,9 +284,9 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
+          python3 -m pylint $PYLINT_OPTIONS ${script}  >> $pylint_log || log_nonzero_rc "pylint" $?
       fi
-      pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
+      python3 -m pycodestyle $PEP8_OPTIONS ${script} >> ${pep8_log} || log_nonzero_rc "pep8" $?
     done
 
     currdir=`pwd`
@@ -181,9 +306,9 @@ process_branch() {
           fi
       done
       if [ "$PYLINT_SKIP" != "True" ]; then
-          pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
+          python3 -m pylint $PYLINT_OPTIONS $file >> "$pylint_log" || log_nonzero_rc "pylint" $?
       fi
-      pycodestyle $PEP8_OPTIONS $file >> "${pep8_log}" || log_nonzero_rc "pep8" $?
+      python3 -m pycodestyle $PEP8_OPTIONS $file >> "${pep8_log}" || log_nonzero_rc "pep8" $?
     done
     awk '{$1=""; print $0}' ${pep8_log} | sort | uniq -c | sort -n > ${pep8_log}.sorted
     echo "-------------------" >> ${pep8_log}
