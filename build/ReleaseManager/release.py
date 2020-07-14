@@ -133,11 +133,8 @@ def main(argv):
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
-    # rel.addTask(ReleaseManagerLib.TaskPylint(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
-    # rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    # rel.addTask(ReleaseManagerLib.TaskFrontendTar(rel))
-    # rel.addTask(ReleaseManagerLib.TaskFactoryTar(rel))
+    rel.addTask(ReleaseManagerLib.TaskTar(rel))
     rel.addTask(ReleaseManagerLib.TaskRPM(rel))
 
     rel.executeTasks()
