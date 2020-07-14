@@ -177,27 +177,6 @@ Install documents:
 </div>
 
 <div class="section">
-	<a name="configuration_based" />
-	<h3>Configuration based installer (manage-glideins)</h3>
-	<p>
-	GlideinWMS is installed with a configuration file (ini format) based installer.  All information needed by the services is 
-	listed in this file before installation, with a few exceptions. For example, the Factory entry details 
-	are still provided in a Q&A format during the installation process.  You may also need to manually add configuration 
-	information after installation, just as you did with the Q&A version.</p>
-	<p> There are several advantages to this type of install.  In addition to having all the details documented, it performs the actual 
-	installation faster and allows for re-installs more quickly.  Since you have all the information in this file, you can also 
-	reproduce the same installation as needed.
-	</p>
-	<p>As of v3.0, the Q&A installer is no longer supported. Installation is done through the 
-	manage_glideins script, located in GlideinWMS/install/, and uses the ini file described above.  This script offers several 
-	additional features as well, see <a href="#manage_script">below</a> for more information.</p>
-	<p><b>NOTE:</b> If you get an error during installation or validation that requires a change to 
-	the ini file, it is recommended that you go back and re-install ALL services.  You may affect one of the dependencies that will not 
-	be validated for the current node.</p>
-	
-</div>
-
-<div class="section">
 	<a name="ini_file" />
 	<h3>GlideinWMS ini configuration file</h3>
 	<p>

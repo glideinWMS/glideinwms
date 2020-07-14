@@ -405,7 +405,8 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
 
         for group in groups:
             element = glideinFrontendElement.glideinFrontendElement(
-                os.getpid(), work_dir, group, "run")
+                os.getpid(), work_dir, group, "run"
+            )
             # Set environment required to query factory collector
             set_frontend_htcondor_env(work_dir, frontendDescript, element)
 
@@ -463,7 +464,8 @@ def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
     if groups:
         if element is None:
             element = glideinFrontendElement.glideinFrontendElement(
-                os.getpid(), work_dir, groups[0], "run")
+                os.getpid(), work_dir, groups[0], "run"
+            )
         htc_env = {
             'CONDOR_CONFIG': frontendDescript.data['CondorConfig'],
             'X509_USER_PROXY': frontendDescript.data['ClassAdProxy'],
