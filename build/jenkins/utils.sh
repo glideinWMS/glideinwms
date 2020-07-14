@@ -43,37 +43,20 @@ setup_python_venv() {
     fi
     WORKSPACE=${1:-$(pwd)}
 
-    if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
-        # Get latest packages that work with python 2.6
-        PY_VER="2.6"
-        VIRTUALENV_VER=virtualenv-12.0.7
-        PYLINT='pylint==1.3.1'
-        ASTROID='astroid==1.2.1'
-        HYPOTHESIS="hypothesislegacysupport"
-        AUTOPEP8="autopep8==1.3"
-        TESTFIXTURES="testfixtures==5.4.0"
-        # htcondor is not pip for python 2.6 (will be found from the RPM)
-        HTCONDOR=
-        COVERAGE="coverage==4.5.4"
-        JSONPICKLE="jsonpickle==0.9"
-        PYCODESTYLE="pycodestyle==2.4.0"
-        MOCK="mock==2.0.0"
-    else
-        # use something more up-to-date
-        PY_VER="2.7"
-        VIRTUALENV_VER=virtualenv-16.0.0
-        PYLINT='pylint==1.8.4'
-        ASTROID='astroid==1.6.0'
-        HYPOTHESIS="hypothesis"
-        AUTOPEP8="autopep8"
-        TESTFIXTURES="testfixtures"
-        # Installing the pip version, in case the RPM is not installed
-        HTCONDOR="htcondor"
-        COVERAGE='coverage==4.5.4'
-        JSONPICKLE="jsonpickle"
-        PYCODESTYLE="pycodestyle"
-        MOCK="mock==3.0.3"
-    fi
+
+    PY_VER="3.6"
+    VIRTUALENV_VER=virtualenv-16.0.0
+    PYLINT='pylint==2.5.3'
+    ASTROID='astroid==2.4.2'
+    HYPOTHESIS="hypothesis"
+    AUTOPEP8="autopep8"
+    TESTFIXTURES="testfixtures"
+    # Installing the pip version, in case the RPM is not installed
+    HTCONDOR="htcondor"
+    COVERAGE='coverage==4.5.4'
+    JSONPICKLE="jsonpickle"
+    PYCODESTYLE="pycodestyle"
+    MOCK="mock==3.0.5"
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
@@ -92,7 +75,7 @@ setup_python_venv() {
     curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
     tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL"
 
-    #if we download the venv tarball everytime we should remake the venv
+    #if we download the venv tarball every time we should remake the venv
     #every time
     rm -rf "$VENV"
     "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
@@ -101,7 +84,7 @@ setup_python_venv() {
 
     export PYTHONPATH="$PWD:$PYTHONPATH"
 
-    # Install dependancies first so we don't get uncompatible ones
+    # Install dependencies first so we don't get incompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
     pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
