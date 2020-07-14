@@ -1666,7 +1666,7 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
             REQUIRED_OS is used to select the platform: the first platform in the list that matches a key will be used.
             You can use any string to identify the images as lons as you are consistent with REQUIRED_OS, but we recommend to
             use standard names like: rhel7 (for RHEL7 or SL7), rhel6 (fpr RHEL6 or SL6).
-            The default set in generic_pre_singularity_setup.sh is "rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
+            The default set in generic_pre_singularity_setup.sh is "rhel7:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest,rhel6:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest,rhel8:/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el8:latest"
 or by running a pre_singularity setup script.
             SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7, and SINGULARITY_IMAGE_DEFAULT are <b>deprecated</b> and will be ignored in the future.
             To ease the transition, these are currently added to SINGULARITY_IMAGES_DICT with keys rhel6, rhel7 and default, respectively.

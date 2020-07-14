@@ -75,9 +75,7 @@ CURR_TIME=$(date +%s)
 
 S_DRAINING=False
 S_PREEMPT=False
-if [ $SHTUDOWN_TIME -lt $CURR_TIME ] ; then
-    logmsg "Ignoring potentially stale MJF shutdown files since their shoutdown time is in the past"
-elif [ $((SHTUDOWN_TIME - CURR_TIME)) -lt $GRACE_TIME ]; then
+if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt $GRACE_TIME ]; then
     S_DRAINING=True
     logmsg "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`"
     if [ $((SHTUDOWN_TIME - CURR_TIME)) -lt 1800 ] ; then

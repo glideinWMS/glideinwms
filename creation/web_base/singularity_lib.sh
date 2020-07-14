@@ -1169,7 +1169,9 @@ singularity_locate_bin () {
     export GWMS_SINGULARITY_PATH=""
     export GWMS_SINGULARITY_VERSION=""
     export GWMS_SINGULARITY_MODE=""
-    warn "Singularity not found$s_location_msg in PATH, OSG_SINGULARITY_BINARY_DEFAULT and module"
+    warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY_DEFAULT, PATH and module"
+    # TODO: Adding as warning to troubleshoot [#24282]. This extra message should be debug information
+    warn "PATH(${PATH}), attempt results(${bread_crumbs})"
     false
 }
 
@@ -1503,13 +1505,22 @@ singularity_setup_inside () {
     # Override some OSG specific variables if defined
     [[ -n "$OSG_WN_TMP" ]] && export OSG_WN_TMP=/tmp
 
-    # TODO: setup "pychirp" instead
-    # From CMS
-    # Add Glidein provided HTCondor back to the environment (so that we can call chirp)
-    # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
-    if [[ -e "$PWD/condor/libexec/condor_chirp" ]]; then
-        export PATH="$PWD/condor/libexec:$PATH"
-        export LD_LIBRARY_PATH="$PWD/condor/lib:$LD_LIBRARY_PATH"
+    # GlideinWMS utility files and libraries
+    if [[ -e "$PWD/gwms/bin" ]]; then
+        # This includes the portable Python only condor_chirp
+        export PATH="$PWD/gwms/bin:$PATH"
+        # export LD_LIBRARY_PATH="$PWD/gwms/lib/lib:$LD_LIBRARY_PATH"
+    fi
+
+    if ! command -v condor_chirp > /dev/null 2>&1; then
+        # condor_chirp should have been provided by GWMS. Leaving this as alternative
+        # NOTE: this binary version may have problems if the original and image OSes are incompatible
+        # From CMS
+        # Add Glidein provided HTCondor back to the environment (so that we can call chirp)
+        if [[ -e "$PWD/condor/libexec/condor_chirp" ]]; then
+            export PATH="$PWD/condor/libexec:$PATH"
+            export LD_LIBRARY_PATH="$PWD/condor/lib:$LD_LIBRARY_PATH"
+        fi
     fi
 
     # Some java programs have seen problems with the timezone in our containers.

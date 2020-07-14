@@ -18,7 +18,7 @@ import shutil
 import cPickle as pickle
 import tempfile
 import time
-
+import subprocess
 
 #################################
 # Dictionary functions
@@ -29,6 +29,9 @@ from collections import Mapping
 from operator import add
 
 _FLAG_FIRST = object()
+
+HOOK_PRE_RECONFIG_DIRNAME = "hooks.reconfig.pre"
+HOOK_POST_RECONFIG_DIRNAME = "hooks.reconfig.post"
 
 # From http://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
 # Much faster than my first version
@@ -378,3 +381,17 @@ def safe_boolcomp(value, expected):
     """
 
     return str(value).lower() == str(expected).lower()
+
+
+def handle_hooks(basedir, script_dir):
+    """The function itaretes over the script_dir directory and executes any script found there
+    """
+
+    dirname = os.path.join(basedir, script_dir)
+    if not os.path.isdir(dirname):
+        return
+    for fname in sorted(os.listdir(dirname)):
+        script_name = os.path.join(dirname, fname)
+        if os.path.isfile(script_name) and os.access(script_name, os.X_OK):
+            print("\nExecuting reconfigure hook: " + script_name)
+            subprocess.call(script_name)
