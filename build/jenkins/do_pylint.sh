@@ -13,15 +13,22 @@ find_aux () {
 do_help_msg() {
   cat << EOF
 ${COMMAND} command:
-  Run pylint and exit the outfile to standard output
+  Run pylint and pycodestyle and output the outfile to standard output
 ${filename} [options] ${COMMAND} [other command options] TEST_FILES
-  Runs shellcheck on TEST_FILES files in glidinwms/
+  Run pylint and pycodestyle on TEST_FILES files in glidinwms/
 ${filename} [options] ${COMMAND} -a [other command options]
-  Run pylint on all the shell files in glidinwms/
+  Run pylint and pycodestyle on all the Python 3 files in glidinwms/
 Command options:
   -h        print this message
+  -a        run on all Python scripts (see above)
+  -n        show the list of flags passed to pylint and pycodestyle
+  -l        show the list of files checked
+  -t TESTS  string including the digits of the tests to run (Default: 12)
+            add 1 for pylint
+            add 2 for pycodestyle
 EOF
 }
+
 
 #############################################
 # CONFIGURABLE PYLINT &
@@ -242,6 +249,11 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W293"
 # Uncomment to see all pep8 errors
 #PYSTYLE_OPTIONS=""
 
+do_show_files() {
+    echo "Pylint and PyCodeStyle will inspect the following files:"
+    echo "$(get_python_scripts) $(get_python_files)"
+}
+
 do_show_flags() {
     echo "Pylint will run with options:"
     echo "$PYLINT_OPTIONS"
@@ -249,13 +261,41 @@ do_show_flags() {
     echo "$PYSTYLE_OPTIONS"
 }
 
+DO_TESTS="12"
+LIST_FILES=
+SHOW_FILES=
+
 do_parse_options() {
-    pass;
+    while getopts ":hanlt:" option
+    do
+      case "${option}"
+      in
+      h) help_msg; do_help_msg; exit 0;;
+      a) LIST_FILES=yes;;
+      n) do_show_flags; exit 0;;
+      l) SHOW_FILES=yes;;
+      t) DO_TESTS="$OPTARG";;
+      : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
+      *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
+      ##\?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
+      esac
+    done
+
+    shift $((OPTIND-1))
+
+    CMD_OPTIONS="$@"
+
 }
 
-do_get_dependencies() { pass; }
+do_use_python() {
+    if [[ -z "${SHOW_FILES}" ]]; then
+        true
+    else
+        false
+    fi
+}
 
-do_git_init_command() { git submodule update --init --recursive; }
+do_get_dependencies() { true; }
 
 do_check_requirements() {
     if ! command -v pylint > /dev/null 2>&1; then
@@ -270,78 +310,75 @@ do_check_requirements() {
     fi
 }
 
+ttt() {
+    local aaa=0
+    echo "ddd"
+}
+
 do_process_branch() {
     # 1 - branch
     # 2 - output file (output directory/output.branch)
 
     local branch="$1"
+    local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
+    local outfile="$2"
+    local out_pylint="${outfile}.pylint"
+    local out_pycs="${outfile}.pycs"
     local outdir="$(dirname "$2")"
-    local outfile="$(basename "$2")"
-    local branch_noslash="${outfile#*.}"
+    local outfilename="$(basename "$2")"
     shift 2
     local test_date=$(date "+%Y-%m-%d %H:%M:%S")
-    #SOURCES="$(get_source_directories)"
 
     local fail
     local fail_all=0
 
-    local branch_outdir="${outdir}/${branch_noslash}"
-    mkdir -p "${branch_outdir}
+    local file_list
+    if [[ -n "$LIST_FILES" ]]; then
+        files_list="$(get_python_scripts) $(get_python_files)"
+    else
+        files_list="$*"
+    fi
 
-    echo "#####################################################"
-    echo "Start : ${branch}"
+    if [[ -n  "${SHOW_FILES}" ]]; then
+        echo "Pylint and PyCodeStyle will inspect the following files:"
+        echo "${files_list}"
+        return
+    fi
+
+    # Initialize logs
+    > ${out_pylint}
+    > ${out_pycs}
+    > ${outfile}
+
+    loginfo "#####################################################"
+    loginfo "Start : ${branch}"
     start_time="$(date -u +%s.%N)"
 
-    # get list of python scripts without .py extension
-    magic_file="$(find_aux gwms_magic)"
-    FILE_MAGIC=
-    [ -e  "$magic_file" ] && FILE_MAGIC="-m $magic_file"
-
-    scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
-    echo "-- DBG $(echo $scripts | wc -w | tr -d " ") scripts found using magic file ($FILE_MAGIC) --"
-    cd "${GLIDEINWMS_SRC}"
-    for script in $scripts; do
-      #can't seem to get --ignore or --ignore-modules to work, so do it this way
-      PYLINT_SKIP="False"
-      for ignore in $PYLINT_IGNORE_LIST; do
-          if [ "$ignore" = "$script" ] ; then
-             echo "pylint skipping $script" >>  "$outfile"
-             PYLINT_SKIP="True"
-          fi
-      done
-      if [ "$PYLINT_SKIP" != "True" ]; then
-          python3 -m pylint $PYLINT_OPTIONS ${script}  >> $outfile || log_nonzero_rc "pylint" $?
-      fi
-      python3 -m pycodestyle $PEP8_OPTIONS ${script} >> ${outfile} || log_nonzero_rc "pep8" $?
+    # ALT
+    # while read -r filename
+    # do
+    # done <<< "${files_list}"
+    for filename in ${files_list}; do
+        if [[ "${DO_TESTS}" == *1* ]]; then
+            #can't seem to get --ignore or --ignore-modules to work, so do it this way
+            if [[ " ${PYLINT_IGNORE_LIST} " == *" ${filename} "* ]]; then
+                loginfo "pylint skipping ${filename}"
+            else
+                python3 -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+            fi
+        fi
+        if [[ "${DO_TESTS}" == *2* ]]; then
+            python3 -m pycodestyle $PEP8_OPTIONS ${filename} >> ${out_pycs} || log_nonzero_rc "pep8" $?
+        fi
     done
 
-    currdir=`pwd`
-    files_checked=`echo $scripts`
+    files_checked="$(echo ${files_list})"
 
-    #now do all the .py files
-    #shopt -s globstar
-    py_files=$(find . -readable -type f -name '*\.py')
-    for file in $py_files
-    do
-      files_checked="$files_checked $file"
-      PYLINT_SKIP="False"
-      for ignore in $PYLINT_IGNORE_LIST; do
-          if [ "$ignore" = "$file" ] ; then
-             echo "pylint skipping $file" >>  "$outfile"
-             PYLINT_SKIP="True"
-          fi
-      done
-      if [ "$PYLINT_SKIP" != "True" ]; then
-          python3 -m pylint $PYLINT_OPTIONS $file >> "$outfile" || log_nonzero_rc "pylint" $?
-      fi
-      python3 -m pycodestyle $PEP8_OPTIONS $file >> "${outfile}" || log_nonzero_rc "pep8" $?
-    done
-    awk '{$1=""; print $0}' ${outfile} | sort | uniq -c | sort -n > ${outfile}.sorted
+    awk '{$1=""; print $0}' ${outfile} | sort | uniq -c | sort -n > "${outfile}.sorted"
     echo "-------------------" >> ${outfile}
     echo "error count summary" >> ${outfile}
     echo "-------------------" >> ${outfile}
     cat ${outfile}.sorted     >> ${outfile}
-    cd $currdir
 
     echo "FILES_CHECKED=\"$files_checked\"" >> $outfile
     echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $outfile

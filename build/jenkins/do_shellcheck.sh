@@ -5,9 +5,9 @@
 do_help_msg() {
   cat << EOF
 ${COMMAND} command:
-  Run shellcheck and exit the results to standard output
+  Run shellcheck and output the results to standard output
 ${filename} [options] ${COMMAND} [other command options] TEST_FILES
-  Runs shellcheck on TEST_FILES files in glidinwms/
+  Run shellcheck on TEST_FILES files in glidinwms/
 ${filename} [options] ${COMMAND} -a [other command options]
   Run shellcheck on all the shell files in glidinwms/
 Command options:
@@ -68,7 +68,7 @@ do_parse_options() {
     fi
 }
 
-do_get_dependencies() { pass; }
+do_get_dependencies() { true; }
 
 do_git_init_command() { git submodule update --init --recursive; }
 
@@ -103,7 +103,7 @@ do_process_branch() {
 
     local file_list
     if [[ -n "$LIST_FILES" ]]; then
-        files_list="$(find . -readable -name  '*.bats' -print)"
+        files_list="$(get_shell_files)"
     else
         files_list="$*"
     fi

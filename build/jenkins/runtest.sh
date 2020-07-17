@@ -80,7 +80,7 @@ get_shell_files() {
     # Return to stdout a space separated list of Shell files with .py extension
     # All Shell files
     local src_dir="${1:-.}"
-    echo $(find "$src_dir" -path .git -prune -o -name '*.sh' -o -name '*.source')
+    echo $(find "$src_dir" -path "${src_dir}".git -prune -o -name '*.sh' -o -name '*.source')
 }
 
 
@@ -88,25 +88,27 @@ get_python_files() {
     # Return to stdout a space separated list of Python files with .py extension
     # All Python files
     local src_dir="${1:-.}"
-    echo $(find "$src_dir" -path .git -prune -o -name '*.py')
+    echo $(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py')
 }
 
 
 get_python_scripts() {
     # Return to stdout a space separated list of Python scripts without .py extension
-    # Python2 files
+    # Python3 files (containing python and
     # 1 - source directory
     # 2 - magic_file for find
     magic_file="$(find_aux gwms_magic)"
     local src_dir="${1:-.}"
     FILE_MAGIC=
     [[ -e  "$magic_file" ]] && FILE_MAGIC="-m $magic_file"
-    scripts=$(find "${1:-.}" -path .git -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    scripts=$(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python2 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    # scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
     #if [ -e  "$magic_file" ]; then
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #else
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #fi
+    echo "-- DBG $(echo ${scripts} | wc -w | tr -d " ") scripts found using magic file (${FILE_MAGIC}) --" >&2
     echo "$scripts"
 }
 
@@ -193,7 +195,7 @@ OPTIND=1
 COMMAND=$1; shift  # Remove the command from the argument list
 # Commands provide functions to perform the actions
 # Mandatory functions:
-#   do_parse_options
+#   do_parse_options - parse the command specific command line options
 #   do_process_branch - run the test on the current branch
 # All functions start with do_...
 
@@ -204,6 +206,9 @@ do_check_requirements() { true; }
 # do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
 do_git_init_command() { true; }
 do_parse_options() { logerror "command not implemented"; exit 1; }
+#do_process_branch "$1" "$outfile" "${CMD_OPTIONS[@]}"
+do_process_branch() { logerror "command not implemented"; exit 1; }
+
 
 case "$COMMAND" in
     unittest) command_file=do_unittest.sh;;
@@ -253,6 +258,10 @@ fi
 # After this line the script is in the working directory and the source tree is in ./glideinwms
 WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
+# Verify that this is correct also for in-place executions, -i
+if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
+    logexit "repository not found in .glideinwms (${GLIDEINWMS_SRC})"
+fi
 STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
 OUT_DIR="$(robust_realpath "$OUT_DIR")"
 
@@ -270,10 +279,10 @@ if [[ ! -d "${OUT_DIR}" ]]; then
     loginfo "created output directory ${OUT_DIR}"
 fi
 
-echo "command=$full_command_line" >> "$OUT_DIR/$STATFILE"
-echo "workdir=$WORKSPACE" >> "$OUT_DIR/$STATFILE"
-echo "srcdir=$GLIDEINWMS_SRC" >> "$OUT_DIR/$STATFILE"
-echo "outdir=$OUT_DIR" >> "$OUT_DIR/$STATFILE"
+echo "command=$full_command_line" >> "$STATFILE"
+echo "workdir=$WORKSPACE" >> "$STATFILE"
+echo "srcdir=$GLIDEINWMS_SRC" >> "$STATFILE"
+echo "outdir=$OUT_DIR" >> "$STATFILE"
 
 # Iterate throughout the git_branches array
 fail_global=0
@@ -326,7 +335,7 @@ mail_file="$mail_file
 # Save the email to a file
 echo "$mail_file" > "$OUT_DIR/email.txt"
 
-echo "exit_code=$fail_global" >> "$OUT_DIR/$STATFILE"
+echo "exit_code=$fail_global" >> "${STATFILE}"
 
 # All done
 loginfo "Logs are in $OUT_DIR"

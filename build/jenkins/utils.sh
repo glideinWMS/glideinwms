@@ -45,59 +45,74 @@ setup_python_venv() {
 
 
     PY_VER="3.6"
-    VIRTUALENV_VER=virtualenv-16.0.0
-    PYLINT='pylint==2.5.3'
-    ASTROID='astroid==2.4.2'
+    py_detected="$(python3 -V | cut -f2 -d ' ')"
+    [[ "${py_detected}" == 3* ]] || logexit "Python 3 required, detected ${py_detected}. Aborting"
+    [[ "${py_detected}" == "${PY_VER}"* ]] || logwarn "Reference version is Python 3.6. Detected ${py_detected}."
+    VIRTUALENV_VER=virtualenv
+    PYLINT='pylint'
+    ASTROID='astroid'
     HYPOTHESIS="hypothesis"
     AUTOPEP8="autopep8"
     TESTFIXTURES="testfixtures"
     # Installing the pip version, in case the RPM is not installed
     HTCONDOR="htcondor"
-    COVERAGE='coverage==4.5.4'
+    COVERAGE='coverage'
     JSONPICKLE="jsonpickle"
     PYCODESTYLE="pycodestyle"
-    MOCK="mock==3.0.5"
+    MOCK="mock=="
+#    PYLINT='pylint==2.5.3'
+#    ASTROID='astroid==2.4.2'
+#    HYPOTHESIS="hypothesis"
+#    AUTOPEP8="autopep8"
+#    TESTFIXTURES="testfixtures"
+#    # Installing the pip version, in case the RPM is not installed
+#    HTCONDOR="htcondor"
+#    COVERAGE='coverage==4.5.4'
+#    JSONPICKLE="jsonpickle"
+#    PYCODESTYLE="pycodestyle"
+#    MOCK="mock==3.0.5"
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
     #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
-    VENV=$WORKSPACE/venv-$PY_VER
+    VENV="${WORKSPACE}/venv-${py_detected}"
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
-        mkdir "$WORKSPACE"
+        mkdir -p "$WORKSPACE"
     fi
 
     echo "SETTING UP VIRTUAL ENVIRONMENT ..."
-    if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
-        rm "$WORKSPACE/$VIRTUALENV_TARBALL"
-    fi
-    curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
-    tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL"
-
-    #if we download the venv tarball every time we should remake the venv
-    #every time
+    # Virtualenv is in the distribution, no need to download it separately
+    # we still want to redo the virtualenv
     rm -rf "$VENV"
-    "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
+    #"$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
+    python3 -m venv --system-site-packages "$VENV"
 
     . "$VENV"/bin/activate
 
+    # TODO; is this needed or done in activate?
     export PYTHONPATH="$PWD:$PYTHONPATH"
 
     # Install dependencies first so we don't get incompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
-    pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-    pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner importlib argparse"
+    # importlib and argparse are in std Python 3.6
+    pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
+    pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner jwt"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+
+    # TODO: load the list from requirements.txt
+
+    python3 -m pip install --quiet --upgrade pip
 
     failed_packages=""
     for package in $pip_packages; do
         echo "Installing $package ..."
         status="DONE"
-        pip install --quiet "$package"
-        if [ $? -ne 0 ]; then
+        python3 -m pip install --quiet "$package"
+        if ! python3 -m pip install --quiet "$package" ; then
             status="FAILED"
             failed_packages="$failed_packages $package"
         fi
@@ -106,10 +121,9 @@ setup_python_venv() {
     #try again if anything failed to install, sometimes its order
     for package in $failed_packages; do
         echo "REINSTALLING $package"
-        pip install "$package"
-        if [ $? -ne 0 ]; then
-            echo "ERROR $package could not be installed.  Exiting"
-            return 1
+        if ! python3 -m pip install "$package" ; then
+            logerror "ERROR $package could not be installed.  Stopping venv setup."
+            #return 1
         fi
     done
 

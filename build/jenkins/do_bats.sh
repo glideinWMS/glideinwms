@@ -73,9 +73,10 @@ do_process_branch() {
         logexit "cannot find the test directory './test/bats', in $(pwd), exiting"
     fi
     local branch="$1"
+    local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
+    local outfile="$2"
     local outdir="$(dirname "$2")"
-    local outfile="$(basename "$2")"
-    local branch_noslash="${outfile#*.}"
+    local outfilename="$(basename "$2")"
     shift 2
     local test_date=$(date "+%Y-%m-%d %H:%M:%S")
     #SOURCES="$(get_source_directories)"
