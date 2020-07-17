@@ -1,3 +1,23 @@
+v3_6_3
+	Add Python condor_chirp to PATH
+	Dropped tarball installation support
+	Add Python condor_chirp and other GWMS tools to PATH in Singularity
+	Removed "Group:System Environment/Daemons" from glideinwms.spec in OSG repo
+	Added new API documentation using sphinx
+	Added a runner to run the different tests with consistent CLI
+	Added new RHEL 8 Singularity image
+	Updated the singularity wrapper with new features form the OSG wrapper
+	Clean PYTHONPATH and setup GWMS environment in Singularity containers
+	Improved the environment handling of the Singularity wrapper
+	Bug fix: Upgrade the factory documentation not to ask to install the switchboard
+	Bug fix: The Python version of condor_chirp now works with Singularity jobs
+	Bug fix: Enable RFC proxies by default for direct proxies
+	Bug fix: Fix OSG_autoconf and gfdiff
+	Bug fix: Added COMPLETED to the known list of "GridJobStatus"es
+	Bug fix: Add a knob to set entry limits in OSG_autoconf
+	Bug fix: Stop pilots even after the downtime timestamp has been reached when draining pilots
+	Bug fix: Glideins are unrecoverable unless listed as recoverable
+
 v3_6_2
 	Add a portable condor_chirp for user jobs running in the glideins
 	Automate the generation of factory configuration
