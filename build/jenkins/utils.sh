@@ -1,33 +1,5 @@
 #!/bin/sh
-
-loginfo() {
-    [[ -n "$VERBOSE" ]] && echo "$1"
-}
-
-
-logwarn(){
-    echo "$filename WARNING: $1" >&2
-}
-
-
-logerror() {
-    echo "$filename ERROR: $1" >&2
-}
-
-
-logexit() {
-    # Fail: log the error and exit
-    logerror "$1"
-    # logerror "exiting"
-    exit ${2:-1}
-}
-
-
-log_nonzero_rc() {
-    echo "$(date) ERROR: $1 failed with non zero exit code ($2)" 1>&2
-    return $2
-}
-
+# Utility functions for the GlideinWMS CI tests
 
 robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then
@@ -36,10 +8,70 @@ robust_realpath() {
 }
 
 
+######################################
+# logging and output functions
+######################################
+
+# Using TESTLOG if defined
+logreportok() {
+    loglog "$1=\"PASSED\""
+}
+
+logreportfail() {
+    loglog "$1=\"FAILED\""
+}
+
+logreportstr() {
+    loglog "$1=\"$2\""
+}
+
+logreport() {
+    loglog "$1=$2"
+}
+
+loglog() {
+    [[ -n "${TESTLOG}" ]] && echo "$1" >> "${TESTLOG}"
+    echo "$1"
+}
+
+loginfoout() {
+    [[ -n "$VERBOSE" ]] && echo "$1"
+}
+
+loginfo() {
+    [[ -n "$VERBOSE" ]] && echo "$filename INFO: $1" >&2
+}
+
+logwarn(){
+    echo "$filename WARNING: $1" >&2
+}
+
+logerror() {
+    echo "$filename ERROR: $1" >&2
+}
+
+logexit() {
+    # Fail: log the error and exit
+    # 1. message 2. exit code 3. attribute for logreportfail
+    [ -n "$3" ] && logreportfail $3
+    logerror "$1"
+    # logerror "exiting"
+    exit ${2:-1}
+}
+
+log_nonzero_rc() {
+    echo "$(date) ERROR: $1 failed with non zero exit code ($2)" 1>&2
+    return $2
+}
+
+
+############################
+# Python functions
+############################
+
 setup_python_venv() {
     if [ $# -gt 1 ]; then
-        echo "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
-        exit 1
+        logexit "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
     fi
     WORKSPACE=${1:-$(pwd)}
 
@@ -59,7 +91,7 @@ setup_python_venv() {
     COVERAGE='coverage'
     JSONPICKLE="jsonpickle"
     PYCODESTYLE="pycodestyle"
-    MOCK="mock=="
+    MOCK="mock"
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
 #    HYPOTHESIS="hypothesis"
@@ -72,9 +104,6 @@ setup_python_venv() {
 #    PYCODESTYLE="pycodestyle"
 #    MOCK="mock==3.0.5"
 
-    VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
-    VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
-    #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
     VENV="${WORKSPACE}/venv-${py_detected}"
 
     # Following is useful for running the script outside jenkins
@@ -82,7 +111,7 @@ setup_python_venv() {
         mkdir -p "$WORKSPACE"
     fi
 
-    echo "SETTING UP VIRTUAL ENVIRONMENT ..."
+    loginfo "Setting up the Virtual Environment ..."
     # Virtualenv is in the distribution, no need to download it separately
     # we still want to redo the virtualenv
     rm -rf "$VENV"
@@ -97,33 +126,41 @@ setup_python_venv() {
     # Install dependencies first so we don't get incompatible ones
     # Following RPMs need to be installed on the machine:
     # pep8 has been replaced by pycodestyle
-    # importlib and argparse are in std Python 3.6
+    # importlib and argparse are in std Python 3.6 (>=3.1)
+    # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
     pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-    pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner jwt"
+    pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
     pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
     pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
     # TODO: load the list from requirements.txt
 
+    # To avoid: Cache entry deserialization failed, entry ignored
+    # curl https://bootstrap.pypa.io/get-pip.py | python3
     python3 -m pip install --quiet --upgrade pip
 
     failed_packages=""
     for package in $pip_packages; do
-        echo "Installing $package ..."
+        loginfo "Installing $package ..."
         status="DONE"
         python3 -m pip install --quiet "$package"
         if ! python3 -m pip install --quiet "$package" ; then
             status="FAILED"
             failed_packages="$failed_packages $package"
         fi
-        echo "Installing $package ... $status"
+        loginfo "Installing $package ... $status"
     done
     #try again if anything failed to install, sometimes its order
+    NOT_FATAL="htcondor"
     for package in $failed_packages; do
         echo "REINSTALLING $package"
         if ! python3 -m pip install "$package" ; then
-            logerror "ERROR $package could not be installed.  Stopping venv setup."
-            #return 1
+            if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
+                logerror "ERROR $package could not be installed.  Continuing."
+            else
+                logerror "ERROR $package could not be installed.  Stopping venv setup."
+                return 1
+            fi
         fi
     done
 
@@ -163,28 +200,73 @@ get_source_directories() {
 
 
 print_python_info() {
+    # Log Python info. Add HTML formatting if parameters are passed
     if [ $# -ne 0 ]; then
         br="<br/>"
         bo="<b>"
         bc="</b>"
+        echo "<p>"
     fi
     echo "${bo}HOSTNAME:${bc} $(hostname -f)$br"
-    echo "${bo}LINUX DISTRO:${bc} $(lsb_release -d)$br"
+    if ! command lsb_release 2>/dev/null ; then
+        echo "${bo}LINUX DISTRO:${bc} $(lsb_release -d)$br"
+    else
+        echo "${bo}LINUX DISTRO:${bc} no linux$br"
+    fi
     echo "${bo}PYTHON LOCATION:${bc} $(which python)$br"
     echo "${bo}PYLINT:${bc} $(pylint --version)$br"
     echo "${bo}PEP8:${bc} $(pycodestyle --version)$br"
+    [ $# -ne 0 ] && echo "</p>"
 }
 
 
-mail_results() {
-    local contents=$1
-    local subject=$2
+###############################################################################
+# HTML inline CSS
+HTML_TABLE="border: 1px solid black;border-collapse: collapse;"
+HTML_THEAD="font-weight: bold;border: 0px solid black;background-color: #ffcc00;"
+HTML_THEAD_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #ffb300;padding: 8px;"
+
+HTML_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #00ccff;padding: 8px;"
+HTML_TR="padding: 5px;text-align: center;"
+HTML_TD="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
+
+HTML_TR_PASSED="padding: 5px;text-align: center;"
+HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
+
+HTML_TR_FAILED="padding: 5px;text-align: center;"
+HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+
+
+###########################
+# Email functions
+###########################
+
+EMAIL_FILE=
+mail_init() {
+    [ -z "$1" ] && { logwarn "Email file not provided. Skipping it"; return; }
+    EMAIL_FILE=$1
+    #echo -n > "${EMAIL_FILE}"
+    echo "<body>" > "${EMAIL_FILE}"
+}
+
+mail_add() {
+    [ -z "${EMAIL_FILE}" ] && return
+    echo "$1" >> "${EMAIL_FILE}"
+}
+
+mail_close() {
+    mail_add "</body>"
+}
+
+mail_send() {
+    [ -z "${EMAIL_FILE}" ] && { logwarn "Empty email file. Not sending it"; return; }
+    local subject="${1:-"GlideinWMS CI results"}"
     echo "From: gwms-builds@donot-reply.com;
-To: parag@fnal.gov;
+To: marcom@fnal.gov;
 Subject: $subject;
 Content-Type: text/html;
 MIME-VERSION: 1.0;
 ;
-$(cat "$contents")
+$(cat "${EMAIL_FILE}")
 " | sendmail -t
 }

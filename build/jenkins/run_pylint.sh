@@ -128,15 +128,15 @@ process_branch() {
     PEP8_OPTIONS="$PEP8_OPTIONS,E226"
     # E227  missing whitespace around bitwise or shift operator
     #PEP8_OPTIONS="$PEP8_OPTIONS,E227"
-    # E228  missing whitespace around modulo operator    
+    # E228  missing whitespace around modulo operator
     PEP8_OPTIONS="$PEP8_OPTIONS,E228"
-    # E231  missing whitespace after ‘,’, ‘;’, or ‘:’ 
+    # E231  missing whitespace after ‘,’, ‘;’, or ‘:’
     PEP8_OPTIONS="$PEP8_OPTIONS,E231"
     # E241 (*)  multiple spaces after ‘,’
     #PEP8_OPTIONS="$PEP8_OPTIONS,E241"
-    # E242 (*)  tab after ‘,’    
+    # E242 (*)  tab after ‘,’
     #PEP8_OPTIONS="$PEP8_OPTIONS,E242"
-    # E251  unexpected spaces around keyword / parameter equals  
+    # E251  unexpected spaces around keyword / parameter equals
     #PEP8_OPTIONS="$PEP8_OPTIONS,E251"
     # E261  at least two spaces before inline comment
     PEP8_OPTIONS="$PEP8_OPTIONS,E261"
@@ -144,7 +144,7 @@ process_branch() {
     #PEP8_OPTIONS="$PEP8_OPTIONS,E262"
     # E265  block comment should start with ‘# ‘
     PEP8_OPTIONS="$PEP8_OPTIONS,E265"
-    # E266  too many leading ‘#’ for block comment 
+    # E266  too many leading ‘#’ for block comment
     #PEP8_OPTIONS="$PEP8_OPTIONS,E266"
     # E271  multiple spaces after keyword
     #PEP8_OPTIONS="$PEP8_OPTIONS,E271"
@@ -156,7 +156,7 @@ process_branch() {
     #PEP8_OPTIONS="$PEP8_OPTIONS,E274"
     # E275  missing whitespace after keyword
     #PEP8_OPTIONS="$PEP8_OPTIONS,E275"
-         
+
     # E3    Blank line
     # E301  expected 1 blank line, found 0
     #PEP8_OPTIONS="$PEP8_OPTIONS,E301"
@@ -170,19 +170,19 @@ process_branch() {
     #PEP8_OPTIONS="$PEP8_OPTIONS,E305"
     # E306  expected 1 blank line before a nested definition
     #PEP8_OPTIONS="$PEP8_OPTIONS,E306"
-         
+
     # E4    Import
     # E401  multiple imports on one line
     #PEP8_OPTIONS="$PEP8_OPTIONS,E401"
     # E402  module level import not at top of file
     #PEP8_OPTIONS="$PEP8_OPTIONS,E402"
-         
+
     # E5    Line length
     # E501 (^)  line too long (82 > 79 characters)
     PEP8_OPTIONS="$PEP8_OPTIONS,E501"
     # E502  the backslash is redundant between brackets
     #PEP8_OPTIONS="$PEP8_OPTIONS,E502"
-         
+
     # E7    Statement
     # E701  multiple statements on one line (colon)
     #PEP8_OPTIONS="$PEP8_OPTIONS,E701"
@@ -212,17 +212,17 @@ process_branch() {
     #PEP8_OPTIONS="$PEP8_OPTIONS,E742"
     # E743  do not define functions named ‘l’, ‘O’, or ‘I’
     #PEP8_OPTIONS="$PEP8_OPTIONS,E743"
-         
+
     # E9    Runtime
     # E901  SyntaxError or IndentationError
     #PEP8_OPTIONS="$PEP8_OPTIONS,E901"
     # E902  IOError
     #PEP8_OPTIONS="$PEP8_OPTIONS,E902"
-         
+
     # W1    Indentation warning
     # W191  indentation contains tabs
     #PEP8_OPTIONS="$PEP8_OPTIONS,W191"
-         
+
     # W2    Whitespace warning
     # W291  trailing whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W291"
@@ -230,11 +230,11 @@ process_branch() {
     #PEP8_OPTIONS="$PEP8_OPTIONS,W292"
     # W293  blank line contains whitespace
     PEP8_OPTIONS="$PEP8_OPTIONS,W293"
-         
+
     # W3    Blank line warning
     # W391  blank line at end of file
     #PEP8_OPTIONS="$PEP8_OPTIONS,W391"
-         
+
     # W5    Line break warning
     # W503 (*)  line break before binary operator
     #PEP8_OPTIONS="$PEP8_OPTIONS,W503"
@@ -242,7 +242,7 @@ process_branch() {
     #PEP8_OPTIONS="$PEP8_OPTIONS,W504"
     # W505 (*^) doc line too long (82 > 79 characters)
     #PEP8_OPTIONS="$PEP8_OPTIONS,W505"
-         
+
     # W6    Deprecation warning
     # W601  .has_key() is deprecated, use ‘in’
     #PEP8_OPTIONS="$PEP8_OPTIONS,W601"
@@ -271,7 +271,8 @@ process_branch() {
     #else
     #    scripts=`find glideinwms -readable -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g'`
     #fi
-    scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
+    #scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
+    scripts=$(find glideinwms -path glideinwms/.git -prune -o -path glideinwms/.tox -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
     echo "-- DBG $(echo $scripts | wc -w | tr -d " ") scripts found using magic file ($FILE_MAGIC) --"
     cd "${GLIDEINWMS_SRC}"
     for script in $scripts; do
@@ -294,7 +295,8 @@ process_branch() {
 
     #now do all the .py files
     #shopt -s globstar
-    py_files=$(find . -readable -type f -name '*\.py')
+    #py_files=$(find . -readable -type f -name '*\.py')
+    py_files=$(find . -path ./.git -prune -o -path ./.tox -prune -o -type f -name '*\.py')
     for file in $py_files
     do
       files_checked="$files_checked $file"

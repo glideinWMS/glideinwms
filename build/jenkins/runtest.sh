@@ -10,6 +10,12 @@ logerror() {
     echo "$filename ERROR: $1" >&2
 }
 logexit() {
+    # replacing logreportfail in the function to avoid repeating all the other definitions
+    if [ -n "$3" ]; then
+        local msg="$3=\"FAILED\""
+        [[ -n "${TESTLOG}" ]] && echo "${msg}" >> "${TESTLOG}"
+        echo "${msg}"
+    fi
     logerror "$1"
     exit ${2:-1}
 }
@@ -60,7 +66,7 @@ ${filename} [options] COMMAND [command options]
   -f          force git checkout of branch when processing multiple branches
   -b BNAMES   comma separated list of branches that needs to be inspected
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
-  NOT-IMPLEMENTED -B BFILE    file containing a list of branches that needs to be inspected, one per line
+  -B BFILE    file containing a list of branches that needs to be inspected, one per line
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
   -s          run sequentially invoking the test separately for each file
   -o OUT_DIR  directory including log files (it will be created if not existing, default "./output")
@@ -108,7 +114,7 @@ get_python_scripts() {
     #else
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #fi
-    echo "-- DBG $(echo ${scripts} | wc -w | tr -d " ") scripts found using magic file (${FILE_MAGIC}) --" >&2
+    # echo "-- DBG $(echo ${scripts} | wc -w | tr -d " ") scripts found using magic file (${FILE_MAGIC}) --" >&2
     echo "$scripts"
 }
 
@@ -117,7 +123,7 @@ parse_options() {
     # Parse and validate options to the runtest command
     # OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
     # The man page mentions optional options' arguments for getopts but they are not handled correctly
-    while getopts ":hvifso:Cc:Tt:z" option
+    while getopts ":hvifb:B:so:Cc:Tt:z" option
     do
         case "${option}"
         in
@@ -126,7 +132,7 @@ parse_options() {
         i) INPLACE=yes;;
         f) GITFLAG='-f';;
         b) BRANCH_LIST="$OPTARG";;
-        a) BRANCHES_FILE="$OPTARG";;
+        B) BRANCHES_FILE="$OPTARG";;
         s) SEQUENTIAL=yes;;
         o) OUT_DIR="$OPTARG";;
         c) REPO="$OPTARG";;
@@ -150,11 +156,76 @@ parse_options() {
     # Fix the repo parameter w/ the default if running in temp directory
     [[ -z "$REPO" && -n "${TEST_DIR}" ]] && REPO="$GWMS_REPO"
     # Get the git branches in to an array
-    if [[ -n "$BRANCH_LIST" ]]; then
+    if [[ -n "${BRANCH_LIST}" ]]; then
         IFS=',' read -r -a git_branches <<< "$BRANCH_LIST"
     fi
+    if [[ -n "${BRANCHES_FILE}" ]]; then
+        IFS=$'\r\n' read -d '' -r -a git_branches < "${BRANCHES_FILE}"
+    fi
     # Default output dir
-    [[ -z "$OUT_DIR" ]] && OUT_DIR="$DEFAULT_OUTPUT_DIR"
+    [[ -z "${OUT_DIR}" ]] && OUT_DIR="${DEFAULT_OUTPUT_DIR}"
+}
+
+
+test_cleanup() {
+    loginfo "Removing all files from temp dir '$1'."
+    [[ -n "$1" ]] && rm -rf "$1"
+}
+
+
+log_init() {
+    # 1. file that will store the email body (in HTML)
+    mail_init "$1"
+    mail_add "$(print_python_info email)"
+    mail_add "$(do_log_init)"
+}
+
+log_close() {
+    mail_add "$(do_log_close)"
+    mail_close
+    # TODO: mail results if desired
+    # mail_send "Subject" "TO?"
+}
+
+log_branch() {
+    # 1. results file for the branch
+    mail_add "$(do_log_branch "$1")"
+}
+
+# TODO: finish log_join
+log_join() {
+    # Join multiple HTML emails into a single one
+    # use the cell style to grep for lines
+    # 1. output file w/ joint HTML
+    # 2..N HTML files to join
+    [ $# -lt 2 ] && { logerror "Wrong arguments for log_join: $@"; return; }
+    [ $# -eq 2 ] && { cp "$2" "$1"; return; }
+    mail_init "$1"
+    #mail_add "$(print_python_info email)"
+    mail_add "$(sed ';</tr>;Q' "$2"| tail -n +2)"
+    # create a temp dir
+    # copy the grep result there (all regular cells)
+    # results_1="$(grep "HEAD_COL" "$2")"
+    shift 2
+    for i in "$@"; do
+        mail_add "$(grep "HEAD_COL" "$i"| tail -n +2)"
+    done
+    mail_add "$(cat << TABLE_START
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="$HTML_TR">
+TABLE_START
+    )"
+    # save grep results in temp dir. loop through the lines N at the time, saving the remainder
+    # there could be multiple rows (N cells)
+    mail_add "$(cat << TABLE_MIDDLE
+    </tr>
+    <tr style="$HTML_TR">
+TABLE_MIDDLE
+    )"
+    echo "    </tr>"
+    mail_add "$(do_log_close)"
 }
 
 
@@ -164,14 +235,10 @@ process_branch () {
     # 1 - branch name or LOCAL (for in place processing)
     local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
     local outfile="${OUT_DIR}"/output.${branch_no_slash}
-    do_process_branch "$1" "$outfile" "${CMD_OPTIONS[@]}"
+    do_process_branch "$1" "${outfile}" "${CMD_OPTIONS[@]}"
+    log_branch "${outfile}"
 }
 
-
-test_cleanup() {
-    loginfo "Removing all files from temp dir '$1'."
-    [[ -n "$1" ]] && rm -rf "$1"
-}
 
 
 #################
@@ -205,9 +272,12 @@ do_check_requirements() { true; }
 # Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
 # do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
 do_git_init_command() { true; }
-do_parse_options() { logerror "command not implemented"; exit 1; }
+do_parse_options() { logexit "command not implemented"; }
 #do_process_branch "$1" "$outfile" "${CMD_OPTIONS[@]}"
-do_process_branch() { logerror "command not implemented"; exit 1; }
+# 1 - branch name
+# 2 - outfile
+# 3... - options/arguments passed to the command (e.g. files/test list)
+do_process_branch() { logexit "command not implemented"; }
 
 
 case "$COMMAND" in
@@ -220,6 +290,7 @@ esac
 
 UTILS_OK=
 COMMAND_OK=
+# comman help message can be processed also w/o utils
 if find_aux utils.sh source noexit; then
     UTILS_OK=yes
     if find_aux $command_file source noexit; then
@@ -231,6 +302,8 @@ fi
 # Postpone options parsing if the command file was not found
 [[ -n "${COMMAND_OK}" ]] && do_parse_options "$@"
 
+# If there are no utils or no command, operations cannot proceed
+[[ -z "${UTILS_OK}" || -z "${COMMAND_OK}" ]] && logexit "cannot continue without utils and command files" 1 SETUP
 
 # Start creating files
 
@@ -240,16 +313,16 @@ if [[ -n "$REPO" ]]; then
     if [[ -n "${TEST_DIR}" ]]; then
         mkdir -p "${TEST_DIR}"
         if ! cd "${TEST_DIR}"; then
-            logexit "failed to setup the test directory $TEST_DIR"
+            logexit "failed to setup the test directory $TEST_DIR" 1 SETUP
         fi
     fi
 
     if [[ -d glideinwms && -z "$GITFLAG" ]]; then
-        logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms "
+        logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms " 1 SETUP
     fi
     # --recurse-submodules
     if ! git clone "$REPO" ; then
-        logexit "failed to clone $REPO"
+        logexit "failed to clone $REPO" 1 SETUP
     fi
     # Adding do_git_init_command also here in case -i is used
     [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
@@ -260,7 +333,7 @@ WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
 # Verify that this is correct also for in-place executions, -i
 if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
-    logexit "repository not found in .glideinwms (${GLIDEINWMS_SRC})"
+    logexit "repository not found in .glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
 fi
 STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
 OUT_DIR="$(robust_realpath "$OUT_DIR")"
@@ -268,13 +341,13 @@ OUT_DIR="$(robust_realpath "$OUT_DIR")"
 # This time, fail if they are not found
 [[ -z "${UTILS_OK}" ]] && find_aux utils.sh source
 if [[ -z "${COMMAND_OK}" ]]; then
-    find_aux $command_file source
+    find_aux "$command_file" source
     do_parse_options "$@"
 fi
 
 if [[ ! -d "${OUT_DIR}" ]]; then
     if ! mkdir -p "${OUT_DIR}"; then
-        logexit "failed to create output directory ${OUT_DIR}"
+        logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
     fi
     loginfo "created output directory ${OUT_DIR}"
 fi
@@ -291,6 +364,10 @@ if do_use_python; then
 fi
 
 cd "${GLIDEINWMS_SRC}"
+
+# Initialize and save the email to a file
+log_init "$OUT_DIR/email.txt"
+
 if [[ -n "$INPLACE" ]]; then
     loginfo "Running on local files in glideinwms subdirectory"
     process_branch LOCAL
@@ -301,9 +378,11 @@ else
     for git_branch in "${git_branches[@]}"
     do
         loginfo "Now checking out branch $git_branch"
-        if ! git checkout "$GITFLAG" "$git_branch"; then
-            logwarn "Could not checkout branch $git_branch, continuing with the next"
-
+        loglog "GIT_BRANCH=\"$git_branch\""
+        if ! git checkout ${GITFLAG} "$git_branch"; then
+            log_nonzero_rc "git checkout" $?
+            logwarn "Could not checkout branch ${git_branch}, continuing with the next"
+            logreportfail "GIT_CHECKOUT"
             # Add a failed entry to the email
             mail_file="$mail_file
         <tr style=\"$HTML_TR\">
@@ -314,8 +393,13 @@ else
             fail=301
             continue
         else
+            # Do a pull in case the repo was not a new clone
+            if ! git pull; then
+                logwarn "Could not update (pull) branch ${git_branch}, continuing anyway"
+            fi
             curr_branch=$(git rev-parse --abbrev-ref HEAD)
-            [[ ! "$git_branch" = "$curr_branch" ]] && logwarn "Current branch ${curr_branch} different from expected ${git_branch}, continuing anyway" >&2
+            [[ ! "$git_branch" = "$curr_branch" ]] && logwarn "Current branch ${curr_branch} different from expected ${git_branch}, continuing anyway"
+            logreportok "GIT_CHECKOUT"
         fi
         # Starting the test
         process_branch "$git_branch"
@@ -327,13 +411,8 @@ else
 fi
 
 # Finish off the end of the email
-mail_file="$mail_file
-    </tbody>
-</table>
-</body>"
+log_close
 
-# Save the email to a file
-echo "$mail_file" > "$OUT_DIR/email.txt"
 
 echo "exit_code=$fail_global" >> "${STATFILE}"
 

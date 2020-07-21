@@ -393,3 +393,63 @@ do_process_branch() {
 #    [[ $total_error -gt 0 ]] && fail_all=1
     return ${fail_all}
 }
+
+do_log_init() {
+    cat << TABLE_START
+<table style="$HTML_TABLE">
+  <thead style="$HTML_THEAD">
+    <tr style="$HTML_TR">
+      <th style="$HTML_THEAD_TH">GIT BRANCH</th>
+      <th style="$HTML_THEAD_TH">FILES CHECKED</th>
+      <th style="$HTML_THEAD_TH">FILES WITH ERRORS</th>
+      <th style="$HTML_THEAD_TH">TOTAL ERRORS</th>
+      <th style="$HTML_THEAD_TH">PEP8 ERRORS</th>
+    </tr>
+  </thead>
+  <tbody>
+TABLE_START
+}
+
+do_log_close() {
+    cat << TABLE_END
+  </tbody>
+</table>
+TABLE_END
+}
+
+do_log_branch() {
+    local branch_results="$1"
+    unset GIT_BRANCH
+    unset GIT_CHECKOUT
+    unset FILES_CHECKED_COUNT
+    unset PYLINT_ERROR_FILES_COUNT
+    unset PYLINT_ERROR_COUNT
+    unset PEP8_ERROR_COUNT
+    . "$branch_results"
+
+    class=$GIT_CHECKOUT
+    if [ "$class" = "PASSED" ]; then
+        [ ${PYLINT_ERROR_COUNT:-1} -gt 0 ] && class="FAILED"
+    fi
+    if [ "$class" = "PASSED" ]; then
+        cat << TABLE_ROW_PASSED
+<tr style="$HTML_TR">
+    <th style="$HTML_TH">$GIT_BRANCH</th>
+    <td style="$HTML_TD_PASSED">${FILES_CHECKED_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PYLINT_ERROR_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PEP8_ERROR_COUNT:-NA}</td>
+</tr>
+TABLE_ROW_PASSED
+    else
+        cat << TABLE_ROW_FAILED
+<tr style="$HTML_TR">
+    <th style="$HTML_TH">$GIT_BRANCH</th>
+    <td style="$HTML_TD_FAILED">${FILES_CHECKED_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PYLINT_ERROR_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PEP8_ERROR_COUNT:-NA}</td>
+</tr>
+TABLE_ROW_FAILED
+    fi
+}
