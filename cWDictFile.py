@@ -168,10 +168,7 @@ class DictFile:
         else:
             keys=self.keys
         for k in keys:
-            val = self.format_val(k, want_comments)
-            if type(val) == str:
-                val = val.encode('utf-8')
-            fd.write(b"%s\n" % val)
+            fd.write(b"%s\n"%self.format_val(k, want_comments).encode('utf-8'))
         footer=self.file_footer(want_comments)
         if footer is not None:
             fd.write(b"%s\n"%footer.encode('utf-8'))

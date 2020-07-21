@@ -54,7 +54,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
         if useShell:
           command_list = ['%s' % cmd,]
         else:
-          command_list = shlex.split(cmd.encode('utf8'))
+          command_list = shlex.split(cmd)
         # launch process - Converted to using the subprocess module
         process = subprocess.Popen(command_list, shell=useShell,
                                    stdin=subprocess.PIPE,

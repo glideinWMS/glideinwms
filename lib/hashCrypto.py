@@ -62,9 +62,9 @@ class Hash:
         with open(fname, 'rb') as fd:
             while True:
                 data = fd.read(block_size)
-                if data == '':
+                if data == b'':
                     break # no more data, stop reading
-                h.update(data)               
+                h.update(data)
         return h.final()
 
     # like extract, but base64 encoded 

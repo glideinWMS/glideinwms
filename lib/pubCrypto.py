@@ -15,7 +15,7 @@ import binascii
 # use a dummy passwd
 # good for service key processing where human not present
 def default_callback(*args):
-    return "default"
+    return b"default"
 
 ######################
 #
@@ -98,7 +98,7 @@ class PubRSAKey:
         bio = M2Crypto.BIO.openfile(key_fname, 'wb')
         try:
             return self.save_to_bio(bio)
-        except:
+        except Exception as e:
             # need to remove the file in case of error
             bio.close()
             del bio

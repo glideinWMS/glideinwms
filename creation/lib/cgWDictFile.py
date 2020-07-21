@@ -246,12 +246,12 @@ def load_main_dicts(main_dicts): # update in place
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
-    #print "\ndebug %s main_dicts['summary_signature']['main'][1] = %s" % (__file__, main_dicts['summary_signature']['main'][1]) 
+    #print "\ndebug %s main_dicts['summary_signature']['main'][1] = %s" % (__file__, main_dicts['summary_signature']['main'][1])
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
-    #print "\ndebug %s main_dicts.items() = %s" % (__file__, main_dicts.items()) 
-    #print "\ndebug %s main_dicts['description'].keys2 = %s" % (__file__, main_dicts['description'].keys2) 
-    #print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description'])) 
+    #print "\ndebug %s main_dicts.items() = %s" % (__file__, main_dicts.items())
+    #print "\ndebug %s main_dicts['description'].keys2 = %s" % (__file__, main_dicts['description'].keys2)
+    #print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description']))
     main_dicts['after_file_list'].load(fname=main_dicts['description'].vals2['after_file_list'])
     load_common_dicts(main_dicts, main_dicts['description'])
 
@@ -285,26 +285,26 @@ def refresh_description(dicts): # update in place
 def refresh_file_list(dicts, is_main, # update in place
                       files_set_readonly=True, files_reset_changed=True):
     file_dict = dicts['file_list']
-    file_dict.add_from_str(
+    file_dict.add_from_bytes(
             cWConsts.CONSTS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['consts'].get_fname(), 'regular', config_out='CONSTS_FILE'),
             dicts['consts'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
-    file_dict.add_from_str(
+    file_dict.add_from_bytes(
             cWConsts.VARS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['vars'].get_fname(), 'regular', config_out='CONDOR_VARS_FILE'),
             dicts['vars'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
-    file_dict.add_from_str(
+    file_dict.add_from_bytes(
             cWConsts.UNTAR_CFG_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['untar_cfg'].get_fname(), 'regular', config_out='UNTAR_CFG_FILE'),
             dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     if is_main and 'gridmap' in dicts:
-        file_dict.add_from_str(
+        file_dict.add_from_bytes(
                 cWConsts.GRIDMAP_FILE,
                 cWDictFile.FileDictFile.make_val_tuple(dicts['gridmap'].get_fname(), 'regular', config_out='GRIDMAP'),
                 dicts['gridmap'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
