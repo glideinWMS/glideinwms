@@ -13,22 +13,25 @@ ${filename} [options] ${COMMAND} -a [other command options]
 Command options:
   -h        print this message
   -a        run on all unit tests (see above)
+  -l        show the list of test files
   -t        Test Anything Protocol (TAP) output format (the default is human readable)
   -c        generate a coverage report while running unit tests (requires kcov)
 EOF
 }
 
 LIST_FILES=
+SHOW_FILES=
 RUN_COVERAGE=
 BATSOPT=
 
 do_parse_options() {
-    while getopts ":hatc" option
+    while getopts ":haltc" option
     do
       case "${option}"
       in
       h) help_msg; do_help_msg; exit 0;;
       a) LIST_FILES=yes;;
+      l) SHOW_FILES=yes;;
       t) BATSOPT="-t";;
       c) RUN_COVERAGE=yes;;
       : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
@@ -84,10 +87,18 @@ do_process_branch() {
 
     local file_list
     if [[ -n "$LIST_FILES" ]]; then
-        files_list="$(find . -readable -name  '*.bats' -print)"
+        files_list="$(get_files_ext bats "lib")"
     else
         files_list="$*"
     fi
+
+    if [[ -n  "${SHOW_FILES}" ]]; then
+        echo "Bats will use the following test files:"
+        echo "${files_list}"
+        return
+    fi
+    [ -z "${files_list}" ] && logerror "no files specified (use -a or add files as arguments)"
+
 
     local fail
     local fail_all=0

@@ -7,7 +7,7 @@ load 'lib/bats-assert/load'
 
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=../..
 
-setup () {
+setup() {
     source compat.bash
     # glidein_config=fixtures/glidein_config
     # export GLIDEIN_QUIET=true
@@ -184,7 +184,7 @@ dit () { echo "TEST:<$1><$2><$3>"; }
 }
 
 
-preset_env () {
+preset_env() {
     # 1- environment file (optional)
     # 2- HTCondor Job ClassAd file (optional)
     local env_file="fixtures/environment_singularity"

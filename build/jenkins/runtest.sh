@@ -81,12 +81,31 @@ ${filename} [options] COMMAND [command options]
 EOF
 }
 
+
+get_files_ext() {
+    # Return to stdout a space separated list of files with EXT ($1) extension
+    # 1. extension to look for
+    # 2. directories to prune (NOTE. this will not work if these directories or src_dir contain spaces)
+    # 3. possible root directory (default:'.')
+    # All Shell files
+    local extension=$1
+    local src_dir="${3:-.}"
+    prune_opts=
+    for i in $2; do
+        prune_opts="${prune_opts} -path ${src_dir}/$i -prune -o"
+    done
+    # -readable not valid on Mac, needed?
+    # e.g. $(find . -readable -name  '*.bats' -print)"
+    echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name '*.'${extension} -print)"
+}
+
+
 #find . -name '*.sh' -o -name '*.source'
 get_shell_files() {
-    # Return to stdout a space separated list of Shell files with .py extension
+    # Return to stdout a space separated list of Shell files with .sh/.source extension
     # All Shell files
     local src_dir="${1:-.}"
-    echo $(find "$src_dir" -path "${src_dir}".git -prune -o -name '*.sh' -o -name '*.source')
+    echo $(find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -o -name '*.source' -print)
 }
 
 
@@ -94,7 +113,7 @@ get_python_files() {
     # Return to stdout a space separated list of Python files with .py extension
     # All Python files
     local src_dir="${1:-.}"
-    echo $(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py')
+    echo $(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py' -print)
 }
 
 
@@ -172,15 +191,23 @@ test_cleanup() {
     [[ -n "$1" ]] && rm -rf "$1"
 }
 
-
+SKIP_LOG=
 log_init() {
     # 1. file that will store the email body (in HTML)
+    local log_content
+    if ! log_content="$(do_log_init)"; then
+        SKIP_LOG=yes
+        return
+    fi
     mail_init "$1"
-    mail_add "$(print_python_info email)"
-    mail_add "$(do_log_init)"
+    if do_use_python; then
+        mail_add "$(print_python_info email)"
+    fi
+    mail_add "${log_content}"
 }
 
 log_close() {
+    [ -n "${SKIP_LOG}" ] && return
     mail_add "$(do_log_close)"
     mail_close
     # TODO: mail results if desired
@@ -189,6 +216,7 @@ log_close() {
 
 log_branch() {
     # 1. results file for the branch
+    [ -n "${SKIP_LOG}" ] && return
     mail_add "$(do_log_branch "$1")"
 }
 
@@ -201,7 +229,6 @@ log_join() {
     [ $# -lt 2 ] && { logerror "Wrong arguments for log_join: $@"; return; }
     [ $# -eq 2 ] && { cp "$2" "$1"; return; }
     mail_init "$1"
-    #mail_add "$(print_python_info email)"
     mail_add "$(sed ';</tr>;Q' "$2"| tail -n +2)"
     # create a temp dir
     # copy the grep result there (all regular cells)
@@ -272,6 +299,11 @@ do_check_requirements() { true; }
 # Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
 # do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
 do_git_init_command() { true; }
+# Empty logging commands
+do_log_init() { true; }
+do_log_branch() { true; }
+do_log_close() { true; }
+
 do_parse_options() { logexit "command not implemented"; }
 #do_process_branch "$1" "$outfile" "${CMD_OPTIONS[@]}"
 # 1 - branch name

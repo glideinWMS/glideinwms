@@ -39,7 +39,9 @@ loginfoout() {
 }
 
 loginfo() {
-    [[ -n "$VERBOSE" ]] && echo "$filename INFO: $1" >&2
+    # return 0 if not verbose (needed for bats test), print to stderr if verbose
+    [[ -z "$VERBOSE" ]] && return
+    echo "$filename INFO: $1" >&2
 }
 
 logwarn(){
@@ -208,7 +210,7 @@ print_python_info() {
         echo "<p>"
     fi
     echo "${bo}HOSTNAME:${bc} $(hostname -f)$br"
-    if ! command lsb_release 2>/dev/null ; then
+    if command -v lsb_release 2>/dev/null ; then
         echo "${bo}LINUX DISTRO:${bc} $(lsb_release -d)$br"
     else
         echo "${bo}LINUX DISTRO:${bc} no linux$br"
@@ -244,8 +246,8 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 EMAIL_FILE=
 mail_init() {
     [ -z "$1" ] && { logwarn "Email file not provided. Skipping it"; return; }
-    EMAIL_FILE=$1
-    #echo -n > "${EMAIL_FILE}"
+    EMAIL_FILE="$1"
+    # Reset and initialize the file
     echo "<body>" > "${EMAIL_FILE}"
 }
 

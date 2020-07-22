@@ -310,11 +310,6 @@ do_check_requirements() {
     fi
 }
 
-ttt() {
-    local aaa=0
-    echo "ddd"
-}
-
 do_process_branch() {
     # 1 - branch
     # 2 - output file (output directory/output.branch)
@@ -344,6 +339,7 @@ do_process_branch() {
         echo "${files_list}"
         return
     fi
+    [ -z "${files_list}" ] && logerror "no files specified (use -a or add files as arguments)"
 
     # Initialize logs
     > ${out_pylint}
@@ -375,9 +371,9 @@ do_process_branch() {
     files_checked="$(echo ${files_list})"
 
     awk '{$1=""; print $0}' ${outfile} | sort | uniq -c | sort -n > "${outfile}.sorted"
-    echo "-------------------" >> ${outfile}
-    echo "error count summary" >> ${outfile}
-    echo "-------------------" >> ${outfile}
+    echo "# -------------------" >> ${outfile}
+    echo "# error count summary" >> ${outfile}
+    echo "# -------------------" >> ${outfile}
     cat ${outfile}.sorted     >> ${outfile}
 
     echo "FILES_CHECKED=\"$files_checked\"" >> $outfile
@@ -395,6 +391,8 @@ do_process_branch() {
 }
 
 do_log_init() {
+    # No logging when showing the list of files
+    [ -n "${SHOW_FILES}"} ] && return 1
     cat << TABLE_START
 <table style="$HTML_TABLE">
   <thead style="$HTML_THEAD">

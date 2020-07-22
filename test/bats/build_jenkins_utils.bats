@@ -27,18 +27,18 @@ no_teardown() {
     [ "$status" -eq 0 ]
     VERBOSE=yes
     run loginfo "Message on verbose"
-    [ "$output" == "Message on verbose" ]
+    [ "$output" == "$filename INFO: Message on verbose" ]
     [ "$status" -eq 0 ]
 }
 
 
-@test "test_name" {
+@test "test_logexit" {
     filename=PERFIX
     run logexit "This should be 1"
     [ "$output" == "$filename ERROR: This should be 1" ]
     [ "$status" -eq 1 ]
-    run logexit "$filename ERROR: This should be 2" 2
-    [ "$output" == "This should be 2" ]
+    run logexit "This should be 2" 2
+    [ "$output" == "$filename ERROR: This should be 2" ]
     [ "$status" -eq 2 ]
 }
 
@@ -46,7 +46,8 @@ no_teardown() {
 @test "test_robust_realpath" {
     pushd /tmp
     run robust_realpath output
-    [ "$output" == "/tmp/output" ]
+    # on the Mac or some Linux /tmp is asymlink to /private/tmp
+    [ "$output" == "/tmp/output" ] || [ "$output" == "/private/tmp/output" ]
     [ "$status" -eq 0 ]
     popd
 }
@@ -64,10 +65,72 @@ no_teardown() {
     retult2="/p/w,/p/w/factory/,/p/w/factory/tools,/p/w/frontend,/p/w/frontend/tools,/p/w/install"
     retult2="${retult2},/p/w/install/services,/p/w/lib,/p/w/tools,/p/w/tools/lib"
     echo "$sources"
-    run get_source_directories /p/w
+    # by default it uses the current directory as prefix (.), as in result1
+    run get_source_directories
     [ "$output" == "$retult1" ]
     [ "$status" -eq 0 ]
     run get_source_directories /p/w
     [ "$output" == "$retult2" ]
     [ "$status" -eq 0 ]
+}
+
+@test "test_mail_init" {
+    #mail_init
+    run mail_init
+    [ "$output" == " WARNING: Email file not provided. Skipping it" ]
+    [ "$status" -eq 0 ]
+    tmp_file=/tmp/gwms_bats.$$.txt
+    run mail_init "${tmp_file}"
+    #[ "${EMAIL_FILE}" == "${tmp_file}" ]
+    [ "$output" == "" ]
+    [ "$status" -eq 0 ]
+    [ -f "${tmp_file}" ]
+    [ "$(cat "${tmp_file}")" == "<body>" ]
+    # cleanup
+    rm "${tmp_file}"
+}
+
+@test "test_mail_add" {
+    tmp_file=/tmp/gwms_bats.$$.txt
+    # cleanup if the file is there
+    rm -f "${tmp_file}" || true
+    mail_add
+    [ ! -f "${tmp_file}" ]
+    mail_init "${tmp_file}"
+    mail_add "Last line"
+    [ -f "${tmp_file}" ]
+    run cat "${tmp_file}"
+    [ "$status" -eq 0 ]
+    # negative indexes require bash 4.3 (not on Mac)
+    [ "${lines[${#lines[@]}-1]}" == "Last line" ]
+    # cleanup
+    rm "${tmp_file}"
+}
+
+@test "test_mail_close" {
+    tmp_file=/tmp/gwms_bats.$$.txt
+    # cleanup if the file is there
+    rm -f "${tmp_file}" || true
+    mail_init "${tmp_file}"
+    mail_add "<p>Content line</p>"
+    mail_close
+    [ -f "${tmp_file}" ]
+    # using tidy to check if the HTML file is OK: http://www.html-tidy.org/
+    if command -v tidy &> /dev/null; then
+        # Fail if there are errors
+        ! tidy -eq "${tmp_file}" | grep "Error:"
+        # There could be more strict checks. Normally there are 2 warnings (title and doctype missing)
+        # not closed tags are OK in HTML
+    fi
+    echo "${tmp_file}"
+    run cat "${tmp_file}"
+    [ "$status" -eq 0 ]
+    # negative indexes require bash 4.3 (not on Mac)
+    [ "${lines[${#lines[@]}-1]}" == "</body>" ]
+    # cleanup
+    rm "${tmp_file}"
+}
+
+@test "test_mail_send" {
+    skip
 }
