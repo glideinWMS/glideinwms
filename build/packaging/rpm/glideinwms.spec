@@ -860,7 +860,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Jul 16 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.6.3-1
 - GlideinWMS v3.6.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_3/history.html
-- Release candidates: 3.6.3-0.1.rc1
+- Release candidates: 3.6.3-0.1.rc1 to 3.6.3-0.3.rc3
 
 * Thu Mar 26 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.2-1
 - GlideinWMS v3.6.2
