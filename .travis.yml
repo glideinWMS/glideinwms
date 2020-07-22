@@ -1,6 +1,6 @@
 language: python
 python:
-  - "2.7"
+  - "3.6"
 # Travis will create a virtualenv by default. The base system is Ubuntu
 
 # Just some useful info and prep work
@@ -13,12 +13,12 @@ before_install:
   - if [[ ! -e /opt/python/${TRAVIS_PYTHON_VERSION} ]]; then
         sudo ln -s /opt/python/$(python -c 'import sys;print("%d.%d.%d" % sys.version_info[:3])') /opt/python/${TRAVIS_PYTHON_VERSION};
     fi
-    
+
 # command to install dependencies
 install:
   # see decisionengine_modules if classads need to be extracted from apt package
   # We should already be here - cd ${TRAVIS_BUILD_DIR}
-  # 
+  #
   - pip install -r requirements.txt
   - pip install coveralls
 
@@ -36,9 +36,9 @@ script:
   - echo "PPATH ${PYTHONPATH}"
   - echo "Folders in ${GLIDEINWMS_SRC}/doc/api/glideinwms are $(ls -l ${GLIDEINWMS_SRC}/doc/api/glideinwms)"
   - coverage erase
-  - for TST in $(ls test*.py); do 
-      echo '========>' "$TST"; 
-      coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$TST"; 
+  - for TST in $(ls test*.py); do
+      echo '========>' "$TST";
+      coverage run  --source="${SOURCES}" --omit="test_*.py"  -a "$TST";
     done
   - coverage report
   # - cd `dirname ${TRAVIS_BUILD_DIR}`
