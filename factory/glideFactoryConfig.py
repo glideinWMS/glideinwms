@@ -142,7 +142,7 @@ class GlideinKey:
                 self.rsa_key.save(key_fname)
 
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
-            self.pub_key_id = md5(" ".join((self.pub_key_type, self.pub_rsa_key.get()))).hexdigest()
+            self.pub_key_id = md5(b" ".join((self.pub_key_type.encode("utf-8"), self.pub_rsa_key.get()))).hexdigest()
             self.sym_class=symCrypto.AutoSymKey
         else:
             raise RuntimeError('Invalid pub key type value(%s), only RSA supported'%self.pub_key_type)

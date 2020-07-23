@@ -109,7 +109,7 @@ def create_condor_tar_fd(condor_base_dir):
                 condor_bins.append(f)
 
         # tar
-        fd = io.StringIO()
+        fd = io.BytesIO()
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
 
@@ -530,11 +530,11 @@ def ldd(file):
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         for line in process.stdout.readlines():
-            tokens = line.split('=>')
+            tokens = line.split(b'=>')
             if len(tokens) == 2:
-                lib_loc = ((tokens[1].strip()).split(' '))[0].strip()
+                lib_loc = ((tokens[1].strip()).split(b' '))[0].strip()
                 if os.path.exists(lib_loc):
-                    rlist.append(os.path.abspath(lib_loc))
+                    rlist.append(os.path.abspath(lib_loc).decode("utf-8"))
     return rlist
 
 

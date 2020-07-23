@@ -140,8 +140,8 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
             sys.exit(1)
         # append the the tarball to glidein_startup.sh
         try:
-            with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "a") as st_file:
-                st_file.write("exit 0\n#EOF\n")
+            with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "ab") as st_file:
+                st_file.write(b"exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
         except IOError as ioe:
