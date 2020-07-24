@@ -21,8 +21,6 @@ ${filename} [options] ${COMMAND} -a [other command options]
 Command options:
   -h        print this message
   -a        run on all Python scripts (see above)
-  -n        show the list of flags passed to pylint and pycodestyle
-  -l        show the list of files checked
   -t TESTS  string including the digits of the tests to run (Default: 12)
             add 1 for pylint
             add 2 for pycodestyle
@@ -249,10 +247,6 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W293"
 # Uncomment to see all pep8 errors
 #PYSTYLE_OPTIONS=""
 
-do_show_files() {
-    echo "Pylint and PyCodeStyle will inspect the following files:"
-    echo "$(get_python_scripts) $(get_python_files)"
-}
 
 do_show_flags() {
     echo "Pylint will run with options:"
@@ -263,17 +257,14 @@ do_show_flags() {
 
 DO_TESTS="12"
 LIST_FILES=
-SHOW_FILES=
 
 do_parse_options() {
-    while getopts ":hanlt:" option
+    while getopts ":hat:" option
     do
       case "${option}"
       in
       h) help_msg; do_help_msg; exit 0;;
       a) LIST_FILES=yes;;
-      n) do_show_flags; exit 0;;
-      l) SHOW_FILES=yes;;
       t) DO_TESTS="$OPTARG";;
       : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
       *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
@@ -285,15 +276,13 @@ do_parse_options() {
 
     CMD_OPTIONS="$@"
 
-}
-
-do_use_python() {
-    if [[ -z "${SHOW_FILES}" ]]; then
-        true
-    else
-        false
+    if [ -n "${SHOW_FLAGS}" ]; then
+        do_show_flags
+        TEST_COMPLETE=branch
     fi
 }
+
+do_use_python() { true; }
 
 do_get_dependencies() { true; }
 
@@ -313,6 +302,7 @@ do_check_requirements() {
 do_process_branch() {
     # 1 - branch
     # 2 - output file (output directory/output.branch)
+    # 3... - files to process (optional)
 
     local branch="$1"
     local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
@@ -325,7 +315,6 @@ do_process_branch() {
     local test_date=$(date "+%Y-%m-%d %H:%M:%S")
 
     local fail
-    local fail_all=0
 
     local file_list
     if [[ -n "$LIST_FILES" ]]; then
@@ -334,12 +323,7 @@ do_process_branch() {
         files_list="$*"
     fi
 
-    if [[ -n  "${SHOW_FILES}" ]]; then
-        echo "Pylint and PyCodeStyle will inspect the following files:"
-        echo "${files_list}"
-        return
-    fi
-    [ -z "${files_list}" ] && logerror "no files specified (use -a or add files as arguments)"
+    print_files_list "Pylint and PyCodeStyle will inspect the following files:" "${files_list}" && return
 
     # Initialize logs
     > ${out_pylint}
@@ -349,6 +333,7 @@ do_process_branch() {
     loginfo "#####################################################"
     loginfo "Start : ${branch}"
     start_time="$(date -u +%s.%N)"
+    files_checked=
 
     # ALT
     # while read -r filename
@@ -361,6 +346,7 @@ do_process_branch() {
                 loginfo "pylint skipping ${filename}"
             else
                 python3 -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+                files_checked="${files_checked} ${filename}"
             fi
         fi
         if [[ "${DO_TESTS}" == *2* ]]; then
@@ -368,26 +354,32 @@ do_process_branch() {
         fi
     done
 
-    files_checked="$(echo ${files_list})"
+    #files_checked="$(echo ${files_list})"
 
-    awk '{$1=""; print $0}' ${outfile} | sort | uniq -c | sort -n > "${outfile}.sorted"
-    echo "# -------------------" >> ${outfile}
-    echo "# error count summary" >> ${outfile}
-    echo "# -------------------" >> ${outfile}
-    cat ${outfile}.sorted     >> ${outfile}
+    local out_pycs_summary="${out_pycs}.summary"
+    echo "# -------------------" > "${out_pycs_summary}"
+    echo "# Error count summary" >> "${out_pycs_summary}"
+    echo "# -------------------" >> "${out_pycs_summary}"
+    awk '{$1=""; print $0}' ${out_pycs} | sort | uniq -c | sort -n >> "${out_pycs_summary}"
+    # cat ${out_pycs}.summary     >> ${out_pycs}
 
-    echo "FILES_CHECKED=\"$files_checked\"" >> $outfile
-    echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $outfile
-    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $outfile | wc -l | tr -d " "`" >> $outfile
-    echo "PYLINT_ERROR_COUNT=`grep '^E:' $outfile | wc -l | tr -d " "`" >> $outfile
-    echo "PEP8_ERROR_COUNT=`cat ${outfile} | wc -l | tr -d " "`" >> $outfile
+    echo "# Pylint and PyCodeStyle output" >> "${outfile}"
+    echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
+    echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
+    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " "`" >> "${outfile}"
+    local pylint_error_count=$(grep '^E:' ${out_pylint} | wc -l | tr -d " ")
+    echo "PYLINT_ERROR_COUNT=${pylint_error_count}" >> "${outfile}"
+    echo "PEP8_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
+    echo "PEP8_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    local pep8_error_count=$(cat ${out_pycs} | wc -l | tr -d " ")
+    echo "PEP8_ERROR_COUNT=${pep8_error_count}" >> "${outfile}"
     echo "----------------"
-    cat $outfile
+    cat "${outfile}"
     echo "----------------"
 
-    fail_all=0
-#    [[ $total_error -gt 0 ]] && fail_all=1
-    return ${fail_all}
+    # Ignore PEP8 errors/warning for failure status
+    fail=${pylint_error_count}
+    return ${fail}
 }
 
 do_log_init() {

@@ -13,6 +13,7 @@ ${filename} [options] ${COMMAND} -a [other command options]
 Command options:
   -h        print this message
   -a        run on all shell scripts (see above)
+  -l        show the list of files checked
   -n        show the list of flags passed to shellcheck
 EOF
 }
@@ -44,13 +45,12 @@ do_show_flags() {
 }
 
 do_parse_options() {
-    while getopts ":han" option
+    while getopts ":ha" option
     do
       case "${option}"
       in
       h) help_msg; do_help_msg; exit 0;;
       a) LIST_FILES=yes;;
-      n) do_show_flags; exit 0;;
       : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
       *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
       ##\?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
@@ -65,6 +65,11 @@ do_parse_options() {
         # kcov not available
         logwarn "kcov is not available, disabling coverage"
         RUN_COVERAGE=
+    fi
+
+    if [ -n "${SHOW_FLAGS}" ]; then
+        do_show_flags
+        TEST_COMPLETE=branch
     fi
 }
 
@@ -87,19 +92,17 @@ do_check_requirements() {
 do_process_branch() {
     # 1 - branch
     # 2 - output file (output directory/output.branch)
+    # 3... - files to process (optional)
     #
     # TODO: add coverage test w/ kcov: https://github.com/SimonKagstrom/kcov
 
-    if ! cd test/bats ; then
-        logexit "cannot find the test directory './test/bats', in $(pwd), exiting"
-    fi
     local branch="$1"
+    local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
+    local outfile="$2"
     local outdir="$(dirname "$2")"
-    local outfile="$(basename "$2")"
-    local branch_noslash="${outfile#*.}"
+    local outfilename="$(basename "$2")"
+    # test_outdir defined and created below
     shift 2
-    local test_date=$(date "+%Y-%m-%d %H:%M:%S")
-    #SOURCES="$(get_source_directories)"
 
     local file_list
     if [[ -n "$LIST_FILES" ]]; then
@@ -108,16 +111,19 @@ do_process_branch() {
         files_list="$*"
     fi
 
-    local fail
-    local fail_all=0
+    print_files_list "Shellcheck will inspect the following files:" "${files_list}" && return
+
+    local test_date=$(date "+%Y-%m-%d %H:%M:%S")
+
+    local fail=0
 
     declare -i total_issues=0
     declare -i total_error=0
     declare -i total_warning=0
     declare -i total_info=0
     declare -i total_style=0
-    local branch_outdir="${outdir}/${branch_noslash}"
-    mkdir -p "${branch_outdir}
+    local test_outdir="${outfile}.d"
+    mkdir -p "${test_outdir}"
 
     echo "#####################################################"
     echo "Start : ${branch}"
@@ -127,15 +133,17 @@ do_process_branch() {
     # file-specific JSON log. The test fails if any SC issue of level
     # 'error' is found; 'warning' maps to warning, whereas 'info' and
     # 'style' are not considered problems (but are still reported).
-    while read -r filename
+    #while read -r filename
+    for pfile in ${files_list}
     do
         echo "-----------------------------------------------------"
-        echo "Scanning: $filename"
+        echo "Scanning: ${pfile}"
+        [ -z "${pfile}" ] && { echo "Empty file to process: ${pfile} (of: ${files_list})" >&2; exit 1; }
         # TODO: protect against scripts in different directories w/ same file name
-        out_file="${branch_outdir}/$(basename "${filename%.*}").json"
+        out_file="${test_outdir}/$(basename "${pfile%.*}").json"
         [[ -e "$out_file" ]] && echo "WARNING: duplicate file name, overwriting checks: $out_file"
         # shellcheck disable=SC2086
-        sc_out=$(shellcheck ${SC_OPTIONS} "${filename}" 2>/dev/null)
+        sc_out=$(shellcheck ${SC_OPTIONS} "${pfile}" 2>/dev/null)
         if command -v jq >/dev/null 2>&1; then
             echo "$sc_out" | jq . > "$out_file"
 
@@ -171,7 +179,8 @@ do_process_branch() {
             # Without jq, JSON cannot be prettified and counters would not work
             echo "$sc_out" > "$out_file"
         fi
-    done <<< "$(get_shell_files)"
+    done
+    #done <<< "$(get_shell_files)"
 
     if (( total_error > 0 )); then
         return_status="Failed"
@@ -191,9 +200,22 @@ do_process_branch() {
     echo " -Warning:    $total_warning"
     echo " -Info:       $total_info"
     echo " -Style:      $total_style"
-    echo "# Test #: ${CURR_BRANCH} .... ${return_status}   ${elapsed} s"
+    echo "# Test #: ${branch} .... ${return_status}   ${elapsed} s"
 
-    fail_all=0
-    [[ $total_error -gt 0 ]] && fail_all=1
-    return ${fail_all}
+    echo "# Shellcheck output" >> "${outfile}"
+    echo "SHELLCHECK_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
+    echo "SHELLCHECK_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    #echo "SHELLCHECK_ERROR_FILES_COUNT=`...`" >> "${outfile}"
+    echo "SHELLCHECK_ERROR_COUNT=${total_error}" >> "${outfile}"
+    echo "SHELLCHECK_WARNING_COUNT=${total_warning}" >> "${outfile}"
+    echo "SHELLCHECK_INFO_COUNT=${total_info}" >> "${outfile}"
+    echo "SHELLCHECK_STYLE_COUNT=${total_style}" >> "${outfile}"
+    echo "----------------"
+    cat "${outfile}"
+    echo "----------------"
+
+    # Return the error count
+    #[[ $total_error -gt 0 ]] && fail=1
+    fail=$total_error
+    return ${fail}
 }
