@@ -61,6 +61,11 @@ logexit() {
     exit ${2:-1}
 }
 
+log_verbose_nonzero_rc() {
+    [[ -z "$VERBOSE" ]] && echo "$(date) ERROR: $1 failed with non zero exit code ($2)" 1>&2
+    return $2
+}
+
 log_nonzero_rc() {
     echo "$(date) ERROR: $1 failed with non zero exit code ($2)" 1>&2
     return $2
@@ -71,7 +76,8 @@ log_nonzero_rc() {
 # Python functions
 ############################
 
-setup_python_venv() {
+SETUP_VENV3=
+setup_python3_venv() {
     if [ $# -gt 1 ]; then
         logexit "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
     fi
@@ -111,64 +117,201 @@ setup_python_venv() {
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
         mkdir -p "$WORKSPACE"
+        SETUP_VENV3=
     fi
 
-    loginfo "Setting up the Virtual Environment ..."
-    # Virtualenv is in the distribution, no need to download it separately
-    # we still want to redo the virtualenv
-    rm -rf "$VENV"
-    #"$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
-    python3 -m venv --system-site-packages "$VENV"
+    if [ "${SETUP_VENV3}" = "${VENV}" ]; then
+        loginfo "Python Virtual Environment already installed. Reusing it"
+        . "$VENV"/bin/activate
+        export PATH="$VENV/bin:$PATH"
+        export PYTHONPATH="$PWD:$PYTHONPATH"
+    else
+        loginfo "Setting up the Python Virtual Environment ..."
+        # Virtualenv is in the distribution, no need to download it separately
+        # we still want to redo the virtualenv
+        rm -rf "$VENV"
+        #"$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
+        python3 -m venv --system-site-packages "$VENV"
 
-    . "$VENV"/bin/activate
+        . "$VENV"/bin/activate
 
-    # TODO; is this needed or done in activate?
-    export PYTHONPATH="$PWD:$PYTHONPATH"
+        # TODO; is this needed or done in activate?
+        export PATH="$VENV/bin:$PATH"
+        export PYTHONPATH="$PWD:$PYTHONPATH"
 
-    # Install dependencies first so we don't get incompatible ones
-    # Following RPMs need to be installed on the machine:
-    # pep8 has been replaced by pycodestyle
-    # importlib and argparse are in std Python 3.6 (>=3.1)
-    # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
-    pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-    pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
-    pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-    pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+        # Install dependencies first so we don't get incompatible ones
+        # Following RPMs need to be installed on the machine:
+        # pep8 has been replaced by pycodestyle
+        # importlib and argparse are in std Python 3.6 (>=3.1)
+        # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
+        pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
+        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
+        pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
 
-    # TODO: load the list from requirements.txt
+        # TODO: load the list from requirements.txt
 
-    # To avoid: Cache entry deserialization failed, entry ignored
-    # curl https://bootstrap.pypa.io/get-pip.py | python3
-    python3 -m pip install --quiet --upgrade pip
+        # To avoid: Cache entry deserialization failed, entry ignored
+        # curl https://bootstrap.pypa.io/get-pip.py | python3
+        python3 -m pip install --quiet --upgrade pip
 
-    failed_packages=""
-    for package in $pip_packages; do
-        loginfo "Installing $package ..."
-        status="DONE"
-        python3 -m pip install --quiet "$package"
-        if ! python3 -m pip install --quiet "$package" ; then
-            status="FAILED"
-            failed_packages="$failed_packages $package"
-        fi
-        loginfo "Installing $package ... $status"
-    done
-    #try again if anything failed to install, sometimes its order
-    NOT_FATAL="htcondor"
-    for package in $failed_packages; do
-        echo "REINSTALLING $package"
-        if ! python3 -m pip install "$package" ; then
-            if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
-                logerror "ERROR $package could not be installed.  Continuing."
-            else
-                logerror "ERROR $package could not be installed.  Stopping venv setup."
-                return 1
+        failed_packages=""
+        for package in $pip_packages; do
+            loginfo "Installing $package ..."
+            status="DONE"
+            python3 -m pip install --quiet "$package"
+            if ! python3 -m pip install --quiet "$package" ; then
+                status="FAILED"
+                failed_packages="$failed_packages $package"
             fi
-        fi
-    done
+            loginfo "Installing $package ... $status"
+        done
+        #try again if anything failed to install, sometimes its order
+        NOT_FATAL="htcondor"
+        for package in $failed_packages; do
+            echo "REINSTALLING $package"
+            if ! python3 -m pip install "$package" ; then
+                if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
+                    logerror "ERROR $package could not be installed.  Continuing."
+                else
+                    logerror "ERROR $package could not be installed.  Stopping venv setup."
+                    return 1
+                fi
+            fi
+        done
+        #pip install M2Crypto==0.20.2
 
-    #pip install M2Crypto==0.20.2
+        SETUP_VENV3="${VENV}"
+    fi
 
     ## Need this because some strange control sequences when using default TERM=xterm
+    export TERM="linux"
+
+    ## PYTHONPATH for glideinwms source code
+    # pythonpath for pre-packaged only
+    if [ -n "$PYTHONPATH" ]; then
+        export PYTHONPATH="${PYTHONPATH}:${GLIDEINWMS_SRC}"
+    else
+        export PYTHONPATH="${GLIDEINWMS_SRC}"
+    fi
+
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/lib
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/creation/lib
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/factory
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/frontend
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
+    export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/..
+
+}
+
+# TODO: to remove once there is no version with python2
+
+SETUP_VENV2=
+setup_python2_venv() {
+    if [ $# -gt 1 ]; then
+        echo "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
+        exit 1
+    fi
+    WORKSPACE=${1:-$(pwd)}
+
+    if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
+        # Get latest packages that work with python 2.6
+        PY_VER="2.6"
+        VIRTUALENV_VER=virtualenv-12.0.7
+        PYLINT='pylint==1.3.1'
+        ASTROID='astroid==1.2.1'
+        HYPOTHESIS="hypothesislegacysupport"
+        AUTOPEP8="autopep8==1.3"
+        TESTFIXTURES="testfixtures==5.4.0"
+        # htcondor is not pip for python 2.6 (will be found from the RPM)
+        HTCONDOR=
+        COVERAGE="coverage==4.5.4"
+        JSONPICKLE="jsonpickle==0.9"
+        PYCODESTYLE="pycodestyle==2.4.0"
+        MOCK="mock==2.0.0"
+    else
+        # use something more up-to-date
+        PY_VER="2.7"
+        VIRTUALENV_VER=virtualenv-16.0.0
+        PYLINT='pylint==1.8.4'
+        ASTROID='astroid==1.6.0'
+        HYPOTHESIS="hypothesis"
+        AUTOPEP8="autopep8"
+        TESTFIXTURES="testfixtures"
+        # Installing the pip version, in case the RPM is not installed
+        HTCONDOR="htcondor"
+        COVERAGE='coverage==4.5.4'
+        JSONPICKLE="jsonpickle"
+        PYCODESTYLE="pycodestyle"
+        MOCK="mock==3.0.3"
+    fi
+
+    VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
+    VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
+    #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
+    VENV="$WORKSPACE/venv-$PY_VER"
+
+    # Following is useful for running the script outside jenkins
+    if [ ! -d "$WORKSPACE" ]; then
+        mkdir "$WORKSPACE"
+
+    fi
+
+    if [ "${SETUP_VENV2}" = "${VENV}" ]; then
+        loginfo "Python Virtual Environment already installed. Reusing it"
+        . "$VENV"/bin/activate
+        export PYTHONPATH="$PWD:$PYTHONPATH"
+    else
+        loginfo "Setting up Python Virtual Environment ..."
+        if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
+            rm "$WORKSPACE/$VIRTUALENV_TARBALL"
+        fi
+        curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
+        tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL"
+
+        #if we download the venv tarball everytime we should remake the venv
+        #every time
+        rm -rf "$VENV"
+        "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
+        . "$VENV"/bin/activate
+
+        export PYTHONPATH="$PWD:$PYTHONPATH"
+
+        # Install dependancies first so we don't get uncompatible ones
+        # Following RPMs need to be installed on the machine:
+        # pep8 has been replaced by pycodestyle
+        pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
+        pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
+        pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+
+        failed_packages=""
+        for package in $pip_packages; do
+            echo "Installing $package ..."
+            status="DONE"
+            pip install --quiet "$package"
+            if [ $? -ne 0 ]; then
+                status="FAILED"
+                failed_packages="$failed_packages $package"
+            fi
+            echo "Installing $package ... $status"
+        done
+        #try again if anything failed to install, sometimes its order
+        for package in $failed_packages; do
+            echo "REINSTALLING $package"
+            pip install "$package"
+            if [ $? -ne 0 ]; then
+                echo "ERROR $package could not be installed.  Exiting"
+                return 1
+            fi
+        done
+
+        SETUP_VENV2="$VENV"
+    fi
+
+    #pip install M2Crypto==0.20.2
+        ## Need this because some strange control sequences when using default TERM=xterm
     export TERM="linux"
 
     ## PYTHONPATH for glideinwms source code
