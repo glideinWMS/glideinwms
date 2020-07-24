@@ -1593,7 +1593,7 @@ class Descript2XML:
                    '</' + root_el + '>')
         fname = path + 'descript.xml'
         with open(fname + '.tmp', 'wb') as f:
-            f.write(output)
+            f.write(output.encode("utf-8"))
 
         util.file_tmp2final(fname)
         return
