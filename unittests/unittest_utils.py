@@ -83,9 +83,10 @@ def runAllTests():
 
     What kinds of safety checks do we need here?
     """
+
     def is_test(filename):
         if os.path.isfile(os.path.join(unittest_dir, filename)) and \
-                filename.startswith("test_") and filename.endswith(".py"):
+            filename.startswith("test_") and filename.endswith(".py"):
             return True
         return False
 
@@ -154,6 +155,7 @@ class TestImportError(Exception):
     If import of package listed in handled_import_errors fails, print
     out hopefully informative message and exit 0
     """
+
     def __init__(self, err_msg="Error"):
         handled_import_errors = ["M2Crypto"]
         sys_ = platform.system()
@@ -167,16 +169,17 @@ class TestImportError(Exception):
                     err_msg += """.  Hint: try yum install or apt-get install %s first.""" % imp_lib
                 else:
                     err_msg += """.  %s python package must be present.""" % imp_lib
-                print ("%s" % err_msg)
+                print("%s" % err_msg)
                 sys.exit(0)
         raise Exception(err_msg)
+
 
 def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
                      text_access=True, write_path_to_file=True):
     fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix,
                                 dir=file_dir, text=text_access)
     if write_path_to_file:
-        os.write(fd, path)
+        os.write(fd, path.encode('UTF-8'))
     os.close(fd)
     return path
 
