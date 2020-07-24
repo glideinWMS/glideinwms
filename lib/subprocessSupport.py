@@ -2,6 +2,7 @@ import os
 import subprocess
 import shlex
 
+
 # Exception classes used by this module.
 class CalledProcessError(Exception):
     """This exception is raised when a process run by check_call() or
@@ -9,10 +10,12 @@ class CalledProcessError(Exception):
     The exit status will be stored in the returncode attribute;
     check_output() will also store the output in the output attribute.
     """
+
     def __init__(self, returncode, cmd, output=None):
         self.returncode = returncode
         self.cmd = cmd
         self.output = output
+
     def __str__(self):
         return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode, self.output)
 
@@ -41,7 +44,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
     exitStatus = 0
 
     try:
-        # Add in parent process environment, make sure that env ovrrides parent 
+        # Add in parent process environment, make sure that env ovrrides parent
         if child_env:
             for k in os.environ:
                 if not k in child_env:
@@ -52,9 +55,9 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
 
         # Tokenize the commandline that should be executed.
         if useShell:
-          command_list = ['%s' % cmd,]
+            command_list = ['%s' % cmd, ]
         else:
-          command_list = shlex.split(cmd.encode('utf8'))
+            command_list = shlex.split(cmd)
         # launch process - Converted to using the subprocess module
         process = subprocess.Popen(command_list, shell=useShell,
                                    stdin=subprocess.PIPE,
@@ -64,7 +67,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
 
         # GOTCHAS:
         # 1) stdin should be buffered in memory.
-        # 2) Python docs suggest not to use communicate if the data size is 
+        # 2) Python docs suggest not to use communicate if the data size is
         #    large or unlimited. With large or unlimited stdout and stderr
         #    communicate at best starts trashing. So far testing for 1000000
         #    stdout/stderr lines are ok
@@ -80,6 +83,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
     if exitStatus:
         raise CalledProcessError(exitStatus, cmd, output="".join(stderrdata))
     return stdoutdata
+
 
 def call(*popenargs, **kwargs):
     """Run command with arguments.  Wait for command to complete, then
