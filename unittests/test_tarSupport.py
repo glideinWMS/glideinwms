@@ -63,7 +63,7 @@ class TestTarSupport(unittest.TestCase):
             write_path_to_file=False)
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
-        temp_file = open(temp_path, 'w')
+        temp_file = open(temp_path, 'wb')
         temp_file.write(blob)
         temp_file.seek(0)
         temp_file.close()
