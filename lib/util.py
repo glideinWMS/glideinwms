@@ -223,7 +223,7 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
-        with open(tmp_fname, "w") as pfile:
+        with open(tmp_fname, "wb") as pfile:
             pickle.dump(content, pfile, protocol)
     except:
         conditional_raise(mask_exceptions)
@@ -257,7 +257,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """
     data = default
     try:
-        with open(fname, 'r') as fo:
+        with open(fname, 'br') as fo:
             if expiration >= 0:
                 # check date of file and time
                 fname_time = os.path.getmtime(fname)

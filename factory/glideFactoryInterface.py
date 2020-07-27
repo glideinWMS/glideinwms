@@ -538,7 +538,7 @@ class EntryClassad(classadSupport.Classad):
         if pub_key_obj is not None:
             self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
             self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-            self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace('\n', '\\n')
+            self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace(b'\n', b'\\n')
         if 'grid_proxy' in auth_method:
             self.adParams['GlideinAllowx509_Proxy'] = '%s' % True
             self.adParams['GlideinRequirex509_Proxy'] = '%s' % True
@@ -614,7 +614,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
         self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
         self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-        self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace('\n', '\\n')
+        self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace(b'\n', b'\\n')
 
 
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,

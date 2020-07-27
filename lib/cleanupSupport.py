@@ -142,7 +142,7 @@ class DirCleanupWSpace(DirCleanup):
         files_wstats = self.get_files_wstats()
         fpaths = list(files_wstats.keys())
         # order based on time (older first)
-        fpaths.sort(lambda i, j:cmp(files_wstats[i][stat.ST_MTIME], files_wstats[j][stat.ST_MTIME]))
+        fpaths.sort(key=lambda i: files_wstats[i][stat.ST_MTIME])
 
         # first calc the amount of space currently used
         used_space = 0
