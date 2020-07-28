@@ -36,22 +36,22 @@ class TestEncodeDecodeData(unittest.TestCase):
             encode_data(
                 DATA,
                 ENCODING[0],
-                url_safe=False))
+                url_safe=False).decode('utf-8'))
         self.assertEqual(
             ENC_32,
             encode_data(
                 DATA,
                 ENCODING[1],
-                url_safe=False))
+                url_safe=False).decode('utf-8'))
         self.assertEqual(
             ENC_64,
             encode_data(
                 DATA,
                 ENCODING[2],
-                url_safe=False))
-        self.assertEqual(ENC_16, encode_data(DATA, ENCODING[0], url_safe=True))
-        self.assertEqual(ENC_32, encode_data(DATA, ENCODING[1], url_safe=True))
-        self.assertEqual(ENC_64, encode_data(DATA, ENCODING[2], url_safe=True))
+                url_safe=False).decode('utf-8'))
+        self.assertEqual(ENC_16, encode_data(DATA, ENCODING[0], url_safe=True).decode('utf-8'))
+        self.assertEqual(ENC_32, encode_data(DATA, ENCODING[1], url_safe=True).decode('utf-8'))
+        self.assertEqual(ENC_64, encode_data(DATA, ENCODING[2], url_safe=True).decode('utf-8'))
 
     def test_decode_data(self):
         self.assertEqual(

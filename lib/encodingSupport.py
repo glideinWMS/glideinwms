@@ -20,15 +20,15 @@ class EncodingTypeError(Exception):
 def encode_data(data, encoding="b64", url_safe=False):
     """Encode data using the base64 library.
 
-    @param data: Data to be encoded
+    @param data: Data of type string
     @param encoding: Encoding type.  Supported types are 'b16', 'b32', and 'b64'
         The default is 'b64'.
     @param url_safe: Only valid if encoding is 'b64'.  If True, this causes the
         encoding to be performed by the urlsafe_b64encode function. Default is
         False
-    @param data: Data to be encoded
     @raise EncodingTypeError: This exception occurs if an invalid encoding type
         is specified
+    @return: Encoded data represented in bytes
     """
     data = data.encode('utf-8')
 
@@ -44,7 +44,6 @@ def encode_data(data, encoding="b64", url_safe=False):
             else:
                 encoded_data = base64.b64encode(data)
 
-        encoded_data = encoded_data.decode('utf-8')
         return encoded_data
     else:
         raise EncodingTypeError(encoding, supported_encoding_types)
@@ -57,7 +56,7 @@ def decode_data(encoded_data, encoding="b64", url_safe=False):
     U{http://docs.python.org/library/base64.html}
 
 
-    @param encoded_data: Encoded data that will be decoded.
+    @param encoded_data: Encoded data represented in bytes that will be decoded
     @param encoding: Encoding type.  Supported types are 'b16', 'b32', and 'b64'
         The default is 'b64'.
     @param url_safe: Only valid if encoding is 'b64'.  If True, this causes the
@@ -67,6 +66,7 @@ def decode_data(encoded_data, encoding="b64", url_safe=False):
         is specified
     @raise TypeError: This exception occurs if data is incorrectly padded or if
         there are non-alphabet characters present in the string.
+    @return: Returns decoded data as a string
     """
     decoded_data = ""
     if encoding in supported_encoding_types:
