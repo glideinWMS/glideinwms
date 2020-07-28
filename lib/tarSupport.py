@@ -1,5 +1,5 @@
 import os
-from . import glideinwms_tarfile
+import tarfile
 import io
 
 
@@ -81,10 +81,10 @@ class GlideinTar:
             string_encoding = string.encode("utf-8")
             fd_str = io.BytesIO(string_encoding)
             fd_str.seek(0)
-            ti = glideinwms_tarfile.TarInfo()
+            ti = tarfile.TarInfo()
             ti.size = len(string_encoding)
             ti.name = filename
-            ti.type = glideinwms_tarfile.REGTYPE
+            ti.type = tarfile.REGTYPE
             ti.mode = 0o400
             tf.addfile(tarinfo=ti, fileobj=fd_str)
 
@@ -103,7 +103,7 @@ class GlideinTar:
         tar_mode = "w:%s" % compression
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
-        tf = glideinwms_tarfile.open(archive_full_path, mode=tar_mode)
+        tf = tarfile.open(archive_full_path, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
 
@@ -124,7 +124,7 @@ class GlideinTar:
         file_out = BytesIO()
         # TODO #23166: Use context managers[with statement] when python 3
         # once we get rid of SL6 and tarballs
-        tf = glideinwms_tarfile.open(fileobj=file_out, mode=tar_mode)
+        tf = tarfile.open(fileobj=file_out, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
         return file_out.getvalue()
@@ -138,4 +138,4 @@ class GlideinTar:
 
         @return: True/False
         """
-        return glideinwms_tarfile.is_tarfile(full_path)
+        return tarfile.is_tarfile(full_path)
