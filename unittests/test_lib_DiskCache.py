@@ -10,13 +10,10 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-
-
-
-
 import os
 import time
 import tempfile
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -24,12 +21,13 @@ except ImportError:
 
 import xmlrunner
 
-from disk_cache import DiskCache
+from glideinwms.lib.disk_cache import DiskCache
 
 
 class TestDiskCache(unittest.TestCase):
     """Test the DiskCache class
     """
+
     def setUp(self):
         self.obj = "I am the object to be saved"
         self.objid = "objid"
@@ -70,7 +68,7 @@ class TestDiskCache(unittest.TestCase):
         os.rmdir(new_location)
 
         # And now what happens if we let the cache expire? We do not get the object!
-        self.cache.cache_duration = 2 #2 seconds
+        self.cache.cache_duration = 2  # 2 seconds
         time.sleep(2)
         cached_obj = self.cache.get(self.objid)
         self.assertIsNone(cached_obj)
