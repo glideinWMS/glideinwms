@@ -33,6 +33,7 @@ class DiskCache(object):
     to one hour). Objects are pickled into a file. The directory to save those files has to
     be specified. Methods to save and load an object by its id are provided.
     """
+
     def __init__(self, cache_dir, cache_duration=3600):
         """Build the DiskCache object
 
@@ -70,7 +71,7 @@ class DiskCache(object):
             saved_time, obj = self.mem_cache[objid]
         elif os.path.isfile(fname):
             with get_lock(fname):
-                with open(fname) as fdesc:
+                with open(fname, 'rb') as fdesc:
                     saved_time, obj = pickle.load(fdesc)
             self.mem_cache[objid] = (saved_time, obj)
         if time() - saved_time < self.cache_duration:
@@ -92,7 +93,7 @@ class DiskCache(object):
         """
         fname = self.get_fname(objid)
         with get_lock(fname):
-            with open(fname, 'w') as fdesc:
+            with open(fname, 'wb') as fdesc:
                 save_time = time()
                 pickle.dump((save_time, obj), fdesc)
                 self.mem_cache[objid] = (save_time, obj)
