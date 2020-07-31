@@ -859,6 +859,7 @@ singularity_update_path() {
     #  GWMS_RETURN - Array variable w/ the commands
     GWMS_RETURN=()
     local outside_pwd="${GWMS_SINGULARITY_OUTSIDE_PWD:-$PWD}"
+    local realpath_outside_pwd="$(robust_realpath "${outside_pwd}")"
     local inside_pwd=$1
     shift
     local arg
@@ -866,8 +867,12 @@ singularity_update_path() {
         # two sed commands to make sure we catch variations of the iwd,
         # including symlinked ones
         # TODO: should it become /execute/dir_[0-9a-zA-Z]* => /execute/dir_[^/]* ? Check w/ Mats and Edgar if OK
-        arg="$(echo -n "" "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,")"
-        GWMS_RETURN+=("${arg# }")
+        # arg="$(echo -n "" "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,")"
+        arg="${arg/#$outside_pwd/$inside_pwd}"
+        [[ "${realpath_outside_pwd}" != "${outside_pwd}" ]] && arg="${arg/#$realpath_outside_pwd/$inside_pwd}"
+        [[ "${arg}" == *"${outside_pwd}"* || "${arg}" == *"${realpath_outside_pwd}"* ]] && warn "Outside path still in argument path ($arg), the conversion to run in Singularity may be incorrect"
+        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), the conversion to run in Singularity may be incorrect"
+        GWMS_RETURN+=("${arg}")
     done
 }
 
