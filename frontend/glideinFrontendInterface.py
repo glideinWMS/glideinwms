@@ -21,9 +21,6 @@ import calendar
 import time
 import string
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
-
 from glideinwms.lib import symCrypto  # pubCrypto was removed because unused
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorMonitor
@@ -55,8 +52,7 @@ class FrontendConfig:
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
         try:
-            glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-            self.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.frontend').version()
+            self.glideinwms_version = glideinWMSVersion.GlideinWMSDistro('checksum.frontend').version()
         except:
             logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 

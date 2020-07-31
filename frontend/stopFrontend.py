@@ -22,8 +22,6 @@ import os
 import string
 import time
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
-
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendConfig
 
