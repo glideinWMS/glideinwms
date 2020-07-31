@@ -15,23 +15,15 @@ from ReleaseManager import ReleaseManagerLib
 
 def manager_version():
     try:
+        if os.path.exists("/var/lib/gwms-factory/work-dir/checksum.factory"):
+            chksum_file = "checksum.factory"
+        elif os.path.exists("/var/lib/gwms-frontend/vofrontend/checksum.frontend"):
+            chksum_file = "checksum.frontend"
         from glideinwms.lib import glideinWMSVersion
     except ImportError:
         return "UNKNOWN"
     try:
-        if os.path.exists("../etc/checksum.factory"):
-            glidein_dir = "../etc"
-            chksum_file = "checksum.factory"
-        elif os.path.exists("/var/lib/gwms-factory/work-dir/checksum.factory"):
-            glidein_dir = "/var/lib/gwms-factory/work-dir"
-            chksum_file = "checksum.factory"
-        elif os.path.exists("/var/lib/gwms-frontend/vofrontend/checksum.frontend"):
-            glidein_dir = "/var/lib/gwms-frontend/vofrontend"
-            chksum_file = "checksum.frontend"
-        else:
-            return "UNKNOWN"
-        return glideinWMSVersion.GlideinWMSDistro(glidein_dir,
-                                                  chksum_file).version()
+        return glideinWMSVersion.GlideinWMSDistro(chksum_file).version()
     except RuntimeError:
         return "UNKNOWN"
 
@@ -141,11 +133,8 @@ def main(argv):
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
-    # rel.addTask(ReleaseManagerLib.TaskPylint(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskFrontendTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskFactoryTar(rel))
     rel.addTask(ReleaseManagerLib.TaskRPM(rel))
 
     rel.executeTasks()

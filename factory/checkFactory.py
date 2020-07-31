@@ -16,8 +16,7 @@
 #
 
 
-import sys, os.path
-sys.path.append(os.path.join(sys.path[0], "../.."))
+import sys
 from glideinwms.factory import glideFactoryPidLib
 
 try:

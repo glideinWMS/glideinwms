@@ -11,15 +11,10 @@
 #  as well as handle unexpected downtimes
 #
 
-
-import os.path
 import os
 import time, string
 import sys
 import re
-
-STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import ldapMonitor
 from glideinwms.lib import condorMonitor
