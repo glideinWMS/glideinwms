@@ -101,22 +101,22 @@ GWMS_SCRIPT_LOG="`dirname "$GWMS_THIS_SCRIPT"`/.LOG_`basename "$GWMS_THIS_SCRIPT
 SCRIPT_LOG=
 [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]] && SCRIPT_LOG="$GWMS_SCRIPT_LOG"
 
-info_stdout () {
+info_stdout() {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"
     true  # Needed not to return false if the test if the test above is false
 }
 
-info_raw () {
+info_raw() {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
     true  # Needed not to return false if the test if the test above is false
 }
 
-info () {
+info() {
     info_raw "INFO " "$@"
 }
 
-info_dbg () {
+info_dbg() {
     if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
         #local script_txt=''
         #[ -n "$GWMS_THIS_SCRIPT" ] && script_txt="(file: $GWMS_THIS_SCRIPT)"
@@ -124,14 +124,30 @@ info_dbg () {
     fi
 }
 
-warn () {
+warn() {
     warn_raw "WARNING " "$@"
 }
 
-warn_raw () {
+warn_raw() {
     echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
     true  # Needed not to return false if the test if the test above is false
+}
+
+
+robust_realpath() {
+    # Echo to stdout the real path even if realpath is not installed
+    # 1. file path to find the real path of
+    if ! realpath "$1" 2>/dev/null; then
+        local first="$1"
+        local last=
+        if [[ ! -d "$1" ]]; then
+            first="$(dirname "$first")"
+            last="/$(basename "$1")"
+        fi
+        [[ -d "$first" ]] && first="$(cd "$first"; pwd -P)"
+        echo "${first}${last}"
+    fi
 }
 
 
@@ -146,7 +162,7 @@ warn_raw () {
 # my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
 #
 
-dict_get_val () {
+dict_get_val() {
     # Return to stdout the value of the fist key present in the dictionary
     # Return true (0) if a value is found and is not empty, 1 otherwise
     # Use a regex to extract the values
@@ -164,7 +180,7 @@ dict_get_val () {
     return 1
 }
 
-dict_check_key () {
+dict_check_key() {
     # Return true (0) if the key is in the dict (the value could be empty)
     # $1 dict name
     # $2 key
@@ -174,7 +190,7 @@ dict_check_key () {
     return 1
 }
 
-dict_set_val () {
+dict_set_val() {
     # Echoes a new string including the new key:value. Return is 0 if the key was already there, 1 if new
     # $1 dict name
     # $2 key
@@ -199,7 +215,7 @@ dict_set_val () {
 # dit () { echo "TEST: <$1> <$2> <$3>"; }
 # dict_items_iterator my_dict dit par1
 # Make sure that par1 is passed, spaces are preserved, no-val keys are handled correctly and val options are preserved
-dict_items_iterator () {
+dict_items_iterator() {
     # Split the dict string to list the items and apply the function
     # $1 dict
     # $2.. $n $2 is the function to apply to all items, $3..$n its parameters (optional), $(n+1) the key, $(n+2) the value
@@ -218,7 +234,7 @@ dict_items_iterator () {
     done
 }
 
-dict_keys_iterator () {
+dict_keys_iterator() {
     # Split the dict string to list the keys and apply the function
     # $1 dict
     # $2.. $n $2 is the function to apply to all keys, $3..$n its parameters (optional), $(n+1) will be the key
@@ -235,7 +251,7 @@ dict_keys_iterator () {
     done
 }
 
-dict_get_keys () {
+dict_get_keys() {
     # Returns a comma separated list of keys (there may be spaces if keys do have spaces)
     # Quote the return string and use  IFS=, to separate the keys, this way you'll preserve spaces
     # Returning the elements would flatten the array and cause problems w/ spaces
@@ -246,7 +262,7 @@ dict_get_keys () {
 }
 
 
-dict_get_first () {
+dict_get_first() {
     # Returns the first element of the dictionary (whole item, or key, or value)
     #  $1 dict
     #  $2 what to return: item, key, value (default: value)
@@ -270,7 +286,7 @@ dict_get_first () {
 }
 
 
-list_get_intersection () {
+list_get_intersection() {
     # Return the intersection of two comma separated lists.
     # 'any' in any of the 2 lists, means that the other list is returned (is a wildcard)
     # If the Input lists are sorted in order of preference, the result is as well
@@ -305,7 +321,7 @@ list_get_intersection () {
 # GWMS aux functions
 #
 
-get_prop_bool () {
+get_prop_bool() {
     # In:
     #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     #  $2 the key
@@ -358,7 +374,7 @@ get_prop_bool () {
 }
 
 
-is_condor_true () {
+is_condor_true() {
    # Assuming the input is numeric 0->False other->True
    if [[ $1 -eq 0 ]]; then
        false
@@ -368,7 +384,7 @@ is_condor_true () {
 }
 
 
-get_prop_str () {
+get_prop_str() {
     # In:
     #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
     #  $2 the key
@@ -418,7 +434,7 @@ fi
 
 
 # TODO: should always use add_config_line_safe to avoid 2 functions?
-advertise () {
+advertise() {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # In:
     #  1 - key
@@ -446,7 +462,7 @@ advertise () {
     fi
 }
 
-advertise_safe () {
+advertise_safe() {
     # Add the attribute to glidein_config (if not NONE) and return the string for the HTC ClassAd
     # Thos should be used in periodic scripts or wrappers, because it uses add_config_line_safe
     # In:
@@ -477,21 +493,21 @@ advertise_safe () {
 
 
 # The following four functions (htc_...) are based mostly on Carl Edquist's code to parse the HTCondor file
-htc_setmatch () {
+htc_setmatch() {
   local __=("$@")
   set -- "${BASH_REMATCH[@]}"
   shift
   eval "${__[@]}"
 }
 
-htc_rematch () {
+htc_rematch() {
   [[ $1 =~ $2 ]] || return 1
   shift 2
   htc_setmatch "$@"
 }
 
 
-htc_get_vars_from_env_str () {
+htc_get_vars_from_env_str() {
   local str_arr condor_var_string=""
   env_str=${env_str#'"'}
   env_str=${env_str%'"'}
@@ -515,7 +531,7 @@ htc_get_vars_from_env_str () {
 }
 
 
-htc_parse_env_file () {
+htc_parse_env_file() {
     shopt -s nocasematch
     while read -r attr eq env_str; do
 	if [[ $attr = Environment && $eq = '=' ]]; then
@@ -527,7 +543,7 @@ htc_parse_env_file () {
 }
 
 
-env_clear_one () {
+env_clear_one() {
     # Clear the environment variable and print a info message
     # In
     #  1 - name of the variable to clear, e.g. LD_LIBRARY_PATH
@@ -540,7 +556,7 @@ env_clear_one () {
 }
 
 
-env_process_options () {
+env_process_options() {
     # The options string is a list of any of the following:
     #   clearall - clear all from the environment (at your own risk)
     #   condorset - _CONDOR_ env variables AND variables set in the job ClassAd (Environment)
@@ -570,7 +586,7 @@ env_process_options () {
 }
 
 
-env_clear () {
+env_clear() {
     # If requested in the env options, clear the PATH vasiables and add the singularity option
     # In
     #  1 - list of environment options (see env_process_options)
@@ -595,13 +611,13 @@ env_clear () {
 }
 
 
-env_gets_cleared () {
+env_gets_cleared() {
     # True if Singularity is set to clear the environment
     [[ " ${1} " = *" --cleanenv "* ]]
 }
 
 
-env_preserve () {
+env_preserve() {
     # If we are cleaning the environment, then we also need to "protect" (by exporting)
     # variables that will be transformed into certain critical variables
     # inside the container.
@@ -730,7 +746,7 @@ env_preserve () {
 }
 
 
-env_restore () {
+env_restore() {
     # Restore the environment if the Singularity invocation fails
     # Nothing to do for the env cleared by Singularity, we are ourside of it.
     # The PATH... variables may need to be restored.
@@ -754,7 +770,7 @@ env_restore () {
 }
 
 
-get_all_platforms () {
+get_all_platforms() {
     # Return all supported platforms (all Singularity platforms)
     # In
     #  SINGULARITY_IMAGES_DICT
@@ -771,7 +787,7 @@ get_all_platforms () {
 # Singularity functions
 #
 
-singularity_check_paths () {
+singularity_check_paths() {
     # Check if the mount-points are valid. Return true and echo the mount-point if all tests are satisfied,
     # return false otherwise.
     # List of valid checks (other letters will be ignored):
@@ -802,7 +818,7 @@ singularity_check_paths () {
 
 # TOTEST:
 # singularity_get_binds "" /cvmfs /minos,/usr/games
-singularity_get_binds () {
+singularity_get_binds() {
     # Return on stdout a string with multiple --bind options for whichever is not empty of:
     # $3 (overrides), GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, $2 (defaults), in that order
     # Each of them must be a valid Singularity mount point string (comma separated, no spaces, src[:dst[:opt]] groups)
@@ -831,7 +847,7 @@ singularity_get_binds () {
 }
 
 
-singularity_update_path () {
+singularity_update_path() {
     # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
     # so that they can work inside. Also "/execute/dir_[0-9a-zA-Z]*" directories are replaced
     # In:
@@ -850,13 +866,13 @@ singularity_update_path () {
         # two sed commands to make sure we catch variations of the iwd,
         # including symlinked ones
         # TODO: should it become /execute/dir_[0-9a-zA-Z]* => /execute/dir_[^/]* ? Check w/ Mats and Edgar if OK
-        arg="`echo "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,"`"
-        GWMS_RETURN+=("$arg")
+        arg="$(echo -n "" "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,")"
+        GWMS_RETURN+=("${arg# }")
     done
 }
 
 
-singularity_exec () {
+singularity_exec() {
     # Return on stdout the command to invoke Singularity exec
     # Change here for all invocations (both singularity_setup, wrapper). Custom options should go in the specific script
     # In:
@@ -927,7 +943,7 @@ singularity_exec () {
 }
 
 
-singularity_exec_simple () {
+singularity_exec_simple() {
     # Return on stdout the command to invoke Singularity exec
     # Change here for all invocations (both singularity_setup, wrapper). Custom options should go in the specific script
     # In:
@@ -948,7 +964,7 @@ singularity_exec_simple () {
 }
 
 
-singularity_test_exec () {
+singularity_test_exec() {
     # Test Singularity by invoking it with the standard environment (binds, options)
     # In:
     #  1 - Singularity image, default GWMS_SINGULARITY_IMAGE_DEFAULT
@@ -1011,7 +1027,7 @@ singularity_test_exec () {
 }
 
 
-singularity_get_platform () {
+singularity_get_platform() {
     # TODO: incomplete, add script to detect platform (needs to work in/out singularity)
     # Detect the platform (OS) inside of Singularity (invoking it with the standard environment: binds, options)
     # In:
@@ -1037,7 +1053,7 @@ singularity_get_platform () {
 }
 
 
-singularity_test_bin () {
+singularity_test_bin() {
     # Test Singularity path, check the version and validate w/ the image (if an image is passed)
     # In:
     #   1 - type,path
@@ -1093,7 +1109,7 @@ singularity_test_bin () {
 }
 
 
-singularity_locate_bin () {
+singularity_locate_bin() {
     # Find Singularity path, check the version and validate w/ the image (if an image is passed)
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
@@ -1176,7 +1192,7 @@ singularity_locate_bin () {
 }
 
 
-singularity_get_image () {
+singularity_get_image() {
     # Return on stdout the Singularity image
     # Let caller decide what to do if there are problems
     # In:
@@ -1238,7 +1254,7 @@ singularity_get_image () {
     echo "$singularity_image"
 }
 
-singularity_sanitize_image () {
+singularity_sanitize_image() {
     # TODO: these checks are also in the wrapper, remove duplicates, use function
     # for /cvmfs based directory images, expand the path without symlinks so that
     # the job can stay within the same image for the full duration
@@ -1261,7 +1277,7 @@ singularity_sanitize_image () {
 }
 
 
-create_host_lib_dir () {
+create_host_lib_dir() {
     # this is a temporary solution until enough sites have newer versions
     # of Singularity. Idea for this solution comes from:
     # https://github.com/singularityware/singularity/blob/master/libexec/cli/action_argparser.sh#L123
@@ -1319,7 +1335,7 @@ EOF
 }
 
 
-singularity_check () {
+singularity_check() {
     # Check if it is invoked in Singularity and if Singularity is privileged mode ot not
     # Return true (0) if in Singularity false (1) otherwise
     # Echo to stdout a string with the status:
@@ -1357,14 +1373,14 @@ singularity_check () {
 }
 
 
-singularity_is_inside () {
+singularity_is_inside() {
     # Return true (0) if in Singularity false (1) otherwise
     # Uses singularity_check(), return its exit code
     singularity_check > /dev/null
 }
 
 
-setup_classad_variables () {
+setup_classad_variables() {
     # Retrieve variables from Machine and Job ClassAds
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
     # Out:
@@ -1454,7 +1470,7 @@ setup_classad_variables () {
 }
 
 
-singularity_setup_inside () {
+singularity_setup_inside() {
     # Setup some environment variables when the script is restarting in Singularity
     # In:
     #   $GWMS_SINGULARITY_OUTSIDE_PWD, $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE as fallback)
@@ -1535,7 +1551,7 @@ singularity_setup_inside () {
 # CVMFS functions
 #
 
-cvmfs_test_and_open () {
+cvmfs_test_and_open() {
     # Testing and opening all CVMFS repos named in the comma separated list. Call-back or exit if failing
     # In:
     #  1 - CVMFS repos names, comma separated
