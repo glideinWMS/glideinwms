@@ -22,8 +22,11 @@ logexit() {
 
 
 find_aux() {
+    # Return to stdout the full path of the aux file. May perform additional actions depending on the options ($2)
+    # It searches fists in the current directory, then in the scripts directory ($SCRIPTS_SUBDIR) of the source tree
+    # This allows to have different aux files for different branches
     # $1 basename of the aux file
-    # $2 (optionsl) if "source" then source the file and exit in case of errors
+    # $2 (options) if "source" then source the file and exit in case of errors
     local aux_file=
     if [[ -e "$MYDIR/$1" ]]; then
         aux_file="$MYDIR/$1"
@@ -61,6 +64,8 @@ ${filename} [options] COMMAND [command options]
   shellcheck - run shellcheck
  Options:
   -h          print this message
+  -n          show the flags passed to the COMMAND (without running it)
+  -l          show the list of files with tests or checked by COMMAND (without running tests or checks)
   -v          verbose
   -i          run in place without checking out a branch (default)
   -f          force git checkout of branch when processing multiple branches
@@ -73,8 +78,9 @@ ${filename} [options] COMMAND [command options]
               Relative to WORKDIR.
   -c REPO     clone the git repository REPO
   -C          like -c but the git repository is ${GWMS_REPO}
-  -t TEST_DIR create TEST_DIR, clone the repository and run there the tests. Implies -C if -c is not there.
-              Relative to the start directory. Becomes the new WORKDIR.
+  -t TEST_DIR create TEST_DIR, clone the repository and run there the tests. Implies -C if -c is not there and if
+              there is not already a repository.
+              Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
   -T          like -t but creates a temporary directory with mktemp.
   -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
 
@@ -82,13 +88,12 @@ EOF
 }
 
 
-get_files_ext() {
+get_files_pattern() {
     # Return to stdout a space separated list of files with EXT ($1) extension
-    # 1. extension to look for
+    # 1. pattern to look for. Must be quoted, e.g. "test_*.py"
     # 2. directories to prune (NOTE. this will not work if these directories or src_dir contain spaces)
     # 3. possible root directory (default:'.')
     # All Shell files
-    local extension=$1
     local src_dir="${3:-.}"
     prune_opts=
     for i in $2; do
@@ -96,7 +101,9 @@ get_files_ext() {
     done
     # -readable not valid on Mac, needed?
     # e.g. $(find . -readable -name  '*.bats' -print)"
-    echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name '*.'${extension} -print)"
+    #echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name '*.'${extension} -print)"
+    #echo "MMDB (`pwd`): find \"$src_dir\" -path \"${src_dir}\"/.git -prune -o ${prune_opts} -name '$1' -print" >&2
+    echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name "$1" -print)"
 }
 
 
@@ -105,7 +112,7 @@ get_shell_files() {
     # Return to stdout a space separated list of Shell files with .sh/.source extension
     # All Shell files
     local src_dir="${1:-.}"
-    echo $(find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -o -name '*.source' -print)
+    echo $(find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -print -o -name '*.source' -print)
 }
 
 
@@ -142,11 +149,16 @@ parse_options() {
     # Parse and validate options to the runtest command
     # OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
     # The man page mentions optional options' arguments for getopts but they are not handled correctly
-    while getopts ":hvifb:B:so:Cc:Tt:z" option
+    # Defaults
+    SHOW_FLAGS=
+    SHOW_FILES=
+    while getopts ":hnlvifb:B:so:Cc:Tt:z" option
     do
         case "${option}"
         in
         h) help_msg; exit 0;;
+        n) SHOW_FLAGS=yes;;
+        l) SHOW_FILES=yes;;
         v) VERBOSE=yes;;
         i) INPLACE=yes;;
         f) GITFLAG='-f';;
@@ -173,7 +185,12 @@ parse_options() {
         GITFLAG=
     fi
     # Fix the repo parameter w/ the default if running in temp directory
-    [[ -z "$REPO" && -n "${TEST_DIR}" ]] && REPO="$GWMS_REPO"
+    # Set also GWMS_REPO_OPTIONAL to allow to run if a repo is there
+    GWMS_REPO_OPTIONAL=
+    if [[ -z "$REPO" && -n "${TEST_DIR}" ]]; then
+        REPO="$GWMS_REPO"
+        GWMS_REPO_OPTIONAL=yes
+    fi
     # Get the git branches in to an array
     if [[ -n "${BRANCH_LIST}" ]]; then
         IFS=',' read -r -a git_branches <<< "$BRANCH_LIST"
@@ -191,14 +208,24 @@ test_cleanup() {
     [[ -n "$1" ]] && rm -rf "$1"
 }
 
+isnot_dry_run() {
+    # If showing the files or the parameter options it is a dry-run, return false
+    # otherwise return true
+    [[ -n "${SHOW_FILES}" || -n "${SHOW_FLAGS}" ]] && { false; return; }
+    true
+}
+
 SKIP_LOG=
 log_init() {
     # 1. file that will store the email body (in HTML)
     local log_content
-    if ! log_content="$(do_log_init)"; then
-        SKIP_LOG=yes
-        return
+    SKIP_LOG=yes
+    if isnot_dry_run; then
+        if log_content="$(do_log_init)"; then
+            SKIP_LOG=
+        fi
     fi
+    [[ -n "${SKIP_LOG}" ]] && return
     mail_init "$1"
     if do_use_python; then
         mail_add "$(print_python_info email)"
@@ -207,7 +234,7 @@ log_init() {
 }
 
 log_close() {
-    [ -n "${SKIP_LOG}" ] && return
+    [[ -n "${SKIP_LOG}" ]] && return
     mail_add "$(do_log_close)"
     mail_close
     # TODO: mail results if desired
@@ -216,7 +243,7 @@ log_close() {
 
 log_branch() {
     # 1. results file for the branch
-    [ -n "${SKIP_LOG}" ] && return
+    [[ -n "${SKIP_LOG}" ]] && return
     mail_add "$(do_log_branch "$1")"
 }
 
@@ -226,8 +253,8 @@ log_join() {
     # use the cell style to grep for lines
     # 1. output file w/ joint HTML
     # 2..N HTML files to join
-    [ $# -lt 2 ] && { logerror "Wrong arguments for log_join: $@"; return; }
-    [ $# -eq 2 ] && { cp "$2" "$1"; return; }
+    [[ $# -lt 2 ]] && { logerror "Wrong arguments for log_join: $@"; return; }
+    [[ $# -eq 2 ]] && { cp "$2" "$1"; return; }
     mail_init "$1"
     mail_add "$(sed ';</tr>;Q' "$2"| tail -n +2)"
     # create a temp dir
@@ -255,15 +282,66 @@ TABLE_MIDDLE
     mail_add "$(do_log_close)"
 }
 
+print_files_list() {
+    # 1. Message string
+    # 2. Files list
+    local msg="${1:-"Files used:"}"
+    if [[ -n  "${SHOW_FILES}" ]]; then
+        echo "$msg"
+        echo "$2"
+        TEST_COMPLETE=branch
+        return
+    fi
+    [[ -z "$2" ]] && logerror "no files specified (use -a or add files as arguments)"
+    return 1
+}
 
-# Create a process branch function
-process_branch () {
-    # ?? Global Variables Used: $mail_file & $fail - and HTML Constants
-    # 1 - branch name or LOCAL (for in place processing)
-    local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
-    local outfile="${OUT_DIR}"/output.${branch_no_slash}
-    do_process_branch "$1" "${outfile}" "${CMD_OPTIONS[@]}"
+is_python3_branch() {
+    [[ "$1" == *p3* ]] && { true; return; }
+    if grep '#!' factory/glideFactory.py | grep python3 > /dev/null; then
+        true
+        return
+    fi
+    false
+}
+
+# Process a branch using the COMMAND
+process_branch() {
+    # 1. git_branch, branch name or LOCAL (for in place processing)
+    # 2... command line parameters
+    local git_branch="$1"
+    local branch_no_slash=$(echo "${git_branch}" | sed -e 's/\//_/g')
+    local outfile="${OUT_DIR}"/gwms.${branch_no_slash}.${COMMAND}
+    local exit_code
+    shift
+    # This time, fail if they are not found
+    # If there are no utils or no command, operations cannot proceed
+    [[ -z "${UTILS_OK}" ]] && find_aux utils.sh source
+    if [[ -z "${COMMAND_OK}" ]]; then
+        find_aux "$command_file" source
+        do_parse_options "$@"
+        # Check if Dry-run, end here
+        [[ "${TEST_COMPLETE}" = branch ]] && return 0
+        [[ "${TEST_COMPLETE}" = all ]] && exit 0
+    fi
+    [[ -z "${UTILS_OK}" || -z "${COMMAND_OK}" ]] && logexit "cannot continue without utils and command files" 1 SETUP
+
+    if isnot_dry_run && do_use_python; then
+        if is_python3_branch "${git_branch}"; then
+            setup_python3_venv "$WORKSPACE"
+        else
+            setup_python2_venv "$WORKSPACE"
+        fi
+    fi
+
+    # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
+    do_process_branch "${git_branch}" "${outfile}" "${CMD_OPTIONS[@]}"
+    exit_code=$?
+    # Check if Dry-run, end here
+    [[ "${TEST_COMPLETE}" = branch ]] && return 0
+    [[ "${TEST_COMPLETE}" = all ]] && exit 0
     log_branch "${outfile}"
+    return ${exit_code}
 }
 
 
@@ -288,28 +366,39 @@ OPTIND=1
 # Parse the (sub)command
 COMMAND=$1; shift  # Remove the command from the argument list
 # Commands provide functions to perform the actions
-# Mandatory functions:
+# Required functions:
 #   do_parse_options - parse the command specific command line options
 #   do_process_branch - run the test on the current branch
 # All functions start with do_...
 
-# Defaults for commands' functions and variables
-do_use_python() { false; }
-do_check_requirements() { true; }
-# Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
-# do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
-do_git_init_command() { true; }
-# Empty logging commands
-do_log_init() { true; }
-do_log_branch() { true; }
-do_log_close() { true; }
 
+## Variables passed
+# SHOW_FLAGS - COMMAND should do a dry run and only show the flags used
+# SHOW_FILES - COMMAND should do a dry run and only show the files that will be inspected
+# TEST_COMPLETE - set to COMMAND to say that the work for the 'branch' or 'all' is completed
+
+## Required functions
 do_parse_options() { logexit "command not implemented"; }
 #do_process_branch "$1" "$outfile" "${CMD_OPTIONS[@]}"
 # 1 - branch name
 # 2 - outfile
 # 3... - options/arguments passed to the command (e.g. files/test list)
 do_process_branch() { logexit "command not implemented"; }
+
+## Optional functions
+# Defaults for commands' functions and variables
+do_show_flags() {
+    echo "Dry run: $COMMAND not providing the invocation options."
+}
+do_use_python() { false; }
+do_check_requirements() { true; }
+# Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
+# do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
+do_git_init_command() { true; }
+# Empty logging commands
+do_log_init() { false; }
+do_log_branch() { true; }
+do_log_close() { true; }
 
 
 case "$COMMAND" in
@@ -322,6 +411,7 @@ esac
 
 UTILS_OK=
 COMMAND_OK=
+TEST_COMPLETE=
 # comman help message can be processed also w/o utils
 if find_aux utils.sh source noexit; then
     UTILS_OK=yes
@@ -333,9 +423,8 @@ fi
 # Parse options to the command, output in CMD_OPTIONS array
 # Postpone options parsing if the command file was not found
 [[ -n "${COMMAND_OK}" ]] && do_parse_options "$@"
-
-# If there are no utils or no command, operations cannot proceed
-[[ -z "${UTILS_OK}" || -z "${COMMAND_OK}" ]] && logexit "cannot continue without utils and command files" 1 SETUP
+# Check if Dry-run, end here
+[[ -n "${TEST_COMPLETE}" ]] && exit 0
 
 # Start creating files
 
@@ -349,12 +438,18 @@ if [[ -n "$REPO" ]]; then
         fi
     fi
 
-    if [[ -d glideinwms && -z "$GITFLAG" ]]; then
-        logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms " 1 SETUP
-    fi
-    # --recurse-submodules
-    if ! git clone "$REPO" ; then
-        logexit "failed to clone $REPO" 1 SETUP
+    #if [[ -d glideinwms && -z "$GITFLAG" ]]; then
+    if [[ -d glideinwms ]]; then
+        if [ -z "${GWMS_REPO_OPTIONAL}" ]; then
+            logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms " 1 SETUP
+        else
+            logwarn "using existing glideinwms directory"
+        fi
+    else
+        # --recurse-submodules
+        if ! git clone "$REPO" ; then
+            logexit "failed to clone $REPO" 1 SETUP
+        fi
     fi
     # Adding do_git_init_command also here in case -i is used
     [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
@@ -370,13 +465,6 @@ fi
 STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
 OUT_DIR="$(robust_realpath "$OUT_DIR")"
 
-# This time, fail if they are not found
-[[ -z "${UTILS_OK}" ]] && find_aux utils.sh source
-if [[ -z "${COMMAND_OK}" ]]; then
-    find_aux "$command_file" source
-    do_parse_options "$@"
-fi
-
 if [[ ! -d "${OUT_DIR}" ]]; then
     if ! mkdir -p "${OUT_DIR}"; then
         logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
@@ -391,9 +479,6 @@ echo "outdir=$OUT_DIR" >> "$STATFILE"
 
 # Iterate throughout the git_branches array
 fail_global=0
-if do_use_python; then
-    [[ "x${VIRTUAL_ENV}" = "x" ]] && setup_python_venv "$WORKSPACE"
-fi
 
 cd "${GLIDEINWMS_SRC}"
 
@@ -409,6 +494,8 @@ else
     do_git_init_command
     for git_branch in "${git_branches[@]}"
     do
+        # Back in the source directory in case processing changed the directory
+        cd "${GLIDEINWMS_SRC}"
         loginfo "Now checking out branch $git_branch"
         loglog "GIT_BRANCH=\"$git_branch\""
         if ! git checkout ${GITFLAG} "$git_branch"; then
@@ -434,7 +521,7 @@ else
             logreportok "GIT_CHECKOUT"
         fi
         # Starting the test
-        process_branch "$git_branch"
+        process_branch "$git_branch" "$@"
         fail=$?
         loginfo "Complete with branch ${git_branch} (ec:${fail})"
 	    [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
