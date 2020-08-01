@@ -61,7 +61,7 @@ fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
-     setup_python_venv $WORKSPACE
+     setup_python2_venv $WORKSPACE
 fi
 
 cd ${GLIDEINWMS_SRC}/unittests
