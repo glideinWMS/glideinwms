@@ -318,7 +318,11 @@ do_process_branch() {
 
     local file_list
     if [[ -n "$LIST_FILES" ]]; then
-        files_list="$(get_python_scripts) $(get_python_files)"
+        if is_python3_branch "${branch}"; then
+            files_list="$(get_python3_scripts) $(get_python_files)"
+        else
+            files_list="$(get_python2_scripts) $(get_python_files)"
+        fi
     else
         files_list="$*"
     fi

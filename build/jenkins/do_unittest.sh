@@ -143,12 +143,11 @@ do_process_branch() {
         else
             # To help troubleshooting the coverage failure
             logwarn "no html coverage report generated for $branch_no_slash on $(hostname)"
-            command -v coverage || logwarn "coverage not installed"
-            coverage --version || logwarn "coverage not installed"
+            command -v coverage || logwarn "no path - coverage not installed"
+            coverage --version || logwarn "no version - coverage not installed"
         fi
     fi
 
-    # TODO: find numbers and fix
     echo "# Python unittest output" > "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
