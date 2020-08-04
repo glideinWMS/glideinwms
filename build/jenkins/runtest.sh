@@ -2,6 +2,9 @@
 # Runner script for the different tests
 
 GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
+# Alt URLs, from cdcvs/redmine. http from the Lab, https also from outside:
+#  http://cdcvs.fnal.gov/projects/glideinwms
+#  https://cdcvs.fnal.gov/projects/glideinwms
 DEFAULT_OUTPUT_DIR=output
 SCRIPTS_SUBDIR=build/jenkins
 
@@ -74,7 +77,7 @@ ${filename} [options] COMMAND [command options]
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
   -B BFILE    file containing a list of branches that needs to be inspected, one per line
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
-  -s          run sequentially invoking the test separately for each file
+  NOT_IMPLEMENTED: -s          run sequentially invoking the test separately for each file
   -o OUT_DIR  directory including log files (it will be created if not existing, default "./output")
               Relative to WORKDIR.
   -c REPO     clone the git repository REPO
