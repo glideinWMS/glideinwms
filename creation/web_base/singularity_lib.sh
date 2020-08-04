@@ -1156,7 +1156,7 @@ singularity_locate_bin () {
             warn "Looks like we found Singularity, but were unable to determine the full path to the executable"
         else
             export HAS_SINGULARITY=${HAS_SINGULARITY}
-            export GWMS_SINGULARITY_PATH="${test_results[3]#_}"
+            export GWMS_SINGULARITY_PATH=${test_results[3]#_}
             export GWMS_SINGULARITY_VERSION="${test_results[2]#_}"
             export GWMS_SINGULARITY_MODE="${test_results[1]#_}"
             info "Singularity found at \"${GWMS_SINGULARITY_PATH}\" ($GWMS_SINGULARITY_MODE mode, using ${test_results[0]#_})"
