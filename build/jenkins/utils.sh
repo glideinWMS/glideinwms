@@ -174,7 +174,7 @@ setup_python3_venv() {
         #try again if anything failed to install, sometimes its order
         NOT_FATAL="htcondor"
         for package in $failed_packages; do
-            echo "REINSTALLING $package"
+            loginfo "REINSTALLING $package"
             if ! python3 -m pip install "$package" ; then
                 if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
                     logerror "ERROR $package could not be installed.  Continuing."
@@ -299,18 +299,18 @@ setup_python2_venv() {
 
         failed_packages=""
         for package in $pip_packages; do
-            echo "Installing $package ..."
+            loginfo "Installing $package ..."
             status="DONE"
             pip install --quiet "$package"
             if [ $? -ne 0 ]; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
-            echo "Installing $package ... $status"
+            loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
         for package in $failed_packages; do
-            echo "REINSTALLING $package"
+            loginfo "REINSTALLING $package"
             pip install "$package"
             if [ $? -ne 0 ]; then
                 echo "ERROR $package could not be installed.  Exiting"
