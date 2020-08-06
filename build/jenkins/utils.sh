@@ -122,22 +122,27 @@ setup_python3_venv() {
 
     if [ "${SETUP_VENV3}" = "${VENV}" ]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
-        . "$VENV"/bin/activate
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
         export PATH="$VENV/bin:$PATH"
-        export PYTHONPATH="$PWD:$PYTHONPATH"
-    else
+        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
+   else
         loginfo "Setting up the Python Virtual Environment ..."
         # Virtualenv is in the distribution, no need to download it separately
         # we still want to redo the virtualenv
         rm -rf "$VENV"
         #"$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
         python3 -m venv --system-site-packages "$VENV"
-
-        . "$VENV"/bin/activate
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
 
         # TODO; is this needed or done in activate?
         export PATH="$VENV/bin:$PATH"
-        export PYTHONPATH="$PWD:$PYTHONPATH"
+        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
         # Install dependencies first so we don't get incompatible ones
         # Following RPMs need to be installed on the machine:
@@ -260,23 +265,29 @@ setup_python2_venv() {
 
     if [ "${SETUP_VENV2}" = "${VENV}" ]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
-        . "$VENV"/bin/activate
-        export PYTHONPATH="$PWD:$PYTHONPATH"
-    else
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
+        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
+   else
         loginfo "Setting up Python Virtual Environment ..."
         if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
             rm "$WORKSPACE/$VIRTUALENV_TARBALL"
         fi
         curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
-        tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL"
+        tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL" -C "$WORKSPACE/"
 
         #if we download the venv tarball everytime we should remake the venv
         #every time
         rm -rf "$VENV"
         "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
-        . "$VENV"/bin/activate
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
 
-        export PYTHONPATH="$PWD:$PYTHONPATH"
+	export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
         # Install dependancies first so we don't get uncompatible ones
         # Following RPMs need to be installed on the machine:
