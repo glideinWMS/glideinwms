@@ -24,6 +24,16 @@ logexit() {
 }
 
 
+allow_abort=true
+int_handler() {
+    if $allow_abort; then
+        echo "Interrupted by Ctrl-C. Exit"
+        exit 1;
+    fi;
+}
+trap int_handler SIGINT;
+
+
 find_aux() {
     # Return to stdout the full path of the aux file. May perform additional actions depending on the options ($2)
     # It searches fists in the current directory, then in the scripts directory ($SCRIPTS_SUBDIR) of the source tree
