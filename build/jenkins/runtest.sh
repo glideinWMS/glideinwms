@@ -365,6 +365,7 @@ process_branch() {
         else
             setup_python2_venv "$WORKSPACE"
         fi
+        [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }
     fi
 
     # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
@@ -493,7 +494,7 @@ WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
 # Verify that this is correct also for in-place executions, -i
 if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
-    logexit "repository not found in .glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
+    logexit "repository not found in ./glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
 fi
 STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
 OUT_DIR="$(robust_realpath "$OUT_DIR")"
