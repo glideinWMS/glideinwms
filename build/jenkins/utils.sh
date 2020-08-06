@@ -113,6 +113,8 @@ setup_python3_venv() {
 #    MOCK="mock==3.0.5"
 
     VENV="${WORKSPACE}/venv-${py_detected}"
+    # Clearing PYTHONPATH to avoid interferences
+    PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
@@ -256,6 +258,8 @@ setup_python2_venv() {
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
     #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
     VENV="$WORKSPACE/venv-$PY_VER"
+    # Clearing PYTHONPATH to avoid interferences
+    PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
@@ -270,7 +274,7 @@ setup_python2_venv() {
             return 1
         fi
         export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
-   else
+    else
         loginfo "Setting up Python Virtual Environment ..."
         if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
             rm "$WORKSPACE/$VIRTUALENV_TARBALL"
