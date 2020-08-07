@@ -341,6 +341,12 @@ do_process_branch() {
     start_time="$(date -u +%s.%N)"
     files_checked=
 
+    if ! do_check_requirements; then
+        # pylint and pycodestyle depend on the Python environment, can change branch by branch
+        logerror "Essential software is missing. Skipping branch ${branch}"
+        return 1
+    fi
+
     # ALT
     # while read -r filename
     # do
