@@ -415,3 +415,19 @@ MIME-VERSION: 1.0;
 $(cat "${EMAIL_FILE}")
 " | sendmail -t
 }
+
+
+# TODO: used only by python2 tests, to remove once no more needed
+mail_results() {
+    local contents=$1
+    local subject=$2
+    echo "From: gwms-builds@donot-reply.com;
+To: marcom@fnal.gov;
+Subject: $subject;
+Content-Type: text/html;
+MIME-VERSION: 1.0;
+;
+$(cat "${EMAIL_FILE}")
+" | sendmail -t
+}
+

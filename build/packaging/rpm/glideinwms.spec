@@ -50,6 +50,8 @@ Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
 
+BuildRequires:  python
+
 %description
 This is a package for the glidein workload management system.
 GlideinWMS provides a simple way to access the Grid, Cloud and HPC
@@ -271,6 +273,7 @@ install -d $RPM_BUILD_ROOT%{python3_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python3_sitelib}
 
 # Some of the files are not needed by RPM
+<<<<<<< HEAD
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/etc
@@ -278,9 +281,18 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/build
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/config
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/config_examples
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_rpm_startup
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.editorconfig
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitattributes
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitignore
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitmodules
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.mailmap
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.pep8speaks.yml
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.travis.yml
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/chksum.sh
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/requirements.txt
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSE
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
@@ -293,6 +305,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_condor_tarbal
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_frontend
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/info_glidein
+
 # For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
 # under this directory
 # Following 4 sl7 templates are only needed by create_rpm_startup above,
@@ -818,8 +831,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
-%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.pre.reconfig
-%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.post.reconfig
+%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
+%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 %attr(-, frontend, frontend) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
 %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
@@ -866,6 +879,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Thu Jul 16 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.6.3-1
+- GlideinWMS v3.6.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_6_3/history.html
+- Release candidates: 3.6.3-0.1.rc1 to 3.6.3-0.3.rc3
+
 * Fri Apr 3 2020 Marco Mambelli <marcom@fnal.gov> - 3.7-1
 - GlideinWMS v3.7
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7/history.html

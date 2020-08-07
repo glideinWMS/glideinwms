@@ -124,7 +124,28 @@ get_python_files() {
 }
 
 
-get_python_scripts() {
+get_python2_scripts() {
+    # Return to stdout a space separated list of Python scripts without .py extension
+    # Python3 files (containing python and
+    # 1 - source directory
+    # 2 - magic_file for find
+    magic_file="$(find_aux gwms_magic)"
+    local src_dir="${1:-.}"
+    FILE_MAGIC=
+    [[ -e  "$magic_file" ]] && FILE_MAGIC="-m $magic_file"
+    scripts=$(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python2 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    # scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
+    #if [ -e  "$magic_file" ]; then
+    #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    #else
+    #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    #fi
+    # echo "-- DBG $(echo ${scripts} | wc -w | tr -d " ") scripts found using magic file (${FILE_MAGIC}) --" >&2
+    echo "$scripts"
+}
+
+
+get_python3_scripts() {
     # Return to stdout a space separated list of Python scripts without .py extension
     # Python3 files (containing python and
     # 1 - source directory

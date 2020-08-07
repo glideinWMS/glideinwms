@@ -36,9 +36,6 @@ import tarfile
 
 from M2Crypto.RSA import RSAError
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../../"))
-
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
@@ -53,6 +50,7 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
+from glideinwms.factory import glideFactoryEntryGroup
 from glideinwms.lib import condorMonitor
 # from sets import Set
 
@@ -443,7 +441,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     @param restart_attempts: Number of allowed restart attempts in the interval
     """
 
-    global STARTUP_DIR
     childs = {}
 
     # Number of glideFactoryEntry processes to spawn and directly relates to
@@ -505,8 +502,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
             # Converted to using the subprocess module
             command_list = [sys.executable,
-                            os.path.join(STARTUP_DIR,
-                                         "glideFactoryEntryGroup.py"),
+                            glideFactoryEntryGroup.__file__,
                             str(os.getpid()),
                             str(sleep_time),
                             str(advertize_rate),
@@ -677,8 +673,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         del childs[group]
 
                         command_list = [sys.executable,
-                                        os.path.join(STARTUP_DIR,
-                                                     "glideFactoryEntryGroup.py"),
+                                        glideFactoryEntryGroup.__file__,
                                         str(os.getpid()),
                                         str(sleep_time),
                                         str(advertize_rate),
@@ -900,8 +895,7 @@ def main(startup_dir):
     restart_interval = int(glideinDescript.data['RestartInterval'])
 
     try:
-        glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.factory').version()
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro('checksum.factory').version()
     except:
         logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
 

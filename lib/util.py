@@ -18,6 +18,7 @@ import shutil
 import pickle as pickle
 import tempfile
 import time
+import subprocess
 
 #################################
 # Dictionary functions

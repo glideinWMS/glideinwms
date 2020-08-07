@@ -30,8 +30,6 @@ import re
 import tempfile
 import shutil
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
-
 from glideinwms.lib import symCrypto, pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport

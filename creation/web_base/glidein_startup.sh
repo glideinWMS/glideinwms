@@ -1763,7 +1763,7 @@ do
   gs_id_descript_file="$(get_descript_file ${gs_id})"
   fetch_file_regular "${gs_id}" "${gs_id_descript_file}"
   if ! signature_file_line="$(grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}."
+      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
       glidein_exit 1
   fi
   signature_file="$(echo "${signature_file_line}" | cut -s -f 2-)"
