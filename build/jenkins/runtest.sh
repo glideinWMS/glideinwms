@@ -460,6 +460,9 @@ fi
 # Check if Dry-run, end here
 [[ -n "${TEST_COMPLETE}" ]] && exit 0
 
+## Need this because some strange control sequences when using default TERM=xterm
+export TERM="linux"
+
 # Start creating files
 
 # Setup temporary directory (if selected) and clone repo
