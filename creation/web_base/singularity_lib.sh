@@ -70,7 +70,8 @@
 # https://sylabs.io/guides/3.3/user-guide/cli/singularity.html
 # https://sylabs.io/guides/3.3/user-guide/appendix.html
 
-OSG_SINGULARITY_BINARY_DEFAULT="${OSG_SINGULARITY_BINARY:-/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity}"
+# Overridden by OSG_SINGULARITY_BINARY (in environment at time of use)
+OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity/bin/singularity"
 
 # For shell, for HTCondor is the opposite
 # 0 = true
@@ -1098,7 +1099,7 @@ singularity_locate_bin () {
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
-    #   OSG_SINGULARITY_BINARY_DEFAULT, LMOD_CMD, optional if in the environment
+    #   OSG_SINGULARITY_BINARY, OSG_SINGULARITY_BINARY_DEFAULT, LMOD_CMD, optional if in the environment
     # Out (E - exported):
     #   E GWMS_SINGULARITY_MODE - unprivileged, privileged, fakeroot or unknown (no image to test)
     #   E GWMS_SINGULARITY_VERSION
@@ -1115,11 +1116,12 @@ singularity_locate_bin () {
     local bread_crumbs=""
     local test_out
     HAS_SINGULARITY=False
+    local osg_singularity_binary="${OSG_SINGULARITY_BINARY:-${OSG_SINGULARITY_BINARY_DEFAULT}}"
 
     if [[ -n "$s_location" ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
-        [[ "$s_location" == OSG ]] && s_location="$OSG_SINGULARITY_BINARY_DEFAULT"
+        [[ "$s_location" == OSG ]] && s_location="${osg_singularity_binary}"
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
@@ -1137,7 +1139,7 @@ singularity_locate_bin () {
         # 3. Look in $PATH
         # 4. Invoke module
         #    some sites requires us to do a module load first - not sure if we always want to do that
-        for attempt in "OSG,$OSG_SINGULARITY_BINARY_DEFAULT" "PATH,singularity" "module"; do
+        for attempt in "OSG,${osg_singularity_binary}" "PATH,singularity" "module"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
@@ -1169,7 +1171,7 @@ singularity_locate_bin () {
     export GWMS_SINGULARITY_PATH=""
     export GWMS_SINGULARITY_VERSION=""
     export GWMS_SINGULARITY_MODE=""
-    warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY_DEFAULT, PATH and module"
+    warn "Singularity not found$s_location_msg in OSG_SINGULARITY_BINARY[_DEFAULT], PATH and module"
     # TODO: Adding as warning to troubleshoot [#24282]. This extra message should be debug information
     warn "PATH(${PATH}), attempt results(${bread_crumbs})"
     false

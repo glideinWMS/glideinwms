@@ -100,6 +100,8 @@ setup_python3_venv() {
     JSONPICKLE="jsonpickle"
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
+    M2CRYPTO="M2Crypto" # M2CRYPTO="M2Crypto==0.20.2"
+    
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
 #    HYPOTHESIS="hypothesis"
@@ -113,6 +115,8 @@ setup_python3_venv() {
 #    MOCK="mock==3.0.5"
 
     VENV="${WORKSPACE}/venv-${py_detected}"
+    # Clearing PYTHONPATH to avoid interferences
+    PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
@@ -122,22 +126,27 @@ setup_python3_venv() {
 
     if [ "${SETUP_VENV3}" = "${VENV}" ]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
-        . "$VENV"/bin/activate
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
         export PATH="$VENV/bin:$PATH"
-        export PYTHONPATH="$PWD:$PYTHONPATH"
-    else
+        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
+   else
         loginfo "Setting up the Python Virtual Environment ..."
         # Virtualenv is in the distribution, no need to download it separately
         # we still want to redo the virtualenv
         rm -rf "$VENV"
         #"$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
         python3 -m venv --system-site-packages "$VENV"
-
-        . "$VENV"/bin/activate
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
 
         # TODO; is this needed or done in activate?
         export PATH="$VENV/bin:$PATH"
-        export PYTHONPATH="$PWD:$PYTHONPATH"
+        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
         # Install dependencies first so we don't get incompatible ones
         # Following RPMs need to be installed on the machine:
@@ -147,7 +156,7 @@ setup_python3_venv() {
         pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
         # TODO: load the list from requirements.txt
 
@@ -159,7 +168,6 @@ setup_python3_venv() {
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-            python3 -m pip install --quiet "$package"
             if ! python3 -m pip install --quiet "$package" ; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
@@ -167,9 +175,9 @@ setup_python3_venv() {
             loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
-        NOT_FATAL="htcondor"
+        NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
-            echo "REINSTALLING $package"
+            loginfo "REINSTALLING $package"
             if ! python3 -m pip install "$package" ; then
                 if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
                     logerror "ERROR $package could not be installed.  Continuing."
@@ -230,6 +238,7 @@ setup_python2_venv() {
         JSONPICKLE="jsonpickle==0.9"
         PYCODESTYLE="pycodestyle==2.4.0"
         MOCK="mock==2.0.0"
+        M2CRYPTO="M2Crypto"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -245,12 +254,15 @@ setup_python2_venv() {
         JSONPICKLE="jsonpickle"
         PYCODESTYLE="pycodestyle"
         MOCK="mock==3.0.3"
+        M2CRYPTO="M2Crypto==0.20.2"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
     #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
     VENV="$WORKSPACE/venv-$PY_VER"
+    # Clearing PYTHONPATH to avoid interferences
+    PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
     if [ ! -d "$WORKSPACE" ]; then
@@ -260,23 +272,29 @@ setup_python2_venv() {
 
     if [ "${SETUP_VENV2}" = "${VENV}" ]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
-        . "$VENV"/bin/activate
-        export PYTHONPATH="$PWD:$PYTHONPATH"
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
+        export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
     else
         loginfo "Setting up Python Virtual Environment ..."
         if [ -f "$WORKSPACE/$VIRTUALENV_TARBALL" ]; then
             rm "$WORKSPACE/$VIRTUALENV_TARBALL"
         fi
         curl -L -o "$WORKSPACE/$VIRTUALENV_TARBALL" "$VIRTUALENV_URL"
-        tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL"
+        tar xzf "$WORKSPACE/$VIRTUALENV_TARBALL" -C "$WORKSPACE/"
 
         #if we download the venv tarball everytime we should remake the venv
         #every time
         rm -rf "$VENV"
         "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
-        . "$VENV"/bin/activate
+        if ! . "$VENV"/bin/activate; then
+            echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
+            return 1
+        fi
 
-        export PYTHONPATH="$PWD:$PYTHONPATH"
+	export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
         # Install dependancies first so we don't get uncompatible ones
         # Following RPMs need to be installed on the machine:
@@ -284,28 +302,32 @@ setup_python2_venv() {
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
         failed_packages=""
         for package in $pip_packages; do
-            echo "Installing $package ..."
+            loginfo "Installing $package ..."
             status="DONE"
-            pip install --quiet "$package"
-            if [ $? -ne 0 ]; then
+            if ! python -m pip install --quiet "$package"; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
-            echo "Installing $package ... $status"
+            loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
+        NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
-            echo "REINSTALLING $package"
-            pip install "$package"
-            if [ $? -ne 0 ]; then
-                echo "ERROR $package could not be installed.  Exiting"
-                return 1
+            loginfo "REINSTALLING $package"
+            if ! python -m pip install "$package" ; then
+                if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
+                    logerror "ERROR $package could not be installed.  Continuing."
+                else
+                    logerror "ERROR $package could not be installed.  Stopping venv setup."
+                    return 1
+                fi
             fi
         done
+
 
         SETUP_VENV2="$VENV"
     fi
