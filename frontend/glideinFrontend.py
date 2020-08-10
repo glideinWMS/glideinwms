@@ -195,11 +195,14 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
             frontendDescript.data['FrontendName'], ','.join(groups),
             glideinFrontendLib.getHAMode(frontendDescript.data))
         try:
+            # pylint: disable=E1136
+            #  (unsubscriptable-object, false positive)
             idle_jobs = {
                 'Total': stats['total']['Jobs']['Idle'],
                 '600': stats['total']['Jobs']['OldIdle'],
                 '3600': stats['total']['Jobs']['Idle_3600'],
             }
+            # pylint: enable=E1136
         except KeyError as err:
             idle_jobs = {'Total': 0, '600': 0, '3600': 0}
             logSupport.log.error(

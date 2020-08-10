@@ -329,6 +329,8 @@ do_process_branch() {
 
     print_files_list "Pylint and PyCodeStyle will inspect the following files:" "${files_list}" && return
 
+    is_python3_branch && gwms_python=python3 || gwms_python=python
+
     # Initialize logs
     > ${out_pylint}
     > ${out_pycs}
@@ -339,22 +341,29 @@ do_process_branch() {
     start_time="$(date -u +%s.%N)"
     files_checked=
 
+    if ! do_check_requirements; then
+        # pylint and pycodestyle depend on the Python environment, can change branch by branch
+        logerror "Essential software is missing. Skipping branch ${branch}"
+        return 1
+    fi
+
     # ALT
     # while read -r filename
     # do
     # done <<< "${files_list}"
+    local filename
     for filename in ${files_list}; do
         if [[ "${DO_TESTS}" == *1* ]]; then
             #can't seem to get --ignore or --ignore-modules to work, so do it this way
             if [[ " ${PYLINT_IGNORE_LIST} " == *" ${filename} "* ]]; then
                 loginfo "pylint skipping ${filename}"
             else
-                python3 -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+                $gwms_python -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
                 files_checked="${files_checked} ${filename}"
             fi
         fi
         if [[ "${DO_TESTS}" == *2* ]]; then
-            python3 -m pycodestyle $PEP8_OPTIONS ${filename} >> ${out_pycs} || log_nonzero_rc "pep8" $?
+            $gwms_python -m pycodestyle $PEP8_OPTIONS ${filename} >> ${out_pycs} || log_nonzero_rc "pep8" $?
         fi
     done
 
