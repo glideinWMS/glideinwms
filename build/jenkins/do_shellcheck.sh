@@ -61,13 +61,17 @@ do_parse_options() {
 
     CMD_OPTIONS="$@"
 
-    if ! command -v kcov > /dev/null; then
+    if ! do_check_requirements; then
+        logexit "Essential software is missing. Aborting"
+    fi
+
+    if [[ -n "${RUN_COVERAGE}" ]] && ! command -v kcov > /dev/null; then
         # kcov not available
         logwarn "kcov is not available, disabling coverage"
         RUN_COVERAGE=
     fi
 
-    if [ -n "${SHOW_FLAGS}" ]; then
+    if [[ -n "${SHOW_FLAGS}" ]]; then
         do_show_flags
         TEST_COMPLETE=branch
     fi

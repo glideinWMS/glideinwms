@@ -20,6 +20,54 @@ Use `-h` to see the syntax and some examples.
 Normally the scripts are invoked outside the `glideinwms` source directory.
 It can be invoked to run in place on the current files or checking out branches.
 It can be invoked to run on a new clone of the repository in a random directory or a provided one.
+```bash
+$ ./glideinwms/build/jenkins/runtest.sh unittest -h
+runtest.sh [options] COMMAND [command options]
+  Runs the test form COMMAND on the current glideinwms subdirectory, as is or checking out a branch from the repository.
+  Unless you use -c, a glidienwms subdirectory of WORKDIR with the git repository must exist.
+  Tests are run on each of the branches in the list. Test results are saved in OUT_DIR
+  NOTE that, when selecting branches, the script is checking out the branch and running the tests. It is not cleaning
+  up or restoring to the initial content. For something less intrusive use '-i' option to run in place without
+  changing any source file. Or use -t, to clone the repository in the new TEST_DIR directory.
+ COMMAND:
+  bats - run Shell unit tests and coverage
+  unittest - run Python unit test and coverage
+  pylint - run pylint and pycodestyle (pep8)
+  futurize - run futurize
+  shellcheck - run shellcheck
+ Options:
+  -h          print this message
+  -n          show the flags passed to the COMMAND (without running it)
+  -l          show the list of files with tests or checked by COMMAND (without running tests or checks)
+  -v          verbose
+  -i          run in place without checking out a branch (default)
+  -f          force git checkout of branch when processing multiple branches
+  -b BNAMES   comma separated list of branches that needs to be inspected
+              (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
+  -B BFILE    file containing a list of branches that needs to be inspected, one per line
+              (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
+  -s          run sequentially invoking the test separately for each file
+  -o OUT_DIR  directory including log files (it will be created if not existing, default "./output")
+              Relative to WORKDIR.
+  -c REPO     clone the git repository REPO
+  -C          like -c but the git repository is https://github.com/glideinWMS/glideinwms.git
+  -t TEST_DIR create TEST_DIR, clone the repository and run there the tests. Implies -C if -c is not there and if
+              there is not already a repository.
+              Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
+  -T          like -t but creates a temporary directory with mktemp.
+  -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
+
+unittest command:
+runtest.sh [options] unittest [other command options] TEST_FILES
+  Runs the unit tests on TEST_FILES files in glidinwms/unittests/
+runtest.sh [options] unittest -a [other command options]
+  Run the unit tests on all the files in glidinwms/unittests/ named test_*
+Runs unit tests and exit the results to standard output. Failed tests will cause also a line starting with ERROR.
+Command options:
+  -h        print this message
+  -a        run on all unit tests (see above)
+  -c        generate a coverage report while running unit tests
+```
 
 The invocation directory or the new temporary directory become the working directory. In it there are the source tree, 
 the Python virtual environment (if needed) and the output directory where the outputs from the tests are saved.

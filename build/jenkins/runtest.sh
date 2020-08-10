@@ -2,6 +2,9 @@
 # Runner script for the different tests
 
 GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
+# Alt URLs, from cdcvs/redmine. http from the Lab, https also from outside:
+#  http://cdcvs.fnal.gov/projects/glideinwms
+#  https://cdcvs.fnal.gov/projects/glideinwms
 DEFAULT_OUTPUT_DIR=output
 SCRIPTS_SUBDIR=build/jenkins
 
@@ -19,6 +22,16 @@ logexit() {
     logerror "$1"
     exit ${2:-1}
 }
+
+
+allow_abort=true
+int_handler() {
+    if $allow_abort; then
+        echo "Interrupted by Ctrl-C. Exit"
+        exit 1;
+    fi;
+}
+trap int_handler SIGINT;
 
 
 find_aux() {
@@ -74,7 +87,7 @@ ${filename} [options] COMMAND [command options]
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
   -B BFILE    file containing a list of branches that needs to be inspected, one per line
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
-  -s          run sequentially invoking the test separately for each file
+  NOT_IMPLEMENTED: -s          run sequentially invoking the test separately for each file
   -o OUT_DIR  directory including log files (it will be created if not existing, default "./output")
               Relative to WORKDIR.
   -c REPO     clone the git repository REPO
@@ -348,10 +361,13 @@ process_branch() {
 
     if isnot_dry_run && do_use_python; then
         if is_python3_branch "${git_branch}"; then
+            loginfo "Processing Python3 branch $git_branch"
             setup_python3_venv "$WORKSPACE"
         else
+            loginfo "Processing Python2 branch $git_branch"
             setup_python2_venv "$WORKSPACE"
         fi
+        [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }
     fi
 
     # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
@@ -446,6 +462,9 @@ fi
 # Check if Dry-run, end here
 [[ -n "${TEST_COMPLETE}" ]] && exit 0
 
+## Need this because some strange control sequences when using default TERM=xterm
+export TERM="linux"
+
 # Start creating files
 
 # Setup temporary directory (if selected) and clone repo
@@ -480,7 +499,7 @@ WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
 # Verify that this is correct also for in-place executions, -i
 if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
-    logexit "repository not found in .glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
+    logexit "repository not found in ./glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
 fi
 STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
 OUT_DIR="$(robust_realpath "$OUT_DIR")"

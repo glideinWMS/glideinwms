@@ -170,6 +170,10 @@ export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | 
 temp_singularity_bin="`grep '^SINGULARITY_BIN ' "$glidein_config" | cut -d ' ' -f 2-`"
 singularity_bin="$(echo $temp_singularity_bin)"
 
+# OSG_SINGULARITY_BINARY in glidein_config (if present and not empty) takes precedence to the environment one
+temp_singularity_bin="$(grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-)"
+[[ -n "$temp_singularity_bin" ]] && export OSG_SINGULARITY_BINARY="$temp_singularity_bin"
+
 # Does frontend want to use singularity?
 use_singularity=$(grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-)
 if [[ -z "$use_singularity" ]]; then
