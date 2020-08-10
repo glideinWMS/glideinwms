@@ -351,6 +351,7 @@ do_process_branch() {
     # while read -r filename
     # do
     # done <<< "${files_list}"
+    local filename
     for filename in ${files_list}; do
         if [[ "${DO_TESTS}" == *1* ]]; then
             #can't seem to get --ignore or --ignore-modules to work, so do it this way
