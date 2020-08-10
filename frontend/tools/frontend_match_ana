@@ -18,10 +18,10 @@
 #
 
 from __future__ import print_function
-import signal
+# import signal
 import sys,os,os.path,copy
 import re
-import fcntl
+# import fcntl
 import traceback
 import time,string
 sys.path.append(os.path.join(sys.path[0],".."))
@@ -32,14 +32,6 @@ from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendLib
 from glideinwms.lib import exprParser
 # from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
-
-
-# shortest first
-def mycmp(a, b):
-    r = cmp(len(a), len(b))
-    if r == 0:
-        r = cmp(a, b)
-    return r
 
 
 def print_match(job, glidein, match_ast, counts, level, countid):
@@ -165,8 +157,8 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
             print("======================")
             print("Summary for %s"%t)
             print("job:     %s"%job)
-            ks=match_counts.keys()
-            ks.sort(mycmp)
+            ks = match_counts.keys()
+            ks = sorted(ks, key=lambda x: (len(x),x))  # sort first by length, then by content
             for k in ks:
                 print("%-80s %10i %s"%(k, match_counts[k][0],match_counts[k][1]))
             pass

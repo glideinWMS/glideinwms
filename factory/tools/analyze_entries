@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
+# from __future__ import print_function
 import os, sys, getopt, re 
 import datetime
-import urllib
+from urllib.request import urlopen
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
@@ -278,10 +278,10 @@ USAGE:
             dir = rpmdir
             file_dir = rpmfile_dir
 
-    for name, xml in rrd_list.iteritems():
+    for name, xml in rrd_list.items():
         try: 
             file_loc = os.path.join(file_dir, xml)
-            u = urllib.urlopen(file_loc)        
+            u = urlopen(file_loc)        
             data[name] = xmlParse.xmlfile2dict(u)
         except:
             print("\nCannot open", file_loc)
@@ -337,7 +337,7 @@ USAGE:
                 i = 0
                 for x_data in [c_data, j_data, w_data]:
                     try:
-                       for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
+                       for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].items():
                             data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
                     except:
                         print("\nEntry %s in %s is missing %s; continuing\n" % (entry, rrd_name_list[i], frontend))
@@ -361,7 +361,7 @@ Glidein log analysis for frontend %s - %s
     entry_data = {}
     entry_data_all_frontends = {}
     
-    for period, frontends in data.iteritems():
+    for period, frontends in data.items():
         period = int(period)
         period_data[period] = {}
         frontend_data[period] = {}
@@ -369,12 +369,12 @@ Glidein log analysis for frontend %s - %s
         entry_data_all_frontends[period] = {}
         for a in attributes.keys(): period_data[period][a] = 0
 
-        for frontend, entries in frontends.iteritems(): 
+        for frontend, entries in frontends.items(): 
             frontend_data[period][frontend] = {}
             entry_data[period][frontend] = {}
             for a in attributes.keys(): frontend_data[period][frontend][a] = 0
 
-            for entry, elements in entries.iteritems():
+            for entry, elements in entries.items():
                 entry_data[period][frontend][entry] = {}  
                 for a in attributes.keys(): entry_data[period][frontend][entry][a]=0
 
@@ -400,7 +400,7 @@ Glidein log analysis for frontend %s - %s
                 attributes['validation'] = 0
                 attributes['idle'] = 0 
 
-                for name, value in elements.iteritems():
+                for name, value in elements.items():
                     if 'validation' in name:
                         multiplier = re.findall('validation_(.*)', name)[0].rstrip('m')
                         if multiplier == "All": multiplier = 1000
@@ -486,7 +486,7 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x)
         totals = {}
         totals_to_be_printed = []
 
-        for entry_name, entry in entry_data_all_frontends[period].iteritems():
+        for entry_name, entry in entry_data_all_frontends[period].items():
  
             if entry['glideins'] == 0 or entry['total_time'] == 0:
                 continue
@@ -531,7 +531,7 @@ Frontend stats for the past %s hours.\n""" % (x))
 
     fe_to_be_printed = []
 
-    for frontend, entries in data[period].iteritems():
+    for frontend, entries in data[period].items():
         d = frontend_data[period][frontend]
 
         if period_data[period]['glideins'] == 0 or d['glideins'] == 0:
@@ -552,7 +552,7 @@ Frontend stats for the past %s hours.\n""" % (x))
             totals={}
             totals_to_be_printed = []
             
-            for entry, e in entries.iteritems():
+            for entry, e in entries.items():
                 en = entry_data[period][frontend][entry] 
 
                 if en['glideins'] == 0 or e['Lasted'] == 0:
