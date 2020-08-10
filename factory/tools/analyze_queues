@@ -2,14 +2,14 @@
 # analyze_queues
 # focuses on statuses (less on client stats)
 
-from __future__ import print_function
+# from __future__ import print_function
 import os
 import sys
 import getopt
-import re 
+# import re 
 import datetime
-import urllib
- 
+from urllib.request import urlopen
+
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 
@@ -22,7 +22,7 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
    to_be_printed = []
    sum2 = 0
 
-   for entry_name, entry in entry_data.iteritems():
+   for entry_name, entry in entry_data.items():
       entry['RunDiff'] = entry['StatusRunning']-entry['ClientGlideTotal']
       entry['IdleDiff'] = entry['StatusIdle']-entry['ReqIdle']
 
@@ -194,7 +194,7 @@ USAGE:
            file_dir=rpmfile_dir
  
    try:  
-       u = urllib.urlopen(file_dir)        
+       u = urlopen(file_dir)        
        rrd_data = xmlParse.xmlfile2dict(u)
    except:
        print("\nCannot open", file_dir,"\n\tor",rrd,"was not found there.\n")
@@ -236,7 +236,7 @@ USAGE:
             if frontend != filter_frontend:
                continue
            
-         for period, elements in rrd_data['entries'][entry]['frontends'][frontend]['periods'].iteritems():
+         for period, elements in rrd_data['entries'][entry]['frontends'][frontend]['periods'].items():
 
             if int(period) not in data:
                data[int(period)] = {}
@@ -274,7 +274,7 @@ Status Attributes analysis for %s - %s
    entry_data = {} 
    entry_data_all_frontends = {} 
  
-   for period, frontends in data.iteritems():
+   for period, frontends in data.items():
       period = int(period)
       period_data[period] = {}
       frontend_data[period] = {}
@@ -282,12 +282,12 @@ Status Attributes analysis for %s - %s
       entry_data_all_frontends[period] = {}
       for a in attributes.keys(): period_data[period][a]=0
 
-      for frontend, entries in frontends.iteritems(): 
+      for frontend, entries in frontends.items(): 
          frontend_data[period][frontend]={}
          entry_data[period][frontend] = {}
          for a in attributes.keys(): frontend_data[period][frontend][a]=0
 
-         for entry, elements in entries.iteritems():
+         for entry, elements in entries.items():
             entry_data[period][frontend][entry] = {}
             if entry not in entry_data_all_frontends[period]:
                entry_data_all_frontends[period][entry] = {}
@@ -383,8 +383,8 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x)
 ---------------------------------------
 Per Entry (per frontend) stats for the past %s hours.\n""" % x) 
 
-   if frontend_mode==0:
-      for frontend, entries in data[period].iteritems():
+   if frontend_mode == 0:
+      for frontend, entries in data[period].items():
          list_print(frontend, zero_supp, entry_data[period][frontend], sorting, attr_list, sort_attribute,1)
 
    else: # print frontend like entries, and omit entries
