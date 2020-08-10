@@ -361,8 +361,10 @@ process_branch() {
 
     if isnot_dry_run && do_use_python; then
         if is_python3_branch "${git_branch}"; then
+            loginfo "Processing Python3 branch $git_branch"
             setup_python3_venv "$WORKSPACE"
         else
+            loginfo "Processing Python2 branch $git_branch"
             setup_python2_venv "$WORKSPACE"
         fi
         [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }

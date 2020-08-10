@@ -100,6 +100,8 @@ setup_python3_venv() {
     JSONPICKLE="jsonpickle"
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
+    M2CRYPTO="M2Crypto" # M2CRYPTO="M2Crypto==0.20.2"
+    
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
 #    HYPOTHESIS="hypothesis"
@@ -154,7 +156,7 @@ setup_python3_venv() {
         pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
         # TODO: load the list from requirements.txt
 
@@ -166,7 +168,6 @@ setup_python3_venv() {
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-            python3 -m pip install --quiet "$package"
             if ! python3 -m pip install --quiet "$package" ; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
@@ -174,7 +175,7 @@ setup_python3_venv() {
             loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
-        NOT_FATAL="htcondor"
+        NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
             if ! python3 -m pip install "$package" ; then
@@ -237,6 +238,7 @@ setup_python2_venv() {
         JSONPICKLE="jsonpickle==0.9"
         PYCODESTYLE="pycodestyle==2.4.0"
         MOCK="mock==2.0.0"
+        M2CRYPTO="M2Crypto"
     else
         # use something more up-to-date
         PY_VER="2.7"
@@ -252,6 +254,7 @@ setup_python2_venv() {
         JSONPICKLE="jsonpickle"
         PYCODESTYLE="pycodestyle"
         MOCK="mock==3.0.3"
+        M2CRYPTO="M2Crypto==0.20.2"
     fi
 
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
@@ -299,28 +302,32 @@ setup_python2_venv() {
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
         failed_packages=""
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-            pip install --quiet "$package"
-            if [ $? -ne 0 ]; then
+            if ! python -m pip install --quiet "$package"; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
             loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
+        NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            pip install "$package"
-            if [ $? -ne 0 ]; then
-                echo "ERROR $package could not be installed.  Exiting"
-                return 1
+            if ! python -m pip install "$package" ; then
+                if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
+                    logerror "ERROR $package could not be installed.  Continuing."
+                else
+                    logerror "ERROR $package could not be installed.  Stopping venv setup."
+                    return 1
+                fi
             fi
         done
+
 
         SETUP_VENV2="$VENV"
     fi
