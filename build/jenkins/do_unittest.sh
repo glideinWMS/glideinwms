@@ -114,7 +114,7 @@ do_process_branch() {
     local -i tmp_exit_code
     local -i exit_code
     for file in ${files_list} ; do
-        loginfo "TESTING ==========> $file"
+        loginfo "TESTING: $file"
 #        if [[ -n "$RUN_COVERAGE" ]]; then
 #            tmp_out="$(coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file")" || log_verbose_nonzero_rc "$file" $?
 #        else
@@ -128,7 +128,9 @@ do_process_branch() {
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
 
-        tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
+        # tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
+	# To accomodate the flat list of files in CI the dir name is in the file name
+	tmp_out_file="$(dirname ${test_outdir})/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
         [[ -e "$tmp_out_file" ]] && echo "WARNING: duplicate file name, overwriting tests results: $tmp_out_file"
         echo "$tmp_out" > "${tmp_out_file}"
 
