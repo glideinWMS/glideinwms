@@ -247,7 +247,7 @@ setup_python2_venv() {
         is_python26=true
     fi
     
-    if is_python26; then
+    if $is_python26; then
         # Get latest packages that work with python 2.6
         PY_VER="2.6"
         VIRTUALENV_VER=virtualenv-12.0.7
@@ -338,7 +338,7 @@ setup_python2_venv() {
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-	    if is_python26; then
+	    if $is_python26; then
                 # py26 seems to error out w/ python -m pip: 
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
                 pip install --quiet "$package"
@@ -355,7 +355,7 @@ setup_python2_venv() {
         NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-	    if is_python26; then
+	    if $is_python26; then
                 # py26 seems to error out w/ python -m pip: 
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
                 pip install "$package"
