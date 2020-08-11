@@ -17,6 +17,8 @@ import xmlrunner
 import xml
 
 
+# TODO: should OrderedDict be removed, it is the one from the stdlib. But tests are texting XML conversion as well
+#       should be directly: from collections import OrderedDict
 from glideinwms.lib.xmlParse import OrderedDict
 from glideinwms.lib.xmlParse import xmlfile2dict
 from glideinwms.lib.xmlParse import xmlstring2dict

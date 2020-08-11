@@ -19,7 +19,8 @@ import os.path
 import imp
 # import string
 # import socket
-from glideinwms.lib import xmlParse
+from collections import OrderedDict
+
 # from . import cWParams
 # import pprint
 
@@ -119,9 +120,9 @@ class MatchPolicy:
                 # Check if the match_attr is of dict type
                 # TODO: Also need to check that match_attr is of string/int/bool
                 if isinstance(ma_attr, dict):
-                    data = xmlParse.OrderedDict()
+                    data = OrderedDict()
                     for k, v in ma_attr.items():
-                        data[k] = xmlParse.OrderedDict(v)
+                        data[k] = OrderedDict(v)
                     match_attrs[ma_name] = data
                 else:
                     # Raise error if match_attr is not of type dict
