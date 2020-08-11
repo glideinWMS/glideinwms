@@ -71,11 +71,23 @@ log_nonzero_rc() {
     return $2
 }
 
+check_python() {
+    echo "Python environment:"
+    echo "python: `command -v python 2>/dev/null`"
+    echo "python2: `command -v python2 2>/dev/null`"
+    echo "python3: `command -v python3 2>/dev/null`"
+    echo "pip: `command -v pip 2>/dev/null`"
+    echo "pip3: `command -v pip3 2>/dev/null`"
+    echo "PATH: $PATH"
+    echo "PYTHONPATH: $PYTHONPATH"
+    echo "Python in env: `env | grep -i python`"
+}
 
 ############################
 # Python functions
 ############################
 
+PRE_VENV_PATH=
 SETUP_VENV3=
 setup_python3_venv() {
     if [ $# -gt 1 ]; then
@@ -83,6 +95,7 @@ setup_python3_venv() {
     fi
     WORKSPACE=${1:-$(pwd)}
 
+    [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
 
     PY_VER="3.6"
     py_detected="$(python3 -V | cut -f2 -d ' ')"
@@ -101,6 +114,8 @@ setup_python3_venv() {
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
     M2CRYPTO="M2Crypto" # M2CRYPTO="M2Crypto==0.20.2"
+
+    # pip install of M2Crypto is failing, use RPM: python36-m2crypto.x86_64 : Support for using OpenSSL in Python 3 scripts
     
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
@@ -160,7 +175,9 @@ setup_python3_venv() {
 
         # TODO: load the list from requirements.txt
 
-        # To avoid: Cache entry deserialization failed, entry ignored
+	loginfo "$(check_python)"
+
+	# To avoid: Cache entry deserialization failed, entry ignored
         # curl https://bootstrap.pypa.io/get-pip.py | python3
         python3 -m pip install --quiet --upgrade pip
 
@@ -223,6 +240,8 @@ setup_python2_venv() {
     fi
     WORKSPACE=${1:-$(pwd)}
 
+    [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
+    
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         # Get latest packages that work with python 2.6
         PY_VER="2.6"
@@ -257,6 +276,10 @@ setup_python2_venv() {
         M2CRYPTO="M2Crypto==0.20.2"
     fi
 
+    # pip install of M2Crypto is failing, use RPM:
+    #  m2crypto.x86_64 : Support for using OpenSSL in python scripts
+    #  python-m2ext.x86_64 : M2Crypto Extensions
+
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
     #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
@@ -288,7 +311,7 @@ setup_python2_venv() {
         #if we download the venv tarball everytime we should remake the venv
         #every time
         rm -rf "$VENV"
-        "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
+        python2 "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
             return 1
@@ -303,6 +326,8 @@ setup_python2_venv() {
         pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
+
+	loginfo "$(check_python)"	
 
         failed_packages=""
         for package in $pip_packages; do
@@ -444,12 +469,12 @@ mail_results() {
     local contents=$1
     local subject=$2
     echo "From: gwms-builds@donot-reply.com;
-To: parag@fnal.gov;
+To: marcom@fnal.gov;
 Subject: $subject;
 Content-Type: text/html;
 MIME-VERSION: 1.0;
 ;
-$(cat "$contents")
+$(cat "${EMAIL_FILE}")
 " | sendmail -t
 }
 
