@@ -130,7 +130,7 @@ do_process_branch() {
 
         # tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
 	# To accomodate the flat list of files in CI the dir name is in the file name
-	tmp_out_file="$(dirname ${test_outdir})/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
+	tmp_out_file="${test_outdir}/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
         [[ -e "$tmp_out_file" ]] && echo "WARNING: duplicate file name, overwriting tests results: $tmp_out_file"
         echo "$tmp_out" > "${tmp_out_file}"
 
