@@ -241,8 +241,13 @@ setup_python2_venv() {
     WORKSPACE=${1:-$(pwd)}
 
     [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
-    
+
+    local is_python26=false
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
+        is_python26=true
+    fi
+    
+    if is_python26; then
         # Get latest packages that work with python 2.6
         PY_VER="2.6"
         VIRTUALENV_VER=virtualenv-12.0.7
@@ -333,17 +338,31 @@ setup_python2_venv() {
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-            if ! python -m pip install --quiet "$package"; then
+	    if is_python26; then
+                # py26 seems to error out w/ python -m pip: 
+                # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
+                pip install --quiet "$package"
+            else
+                python -m pip install --quiet "$package"
+            fi
+            if [[ $? -ne 0 ]]; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
             loginfo "Installing $package ... $status"
         done
-        #try again if anything failed to install, sometimes its order
+        #try again if anything failed to install, sometimes its order matters
         NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            if ! python -m pip install "$package" ; then
+	    if is_python26; then
+                # py26 seems to error out w/ python -m pip: 
+                # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
+                pip install "$package"
+            else
+                python -m pip install "$package"
+            fi
+            if [[ $? -ne 0 ]]; then
                 if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
                     logerror "ERROR $package could not be installed.  Continuing."
                 else
