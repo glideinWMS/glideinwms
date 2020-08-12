@@ -533,6 +533,8 @@ else
     do_git_init_command
     for git_branch in "${git_branches[@]}"
     do
+        # tell CI which branch is being processed
+        echo "Start : ${git_branch}"
         # Back in the source directory in case processing changed the directory
         cd "${GLIDEINWMS_SRC}"
         loginfo "Now checking out branch $git_branch"
@@ -563,8 +565,10 @@ else
         process_branch "$git_branch" "$@"
         fail=$?
         loginfo "Complete with branch ${git_branch} (ec:${fail})"
-	    [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
-
+        [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
+        # tell CI about branch status
+        [[ fail -eq 0 ]] && return_status="Passed" || return_status="Failed"
+        echo "# Test #: ${git_branch} .... ${return_status}"
     done
 fi
 
