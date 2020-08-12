@@ -144,8 +144,8 @@ do_process_branch() {
         echo "Scanning: ${pfile}"
         [ -z "${pfile}" ] && { echo "Empty file to process: ${pfile} (of: ${files_list})" >&2; exit 1; }
         # TODO: protect against scripts in different directories w/ same file name
-        out_file="${test_outdir}/$(basename "${pfile%.*}").json"
-        [[ -e "$out_file" ]] && echo "WARNING: duplicate file name, overwriting checks: $out_file"
+        out_file="${test_outdir}/$(basename "${test_outdir}").$(basename "${pfile%.*}").json"
+        [[ -e "$out_file" ]] && logwarn "duplicate file name, overwriting checks: $out_file"
         # shellcheck disable=SC2086
         sc_out=$(shellcheck ${SC_OPTIONS} "${pfile}" 2>/dev/null)
         if command -v jq >/dev/null 2>&1; then

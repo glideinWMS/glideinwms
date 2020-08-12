@@ -138,8 +138,14 @@ do_process_branch() {
     local tmp_out=
     local -i tmp_exit_code
     local -i exit_code
+    local test_outdir="${outfile}.d"
+    mkdir -p "${test_outdir}"
+
     for file in ${files_list} ; do
-        loginfo "TESTING ==========> $file"
+        loginfo "Testing: $file"
+        out_file="${test_outdir}/$(basename "${test_outdir}").$(basename "${file%.*}").txt"
+        [[ -e "$out_file" ]] && logwarn "duplicate file name, overwriting test results: $out_file"
+
 #            if [[ -n "$RUN_COVERAGE" ]]; then
 #                kcov --include-path="${SOURCES}" "$out_coverage"  ./"$file" ${BATSOPT} || log_nonzero_rc "$file" $?
 #            else
@@ -152,6 +158,7 @@ do_process_branch() {
         fi
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
+        echo "$tmp_out" > "$out_file"
     done
 
     echo "# BATS output" > "${outfile}"
