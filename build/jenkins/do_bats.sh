@@ -85,7 +85,9 @@ do_count_failures() {
     # 0 - no failed tests
     # 1 - failed tests
     # >1 - execution error (e.g. 126 wrong permission)
+    [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
     fail=0
+    fail_files_list="$fail_files_list $file"
     if [[ $1 -eq 1 ]]; then
         lline="$(echo "$tmp_out" | tail -n1)"
         if [[ "$lline" == *failures ]]; then
@@ -135,6 +137,7 @@ do_process_branch() {
     local -i fail=0
     local -i fail_files=0
     local -i fail_all=0
+    local fail_files_list=
     local tmp_out=
     local -i tmp_exit_code
     local -i exit_code
@@ -164,6 +167,7 @@ do_process_branch() {
     echo "# BATS output" > "${outfile}"
     echo "BATS_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "BATS_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    echo "BATS_ERROR_FILES=${fail_files_list}" >> "${outfile}"
     echo "BATS_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     echo "BATS_ERROR_COUNT=${fail_all}" >> "${outfile}"
     echo "----------------"

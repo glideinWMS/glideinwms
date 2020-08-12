@@ -126,6 +126,7 @@ do_process_branch() {
     declare -i total_warning=0
     declare -i total_info=0
     declare -i total_style=0
+    local fail_files_list=
     local test_outdir="${outfile}.d"
     mkdir -p "${test_outdir}"
 
@@ -175,6 +176,7 @@ do_process_branch() {
             # Highlight the presence of error/warnings (makes search easier)
             if (( n_error > 0 )); then
                 echo "Error found!"
+                fail_files_list="$fail_files_list $pfile"
             fi
             if (( n_warning > 0 )); then
                 echo "Warning found!"
@@ -208,8 +210,9 @@ do_process_branch() {
 
     echo "# Shellcheck output" >> "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
-    echo "SHELLCHECK_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
-    #echo "SHELLCHECK_ERROR_FILES_COUNT=`...`" >> "${outfile}"
+    echo "SHELLCHECK_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")" >> "${outfile}"
+    echo "SHELLCHECK_ERROR_FILES=\"${fail_files_list}\"" >> "${outfile}"
+    echo "SHELLCHECK_ERROR_FILES_COUNT=$(echo ${fail_files_list} | wc -w | tr -d " ")" >> "${outfile}"
     echo "SHELLCHECK_ERROR_COUNT=${total_error}" >> "${outfile}"
     echo "SHELLCHECK_WARNING_COUNT=${total_warning}" >> "${outfile}"
     echo "SHELLCHECK_INFO_COUNT=${total_info}" >> "${outfile}"

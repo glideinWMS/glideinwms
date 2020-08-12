@@ -49,7 +49,9 @@ do_count_failures() {
     # 0 - no failed tests
     # 1 - failed tests
     # >1 - execution error (e.g. 126 wrong permission)
+    [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
     fail=0
+    fail_files_list="$fail_files_list $file"
     local tmp_fail=
     if [[ $1 -eq 1 ]]; then
         lline="$(echo "$tmp_out" | grep "FAILED (")"
@@ -109,6 +111,7 @@ do_process_branch() {
     local -i fail=0
     local -i fail_files=0
     local -i fail_all=0
+    local fail_files_list=
     local tmp_out=
     local tmp_out_file=
     local -i tmp_exit_code
@@ -129,8 +132,8 @@ do_process_branch() {
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
 
         # tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
-	# To accomodate the flat list of files in CI the dir name is in the file name
-	tmp_out_file="${test_outdir}/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
+	    # To accomodate the flat list of files in CI the dir name is in the file name
+	    tmp_out_file="${test_outdir}/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
         [[ -e "$tmp_out_file" ]] && logwarn "duplicate file name, overwriting tests results: $tmp_out_file"
         echo "$tmp_out" > "${tmp_out_file}"
 
@@ -153,6 +156,7 @@ do_process_branch() {
     echo "# Python unittest output" > "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    echo "PYUNITTEST_ERROR_FILES=${fail_files_list}" >> "${outfile}"
     echo "PYUNITTEST_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     echo "PYUNITTEST_ERROR_COUNT=${fail_all}" >> "${outfile}"
     echo "----------------"
