@@ -10,9 +10,8 @@ find . -type f -not -path "*/.git/*" -not -path "*.tar.gz" -not -path "*/.tox/*"
 # ag "[\x80-\xFF]" FILE
 
 # Looking for leftover git conflicts strings
-echo "List of merge conflicts leftover (lines with ======= $(grep -R "=======" * | wc -l | tr -d ' ') of 95 known), others:"
-# egrep -R "(=======|>>>>>>>|<<<<<<<)" *  # skippattern
-egrep -R "(>>>>>>>|<<<<<<<)" * | grep -v skippattern  # skippattern
+echo "List of merge conflicts leftover:"
+egrep -R "(^=======$|^>>>>>>>|^<<<<<<<)" * 
 
 # count todos in files
 echo "Number of TODOs: $(grep -R "TODO:" * | wc -l )"

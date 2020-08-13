@@ -339,7 +339,6 @@ do_process_branch() {
     loginfo "#####################################################"
     loginfo "Start : ${branch}"
     start_time="$(date -u +%s.%N)"
-    files_checked=
 
     if ! do_check_requirements; then
         # pylint and pycodestyle depend on the Python environment, can change branch by branch
@@ -352,6 +351,8 @@ do_process_branch() {
     # do
     # done <<< "${files_list}"
     local filename
+    local files_checked=
+    local files_errors=
     for filename in ${files_list}; do
         if [[ "${DO_TESTS}" == *1* ]]; then
             #can't seem to get --ignore or --ignore-modules to work, so do it this way
@@ -359,6 +360,7 @@ do_process_branch() {
                 loginfo "pylint skipping ${filename}"
             else
                 $gwms_python -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+                [[ $? -ne 0 ]] && files_errors="${files_errors} ${filename}"
                 files_checked="${files_checked} ${filename}"
             fi
         fi
@@ -379,6 +381,7 @@ do_process_branch() {
     echo "# Pylint and PyCodeStyle output" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
+    echo "PYLINT_PROBLEM_FILES=\"${files_errors}\"" >> "${outfile}"
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " "`" >> "${outfile}"
     local pylint_error_count=$(grep '^E:' ${out_pylint} | wc -l | tr -d " ")
     echo "PYLINT_ERROR_COUNT=${pylint_error_count}" >> "${outfile}"
@@ -393,6 +396,43 @@ do_process_branch() {
     # Ignore PEP8 errors/warning for failure status
     fail=${pylint_error_count}
     return ${fail}
+}
+
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    echo -e "Pylint,Files\t,ErrFiles\t,ErrNum\tPyCodeStyle,ErrNum"
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. output format html,htnl4,html4f or empty for text (see util.sh/get_html_td )
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    . "$1"
+    if [[ "$2" == html* ]]; then
+        local class=
+        local res="<td>${PYLINT_FILES_CHECKED_COUNT}</td>\t"
+        res="${res}<td $(get_html_td check0 $2 ${PYLINT_ERROR_FILES_COUNT})>${PYLINT_ERROR_FILES_COUNT}</td>\t"
+        res="${res}<td $(get_html_td check0 $2 ${PYLINT_ERROR_COUNT})>${PYLINT_ERROR_COUNT}</td>\t"
+        echo -e "${res}<td $(get_html_td check0 $2 ${PEP8_ERROR_COUNT} warning)>${PEP8_ERROR_COUNT}</td>\t"
+    else
+        echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"
+    fi
+}
+
+do_get_status() {
+    # 1. branch summary file
+    # Return unknown, success, warning, error
+    . "$1"
+    [[ -z "${PYLINT_ERROR_COUNT}" ]] && { echo unknown; return 2; }
+    if [[ "${PYLINT_ERROR_COUNT}" -eq 0 ]]; then
+        [[ "${PEP8_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
+        echo warning
+        return
+    fi
+    echo error
+    return 1
 }
 
 do_log_init() {

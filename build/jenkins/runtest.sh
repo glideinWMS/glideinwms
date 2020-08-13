@@ -74,8 +74,9 @@ ${filename} [options] COMMAND [command options]
   bats - run Shell unit tests and coverage
   unittest - run Python unit test and coverage
   pylint - run pylint and pycodestyle (pep8)
-  futurize - run futurize
+  NOT_IMPLEMENTED: futurize - run futurize 
   shellcheck - run shellcheck
+  summary - finalize the summary table only
  Options:
   -h          print this message
   -n          show the flags passed to the COMMAND (without running it)
@@ -97,6 +98,7 @@ ${filename} [options] COMMAND [command options]
               Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
   -T          like -t but creates a temporary directory with mktemp.
   -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
+  -w FMT      summary table format (html, html4, html4f, default:text)
 
 EOF
 }
@@ -185,7 +187,8 @@ parse_options() {
     # Defaults
     SHOW_FLAGS=
     SHOW_FILES=
-    while getopts ":hnlvifb:B:so:Cc:Tt:z" option
+    SUMMARY_TABLE_FORMAT=
+    while getopts ":hnlvifb:B:so:Cc:Tt:z:w:" option
     do
         case "${option}"
         in
@@ -204,6 +207,7 @@ parse_options() {
         t) TEST_DIR="$OPTARG";;
         T) TEST_DIR=$(mktemp -t -d gwmstest.XXXXXXXX);;
         z) TEST_CLEAN="$OPTARG";;
+        w) SUMMARY_TABLE_FORMAT="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
         *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
@@ -338,6 +342,60 @@ is_python3_branch() {
     false
 }
 
+transpose_table() {
+    # 1. table to transpose
+    # 2. input separator (\t bu default)
+    # 3. size (calculated is not provided
+    local sep="${2:-$'\t'}"
+    local table_size=$3
+    [[ -z "$table_size" ]] && table_size=$(($(echo "${1%%$'\n'*}" | tr -cd "$sep" | wc -c)+1))
+    for ((i=1; i<="$table_size"; i++)); do
+        echo "$1" | cut -d"$sep" -f"$i" - | paste -s -d ','
+    done
+}
+
+write_summary_table() {
+    # 1. branch list (comma separated, includes slashes)
+    # 2. format: html,html4,html4f or text when none is provided
+    local branches_list="$1"
+    local branches_list_noslash="${branches_list//\//_}"
+    local output_format=$2
+    local outfile=
+    local summary_table_file="${OUT_DIR}"/gwms.ALL.summary_append.csv
+    local summary_htable_file="${OUT_DIR}"/gwms.ALL.summary.csv
+    # Add header if does not exist, compare if file exist
+    if [[ -e "${summary_table_file}" ]]; then
+        if [[ "${branches_list}" != "$(head -n 1 "${summary_table_file}")" ]]; then
+            logerror "Existing summary table with different branches: $summary_table_file"
+            logerror "Writing summary table to alt file: ${summary_table_file}.tmp"
+            summary_table_file="${summary_table_file}.tmp"
+            echo "Branch,,${branches_list}" > "$summary_table_file"
+        else
+            loginfo "Appending to existing summary table: $summary_table_file"
+        fi
+    else
+        loginfo "Writing new summary table: $summary_table_file"
+        echo "Branch,,${branches_list}" > "$summary_table_file"
+    fi
+    local table_tmp="$(do_table_headers)"
+    if [[ -n "$table_tmp" ]]; then
+        # protect against methods not implemented in COMMAND
+        for i in ${branches_list_noslash//,/ }; do
+            outfile="${OUT_DIR}"/gwms.${i}.${COMMAND}
+            if [[ ! -e "$outfile" ]]; then
+                logerror "Missing branch summary (${outfile}). Impossible to continue summary table."
+                return 1
+            fi
+            table_tmp="$(echo "$table_tmp"; echo "$(do_table_values "${outfile}" $output_format)")"
+        done
+        # transpose the table to be able to append the test lines
+        echo "$(transpose_table "$table_tmp")" >> "$summary_table_file"
+        # Since there was an update, rebuild table w/ branches as row
+        echo "$(transpose_table "$(cat "$summary_table_file")" , )" > "$summary_htable_file"  
+        [[ "$output_format" == html* ]] && echo "$(table_to_html "$summary_htable_file")" > "${summary_htable_file%.csv}.html"
+    fi   
+}
+
 # Process a branch using the COMMAND
 process_branch() {
     # 1. git_branch, branch name or LOCAL (for in place processing)
@@ -377,30 +435,58 @@ process_branch() {
     [[ "${TEST_COMPLETE}" = branch ]] && return 0
     [[ "${TEST_COMPLETE}" = all ]] && exit 0
     log_branch "${outfile}"
-    return ${exit_code}
+    local branch_result=$(do_get_status "${outfile}")
+    local branch_exit_code=$?
+    loginfo "Tested branch ${git_branch}: $branch_result"
+    loglog "RESULT_${COMMAND}_${branch_no_slash}=$branch_result"
+    return ${branch_exit_code}
 }
 
 
+summary_command_help() {
+  cat << EOF
+${COMMAND} command:
+  Build summary table by joining existing summary files
+  The only main options used are -w and -v, all the others are ignored
+  The output file is the per-test summary in csv format and optionally HTML format. It will generate also the per-branch file
+  The input files are all per-branch files that have been generated during the tests (gwms.ALL.summary_append.csv files)
+  With per-test ot per-branch I refer to tables that have respectively tests or branches as column headers (first row)
+  NOTE All the summary files must ne homogeneous: same branches in the same orde and same output format
+       This script will not check and inconsistent files will result in an inconsistent summary
+${filename} [options] ${COMMAND} [other command options] OUTPUT_FILE INPUT_SUMMARY_FILES
+Command options:
+  -h        print this message
+EOF
+}
+
+summary_command() {
+    # Build summary table from existing summary files
+    # 1. may be "-h" or the output file name
+    # 2... all the input files to join
+    [[ "$1" = "-h" ]] && { help_msg; summary_command_help; exit 0; }
+    local summary_table_file="$1"
+    shift
+    local append_table_file="${summary_table_file%.csv}"_append.csv
+    if [[ -e "${append_table_file}" ]]; then
+        logwarn "Existing summary table, will overwrite it: $append_table_file"
+    else
+        loginfo "Writing summary table: $append_table_file"
+    fi
+    # Pick from the first file header w/ branch names
+    head -n 1 "$1" > "$append_table_file"
+    # Append all the values from all the files
+    for i in "$@"; do
+        tail -n +2 "$i" >> "$append_table_file"
+    done
+    loginfo "Writing summary table per branch: $summary_table_file"
+    echo "$(transpose_table "$(cat "$append_table_file")" , )" > "$summary_table_file"  
+    [[ "$SUMMARY_TABLE_FORMAT" == html* ]] && echo "$(table_to_html "$summary_table_file")" > "${summary_table_file%.csv}.html"
+}
+
 
 #################
-# Main
-
-# Setup the build environment
-filename="$(basename $0)"
-full_command_line="$*"
-export MYDIR=$(dirname $0)
-
-
-OUT_DIR=
-TEST_CLEAN=onsuccess
-parse_options "$@"
-# This needs to be outside to shift the general arglist
-shift $((OPTIND-1))
-# Needs to be reset for the next parsing
-OPTIND=1
-
-# Parse the (sub)command
-COMMAND=$1; shift  # Remove the command from the argument list
+# Commands description and functions 
+#
 # Commands provide functions to perform the actions
 # Required functions:
 #   do_parse_options - parse the command specific command line options
@@ -436,19 +522,63 @@ do_log_init() { false; }
 do_log_branch() { true; }
 do_log_close() { true; }
 
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    # echo -e "TestName,var1\t,var2\t,var3"
+    false
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. format html,html4,html4f ir nothing for plain text
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    . "$1"
+    # echo -e "${VAR1}\t${VAR2}\t${VAR3}"
+}
+
+do_get_status() {
+    # 1. branch summary file
+    # Return unknown, success, warning, error
+    echo unknown
+    return 2
+}
+
+
+#################
+# Main
+
+# Setup the build environment
+filename="$(basename $0)"
+full_command_line="$*"
+export MYDIR=$(dirname $0)
+
+
+OUT_DIR=
+TEST_CLEAN=onsuccess
+parse_options "$@"
+# This needs to be outside to shift the general arglist
+shift $((OPTIND-1))
+# Needs to be reset for the next parsing
+OPTIND=1
+
+# Parse the (sub)command
+COMMAND=$1; shift  # Remove the command from the argument list
 
 case "$COMMAND" in
     unittest) command_file=do_unittest.sh;;
     bats) command_file=do_bats.sh;;
     pylint) command_file=do_pylint.sh;;
     shellcheck) command_file=do_shellcheck.sh;;
+    summary) summary_command "$@";;
     *) logerror "invalid command ($COMMAND)"; help_msg 1>&2; exit 1;;
 esac
 
 UTILS_OK=
 COMMAND_OK=
 TEST_COMPLETE=
-# comman help message can be processed also w/o utils
+# command help message can be processed also w/o utils
 if find_aux utils.sh source noexit; then
     UTILS_OK=yes
     if find_aux $command_file source noexit; then
@@ -466,6 +596,14 @@ fi
 export TERM="linux"
 
 # Start creating files
+OUT_DIR="$(robust_realpath "$OUT_DIR")"
+
+if [[ ! -d "${OUT_DIR}" ]]; then
+    if ! mkdir -p "${OUT_DIR}"; then
+        logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
+    fi
+    loginfo "created output directory ${OUT_DIR}"
+fi
 
 # Setup temporary directory (if selected) and clone repo
 if [[ -n "$REPO" ]]; then
@@ -502,14 +640,6 @@ if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
     logexit "repository not found in ./glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
 fi
 STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
-OUT_DIR="$(robust_realpath "$OUT_DIR")"
-
-if [[ ! -d "${OUT_DIR}" ]]; then
-    if ! mkdir -p "${OUT_DIR}"; then
-        logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
-    fi
-    loginfo "created output directory ${OUT_DIR}"
-fi
 
 echo "command=$full_command_line" >> "$STATFILE"
 echo "workdir=$WORKSPACE" >> "$STATFILE"
@@ -570,6 +700,9 @@ else
         [[ fail -eq 0 ]] && return_status="Passed" || return_status="Failed"
         echo "# Test #: ${git_branch} .... ${return_status}"
     done
+    # remove slashes
+    branches_list="${git_branches[*]}"
+    write_summary_table "${branches_list// /,}" $SUMMARY_TABLE_FORMAT
 fi
 
 # Finish off the end of the email

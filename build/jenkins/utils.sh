@@ -425,8 +425,13 @@ print_python_info() {
         echo "${bo}LINUX DISTRO:${bc} no linux$br"
     fi
     echo "${bo}PYTHON LOCATION:${bc} $(which python)$br"
+    echo "${bo}PYTHON2 LOCATION:${bc} $(which python2)$br"
+    echo "${bo}PYTHON3 LOCATION:${bc} $(which python3)$br"
+    echo "${bo}PIP LOCATION:${bc} $(which pip)$br"
     echo "${bo}PYLINT:${bc} $(pylint --version)$br"
     echo "${bo}PEP8:${bc} $(pycodestyle --version)$br"
+    echo "${bo}PATH:${bc} ${PATH}$br"
+    echo "${bo}PYTHONPATH:${bc} ${PYTHONPATH}$br"
     [ $# -ne 0 ] && echo "</p>"
 }
 
@@ -446,6 +451,76 @@ HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-col
 
 HTML_TR_FAILED="padding: 5px;text-align: center;"
 HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+
+get_html_td() {
+    # 1. success/warning/error/check0
+    # 2. format  
+    # 3. (used if 1 is check0) variable to check
+    # 4. (optional if 1 is check0) failure status, default is error 
+    local html_format=${2:-"html4"}
+    local status=$1
+    local check_failure_status=${4:-error}
+    if [[ "$status" == "check0" ]]; then
+        [[ "$3" -eq 0 ]] && status=success || status="$check_failure_status"
+    fi
+    if [[ "$html_format" == html ]]; then
+        # echo "class=\"${status}\""
+        case "$status" in
+            success) echo 'class="success"';;
+            error) echo 'class="error"';;
+            warning) echo 'class="warning"';;
+        esac
+    elif [[ "$html_format" == html4 ]]; then
+        case "$status" in
+            success) echo 'style="background-color: #00ff00"';;
+            error) echo 'style="background-color: #ff0000"';;
+            warning) echo 'style="background-color: #ffaa00"';;
+        esac
+    elif [[ "$html_format" == html4f ]]; then
+        case "$status" in
+            success) echo 'style="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"';;
+            error) echo 'style="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"';;
+            warning) echo 'style="border: 0px solid black;border-collapse: collapse;background-color: #ffaa00;padding: 5px;text-align: center;"';;
+        esac
+    else
+        return
+    fi
+}
+
+table_to_html() {
+    # 1. table file name
+    echo -e "<table>\n    <caption>GlideinWMS CI tests summary</caption>\n    <thead>"
+    local print_header=0
+    local line
+    local line_start
+    local line_end
+    while read line ; do
+        if [[ "$print_header" -lt 2 ]]; then
+            if [[ "$print_header" -eq 0 ]]; then
+                echo "<tr><th rowspan='2'>${line//,/</th><th>}</th></tr>"
+            else
+                line_end=${line#,}
+                echo "<tr><th>${line_end//,/</th><th>}</th></tr>"
+                #echo -n "<tr><th colspan='2'>$INPUT" | sed -e 's/:[^,]*\(,\|$\)/<\/th><th>/g'
+                #echo "</th></tr>"
+                echo -e "    </thead>\n    <tbody>"
+            fi
+            ((print_header++))
+            continue
+        fi
+        line_start="${line%%,*}"
+        line_end="${line#*,}"
+        echo -n "<tr><th>${line_start//,/</th><th>}</th>" ;
+        if [[ "$line_end" == *"</td>" ]]; then
+            echo -n "${line_end}"
+        else
+            echo -n "<td>${line_end//,/</td><td>}</td>"
+        fi
+        echo "</tr>"
+    done < "$1" ;
+    echo -e "    </tbody>\n</table>"
+    
+}
 
 
 ###########################
