@@ -384,11 +384,14 @@ do_process_branch() {
     echo "PYLINT_PROBLEM_FILES=\"${files_errors}\"" >> "${outfile}"
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " "`" >> "${outfile}"
     local pylint_error_count=$(grep '^E:' ${out_pylint} | wc -l | tr -d " ")
-    echo "PYLINT_ERROR_COUNT=${pylint_error_count}" >> "${outfile}"
+    PYLINT_ERROR_COUNT=${pylint_error_count}
+    echo "PYLINT_ERROR_COUNT=${PYLINT_ERROR_COUNT}" >> "${outfile}"
     echo "PEP8_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "PEP8_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
     local pep8_error_count=$(cat ${out_pycs} | wc -l | tr -d " ")
-    echo "PEP8_ERROR_COUNT=${pep8_error_count}" >> "${outfile}"
+    PEP8_ERROR_COUNT=${pep8_error_count}
+    echo "PEP8_ERROR_COUNT=${PEP8_ERROR_COUNT}" >> "${outfile}"
+    echo "PYLINT=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
@@ -410,20 +413,20 @@ do_table_values() {
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
     . "$1"
-    if [[ -n "$2" ]]; then
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"
+    else
         local res="${PYLINT_FILES_CHECKED_COUNT}\t"
         res="${res}$(get_annotated_value check0 ${PYLINT_ERROR_FILES_COUNT})\t"
         res="${res}$(get_annotated_value check0 ${PYLINT_ERROR_COUNT})\t"
         echo -e "${res}$(get_annotated_value check0 ${PEP8_ERROR_COUNT} warning)"
-    else
-        echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"
     fi
 }
 
 do_get_status() {
-    # 1. branch summary file
+    # 1. branch summary file (optional if the necessary variables are provided)
     # Return unknown, success, warning, error
-    . "$1"
+    [[ -n "$1" ]] && . "$1"
     [[ -z "${PYLINT_ERROR_COUNT}" ]] && { echo unknown; return 2; }
     if [[ "${PYLINT_ERROR_COUNT}" -eq 0 ]]; then
         [[ "${PEP8_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }

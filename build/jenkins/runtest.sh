@@ -72,7 +72,7 @@ ${filename} [options] COMMAND [command options]
   changing any source file. Or use -t, to clone the repository in the new TEST_DIR directory.
  COMMAND:
   bats - run Shell unit tests and coverage
-  unittest - run Python unit test and coverage
+  pyunittest (unittest) - run Python unit test and coverage
   pylint - run pylint and pycodestyle (pep8)
   NOT_IMPLEMENTED: futurize - run futurize 
   shellcheck - run shellcheck
@@ -574,7 +574,7 @@ OPTIND=1
 COMMAND=$1; shift  # Remove the command from the argument list
 
 case "$COMMAND" in
-    unittest) command_file=do_unittest.sh;;
+    pyunittest|unittest) command_file=do_unittest.sh;;
     bats) command_file=do_bats.sh;;
     pylint) command_file=do_pylint.sh;;
     shellcheck) command_file=do_shellcheck.sh;;

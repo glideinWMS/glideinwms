@@ -213,10 +213,12 @@ do_process_branch() {
     echo "SHELLCHECK_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")" >> "${outfile}"
     echo "SHELLCHECK_ERROR_FILES=\"${fail_files_list}\"" >> "${outfile}"
     echo "SHELLCHECK_ERROR_FILES_COUNT=$(echo ${fail_files_list} | wc -w | tr -d " ")" >> "${outfile}"
-    echo "SHELLCHECK_ERROR_COUNT=${total_error}" >> "${outfile}"
+    SHELLCHECK_ERROR_COUNT=${total_error}
+    echo "SHELLCHECK_ERROR_COUNT=${SHELLCHECK_ERROR_COUNT}" >> "${outfile}"
     echo "SHELLCHECK_WARNING_COUNT=${total_warning}" >> "${outfile}"
     echo "SHELLCHECK_INFO_COUNT=${total_info}" >> "${outfile}"
     echo "SHELLCHECK_STYLE_COUNT=${total_style}" >> "${outfile}"
+    echo "SHELLCHECK=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
@@ -239,18 +241,18 @@ do_table_values() {
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
     . "$1"
-    if [[ -n "$2" ]]; then
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${SHELLCHECK_ERROR_FILES_COUNT}\t${SHELLCHECK_ERROR_COUNT}"
+    else
         local res="$(get_annotated_value check0 ${SHELLCHECK_ERROR_FILES_COUNT})\t"
         echo -e "${res}$(get_annotated_value check0 ${SHELLCHECK_ERROR_COUNT})"
-    else
-        echo -e "${SHELLCHECK_ERROR_FILES_COUNT}\t${SHELLCHECK_ERROR_COUNT}"
     fi
 }
 
 do_get_status() {
-    # 1. branch summary file
+    # 1. branch summary file (optional if the necessary variables are provided)
     # Return unknown, success, warning, error
-    . "$1"
+    [[ -n "$1" ]] && . "$1"
     [[ -z "${SHELLCHECK_ERROR_COUNT}" ]] && { echo unknown; return 2; }
     [[ "${SHELLCHECK_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
     echo error

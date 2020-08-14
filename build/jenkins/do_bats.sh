@@ -62,7 +62,7 @@ do_parse_options() {
     fi
 }
 
-do_get_dependencies() { pass; }
+do_get_dependencies() { true; }
 
 do_git_init_command() { git submodule update --init --recursive; }
 
@@ -72,7 +72,7 @@ do_check_requirements() {
         false
         return
     fi
-    for i in do_get_dependencies; do
+    for i in $(do_get_dependencies); do
         [[ -e "$i" ]] || logwarn "unable to find BATS test dependency '$i'"
     done
 }
@@ -169,7 +169,9 @@ do_process_branch() {
     echo "BATS_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
     echo "BATS_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"
     echo "BATS_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
-    echo "BATS_ERROR_COUNT=${fail_all}" >> "${outfile}"
+    BATS_ERROR_COUNT=${fail_all}
+    echo "BATS_ERROR_COUNT=${BATS_ERROR_COUNT}" >> "${outfile}"
+    echo "BATS=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
@@ -191,18 +193,18 @@ do_table_values() {
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
     . "$1"
-    if [[ -n "$2" ]]; then
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${BATS_ERROR_FILES_COUNT}\t${BATS_ERROR_COUNT}"
+    else
         local res="$(get_annotated_value check0 ${BATS_ERROR_FILES_COUNT})\t"
         echo -e "${res}$(get_annotated_value check0 ${BATS_ERROR_COUNT})"
-    else
-        echo -e "${BATS_ERROR_FILES_COUNT}\t${BATS_ERROR_COUNT}"
     fi
 }
 
 do_get_status() {
-    # 1. branch summary file
+    # 1. branch summary file (optional if the necessary variables are provided)
     # Return unknown, success, warning, error
-    . "$1"
+    [[ -n "$1" ]] && . "$1"
     [[ -z "${BATS_ERROR_COUNT}" ]] && { echo unknown; return 2; }
     [[ "${BATS_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
     echo error
