@@ -235,19 +235,17 @@ do_table_headers() {
 
 do_table_values() {
     # 1. branch summary file
-    # 2. output format html,htnl4,html4f or empty for text (see util.sh/get_html_td )
+    # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
     . "$1"
-    if [[ "$2" == html* ]]; then
-        local class=
-        local res="<td $(get_html_td check0 $2 ${SHELLCHECK_ERROR_FILES_COUNT})>${SHELLCHECK_ERROR_FILES_COUNT}</td>\t"
-        echo -e "${res}<td $(get_html_td check0 $2 ${SHELLCHECK_ERROR_COUNT})>${SHELLCHECK_ERROR_COUNT}</td>"
+    if [[ -n "$2" ]]; then
+        local res="$(get_annotated_value check0 ${SHELLCHECK_ERROR_FILES_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${SHELLCHECK_ERROR_COUNT})"
     else
         echo -e "${SHELLCHECK_ERROR_FILES_COUNT}\t${SHELLCHECK_ERROR_COUNT}"
     fi
 }
-
 
 do_get_status() {
     # 1. branch summary file

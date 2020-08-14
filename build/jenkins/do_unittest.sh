@@ -156,7 +156,7 @@ do_process_branch() {
     echo "# Python unittest output" > "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
-    echo "PYUNITTEST_ERROR_FILES=${fail_files_list}" >> "${outfile}"
+    echo "PYUNITTEST_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"
     echo "PYUNITTEST_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     echo "PYUNITTEST_ERROR_COUNT=${fail_all}" >> "${outfile}"
     echo "----------------"
@@ -175,15 +175,14 @@ do_table_headers() {
 
 do_table_values() {
     # 1. branch summary file
-    # 2. output format html,htnl4,html4f or empty for text (see util.sh/get_html_td )
+    # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
     . "$1"
-    if [[ "$2" == html* ]]; then
-        local class=
-        local res="<td>${PYUNITTEST_FILES_CHECKED_COUNT}</td>\t"
-        res="${res}<td $(get_html_td check0 $2 ${PYUNITTEST_ERROR_FILES_COUNT})>${PYUNITTEST_ERROR_FILES_COUNT}</td>\t"
-        echo -e "${res}<td $(get_html_td check0 $2 ${PYUNITTEST_ERROR_COUNT})>${PYUNITTEST_ERROR_COUNT}</td>"
+    if [[ -n "$2" ]]; then
+        local res="${PYUNITTEST_FILES_CHECKED_COUNT}\t"
+        res="${res}$(get_annotated_value check0 ${PYUNITTEST_ERROR_FILES_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${PYUNITTEST_ERROR_COUNT})"
     else
         echo -e "${PYUNITTEST_FILES_CHECKED_COUNT}\t${PYUNITTEST_ERROR_FILES_COUNT}\t${PYUNITTEST_ERROR_COUNT}"
     fi

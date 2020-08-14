@@ -406,16 +406,15 @@ do_table_headers() {
 
 do_table_values() {
     # 1. branch summary file
-    # 2. output format html,htnl4,html4f or empty for text (see util.sh/get_html_td )
+    # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
     . "$1"
-    if [[ "$2" == html* ]]; then
-        local class=
-        local res="<td>${PYLINT_FILES_CHECKED_COUNT}</td>\t"
-        res="${res}<td $(get_html_td check0 $2 ${PYLINT_ERROR_FILES_COUNT})>${PYLINT_ERROR_FILES_COUNT}</td>\t"
-        res="${res}<td $(get_html_td check0 $2 ${PYLINT_ERROR_COUNT})>${PYLINT_ERROR_COUNT}</td>\t"
-        echo -e "${res}<td $(get_html_td check0 $2 ${PEP8_ERROR_COUNT} warning)>${PEP8_ERROR_COUNT}</td>\t"
+    if [[ -n "$2" ]]; then
+        local res="${PYLINT_FILES_CHECKED_COUNT}\t"
+        res="${res}$(get_annotated_value check0 ${PYLINT_ERROR_FILES_COUNT})\t"
+        res="${res}$(get_annotated_value check0 ${PYLINT_ERROR_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${PEP8_ERROR_COUNT} warning)"
     else
         echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"
     fi

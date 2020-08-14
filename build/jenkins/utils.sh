@@ -452,43 +452,88 @@ HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-col
 HTML_TR_FAILED="padding: 5px;text-align: center;"
 HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
 
-get_html_td() {
-    # 1. success/warning/error/check0
-    # 2. format  
-    # 3. (used if 1 is check0) variable to check
-    # 4. (optional if 1 is check0) failure status, default is error 
-    local html_format=${2:-"html4"}
+get_annotated_value(){
+    # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
+    # 1. annotation to add: success/warning/error/check0
+    # 2. variable to print and to check (if 1 is check0) 
+    # 3. (optional if 1 is check0) failure status, default is error 
     local status=$1
-    local check_failure_status=${4:-error}
+    local value=$2
+    local check_failure_status=${3:-error}
     if [[ "$status" == "check0" ]]; then
-        [[ "$3" -eq 0 ]] && status=success || status="$check_failure_status"
+        [[ "$value" -eq 0 ]] && status=success || status="$check_failure_status"
     fi
-    if [[ "$html_format" == html ]]; then
-        # echo "class=\"${status}\""
-        case "$status" in
-            success) echo 'class="success"';;
-            error) echo 'class="error"';;
-            warning) echo 'class="warning"';;
-        esac
-    elif [[ "$html_format" == html4 ]]; then
-        case "$status" in
-            success) echo 'style="background-color: #00ff00"';;
-            error) echo 'style="background-color: #ff0000"';;
-            warning) echo 'style="background-color: #ffaa00"';;
-        esac
-    elif [[ "$html_format" == html4f ]]; then
-        case "$status" in
-            success) echo 'style="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"';;
-            error) echo 'style="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"';;
-            warning) echo 'style="border: 0px solid black;border-collapse: collapse;background-color: #ffaa00;padding: 5px;text-align: center;"';;
-        esac
-    else
+    case "$status" in
+        success) echo "${value}=success=";;
+        error) echo "${value}=error=";;
+        warning) echo "${value}=warning=";;
+        *) echo "${value}"
+    esac
+}
+
+annotated_to_td() {
+    # Return an HTML table cell formatted depending on the annotation and the output format
+    # 1. variable to check
+    # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
+    local html_format=${2:-"html4"}
+    local value=$1
+    if ! [[ "$value" == *"=success=" || "$value" == *"=error=" || "$value" == *"=warning=" ]]; then
+        echo "<td>$value</td>"
         return
     fi
+    local value_only=${value%=}
+    value_only=${value_only%=*}
+    note_only=${value#"$value_only"}
+    if [[ "$html_format" == html ]]; then
+        case "$note_only" in
+            =success=) note_only='class="success"';;
+            =error=) note_only='class="error"';;
+            =warning=) note_only='class="warning"';;
+        esac
+    elif [[ "$html_format" == html4 ]]; then
+        case "$note_only" in
+            =success=) note_only='style="background-color: #00ff00"';;
+            =error=) note_only='style="background-color: #ff0000"';;
+            =warning=) note_only='style="background-color: #ffaa00"';;
+        esac
+    elif [[ "$html_format" == html4f ]]; then
+        case "$note_only" in
+            =success=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"';;
+            =error=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"';;
+            =warning=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ffaa00;padding: 5px;text-align: center;"';;
+        esac
+    else
+        note_only=
+    fi
+    echo "<td ${note_only}>${value_only}</td>"
+}
+
+filter_annotated_values() {
+    # Return a line for an HTML table formatted depending on the values annotation and the output format
+    # 1. line
+    # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
+    local line="$1"
+    local line_values="$(echo "$line" | sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' )"
+    if [[ -z "$2" || "$2" = text ]]; then 
+        echo "$line_values"
+        return
+    elif [[ "$2" = htmlplain ]]; then        
+        echo "<td>${line_values//,/</td><td>}</td>"
+    else
+        line_values= 
+        IFS=, read -ra values <<< "$line"    
+        for i in "${values[@]}"; do
+            line_values="${line_values}$(annotated_to_td "$i" $2)"
+        done
+        echo "$line_values"
+    fi    
 }
 
 table_to_html() {
+    # Return to stdout an HTML table built form the summary file
     # 1. table file name
+    # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
+    local format=$2
     echo -e "<table>\n    <caption>GlideinWMS CI tests summary</caption>\n    <thead>"
     local print_header=0
     local line
@@ -501,8 +546,6 @@ table_to_html() {
             else
                 line_end=${line#,}
                 echo "<tr><th>${line_end//,/</th><th>}</th></tr>"
-                #echo -n "<tr><th colspan='2'>$INPUT" | sed -e 's/:[^,]*\(,\|$\)/<\/th><th>/g'
-                #echo "</th></tr>"
                 echo -e "    </thead>\n    <tbody>"
             fi
             ((print_header++))
@@ -510,16 +553,9 @@ table_to_html() {
         fi
         line_start="${line%%,*}"
         line_end="${line#*,}"
-        echo -n "<tr><th>${line_start//,/</th><th>}</th>" ;
-        if [[ "$line_end" == *"</td>" ]]; then
-            echo -n "${line_end}"
-        else
-            echo -n "<td>${line_end//,/</td><td>}</td>"
-        fi
-        echo "</tr>"
+        echo "<tr><th>${line_start//,/</th><th>}</th>$(filter_annotated_values "${line_end}" ${format})</tr>"
     done < "$1" ;
-    echo -e "    </tbody>\n</table>"
-    
+    echo -e "    </tbody>\n</table>"    
 }
 
 

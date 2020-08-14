@@ -98,7 +98,7 @@ ${filename} [options] COMMAND [command options]
               Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
   -T          like -t but creates a temporary directory with mktemp.
   -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
-  -w FMT      summary table format (html, html4, html4f, default:text)
+  -w FMT      summary table format (html, html4, html4f, htmlplain, default:text)
 
 EOF
 }
@@ -364,18 +364,19 @@ write_summary_table() {
     local summary_table_file="${OUT_DIR}"/gwms.ALL.summary_append.csv
     local summary_htable_file="${OUT_DIR}"/gwms.ALL.summary.csv
     # Add header if does not exist, compare if file exist
+    local first_line="Branch,,${branches_list}"
     if [[ -e "${summary_table_file}" ]]; then
-        if [[ "${branches_list}" != "$(head -n 1 "${summary_table_file}")" ]]; then
+        if [[ "${first_line}" != "$(head -n 1 "${summary_table_file}")" ]]; then
             logerror "Existing summary table with different branches: $summary_table_file"
             logerror "Writing summary table to alt file: ${summary_table_file}.tmp"
             summary_table_file="${summary_table_file}.tmp"
-            echo "Branch,,${branches_list}" > "$summary_table_file"
+            echo "$first_line" > "$summary_table_file"
         else
             loginfo "Appending to existing summary table: $summary_table_file"
         fi
     else
         loginfo "Writing new summary table: $summary_table_file"
-        echo "Branch,,${branches_list}" > "$summary_table_file"
+        echo "$first_line" > "$summary_table_file"
     fi
     local table_tmp="$(do_table_headers)"
     if [[ -n "$table_tmp" ]]; then
@@ -392,7 +393,8 @@ write_summary_table() {
         echo "$(transpose_table "$table_tmp")" >> "$summary_table_file"
         # Since there was an update, rebuild table w/ branches as row
         echo "$(transpose_table "$(cat "$summary_table_file")" , )" > "$summary_htable_file"  
-        [[ "$output_format" == html* ]] && echo "$(table_to_html "$summary_htable_file")" > "${summary_htable_file%.csv}.html"
+        [[ -z "$output_format" || "$output_format" == text ]] && sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_htable_file" > "${summary_htable_file%.csv}.txt"
+        [[ "$output_format" == html* ]] && echo "$(table_to_html "$summary_htable_file" $output_format)" > "${summary_htable_file%.csv}.html"
     fi   
 }
 
@@ -464,6 +466,8 @@ summary_command() {
     # 1. may be "-h" or the output file name
     # 2... all the input files to join
     [[ "$1" = "-h" ]] && { help_msg; summary_command_help; exit 0; }
+    # Fail if it is not found, if there are no utils operations cannot proceed
+    [[ -z "${UTILS_OK}" ]] && find_aux utils.sh source
     local summary_table_file="$1"
     shift
     local append_table_file="${summary_table_file%.csv}"_append.csv
@@ -480,7 +484,8 @@ summary_command() {
     done
     loginfo "Writing summary table per branch: $summary_table_file"
     echo "$(transpose_table "$(cat "$append_table_file")" , )" > "$summary_table_file"  
-    [[ "$SUMMARY_TABLE_FORMAT" == html* ]] && echo "$(table_to_html "$summary_table_file")" > "${summary_table_file%.csv}.html"
+    [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]] && sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_table_file" > "${summary_table_file%.csv}.txt"
+    [[ "$SUMMARY_TABLE_FORMAT" == html* ]] && echo "$(table_to_html "$summary_table_file" ${SUMMARY_TABLE_FORMAT})" > "${summary_table_file%.csv}.html"
 }
 
 
@@ -571,7 +576,7 @@ case "$COMMAND" in
     bats) command_file=do_bats.sh;;
     pylint) command_file=do_pylint.sh;;
     shellcheck) command_file=do_shellcheck.sh;;
-    summary) summary_command "$@";;
+    summary) summary_command "$@"; exit $?;;
     *) logerror "invalid command ($COMMAND)"; help_msg 1>&2; exit 1;;
 esac
 
