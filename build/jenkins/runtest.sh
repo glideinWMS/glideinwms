@@ -686,8 +686,8 @@ else
             <th style=\"$HTML_TH\">$git_branch</th>
             <td style=\"$HTML_TD_CRASHED\">ERROR: Could not checkout branch</td>
         </tr>"
-            [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
             fail=301
+            [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
             continue
         else
             # Do a pull in case the repo was not a new clone
@@ -704,7 +704,7 @@ else
         loginfo "Complete with branch ${git_branch} (ec:${fail})"
         [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
         # tell CI about branch status
-        [[ fail -eq 0 ]] && return_status="Passed" || return_status="Failed"
+        [[ ${fail} -eq 0 ]] && return_status="Passed" || return_status="Failed"
         echo "# Test #: ${git_branch} .... ${return_status}"
     done
     # remove slashes
