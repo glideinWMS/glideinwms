@@ -111,16 +111,23 @@ class MonitoringConfig:
                                                                       ('nosuccess="%i"' % waste_mill['nosuccess']),
                                                                       ('badput="%i"' % waste_mill['badput']))))
 
-    def write_file(self, relative_fname, output_str):
+    def write_file(self, relative_fname, output_data):
         """
-        Writes out a string to a file
+        Writes out data to a file
         @param relative_fname: The relative path name to write out
-        @param output_str: the string to write to the file
+        @param output_data: the data to write to the file
         """
         fname = os.path.join(self.monitor_dir, relative_fname)
+        if type(fname) is bytes:
+            fname = fname.decode("utf-8")
+
         # print "Writing "+fname
-        with open(fname + ".tmp", "w") as fd:
-            fd.write(output_str + "\n")
+        if type(output_data) is str:
+            with open(fname + ".tmp", "w") as fd:
+                fd.write(output_data + "\n")
+        else:
+            with open(fname + ".tmp", "wb") as fd:
+                fd.write(output_data + b"\n")
 
         util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
         return

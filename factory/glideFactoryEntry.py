@@ -1015,7 +1015,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
         # merge work and default params
         params = work[work_key]['params']
-        decrypted_params = work[work_key]['params_decrypted']
+        decrypted_params = {key: value.decode() for key, value in work[work_key]['params_decrypted'].items()}
 
         # add default values if not defined
         for k in entry.jobParams.data:

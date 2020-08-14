@@ -1060,7 +1060,6 @@ if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
 fi
 glide_local_tmp_dir_created=1
 
-<<<<<<< HEAD
 glide_tmp_dir="${work_dir}/tmp"
 if ! mkdir "${glide_tmp_dir}"; then
     early_glidein_failure "Cannot create '${glide_tmp_dir}'"

@@ -217,7 +217,8 @@ class AutoSymKey(MutableSymKey):
             self.cypher_name = None
             self.key_str = None
         else:
-            key_iv_code = str(key_iv_code) # just in case it was unicode
+            if type(key_iv_code) is bytes: # just in case it was unicode
+                key_iv_code = key_iv_code.decode("ascii")
             ki_arr = key_iv_code.split(',')
             if len(ki_arr) != 3:
                 raise ValueError("Invalid format, comas not found")

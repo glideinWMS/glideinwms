@@ -530,7 +530,7 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").decode("utf-8").split('\n')[0]).strip()
 
     def create(self,*args):
         cmdline = '%s create %s'%(self.rrd_bin, string_quote_join(args))
@@ -544,11 +544,12 @@ class rrdtool_exe:
     
     def info(self,*args):
         cmdline = '%s info %s'%(self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
+        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
         outarr = {}
         for line in outstr:
-            linearr = line.split('=')
-            outarr[linearr[0]] = linearr[1]
+            if '=' in line:
+                linearr = line.split('=')
+                outarr[linearr[0].strip()] = linearr[1].strip()
         return outarr
     
     def dump(self,*args):
@@ -559,7 +560,7 @@ class rrdtool_exe:
         Output is a list of lines, as returned from rrdtool.
         """
         cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
+        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
         return outstr
     
     def restore(self,*args):
@@ -571,6 +572,23 @@ class rrdtool_exe:
         cmdline = '%s graph %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
+    
+    def fetch(self,*args):
+        cmdline = '%s fetch %s' % (self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
+        headers = tuple(outstr.pop(0).split())
+        lines = []
+        for line in outstr:
+            if len(line) == 0:
+                continue
+            lines.append(tuple([float(i) if i != "-nan" else None for i in line.split()[1:]]))
+        tstep = (int(outstr[2].split(":")[0]) - int(outstr[1].split(":")[0]))
+        ftime = int(outstr[1].split(":")[0]) - tstep
+        ltime = int(outstr[-2].split(":")[0])
+        times = (ftime, ltime, tstep)
+        outtup = (times, headers, lines)
+        return outtup
+
 
 def addDataStore(filenamein, filenameout, attrlist):
     """
