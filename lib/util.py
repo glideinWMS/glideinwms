@@ -33,6 +33,7 @@ _FLAG_FIRST = object()
 HOOK_PRE_RECONFIG_DIRNAME = "hooks.reconfig.pre"
 HOOK_POST_RECONFIG_DIRNAME = "hooks.reconfig.post"
 
+
 # From http://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
 # Much faster than my first version
 def flattenDict(d, join=add, lift=lambda x: x):
@@ -103,7 +104,7 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
     :return: flattened dictionary
     """
     if sep:
-        out_list = flattenDict(in_dict, join=lambda a, b: a+sep+b)
+        out_list = flattenDict(in_dict, join=lambda a, b: a + sep + b)
     else:
         out_list = flattenDict(in_dict)
     if prefix or suffix:
@@ -189,7 +190,7 @@ def print_funct(*args, **kwargs):
     print(sep.join([str(i) for i in args]))
 
 
-#pylint: disable=misplaced-bare-raise
+# pylint: disable=misplaced-bare-raise
 def conditional_raise(mask_exceptions):
     """Auxiliary function to handle conditional raising
 
@@ -205,7 +206,8 @@ def conditional_raise(mask_exceptions):
         return
     raise
 
-#pylint: enable=misplaced-bare-raise
+
+# pylint: enable=misplaced-bare-raise
 
 def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
     """Serialize and save content
@@ -223,7 +225,7 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
-        with open(tmp_fname, "w") as pfile:
+        with open(tmp_fname, "wb") as pfile:
             pickle.dump(content, pfile, protocol)
     except:
         conditional_raise(mask_exceptions)

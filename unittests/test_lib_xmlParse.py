@@ -38,11 +38,11 @@ xmlstr = """
   <temperature F="100" C="40"/>
 </test>
 """
-xmlstr_dict_repr = """{u'date': u'1/2/07', u'files': [{u'absname': u'/tmp/abc.txt'}, {u'absname': u'/tmp/w.log', u'mod': u'-rw-r--r--'}], u'params': {u'y': {u'value': u'88'}, u'x': {u'value': u'12'}, u'what': u'xx'}, u'temperature': {u'C': u'40', u'F': u'100'}}"""
+xmlstr_dict_repr = """{'date': '1/2/07', 'params': {'what': 'xx', 'x': {'value': '12'}, 'y': {'value': '88'}}, 'files': [{'absname': '/tmp/abc.txt'}, {'absname': '/tmp/w.log', 'mod': '-rw-r--r--'}], 'temperature': {'F': '100', 'C': '40'}}"""
 
-ordered_dict_values_repr = """[u'1/2/07', [{u'absname': u'/tmp/abc.txt'}, {u'absname': u'/tmp/w.log', u'mod': u'-rw-r--r--'}], {u'y': {u'value': u'88'}, u'x': {u'value': u'12'}, u'what': u'xx'}, {u'C': u'40', u'F': u'100'}]"""
+ordered_dict_values_repr = """['1/2/07', {'what': 'xx', 'x': {'value': '12'}, 'y': {'value': '88'}}, [{'absname': '/tmp/abc.txt'}, {'absname': '/tmp/w.log', 'mod': '-rw-r--r--'}], {'F': '100', 'C': '40'}]"""
 
-ordered_dict_items_repr = """[(u'date', u'1/2/07'), (u'files', [{u'absname': u'/tmp/abc.txt'}, {u'absname': u'/tmp/w.log', u'mod': u'-rw-r--r--'}]), (u'params', {u'y': {u'value': u'88'}, u'x': {u'value': u'12'}, u'what': u'xx'}), (u'temperature', {u'C': u'40', u'F': u'100'})]"""
+ordered_dict_items_repr = """[('date', '1/2/07'), ('params', {'what': 'xx', 'x': {'value': '12'}, 'y': {'value': '88'}}), ('files', [{'absname': '/tmp/abc.txt'}, {'absname': '/tmp/w.log', 'mod': '-rw-r--r--'}]), ('temperature', {'F': '100', 'C': '40'})]"""
 
 expected = ""
 
@@ -96,14 +96,14 @@ class TestOrderedDict(unittest.TestCase):
         dict1 = xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
-        self.assertEqual("[u'date', u'files', u'params', u'temperature']",
+        self.assertEqual("['date', 'params', 'files', 'temperature']",
                          list(ordered_dict.keys()).__repr__())
 
     def test_popitem(self):
         dict1 = xmlstring2dict(xmlstr, use_ord_dict=False,
                                always_singular_list=[])
         ordered_dict = OrderedDict(dict1)
-        self.assertEqual("(u'temperature', {u'C': u'40', u'F': u'100'})",
+        self.assertEqual("('temperature', {'F': '100', 'C': '40'})",
                          ordered_dict.popitem().__repr__())
 
     def test_setdefault(self):

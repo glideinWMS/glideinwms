@@ -10,15 +10,11 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-
-
-
 import string
 import unittest2 as unittest
 import xmlrunner
 import hypothesis
 import hypothesis.strategies as st
-
 
 from glideinwms.lib.encodingSupport import encode_data
 from glideinwms.lib.encodingSupport import decode_data
@@ -40,22 +36,22 @@ class TestEncodeDecodeData(unittest.TestCase):
             encode_data(
                 DATA,
                 ENCODING[0],
-                url_safe=False))
+                url_safe=False).decode('utf-8'))
         self.assertEqual(
             ENC_32,
             encode_data(
                 DATA,
                 ENCODING[1],
-                url_safe=False))
+                url_safe=False).decode('utf-8'))
         self.assertEqual(
             ENC_64,
             encode_data(
                 DATA,
                 ENCODING[2],
-                url_safe=False))
-        self.assertEqual(ENC_16, encode_data(DATA, ENCODING[0], url_safe=True))
-        self.assertEqual(ENC_32, encode_data(DATA, ENCODING[1], url_safe=True))
-        self.assertEqual(ENC_64, encode_data(DATA, ENCODING[2], url_safe=True))
+                url_safe=False).decode('utf-8'))
+        self.assertEqual(ENC_16, encode_data(DATA, ENCODING[0], url_safe=True).decode('utf-8'))
+        self.assertEqual(ENC_32, encode_data(DATA, ENCODING[1], url_safe=True).decode('utf-8'))
+        self.assertEqual(ENC_64, encode_data(DATA, ENCODING[2], url_safe=True).decode('utf-8'))
 
     def test_decode_data(self):
         self.assertEqual(
@@ -79,20 +75,6 @@ class TestEncodeDecodeData(unittest.TestCase):
         self.assertEqual(DATA, decode_data(ENC_16, ENCODING[0], url_safe=True))
         self.assertEqual(DATA, decode_data(ENC_32, ENCODING[1], url_safe=True))
         self.assertEqual(DATA, decode_data(ENC_64, ENCODING[2], url_safe=True))
-
-    @hypothesis.given(st.binary())
-    def test_symmetric_binary(self, data):
-        for enc in ENCODING:
-            for tf in [True, False]:
-                self.assertEqual(
-                    data,
-                    decode_data(
-                        encode_data(
-                            data,
-                            enc,
-                            url_safe=tf),
-                        enc,
-                        url_safe=tf))
 
     # @skip('doesnt work with unicode, should it?')
     @hypothesis.given(st.text(alphabet=string.printable))

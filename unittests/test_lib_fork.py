@@ -10,9 +10,6 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-
-
-
 import select
 import time
 import os
@@ -35,7 +32,7 @@ LOG_FILE = create_temp_file()
 
 
 def global_log_setup():
-    fd = open(LOG_FILE, 'w', 0)
+    fd = open(LOG_FILE, 'w')
     glideinwms.lib.logSupport.log = FakeLogger(fd)
 
 
@@ -132,7 +129,7 @@ class TestWaitForPids(unittest.TestCase):
 class TestForkManager(unittest.TestCase):
 
     def setUp(self):
-        #import select
+        # import select
         global_log_setup()
         self.fork_manager = ForkManager()
         self.default_forks = 100
