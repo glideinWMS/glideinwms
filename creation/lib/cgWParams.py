@@ -14,13 +14,15 @@
 
 import os
 import copy
-import sys
+# import sys
 import os.path
-import string
+# import string
 import socket
-import types
-import traceback
-from glideinwms.lib import xmlParse
+# import types
+# import traceback
+from collections import OrderedDict
+
+# from glideinwms.lib import xmlParse
 from glideinwms.lib import condorExe
 from glideinwms.lib.util import safe_boolcomp
 from . import cWParams
@@ -41,7 +43,7 @@ class GlideinParams(cWParams.CommonParams):
 
         # Defaults for allowing frontends in a whitelist
         # in the factory config (per entry point)
-        self.allow_defaults = cWParams.commentedOrderedDict()
+        self.allow_defaults = cWParams.CommentedOrderedDict()
         self.allow_defaults["name"] = (None, "string", "frontend name", None)
         self.allow_defaults["security_class"] = ("All", "string", "security class", None)
 
@@ -50,43 +52,43 @@ class GlideinParams(cWParams.CommonParams):
         self.attr_defaults["publish"] = ("True", "Bool", "Should it be published by the factory?", None)
         self.attr_defaults["const"] = ("True", "Bool", "Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)", None)
 
-        self.infosys_defaults = cWParams.commentedOrderedDict()
+        self.infosys_defaults = cWParams.CommentedOrderedDict()
         self.infosys_defaults["type"] = (None, "RESS|BDII", "Type of information system", None)
         self.infosys_defaults["server"] = (None, "host", "Location of the infosys server", None)
         self.infosys_defaults["ref"] = (None, "id", "Referenced for the entry point in the infosys", None)
 
-        self.mongroup_defaults = cWParams.commentedOrderedDict()
+        self.mongroup_defaults = cWParams.CommentedOrderedDict()
         self.mongroup_defaults["group_name"] = (None, "groupname", "Name of the monitoring group", None)
 
-        entry_config_defaults = cWParams.commentedOrderedDict()
+        entry_config_defaults = cWParams.CommentedOrderedDict()
 
-        entry_config_max_jobs_defaults = cWParams.commentedOrderedDict()
-        max_jobs_per_entry_defaults = cWParams.commentedOrderedDict()
+        entry_config_max_jobs_defaults = cWParams.CommentedOrderedDict()
+        max_jobs_per_entry_defaults = cWParams.CommentedOrderedDict()
         max_jobs_per_entry_defaults["glideins"] = ('10000', "nr", "Maximum number of concurrent glideins (per entry) that can be submitted.", None)
         max_jobs_per_entry_defaults["idle"] = ('2000', "nr", "Maximum number of idle glideins (per entry) allowed.", None)
         max_jobs_per_entry_defaults["held"] = ('1000', "nr", "Maximum number of held glideins (per entry) before forcing the cleanup.", None)
         entry_config_max_jobs_defaults['per_entry'] = max_jobs_per_entry_defaults
-        max_jobs_default_per_frontend_defaults = cWParams.commentedOrderedDict()
+        max_jobs_default_per_frontend_defaults = cWParams.CommentedOrderedDict()
         max_jobs_default_per_frontend_defaults["glideins"] = ('5000', "nr", "Maximum number of concurrent glideins (default per frontend) that can be submitted.", None)
         max_jobs_default_per_frontend_defaults["idle"] = ('100', "nr", "Maximum number of idle glideins (default per frontend) allowed.", None)
         max_jobs_default_per_frontend_defaults["held"] = ('50', "nr", "Maximum number of held glideins (default per frontend) before forcing the cleanup.", None)
         entry_config_max_jobs_defaults['default_per_frontend'] = max_jobs_default_per_frontend_defaults
-        max_jobs_per_frontend_defaults = cWParams.commentedOrderedDict()
+        max_jobs_per_frontend_defaults = cWParams.CommentedOrderedDict()
         max_jobs_per_frontend_defaults["name"] = (None, "string", "frontend name", None)
         max_jobs_per_frontend_defaults["held"] = ('50', "nr", "Maximum number of held glideins (for this frontend) before forcing the cleanup.", None)
         max_jobs_per_frontend_defaults["idle"] = ('100', "nr", "Maximum number of idle glideins (for this frontend) allowed.", None)
         max_jobs_per_frontend_defaults["glideins"] = ('5000', "nr", "Maximum number of concurrent glideins (per frontend) that can be submitted", None)
-        entry_config_max_jobs_defaults["per_frontends"] = (xmlParse.OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", max_jobs_per_frontend_defaults)
+        entry_config_max_jobs_defaults["per_frontends"] = (OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", max_jobs_per_frontend_defaults)
         entry_config_defaults['max_jobs'] = entry_config_max_jobs_defaults
 
 
-        entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
+        entry_config_restrictions_defaults=cWParams.CommentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"]=("False", "Bool", "Whether this entry point requires a voms proxy", None)
         entry_config_restrictions_defaults["require_glidein_glexec_use"]=("False", "Bool", "Whether this entry requires glidein to use glexec", None)
         entry_config_defaults['restrictions']=entry_config_restrictions_defaults
 
 
-        entry_config_queue_defaults = cWParams.commentedOrderedDict()
+        entry_config_queue_defaults = cWParams.CommentedOrderedDict()
         entry_config_queue_defaults["max_per_cycle"] = ['100', "nr", "Maximum number of jobs affected per cycle.", None]
         entry_config_queue_defaults["sleep"] = ['0.2', "seconds", "Sleep between interactions with the schedd.", None]
 
@@ -95,9 +97,9 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_defaults['submit']['slots_layout'] = ['partitionable', "string", "The way multiple slots should be setup.", None]
 
 
-        self.submit_attrs = cWParams.commentedOrderedDict()
+        self.submit_attrs = cWParams.CommentedOrderedDict()
         self.submit_attrs["value"] = ("All", "string", "HTCondor classad value", None)
-        entry_config_defaults['submit']['submit_attrs'] = (xmlParse.OrderedDict(), 'Dictionary of submit attributes', "Each attribute contains", self.submit_attrs)
+        entry_config_defaults['submit']['submit_attrs'] = (OrderedDict(), 'Dictionary of submit attributes', "Each attribute contains", self.submit_attrs)
 
 
         entry_config_defaults['remove'] = copy.deepcopy(entry_config_queue_defaults)
@@ -106,13 +108,13 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_defaults['release']['max_per_cycle'][0] = '20'
 
         # not exported and order does not matter, can stay a regular dictionary
-        sub_defaults = {'attrs':(xmlParse.OrderedDict(), 'Dictionary of attributes', "Each attribute entry contains", self.attr_defaults),
+        sub_defaults = {'attrs':(OrderedDict(), 'Dictionary of attributes', "Each attribute entry contains", self.attr_defaults),
                       'files':([], 'List of files', "Each file entry contains", self.file_defaults),
                       'infosys_refs':([], 'List of information system references', "Each reference points to this entry", self.infosys_defaults),
                       'monitorgroups':([], 'List of monitoring groups', "Each group entry belongs to", self.mongroup_defaults)}
 
 
-        self.entry_defaults = cWParams.commentedOrderedDict()
+        self.entry_defaults = cWParams.CommentedOrderedDict()
         self.entry_defaults["gatekeeper"] = (None, 'gatekeeper', 'Grid gatekeeper/resource', None)
         self.entry_defaults["gridtype"] = ('condor', 'grid_type', 'Condor Grid type', None)
         self.entry_defaults["trust_domain"] = ('OSG', 'trust_domain', 'Entry trust domain', None)
@@ -131,7 +133,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["files"] = sub_defaults['files']
         self.entry_defaults["infosys_refs"] = sub_defaults['infosys_refs']
         self.entry_defaults["monitorgroups"] = copy.deepcopy(sub_defaults['monitorgroups'])
-        self.entry_defaults["allow_frontends"] = (xmlParse.OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", self.allow_defaults)
+        self.entry_defaults["allow_frontends"] = (OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", self.allow_defaults)
 
         ###############################
         # Start defining the defaults
@@ -141,19 +143,19 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults['factory_collector'] = (None, "CollectorName", "Which collector should we use for factory ClassAds", None)
         self.defaults['factory_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories?', None)
 
-        submit_defaults = cWParams.commentedOrderedDict()
+        submit_defaults = cWParams.CommentedOrderedDict()
         submit_defaults["base_dir"] = ("%s/glideinsubmit" % os.environ["HOME"], "base_dir", "Submit base dir", None)
         submit_defaults["base_log_dir"] = ("%s/glideinlog" % os.environ["HOME"], "log_dir", "Submit base log dir", None)
         submit_defaults["base_client_log_dir"] = ("%s/glideclientlog" % os.environ["HOME"], "client_dir", "Base dir for client logs, needs a user_<uid> subdir per frontend user", None)
         submit_defaults["base_client_proxies_dir"] = ("%s/glideclientproxies" % os.environ["HOME"], "client_dir", "Base dir for client proxies, needs a user_<uid> subdir per frontend user", None)
         self.defaults["submit"] = submit_defaults
 
-        one_log_retention_defaults = cWParams.commentedOrderedDict()
+        one_log_retention_defaults = cWParams.CommentedOrderedDict()
         one_log_retention_defaults["min_days"] = ["3.0", "days", "Min number of days the logs must be preserved (even if they use too much space)", None]
         one_log_retention_defaults["max_days"] = ["7.0", "days", "Max number of days the logs should be preserved", None]
         one_log_retention_defaults["max_mbytes"] = ["100.0", "Mbytes", "Max number of Mbytes the logs can use", None]
 
-        monitor_footer_defaults=cWParams.commentedOrderedDict()
+        monitor_footer_defaults=cWParams.CommentedOrderedDict()
         monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
         monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
         self.defaults["monitor_footer"] = monitor_footer_defaults
@@ -164,7 +166,7 @@ class GlideinParams(cWParams.CommonParams):
         process_log_defaults['backup_count'] = ["5", "string", "Number of backup logs to keep", None]
         process_log_defaults['compression'] = ["", "string", "Compression for backup log files", None]
 
-        log_retention_defaults = cWParams.commentedOrderedDict()
+        log_retention_defaults = cWParams.CommentedOrderedDict()
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
         log_retention_defaults["job_logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0] = "2.0"
@@ -182,7 +184,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults['restart_interval'] = ('1800', 'NR', 'Time interval NR sec which allow max restart attempts', None)
         self.defaults['entry_parallel_workers'] = ('0', 'NR', 'Number of entries that will perform the work in parallel', None)
 
-        stage_defaults = cWParams.commentedOrderedDict()
+        stage_defaults = cWParams.CommentedOrderedDict()
         stage_defaults["base_dir"] = ("/var/www/html/glidefactory/stage", "base_dir", "Stage base dir", None)
         stage_defaults["web_base_url"] = ("http://%s/glidefactory/stage" % socket.gethostname(), 'base_url', 'Base Web server URL', None)
         stage_defaults["use_symlink"] = ("True", "Bool", "Can I symlink stage dir from submit dir?", None)
@@ -193,14 +195,14 @@ class GlideinParams(cWParams.CommonParams):
         self.monitor_defaults["update_thread_count"]=(os.sysconf('SC_NPROCESSORS_ONLN'), "update_thread_count", "Number of rrd update threads. Defaults to cpu count.", None)
         self.defaults["monitor"] = self.monitor_defaults
 
-        self.frontend_sec_class_defaults = cWParams.commentedOrderedDict()
+        self.frontend_sec_class_defaults = cWParams.CommentedOrderedDict()
         self.frontend_sec_class_defaults["username"] = (None, 'username', 'UNIX ID to be used for this security class', None)
 
-        self.frontend_defaults = cWParams.commentedOrderedDict()
+        self.frontend_defaults = cWParams.CommentedOrderedDict()
         self.frontend_defaults["identity"] = (None, 'identity', 'Authenticated Identity', None)
-        self.frontend_defaults["security_classes"] = (xmlParse.OrderedDict(), "Dictionary of security class maps", "Each mapping contains", self.frontend_sec_class_defaults)
+        self.frontend_defaults["security_classes"] = (OrderedDict(), "Dictionary of security class maps", "Each mapping contains", self.frontend_sec_class_defaults)
 
-        monitoring_collector_defaults=cWParams.commentedOrderedDict()
+        monitoring_collector_defaults=cWParams.CommentedOrderedDict()
         monitoring_collector_defaults["node"]=(None, "nodename", "Factory monitoring collector node name (for example, col1.my.org:9999)", None)
         monitoring_collector_defaults["DN"]=(None, "dn", "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)", None)
         monitoring_collector_defaults["secondary"]=("False", "Bool", "Secondary nodes will be used by glideins, if present", None)
@@ -208,17 +210,17 @@ class GlideinParams(cWParams.CommonParams):
 
         self.defaults["monitoring_collectors"]=([], 'List of factory monitoring collectors', "Each collector contains", monitoring_collector_defaults)
 
-        security_default=cWParams.commentedOrderedDict()
+        security_default=cWParams.CommentedOrderedDict()
         security_default["pub_key"]=("RSA", "None|RSA", "Type of public key system used for secure message passing", None)
         security_default["reuse_oldkey_onstartup_gracetime"]=("900", "seconds", "Time in sec old key can be used to decrypt requests from frontend", None)
         security_default["remove_old_cred_freq"] = ("24", "hours", "Frequency in hrs for cleaning unused credentials", None)
         security_default["remove_old_cred_age"] = ("30", "days", "Credentials older than this should be removed", None)
         security_default["key_length"]=("2048", "bits", "Key length in bits", None)
-        security_default["frontends"]=(xmlParse.OrderedDict(), "Dictionary of frontend", "Each frontend contains", self.frontend_defaults)
+        security_default["frontends"]=(OrderedDict(), "Dictionary of frontend", "Each frontend contains", self.frontend_defaults)
 
         self.defaults["security"] = security_default
 
-        condor_defaults = cWParams.commentedOrderedDict()
+        condor_defaults = cWParams.CommentedOrderedDict()
         condor_defaults["os"] = ("default", "osname", "Operating System (like linux-rhel3)", None)
         condor_defaults["arch"] = ("default", "arch", "Architecture (like x86)", None)
         condor_defaults["version"] = ("default", "arch", "Architecture (like x86)", None)
@@ -232,7 +234,7 @@ class GlideinParams(cWParams.CommonParams):
         # ordering is specific to global section of factory
         self.defaults["files"][3]["after_entry"] = ("False", 'Bool', 'Should this file be loaded after the entry ones?', None)
 
-        self.defaults["entries"] = (xmlParse.OrderedDict(), "Dictionary of entries", "Each entry contains", self.entry_defaults)
+        self.defaults["entries"] = (OrderedDict(), "Dictionary of entries", "Each entry contains", self.entry_defaults)
 
         return
 

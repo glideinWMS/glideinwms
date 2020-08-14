@@ -1,15 +1,7 @@
 
 import copy
 import os
-
-import collections
-# collections.MutableMapping is not available in Python 2.4
-try:
-    mutablemap = collections.MutableMapping
-except AttributeError:
-    import UserDict
-    mutablemap = UserDict.DictMixin
-
+from collections.abc import MutableMapping
 import xml.sax
 
 INDENT_WIDTH = 3
@@ -66,7 +58,7 @@ class Handler(xml.sax.ContentHandler):
         self.ancestry.pop()
 
 
-class Element(object):
+class Element:
     def __init__(self, tag, file="default", line_no=None, parent=None):
         self.tag = tag
         self.file = file
@@ -107,7 +99,7 @@ class Element(object):
         return config_node
 
 
-class DictElement(Element, mutablemap):
+class DictElement(Element, MutableMapping):
     def __init__(self, tag, *args, **kwargs):
         super(DictElement, self).__init__(tag, *args, **kwargs)
         self.attrs = {}
@@ -122,8 +114,8 @@ class DictElement(Element, mutablemap):
     def __delitem__(self, key):
         del(self.attrs[key])
 
-    def __contains__(self, key):
-        return key in self.attrs
+    #def __contains__(self, key):
+    #    return key in self.attrs
 
     def __iter__(self):
         return iter(self.attrs)
@@ -195,6 +187,7 @@ class DictElement(Element, mutablemap):
             raise RuntimeError(self.err_str('missing "%s" attribute' % attr))
 
 
+# TODO: Should this inherit from MutableSequence?
 class ListElement(Element):
     def __init__(self, tag, *args, **kwargs):
         super(ListElement, self).__init__(tag, *args, **kwargs)

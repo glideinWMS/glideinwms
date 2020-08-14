@@ -4,7 +4,7 @@
 #
 # File Version:
 #
-# Desscription:
+# Description:
 #   This module contains the generic params classes
 #
 # Extracted from:
@@ -19,70 +19,62 @@ import copy
 import sys
 import os.path
 import string
-import socket
-import types
-import traceback
+# import socket
+# import types
+# import traceback
+from collections import UserDict, OrderedDict
+
 from glideinwms.lib import xmlParse
 import xml.parsers.expat
 from glideinwms.lib import xmlFormat
 
-class SubParams:
-    def __init__(self, data):
-        self.data=data
 
-    def __eq__(self, other):
-        if other is None:
-            return False
-        if not isinstance(other, self.__class__):
-            return False
-        return self.data==other.data
+class SubParams(UserDict):
 
-    # make data elements look like class attributes
     def __getattr__(self, name):
+        """make data elements look like class attributes"""
         return self.get_el(name)
 
-    # make data elements look like a dictionary
-    def keys(self):
-        return list(self.data.keys())
-    def has_key(self, name):
-        return name in self.data
-    def __contains__(self, name):
-        return name in self.data
     def __getitem__(self, name):
+        """make data elements look like a dictionary"""
         return self.get_el(name)
-    def __repr__(self):
-        return str(self.data)
-    def __str__(self):
-        return str(self.data)
 
     #
     # PROTECTED
     #
 
-    # validate input against base template (i.e. the defaults)
     def validate(self, base, path_text):
-        for k in list(self.data.keys()):
+        """Validate input against base template (i.e. the defaults)
+        
+        Args:
+            base: 
+            path_text: 
+
+        Returns:
+
+        """
+        for k in self.data:
             if k not in base:
                 # element not in base, report
                 raise RuntimeError("Unknown parameter %s.%s"%(path_text, k))
             else:
                 # verify sub-elements, if any
                 defel=base[k]
-                if isinstance(defel, xmlParse.OrderedDict):
+                if isinstance(defel, OrderedDict):
                     # subdictionary
                     self[k].validate(defel, "%s.%s"%(path_text, k))
                 else:
                     # final element
                     defvalue, ktype, txt, subdef=defel
 
-                    if isinstance(defvalue, xmlParse.OrderedDict):
+                    if isinstance(defvalue, OrderedDict):
                         # dictionary el elements
                         data_el=self[k]
                         for data_subkey in list(data_el.keys()):
                             data_el[data_subkey].validate(subdef, "%s.%s.%s"%(path_text, k, data_subkey))
                     elif isinstance(defvalue, list):
                         # list of elements
-                        if isinstance(self.data[k], xmlParse.OrderedDict):
+                        if isinstance(self.data[k], OrderedDict):
                             if len(list(self.data[k].keys()))==0:
                                 self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
 
@@ -93,16 +85,23 @@ class SubParams:
                             data_el.validate(subdef, "%s.*.%s"%(path_text, k))
                     else:
                         # a simple value
-                        pass #nothing to be done
+                        pass  # nothing to be done
 
-    # put default values where there is nothing
     def use_defaults(self, defaults):
+        """Put default values where there is nothing
+        
+        Args:
+            defaults: 
+
+        Returns:
+
+        """
         for k in list(defaults.keys()):
             defel=defaults[k]
-            if isinstance(defel, xmlParse.OrderedDict):
+            if isinstance(defel, OrderedDict):
                 # subdictionary
                 if k not in self.data:
-                    self.data[k]=xmlParse.OrderedDict() # first create empty, if does not exist
+                    self.data[k]=OrderedDict()  # first create empty, if does not exist
 
                 # then, set defaults on all elements of subdictionary
                 self[k].use_defaults(defel)
@@ -110,10 +109,10 @@ class SubParams:
                 # final element
                 defvalue, ktype, txt, subdef=defel
 
-                if isinstance(defvalue, xmlParse.OrderedDict):
+                if isinstance(defvalue, OrderedDict):
                     # dictionary el elements
                     if k not in self.data:
-                        self.data[k]=xmlParse.OrderedDict() # no elements yet, set and empty dictionary
+                        self.data[k]=OrderedDict()  # no elements yet, set and empty dictionary
                     else:
                         # need to set defaults on all elements in the dictionary
                         data_el=self[k]
@@ -133,19 +132,25 @@ class SubParams:
                         self.data[k]=copy.deepcopy(defvalue)
                     # else nothing to do, already set
 
-
-
     #
     # PRIVATE
     #
     def get_el(self, name):
+        """
+        
+        Args:
+            name: 
+
+        Returns:
+
+        """
         el=self.data[name]
-        if isinstance(el, xmlParse.OrderedDict):
+        if isinstance(el, OrderedDict):
             return self.__class__(el)
         elif isinstance(el, list):
             outlst=[]
             for k in el:
-                if isinstance(k, xmlParse.OrderedDict):
+                if isinstance(k, OrderedDict):
                     outlst.append(self.__class__(k))
                 else:
                     outlst.append(k)
@@ -153,13 +158,17 @@ class SubParams:
         else:
             return el
 
-# abstract class
-# children must define
-#   get_top_element(self)
-#   init_defaults(self)
-#   derive(self)
-#   get_xml_format(self)
+
 class Params:
+    """abstract class
+    
+    Children must define:
+        get_top_element(self)
+        init_defaults(self)
+        derive(self)
+        get_xml_format(self)
+    
+    """
     def __init__(self, usage_prefix, src_dir, argv):
         self.usage_prefix=usage_prefix
 
@@ -167,7 +176,7 @@ class Params:
         self.src_dir=src_dir
 
         # initialize the defaults
-        self.defaults=xmlParse.OrderedDict()
+        self.defaults = OrderedDict()
         self.init_defaults()
 
         try:
@@ -194,7 +203,7 @@ class Params:
         pass
 
     def derive(self):
-        return # by default nothing... children should overwrite this
+        return  # by default nothing... children should overwrite this
 
     def get_xml(self):
         old_default_ignore_nones=xmlFormat.DEFAULT_IGNORE_NONES
@@ -206,7 +215,7 @@ class Params:
         xmlFormat.DEFAULT_LISTS_PARAMS=xml_format['lists_params']
         xmlFormat.DEFAULT_DICTS_PARAMS=xml_format['dicts_params']
         # hack needed to make xmlFormat to properly do the formating, using override_dictionary_type
-        dict_override=type(xmlParse.OrderedDict())
+        dict_override=type(OrderedDict())
         out=xmlFormat.class2string(self.data, self.get_top_element(), override_dictionary_type=dict_override)
         xmlFormat.DEFAULT_IGNORE_NONES=old_default_ignore_nones
         xmlFormat.DEFAULT_LISTS_PARAMS=old_default_lists_params
@@ -216,11 +225,17 @@ class Params:
     def get_description(self,indent="",width=80):
         return defdict2string(self.defaults, indent, width)
 
-
-    #load from a file
-    #one element per line
-    # -opt val
     def load_file(self, fname):
+        """Load from a file
+        one element per line
+         -opt val
+        
+        Args:
+            fname: 
+
+        Returns:
+
+        """
         if fname=="-":
             fname=sys.stdin
         try:
@@ -242,9 +257,17 @@ class Params:
     def __getattr__(self, name):
         return self.subparams.__getattr__(name)
 
-    #save into a file
-    #The file should be usable for reload
     def save_into_file(self,fname,set_ro=False):
+        """Save into a file
+        The file should be usable for reload
+        
+        Args:
+            fname: 
+            set_ro: 
+
+        Returns:
+
+        """
         with open(fname, "w") as fd:
             fd.write(self.get_xml())
             fd.write("\n")
@@ -252,9 +275,17 @@ class Params:
             os.chmod(fname, os.stat(fname)[0]&0o444)
         return
 
-    #save into a file (making a backup)
-    #The file should be usable for reload
     def save_into_file_wbackup(self,fname,set_ro=False):
+        """Save into a file (making a backup)
+        The file should be usable for reload
+        
+        Args:
+            fname: 
+            set_ro: 
+
+        Returns:
+
+        """
         # rewrite config file (write tmp file first)
         tmp_name="%s.tmp"%fname
         try:
@@ -285,21 +316,35 @@ class Params:
     def get_subparams_class(self):
         return SubParams
 
-######################################################
-# Ordered dictionary with comment support
-class commentedOrderedDict(xmlParse.OrderedDict):
+
+class CommentedOrderedDict(OrderedDict):
+    """Ordered dictionary with comment support
+    """
     def __init__(self, dict = None):
         # cannot call directly the parent due to the particular implementation restrictions
         self._keys = []
-        xmlParse.UserDict.__init__(self, dict)
-        self["comment"]=(None, "string", "Humman comment, not used by the code", None)
+        # TODO: double check restriction, why not OrderedDict?
+        # was: UserDict.__init__(self, dict)
+        OrderedDict.__init__(self, dict)
+        self["comment"] = (None, "string", "Humman comment, not used by the code", None)
+
 
 ####################################################################
 # INTERNAL, don't use directly
 # Use the class definition instead
 #
-# return attribute value in the proper python format
 def extract_attr_val(attr_obj):
+    """Return attribute value in the proper python format
+    
+    INTERNAL, don't use directly
+    Use the class definition instead
+
+    Args:
+        attr_obj: 
+
+    Returns:
+
+    """
     if (not attr_obj.type in ("string", "int", "expr")):
         raise RuntimeError("Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type)
 
@@ -307,6 +352,7 @@ def extract_attr_val(attr_obj):
         return str(attr_obj.value)
     else:
         return int(attr_obj.value)
+
 
 ######################################################
 # Define common defaults
@@ -319,7 +365,7 @@ class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
         # attributes are generic, shared between frontend and factory
-        self.attr_defaults=commentedOrderedDict()
+        self.attr_defaults=CommentedOrderedDict()
         self.attr_defaults["value"]=(None, "Value", "Value of the attribute (string)", None)
         self.attr_defaults["parameter"]=("True", "Bool", "Should it be passed as a parameter?", None)
         self.attr_defaults["glidein_publish"]=("False", "Bool", "Should it be published by the glidein? (Used only if parameter is True.)", None)
@@ -327,7 +373,7 @@ class CommonParams(Params):
         self.attr_defaults["type"]=["string", "string|int", "What kind on data is value.", None]
 
         # most file attributes are generic, shared between frontend and factory
-        self.file_defaults=commentedOrderedDict()
+        self.file_defaults=CommentedOrderedDict()
         self.file_defaults["absfname"]=(None, "fname", "File name on the local disk.", None)
         self.file_defaults["relfname"]=(None, "fname", "Name of the file once it gets to the worker node. (defaults to the last part of absfname)", None)
         self.file_defaults["const"]=("True", "Bool", "Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.", None)
@@ -338,13 +384,13 @@ class CommonParams(Params):
         self.file_defaults["prefix"]=("GLIDEIN_PS_", 'string', 'Prefix used for periodic jobs (STARTD_CRON).', None)
         # to add check scripts around jobs: self.file_defaults["job_wrap"]=("no","pre|post|no",'Run the executable before (pre) or after (post) each job.',None)
 
-        untar_defaults=commentedOrderedDict()
+        untar_defaults=CommentedOrderedDict()
         untar_defaults["cond_attr"]=("TRUE", "attrname", "If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.", None)
         untar_defaults["dir"]=(None, "dirname", "Subdirectory in which to untar. (defaults to relname up to first .)", None)
         untar_defaults["absdir_outattr"]=(None, "attrname", 'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)', None)
         self.file_defaults["untar_options"]=untar_defaults
 
-        self.monitor_defaults=commentedOrderedDict()
+        self.monitor_defaults=CommentedOrderedDict()
         self.monitor_defaults["javascriptRRD_dir"]=(os.path.join(self.src_dir, "../../externals/flot"), "base_dir", "Location of the javascriptRRD library.", None)
         self.monitor_defaults["flot_dir"]=(os.path.join(self.src_dir, "../../externals/flot"), "base_dir", "Location of the flot library.", None)
         self.monitor_defaults["jquery_dir"]=(os.path.join(self.src_dir, "../../externals/jquery"), "base_dir", "Location of the jquery library.", None)
@@ -357,21 +403,28 @@ class CommonParams(Params):
     def extract_attr_val(self, attr_obj):
         return extract_attr_val(attr_obj)
 
-################################################
-# Check is a string can be used as a valid name
-# Whitelist based
 
-# only allow ascii charactersm, the numbers and a few punctuations
-# no spaces, not special characters or other punctuation
-VALID_NAME_CHARS=string.ascii_letters+string.digits+'._-'
+################################################
+VALID_NAME_CHARS = string.ascii_letters+string.digits+'._-'
 
 def is_valid_name(name):
+    """Check if a string can be used as a valid name
+    
+    Whitelist based:
+        only allow ascii characters, numbers and a few punctuations
+        no spaces, no special characters or other punctuation
+
+    Args:
+        name (str): name to validate 
+
+    Returns:
+        bool: True if the name is not empty and has only valid characters, False otherwise
+    """
     # empty name is not valid
     if name is None:
         return False
-    if name=="":
+    if name == "":
         return False
-
     for c in name:
         if not (c in VALID_NAME_CHARS):
             return False
@@ -384,9 +437,17 @@ def is_valid_name(name):
 #
 ############################################################
 
-#######################################################
-# Wrap a text string to a fixed length
 def col_wrap(text, width, indent):
+    """Wrap a text string to a fixed length
+    
+    Args:
+        text (str): string to wrap 
+        width (int): length 
+        indent (str): indentation string 
+
+    Returns:
+
+    """
     short_text, next_char=shorten_text(text, width)
     if len(short_text)!=len(text): # was shortened
         #print short_text
@@ -411,16 +472,27 @@ def col_wrap(text, width, indent):
     else:
         return text
 
-# shorten text, make sure you properly account tabs
-# return (shorten text,next char)
+
 def shorten_text(text, width):
+    """Shorten text, make sure you properly account tabs
+
+    Tabs are every 8 spaces (counted as number of chars to the next tab stop)
+        
+    Args:
+        text (str): text to shorten 
+        width (int): length 
+
+    Returns (tuple):
+        shorten text (str): shortened text
+        next char (str): remainder
+    """
     count=0
     idx=0
     for c in text:
         if count>=width:
             return (text[:idx], c)
         if c=='\t':
-            count=((count+8)/8)*8 #round to neares mult of 8
+            count=((count+8)//8)*8  #round to neares mult of 8
             if count>width:
                 return (text[:idx], c)
             idx=idx+1
@@ -430,9 +502,18 @@ def shorten_text(text, width):
 
     return (text[:idx], '')
 
-##################################################
-# convert defualts to a string
-def defdict2string(defaults,indent,width=80):
+
+def defdict2string(defaults, indent, width=80):
+    """Convert defualts to a string
+    
+    Args:
+        defaults: 
+        indent: 
+        width: 
+
+    Returns:
+
+    """
     outstrarr=[]
 
     keys=sorted(defaults.keys())
@@ -441,14 +522,14 @@ def defdict2string(defaults,indent,width=80):
     # put simple elements first
     for k in keys:
         el=defaults[k]
-        if not isinstance(el, xmlParse.OrderedDict):
+        if not isinstance(el, OrderedDict):
             defvalue, ktype, txt, subdef=el
             if subdef is None:
                 final_keys.append(k)
     # put simple elements first
     for k in keys:
         el=defaults[k]
-        if isinstance(el, xmlParse.OrderedDict):
+        if isinstance(el, OrderedDict):
             final_keys.append(k)
         else:
             defvalue, ktype, txt, subdef=el
@@ -457,14 +538,14 @@ def defdict2string(defaults,indent,width=80):
 
     for k in final_keys:
         el=defaults[k]
-        if isinstance(el, xmlParse.OrderedDict):  #sub-dictionary
+        if isinstance(el, OrderedDict):  #sub-dictionary
             outstrarr.append("%s%s:"%(indent, k)+"\n"+defdict2string(el, indent+"\t", width))
         else:
             #print el
             defvalue, ktype, txt, subdef=el
             wrap_indent = indent + " "*len("%s(%s) - "%(k, ktype))
             if subdef is not None:
-                if isinstance(defvalue, xmlParse.OrderedDict):
+                if isinstance(defvalue, OrderedDict):
                     dict_subdef=copy.deepcopy(subdef)
                     dict_subdef["name"]=(None, "name", "Name", None)
                     outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent, k, ktype, txt), width, wrap_indent)+"\n"+defdict2string(dict_subdef, indent+"\t", width))
