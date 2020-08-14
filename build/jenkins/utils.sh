@@ -97,6 +97,7 @@ setup_python3_venv() {
 
     [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
 
+    local pip_packages=
     PY_VER="3.6"
     py_detected="$(python3 -V | cut -f2 -d ' ')"
     [[ "${py_detected}" == 3* ]] || logexit "Python 3 required, detected ${py_detected}. Aborting"
@@ -175,14 +176,14 @@ setup_python3_venv() {
 
         # TODO: load the list from requirements.txt
 
-	loginfo "$(check_python)"
+        loginfo "$(check_python)"
 
-	# To avoid: Cache entry deserialization failed, entry ignored
+        # To avoid: Cache entry deserialization failed, entry ignored
         # curl https://bootstrap.pypa.io/get-pip.py | python3
         python3 -m pip install --quiet --upgrade pip
 
         failed_packages=""
-        for package in $pip_packages; do
+        for package in ${pip_packages}; do
             loginfo "Installing $package ..."
             status="DONE"
             if ! python3 -m pip install --quiet "$package" ; then
@@ -242,6 +243,7 @@ setup_python2_venv() {
 
     [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
 
+    local pip_packages=
     local is_python26=false
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
         is_python26=true
@@ -322,17 +324,17 @@ setup_python2_venv() {
             return 1
         fi
 
-	export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
+	    export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
         # Install dependancies first so we don't get uncompatible ones
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
+        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
-	loginfo "$(check_python)"	
+	    loginfo "$(check_python)"	
 
         failed_packages=""
         for package in $pip_packages; do
@@ -371,8 +373,6 @@ setup_python2_venv() {
                 fi
             fi
         done
-
-
         SETUP_VENV2="$VENV"
     fi
 

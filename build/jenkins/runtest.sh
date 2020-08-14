@@ -14,7 +14,7 @@ logerror() {
 }
 logexit() {
     # replacing logreportfail in the function to avoid repeating all the other definitions
-    if [ -n "$3" ]; then
+    if [[ -n "$3" ]]; then
         local msg="$3=\"FAILED\""
         [[ -n "${TESTLOG}" ]] && echo "${msg}" >> "${TESTLOG}"
         echo "${msg}"
@@ -26,7 +26,7 @@ logexit() {
 
 allow_abort=true
 int_handler() {
-    if $allow_abort; then
+    if ${allow_abort}; then
         echo "Interrupted by Ctrl-C. Exit"
         exit 1;
     fi;
@@ -218,6 +218,8 @@ parse_options() {
     if [[ -n "$INPLACE" ]]; then
         [[ -n "$BRANCH_LIST" ]] && logwarn "Using -i the branch list will be ignored."
         BRANCH_LIST=
+        [[ -n "$BRANCHES_FILE" ]] && logwarn "Using -i the branch file will be ignored."
+        BRANCHES_FILE=
         [[ -n "$GITFLAG" ]] && logwarn "Using -i the force flag -f will be ignored."
         GITFLAG=
     fi
@@ -394,7 +396,7 @@ write_summary_table() {
         # Since there was an update, rebuild table w/ branches as row
         echo "$(transpose_table "$(cat "$summary_table_file")" , )" > "$summary_htable_file"  
         [[ -z "$output_format" || "$output_format" == text ]] && sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_htable_file" > "${summary_htable_file%.csv}.txt"
-        [[ "$output_format" == html* ]] && echo "$(table_to_html "$summary_htable_file" $output_format)" > "${summary_htable_file%.csv}.html"
+        [[ "$output_format" == html* ]] && echo "$(table_to_html "$summary_htable_file" ${output_format})" > "${summary_htable_file%.csv}.html"
     fi   
 }
 
@@ -586,7 +588,7 @@ TEST_COMPLETE=
 # command help message can be processed also w/o utils
 if find_aux utils.sh source noexit; then
     UTILS_OK=yes
-    if find_aux $command_file source noexit; then
+    if find_aux ${command_file} source noexit; then
         COMMAND_OK=yes
     fi
 fi
@@ -622,7 +624,7 @@ if [[ -n "$REPO" ]]; then
 
     #if [[ -d glideinwms && -z "$GITFLAG" ]]; then
     if [[ -d glideinwms ]]; then
-        if [ -z "${GWMS_REPO_OPTIONAL}" ]; then
+        if [[ -z "${GWMS_REPO_OPTIONAL}" ]]; then
             logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms " 1 SETUP
         else
             logwarn "using existing glideinwms directory"
