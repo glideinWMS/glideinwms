@@ -126,6 +126,7 @@ do_process_branch() {
     declare -i total_warning=0
     declare -i total_info=0
     declare -i total_style=0
+    local fail_files_list=
     local test_outdir="${outfile}.d"
     mkdir -p "${test_outdir}"
 
@@ -144,8 +145,8 @@ do_process_branch() {
         echo "Scanning: ${pfile}"
         [ -z "${pfile}" ] && { echo "Empty file to process: ${pfile} (of: ${files_list})" >&2; exit 1; }
         # TODO: protect against scripts in different directories w/ same file name
-        out_file="${test_outdir}/$(basename "${pfile%.*}").json"
-        [[ -e "$out_file" ]] && echo "WARNING: duplicate file name, overwriting checks: $out_file"
+        out_file="${test_outdir}/$(basename "${test_outdir}").$(basename "${pfile%.*}").json"
+        [[ -e "$out_file" ]] && logwarn "duplicate file name, overwriting checks: $out_file"
         # shellcheck disable=SC2086
         sc_out=$(shellcheck ${SC_OPTIONS} "${pfile}" 2>/dev/null)
         if command -v jq >/dev/null 2>&1; then
@@ -175,6 +176,7 @@ do_process_branch() {
             # Highlight the presence of error/warnings (makes search easier)
             if (( n_error > 0 )); then
                 echo "Error found!"
+                fail_files_list="$fail_files_list $pfile"
             fi
             if (( n_warning > 0 )); then
                 echo "Warning found!"
@@ -208,12 +210,15 @@ do_process_branch() {
 
     echo "# Shellcheck output" >> "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
-    echo "SHELLCHECK_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
-    #echo "SHELLCHECK_ERROR_FILES_COUNT=`...`" >> "${outfile}"
-    echo "SHELLCHECK_ERROR_COUNT=${total_error}" >> "${outfile}"
+    echo "SHELLCHECK_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")" >> "${outfile}"
+    echo "SHELLCHECK_ERROR_FILES=\"${fail_files_list}\"" >> "${outfile}"
+    echo "SHELLCHECK_ERROR_FILES_COUNT=$(echo ${fail_files_list} | wc -w | tr -d " ")" >> "${outfile}"
+    SHELLCHECK_ERROR_COUNT=${total_error}
+    echo "SHELLCHECK_ERROR_COUNT=${SHELLCHECK_ERROR_COUNT}" >> "${outfile}"
     echo "SHELLCHECK_WARNING_COUNT=${total_warning}" >> "${outfile}"
     echo "SHELLCHECK_INFO_COUNT=${total_info}" >> "${outfile}"
     echo "SHELLCHECK_STYLE_COUNT=${total_style}" >> "${outfile}"
+    echo "SHELLCHECK=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
@@ -222,4 +227,34 @@ do_process_branch() {
     #[[ $total_error -gt 0 ]] && fail=1
     fail=$total_error
     return ${fail}
+}
+
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    echo -e "ShellCheck,ErrFiles\t,ErrNum"
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. output format: if not empty triggers annotation
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    . "$1"
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${SHELLCHECK_ERROR_FILES_COUNT}\t${SHELLCHECK_ERROR_COUNT}"
+    else
+        local res="$(get_annotated_value check0 ${SHELLCHECK_ERROR_FILES_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${SHELLCHECK_ERROR_COUNT})"
+    fi
+}
+
+do_get_status() {
+    # 1. branch summary file (optional if the necessary variables are provided)
+    # Return unknown, success, warning, error
+    [[ -n "$1" ]] && . "$1"
+    [[ -z "${SHELLCHECK_ERROR_COUNT}" ]] && { echo unknown; return 2; }
+    [[ "${SHELLCHECK_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
+    echo error
+    return 1
 }

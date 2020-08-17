@@ -116,6 +116,7 @@ v3_6_3:
     - Add a knob to set entry limits in OSG_autoconf
     - Stop pilots even after the downtime timestamp has been reached when draining pilots
     - Glideins are unrecoverable unless listed as recoverable
+    - User job invocation via singularity eating up -e or -n
 
 v3_7:
   Date: March 31, 2020
@@ -127,3 +128,9 @@ v3_7:
     - Added secure logging channel
     - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
 
+v3_7_1:
+  Date: August 21, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.3

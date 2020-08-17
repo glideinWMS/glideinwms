@@ -71,11 +71,23 @@ log_nonzero_rc() {
     return $2
 }
 
+check_python() {
+    echo "Python environment:"
+    echo "python: `command -v python 2>/dev/null`"
+    echo "python2: `command -v python2 2>/dev/null`"
+    echo "python3: `command -v python3 2>/dev/null`"
+    echo "pip: `command -v pip 2>/dev/null`"
+    echo "pip3: `command -v pip3 2>/dev/null`"
+    echo "PATH: $PATH"
+    echo "PYTHONPATH: $PYTHONPATH"
+    echo "Python in env: `env | grep -i python`"
+}
 
 ############################
 # Python functions
 ############################
 
+PRE_VENV_PATH=
 SETUP_VENV3=
 setup_python3_venv() {
     if [ $# -gt 1 ]; then
@@ -83,7 +95,9 @@ setup_python3_venv() {
     fi
     WORKSPACE=${1:-$(pwd)}
 
+    [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
 
+    local pip_packages=
     PY_VER="3.6"
     py_detected="$(python3 -V | cut -f2 -d ' ')"
     [[ "${py_detected}" == 3* ]] || logexit "Python 3 required, detected ${py_detected}. Aborting"
@@ -101,6 +115,8 @@ setup_python3_venv() {
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
     M2CRYPTO="M2Crypto" # M2CRYPTO="M2Crypto==0.20.2"
+
+    # pip install of M2Crypto is failing, use RPM: python36-m2crypto.x86_64 : Support for using OpenSSL in Python 3 scripts
     
 #    PYLINT='pylint==2.5.3'
 #    ASTROID='astroid==2.4.2'
@@ -160,12 +176,14 @@ setup_python3_venv() {
 
         # TODO: load the list from requirements.txt
 
+        loginfo "$(check_python)"
+
         # To avoid: Cache entry deserialization failed, entry ignored
         # curl https://bootstrap.pypa.io/get-pip.py | python3
         python3 -m pip install --quiet --upgrade pip
 
         failed_packages=""
-        for package in $pip_packages; do
+        for package in ${pip_packages}; do
             loginfo "Installing $package ..."
             status="DONE"
             if ! python3 -m pip install --quiet "$package" ; then
@@ -223,7 +241,15 @@ setup_python2_venv() {
     fi
     WORKSPACE=${1:-$(pwd)}
 
+    [[ -z "${PRE_VENV_PATH}" ]] && PRE_VENV_PATH="$PATH" || PATH="$PRE_VENV_PATH"
+
+    local pip_packages=
+    local is_python26=false
     if python --version 2>&1 | grep 'Python 2.6' > /dev/null ; then
+        is_python26=true
+    fi
+    
+    if $is_python26; then
         # Get latest packages that work with python 2.6
         PY_VER="2.6"
         VIRTUALENV_VER=virtualenv-12.0.7
@@ -257,6 +283,10 @@ setup_python2_venv() {
         M2CRYPTO="M2Crypto==0.20.2"
     fi
 
+    # pip install of M2Crypto is failing, use RPM:
+    #  m2crypto.x86_64 : Support for using OpenSSL in python scripts
+    #  python-m2ext.x86_64 : M2Crypto Extensions
+
     VIRTUALENV_TARBALL=${VIRTUALENV_VER}.tar.gz
     VIRTUALENV_URL="https://pypi.python.org/packages/source/v/virtualenv/$VIRTUALENV_TARBALL"
     #VIRTUALENV_EXE=$WORKSPACE/${VIRTUALENV_VER}/virtualenv.py
@@ -288,37 +318,53 @@ setup_python2_venv() {
         #if we download the venv tarball everytime we should remake the venv
         #every time
         rm -rf "$VENV"
-        "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
+        python2 "$WORKSPACE/${VIRTUALENV_VER}"/virtualenv.py --system-site-packages "$VENV"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR virtualenv ($VENV) could not be activated.  Exiting"
             return 1
         fi
 
-	export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
+	    export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
         # Install dependancies first so we don't get uncompatible ones
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="$pip_packages pyyaml ${MOCK}  xmlrunner future importlib argparse"
+        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
+
+	    loginfo "$(check_python)"	
 
         failed_packages=""
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-            if ! python -m pip install --quiet "$package"; then
+	    if $is_python26; then
+                # py26 seems to error out w/ python -m pip: 
+                # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
+                pip install --quiet "$package"
+            else
+                python -m pip install --quiet "$package"
+            fi
+            if [[ $? -ne 0 ]]; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
             loginfo "Installing $package ... $status"
         done
-        #try again if anything failed to install, sometimes its order
+        #try again if anything failed to install, sometimes its order matters
         NOT_FATAL="htcondor ${M2CRYPTO}"
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            if ! python -m pip install "$package" ; then
+	    if $is_python26; then
+                # py26 seems to error out w/ python -m pip: 
+                # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
+                pip install "$package"
+            else
+                python -m pip install "$package"
+            fi
+            if [[ $? -ne 0 ]]; then
                 if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
                     logerror "ERROR $package could not be installed.  Continuing."
                 else
@@ -327,8 +373,6 @@ setup_python2_venv() {
                 fi
             fi
         done
-
-
         SETUP_VENV2="$VENV"
     fi
 
@@ -381,8 +425,13 @@ print_python_info() {
         echo "${bo}LINUX DISTRO:${bc} no linux$br"
     fi
     echo "${bo}PYTHON LOCATION:${bc} $(which python)$br"
+    echo "${bo}PYTHON2 LOCATION:${bc} $(which python2)$br"
+    echo "${bo}PYTHON3 LOCATION:${bc} $(which python3)$br"
+    echo "${bo}PIP LOCATION:${bc} $(which pip)$br"
     echo "${bo}PYLINT:${bc} $(pylint --version)$br"
     echo "${bo}PEP8:${bc} $(pycodestyle --version)$br"
+    echo "${bo}PATH:${bc} ${PATH}$br"
+    echo "${bo}PYTHONPATH:${bc} ${PYTHONPATH}$br"
     [ $# -ne 0 ] && echo "</p>"
 }
 
@@ -402,6 +451,112 @@ HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-col
 
 HTML_TR_FAILED="padding: 5px;text-align: center;"
 HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+
+get_annotated_value(){
+    # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
+    # 1. annotation to add: success/warning/error/check0
+    # 2. variable to print and to check (if 1 is check0) 
+    # 3. (optional if 1 is check0) failure status, default is error 
+    local status=$1
+    local value=$2
+    local check_failure_status=${3:-error}
+    if [[ "$status" == "check0" ]]; then
+        [[ "$value" -eq 0 ]] && status=success || status="$check_failure_status"
+    fi
+    case "$status" in
+        success) echo "${value}=success=";;
+        error) echo "${value}=error=";;
+        warning) echo "${value}=warning=";;
+        *) echo "${value}"
+    esac
+}
+
+annotated_to_td() {
+    # Return an HTML table cell formatted depending on the annotation and the output format
+    # 1. variable to check
+    # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
+    local html_format=${2:-"html4"}
+    local value=$1
+    if ! [[ "$value" == *"=success=" || "$value" == *"=error=" || "$value" == *"=warning=" ]]; then
+        echo "<td>$value</td>"
+        return
+    fi
+    local value_only=${value%=}
+    value_only=${value_only%=*}
+    note_only=${value#"$value_only"}
+    if [[ "$html_format" == html ]]; then
+        case "$note_only" in
+            =success=) note_only='class="success"';;
+            =error=) note_only='class="error"';;
+            =warning=) note_only='class="warning"';;
+        esac
+    elif [[ "$html_format" == html4 ]]; then
+        case "$note_only" in
+            =success=) note_only='style="background-color: #00ff00"';;
+            =error=) note_only='style="background-color: #ff0000"';;
+            =warning=) note_only='style="background-color: #ffaa00"';;
+        esac
+    elif [[ "$html_format" == html4f ]]; then
+        case "$note_only" in
+            =success=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"';;
+            =error=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"';;
+            =warning=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ffaa00;padding: 5px;text-align: center;"';;
+        esac
+    else
+        note_only=
+    fi
+    echo "<td ${note_only}>${value_only}</td>"
+}
+
+filter_annotated_values() {
+    # Return a line for an HTML table formatted depending on the values annotation and the output format
+    # 1. line
+    # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
+    local line="$1"
+    local line_values="$(echo "$line" | sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' )"
+    if [[ -z "$2" || "$2" = text ]]; then 
+        echo "$line_values"
+        return
+    elif [[ "$2" = htmlplain ]]; then        
+        echo "<td>${line_values//,/</td><td>}</td>"
+    else
+        line_values= 
+        IFS=, read -ra values <<< "$line"    
+        for i in "${values[@]}"; do
+            line_values="${line_values}$(annotated_to_td "$i" $2)"
+        done
+        echo "$line_values"
+    fi    
+}
+
+table_to_html() {
+    # Return to stdout an HTML table built form the summary file
+    # 1. table file name
+    # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
+    local format=$2
+    echo -e "<table>\n    <caption>GlideinWMS CI tests summary</caption>\n    <thead>"
+    local print_header=0
+    local line
+    local line_start
+    local line_end
+    while read line ; do
+        if [[ "$print_header" -lt 2 ]]; then
+            if [[ "$print_header" -eq 0 ]]; then
+                echo "<tr><th rowspan='2'>${line//,/</th><th>}</th></tr>"
+            else
+                line_end=${line#,}
+                echo "<tr><th>${line_end//,/</th><th>}</th></tr>"
+                echo -e "    </thead>\n    <tbody>"
+            fi
+            ((print_header++))
+            continue
+        fi
+        line_start="${line%%,*}"
+        line_end="${line#*,}"
+        echo "<tr><th>${line_start//,/</th><th>}</th>$(filter_annotated_values "${line_end}" ${format})</tr>"
+    done < "$1" ;
+    echo -e "    </tbody>\n</table>"    
+}
 
 
 ###########################
@@ -444,12 +599,12 @@ mail_results() {
     local contents=$1
     local subject=$2
     echo "From: gwms-builds@donot-reply.com;
-To: parag@fnal.gov;
+To: marcom@fnal.gov;
 Subject: $subject;
 Content-Type: text/html;
 MIME-VERSION: 1.0;
 ;
-$(cat "$contents")
+$(cat "${EMAIL_FILE}")
 " | sendmail -t
 }
 

@@ -62,7 +62,7 @@ do_parse_options() {
     fi
 }
 
-do_get_dependencies() { pass; }
+do_get_dependencies() { true; }
 
 do_git_init_command() { git submodule update --init --recursive; }
 
@@ -72,7 +72,7 @@ do_check_requirements() {
         false
         return
     fi
-    for i in do_get_dependencies; do
+    for i in $(do_get_dependencies); do
         [[ -e "$i" ]] || logwarn "unable to find BATS test dependency '$i'"
     done
 }
@@ -85,7 +85,9 @@ do_count_failures() {
     # 0 - no failed tests
     # 1 - failed tests
     # >1 - execution error (e.g. 126 wrong permission)
+    [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
     fail=0
+    fail_files_list="$fail_files_list $file"
     if [[ $1 -eq 1 ]]; then
         lline="$(echo "$tmp_out" | tail -n1)"
         if [[ "$lline" == *failures ]]; then
@@ -135,11 +137,18 @@ do_process_branch() {
     local -i fail=0
     local -i fail_files=0
     local -i fail_all=0
+    local fail_files_list=
     local tmp_out=
     local -i tmp_exit_code
     local -i exit_code
+    local test_outdir="${outfile}.d"
+    mkdir -p "${test_outdir}"
+
     for file in ${files_list} ; do
-        loginfo "TESTING ==========> $file"
+        loginfo "Testing: $file"
+        out_file="${test_outdir}/$(basename "${test_outdir}").$(basename "${file%.*}").txt"
+        [[ -e "$out_file" ]] && logwarn "duplicate file name, overwriting test results: $out_file"
+
 #            if [[ -n "$RUN_COVERAGE" ]]; then
 #                kcov --include-path="${SOURCES}" "$out_coverage"  ./"$file" ${BATSOPT} || log_nonzero_rc "$file" $?
 #            else
@@ -152,13 +161,17 @@ do_process_branch() {
         fi
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
+        echo "$tmp_out" > "$out_file"
     done
 
     echo "# BATS output" > "${outfile}"
     echo "BATS_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "BATS_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    echo "BATS_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"
     echo "BATS_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
-    echo "BATS_ERROR_COUNT=${fail_all}" >> "${outfile}"
+    BATS_ERROR_COUNT=${fail_all}
+    echo "BATS_ERROR_COUNT=${BATS_ERROR_COUNT}" >> "${outfile}"
+    echo "BATS=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
@@ -166,4 +179,34 @@ do_process_branch() {
     # Back to the initial starting directory
     cd "${start_dir}"
     return ${exit_code}
+}
+
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    echo -e "BATS,ErrFiles\t,ErrNum"
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. output format: if not empty triggers annotation
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    . "$1"
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${BATS_ERROR_FILES_COUNT}\t${BATS_ERROR_COUNT}"
+    else
+        local res="$(get_annotated_value check0 ${BATS_ERROR_FILES_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${BATS_ERROR_COUNT})"
+    fi
+}
+
+do_get_status() {
+    # 1. branch summary file (optional if the necessary variables are provided)
+    # Return unknown, success, warning, error
+    [[ -n "$1" ]] && . "$1"
+    [[ -z "${BATS_ERROR_COUNT}" ]] && { echo unknown; return 2; }
+    [[ "${BATS_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
+    echo error
+    return 1
 }

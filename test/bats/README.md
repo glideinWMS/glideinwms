@@ -26,4 +26,3 @@ git config core.sparsecheckout true
 echo stub.bash >> .git/modules/test/bats/lib/bats-mock/info/sparse-checkout
 echo binstub >> .git/modules/test/bats/lib/bats-mock/info/sparse-checkout
 ```
-
