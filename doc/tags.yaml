@@ -133,4 +133,7 @@ v3_7_1:
   Series: Development
   Tarball: false
   Feature:
-    - Includes all features and fixes of 3.6.3
+    - Configuration changes to make more compatible with HTCondor 8.9  on initial install
+    - Changes from v3_7 to allow Factory reconfigs and starts without manual intervention
+    - SciTokens authentication between Factory and CE
+    - IDTokens authentication between Factory and Frontend
