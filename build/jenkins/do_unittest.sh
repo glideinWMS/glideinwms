@@ -49,7 +49,9 @@ do_count_failures() {
     # 0 - no failed tests
     # 1 - failed tests
     # >1 - execution error (e.g. 126 wrong permission)
+    [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
     fail=0
+    fail_files_list="$fail_files_list $file"
     local tmp_fail=
     if [[ $1 -eq 1 ]]; then
         lline="$(echo "$tmp_out" | grep "FAILED (")"
@@ -109,12 +111,13 @@ do_process_branch() {
     local -i fail=0
     local -i fail_files=0
     local -i fail_all=0
+    local fail_files_list=
     local tmp_out=
     local tmp_out_file=
     local -i tmp_exit_code
     local -i exit_code
     for file in ${files_list} ; do
-        loginfo "TESTING ==========> $file"
+        loginfo "Testing: $file"
 #        if [[ -n "$RUN_COVERAGE" ]]; then
 #            tmp_out="$(coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file")" || log_verbose_nonzero_rc "$file" $?
 #        else
@@ -128,8 +131,10 @@ do_process_branch() {
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
 
-        tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
-        [[ -e "$tmp_out_file" ]] && echo "WARNING: duplicate file name, overwriting tests results: $tmp_out_file"
+        # tmp_out_file="${test_outdir}/$(basename "${file%.*}").txt"
+	    # To accomodate the flat list of files in CI the dir name is in the file name
+	    tmp_out_file="${test_outdir}/$(basename ${test_outdir}).$(basename "${file%.*}").txt"
+        [[ -e "$tmp_out_file" ]] && logwarn "duplicate file name, overwriting tests results: $tmp_out_file"
         echo "$tmp_out" > "${tmp_out_file}"
 
     done
@@ -151,12 +156,46 @@ do_process_branch() {
     echo "# Python unittest output" > "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    echo "PYUNITTEST_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"
     echo "PYUNITTEST_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
-    echo "PYUNITTEST_ERROR_COUNT=${fail_all}" >> "${outfile}"
+    PYUNITTEST_ERROR_COUNT=${fail_all}
+    echo "PYUNITTEST_ERROR_COUNT=${PYUNITTEST_ERROR_COUNT}" >> "${outfile}"
+    echo "PYUNITTEST=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
 
     return ${exit_code}
 
+}
+
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    echo -e "UnitTest,Files\t,ErrFiles\t,ErrNum"
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. output format: if not empty triggers annotation
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    . "$1"
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${PYUNITTEST_FILES_CHECKED_COUNT}\t${PYUNITTEST_ERROR_FILES_COUNT}\t${PYUNITTEST_ERROR_COUNT}"
+    else
+        local res="${PYUNITTEST_FILES_CHECKED_COUNT}\t"
+        res="${res}$(get_annotated_value check0 ${PYUNITTEST_ERROR_FILES_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${PYUNITTEST_ERROR_COUNT})"
+    fi
+}
+
+do_get_status() {
+    # 1. branch summary file (optional if the necessary variables are provided)
+    # Return unknown, success, warning, error
+    [[ -n "$1" ]] && . "$1"
+    [[ -z "${PYUNITTEST_ERROR_COUNT}" ]] && { echo unknown; return 2; }
+    [[ "${PYUNITTEST_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
+    echo error
+    return 1
 }
