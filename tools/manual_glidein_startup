@@ -15,7 +15,7 @@ import argparse
 import logging
 import itertools
 import pprint
-import htcondor # pylint: disable=import-error
+import htcondor  # pylint: disable=import-error
 
 GLIDEIN_PARAM_PREFIX = 'GlideinParam'
 SCRIPT_TEMPLATE = """#!/bin/sh
@@ -114,7 +114,7 @@ def parse_opts(argv):
 
     options = parser.parse_args(argv[1:])
 
-    if ((options.req_name is None) or (options.client_name is None)): 
+    if ((options.req_name is None) or (options.client_name is None)):
         logging.error('Missing one or more required options: --client-name, --req-name')
         sys.exit(1)
 
@@ -169,7 +169,9 @@ def main(argv):
             ads_gf = collector.query(htcondor.AdTypes.Any, constraint_gf)
             if len(ads_gf) == 0:
                 # Did not find glidefactory classad. Cannot use this one.
-                logging.warn('Found glideclient for ClientName=%s classad but corresponding entry classad with Name=%s not found in WMS Collector %s, ignoring' % (client_name, req_name, collector_host))
+                logging.warn(
+                    'Found glideclient for ClientName=%s classad but corresponding entry classad with Name=%s not found in WMS Collector %s, ignoring' % (
+                    client_name, req_name, collector_host))
                 continue
 
             ad_gf = ads_gf[0]
@@ -217,8 +219,8 @@ def main(argv):
     # Override args
     if options.override_args:
         o_args_list = options.override_args.split(' ')
-        o_args = dict(itertools.izip_longest(*[iter(o_args_list)] * 2,
-                                             fillvalue=""))
+        o_args = dict(itertools.zip_longest(*[iter(o_args_list)] * 2,
+                                            fillvalue=""))
         param_prefix = '-%s' % GLIDEIN_PARAM_PREFIX
         for o_a in o_args:
             if not o_a.startswith('-'):
@@ -251,10 +253,11 @@ def main(argv):
             logging.error(e)
     else:
         log_debug(glidein_startup_args, header='Arguments')
-        print(command) 
+        print(command)
+
+    ################################################################################
 
 
-################################################################################
 # Main
 ################################################################################
 
