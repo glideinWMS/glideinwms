@@ -15,7 +15,7 @@ import string
 import compiler
 
 # these are the ast objects currently supported
-from ast import Name, List, Tuple, And, Or, Not, Compare, Add, Sub, FloorDiv, Div, Mod, Subscript, Slice, Lambda
+from ast import Expression, Name, List, Tuple, And, Or, Not, Compare, Add, Sub, FloorDiv, Div, Mod, Subscript, Slice, Lambda
 
 
 # convert an expression string into an ast object
@@ -27,7 +27,7 @@ def parse(str):
 
 # convert an ast object into a code object
 def compile(obj):
-    tmp = compiler.ast.Expression(obj)
+    tmp = Expression(obj)
     tmp.filename = '<string>'  # needed by the code generator
     return compiler.pycodegen.ExpressionCodeGenerator(tmp).getCode()
 
