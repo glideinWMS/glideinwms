@@ -17,6 +17,7 @@ v3_6_3
 	Bug fix: Add a knob to set entry limits in OSG_autoconf
 	Bug fix: Stop pilots even after the downtime timestamp has been reached when draining pilots
 	Bug fix: Glideins are unrecoverable unless listed as recoverable
+	Bug fix: User job invocation via singularity eating up -e or -n
 
 v3_6_2
 	Add a portable condor_chirp for user jobs running in the glideins

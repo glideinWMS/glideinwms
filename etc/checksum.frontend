@@ -1,11 +1,10 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6_3_rc3
+# GLIDEINWMS_VERSION 3_6_3
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 9bd8bfd5bedd0f279b18e9ac96d95637  ./.travis.yml
-20ae4dd66f3ac36ab826d5313d6664f6  ./.vscode/settings.json
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 6f1c5269e2f53fb5c5195d866060c036  ./README.md
@@ -97,7 +96,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-68240e43e4a3aaef228bef0636a0d7f6  ./creation/web_base/singularity_lib.sh
+72a0eec550217bf2d2459094edac388f  ./creation/web_base/singularity_lib.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -107,7 +106,7 @@ d36f0595ebc093447ed5b9ae658e8216  ./factory/glideFactoryInterface.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 194a647100540d5a636dfb31975c0869  ./frontend/checkFrontend.py
-f10ffec20ebd7aca8b9d38d69e07e822  ./frontend/glideinFrontend.py
+6dbfa26a6076df172192a1e3209e425e  ./frontend/glideinFrontend.py
 19313063656cfe9a178ea07116497bd4  ./frontend/glideinFrontendConfig.py
 2bc4d50f3f03afe26d4af82c0b98d011  ./frontend/glideinFrontendDowntimeLib.py
 3c3293a4a7847734d3ea57f9b145a141  ./frontend/glideinFrontendElement.py
@@ -183,7 +182,7 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
 6d1eb3ec8596e360ee0deb961f536d5f  ./requirements.txt
-6792cfe3c213c6337c826ed1329a08bd  ./test/bats/README.md
+96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md
 6cbbe98e5b884d4bb1609f255a8324a4  ./test/bats/compat.bash
 fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats

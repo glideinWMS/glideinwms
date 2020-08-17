@@ -1,11 +1,10 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6_3_rc3
+# GLIDEINWMS_VERSION 3_6_3
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 9bd8bfd5bedd0f279b18e9ac96d95637  ./.travis.yml
-20ae4dd66f3ac36ab826d5313d6664f6  ./.vscode/settings.json
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 6f1c5269e2f53fb5c5195d866060c036  ./README.md
@@ -96,8 +95,8 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 d355fe111169577bd7bf743439712825  ./creation/web_base/setup_x509.sh
-68240e43e4a3aaef228bef0636a0d7f6  ./creation/web_base/singularity_lib.sh
-4229fb86f4fb5f262e4816710490c65e  ./creation/web_base/singularity_setup.sh
+72a0eec550217bf2d2459094edac388f  ./creation/web_base/singularity_lib.sh
+c9e42dfde98a967e5add2869075ebf8b  ./creation/web_base/singularity_setup.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
@@ -197,7 +196,7 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
 6d1eb3ec8596e360ee0deb961f536d5f  ./requirements.txt
-6792cfe3c213c6337c826ed1329a08bd  ./test/bats/README.md
+96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md
 6cbbe98e5b884d4bb1609f255a8324a4  ./test/bats/compat.bash
 fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats

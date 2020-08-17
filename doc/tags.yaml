@@ -116,3 +116,4 @@ v3_6_3:
     - Add a knob to set entry limits in OSG_autoconf
     - Stop pilots even after the downtime timestamp has been reached when draining pilots
     - Glideins are unrecoverable unless listed as recoverable
+    - User job invocation via singularity eating up -e or -n
