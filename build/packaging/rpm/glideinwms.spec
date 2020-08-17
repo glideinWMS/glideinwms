@@ -273,7 +273,6 @@ install -d $RPM_BUILD_ROOT%{python3_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python3_sitelib}
 
 # Some of the files are not needed by RPM
-<<<<<<< HEAD
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/etc
@@ -879,7 +878,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Thu Jul 16 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.6.3-1
+* Mon Aug 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.3-1
 - GlideinWMS v3.6.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_3/history.html
 - Release candidates: 3.6.3-0.1.rc1 to 3.6.3-0.3.rc3
