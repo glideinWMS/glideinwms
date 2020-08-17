@@ -1173,7 +1173,7 @@ class MultiAdvertizeWork:
                     self.unique_id += 1
                     cred_filename_arr.append(fname)
                 logSupport.log.debug("Writing %s" % fname)
-                fd = file(fname, "a")
+                fd = open(fname, "a")
             
                 fd.write('MyType = "%s"\n'%frontendConfig.client_id)
                 fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
@@ -1278,7 +1278,7 @@ def deadvertizeAllWork(factory_pool, my_name, ha_mode='master'):
     global frontendConfig
 
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gc')
-    fd = file(tmpnam, "w")
+    fd = open(tmpnam, "w")
     try:
         try:
             fd.write('MyType = "Query"\n')
@@ -1299,7 +1299,7 @@ def deadvertizeAllGlobals(factory_pool, my_name, ha_mode='master'):
     global frontendConfig
 
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gcg')
-    fd = file(tmpnam, "w")
+    fd = open(tmpnam, "w")
     try:
         try:
             fd.write('MyType = "Query"\n')
