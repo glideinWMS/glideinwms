@@ -13,8 +13,6 @@ ${filename} [options] ${COMMAND} -a [other command options]
 Command options:
   -h        print this message
   -a        run on all shell scripts (see above)
-  -l        show the list of files checked
-  -n        show the list of flags passed to shellcheck
 EOF
 }
 
