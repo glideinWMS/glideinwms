@@ -60,9 +60,9 @@ RELEASE_BRANCH=$2
 if [[ -z "$RELEASE_BRANCH" ]]; then
     if [[ $RELEASE = v3_4* ]]; then
         RELEASE_BRANCH=master
-    if [[ $RELEASE = v3_5* ]]; then
+    elif [[ $RELEASE = v3_5* ]]; then
         RELEASE_BRANCH=master
-    if [[ $RELEASE = v3_6* ]]; then
+    elif [[ $RELEASE = v3_6* ]]; then
         RELEASE_BRANCH=master
     elif [[ $RELEASE = v3_7* ]]; then
         RELEASE_BRANCH=branch_v3_7
@@ -90,7 +90,8 @@ fi
 
 # Issues are one per line, so grep does an OR in the matching. To flatten, use unquoted
 # status_id=* is required, otherwise Redmine will ignore closed issues
-VER_ISSUES_EXT=$(curl -s -H "Content-Type: application/json" -X GET $REDMINE/issues.json?project_id=$GWMS_PROJECT_ID\&fixed_version_id=$VER_ID\&status_id=\*  | jq '.issues[] | { id: .id, subject: .subject } ' )
+# limit=200 is required, otherwise only 25 entries are returned (assuming no more than 200 issues per release)
+VER_ISSUES_EXT=$(curl -s -H "Content-Type: application/json" -X GET $REDMINE/issues.json?limit=200\&project_id=$GWMS_PROJECT_ID\&fixed_version_id=$VER_ID\&status_id=\*  | jq '.issues[] | { id: .id, subject: .subject } ' )
 VER_ISSUES=$(echo "$VER_ISSUES_EXT" | jq '.id' | sort)
 
 if [[ -z "$VER_ISSUES" ]]; then
