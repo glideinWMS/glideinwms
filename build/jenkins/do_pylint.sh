@@ -381,9 +381,15 @@ do_process_branch() {
     echo "# Pylint and PyCodeStyle output" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
-    echo "PYLINT_PROBLEM_FILES=\"${files_errors}\"" >> "${outfile}"
+    # Includes error and fatal:
+    echo "PYLINT_ERROR_FILES=\"${files_errors}\"" >> "${outfile}"
     echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " "`" >> "${outfile}"
-    local pylint_error_count=$(grep '^E:' ${out_pylint} | wc -l | tr -d " ")
+    # Formats differ from pylint version but only errors were requested. The following will include errors and fatal 
+    # (all lines except file names)
+    # TODO: in the future, different categories could be checked and a msg-format used, e.g. 2.5 default:
+    #       --msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})' 
+    #       masg_id will start w/ category initial: Fatal Error Warning Refactor Convention
+    local pylint_error_count=$(grep -v '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")
     PYLINT_ERROR_COUNT=${pylint_error_count}
     echo "PYLINT_ERROR_COUNT=${PYLINT_ERROR_COUNT}" >> "${outfile}"
     echo "PEP8_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
