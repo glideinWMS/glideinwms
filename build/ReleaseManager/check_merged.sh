@@ -104,7 +104,8 @@ fi
 # A better version may strip duplicates (when 2 branches are the same, e.g. local and remote or between 2 remotes)
 # Only the name is not sufficient, could be not in sync
 # grep: to check multiple values at the same time use a milti-line variable or grep -f "$tmpfile"
-VER_BRANCHES=$(git branch -al | grep "$VER_ISSUES"  | sed -e 's/^ *//' -e 's/ *$//')
+# "* " is added at the beginning of the current branch, needs to be removed
+VER_BRANCHES=$(git branch -al | grep "$VER_ISSUES"  | sed -e 's/^\*//' -e 's/^ *//' -e 's/ *$//')
 VER_BRANCHES_LOCAL=$(echo "$VER_BRANCHES" | grep -v '^remotes')
 
 VER_NOBRANCH=
@@ -140,16 +141,25 @@ fi
 
 loginfo "Issues without a branch merged directly in $RELEASE_BRANCH ($(echo $VER_NOMERGED | wc -w | tr -d '[:space:]')), $(echo $VER_ONLYBRANCH | wc -w | tr -d '[:space:]') with branch:"
 loginfo "$VER_NOMERGED"
+# issues with branches, but not contained (not merged) in the release
 VER_NOCONTAIN=
+# list of the branches corresponding to the issues in VER_NOCONTAIN 
 VER_NOCONTAIN_BRANCH=
 if [[ -n "$VER_ONLYBRANCH" ]]; then
     loginfo "These issues have branches but have not been merged directly in $RELEASE_BRANCH:"
     for i in $VER_ONLYBRANCH; do
         line="${i}: "
         separator=
-        nocontain=
+        nocontain=false
         for j in $(grep $i <(echo "$VER_BRANCHES")); do
-            if ! git branch --contains $j $RELEASE_BRANCH > /dev/null 2>&1; then
+            # not a good test, $j should be a REF:
+            # if ! git branch --contains $j $RELEASE_BRANCH > /dev/null 2>&1; then
+            merge_base=$(git merge-base $RELEASE_BRANCH $j 2> /dev/null)
+            merge_source_current_commit=$(git rev-parse $j 2> /dev/null)
+            # an existing branch (these are coming from branch -al) should never be w/o reference
+            [[ -z "$merge_source_current_commit" ]] && echo "ERROR: branch $j is empty!"
+            if [[ "$merge_base" != "$merge_source_current_commit" ]]; then
+                # j is not merged in RELEASE_BRANCH (at leas not the current tip)
                 separator="$separator (NC)"
                 nocontain=true
                 VER_NOCONTAIN_BRANCH="$VER_NOCONTAIN_BRANCH $j"
@@ -157,7 +167,7 @@ if [[ -n "$VER_ONLYBRANCH" ]]; then
             line="${line}$separator $j"
             separator=','
         done
-        [[ -n "$nocontain" ]] && VER_NOCONTAIN="$VER_NOCONTAIN $i"
+        $nocontain && VER_NOCONTAIN="$VER_NOCONTAIN $i"
         loginfo " $line"
     done
 else
