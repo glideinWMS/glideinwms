@@ -68,6 +68,10 @@ if [[ -z "$RELEASE_BRANCH" ]]; then
         RELEASE_BRANCH=branch_v3_7
     elif [[ $RELEASE = v3_8* ]]; then
         RELEASE_BRANCH=branch_v3_8
+    elif [[ $RELEASE = v3_9* ]]; then
+        RELEASE_BRANCH=branch_v3_9
+    elif [[ $RELEASE = v3_p3* ]]; then
+        RELEASE_BRANCH=branch_v3_p3_a2
     else
         echo "ERROR: Unable to assign release branch to release $RELEASE."
         exit 1
