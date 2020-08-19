@@ -1,6 +1,7 @@
 # for runtime
 htcondor
 m2crypto
+python-requests
 
 # commented out until we drop python2 support
 ## classad ##

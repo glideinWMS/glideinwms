@@ -175,6 +175,7 @@ Requires: fetch-crl
 Requires: python-rrdtool
 Requires: python-argparse
 Requires: python-ldap
+Requires: python-requests
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
 Requires(post): /sbin/service
