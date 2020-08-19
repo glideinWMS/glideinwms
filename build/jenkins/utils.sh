@@ -34,6 +34,19 @@ loglog() {
     echo "$1"
 }
 
+#TEST_START_TIME=$(date +"%s")
+logstep() {
+    # 1. step name, string, case insensitive
+    #    START is resetting the start time for elapsed timer
+    local step=${1^}
+    local currtime=$(date +"%s")
+    [[ "$step" = START ]] && TEST_START_TIME=$currtime
+    loglog "STEP_LAST=${step}"
+    [[ -n "$2" ]] && loglog "STEP_VALUE_${step}=$2"
+    loglog "STEP_TIME_${step}=$curtime"
+    loglog "STEP_ELAPSED_${step}=$(($curtime - $TEST_START_TIME))"
+}
+
 loginfoout() {
     [[ -n "$VERBOSE" ]] && echo "$1"
 }

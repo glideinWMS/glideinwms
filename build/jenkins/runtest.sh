@@ -422,6 +422,7 @@ process_branch() {
     [[ -z "${UTILS_OK}" || -z "${COMMAND_OK}" ]] && logexit "cannot continue without utils and command files" 1 SETUP
 
     if isnot_dry_run && do_use_python; then
+        logstep pythonsetup
         if is_python3_branch "${git_branch}"; then
             loginfo "Processing Python3 branch $git_branch"
             setup_python3_venv "$WORKSPACE"
@@ -432,6 +433,7 @@ process_branch() {
         [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }
     fi
 
+    logstep test "${COMMAND}-${git_branch}"
     # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
     do_process_branch "${git_branch}" "${outfile}" "${CMD_OPTIONS[@]}"
     exit_code=$?
@@ -574,7 +576,7 @@ OPTIND=1
 COMMAND=$1; shift  # Remove the command from the argument list
 
 case "$COMMAND" in
-    pyunittest|unittest) command_file=do_unittest.sh;;
+    pyunittest|unittest) COMMAND="pyunittest"; command_file=do_unittest.sh;;
     bats) command_file=do_bats.sh;;
     pylint) command_file=do_pylint.sh;;
     shellcheck) command_file=do_shellcheck.sh;;
@@ -605,6 +607,8 @@ export TERM="linux"
 # Start creating files
 OUT_DIR="$(robust_realpath "$OUT_DIR")"
 
+logstep start
+
 if [[ ! -d "${OUT_DIR}" ]]; then
     if ! mkdir -p "${OUT_DIR}"; then
         logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
@@ -630,6 +634,7 @@ if [[ -n "$REPO" ]]; then
             logwarn "using existing glideinwms directory"
         fi
     else
+        logstep clone
         # --recurse-submodules
         if ! git clone "$REPO" ; then
             logexit "failed to clone $REPO" 1 SETUP
@@ -672,6 +677,7 @@ else
     do
         # tell CI which branch is being processed
         echo "Start : ${git_branch}"
+        logstep checkout ${git_branch}
         # Back in the source directory in case processing changed the directory
         cd "${GLIDEINWMS_SRC}"
         loginfo "Now checking out branch $git_branch"
@@ -715,7 +721,6 @@ fi
 # Finish off the end of the email
 log_close
 
-
 echo "exit_code=$fail_global" >> "${STATFILE}"
 
 # All done
@@ -726,6 +731,9 @@ if [[ "$fail_global" -ne 0 ]]; then
 fi
 loginfo "Tests Complete - Success"
 
+logstep cleanup
 if [[ "${TEST_CLEAN}" = always ]] || [[ "${TEST_CLEAN}" = always && "$fail_global" -eq 0 ]]; then
     test_cleanup "${TEST_DIR}"
 fi
+
+logstep end
