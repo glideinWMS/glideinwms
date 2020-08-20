@@ -448,6 +448,13 @@ process_branch() {
     return ${branch_exit_code}
 }
 
+get_branch_info() {
+    # Echo standard branch info for end of branch processing report
+    # 1. branch name
+    echo "BRANCH=$1"
+    echo "${COMMAND}_TIME=$(logstep_elapsed)"
+}
+
 
 summary_command_help() {
   cat << EOF

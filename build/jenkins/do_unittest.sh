@@ -154,6 +154,7 @@ do_process_branch() {
     fi
 
     echo "# Python unittest output" > "${outfile}"
+    echo "$(get_branch_info "$branch")" > "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "PYUNITTEST_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
     echo "PYUNITTEST_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"

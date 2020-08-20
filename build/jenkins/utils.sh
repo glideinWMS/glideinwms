@@ -35,16 +35,21 @@ loglog() {
 }
 
 #TEST_START_TIME=$(date +"%s")
+logstep_elapsed() {
+    # Return the elapsed time from the last logstep command
+    echo $(($(date +"%s") - $TEST_STEP_LAST_TIME))
+}
+
 logstep() {
     # 1. step name, string, case insensitive
     #    START is resetting the start time for elapsed timer
     local step=${1^}
-    local currtime=$(date +"%s")
-    [[ "$step" = START ]] && TEST_START_TIME=$currtime
+    TEST_STEP_LAST_TIME=$(date +"%s")
+    [[ "$step" = START ]] && TEST_STEP_START_TIME=$TEST_STEP_LAST_TIME
     loglog "STEP_LAST=${step}"
     [[ -n "$2" ]] && loglog "STEP_VALUE_${step}=$2"
-    loglog "STEP_TIME_${step}=$curtime"
-    loglog "STEP_ELAPSED_${step}=$(($curtime - $TEST_START_TIME))"
+    loglog "STEP_TIME_${step}=$TEST_STEP_LAST_TIME"
+    loglog "STEP_ELAPSED_${step}=$(($TEST_STEP_LAST_TIME - $TEST_STEP_START_TIME))"
 }
 
 loginfoout() {

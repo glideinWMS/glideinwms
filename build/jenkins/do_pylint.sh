@@ -379,6 +379,7 @@ do_process_branch() {
     # cat ${out_pycs}.summary     >> ${out_pycs}
 
     echo "# Pylint and PyCodeStyle output" >> "${outfile}"
+    echo "$(get_branch_info "$branch")" > "${outfile}"
     echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
     # Includes error and fatal:

@@ -165,6 +165,7 @@ do_process_branch() {
     done
 
     echo "# BATS output" > "${outfile}"
+    echo "$(get_branch_info "$branch")" > "${outfile}"
     echo "BATS_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "BATS_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
     echo "BATS_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"
