@@ -433,7 +433,7 @@ process_branch() {
         [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }
     fi
 
-    logstep test "${COMMAND}-${git_branch}"
+    logstep test "${COMMAND^^}-${git_branch}"
     # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
     do_process_branch "${git_branch}" "${outfile}" "${CMD_OPTIONS[@]}"
     exit_code=$?
@@ -448,11 +448,11 @@ process_branch() {
     return ${branch_exit_code}
 }
 
-get_branch_info() {
+get_commom_info() {
     # Echo standard branch info for end of branch processing report
     # 1. branch name
     echo "BRANCH=$1"
-    echo "${COMMAND}_TIME=$(logstep_elapsed)"
+    echo "${COMMAND^^}_TIME=$(logstep_elapsed)"
 }
 
 

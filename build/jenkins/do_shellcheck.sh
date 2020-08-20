@@ -207,7 +207,7 @@ do_process_branch() {
     echo "# Test #: ${branch} .... ${return_status}   ${elapsed} s"
 
     echo "# Shellcheck output" >> "${outfile}"
-    echo "$(get_branch_info "$branch")" > "${outfile}"
+    echo "$(get_commom_info "$branch")" > "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")" >> "${outfile}"
     echo "SHELLCHECK_ERROR_FILES=\"${fail_files_list}\"" >> "${outfile}"
