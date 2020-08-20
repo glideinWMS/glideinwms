@@ -685,7 +685,7 @@ else
     for git_branch in "${git_branches[@]}"
     do
         # tell CI which branch is being processed
-        echo "Start : ${git_branch}"
+        echo "Start : ${git_branch//\//_}"
         logstep checkout ${git_branch}
         # Back in the source directory in case processing changed the directory
         cd "${GLIDEINWMS_SRC}"
