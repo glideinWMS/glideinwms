@@ -77,8 +77,11 @@ do_check_requirements() {
     done
 }
 
-do_count_failures() {
-    # Counts the failures using bats output (print format)
+do_count_failures_tap() {
+    # Counts the failures using bats output (TAP format)
+    #    1..N - start line
+    #    ok N - test passed
+    #    not ok N - test failed
     # Uses implicit $file (test file) $tmp_out (stdout form test execution)
     # 1 - test execution exit code
     # BATS exit codes
@@ -86,12 +89,45 @@ do_count_failures() {
     # 1 - failed tests
     # >1 - execution error (e.g. 126 wrong permission)
     [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
-    fail=0
+    local fail=0
+    local lline
     fail_files_list="$fail_files_list $file"
     if [[ $1 -eq 1 ]]; then
-        lline="$(echo "$tmp_out" | tail -n1)"
-        if [[ "$lline" == *failures ]]; then
-            fail=$(echo "$lline" | cut -f3 -d' ')
+        fail="$(echo "$tmp_out" | grep -c "^not ok")"
+    fi
+    fail_files=$((fail_files + 1))
+    fail_all=$((fail_all + fail))
+    logerror "Test $file failed ($1): $fail failed tests"
+    return $1
+}
+
+do_count_failures() {
+    # Counts the failures using bats output (print and TAP format). TAP:
+    #    1..N - start line
+    #    ok N - test passed
+    #    not ok N - test failed
+    # Uses implicit $file (test file) $tmp_out (stdout form test execution)
+    # 1 - test execution exit code
+    # BATS exit codes
+    # 0 - no failed tests
+    # 1 - failed tests
+    # >1 - execution error (e.g. 126 wrong permission)
+    # return
+    #  test execution exit code (1.)
+    #  side effect on fail_files, fail_all
+    [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
+    local fail=0
+    local lline
+    fail_files_list="$fail_files_list $file"
+    if [[ $1 -eq 1 ]]; then
+        if [[ "$tmp_out" = "1.."* ]]; then
+            # TAP format
+            fail="$(echo "$tmp_out" | grep -c "^not ok")"
+        else
+            lline="$(echo "$tmp_out" | tail -n1)"
+            if [[ "$lline" = *failures* ]]; then
+                fail=$(echo "$lline" | cut -f3 -d' ')
+            fi
         fi
     fi
     fail_files=$((fail_files + 1))
