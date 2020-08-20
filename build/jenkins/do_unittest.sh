@@ -2,6 +2,8 @@
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
 
+UNITTEST_TIMEOUT=10m
+
 do_help_msg() {
   cat << EOF
 ${COMMAND} command:
@@ -124,9 +126,9 @@ do_process_branch() {
 #            tmp_out="$(./"$file")" || log_verbose_nonzero_rc "$file" $?
 #        fi
         if [[ -n "$RUN_COVERAGE" ]]; then
-            tmp_out="$(coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" 2>&1)" || do_count_failures $?
+            tmp_out="$(timeout $UNITTEST_TIMEOUT coverage run --source="${SOURCES}" --omit="test_*.py"  -a "$file" 2>&1)" || do_count_failures $?
         else
-            tmp_out="$(./"$file" 2>&1)" || do_count_failures $?
+            tmp_out="$(timeout $UNITTEST_TIMEOUT ./"$file" 2>&1)" || do_count_failures $?
         fi
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
