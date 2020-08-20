@@ -165,13 +165,13 @@ do_process_branch() {
     done
 
     echo "# BATS output" > "${outfile}"
-    echo "$(get_commom_info "$branch")" > "${outfile}"
     echo "BATS_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "BATS_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
     echo "BATS_ERROR_FILES=\"${fail_files_list# }\"" >> "${outfile}"
     echo "BATS_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     BATS_ERROR_COUNT=${fail_all}
     echo "BATS_ERROR_COUNT=${BATS_ERROR_COUNT}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "BATS=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"

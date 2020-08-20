@@ -378,8 +378,7 @@ do_process_branch() {
     awk '{$1=""; print $0}' ${out_pycs} | sort | uniq -c | sort -n >> "${out_pycs_summary}"
     # cat ${out_pycs}.summary     >> ${out_pycs}
 
-    echo "# Pylint and PyCodeStyle output" >> "${outfile}"
-    echo "$(get_commom_info "$branch")" > "${outfile}"
+    echo "# Pylint and PyCodeStyle output" > "${outfile}"
     echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
     # Includes error and fatal:
@@ -398,6 +397,7 @@ do_process_branch() {
     local pep8_error_count=$(cat ${out_pycs} | wc -l | tr -d " ")
     PEP8_ERROR_COUNT=${pep8_error_count}
     echo "PEP8_ERROR_COUNT=${PEP8_ERROR_COUNT}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "PYLINT=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"

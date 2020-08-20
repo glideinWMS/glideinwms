@@ -206,8 +206,7 @@ do_process_branch() {
     echo " -Style:      $total_style"
     echo "# Test #: ${branch} .... ${return_status}   ${elapsed} s"
 
-    echo "# Shellcheck output" >> "${outfile}"
-    echo "$(get_commom_info "$branch")" > "${outfile}"
+    echo "# Shellcheck output" > "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")" >> "${outfile}"
     echo "SHELLCHECK_ERROR_FILES=\"${fail_files_list}\"" >> "${outfile}"
@@ -217,6 +216,7 @@ do_process_branch() {
     echo "SHELLCHECK_WARNING_COUNT=${total_warning}" >> "${outfile}"
     echo "SHELLCHECK_INFO_COUNT=${total_info}" >> "${outfile}"
     echo "SHELLCHECK_STYLE_COUNT=${total_style}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "SHELLCHECK=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
