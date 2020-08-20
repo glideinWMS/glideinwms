@@ -446,7 +446,7 @@ process_branch() {
     branch_result=$(do_get_status "${outfile}")
     branch_exit_code=$?
     loginfo "Tested branch ${git_branch} ($branch_exit_code): $branch_result"
-    loglog "RESULT_${COMMAND}_${branch}=${branch_exit_code}:${branch_result}"
+    loglog "RESULT_${COMMAND}_${git_branch}=${branch_exit_code}:${branch_result}"
     return ${branch_exit_code}
 }
 
