@@ -441,10 +441,12 @@ process_branch() {
     [[ "${TEST_COMPLETE}" = branch ]] && return 0
     [[ "${TEST_COMPLETE}" = all ]] && exit 0
     log_branch "${outfile}"
-    local branch_result=$(do_get_status "${outfile}")
-    local branch_exit_code=$?
-    loginfo "Tested branch ${git_branch}: $branch_result"
-    loglog "RESULT_${COMMAND}_${branch_no_slash}=$branch_result"
+    local branch_result
+    local branch_exit_code
+    branch_result=$(do_get_status "${outfile}")
+    branch_exit_code=$?
+    loginfo "Tested branch ${git_branch} ($branch_exit_code): $branch_result"
+    loglog "RESULT_${COMMAND}_${branch}=${branch_exit_code}:${branch_result}"
     return ${branch_exit_code}
 }
 
@@ -716,9 +718,10 @@ else
         fail=$?
         loginfo "Complete with branch ${git_branch} (ec:${fail})"
         [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
-        # tell CI about branch status
-        [[ ${fail} -eq 0 ]] && return_status="Passed" || return_status="Failed"
-        echo "# Test #: ${git_branch} .... ${return_status}"
+        ## CI is using a different mechanism now, commenting these lines
+        ## tell CI about branch status
+        # [[ ${fail} -eq 0 ]] && return_status="Passed" || return_status="Failed"
+        # echo "# Test #: ${git_branch} .... ${return_status}"
     done
     # remove slashes
     branches_list="${git_branches[*]}"
