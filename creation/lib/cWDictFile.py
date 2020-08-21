@@ -176,7 +176,7 @@ class DictFile:
         footer = self.file_footer(want_comments)
         if footer is not None:
             # noinspection PyUnresolvedReferences
-            fd.write(b"%s\n" % footer.encode('utf-8'))
+            fd.write(b"%s\n" % footer.encode('utf-8'))  # pylint: disable=assignment-from-none
 
         if set_readonly:
             self.set_readonly(True)
