@@ -66,9 +66,9 @@ def check_config(root):
             check_collector(coll)
         for coll in root.findall("./groups/group/ccbs/ccb"):
             check_collector(coll)
-    except ConfigFileError as e:
+    except ConfigFileError as err:
         raise RuntimeError(
-            "At least one GWMS Factory connected is lower than v3.4.1\nYour configuration requires v3.4.1 Factories: %s" % e)
+            "At least one GWMS Factory connected is lower than v3.4.1\nYour configuration requires v3.4.1 Factories: %s" % err)
     return "Config file compatible w/ GWMS v3.4 Factories"
 
 
