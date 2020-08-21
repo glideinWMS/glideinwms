@@ -16,7 +16,7 @@ logexit() {
     # replacing logreportfail in the function to avoid repeating all the other definitions
     if [[ -n "$3" ]]; then
         local msg="$3=\"FAILED\""
-        [[ -n "${TESTLOG}" ]] && echo "${msg}" >> "${TESTLOG}"
+        [[ -n "${TESTLOG_FILE}" ]] && echo "${msg}" >> "${TESTLOG_FILE}"
         echo "${msg}"
     fi
     logerror "$1"
@@ -82,6 +82,7 @@ ${filename} [options] COMMAND [command options]
   -n          show the flags passed to the COMMAND (without running it)
   -l          show the list of files with tests or checked by COMMAND (without running tests or checks)
   -v          verbose
+  -u LOGFILE  Log file path (default: OUT_DIR/gwms.DATE.log)
   -i          run in place without checking out a branch (default)
   -f          force git checkout of branch when processing multiple branches
   -b BNAMES   comma separated list of branches that needs to be inspected
@@ -188,7 +189,8 @@ parse_options() {
     SHOW_FLAGS=
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
-    while getopts ":hnlvifb:B:so:Cc:Tt:z:w:" option
+    TESTLOG_FILE=
+    while getopts ":hnlvu:ifb:B:so:Cc:Tt:z:w:" option
     do
         case "${option}"
         in
@@ -196,6 +198,7 @@ parse_options() {
         n) SHOW_FLAGS=yes;;
         l) SHOW_FILES=yes;;
         v) VERBOSE=yes;;
+        u) TESTLOG_FILE="$OPTARG";;
         i) INPLACE=yes;;
         f) GITFLAG='-f';;
         b) BRANCH_LIST="$OPTARG";;
@@ -239,6 +242,10 @@ parse_options() {
     fi
     # Default output dir
     [[ -z "${OUT_DIR}" ]] && OUT_DIR="${DEFAULT_OUTPUT_DIR}"
+    # Default test log file name
+    [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
+    export TESTLOG_FILE="${TESTLOG_FILE}"
+    # > "$TESTLOG_FILE"
 }
 
 
@@ -430,7 +437,11 @@ process_branch() {
             loginfo "Processing Python2 branch $git_branch"
             setup_python2_venv "$WORKSPACE"
         fi
-        [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }
+        if [[ $? -ne 0 ]]; then 
+            logerror "Could not setup Python as required, skipping branch ${git_branch}"
+            loglog "RESULT_${COMMAND}_${git_branch}=2:failed"
+            return 2
+        fi
     fi
 
     logstep test "${COMMAND^^}-${git_branch}"
@@ -666,6 +677,10 @@ echo "command=$full_command_line" >> "$STATFILE"
 echo "workdir=$WORKSPACE" >> "$STATFILE"
 echo "srcdir=$GLIDEINWMS_SRC" >> "$STATFILE"
 echo "outdir=$OUT_DIR" >> "$STATFILE"
+logreportstr command "$full_command_line"
+logreportstr workdir "$WORKSPACE"
+logreportstr srcdir "$GLIDEINWMS_SRC"
+logreportstr outdir "$OUT_DIR"
 
 # Iterate throughout the git_branches array
 fail_global=0
@@ -732,6 +747,7 @@ fi
 log_close
 
 echo "exit_code=$fail_global" >> "${STATFILE}"
+logreport RESULT_${COMMAND} $fail_global
 
 # All done
 loginfo "Logs are in $OUT_DIR"

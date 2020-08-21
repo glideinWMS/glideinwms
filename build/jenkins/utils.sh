@@ -12,7 +12,7 @@ robust_realpath() {
 # logging and output functions
 ######################################
 
-# Using TESTLOG if defined
+# Using TESTLOG_FILE if defined
 logreportok() {
     loglog "$1=\"PASSED\""
 }
@@ -30,7 +30,7 @@ logreport() {
 }
 
 loglog() {
-    [[ -n "${TESTLOG}" ]] && echo "$1" >> "${TESTLOG}"
+    [[ -n "${TESTLOG_FILE}" ]] && echo "$1" >> "${TESTLOG_FILE}"
     echo "$1"
 }
 
