@@ -170,7 +170,7 @@ setup_python3_venv() {
         # importlib and argparse are in std Python 3.6 (>=3.1)
         # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
         pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
+        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
