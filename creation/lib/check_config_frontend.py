@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 import htcondor
 import sys
 
-CONFIG_FILE="/etc/gwms-frontend/frontend.xml"
+CONFIG_FILE = "/etc/gwms-frontend/frontend.xml"
 
 
 def mylog(*args, **kwargs):
@@ -35,8 +35,9 @@ def check_attr(attr):
     # print ("MMDB: att %r (%s, %s)" % (attr,attr.attrib['name'],attr.attrib['value']))
     if attr.attrib['name'] == "GLIDEIN_Singularity_Use" and attr.attrib['value'] == "PREFERRED":
         check_fail("'PREFERRED' value for GLIDEIN_Singularity_Use")
-    if attr.attrib['name'] == "SINGULARITY_IMAGES_DICT" or attr.attrib['name'] == "GLIDEIN_SINGULARITY_BINDPATH" or attr.attrib['name'] == "GLIDEIN_SINGULARITY_OPTS":
-        check_fail("Using attribute %s" % attr.attrib['name'] )
+    if attr.attrib['name'] == "SINGULARITY_IMAGES_DICT" or attr.attrib['name'] == "GLIDEIN_SINGULARITY_BINDPATH" or \
+        attr.attrib['name'] == "GLIDEIN_SINGULARITY_OPTS":
+        check_fail("Using attribute %s" % attr.attrib['name'])
 
 
 def check_collector(coll_elem):
@@ -66,7 +67,8 @@ def check_config(root):
         for coll in root.findall("./groups/group/ccbs/ccb"):
             check_collector(coll)
     except ConfigFileError as e:
-        raise RuntimeError("At least one GWMS Factory connected is lower than v3.4.1\nYour configuration requires v3.4.1 Factories: %s" % e.message)
+        raise RuntimeError(
+            "At least one GWMS Factory connected is lower than v3.4.1\nYour configuration requires v3.4.1 Factories: %s" % e)
     return "Config file compatible w/ GWMS v3.4 Factories"
 
 
@@ -86,11 +88,13 @@ def main(config_file):
     for fc in fc_list:
         try:
             f_version = get_factory_version(fc)
-            if f_version.startswith("glideinWMS 3.4-") or f_version.startswith("glideinWMS 3.2") or f_version.startswith("glideinWMS 3.3"):
+            if f_version.startswith("glideinWMS 3.4-") or f_version.startswith(
+                "glideinWMS 3.2") or f_version.startswith("glideinWMS 3.3"):
                 all_3_4_1 = False
                 break
         except (IOError, IndexError, AttributeError):
-            mylog("WARNING: Unable to retrieve factory version for %s. Assuming it is compatible with all the options you use." % fc)
+            mylog(
+                "WARNING: Unable to retrieve factory version for %s. Assuming it is compatible with all the options you use." % fc)
     if all_3_4_1:
         return "All connected Factories are at least v3.4.1"
     return check_config(root)
