@@ -8,6 +8,12 @@ GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
 DEFAULT_OUTPUT_DIR=output
 SCRIPTS_SUBDIR=build/jenkins
 
+robust_realpath() {
+    if ! realpath "$1" 2>/dev/null; then
+        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
+    fi
+}
+
 # logerror() and logexit() are in util.sh, repeated here to use them in find_aux
 logerror() {
     echo "$filename ERROR: $1" >&2
@@ -242,6 +248,7 @@ parse_options() {
     fi
     # Default output dir
     [[ -z "${OUT_DIR}" ]] && OUT_DIR="${DEFAULT_OUTPUT_DIR}"
+    OUT_DIR="$(robust_realpath "${OUT_DIR}")"
     # Default test log file name
     [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
     export TESTLOG_FILE="${TESTLOG_FILE}"
@@ -393,8 +400,7 @@ write_summary_table() {
         for i in ${branches_list_noslash//,/ }; do
             outfile="${OUT_DIR}"/gwms.${i}.${COMMAND}
             if [[ ! -e "$outfile" ]]; then
-                logerror "Missing branch summary (${outfile}). Impossible to continue summary table."
-                return 1
+                logwarn "Missing branch summary (${outfile}). Filling in with 'na' values."
             fi
             table_tmp="$(echo "$table_tmp"; echo "$(do_table_values "${outfile}" $output_format)")"
         done
@@ -444,7 +450,8 @@ process_branch() {
         fi
     fi
 
-    logstep test "${COMMAND^^}-${git_branch}"
+    # Not working on the Mac: logstep test "${COMMAND^^}-${git_branch}"
+    logstep test "$(echo $COMMAND | tr a-z A-Z)-${git_branch}"
     # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
     do_process_branch "${git_branch}" "${outfile}" "${CMD_OPTIONS[@]}"
     exit_code=$?
@@ -465,7 +472,8 @@ get_commom_info() {
     # Echo standard branch info for end of branch processing report
     # 1. branch name
     echo "BRANCH=$1"
-    echo "${COMMAND^^}_TIME=$(logstep_elapsed)"
+    # not working on Mac: echo "${COMMAND^^}_TIME=$(logstep_elapsed)"
+    echo "$(echo $COMMAND | tr a-z A-Z)_TIME=$(logstep_elapsed)"
 }
 
 
@@ -625,7 +633,7 @@ fi
 export TERM="linux"
 
 # Start creating files
-OUT_DIR="$(robust_realpath "$OUT_DIR")"
+#OUT_DIR="$(robust_realpath "$OUT_DIR")"
 
 logstep start
 

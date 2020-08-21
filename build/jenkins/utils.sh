@@ -1,12 +1,6 @@
 #!/bin/sh
 # Utility functions for the GlideinWMS CI tests
 
-robust_realpath() {
-    if ! realpath "$1" 2>/dev/null; then
-        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
-    fi
-}
-
 
 ######################################
 # logging and output functions
@@ -47,7 +41,9 @@ export TEST_STEP_START_TIME=$(date +"%s")
 logstep() {
     # 1. step name, string, case insensitive
     #    START is resetting the start time for elapsed timer
-    local step=${1^^}
+    # Not working on Mac: local step=${1^^}
+    # Not working on Mac: local step=${1^^}
+    local step=$(echo $1| tr a-z A-Z)
     export TEST_STEP_LAST_TIME=$(date +"%s")
     [[ "$step" = START ]] && export TEST_STEP_START_TIME=$TEST_STEP_LAST_TIME
     loglog "STEP_LAST=${step}"
@@ -475,11 +471,13 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 
 get_annotated_value(){
     # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
+    # "na" values are returned as is
     # 1. annotation to add: success/warning/error/check0
     # 2. variable to print and to check (if 1 is check0) 
     # 3. (optional if 1 is check0) failure status, default is error 
     local status=$1
     local value=$2
+    [[ "$value" = "na" ]] && { echo "$value"; return; }
     local check_failure_status=${3:-error}
     if [[ "$status" == "check0" ]]; then
         [[ "$value" -eq 0 ]] && status=success || status="$check_failure_status"
