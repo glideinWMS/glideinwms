@@ -15,7 +15,7 @@ Project:
 
 import os
 import copy
-import unittest2 as unittest
+import unittest
 import xmlrunner
 from glideinwms.unittests.unittest_utils import create_temp_file
 from glideinwms.unittests.unittest_utils import TestImportError

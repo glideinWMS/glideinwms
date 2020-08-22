@@ -17,33 +17,32 @@
 #   1 - Not running anything
 #   2 - Not running my types, but another type is indeed running
 #
-# Author:
-#   Igor Sfiligoi
-#
 
 import sys
 from glideinwms.frontend import glideinFrontendPidLib
 
-try:
-    work_dir=sys.argv[1]
-    action_type=glideinFrontendPidLib.get_frontend_action_type(work_dir)
-except:
-    print("Not running")
-    sys.exit(1)
+if __name__ == '__main__':
+    try:
+        work_dir = sys.argv[1]
+        action_type = glideinFrontendPidLib.get_frontend_action_type(work_dir)
+    except:
+        print("Not running")
+        sys.exit(1)
+    
+    if action_type is None:
+        # if not defined, assume it is the standard running type
+        action_type = "run"
+    
+    if len(sys.argv) >= 3:
+        req_action_type = sys.argv[2]
+    else:
+        req_action_type = "run"
+    
+    
+    if action_type != req_action_type:
+        print('Not running my type (note that conflicting "%s" type is running).' % action_type)
+        sys.exit(2)
+    
+    print("Running")
+    sys.exit(0)
 
-if action_type is None:
-    # if not defined, assume it is the standard running type
-    action_type = "run"
-
-if len(sys.argv)>=3:
-    req_action_type = sys.argv[2]
-else:
-    req_action_type = "run"
-
-
-if action_type!=req_action_type:
-    print('Not running my type (note that conflicting "%s" type is running).' % action_type)
-    sys.exit(2)
-
-print("Running")
-sys.exit(0)

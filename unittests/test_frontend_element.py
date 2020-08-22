@@ -15,7 +15,7 @@ Project:
 
 import os
 import mock
-import unittest2 as unittest
+import unittest
 import xmlrunner
 import jsonpickle
 import glideinwms.lib.condorExe

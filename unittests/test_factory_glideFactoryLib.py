@@ -9,7 +9,7 @@ Author:
 """
 
 
-import unittest2 as unittest
+import unittest
 import xmlrunner
 
 from glideinwms.unittests.unittest_utils import TestImportError

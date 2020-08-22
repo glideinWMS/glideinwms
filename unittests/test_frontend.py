@@ -20,7 +20,7 @@ import sys
 import io
 import xmlrunner
 import mock
-import unittest2 as unittest
+import unittest
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
 import glideinwms.lib.condorExe

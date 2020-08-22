@@ -13,7 +13,7 @@
 
 
 import os
-import unittest2 as unittest
+import unittest
 import xmlrunner
 
 
