@@ -1,18 +1,12 @@
 #!/bin/sh
 # Utility functions for the GlideinWMS CI tests
 
-robust_realpath() {
-    if ! realpath "$1" 2>/dev/null; then
-        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
-    fi
-}
-
 
 ######################################
 # logging and output functions
 ######################################
 
-# Using TESTLOG if defined
+# Using TESTLOG_FILE if defined
 logreportok() {
     loglog "$1=\"PASSED\""
 }
@@ -30,8 +24,31 @@ logreport() {
 }
 
 loglog() {
-    [[ -n "${TESTLOG}" ]] && echo "$1" >> "${TESTLOG}"
+    [[ -n "${TESTLOG_FILE}" ]] && echo "$1" >> "${TESTLOG_FILE}"
     echo "$1"
+}
+
+logstep_elapsed() {
+    # Return the elapsed time from the last logstep command
+    if [[ -z "$TEST_STEP_LAST_TIME" ]]; then
+        echo 0
+    else
+        echo $(($(date +"%s") - $TEST_STEP_LAST_TIME))
+    fi
+}
+
+export TEST_STEP_START_TIME=$(date +"%s")
+logstep() {
+    # 1. step name, string, case insensitive
+    #    START is resetting the start time for elapsed timer
+    # Not working on Mac: local step=${1^^}
+    # Not working on Mac: local step=${1^^}
+    local step=$(echo $1| tr a-z A-Z)
+    export TEST_STEP_LAST_TIME=$(date +"%s")
+    [[ "$step" = START ]] && export TEST_STEP_START_TIME=$TEST_STEP_LAST_TIME
+    loglog "STEP_LAST=${step}"
+    [[ -n "$2" ]] && loglog "STEP_VALUE_${step}=$2"
+    loglog "STEP_TIME_${step}=${TEST_STEP_LAST_TIME}:$(($TEST_STEP_LAST_TIME - $TEST_STEP_START_TIME))"
 }
 
 loginfoout() {
@@ -135,12 +152,15 @@ setup_python3_venv() {
     PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
-    if [ ! -d "$WORKSPACE" ]; then
+    if [[ ! -d "$WORKSPACE" ]]; then
         mkdir -p "$WORKSPACE"
         SETUP_VENV3=
     fi
 
-    if [ "${SETUP_VENV3}" = "${VENV}" ]; then
+    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
+    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV3="${VENV}"
+
+    if [[ "${SETUP_VENV3}" = "${VENV}" ]]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
@@ -295,12 +315,15 @@ setup_python2_venv() {
     PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
-    if [ ! -d "$WORKSPACE" ]; then
+    if [[ ! -d "$WORKSPACE" ]]; then
         mkdir "$WORKSPACE"
-
+        SETUP_VENV2=
     fi
 
-    if [ "${SETUP_VENV2}" = "${VENV}" ]; then
+    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
+    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV2="${VENV}"
+
+    if [[ "${SETUP_VENV2}" = "${VENV}" ]]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
@@ -454,11 +477,13 @@ HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-col
 
 get_annotated_value(){
     # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
+    # "na" values are returned as is
     # 1. annotation to add: success/warning/error/check0
     # 2. variable to print and to check (if 1 is check0) 
     # 3. (optional if 1 is check0) failure status, default is error 
     local status=$1
     local value=$2
+    [[ "$value" = "na" ]] && { echo "$value"; return; }
     local check_failure_status=${3:-error}
     if [[ "$status" == "check0" ]]; then
         [[ "$value" -eq 0 ]] && status=success || status="$check_failure_status"
