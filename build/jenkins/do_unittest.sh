@@ -2,6 +2,8 @@
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
 
+UNITTEST_TIMEOUT=10m
+
 do_help_msg() {
   cat << EOF
 ${COMMAND} command:
@@ -63,7 +65,11 @@ do_count_failures() {
     fi
     fail_files=$((fail_files + 1))
     fail_all=$((fail_all + fail))
-    logerror "Test $file failed ($1): $fail failed tests"
+    if [[ $1 -eq 124 ]]; then
+        logerror "Test $file failed ($1): $fail failed tests, likely timeout"
+    else
+        logerror "Test $file failed ($1): $fail failed tests"
+    fi
     return $1
 }
 
@@ -124,9 +130,9 @@ do_process_branch() {
 #            tmp_out="$(./"$file")" || log_verbose_nonzero_rc "$file" $?
 #        fi
         if [[ -n "$RUN_COVERAGE" ]]; then
-            tmp_out="$(coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" 2>&1)" || do_count_failures $?
+            tmp_out="$(timeout $UNITTEST_TIMEOUT coverage run --source="${SOURCES}" --omit="test_*.py"  -a "$file" 2>&1)" || do_count_failures $?
         else
-            tmp_out="$(./"$file" 2>&1)" || do_count_failures $?
+            tmp_out="$(timeout $UNITTEST_TIMEOUT ./"$file" 2>&1)" || do_count_failures $?
         fi
         tmp_exit_code=$?
         [[ ${tmp_exit_code} -gt ${exit_code} ]] && exit_code=${tmp_exit_code}
@@ -160,6 +166,7 @@ do_process_branch() {
     echo "PYUNITTEST_ERROR_FILES_COUNT=${fail_files}" >> "${outfile}"
     PYUNITTEST_ERROR_COUNT=${fail_all}
     echo "PYUNITTEST_ERROR_COUNT=${PYUNITTEST_ERROR_COUNT}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "PYUNITTEST=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
@@ -180,7 +187,8 @@ do_table_values() {
     # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
-    . "$1"
+    # If the summary file is missing return tab separated "na" strings 
+    [[ -n "$1" ]] && . "$1" || { echo -e "na\tna\tna"; return; }
     if [[ "$2" = NOTAG ]]; then
         echo -e "${PYUNITTEST_FILES_CHECKED_COUNT}\t${PYUNITTEST_ERROR_FILES_COUNT}\t${PYUNITTEST_ERROR_COUNT}"
     else

@@ -378,7 +378,7 @@ do_process_branch() {
     awk '{$1=""; print $0}' ${out_pycs} | sort | uniq -c | sort -n >> "${out_pycs_summary}"
     # cat ${out_pycs}.summary     >> ${out_pycs}
 
-    echo "# Pylint and PyCodeStyle output" >> "${outfile}"
+    echo "# Pylint and PyCodeStyle output" > "${outfile}"
     echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
     echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
     # Includes error and fatal:
@@ -397,6 +397,7 @@ do_process_branch() {
     local pep8_error_count=$(cat ${out_pycs} | wc -l | tr -d " ")
     PEP8_ERROR_COUNT=${pep8_error_count}
     echo "PEP8_ERROR_COUNT=${PEP8_ERROR_COUNT}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "PYLINT=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
@@ -418,7 +419,8 @@ do_table_values() {
     # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
-    . "$1"
+    # If the summary file is missing return tab separated "na" strings 
+    [[ -n "$1" ]] && . "$1" || { echo -e "na\tna\tna\tna"; return; }
     if [[ "$2" = NOTAG ]]; then
         echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"
     else
