@@ -152,12 +152,15 @@ setup_python3_venv() {
     PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
-    if [ ! -d "$WORKSPACE" ]; then
+    if [[ ! -d "$WORKSPACE" ]]; then
         mkdir -p "$WORKSPACE"
         SETUP_VENV3=
     fi
 
-    if [ "${SETUP_VENV3}" = "${VENV}" ]; then
+    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
+    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV3="${VENV}"
+
+    if [[ "${SETUP_VENV3}" = "${VENV}" ]]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
@@ -312,12 +315,15 @@ setup_python2_venv() {
     PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
-    if [ ! -d "$WORKSPACE" ]; then
+    if [[ ! -d "$WORKSPACE" ]]; then
         mkdir "$WORKSPACE"
-
+        SETUP_VENV2=
     fi
 
-    if [ "${SETUP_VENV2}" = "${VENV}" ]; then
+    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
+    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV2="${VENV}"
+
+    if [[ "${SETUP_VENV2}" = "${VENV}" ]]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"

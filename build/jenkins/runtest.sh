@@ -104,6 +104,8 @@ ${filename} [options] COMMAND [command options]
               there is not already a repository.
               Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
   -T          like -t but creates a temporary directory with mktemp.
+  -e PYENV    Use the Python virtual env in PYENV
+  -E          Reuse the Python virtual env if the directory is there
   -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
   -w FMT      summary table format (html, html4, html4f, htmlplain, default:text)
 
@@ -196,7 +198,9 @@ parse_options() {
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
     TESTLOG_FILE=
-    while getopts ":hnlvu:ifb:B:so:Cc:Tt:z:w:" option
+    TEST_PYENV_DIR=
+    TEST_PYENV_REUSE=
+    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
@@ -215,6 +219,8 @@ parse_options() {
         C) REPO="$GWMS_REPO";;
         t) TEST_DIR="$OPTARG";;
         T) TEST_DIR=$(mktemp -t -d gwmstest.XXXXXXXX);;
+        e) TEST_PYENV_DIR="$OPTARG";;
+        E) TEST_PYENV_REUSE=yes;;
         z) TEST_CLEAN="$OPTARG";;
         w) SUMMARY_TABLE_FORMAT="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
