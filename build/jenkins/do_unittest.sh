@@ -39,9 +39,25 @@ do_parse_options () {
     shift $((OPTIND-1))
 
     CMD_OPTIONS="$@"
+    
+    if [[ -n "${SHOW_FLAGS}" ]]; then
+        do_show_flags
+        TEST_COMPLETE=branch
+    fi
 }
 
 do_use_python() { true; }
+
+do_show_flags() {
+    SOURCES="$(get_source_directories)"
+    if [[ -n "$RUN_COVERAGE" ]]; then
+        echo "Coverage will run Python unittest as (timeout ${UNITTEST_TIMEOUT}):"
+        echo "coverage run --source="${SOURCES}" --omit="test_*.py"  -a TESTFILE"
+    else
+        echo "Python unittest will run as (timeout ${UNITTEST_TIMEOUT}):"
+        echo "./TESTFILE"
+    fi
+}
 
 do_count_failures() {
     # Counts the failures using bats output (print format)

@@ -104,6 +104,8 @@ ${filename} [options] COMMAND [command options]
               there is not already a repository.
               Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
   -T          like -t but creates a temporary directory with mktemp.
+  -e PYENV    Use the Python virtual env in PYENV
+  -E          Reuse the Python virtual env if the directory is there
   -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
   -w FMT      summary table format (html, html4, html4f, htmlplain, default:text)
 
@@ -149,19 +151,21 @@ get_python_files() {
 
 get_python2_scripts() {
     # Return to stdout a space separated list of Python scripts without .py extension
-    # Python2 files
+    # Python3 files (containing python and
     # 1 - source directory
     # 2 - magic_file for find
     magic_file="$(find_aux gwms_magic)"
     local src_dir="${1:-.}"
     FILE_MAGIC=
     [[ -e  "$magic_file" ]] && FILE_MAGIC="-m $magic_file"
-    scripts=$(find "${1:-.}" -path .git -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    scripts=$(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python2 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    # scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
     #if [ -e  "$magic_file" ]; then
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #else
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #fi
+    # echo "-- DBG $(echo ${scripts} | wc -w | tr -d " ") scripts found using magic file (${FILE_MAGIC}) --" >&2
     echo "$scripts"
 }
 
@@ -196,7 +200,9 @@ parse_options() {
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
     TESTLOG_FILE=
-    while getopts ":hnlvu:ifb:B:so:Cc:Tt:z:w:" option
+    TEST_PYENV_DIR=
+    TEST_PYENV_REUSE=
+    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
@@ -215,6 +221,8 @@ parse_options() {
         C) REPO="$GWMS_REPO";;
         t) TEST_DIR="$OPTARG";;
         T) TEST_DIR=$(mktemp -t -d gwmstest.XXXXXXXX);;
+        e) TEST_PYENV_DIR="$OPTARG";;
+        E) TEST_PYENV_REUSE=yes;;
         z) TEST_CLEAN="$OPTARG";;
         w) SUMMARY_TABLE_FORMAT="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
@@ -252,6 +260,8 @@ parse_options() {
     # Default test log file name
     [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
     export TESTLOG_FILE="${TESTLOG_FILE}"
+    # link a last log path to the last log (unless there is a file with that name)
+    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "${OUT_DIR}/gwms.last.log"
     # > "$TESTLOG_FILE"
 }
 
@@ -448,6 +458,7 @@ process_branch() {
             loglog "RESULT_${COMMAND}_${git_branch}=2:failed"
             return 2
         fi
+        loglog "$(log_python)"
     fi
 
     # Not working on the Mac: logstep test "${COMMAND^^}-${git_branch}"
