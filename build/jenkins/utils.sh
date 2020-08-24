@@ -1,18 +1,12 @@
 #!/bin/sh
 # Utility functions for the GlideinWMS CI tests
 
-robust_realpath() {
-    if ! realpath "$1" 2>/dev/null; then
-        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
-    fi
-}
-
 
 ######################################
 # logging and output functions
 ######################################
 
-# Using TESTLOG if defined
+# Using TESTLOG_FILE if defined
 logreportok() {
     loglog "$1=\"PASSED\""
 }
@@ -30,8 +24,31 @@ logreport() {
 }
 
 loglog() {
-    [[ -n "${TESTLOG}" ]] && echo "$1" >> "${TESTLOG}"
+    [[ -n "${TESTLOG_FILE}" ]] && echo "$1" >> "${TESTLOG_FILE}"
     echo "$1"
+}
+
+logstep_elapsed() {
+    # Return the elapsed time from the last logstep command
+    if [[ -z "$TEST_STEP_LAST_TIME" ]]; then
+        echo 0
+    else
+        echo $(($(date +"%s") - $TEST_STEP_LAST_TIME))
+    fi
+}
+
+export TEST_STEP_START_TIME=$(date +"%s")
+logstep() {
+    # 1. step name, string, case insensitive
+    #    START is resetting the start time for elapsed timer
+    # Not working on Mac: local step=${1^^}
+    # Not working on Mac: local step=${1^^}
+    local step=$(echo $1| tr a-z A-Z)
+    export TEST_STEP_LAST_TIME=$(date +"%s")
+    [[ "$step" = START ]] && export TEST_STEP_START_TIME=$TEST_STEP_LAST_TIME
+    loglog "STEP_LAST=${step}"
+    [[ -n "$2" ]] && loglog "STEP_VALUE_${step}=$2"
+    loglog "STEP_TIME_${step}=${TEST_STEP_LAST_TIME}:$(($TEST_STEP_LAST_TIME - $TEST_STEP_START_TIME))"
 }
 
 loginfoout() {
@@ -71,16 +88,18 @@ log_nonzero_rc() {
     return $2
 }
 
-check_python() {
-    echo "Python environment:"
-    echo "python: `command -v python 2>/dev/null`"
-    echo "python2: `command -v python2 2>/dev/null`"
-    echo "python3: `command -v python3 2>/dev/null`"
-    echo "pip: `command -v pip 2>/dev/null`"
-    echo "pip3: `command -v pip3 2>/dev/null`"
-    echo "PATH: $PATH"
-    echo "PYTHONPATH: $PYTHONPATH"
-    echo "Python in env: `env | grep -i python`"
+log_python() {
+    echo "# Python environment:"
+    echo "python=`command -v python 2>/dev/null`"
+    echo "python2=`command -v python2 2>/dev/null`"
+    echo "python3=`command -v python3 2>/dev/null`"
+    echo "pip=`command -v pip 2>/dev/null`"
+    echo "pip3=`command -v pip3 2>/dev/null`"
+    echo "PATH=\"$PATH\""
+    echo "PYTHONPATH=\"$PYTHONPATH\""
+    echo "venv2=${SETUP_VENV2}"
+    echo "venv3=${SETUP_VENV3}"
+    echo "# Python in env: `env | grep -i python`"
 }
 
 ############################
@@ -135,12 +154,15 @@ setup_python3_venv() {
     PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
-    if [ ! -d "$WORKSPACE" ]; then
+    if [[ ! -d "$WORKSPACE" ]]; then
         mkdir -p "$WORKSPACE"
         SETUP_VENV3=
     fi
 
-    if [ "${SETUP_VENV3}" = "${VENV}" ]; then
+    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
+    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV3="${VENV}"
+
+    if [[ "${SETUP_VENV3}" = "${VENV}" ]]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
@@ -176,7 +198,7 @@ setup_python3_venv() {
 
         # TODO: load the list from requirements.txt
 
-        loginfo "$(check_python)"
+        # Uncomment to troubleshoot setup:  loginfo "$(log_python)"
 
         # To avoid: Cache entry deserialization failed, entry ignored
         # curl https://bootstrap.pypa.io/get-pip.py | python3
@@ -295,12 +317,15 @@ setup_python2_venv() {
     PYTHONPATH=
 
     # Following is useful for running the script outside jenkins
-    if [ ! -d "$WORKSPACE" ]; then
+    if [[ ! -d "$WORKSPACE" ]]; then
         mkdir "$WORKSPACE"
-
+        SETUP_VENV2=
     fi
 
-    if [ "${SETUP_VENV2}" = "${VENV}" ]; then
+    [[ -n "$TEST_PYENV_DIR" ]] && VENV="$TEST_PYENV_DIR"
+    [[ -n "$TEST_PYENV_REUSE" && -d "${VENV}" ]] && SETUP_VENV2="${VENV}"
+
+    if [[ "${SETUP_VENV2}" = "${VENV}" ]]; then
         loginfo "Python Virtual Environment already installed. Reusing it"
         if ! . "$VENV"/bin/activate; then
             echo "ERROR existing virtualenv ($VENV) could not be activated.  Exiting"
@@ -334,7 +359,7 @@ setup_python2_venv() {
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
-	    loginfo "$(check_python)"	
+	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"	
 
         failed_packages=""
         for package in $pip_packages; do
@@ -438,6 +463,12 @@ print_python_info() {
 
 ###############################################################################
 # HTML inline CSS
+HTML_RED="#FF7070"     # ff0000
+HTML_ORANGE="#FFB370"  # ffcc00
+HTML_GREEN="#8CFF8F"   # 70FF70 00ff00
+HTML_BLUE="#8CC6FF"    # 00ccff
+HTML_GRAY="#DCE4EB"
+
 HTML_TABLE="border: 1px solid black;border-collapse: collapse;"
 HTML_THEAD="font-weight: bold;border: 0px solid black;background-color: #ffcc00;"
 HTML_THEAD_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #ffb300;padding: 8px;"
@@ -447,18 +478,20 @@ HTML_TR="padding: 5px;text-align: center;"
 HTML_TD="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
 
 HTML_TR_PASSED="padding: 5px;text-align: center;"
-HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
+HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: ${HTML_GREEN};padding: 5px;text-align: center;"
 
 HTML_TR_FAILED="padding: 5px;text-align: center;"
-HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: ${HTML_RED};padding: 5px;text-align: center;"
 
 get_annotated_value(){
     # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
+    # "na" values are returned as is
     # 1. annotation to add: success/warning/error/check0
     # 2. variable to print and to check (if 1 is check0) 
     # 3. (optional if 1 is check0) failure status, default is error 
     local status=$1
     local value=$2
+    [[ "$value" = "na" ]] && { echo "$value"; return; }
     local check_failure_status=${3:-error}
     if [[ "$status" == "check0" ]]; then
         [[ "$value" -eq 0 ]] && status=success || status="$check_failure_status"
@@ -492,15 +525,15 @@ annotated_to_td() {
         esac
     elif [[ "$html_format" == html4 ]]; then
         case "$note_only" in
-            =success=) note_only='style="background-color: #00ff00"';;
-            =error=) note_only='style="background-color: #ff0000"';;
-            =warning=) note_only='style="background-color: #ffaa00"';;
+            =success=) note_only="style=\"background-color: ${HTML_GREEN}\"";;
+            =error=) note_only="style=\"background-color: ${HTML_RED}\"";;
+            =warning=) note_only="style=\"background-color: ${HTML_ORANGE}\"";;
         esac
     elif [[ "$html_format" == html4f ]]; then
         case "$note_only" in
-            =success=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"';;
-            =error=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"';;
-            =warning=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ffaa00;padding: 5px;text-align: center;"';;
+            =success=) note_only="style=\"border: 0px solid black;border-collapse: collapse;background-color: ${HTML_GREEN};padding: 5px;text-align: center;\"";;
+            =error=) note_only="style=\"border: 0px solid black;border-collapse: collapse;background-color: ${HTML_RED};padding: 5px;text-align: center;\"";;
+            =warning=) note_only="style=\"border: 0px solid black;border-collapse: collapse;background-color: ${HTML_ORANGE};padding: 5px;text-align: center;\"";;
         esac
     else
         note_only=
