@@ -173,10 +173,10 @@ class DictFile:
             if type(val) == str:
                 val = val.encode('utf-8')
             fd.write(b"%s\n" % val)
-        footer = self.file_footer(want_comments)
+        footer = self.file_footer(want_comments)  # pylint: disable=assignment-from-none
         if footer is not None:
             # noinspection PyUnresolvedReferences
-            fd.write(b"%s\n" % footer.encode('utf-8'))  # pylint: disable=assignment-from-none
+            fd.write(b"%s\n" % footer.encode('utf-8'))
 
         if set_readonly:
             self.set_readonly(True)
