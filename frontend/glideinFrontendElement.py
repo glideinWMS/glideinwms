@@ -875,9 +875,10 @@ class glideinFrontendElement:
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
-                tkn_file += glidein_site
-                tkn_file += ".token"
+                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
+                if not os.path.exists(tkn_dir):
+                    os.mkdir(tkn_dir,0o755)
+                tkn_file = tkn_dir + '/' +  glidein_site + ".token"
                 cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
                 os.chmod(tmpnm,0600)
@@ -888,7 +889,7 @@ class glideinFrontendElement:
                 os.chmod(tkn_file, 0600)
                 logSupport.log.debug("created token %s" % tkn_file)
             except Exception as err:
-                logSupport.log.debug('failed to fetch %s' % tkn_file)
+                logSupport.log.debug('failed to create %s' % tkn_file)
                 logSupport.log.debug('%s' % err)
             finally:
                 if os.path.exists(tmpnm):

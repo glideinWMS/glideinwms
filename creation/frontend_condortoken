@@ -27,9 +27,6 @@ if [ ! -e /etc/condor/passwords.d/${KEY} ]; then
     openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${KEY} add > /dev/null 2>&1
 fi
 
-TOKEN=${KEY}.token
-TD="~/.condor/tokens.d"
-mkdir -p "${TD}"
 AUTH='-authz READ -authz WRITE -authz ADVERTISE_STARTD -authz ADVERTISE_SCHEDD -authz ADVERTISE_MASTER'
 
 # create the token, echo it to stdout
