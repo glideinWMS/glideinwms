@@ -1,7 +1,6 @@
 #!/usr/bin/python -B
 
 
-
 import sys
 import os
 import optparse
@@ -10,7 +9,7 @@ import optparse
 if __name__ == "__main__" and __package__ is None:
     sys.path.append(os.path.join(sys.path[0], '..'))
     __package__ = "ReleaseManager"
-from ReleaseManager import ReleaseManagerLib
+from .ReleaseManagerLib import *
 
 
 def manager_version():
@@ -29,7 +28,6 @@ def manager_version():
 
 
 def usage():
-
     help = ["%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0]),
             "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
             "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz",
@@ -104,11 +102,13 @@ def required_args_present(options):
     try:
         if ((options.relVersion is None) or
             (options.srcDir is None) or
-                (options.relDir is None)):
+            (options.relDir is None)):
             return False
     except AttributeError:
         return False
     return True
+
+
 #   check_required_args
 
 
@@ -129,13 +129,13 @@ def main(argv):
         (ver, srcDir, relDir, rc, rpmRel))
     print("___________________________________________________________________")
     print()
-    rel = ReleaseManagerLib.Release(ver, srcDir, relDir, rc, rpmRel)
+    rel = Release(ver, srcDir, relDir, rc, rpmRel)
 
-    rel.addTask(ReleaseManagerLib.TaskClean(rel))
-    rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
-    rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
-    rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel))
+    rel.addTask(TaskClean(rel))
+    rel.addTask(TaskSetupReleaseDir(rel))
+    rel.addTask(TaskVersionFile(rel))
+    rel.addTask(TaskTar(rel))
+    rel.addTask(TaskRPM(rel))
 
     rel.executeTasks()
     rel.printReport()

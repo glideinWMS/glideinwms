@@ -1,4 +1,3 @@
-
 #
 # Project:
 #   glideinWMS
@@ -28,6 +27,8 @@ from glideinwms.lib import xmlParse, xmlFormat
 from glideinwms.lib import logSupport
 from glideinwms.lib import rrdSupport
 from glideinwms.factory import glideFactoryMonitoring
+
+
 # from glideinwms.factory import glideFactoryLib
 
 
@@ -40,23 +41,24 @@ from glideinwms.factory import glideFactoryMonitoring
 class MonitorAggregatorConfig:
     def __init__(self):
         # The name of the attribute that identifies the glidein
-        self.monitor_dir="monitor/"
+        self.monitor_dir = "monitor/"
 
         # list of entries
-        self.entries=[]
+        self.entries = []
 
         # name of the status files
-        self.status_relname="schedd_status.xml"
-        self.logsummary_relname="log_summary.xml"
-        self.jobsummary_relname="job_summary.pkl"
-        self.completed_data_relname="completed_data.json"
+        self.status_relname = "schedd_status.xml"
+        self.logsummary_relname = "log_summary.xml"
+        self.jobsummary_relname = "job_summary.pkl"
+        self.completed_data_relname = "completed_data.json"
 
     def config_factory(self, monitor_dir, entries, log):
-        self.monitor_dir=monitor_dir
-        self.entries=entries
-        glideFactoryMonitoring.monitoringConfig.monitor_dir=monitor_dir
+        self.monitor_dir = monitor_dir
+        self.entries = entries
+        glideFactoryMonitoring.monitoringConfig.monitor_dir = monitor_dir
         glideFactoryMonitoring.monitoringConfig.log = log
         self.log = log
+
 
 # global configuration of the module
 monitorAggregatorConfig = MonitorAggregatorConfig()
@@ -64,7 +66,7 @@ monitorAggregatorConfig = MonitorAggregatorConfig()
 
 def rrd_site(name):
     sname = name.split(".")[0]
-    return "rrd_%s.xml" %sname
+    return "rrd_%s.xml" % sname
 
 
 ###########################################################
@@ -73,14 +75,18 @@ def rrd_site(name):
 #
 ###########################################################
 
-status_attributes = {'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
-                     'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
-                     'ClientMonitor': ("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle", "CoresRunning", "CoresTotal")}
+status_attributes = {
+    'Status': ("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut", "RunningCores"),
+    'Requested': ("Idle", "MaxGlideins", "IdleCores", "MaxCores"),
+    'ClientMonitor': (
+        "InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal", "CoresIdle",
+        "CoresRunning", "CoresTotal")}
 type_strings = {'Status': 'Status', 'Requested': 'Req', 'ClientMonitor': 'Client'}
-
 
 ##############################################################################
 rrd_problems_found = False
+
+
 def verifyHelper(filename, dict, fix_rrd=False):
     """
     Helper function for verifyRRD.  Checks one file,
@@ -111,8 +117,8 @@ def verifyHelper(filename, dict, fix_rrd=False):
         (f, tempfilename) = tempfile.mkstemp()
         (out, tempfilename2) = tempfile.mkstemp()
         (restored, restoredfilename) = tempfile.mkstemp()
-        backup_str = str(int(time.time()))+".backup"
-        print("Fixing %s... (backed up to %s)" % (filename, filename+backup_str))
+        backup_str = str(int(time.time())) + ".backup"
+        print("Fixing %s... (backed up to %s)" % (filename, filename + backup_str))
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
@@ -123,9 +129,9 @@ def verifyHelper(filename, dict, fix_rrd=False):
             os.write(f, "%s\n" % line)
         os.close(f)
         # Move file to backup location
-        shutil.move(filename, filename+backup_str)
+        shutil.move(filename, filename + backup_str)
         rrdSupport.addDataStore(tempfilename, tempfilename2, missing)
-        outstr = dump_obj.restore(tempfilename2, restoredfilename)
+        dump_obj.restore(tempfilename2, restoredfilename)
         os.unlink(tempfilename)
         os.unlink(tempfilename2)
         shutil.move(restoredfilename, filename)
@@ -170,7 +176,7 @@ def verifyRRD(fix_rrd=False):
         for jobstatus in ('Wait', 'Idle', 'Running', 'Held'):
             counts_dict["%s%s" % (jobtype, jobstatus)] = None
     for jobstatus in ('Completed', 'Removed'):
-            counts_dict["%s%s" % ('Entered', jobstatus)] = None
+        counts_dict["%s%s" % ('Entered', jobstatus)] = None
     # FROM: lib2to3.fixes.fix_ws_comma
     #         completed_waste_dict["%s_%s"%(jobtype, timerange)]=None
     #
@@ -222,7 +228,7 @@ def verifyRRD(fix_rrd=False):
 
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:
-            if file_name in list(rrdict.keys()): 
+            if file_name in list(rrdict.keys()):
                 verifyHelper(os.path.join(dir_name, file_name),
                              rrdict[file_name],
                              fix_rrd)
@@ -269,10 +275,10 @@ def aggregateStatus(in_downtime):
     nr_feentries = {}  # dictionary for nr entries per fe
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
-        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry),
                                     monitorAggregatorConfig.status_relname)
         # load entry completed data file
-        completed_data_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+        completed_data_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry),
                                             monitorAggregatorConfig.completed_data_relname)
         completed_data_fp = None
         try:
@@ -377,8 +383,9 @@ def aggregateStatus(in_downtime):
                                 del tela[a]
                                 tmp_list_removed.append(a)
                         if tmp_list_removed:
-                            logSupport.log.debug("Elements removed from Frontend %s total status (%s: %s) because of %s: %s" %
-                                                 (fe, w, len(tela), entry, tmp_list_removed))
+                            logSupport.log.debug(
+                                "Elements removed from Frontend %s total status (%s: %s) because of %s: %s" %
+                                (fe, w, len(tela), entry, tmp_list_removed))
                             tmp_list_removed = []
 
     for w in list(global_total):  # making a copy of the keys because the dict is being modified
@@ -389,7 +396,7 @@ def aggregateStatus(in_downtime):
             for a in tel:
                 if a in avgEntries:
                     # since all entries must have this attr to be here, just divide by nr of entries
-                    tel[a] = tel[a]/nr_entries
+                    tel[a] = tel[a] / nr_entries
 
     # do average for per-fe stat--'InfoAge' only
     for fe in list(status_fe['frontends'].keys()):
@@ -397,7 +404,7 @@ def aggregateStatus(in_downtime):
             tel = status_fe['frontends'][fe][w]
             for a in list(tel.keys()):
                 if a in avgEntries and fe in nr_feentries:
-                    tel[a] = tel[a]/nr_feentries[fe]  # divide per fe
+                    tel[a] = tel[a] / nr_feentries[fe]  # divide per fe
 
     xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='',
                                          params={'status': str(in_downtime)},
@@ -405,25 +412,36 @@ def aggregateStatus(in_downtime):
 
     # Write xml files
     updated = time.time()
-    xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
-             '<glideFactoryQStats>\n'+
-             xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xml_downtime + "\n" +
-             xmlFormat.dict2string(status["entries"], dict_name="entries", el_name="entry",
-                                   subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
-                                                                                          "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
-                                                                                                                                                                                    "subtypes_params":{"class":{}}}}}}}}}}}},
-                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.class2string(status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.dict2string(status_fe["frontends"], dict_name="frontends", el_name="frontend",
-                                   subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
-                                                                                                                           "subtypes_params":{"class":{}}}}}}}},
-                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             "</glideFactoryQStats>\n")
+    xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+               '<glideFactoryQStats>\n' +
+               xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,
+                                  leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+               xml_downtime + "\n" +
+               xmlFormat.dict2string(status["entries"], dict_name="entries", el_name="entry",
+                                     subtypes_params={"class": {"dicts_params": {"frontends": {"el_name": "frontend",
+                                                                                               "subtypes_params": {
+                                                                                                   "class": {
+                                                                                                       "subclass_params": {
+                                                                                                           "Requested": {
+                                                                                                               "dicts_params": {
+                                                                                                                   "Parameters": {
+                                                                                                                       "el_name": "Parameter",
+                                                                                                                       "subtypes_params": {
+                                                                                                                           "class": {}}}}}}}}}}}},
+                                     leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+               xmlFormat.class2string(status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+               xmlFormat.dict2string(status_fe["frontends"], dict_name="frontends", el_name="frontend",
+                                     subtypes_params={"class": {"subclass_params": {
+                                         "Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter",
+                                                                                       "subtypes_params": {
+                                                                                           "class": {}}}}}}}},
+                                     leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+               "</glideFactoryQStats>\n")
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
 
     # write json
-    glideFactoryMonitoring.monitoringConfig.write_completed_json(monitorAggregatorConfig.completed_data_relname.split('.')[0], updated, completed_data_tot)
+    glideFactoryMonitoring.monitoringConfig.write_completed_json(
+        monitorAggregatorConfig.completed_data_relname.split('.')[0], updated, completed_data_tot)
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
@@ -448,7 +466,7 @@ def aggregateStatus(in_downtime):
 
     # Frontend total rrds across all factories
     for fe in list(status_fe['frontends'].keys()):
-        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s" % ("frontend_"+fe))
+        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s" % ("frontend_" + fe))
         for tp in list(status_fe['frontends'][fe].keys()):
             # type - status or requested
             if not (tp in list(type_strings.keys())):
@@ -462,7 +480,7 @@ def aggregateStatus(in_downtime):
                 if a in attributes_tp:
                     a_el = int(tp_el[a])
                     val_dict["%s%s" % (tp_str, a)] = a_el
-        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes" % ("frontend_"+fe),
+        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes" % ("frontend_" + fe),
                                                                 "GAUGE", updated, val_dict)
 
     return status
@@ -488,7 +506,7 @@ def aggregateJobsSummary():
     jobinfo = {}
     for entry in monitorAggregatorConfig.entries:
         # load entry log summary file
-        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry),
                                     monitorAggregatorConfig.jobsummary_relname)
         try:
             with open(status_fname) as fd:
@@ -512,7 +530,8 @@ def aggregateLogSummary():
 
     # initialize global counters
     global_total = {'Current': {}, 'Entered': {}, 'Exited': {},
-                    'CompletedCounts': {'Sum': {}, 'Waste': {}, 'WasteTime': {}, 'Lasted': {}, 'JobsNr': {}, 'JobsDuration': {}}
+                    'CompletedCounts': {'Sum': {}, 'Waste': {}, 'WasteTime': {}, 'Lasted': {}, 'JobsNr': {},
+                                        'JobsDuration': {}}
                     }
 
     for s in ('Wait', 'Idle', 'Running', 'Held'):
@@ -565,7 +584,7 @@ def aggregateLogSummary():
     nr_feentries = {}  # dictionary for nr entries per fe
     for entry in monitorAggregatorConfig.entries:
         # load entry log summary file
-        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry),
                                     monitorAggregatorConfig.logsummary_relname)
 
         try:
@@ -595,7 +614,8 @@ def aggregateLogSummary():
                 out_fe_el['CompletedCounts']['Lasted'][t] = int(fe_el['CompletedCounts']['Lasted'][t]['val'])
             out_fe_el['CompletedCounts']['JobsDuration'] = {}
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                out_fe_el['CompletedCounts']['JobsDuration'][t] = int(fe_el['CompletedCounts']['JobsDuration'][t]['val'])
+                out_fe_el['CompletedCounts']['JobsDuration'][t] = int(
+                    fe_el['CompletedCounts']['JobsDuration'][t]['val'])
             for t in glideFactoryMonitoring.getAllJobRanges():
                 out_fe_el['CompletedCounts']['JobsNr'][t] = int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
             out_data[frontend] = out_fe_el
@@ -621,20 +641,28 @@ def aggregateLogSummary():
                 for w in ('Waste', 'WasteTime'):
                     local_total['CompletedCounts'][w][k] = {}
                     for t in glideFactoryMonitoring.getAllMillRanges():
-                        local_total['CompletedCounts'][w][k][t] = int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
-                        global_total['CompletedCounts'][w][k][t] += int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
+                        local_total['CompletedCounts'][w][k][t] = int(
+                            entry_data['total']['CompletedCounts'][w][k][t]['val'])
+                        global_total['CompletedCounts'][w][k][t] += int(
+                            entry_data['total']['CompletedCounts'][w][k][t]['val'])
 
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                local_total['CompletedCounts']['Lasted'][t] = int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
-                global_total['CompletedCounts']['Lasted'][t] += int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+                local_total['CompletedCounts']['Lasted'][t] = int(
+                    entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+                global_total['CompletedCounts']['Lasted'][t] += int(
+                    entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
             local_total['CompletedCounts']['JobsDuration'] = {}
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                local_total['CompletedCounts']['JobsDuration'][t] = int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
-                global_total['CompletedCounts']['JobsDuration'][t] += int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
+                local_total['CompletedCounts']['JobsDuration'][t] = int(
+                    entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
+                global_total['CompletedCounts']['JobsDuration'][t] += int(
+                    entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
 
             for t in glideFactoryMonitoring.getAllJobRanges():
-                local_total['CompletedCounts']['JobsNr'][t] = int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
-                global_total['CompletedCounts']['JobsNr'][t] += int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
+                local_total['CompletedCounts']['JobsNr'][t] = int(
+                    entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
+                global_total['CompletedCounts']['JobsNr'][t] += int(
+                    entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
 
             status['entries'][entry]['total'] = local_total
 
@@ -656,20 +684,24 @@ def aggregateLogSummary():
     updated = time.time()
     xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                '<glideFactoryLogSummary>\n' +
-               xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) +
+               xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,
+                                  leading_tab=xmlFormat.DEFAULT_TAB) +
                '\n' +
                xmlFormat.dict2string(status["entries"], dict_name="entries", el_name="entry",
-                        subtypes_params={"class": {"dicts_params": {"frontends": {
-                                    "el_name": "frontend",
-                                    "subtypes_params": {"class": {'subclass_params': {'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}
-                                },
-                                "subclass_params": {"total": {"subclass_params": {'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()}}}
-                        }
-                        },
-                        leading_tab=xmlFormat.DEFAULT_TAB) +
+                                     subtypes_params={"class": {"dicts_params": {"frontends": {
+                                         "el_name": "frontend",
+                                         "subtypes_params": {"class": {'subclass_params': {
+                                             'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}
+                                     },
+                                         "subclass_params": {"total": {"subclass_params": {
+                                             'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()}}}
+                                     }
+                                     },
+                                     leading_tab=xmlFormat.DEFAULT_TAB) +
                '\n' +
                xmlFormat.class2string(status["total"], inst_name="total",
-                                      subclass_params={'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()},
+                                      subclass_params={
+                                          'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()},
                                       leading_tab=xmlFormat.DEFAULT_TAB) +
                '\n' +
                "</glideFactoryLogSummary>\n")
@@ -680,95 +712,95 @@ def aggregateLogSummary():
 
     # Frontend total rrds across all factories
     for fe in status_fe['frontends']:
-        writeLogSummaryRRDs("total/%s" % ("frontend_"+fe), status_fe['frontends'][fe])
+        writeLogSummaryRRDs("total/%s" % ("frontend_" + fe), status_fe['frontends'][fe])
 
     return status
 
 
 def sumDictInt(indict, outdict):
     for orgi in indict:
-        i=str(orgi) # RRDs don't like unicode, so make sure we use strings
+        i = str(orgi)  # RRDs don't like unicode, so make sure we use strings
         if isinstance(indict[i], int):
             if not (i in outdict):
-                outdict[i]=0
-            outdict[i]+=indict[i]
+                outdict[i] = 0
+            outdict[i] += indict[i]
         else:
             # assume it is a dictionary
             if not (i in outdict):
-                outdict[i]={}
+                outdict[i] = {}
 
             sumDictInt(indict[i], outdict[i])
 
 
 def writeLogSummaryRRDs(fe_dir, status_el):
-    updated=time.time()
+    updated = time.time()
 
-    sdata=status_el['Current']
+    sdata = status_el['Current']
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
-    val_dict_counts={}
-    val_dict_counts_desc={}
-    val_dict_completed={}
-    val_dict_stats={}
-    val_dict_waste={}
-    val_dict_wastetime={}
+    val_dict_counts = {}
+    val_dict_counts_desc = {}
+    val_dict_completed = {}
+    val_dict_stats = {}
+    val_dict_waste = {}
+    val_dict_wastetime = {}
     for s in ('Wait', 'Idle', 'Running', 'Held', 'Completed', 'Removed'):
-        if not (s in ('Completed', 'Removed')): # I don't have their numbers from inactive logs
-            count=sdata[s]
-            val_dict_counts["Status%s"%s]=count
-            val_dict_counts_desc["Status%s"%s]={'ds_type':'GAUGE'}
+        if not (s in ('Completed', 'Removed')):  # I don't have their numbers from inactive logs
+            count = sdata[s]
+            val_dict_counts["Status%s" % s] = count
+            val_dict_counts_desc["Status%s" % s] = {'ds_type': 'GAUGE'}
 
-            exited=-status_el['Exited'][s]
-            val_dict_counts["Exited%s"%s]=exited
-            val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
+            exited = -status_el['Exited'][s]
+            val_dict_counts["Exited%s" % s] = exited
+            val_dict_counts_desc["Exited%s" % s] = {'ds_type': 'ABSOLUTE'}
 
-        entered=status_el['Entered'][s]
-        val_dict_counts["Entered%s"%s]=entered
-        val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
+        entered = status_el['Entered'][s]
+        val_dict_counts["Entered%s" % s] = entered
+        val_dict_counts_desc["Entered%s" % s] = {'ds_type': 'ABSOLUTE'}
 
-        if s=='Completed':
-            completed_counts=status_el['CompletedCounts']
-            count_entered_times=completed_counts['Lasted']
-            count_jobnrs=completed_counts['JobsNr']
-            count_jobs_duration=completed_counts['JobsDuration']
-            count_waste_mill=completed_counts['Waste']
-            time_waste_mill=completed_counts['WasteTime']
+        if s == 'Completed':
+            completed_counts = status_el['CompletedCounts']
+            count_entered_times = completed_counts['Lasted']
+            count_jobnrs = completed_counts['JobsNr']
+            count_jobs_duration = completed_counts['JobsDuration']
+            count_waste_mill = completed_counts['Waste']
+            time_waste_mill = completed_counts['WasteTime']
             # save run times
             for timerange in list(count_entered_times.keys()):
-                val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
+                val_dict_stats['Lasted_%s' % timerange] = count_entered_times[timerange]
                 # they all use the same indexes
-                val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration[timerange]
+                val_dict_stats['JobsLasted_%s' % timerange] = count_jobs_duration[timerange]
 
             # save jobsnr
             for jobrange in list(count_jobnrs.keys()):
-                val_dict_stats['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
+                val_dict_stats['JobsNr_%s' % jobrange] = count_jobnrs[jobrange]
 
             # save simple vals
             for tkey in list(completed_counts['Sum'].keys()):
-                val_dict_completed[tkey]=completed_counts['Sum'][tkey]
+                val_dict_completed[tkey] = completed_counts['Sum'][tkey]
 
             # save waste_mill
             for w in list(count_waste_mill.keys()):
-                count_waste_mill_w=count_waste_mill[w]
+                count_waste_mill_w = count_waste_mill[w]
                 for p in list(count_waste_mill_w.keys()):
-                    val_dict_waste['%s_%s'%(w, p)]=count_waste_mill_w[p]
+                    val_dict_waste['%s_%s' % (w, p)] = count_waste_mill_w[p]
 
             for w in list(time_waste_mill.keys()):
-                time_waste_mill_w=time_waste_mill[w]
+                time_waste_mill_w = time_waste_mill[w]
                 for p in list(time_waste_mill_w.keys()):
-                    val_dict_wastetime['%s_%s'%(w, p)]=time_waste_mill_w[p]
+                    val_dict_wastetime['%s_%s' % (w, p)] = time_waste_mill_w[p]
 
     # write the data to disk
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi_hetero("%s/Log_Counts"%fe_dir,
-                                                            val_dict_counts_desc, updated, val_dict_counts)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed"%fe_dir,
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi_hetero("%s/Log_Counts" % fe_dir,
+                                                                   val_dict_counts_desc, updated, val_dict_counts)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed" % fe_dir,
                                                             "ABSOLUTE", updated, val_dict_completed)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats" % fe_dir,
                                                             "ABSOLUTE", updated, val_dict_stats)
     # Disable Waste RRDs... WasteTime much more useful
-    #glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
+    # glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
     #                                                        "ABSOLUTE",updated,val_dict_waste)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime" % fe_dir,
                                                             "ABSOLUTE", updated, val_dict_wastetime)
 
 
@@ -789,16 +821,17 @@ def aggregateRRDStats(log=logSupport.log):
         for entry in monitorAggregatorConfig.entries:
             rrd_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry), rrd_site(rrd))
             try:
-                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
+                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list={'timezone': {}})
             except IOError:
                 if os.path.exists(rrd_fname):
                     log.debug("aggregateRRDStats %s exception: parse_xml, IOError" % rrd_fname)
                 else:
-                    log.debug("aggregateRRDStats %s exception: parse_xml, IOError, File not existing (OK if first time)" % rrd_fname)
+                    log.debug(
+                        "aggregateRRDStats %s exception: parse_xml, IOError, File not existing (OK if first time)" % rrd_fname)
 
-        stats_entries=list(stats.keys())
-        if len(stats_entries)==0:
-            continue # skip this RRD... nothing to aggregate
+        stats_entries = list(stats.keys())
+        if len(stats_entries) == 0:
+            continue  # skip this RRD... nothing to aggregate
         stats_entries.sort()
 
         # Get all the resolutions, data_sets and frontends... for totals
@@ -807,18 +840,18 @@ def aggregateRRDStats(log=logSupport.log):
         data_sets = set([])
         for entry in stats_entries:
             entry_resolution = list(stats[entry]['total']['periods'].keys())
-            if len(entry_resolution)==0:
-                continue # not an interesting entry
-            resolution=resolution.union(entry_resolution)
+            if len(entry_resolution) == 0:
+                continue  # not an interesting entry
+            resolution = resolution.union(entry_resolution)
             entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
-            data_sets=data_sets.union(entry_data_sets)
+            data_sets = data_sets.union(entry_data_sets)
             entry_frontends = list(stats[entry]['frontends'].keys())
-            frontends=frontends.union(entry_frontends)
+            frontends = frontends.union(entry_frontends)
             entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
 
-        resolution=list(resolution)
-        frontends=list(frontends)
-        data_sets=list(data_sets)
+        resolution = list(resolution)
+        frontends = list(frontends)
+        data_sets = list(data_sets)
 
         # create a dictionary that will hold the aggregate data
         clients = frontends + ['total']
@@ -839,21 +872,23 @@ def aggregateRRDStats(log=logSupport.log):
                     for entry in stats_entries:
                         if client == 'total':
                             try:
-                                aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
+                                aggregate_output[client][res][data_set] += float(
+                                    stats[entry][client]['periods'][res][data_set])
                             except KeyError:
                                 missing_total_data = True
                                 # well, some may be just missing.. can happen
-                                #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+                                # log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
 
                         else:
                             if client in stats[entry]['frontends']:
                                 # not all the entries have all the frontends
                                 try:
-                                    aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
+                                    aggregate_output[client][res][data_set] += float(
+                                        stats[entry]['frontends'][client]['periods'][res][data_set])
                                 except KeyError:
                                     missing_client_data = True
                                     # well, some may be just missing.. can happen
-                                    #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
+                                    # log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
 
         # We still need to determine what is causing these missing data in case it is a real issue
         # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
@@ -861,7 +896,6 @@ def aggregateRRDStats(log=logSupport.log):
             log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
         if missing_client_data:
             log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
-
 
         # write an aggregate XML file
 
@@ -872,7 +906,10 @@ def aggregateRRDStats(log=logSupport.log):
             entry_str += 2 * tab + "<entry name = \"" + entry_name + "\">\n"
             entry_str += 3 * tab + '<total>\n'
             try:
-                entry_str += (xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+                entry_str += (
+                    xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name='periods', el_name='period',
+                                          subtypes_params={"class": {}}, indent_tab=tab,
+                                          leading_tab=4 * tab) + "\n")
             except (NameError, UnboundLocalError):
                 log.debug("total_data, NameError or TypeError")
             entry_str += 3 * tab + '</total>\n'
@@ -884,7 +921,10 @@ def aggregateRRDStats(log=logSupport.log):
                     entry_str += (4 * tab + '<frontend name=\"' +
                                   frontend + '\">\n')
                     try:
-                        entry_str += (xmlFormat.dict2string(stats[entry]['frontends'][frontend]['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 5 * tab) + "\n")
+                        entry_str += (xmlFormat.dict2string(stats[entry]['frontends'][frontend]['periods'],
+                                                            dict_name='periods', el_name='period',
+                                                            subtypes_params={"class": {}}, indent_tab=tab,
+                                                            leading_tab=5 * tab) + "\n")
                     except KeyError:
                         log.debug("frontend_data, KeyError")
                     entry_str += 4 * tab + '</frontend>\n'
@@ -898,7 +938,9 @@ def aggregateRRDStats(log=logSupport.log):
         total_xml_str = 2 * tab + '<total>\n'
         total_data = aggregate_output['total']
         try:
-            total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+            total_xml_str += (xmlFormat.dict2string(total_data, dict_name='periods', el_name='period',
+                                                    subtypes_params={"class": {}}, indent_tab=tab,
+                                                    leading_tab=4 * tab) + "\n")
         except (NameError, UnboundLocalError):
             log.debug("total_data, NameError or TypeError")
         total_xml_str += 2 * tab + '</total>\n'
@@ -909,28 +951,28 @@ def aggregateRRDStats(log=logSupport.log):
                 frontend_xml_str += (3 * tab + '<frontend name=\"' +
                                      frontend + '\">\n')
                 frontend_data = aggregate_output[frontend]
-                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name='periods', el_name='period',
+                                                           subtypes_params={"class": {}}, indent_tab=tab,
+                                                           leading_tab=4 * tab) + "\n")
                 frontend_xml_str += 3 * tab + '</frontend>\n'
         except TypeError:
             log.debug("frontend_data, TypeError")
         frontend_xml_str += (2 * tab + '</frontends>\n')
 
-        data_str =  (tab + "<total>\n" + total_xml_str + frontend_xml_str +
-                     tab + "</total>\n")
+        data_str = (tab + "<total>\n" + total_xml_str + frontend_xml_str +
+                    tab + "</total>\n")
 
         # putting it all together
         updated = time.time()
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryRRDStats>\n' +
-                   xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" + entry_str +
+                   xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,
+                                      leading_tab=xmlFormat.DEFAULT_TAB) + "\n" + entry_str +
                    data_str + '</glideFactoryRRDStats>')
 
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:
-            log.debug("write_file %s, IOError"%rrd_site(rrd))
+            log.debug("write_file %s, IOError" % rrd_site(rrd))
 
     return
-
-
-

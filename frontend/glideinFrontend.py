@@ -207,7 +207,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
             idle_jobs = {'Total': 0, '600': 0, '3600': 0}
             logSupport.log.error(
                 "Error in RRD Database. Setting idle_jobs[%s] Failed. Reconfig the frontend with -fix_rrd to fix this error" % (
-                    err.message,))
+                    err,))
 
         fm_classad.setIdleJobCount(idle_jobs)
         fm_classad.setPerfMetrics(servicePerformance.getPerfMetric('frontend'))

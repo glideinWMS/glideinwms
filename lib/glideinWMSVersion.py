@@ -18,9 +18,9 @@
 ###############################################################################
 
 
-
 import os
 import sys
+
 try:
     # pylint: disable=E0611
     #  (hashlib methods are called dynamically)
@@ -31,7 +31,6 @@ except ImportError:
 
 
 class GlideinWMSDistro:
-
     class __impl:
         """ Implementation of the singleton interface """
 
@@ -69,7 +68,7 @@ class GlideinWMSDistro:
                     else:
                         idx = line.find(self.versionIdentifier)
                         if (idx >= 0) and (ver == 'UNKNOWN'):
-                            v = (line[idx+len(self.versionIdentifier):]).strip()
+                            v = (line[idx + len(self.versionIdentifier):]).strip()
                             if v != "":
                                 ver = v
 
@@ -81,25 +80,25 @@ class GlideinWMSDistro:
                     try:
                         # In the RPM, all files are in site-packages
                         rpm_dir = os.path.dirname(
-                                        os.path.dirname(
-                                            sys.modules[__name__].__file__))
+                            os.path.dirname(
+                                sys.modules[__name__].__file__))
                         fd = open(os.path.join(rpm_dir,
-                                                os.path.dirname(file),
-                                                os.path.basename(file)), 'r')
+                                               os.path.dirname(file),
+                                               os.path.basename(file)), 'r')
 
                         chksum = md5(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
                             modifiedFiles.append(file)
                             patch = 'PATCHED'
-                    except: #ignore missing files
+                    except:  # ignore missing files
                         pass
                     if fd:
                         fd.close()
 
-            #if len(modifiedFiles) > 0:
+            # if len(modifiedFiles) > 0:
             #    print "Modified files: %s" % " ".join(modifiedFiles)
 
-            self._version = "glideinWMS %s %s" % (ver, patch).strip()
+            self._version = "glideinWMS %s %s" % (ver, patch)
 
         def version(self):
             return self._version
@@ -123,11 +122,14 @@ class GlideinWMSDistro:
 
 
 def version(chksumFile=None):
-     return GlideinWMSDistro(chksumFile=chksumFile).version()
+    return GlideinWMSDistro(chksumFile=chksumFile).version()
+
+
 #   version
 
 def usage():
     print("Usage: glideinWMSVersion.py <Path to glideinWMS distribution> [<Checksum file>]")
+
 
 ##############################################################################
 # MAIN

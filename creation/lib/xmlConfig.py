@@ -1,4 +1,3 @@
-
 import copy
 import os
 from collections.abc import MutableMapping
@@ -6,7 +5,7 @@ import xml.sax
 
 INDENT_WIDTH = 3
 
-LIST_TAGS = { 
+LIST_TAGS = {
     'attrs': lambda d: d['name'],
     'files': lambda d: d['absfname']
 }
@@ -63,9 +62,9 @@ class Element:
         self.tag = tag
         self.file = file
         self.line_no = line_no
-        #Notice that in Handler.startElement the parent is passed as a slice (=>self.ancestry[:-1])
-        #instead of just taking the last element (=>self.ancestry[-1]). This way if self.ancestry is an
-        #empty list we pass an empty list (instad of throwing IndexError) and we set None here
+        # Notice that in Handler.startElement the parent is passed as a slice (=>self.ancestry[:-1])
+        # instead of just taking the last element (=>self.ancestry[-1]). This way if self.ancestry is an
+        # empty list we pass an empty list (instad of throwing IndexError) and we set None here
         self.parent = parent[0] if parent else None
 
     # children should override these (signature should be the same)
@@ -91,7 +90,7 @@ class Element:
         from .factoryXmlConfig import Config
         config_node = None
         current = self
-        while(current is not None and hasattr(current, 'parent')):
+        while (current is not None and hasattr(current, 'parent')):
             if isinstance(current, Config):
                 config_node = current
                 break
@@ -112,9 +111,9 @@ class DictElement(Element, MutableMapping):
         self.attrs[key] = value
 
     def __delitem__(self, key):
-        del(self.attrs[key])
+        del (self.attrs[key])
 
-    #def __contains__(self, key):
+    # def __contains__(self, key):
     #    return key in self.attrs
 
     def __iter__(self):
@@ -211,14 +210,14 @@ class ListElement(Element):
             try:
                 LIST_TAGS[self.tag](child)
             except KeyError as e:
-                raise RuntimeError(child.err_str('missing "%s" attribute' % e.message))
-                
+                raise RuntimeError(child.err_str('missing "%s" attribute' % e))
+
     # this creates references into other rather than deep copies for efficiency
     def merge(self, other):
         self.check_sort_key()
         other.check_sort_key()
-        self.children.sort(key=LIST_TAGS[self.tag]) 
-        other.children.sort(key=LIST_TAGS[self.tag]) 
+        self.children.sort(key=LIST_TAGS[self.tag])
+        other.children.sort(key=LIST_TAGS[self.tag])
 
         new_children = []
         my_size = len(self.children)
@@ -263,6 +262,7 @@ class AttrElement(DictElement):
         self.check_boolean('job_publish')
         self.check_boolean('parameter')
 
+
 TAG_CLASS_MAPPING.update({'attr': AttrElement})
 
 
@@ -296,7 +296,9 @@ class FileElement(DictElement):
         if not is_exec and period > 0:
             raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
+
 TAG_CLASS_MAPPING.update({'file': FileElement})
+
 
 #######################
 #

@@ -276,7 +276,7 @@ do_parse_options() {
 
     CMD_OPTIONS="$@"
 
-    if [ -n "${SHOW_FLAGS}" ]; then
+    if [[ -n "${SHOW_FLAGS}" ]]; then
         do_show_flags
         TEST_COMPLETE=branch
     fi
