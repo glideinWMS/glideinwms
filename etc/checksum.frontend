@@ -213,5 +213,5 @@ d41d8cd98f00b204e9800998ecf8427e  ./tools/lib/__init__.py
 878f73b9559f115881cbba9fce9f71af  ./tools/manual_glidein_startup
 2255ed709df2365451d65ef22b38cf6c  ./tools/wmsTxtView.py
 d9f9002c264db4a47d153e529f65b25b  ./tools/wmsXMLView.py
-68a4a56ef497a762140f915d14a64b70  ./tox.ini
+61b9325a43493c89306308c4aebde347  ./tox.ini
 9bd8bfd5bedd0f279b18e9ac96d95637  ./.travis.yml
