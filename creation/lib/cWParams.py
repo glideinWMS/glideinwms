@@ -148,9 +148,10 @@ class SubParams(UserDict):
         """
         try:
             el=self.data[name]
-        except:
-            print("MMDB: %r, data: %r" % (self, self.data))
-            raise
+        except KeyError:
+            print("MMDB: %s missing %s: %r, data: %r" % (type(self).__name__, name, self, self.data))
+            raise AttributeError("%s object has no attribute/key %s" % (type(self).__name__, name))
+        
         if isinstance(el, OrderedDict):
             return self.__class__(el)
         elif isinstance(el, list):

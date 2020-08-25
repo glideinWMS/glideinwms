@@ -34,6 +34,19 @@ BINARY_ENCODING="latin-1"
 #
 ########################################
 
+class DictFileError(RuntimeError):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+# TODO: DictFile could implement a standard interface, e.g. mutable mapping or extend dict,
+#  to have a more standard behavior
+#  Method naming could also be changes to comply w/ std interfaces and similar classes in the std library
+
+# TODO: DictFile could include encoding information (default being BINARY_ENCODING, latin-1) and have 2 childs,
+#  DictBytesFile and DictTextFiles, saving respectively binary and text files, to optimize and reduce some back
+#  and forth encoding
+
 class DictFile:
     """Dictionaries serialized in files, one line per item
 
@@ -46,6 +59,19 @@ class DictFile:
     """
     def __init__(self,dir,fname,sort_keys=False,order_matters=False,
                  fname_idx=None):      # if none, use fname
+        """DictFile Constructor
+
+        Args:
+            dir (str): folder containing the dictionary
+            fname (str): file name (the file path is the concatenation of dir and fname)
+            sort_keys (bool): True if keys should be sorted
+            order_matters (bool): True if it should remember the insertion order
+            fname_idx (str): ID file name (fname if None)
+
+        Raises:
+            DictFileError: if both sort_keys and order_matters are True
+
+        """
         self.dir=dir
         self.fname=fname
         if fname_idx is None:
@@ -53,7 +79,7 @@ class DictFile:
         self.fname_idx=fname_idx
 
         if sort_keys and order_matters:
-            raise RuntimeError("Cannot preserve the order and sort the keys")
+            raise DictFileError("Cannot preserve the order and sort the keys")
         self.sort_keys=sort_keys
         self.order_matters=order_matters
 
@@ -95,12 +121,13 @@ class DictFile:
         Changes the content of the dictionary and set self.changed to True if the value was added.
 
         Args:
-            key:
-            val:
+            key (str): dictionary key
+            val: Any value stored in the dictionary, usually a tuple (e.g. attributes and value)
             allow_overwrite (bool): Allow to overwrite an exising value if True (default: False)
 
         Raises:
-            RuntimeError
+            DictFileError: when trying to modify a read only DictFile or overriding an existing item when prohibited
+                or using an incompatible value
 
         """
         if key in self.keys:
@@ -108,13 +135,13 @@ class DictFile:
                 return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError("Trying to modify a readonly object (%s, %s)!" % (key, val))
+            raise DictFileError("Trying to modify a readonly object (%s, %s)!" % (key, val))
 
         if key in self.keys:
             if not allow_overwrite:
-                raise RuntimeError("Key '%s' already exists" % key)
+                raise DictFileError("Key '%s' already exists" % key)
             elif not self.is_compatible(self.vals[key], val):
-                raise RuntimeError("Key '%s': Value %s not compatible with old value %s" % (key, val, self.vals[key]))
+                raise DictFileError("Key '%s': Value %s not compatible with old value %s" % (key, val, self.vals[key]))
             # Already exists, covered above
             # if self.vals[key]==val:
             #     return # nothing to do
@@ -135,9 +162,25 @@ class DictFile:
         self.changed=True
 
     def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
-             sort_keys=None,set_readonly=True,reset_changed=True,
+             sort_keys=None, set_readonly=True, reset_changed=True,
              save_only_if_changed=True,
              want_comments=True):
+        """Save the dictionary into a binary file encoded w/ BINARY_ENCODING (dump function)
+
+        save_into_fd() is the actual function writing to file
+        DictFile.save_into_fd() receives str from .format_val() and is encoding them using BINARY_ENCODING
+        File permission is 644, to avoid accidental execution of configuration files
+
+        Args:
+            dir (str): folder containing the dictionary, override the object value
+            fname (str): file name (the file path is the concatenation of dir and fname), override the object value
+            sort_keys (bool): True if keys should be sorted, override the object value
+            set_readonly (bool): if True, set read only after saving it
+            reset_changed (bool): if False, do not reset self.changed
+            save_only_if_changed (bool): if False, save also if it was not changed
+            want_comments (bool): if True, comments are saved as well
+
+        """
         if save_only_if_changed and (not self.changed):
             return  # no change -> don't save
 
@@ -155,7 +198,7 @@ class DictFile:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
+            raise DictFileError("Error creating or writing to %s: %s"%(filepath, e))
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -184,23 +227,28 @@ class DictFile:
         if sort_keys is None:
             sort_keys=self.sort_keys
 
-        header=self.file_header(want_comments)
-        if header is not None:
-            fd.write(b"%s\n" % header.encode(BINARY_ENCODING))
+        header = self.file_header(want_comments)
         if sort_keys:
-            keys=sorted(self.keys[0:])  # makes a copy
+            keys = sorted(self.keys[0:])  # makes a copy
         else:
-            keys=self.keys
-        for k in keys:
-            val = self.format_val(k, want_comments)
-            # TODO: format_val should always return strings (also binary blobs?)
-            #       remove this if verified
-            # if type(val) == str:
-            #    val = val.encode(BINARY_ENCODING)
-            fd.write(b"%s\n" % val.encode(BINARY_ENCODING))
+            keys = self.keys
         footer = self.file_footer(want_comments)
-        if footer is not None:
-            fd.write(b"%s\n" % footer.encode(BINARY_ENCODING))
+        try:
+            if header is not None:
+                fd.write(b"%s\n" % header.encode(BINARY_ENCODING))
+            for k in keys:
+                val = self.format_val(k, want_comments)
+                # TODO: format_val should always return strings (also binary blobs?)
+                #       remove this if verified
+                # if type(val) == str:
+                #    val = val.encode(BINARY_ENCODING)
+                #    val = val.encode(BINARY_ENCODING)
+                fd.write(b"%s\n" % val.encode(BINARY_ENCODING))
+            if footer is not None:
+                fd.write(b"%s\n" % footer.encode(BINARY_ENCODING))
+        except AttributeError as e:
+            # .encode() attribute may be missing because bytes are passed
+            raise DictFileError("str received while writing %s (%s): %s" % (self.fname, type(self).__name__, e))
 
         if set_readonly:
             self.set_readonly(True)
@@ -255,6 +303,18 @@ class DictFile:
              change_self=True,        # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
              erase_first=True,        # if True, delete old content first
              set_not_changed=True):   # if True, set self.changed to False
+        """
+
+        Args:
+            dir:
+            fname:
+            change_self:
+            erase_first:
+            set_not_changed:
+
+        Returns:
+
+        """
         if dir is None:
             dir = self.dir
         if fname is None:
@@ -271,7 +331,7 @@ class DictFile:
             with fd:
                 self.load_from_fd(fd, erase_first, set_not_changed)
         except RuntimeError as e:
-            raise RuntimeError("File %s: %s" % (filepath, str(e)))
+            raise DictFileError("File %s: %s" % (filepath, str(e)))
 
         if change_self:
             self.dir = dir
@@ -282,12 +342,17 @@ class DictFile:
     def load_from_fd(self, fd,
                      erase_first=True,        # if True, delete old content first
                      set_not_changed=True):   # if True, set self.changed to False
-        """Load a dictionary in memory from a file
+        """Load a dictionary in memory from a binary file encoded w/ BINARY_ENCODING
+
+        Values (on lines) are loaded into the dictionary using parse_val, which expects str
 
         Args:
             fd: file descriptor to load the dictionary from
             erase_first (bool): if True, delete old content of the dictionary first
             set_not_changed (bool): if True, set self.changed to False
+
+        Raises:
+            DictFileError: problem parsong a line
 
         """
         if erase_first:
@@ -304,7 +369,7 @@ class DictFile:
             try:
                 self.parse_val(line.decode(BINARY_ENCODING))
             except RuntimeError as e:
-                raise RuntimeError("Line %i: %s" % (idx, str(e)))
+                raise DictFileError("Line %i: %s" % (idx, str(e)))
 
         if set_not_changed:
             self.changed = False  # the memory copy is now same as the one on disk
@@ -328,7 +393,7 @@ class DictFile:
             try:
                 self.load_from_fd(fd, erase_first, set_not_changed)
             except RuntimeError as e:
-                raise RuntimeError("Memory buffer: %s" % (str(e)))
+                raise DictFileError("Memory buffer: %s" % (str(e)))
             fd.close()
         return
 
@@ -410,7 +475,7 @@ class DictFile:
             line (str): splitting w/ the default separator should yeld the key and the value
 
         Raises:
-            RuntimeError, from self.add()
+            DictFileError, from self.add()
         """
         if not line or line[0] == '#':
             return  # ignore comments
@@ -466,19 +531,30 @@ class DictFileTwoKeys(DictFile):
         self.vals2 = {}
 
     def add(self, key, val, allow_overwrite=False):
+        """
+
+        Args:
+            key:
+            val:
+            allow_overwrite:
+
+        Raises:
+            DictFileError
+
+        """
         if key in self.keys:
             if self.vals[key] == val:
                 return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError("Trying to modify a readonly object (%s, %s)!" % (key, val))
+            raise DictFileError("Trying to modify a readonly object (%s, %s)!" % (key, val))
 
         if key in self.keys:
             old_val = self.vals[key]
             if not allow_overwrite:
-                raise RuntimeError("Key '%s' already exists" % key)
+                raise DictFileError("Key '%s' already exists" % key)
             elif not self.is_compatible(old_val, val):
-                raise RuntimeError("Key '%s': Value %s not compatible with old value %s" % (key, val, old_val))
+                raise DictFileError("Key '%s': Value %s not compatible with old value %s" % (key, val, old_val))
             # if old_val == val:   # no need to check again, would have hit the check above
             #    return  # nothing to be changed
             # the second key (value) changed, need to delete the old one
@@ -491,9 +567,9 @@ class DictFileTwoKeys(DictFile):
         if val in self.keys2:
             old_key = self.vals2[val]
             if not allow_overwrite:
-                raise RuntimeError("Value '%s' already exists" % val)
+                raise DictFileError("Value '%s' already exists" % val)
             elif not self.is_compatible2(old_key, key):
-                raise RuntimeError("Value '%s': Key %s not compatible with old key %s" % (val, key, old_key))
+                raise DictFileError("Value '%s': Key %s not compatible with old key %s" % (val, key, old_key))
             # if old_key==key: # no need to check again, would have hit the check above
             #    return # nothing to be changed
             # the first key changed, need to delete the old one
@@ -505,9 +581,19 @@ class DictFileTwoKeys(DictFile):
         self.changed = True
 
     def remove(self, key, fail_if_missing=False):
+        """
+
+        Args:
+            key:
+            fail_if_missing:
+
+        Raises:
+            DictFileError: KeyError, the key does not exist
+
+        """
         if key not in self.keys:
             if fail_if_missing:
-                raise RuntimeError("Key '%s' does not exist" % key)
+                raise DictFileError("Key '%s' does not exist" % key)
             else:
                 return  # nothing to do
 
@@ -559,7 +645,7 @@ class DescriptionDictFile(DictFileTwoKeys):
         if len(arr) == 0:
             return  # empty line
         if len(arr) != 2:
-            raise RuntimeError("Not a valid description line: '%s'" % line)
+            raise DictFileError("Not a valid description line: '%s'" % line)
 
         return self.add(arr[1], arr[0])
 
@@ -582,12 +668,12 @@ class GridMapDict(DictFileTwoKeys):
             return  # empty key
 
         if line[0:1] != '"':
-            raise RuntimeError('Not a valid gridmap line; not starting with ": %s' % line)
+            raise DictFileError('Not a valid gridmap line; not starting with ": %s' % line)
 
         user = arr[-1]
 
         if line[-len(user)-2:-len(user)-1] != '"':
-            raise RuntimeError('Not a valid gridmap line; DN not ending with ": %s' % line)
+            raise DictFileError('Not a valid gridmap line; DN not ending with ": %s' % line)
 
         dn = line[1:-len(user)-2]
         return self.add(dn, user)
@@ -596,22 +682,54 @@ class GridMapDict(DictFileTwoKeys):
 ##################################
 # signatures
 class SHA1DictFile(DictFile):
-    def add_from_file(self,filepath,allow_overwrite=False,
-                      key=None): # if key==None, use basefname
-        sha1=hashCrypto.extract_sha1(filepath)
+    """Dictionary of SHA1 signatures
+    Saved as "SHA1   FNAME" lines
+    """
+    def add_from_file(self, filepath, allow_overwrite=False, key=None):
+        """Add the SHA1 digest of the file to the dictionary (keyed by the file name)
+
+        Args:
+            filepath (str): path of the file to calculate the digest
+            allow_overwrite (bool): allow overwrite if True
+            key (str): if key==None, use basefname (file name extracted form filepath)
+
+        Returns:
+
+        """
+        sha1 = hashCrypto.extract_sha1(filepath)
         if key is None:
-            key=os.path.basename(filepath)
+            key = os.path.basename(filepath)
         self.add(key, sha1, allow_overwrite)
 
     def format_val(self, key, want_comments):
+        """Format values into a line
+
+        Args:
+            key (str): key
+            want_comments (bool): not used
+
+        Returns:
+            str: line for the file
+
+        """
         return "%s  %s"%(self.vals[key], key)
 
     def parse_val(self, line):
+        """Parse a line into values for the dictionary
+
+        Comments are ignored
+
+        Args:
+            line (str): file line
+
+        Returns:
+
+        """
         if not line or line[0]=='#':
-            return # ignore comments
+            return  # ignore comments
         arr=line.split(None, 1)
         if len(arr)!=2:
-            raise RuntimeError("Not a valid SHA1 line: '%s'"%line)
+            raise DictFileError("Not a valid SHA1 line: '%s'"%line)
 
         return self.add(arr[1], arr[0])
 
@@ -619,17 +737,41 @@ class SHA1DictFile(DictFile):
 # summary signatures
 # values are (sha1,fname2)
 class SummarySHA1DictFile(DictFile):
+    """Summary dictionary w/ SHA1 signatures, values are (sha1, fname2)
+    Saved as "SHA1   FNAME2   FNAME" lines
+    """
     def add(self,key,val,allow_overwrite=False):
+        """Add a SHA1 signature to the dictionary
+
+        Args:
+            key (str): key, file name
+            val (tuple): (sha1, fname2) tuples
+            allow_overwrite:
+
+        Returns:
+
+        """
         if not (type(val) in (type(()), type([]))):
-            raise RuntimeError("Values '%s' not a list or tuple"%val)
+            raise DictFileError("Values '%s' not a list or tuple" % val)
         if len(val)!=2:
-            raise RuntimeError("Values '%s' not (sha1,fname)"%val)
+            raise DictFileError("Values '%s' not (sha1, fname)" % val)
         return DictFile.add(self, key, val, allow_overwrite)
 
     def add_from_file(self,filepath,
                       fname2=None, # if fname2==None, use basefname
                       allow_overwrite=False,
-                      key=None):   # if key==None, use basefname
+                      key=None):
+        """Add a file and its SHA1 signature to a summary dictionary
+
+        Args:
+            filepath (str): full path of the file to add to the dictionary
+            fname2 (str): if fname2==None, use basefname
+            allow_overwrite (bool): allow overwrite if True
+            key (str): if key==None, use basefname (file name extracted form filepath)
+
+        Returns:
+
+        """
         sha1=hashCrypto.extract_sha1(filepath)
         if key is None:
             key=os.path.basename(filepath)
@@ -638,14 +780,31 @@ class SummarySHA1DictFile(DictFile):
         DictFile.add(self, key, (sha1, fname2), allow_overwrite)
 
     def format_val(self, key, want_comments):
+        """Format the dictionary elements into a line
+
+        Args:
+            key (str): key, file name
+            want_comments (bool): not used
+
+        Returns:
+
+        """
         return "%s  %s  %s"%(self.vals[key][0], self.vals[key][1], key)
 
     def parse_val(self, line):
+        """Parse a line and add the values to the dictionary
+
+        Args:
+            line (str): line to parse
+
+        Returns:
+
+        """
         if not line or line[0]=='#':
-            return # ignore comments
+            return  # ignore comments
         arr=line.split(None, 2)
         if len(arr)!=3:
-            raise RuntimeError("Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line))
+            raise DictFileError("Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line))
 
         key=arr[2]
         return self.add(key, (arr[0], arr[1]))
@@ -661,6 +820,9 @@ class SimpleFileDictFile(DictFile):
     The file content in the value can be a binary blob (bytes) so it should read accordingly w/o attempting a decode.
     Only the file name and the first element of the value are saved in the dictionary file (serialized dictionary).
     SimpleFileDictFile is used for file lists.
+
+    Dictionary saved as "FNAME VALUE", where FNAME is the key and VALUE the file attributes,
+    and a series of separate files w/ the content
     """
     def get_immutable_files(self):
         return self.keys  # keys are files, and all are immutable in this implementation
@@ -685,13 +847,15 @@ class SimpleFileDictFile(DictFile):
 
         Args:
             key (str): file name (key)
-            val: parameters (not the file content), usually file attributes
+            val: parameters (not the file content), usually file attributes (tuple, list or scalar)
             data (bytes): bytes string with the file content added to the dictionary
                 (this is binary or BINARY_ENCODING encoded text)
             allow_overwrite (bool): if True, allows to override existing content in the dictionary
         """
         # make it generic for use by children
         # TODO: make sure that DictFile.add() is compatible w/ binary data
+        if not isinstance(data, (bytes, bytearray)):
+            raise DictFileError("Using add_from_bytes to add a string to DictFile (%s, %s)" % (key, data))
         if not (type(val) in (type(()), type([]))):
             DictFile.add(self, key, (val, data), allow_overwrite)
         else:
@@ -704,7 +868,7 @@ class SimpleFileDictFile(DictFile):
 
         Args:
             key (str): file name (key)
-            val: parameters (not the file content), usually file attributes
+            val: parameters (not the file content), usually file attributes (tuple, list or scalar)
             data (str): string with the file content added to the dictionary (this is decoded, not bytes)
                 It will be encoded using BINARY_ENCODING
             allow_overwrite (bool): if True, allows to override existing content in the dictionary
@@ -718,7 +882,7 @@ class SimpleFileDictFile(DictFile):
 
         Args:
             key (str): file name (key)
-            val: parameters (not the file content), usually file attributes
+            val: parameters (not the file content), usually file attributes (tuple, list or scalar)
             fd: file object - has a read() method, opened in binary mode not to try a decode of the content
             allow_overwrite (bool): if True, allows to override existing content in the dictionary
         """
@@ -728,22 +892,22 @@ class SimpleFileDictFile(DictFile):
     def add_from_file(self, key, val, filepath, allow_overwrite=False):
         """Add data from a file. Add an entry to the dictionary using a file path
 
-        The file could be either a text or a binary file
+        The file could be either a text or a binary file. Opened as binary file.
 
         Args:
             key (str): file name (key)
-            val: parameters (not the file content), usually file attributes
-            filepath: full path of the file
+            val: parameters (not the file content), usually file attributes (tuple, list or scalar)
+            filepath (str): full path of the file
             allow_overwrite (bool): if True, allows to override existing content in the dictionary
 
         Raises:
-            RuntimeError: if the file could not be opened (IOError from the system)
+            DictFileError: if the file could not be opened (IOError from the system)
         """
         try:
             with open(filepath, "rb") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
         except IOError as e:
-            raise RuntimeError("Could not open file or write to it: %s" % filepath)
+            raise DictFileError("Could not open file or read from it: %s" % filepath)
 
     def format_val(self, key, want_comments):
         """Print lines: only the file name (key) the first item of the value tuple if not None
@@ -754,7 +918,7 @@ class SimpleFileDictFile(DictFile):
 
         Returns:
             str: Formatted string with key (file name) and values (tuple of options for that file)
-            Only the file name if there are no values
+                Only the file name if there are no values
 
         """
         if self.vals[key][0] is not None:
@@ -770,7 +934,7 @@ class SimpleFileDictFile(DictFile):
         Used to parse the line of a file list and add the files to a DictFile object
 
         Args:
-            line: line to be parsed
+            line (str): line to be parsed
 
         """
         if not line or line[0] == '#':
@@ -787,23 +951,43 @@ class SimpleFileDictFile(DictFile):
         return self.add(key, val)
 
     def save_files(self, allow_overwrite=False):
+        """Write the content of the files referred in the dictionary
+
+        For each item self.vals[key][-1] is the content of the file
+        It should be bytes, if it is not it will be encoded using BINARY_ENCODING
+        This methos is not saving the dictionary itself (key, values)
+
+        Args:
+            allow_overwrite (bool): if True allow to over write existing files
+
+        Raises:
+            DictFileError: if an error occurred in writing into the file or the file data (last element) is str
+                instead of bytes
+
+        """
         for key in self.keys:
             fname = self.get_file_fname(key)
             if not fname:
-                raise RuntimeError("File name not defined for key %s" % key)
+                raise DictFileError("File name not defined for key %s" % key)
             fdata = self.vals[key][-1]
+            # The file content should be already a binary blob (bytes); if it is a string,
+            # then raise an error or convert it
+            if isinstance(fdata, str):
+                raise DictFileError("File content received as str instead of bytes: %s (in %s)" % (key, filepath))
+                # Use this instead of 'raise' to silently change the data and be more tolerant
+                # fdata = bytes(fdata, encoding=BINARY_ENCODING)
             filepath = os.path.join(self.dir, fname)
             if (not allow_overwrite) and os.path.exists(filepath):
-                raise RuntimeError("File %s already exists" % filepath)
+                raise DictFileError("File %s already exists" % filepath)
             try:
                 fd = open(filepath, "wb")
             except IOError as e:
-                raise RuntimeError("Could not create file %s" % filepath)
+                raise DictFileError("Could not create file %s" % filepath)
             try:
                 with fd:
                     fd.write(fdata)
             except IOError as e:
-                raise RuntimeError("Error writing into file %s" % filepath)
+                raise DictFileError("Error writing into file %s" % filepath)
 
 
 class FileDictFile(SimpleFileDictFile):
@@ -888,12 +1072,16 @@ class FileDictFile(SimpleFileDictFile):
 
         Invoke add_from_str if the content is provided (6th component of val), add_from_file otherwise
 
-        :param key: file ID
-        :param val: lists of 6 or 7 components (see class definition)
-        :param allow_overwrite: if True the existing files can be replaced (default: False)
-        :param allow_overwrite_placeholder: if True, placeholder files can be replaced even if allow_overwrite
-            is False (default: True)
-        :return:
+        Args:
+            key (str): file ID
+            val (tuple): lists of 6 or 7 components (see class definition)
+            allow_overwrite (bool): if True the existing files can be replaced (default: False)
+            allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
+                is False (default: True)
+
+        Raises:
+            DictFileError
+
         """
         if not (type(val) in (type(()), type([]))):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
@@ -908,7 +1096,7 @@ class FileDictFile(SimpleFileDictFile):
         try:
             int(val[2])  # to check if is integer. Period must be int or convertible to int
         except (ValueError, IndexError):
-            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+            raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
@@ -917,10 +1105,10 @@ class FileDictFile(SimpleFileDictFile):
             # Added a safety check that the last element is an attribute and not the value
             # Maybe check also string length or possible values?
             if '\n' in val[-1]:
-                raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+                raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
-            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+            raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
     def format_val(self, key, want_comments):
         return "%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
@@ -1167,9 +1355,10 @@ class VarsDictFile(DictFile):
 
 
 class SimpleFile(DictFile):
-    """This class holds the content of the whole file in the single val
-    with key 'content'
-    Any other key is invalid
+    """DictFile with the content of a file
+
+    This class holds the content of the whole file in the single bytes value with key 'content'.
+    Any other key is invalid.
     """
 
     def add(self, key, val, allow_overwrite=False):
@@ -1181,14 +1370,38 @@ class SimpleFile(DictFile):
         return None  # no comment, anytime
 
     def format_val(self, key, want_comments):
+        """Format the content of the file. Only the 'content' key is accepted
+
+        Args:
+            key:
+            want_comments (bool): not used
+
+        Returns:
+            str: content of the file
+
+        Raises:
+            RuntimeError: if the key is not 'content'
+
+        """
         if key == 'content':
-            return self.vals[key]
+            data = self.vals[key]
+            return data.decode(BINARY_ENCODING)
         else:
             raise RuntimeError("Invalid key '%s'!='content'"%key)
 
     def load_from_fd(self, fd,
-                     erase_first=True,        # if True, delete old content first
-                     set_not_changed=True):   # if True, set self.changed to False
+                     erase_first=True,
+                     set_not_changed=True):
+        """Load the content from a binary file (binary mode used also for text files)
+
+        Args:
+            fd: binary file to read the data from
+            erase_first (bool): if True, default, delete the old content first
+            set_not_changed (bool): if True, set self.changed to False
+
+        Returns:
+
+        """
         if erase_first:
             self.erase()
 
@@ -1210,16 +1423,31 @@ class SimpleFile(DictFile):
 
 
 class ExeFile(SimpleFile):
-    """This class holds the content of the whole file in the single val
-    with key 'content'
-    Any other key is invalid
-    When saving the content to the file, it will make it executable
+    """DictFile with the content of an executable file
+
+    This class holds the content of the whole file in the single bytes value with key 'content'.
+    Any other key is invalid.
+    When saving the content to the file, it will set the permissions to make it executable
     """
 
     def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
              sort_keys=None,set_readonly=True,reset_changed=True,
              save_only_if_changed=True,
              want_comments=True):
+        """
+
+        Args:
+            dir:
+            fname:
+            sort_keys:
+            set_readonly:
+            reset_changed:
+            save_only_if_changed:
+            want_comments:
+
+        Returns:
+
+        """
         if save_only_if_changed and (not self.changed):
             return  # no change -> don't save
 
@@ -1438,6 +1666,7 @@ class monitorWLinkDirSupport(monitorDirSupport):
 
         self.add_dir_obj(symlinkSupport(self.monitor_dir, self.monitor_symlink, self.dir_name))
 
+
 ################################################
 #
 # Dictionaries of files classes
@@ -1471,6 +1700,7 @@ class fileCommonDicts:
             else:
                 el.set_readonly(readonly)
 
+
 ################################################
 #
 # This Class contains the main dicts
@@ -1478,11 +1708,22 @@ class fileCommonDicts:
 ################################################
 
 class fileMainDicts(fileCommonDicts, dirsSupport):
+    """This Class contains the main dicts (dicts is a dict of DictFiles)
+    """
     def __init__(self,
-                 work_dir,stage_dir,
+                 work_dir, stage_dir,
                  workdir_name,
-                 simple_work_dir=False,     # if True, do not create the lib and lock work_dir subdirs
-                 log_dir=None):             # used only if simple_work_dir=False
+                 simple_work_dir=False,
+                 log_dir=None):
+        """Constructor
+
+        Args:
+            work_dir:
+            stage_dir:
+            workdir_name:
+            simple_work_dir (bool): if True, do not create the lib and lock work_dir subdirs
+            base_log_dir (str): used only if simple_work_dir=False
+        """
 
         self.active_sub_list = []
         self.disabled_sub_list = []
@@ -1560,7 +1801,14 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 
     # Child must overwrite this
     def get_main_dicts(self):
+        """Interface
+
+        Returns:
+            dict of DictFile: keys are standard depending on the dictionary
+
+        """
         raise RuntimeError("Undefined")
+
 
 ################################################
 #
@@ -1569,10 +1817,23 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 ################################################
 
 class fileSubDicts(fileCommonDicts, dirsSupport):
-    def __init__(self,base_work_dir,base_stage_dir,sub_name,
-                 summary_signature,workdir_name,
+    """This Class contains the sub dicts
+    """
+    def __init__(self,base_work_dir, base_stage_dir, sub_name,
+                 summary_signature, workdir_name,
                  simple_work_dir=False,           # if True, do not create the lib and lock work_dir subdirs
                  base_log_dir=None):              # used only if simple_work_dir=False
+        """
+
+        Args:
+            base_work_dir (str):
+            base_stage_dir (str):
+            sub_name (str):
+            summary_signature (str):
+            workdir_name (str):
+            simple_work_dir (bool): if True, do not create the lib and lock work_dir subdirs
+            base_log_dir (str): used only if simple_work_dir=False
+        """
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
@@ -1612,11 +1873,21 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 
     # child can overwrite this
     def save_final(self,set_readonly=True):
-        pass # not always needed, use default of empty
+        pass  # not always needed, use default of empty
 
     def is_equal(self,other,             # other must be of the same class
                  compare_sub_name=False,
                  compare_fnames=False):
+        """
+
+        Args:
+            other: other must be of the same class (child of fileSubDicts)
+            compare_sub_name (bool):
+            compare_fnames (bool):
+
+        Returns:
+
+        """
         if compare_sub_name and (self.sub_name!=other.sub_name):
             return False
         for k in list(self.dicts.keys()):
@@ -1658,6 +1929,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
     def reuse_nocheck(self, other):
         raise RuntimeError("Undefined")
 
+
 ################################################
 #
 # This Class contains both the main and
@@ -1666,6 +1938,8 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 ################################################
 
 class fileDicts:
+    """This Class contains both the main and the sub dicts
+    """
     def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
                  simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs
                  log_dir=None):         # used only if simple_work_dir=False

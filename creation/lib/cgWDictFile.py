@@ -17,6 +17,7 @@ import pwd
 import shutil
 import glideinwms.lib.subprocessSupport
 
+
 # values are (group_name)
 class MonitorGroupDictFile(cWDictFile.DictFile):
     def file_header(self, want_comments):
@@ -217,6 +218,7 @@ def get_entry_dicts(entry_submit_dir, entry_stage_dir, entry_name):
     entry_dicts['mongroup']=MonitorGroupDictFile(entry_submit_dir, cgWConsts.MONITOR_CONFIG_FILE)
     return entry_dicts
 
+
 ################################################
 #
 # Functions that load dictionaries
@@ -284,30 +286,39 @@ def refresh_description(dicts): # update in place
 
 def refresh_file_list(dicts, is_main, # update in place
                       files_set_readonly=True, files_reset_changed=True):
-    file_dict = dicts['file_list']
+    """Update in place the file lists dictionaries
+
+    Args:
+        dicts:
+        is_main (bool): True if this is the file list for main (and not entries or entry lists)
+        files_set_readonly (bool): do not set read only if false
+        files_reset_changed (bool): do not reset the changed flag if False
+
+    """
+    file_dict = dicts['file_list']  # FileDictFile
     file_dict.add_from_bytes(
             cWConsts.CONSTS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['consts'].get_fname(), 'regular', config_out='CONSTS_FILE'),
-            dicts['consts'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            dicts['consts'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     file_dict.add_from_bytes(
             cWConsts.VARS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['vars'].get_fname(), 'regular', config_out='CONDOR_VARS_FILE'),
-            dicts['vars'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            dicts['vars'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     file_dict.add_from_bytes(
             cWConsts.UNTAR_CFG_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['untar_cfg'].get_fname(), 'regular', config_out='UNTAR_CFG_FILE'),
-            dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            dicts['untar_cfg'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     if is_main and 'gridmap' in dicts:
         file_dict.add_from_bytes(
                 cWConsts.GRIDMAP_FILE,
                 cWDictFile.FileDictFile.make_val_tuple(dicts['gridmap'].get_fname(), 'regular', config_out='GRIDMAP'),
-                dicts['gridmap'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+                dicts['gridmap'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
                 allow_overwrite=True
         )
 
@@ -624,9 +635,23 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
 ################################################
 
 class glideinEntryDicts(cWDictFile.fileSubDicts):
+    """This Class contains the entry and entry set dicts
+    """
     def __init__(self, base_work_dir, base_stage_dir, sub_name,
                  summary_signature, workdir_name,
                  base_log_dir, base_client_log_dirs, base_client_proxies_dirs):
+        """Constructor
+
+        Args:
+            base_work_dir:
+            base_stage_dir:
+            sub_name:
+            summary_signature:
+            workdir_name:
+            base_log_dir:
+            base_client_log_dirs:
+            base_client_proxies_dirs:
+        """
         cWDictFile.fileSubDicts.__init__(self, base_work_dir, base_stage_dir, sub_name,
                                          summary_signature, workdir_name,
                                          False, # simple_work_dir=False
