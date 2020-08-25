@@ -228,7 +228,7 @@ class FEElementTestCase(unittest.TestCase):
                 m_exe_cmd.return_value = f.readlines()
                 cq = self.gfe.get_condor_q('schedd1')
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             list(cq['schedd1'].fetchStored().keys()), [
                 (12345, x) for x in range(
                     0, 13)])

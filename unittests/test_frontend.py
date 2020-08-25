@@ -282,20 +282,20 @@ class FETestCaseCondorStatus(FETestCaseBase):
                                                               want_format_completion=True)
 
         machines = list(condorStatus['coll1'].stored_data.keys())
-        self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
+        self.assertCountEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
                                          'glidein_3@cmswn003.local', 'glidein_4@cmswn004.local',
                                          'glidein_5@cmswn005.local', 'glidein_1@cmswn006.local'])
 
     def test_getIdleCondorStatus(self):
         condorStatus = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
         machines = list(condorStatus['coll1'].stored_data.keys())
-        self.assertItemsEqual(machines, ['glidein_4@cmswn004.local'])
+        self.assertCountEqual(machines, ['glidein_4@cmswn004.local'])
 
     def test_getRunningCondorStatus(self):
         condorStatus = glideinFrontendLib.getRunningCondorStatus(
             self.status_dict)
         machines = list(condorStatus['coll1'].stored_data.keys())
-        self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
+        self.assertCountEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
                                          'glidein_3@cmswn003.local', 'glidein_5@cmswn005.local',
                                          'glidein_1@cmswn006.local'])
 
@@ -303,7 +303,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
         condorStatus = glideinFrontendLib.getClientCondorStatus(
             self.status_dict, 'frontend_v3', 'maingroup', 'Site_Name1@v3_0@factory1')
         machines = list(condorStatus['coll1'].stored_data.keys())
-        self.assertItemsEqual(machines, ['glidein_1@cmswn001.local'])
+        self.assertCountEqual(machines, ['glidein_1@cmswn001.local'])
 
     def test_getClientCondorStatusCredIdOnly(self):
         # need example with GLIDEIN_CredentialIdentifier
@@ -328,7 +328,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
                  1,
                  5)]
         expected.append(('Site_Name2@v3_0@factory1', 'frontend1.local'))
-        self.assertItemsEqual(
+        self.assertCountEqual(
             entries,
             expected)
 
@@ -337,7 +337,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             f = open('cs.schedd.fixture')
             m_exe_cmd.return_value = f.readlines()
             condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
-            self.assertItemsEqual(list(condorStatus['coll1'].stored_data.keys()),
+            self.assertCountEqual(list(condorStatus['coll1'].stored_data.keys()),
                                   ['schedd%s.local' % x for x in range(1, 4)])
 
 
@@ -357,13 +357,13 @@ class FETestCaseMisc(FETestCaseBase):
              {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                   21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35})
 
-        self.assertItemsEqual(expected, glideinFrontendLib.uniqueSets(input))
+        self.assertCountEqual(expected, glideinFrontendLib.uniqueSets(input))
 
     def test_hashJob(self):
         in1 = {1: 'a', 2: 'b', 3: 'c'}
         in2 = [1, 3]
         expected = ((1, 'a'), (3, 'c'))
-        self.assertItemsEqual(expected,
+        self.assertCountEqual(expected,
                               glideinFrontendLib.hashJob(in1, in2))
 
     def test_appendRealRunning(self):
@@ -375,7 +375,7 @@ class FETestCaseMisc(FETestCaseBase):
                 1, 2, 2, 2, 2]]
         expected.append('UNKNOWN')
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             [x['RunningOn']
              for x in list(cq_run_dict['sched1'].fetchStored().values())],
             expected)
@@ -467,7 +467,7 @@ class FETestCaseCondorQ(FETestCaseBase):
             list(glideinFrontendLib.getRunningCondorQ(
                 self.condorq_dict)['sched1'].fetchStored().keys())
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             condor_ids, [
                 (12345, 3), (12345, 4), (12345, 5), (12345, 10), (12345, 11), (12345, 12)])
 
@@ -476,7 +476,7 @@ class FETestCaseCondorQ(FETestCaseBase):
             list(glideinFrontendLib.getIdleCondorQ(
                 self.condorq_dict)['sched1'].fetchStored().keys())
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             condor_ids, [
                 (12345, 0), (12345, 1), (12345, 2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
 
@@ -492,7 +492,7 @@ class FETestCaseCondorQ(FETestCaseBase):
             list(glideinFrontendLib.getIdleProxyCondorQ(
                 self.condorq_dict)['sched1'].fetchStored().keys())
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             condor_ids, [
                 (12345, 1), (12345, 2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
 
@@ -509,7 +509,7 @@ class FETestCaseCondorQ(FETestCaseBase):
 
     def test_getCondorQUsers(self):
         users = glideinFrontendLib.getCondorQUsers(self.condorq_dict)
-        self.assertItemsEqual(users, ['user1@fnal.gov', 'user2@fnal.gov'])
+        self.assertCountEqual(users, ['user1@fnal.gov', 'user2@fnal.gov'])
 
     @mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv')
     @mock.patch('glideinwms.lib.condorExe.exe_cmd')
@@ -520,7 +520,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         cq = glideinFrontendLib.getCondorQ(['sched1'])
         condor_ids = list(cq['sched1'].fetchStored().keys())
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             condor_ids, [
                 (12345, x) for x in range(
                     0, self.total_jobs)])
