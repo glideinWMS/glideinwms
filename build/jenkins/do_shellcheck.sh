@@ -129,8 +129,8 @@ do_process_branch() {
     mkdir -p "${test_outdir}"
 
     echo "#####################################################"
-    echo "Start : ${branch}"
-    start_time="$(date -u +%s.%N)"
+#    echo "Start : ${branch}"
+#    start_time="$(date -u +%s.%N)"
 
     # Run shellcheck on each bash script. Any issues is logged in a
     # file-specific JSON log. The test fails if any SC issue of level
@@ -186,16 +186,16 @@ do_process_branch() {
     done
     #done <<< "$(get_shell_files)"
 
-    if (( total_error > 0 )); then
-        return_status="Failed"
-    elif (( total_warning > 0 )); then
-        return_status="Warning"
-    else
-        return_status="Passed"
-    fi
+#    if (( total_error > 0 )); then
+#        return_status="Failed"
+#    elif (( total_warning > 0 )); then
+#        return_status="Warning"
+#    else
+#        return_status="Passed"
+#    fi
 
-    end_time="$(date -u +%s.%N)"
-    elapsed="$(bc <<< "scale=2; (${end_time}-${start_time})/1")"
+#    end_time="$(date -u +%s.%N)"
+#    elapsed="$(bc <<< "scale=2; (${end_time}-${start_time})/1")"
     echo
     echo "-----------------------------------------------------"
     echo "All the files have been analyzed"
@@ -204,9 +204,9 @@ do_process_branch() {
     echo " -Warning:    $total_warning"
     echo " -Info:       $total_info"
     echo " -Style:      $total_style"
-    echo "# Test #: ${branch} .... ${return_status}   ${elapsed} s"
+#    echo "# Test #: ${branch} .... ${return_status}   ${elapsed} s"
 
-    echo "# Shellcheck output" >> "${outfile}"
+    echo "# Shellcheck output" > "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
     echo "SHELLCHECK_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")" >> "${outfile}"
     echo "SHELLCHECK_ERROR_FILES=\"${fail_files_list}\"" >> "${outfile}"
@@ -216,6 +216,7 @@ do_process_branch() {
     echo "SHELLCHECK_WARNING_COUNT=${total_warning}" >> "${outfile}"
     echo "SHELLCHECK_INFO_COUNT=${total_info}" >> "${outfile}"
     echo "SHELLCHECK_STYLE_COUNT=${total_style}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
     echo "SHELLCHECK=$(do_get_status)" >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
@@ -238,7 +239,8 @@ do_table_values() {
     # 2. output format: if not empty triggers annotation
     # Return a tab separated list of the values
     # $VAR1 $VAR2 $VAR3 expected in $1
-    . "$1"
+    # If the summary file is missing return tab separated "na" strings 
+    [[ -n "$1" ]] && . "$1" || { echo -e "na\tna"; return; }
     if [[ "$2" = NOTAG ]]; then
         echo -e "${SHELLCHECK_ERROR_FILES_COUNT}\t${SHELLCHECK_ERROR_COUNT}"
     else
