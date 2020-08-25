@@ -18,6 +18,15 @@ import socket
 import io
 from glideinwms.lib import hashCrypto
 
+# GlideinWMS has to be compatible across versions running on different Python interpreters
+# Python 2 text files are the same as binary files except some newline handling
+# and strings are the same as bytes
+# To maintain this in Python 3 is possible to write binary files and use for the strings
+# any encoding that preserves the bytes (0x80...0xff) through round-tripping from byte
+# streams to Unicode and back, latin-1 is the best known of these (more compact).
+# TODO: alt evaluate the use of latin-1 text files
+BINARY_ENCODING="latin-1"
+
 
 ########################################
 #
@@ -30,6 +39,10 @@ class DictFile:
 
     Comments start w/ '#' at the beginning of the line
     Empty lines are nor tolerated by the parser in the glidein (bash)
+
+    Files have to be compatible across GlideinWMS versions running in different Python versions
+    In this Python 3 version: using binary files and 'latin-1' encoding to preserve
+    bytes (0x80...0xff) through round-tripping from byte streams to Unicode and back
     """
     def __init__(self,dir,fname,sort_keys=False,order_matters=False,
                  fname_idx=None):      # if none, use fname
@@ -77,14 +90,14 @@ class DictFile:
         self.is_readonly=readonly
 
     def add(self, key, val, allow_overwrite=False):
-        """
+        """Add a key, value pair to the dictionary (self) if not already there
+
+        Changes the content of the dictionary and set self.changed to True if the value was added.
 
         Args:
             key:
             val:
-            allow_overwrite:
-
-        Returns:
+            allow_overwrite (bool): Allow to overwrite an exising value if True (default: False)
 
         Raises:
             RuntimeError
@@ -157,24 +170,37 @@ class DictFile:
     def save_into_fd(self, fd,
                      sort_keys=None,set_readonly=True,reset_changed=True,
                      want_comments=True):
+        """Save into a BINARY_ENCODING (latin-1) encoded binary file
+
+        Args:
+            fd: binary file
+            sort_keys (bool): whether the keys should be sorted before writing the
+                dictionary (default: None, use the object setting)
+            set_readonly (bool): False to set the DictFile read-write
+            reset_changed (bool): False not to record the save (self.changed remains True)
+            want_comments (bool): False to disable comments
+
+        """
         if sort_keys is None:
             sort_keys=self.sort_keys
 
         header=self.file_header(want_comments)
         if header is not None:
-            fd.write(b"%s\n"%header.encode('utf-8'))
+            fd.write(b"%s\n" % header.encode(BINARY_ENCODING))
         if sort_keys:
             keys=sorted(self.keys[0:])  # makes a copy
         else:
             keys=self.keys
         for k in keys:
             val = self.format_val(k, want_comments)
-            if type(val) == str:
-                val = val.encode('utf-8')
-            fd.write(b"%s\n" % val)
-        footer=self.file_footer(want_comments)
+            # TODO: format_val should always return strings (also binary blobs?)
+            #       remove this if verified
+            # if type(val) == str:
+            #    val = val.encode(BINARY_ENCODING)
+            fd.write(b"%s\n" % val.encode(BINARY_ENCODING))
+        footer = self.file_footer(want_comments)
         if footer is not None:
-            fd.write(b"%s\n"%footer.encode('utf-8'))
+            fd.write(b"%s\n" % footer.encode(BINARY_ENCODING))
 
         if set_readonly:
             self.set_readonly(True)
@@ -183,14 +209,46 @@ class DictFile:
             self.changed=False
         return
 
-    def save_into_str(self,
-                      sort_keys=None,set_readonly=True,reset_changed=True,
-                      want_comments=True):
-        fd=io.BytesIO()
+    def save_into_bytes(self,
+                        sort_keys=None, set_readonly=True, reset_changed=True,
+                        want_comments=True):
+        """Save the dictionary into a bytes array
+
+        Args:
+            sort_keys (bool):
+            set_readonly (bool): if True (default) set also the dictionary as read-only
+            reset_changed (bool): if True (default) set also the dictionary as not changed (all changes have been saved)
+            want_comments (bool): False if you want to skip the comments
+
+        Returns:
+            bytes: the content of the dictionary
+
+        """
+        fd = io.BytesIO()
         self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         fd.seek(0)
-        data=fd.read()
+        data = fd.read()
         fd.close()
+        return data
+
+    def save_into_str(self,
+                      sort_keys=None, set_readonly=True, reset_changed=True,
+                      want_comments=True):
+        """Save the dictionary into a string
+
+        Same as save_into_bytes, but returns a string
+
+        Args:
+            sort_keys (bool):
+            set_readonly (bool): if True (default) set also the dictionary as read-only
+            reset_changed (bool): if True (default) set also the dictionary as not changed (all changes have been saved)
+            want_comments (bool): False if you want to skip the comments
+
+        Returns:
+            str: the content of the dictionary
+
+        """
+        data = self.save_into_bytes(sort_keys, set_readonly, reset_changed, want_comments).decode(BINARY_ENCODING)
         return data
 
     def load(self, dir=None, fname=None,
@@ -224,6 +282,14 @@ class DictFile:
     def load_from_fd(self, fd,
                      erase_first=True,        # if True, delete old content first
                      set_not_changed=True):   # if True, set self.changed to False
+        """Load a dictionary in memory from a file
+
+        Args:
+            fd: file descriptor to load the dictionary from
+            erase_first (bool): if True, delete old content of the dictionary first
+            set_not_changed (bool): if True, set self.changed to False
+
+        """
         if erase_first:
             self.erase()
 
@@ -236,7 +302,7 @@ class DictFile:
                 # strip newline, colon is needed, otherwise the number 10 is returned for \n
                 line = line[:-1]
             try:
-                self.parse_val(line.decode('utf-8'))
+                self.parse_val(line.decode(BINARY_ENCODING))
             except RuntimeError as e:
                 raise RuntimeError("Line %i: %s" % (idx, str(e)))
 
@@ -247,20 +313,40 @@ class DictFile:
     def load_from_str(self, data,
                       erase_first=True,        # if True, delete old content first
                       set_not_changed=True):   # if True, set self.changed to False
-        fd = io.BytesIO()
-        # TODO: there may be an optimization here adding a load_from_strfd() method to avoid the encode+decode steps
-        fd.write(data.encode('utf-8'))
-        fd.seek(0)
-        try:
-            self.load_from_fd(fd, erase_first, set_not_changed)
-        except RuntimeError as e:
-            raise RuntimeError("Memory buffer: %s" % (str(e)))
-        fd.close()
+        """Load data from a string into the object (self)
+
+        Args:
+            data (str): string to load from
+            erase_first (bool): if True, delete old content of the dictionary first
+            set_not_changed (bool): if True, set self.changed to False
+
+        """
+        with io.BytesIO() as fd:
+            # TODO: there may be an optimization here adding a load_from_strfd() method to avoid the encode+decode steps
+            fd.write(data.encode(BINARY_ENCODING))
+            fd.seek(0)
+            try:
+                self.load_from_fd(fd, erase_first, set_not_changed)
+            except RuntimeError as e:
+                raise RuntimeError("Memory buffer: %s" % (str(e)))
+            fd.close()
         return
 
-    def is_equal(self, other,         # other must be of the same class
+    def is_equal(self, other,
                  compare_dir=False, compare_fname=False,
-                 compare_keys=None):  # if None, use order_matters
+                 compare_keys=None):
+        """Parametrised comparison of DictFile objects
+
+        Args:
+            other (DictFile): second object in the comparison, must be of the same class
+            compare_dir (bool): if True, compare also the directories of the files
+            compare_fname (bool): if True, compare also the file names
+            compare_keys (bool):  if True, compare the order of the keys. If None, use order_matters
+
+        Returns:
+            bool: True if self and other have the same representation
+
+        """
         if compare_dir and (self.dir != other.dir):
             return False
         if compare_fname and (self.fname != other.fname):
@@ -278,25 +364,50 @@ class DictFile:
         return True  # everything is compatible
 
     def file_header(self, want_comments):
+        """Return the file header line (file name) as comment, None is want_comments is False
+
+        Args:
+            want_comments (bool): If True print also comment lines (lines w/o values)
+
+        Returns:
+            str: The file header, a comment containing the file name
+        """
         if want_comments:
             return "# File: %s\n#" % self.fname
         else:
             return None
 
     def file_footer(self, want_comments):
+        """Return the file footer as comment (None for this class)
+
+        Args:
+            want_comments (bool): If True print also comment lines (lines w/o values)
+
+        Returns:
+            None
+        """
         return None  # no footer
 
     def format_val(self, key, want_comments):
+        """Return a string with the formatted (space+tab separated) key, value
+
+        Args:
+            key: key of the key, value pair to format
+            want_comments (bool): If True print also comment lines (lines w/o values)
+
+        Returns:
+            str: formatted key, value
+
+        """
         return "%s \t%s" % (key, self.vals[key])
 
     def parse_val(self, line):
-        """
-        Parse a line and add it to the dictionary
+        """Parse a line and add it to the dictionary
+
+        Changes the dictionary and self.changed via self.add()
 
         Args:
-            line:
-
-        Returns:
+            line (str): splitting w/ the default separator should yeld the key and the value
 
         Raises:
             RuntimeError, from self.add()
@@ -305,7 +416,7 @@ class DictFile:
             return  # ignore comments
         arr = line.split(None, 1)
         if len(arr[0]) == 0:
-            return  # empty key
+            return  # empty key (empty line)
 
         key = arr[0]
         if len(arr) == 1:
@@ -570,13 +681,13 @@ class SimpleFileDictFile(DictFile):
     def add_from_bytes(self, key, val, data, allow_overwrite=False):
         """Add an entry to the dictionary, parameters and content are both available
 
-        Same as add_from_str(), but the value is here is binary, utf-8 encoded if it was text
+        Same as add_from_str(), but the value is here is binary, BINARY_ENCODING encoded if it was text
 
         Args:
             key (str): file name (key)
             val: parameters (not the file content), usually file attributes
             data (bytes): bytes string with the file content added to the dictionary
-                (this is binary or utf-8 encoded text)
+                (this is binary or BINARY_ENCODING encoded text)
             allow_overwrite (bool): if True, allows to override existing content in the dictionary
         """
         # make it generic for use by children
@@ -589,17 +700,17 @@ class SimpleFileDictFile(DictFile):
     def add_from_str(self, key, val, data, allow_overwrite=False):
         """Add an entry to the dictionary, parameters and content are both available
 
-        Same as add_from_bytes(), but the value is here is text, will be utf-8 encoded before calling add_from_bytes()
+        Same as add_from_bytes(), but the value is here is text, will be BINARY_ENCODING encoded before calling add_from_bytes()
 
         Args:
             key (str): file name (key)
             val: parameters (not the file content), usually file attributes
             data (str): string with the file content added to the dictionary (this is decoded, not bytes)
-                It will be encoded using utf-8
+                It will be encoded using BINARY_ENCODING
             allow_overwrite (bool): if True, allows to override existing content in the dictionary
         """
         # make it generic for use by children
-        bindata = data.encode('utf-8')
+        bindata = data.encode(BINARY_ENCODING)
         self.add_from_bytes(key, val, bindata, allow_overwrite)
 
     def add_from_fd(self, key, val, fd, allow_overwrite=False):

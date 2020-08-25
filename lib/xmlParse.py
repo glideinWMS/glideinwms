@@ -11,9 +11,18 @@
 #
 
 import xml.dom.minidom
-from collections import UserDict, OrderedDict
+from collections import UserDict
+#from collections import UserDict, OrderedDict
+
 
 class CorruptXML(Exception):
+    pass
+
+
+# Dictionaries are guaranteed to maintain order starting py3.6
+# missing methods (were not in the custom class): __dict__, __reversed__, move_to_end 
+# OrderedDict from collections is not maintaining the __repr__ of a dict
+class OrderedDict(dict):
     pass
 
 

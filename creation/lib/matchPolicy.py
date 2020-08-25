@@ -19,7 +19,8 @@ import os.path
 import imp
 # import string
 # import socket
-from collections import OrderedDict
+#from collections import OrderedDict
+from glideinwms.lib.xmlParse import OrderedDict
 
 # from . import cWParams
 # import pprint
