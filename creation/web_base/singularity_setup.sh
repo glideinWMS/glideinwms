@@ -170,6 +170,10 @@ export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | 
 temp_singularity_bin="`grep '^SINGULARITY_BIN ' "$glidein_config" | cut -d ' ' -f 2-`"
 singularity_bin="$(echo $temp_singularity_bin)"
 
+# OSG_SINGULARITY_BINARY in glidein_config (if present and not empty) takes precedence to the environment one
+temp_singularity_bin="$(grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-)"
+[[ -n "$temp_singularity_bin" ]] && export OSG_SINGULARITY_BINARY="$temp_singularity_bin"
+
 # Does frontend want to use singularity?
 use_singularity=$(grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-)
 if [[ -z "$use_singularity" ]]; then
@@ -246,7 +250,7 @@ SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config"
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 # TODO Should the image be on CVMFS or anywhere is OK?
 info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] with restrictions $image_restrictions"
-GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6 $image_restrictions`"
+GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6,rhel8 $image_restrictions`"
 ec=$?
 if [[ $ec -ne 0 ]]; then
     out_str="ERROR selecting a Singularity image ($ec, $GWMS_SINGULARITY_IMAGE)"
@@ -282,8 +286,8 @@ fi
 # All tests passed, Singularity works w/ the default image
 advertise HAS_SINGULARITY "True" "C"
 advertise GWMS_SINGULARITY_STATUS "$gwms_singularity_status" "S"
-advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
-advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
+advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "C"
+advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "C"
 advertise SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise SINGULARITY_MODE "$GWMS_SINGULARITY_MODE" "S"

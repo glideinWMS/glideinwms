@@ -877,23 +877,25 @@ class glideinFrontendElement:
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                tkn_dir = "/var/lib/gwms-frontend/tokens/%s" % (glidein_site)
-                tkn_bn = "%s.idtoken" % (glidein_site)
-                tkn_file = os.path.join(tkn_dir, tkn_bn)
-
+                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
                 if not os.path.exists(tkn_dir):
-                    os.mkdir(tkn_dir, 0755)
+                    os.mkdir(tkn_dir,0o700)
+                tkn_file = tkn_dir + '/' +  glidein_site + ".token"
+                one_hr = 3600
+                tkn_age = sys.maxsize
+                if os.path.exists(tkn_file):
+                    tkn_age = time.time() - os.stat(tkn_file)[stat.ST_MTIME]
+                if tkn_age > one_hr:    
+                    cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
 
-                cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-
-                os.chmod(tmpnm,0600)
-                os.write(fd, tkn_str)
-                os.close(fd)
-                shutil.move(tmpnm, tkn_file)
-                file_tmp2final(tkn_file, tmpnm)
-                os.chmod(tkn_file, 0600)
-                logSupport.log.debug("created token %s" % tkn_file)
+                    os.chmod(tmpnm,0600)
+                    os.write(fd, tkn_str)
+                    os.close(fd)
+                    shutil.move(tmpnm, tkn_file)
+                    file_tmp2final(tkn_file, tmpnm)
+                    os.chmod(tkn_file, 0600)
+                    logSupport.log.debug("created token %s" % tkn_file)
             except Exception as err:
                 logSupport.log.debug('failed to create %s' % tkn_file)
                 logSupport.log.debug('%s' % err)

@@ -20,8 +20,7 @@
 %define web_dir %{_localstatedir}/lib/gwms-frontend/web-area
 %define web_base %{_localstatedir}/lib/gwms-frontend/web-base
 %define frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
-%define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens
-%define factory_token_dir %{_localstatedir}/lib/gwms-factory/tokens
+%define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
 %define factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -32,7 +31,7 @@ Name:           glideinwms
 Version:        %{version}
 Release:        %{release}%{?dist}
 Summary:        The glidein Workload Management System (glideinWMS)
-Group:          System Environment/Daemons
+# Group: has been deprecated, removing it from all specifications, wes "System Environment/Daemons"
 License:        Fermitools Software Legal Information (Modified BSD License)
 URL:            http://glideinwms.fnal.gov
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -52,6 +51,8 @@ Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
 
+BuildRequires:  python
+
 %description
 This is a package for the glidein workload management system.
 GlideinWMS provides a simple way to access the Grid, Cloud and HPC
@@ -60,7 +61,6 @@ resources through a dynamic condor pool of grid-submitted resources.
 
 %package vofrontend
 Summary:        The VOFrontend for glideinWMS submission host
-Group:          System Environment/Daemons
 Provides:       GlideinWMSFrontend = %{version}-%{release}
 Obsoletes:      GlideinWMSFrontend < 2.5.1-11
 Requires: glideinwms-vofrontend-standalone = %{version}-%{release}
@@ -78,7 +78,6 @@ vofrontend install (userschedd, submit, vofrontend).
 
 %package vofrontend-standalone
 Summary:        The VOFrontend for glideinWMS submission host
-Group:          System Environment/Daemons
 Requires: httpd
 Requires: condor >= 8.9.5
 Requires: python >= 2.7
@@ -106,7 +105,6 @@ This package is for a standalone vofrontend install
 
 %package usercollector
 Summary:        The VOFrontend glideinWMS collector host
-Group:          System Environment/Daemons
 Requires: condor >= 8.9.5
 Requires: ganglia
 Requires: glideinwms-minimal-condor = %{version}-%{release}
@@ -118,7 +116,6 @@ It can be installed independently.
 
 %package userschedd
 Summary:        The VOFrontend glideinWMS submission host
-Group:          System Environment/Daemons
 Requires: condor >= 8.9.5
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
@@ -129,7 +126,6 @@ This is a package for a glideinwms submit host.
 
 %package libs
 Summary:        The glideinWMS common libraries.
-Group:          System Environment/Daemons
 Requires: condor-python
 Requires: python >= 2.7
 Requires: python-rrdtool
@@ -142,7 +138,6 @@ This package provides common libraries used by glideinwms.
 
 %package glidecondor-tools
 Summary:        Condor tools useful with the glideinWMS.
-Group:          System Environment/Daemons
 Requires: glideinwms-libs = %{version}-%{release}
 %description glidecondor-tools
 This package provides common libraries used by glideinwms.
@@ -150,7 +145,6 @@ This package provides common libraries used by glideinwms.
 
 %package minimal-condor
 Summary:        The VOFrontend minimal condor config
-Group:          System Environment/Daemons
 Provides:       gwms-condor-config
 Requires: glideinwms-condor-common-config = %{version}-%{release}
 %description minimal-condor
@@ -160,7 +154,6 @@ needed for VOFrontend.
 
 %package condor-common-config
 Summary:        Shared condor config files
-Group:          System Environment/Daemons
 %description condor-common-config
 This contains condor config files shared between alternate
 condor config setups (minimal-condor and factory-condor).
@@ -168,7 +161,6 @@ condor config setups (minimal-condor and factory-condor).
 
 %package common-tools
 Summary:        Shared tools
-Group:          System Environment/Daemons
 %description common-tools
 This contains tools common to both the glideinwms factory and vofrontend
 standalone packages.
@@ -176,7 +168,6 @@ standalone packages.
 
 %package factory
 Summary:        The Factory for glideinWMS
-Group:          System Environment/Daemons
 Provides:       GlideinWMSFactory = %{version}-%{release}
 Requires: httpd
 Requires: glideinwms-factory-condor = %{version}-%{release}
@@ -204,7 +195,6 @@ for scheduling and job control.
 
 %package factory-condor
 Summary:        The GWMS Factory condor config
-Group:          System Environment/Daemons
 Provides:       gwms-factory-config
 Requires: glideinwms-condor-common-config = %{version}-%{release}
 %description factory-condor
@@ -286,9 +276,18 @@ rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/build
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/config
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/config_examples
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_rpm_startup
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.editorconfig
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitattributes
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitignore
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitmodules
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.mailmap
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.pep8speaks.yml
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.travis.yml
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/chksum.sh
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/requirements.txt
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/LICENSE
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/README.md
@@ -343,7 +342,6 @@ install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
 install -d $RPM_BUILD_ROOT%{web_dir}/stage/
 install -d $RPM_BUILD_ROOT%{web_dir}/stage/group_main
 install -d $RPM_BUILD_ROOT%{factory_dir}
-install -d $RPM_BUILD_ROOT%{factory_token_dir}
 install -d $RPM_BUILD_ROOT%{factory_web_base}
 install -d $RPM_BUILD_ROOT%{factory_web_dir}
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
@@ -396,13 +394,19 @@ cp -arp creation/web_base/frontend/images $RPM_BUILD_ROOT%{web_dir}/monitor/
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
+install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
+install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
 install -m 0644 creation/templates/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
 install -m 0644 %{SOURCE8} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/sudoers.d
+install -m 0440 creation/templates/99_frontend_sudoers $RPM_BUILD_ROOT/%{_sysconfdir}/sudoers.d/99_frontend_sudoers
 
 # Install the factory config dir
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/plugin.d
+install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.pre
+install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/hooks.reconfig.post
 install -m 0644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/glideinWMS.xml
 install -m 0644 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-factory
 
@@ -721,7 +725,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
 %attr(-, gfactory, gfactory) %{factory_dir}
-%attr(-, gfactory, gfactory) %{factory_token_dir}
 %attr(-, gfactory, gfactory) %dir %{condor_dir}
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory/client
@@ -760,6 +763,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/plugin.d
+%attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.pre
+%attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.post
 %attr(-, gfactory, gfactory) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-factory/glideinWMS.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-factory
 
@@ -784,7 +789,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %{web_dir}
 %attr(-, frontend, frontend) %{web_base}
 %attr(-, frontend, frontend) %{frontend_dir}
-%attr(-, frontend, frontend) %{frontend_token_dir}
+%attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %{python_sitelib}/glideinwms/frontend
 %{python_sitelib}/glideinwms/creation/lib/cvWConsts.py
@@ -809,6 +814,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/check_config_frontend.pyc
 %{python_sitelib}/glideinwms/creation/lib/check_config_frontend.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
+%{python_sitelib}/glideinwms/creation/templates/99_frontend_sudoers
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
 %{python_sitelib}/glideinwms/creation/frontend_condortoken
 %if 0%{?rhel} >= 7
@@ -822,8 +828,12 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
+%config(noreplace) %{_sysconfdir}/sudoers.d/99_frontend_sudoers
+%attr(-, root, root) %{_sysconfdir}/sudoers.d/99_frontend_sudoers
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
+%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
+%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 %attr(-, frontend, frontend) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-frontend/frontend.xml
 %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
@@ -870,6 +880,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Mon Aug 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.3-1
+- GlideinWMS v3.6.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_6_3/history.html
+- Release candidates: 3.6.3-0.1.rc1 to 3.6.3-0.3.rc3
+
 * Fri Apr 3 2020 Marco Mambelli <marcom@fnal.gov> - 3.7-1
 - GlideinWMS v3.7
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7/history.html

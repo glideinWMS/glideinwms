@@ -39,7 +39,7 @@ class Release:
                 self.rpmbuildDir, 'SRPMS',
                 'glideinwms-%s-%s.%s%s.src.rpm' % (self.rpmVersion,
                 self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]))
-            self.buildRPMs = True
+            self.buildRPMs = bool(which('rpmbuild'))
         except:
             print('RPMs will not be build for this platform')
 
@@ -226,28 +226,6 @@ class TaskTar(TaskRelease):
         execute_cmd(cmd)
         self.status = 'COMPLETE'
     #   execute
-
-
-class TaskFrontendTar(TaskTar):
-
-    def __init__(self, rel):
-        TaskTar.__init__(self, rel)
-        self.name = 'FrontendTar'
-        self.releaseFilename = 'glideinWMS_%s_frontend.tgz' % self.release.version
-        self.excludePattern = self.excludes.frontendPattern
-
-    #   __init__
-
-
-class TaskFactoryTar(TaskTar):
-
-    def __init__(self, rel):
-        TaskTar.__init__(self, rel)
-        self.name = 'FactoryTar'
-        self.releaseFilename = 'glideinWMS_%s_factory.tgz' % self.release.version
-        self.excludePattern = self.excludes.factoryPattern
-
-    #   __init__
 
 
 class TaskVersionFile(TaskRelease):

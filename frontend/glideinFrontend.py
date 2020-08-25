@@ -26,9 +26,6 @@ import time
 import shutil
 import logging
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../.."))
-
 from glideinwms.lib import condorExe
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
@@ -39,8 +36,7 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.frontend.glideinFrontendElement import glideinFrontendElement
-FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
+from glideinwms.frontend import glideinFrontendElement
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
 def aggregate_stats():
@@ -80,11 +76,9 @@ class FailureCounter:
         
 ############################################################
 def spawn_group(work_dir, group_name, action):
-    global STARTUP_DIR
 
     command_list = [sys.executable,
-                    os.path.join(STARTUP_DIR,
-                                 "glideinFrontendElement.py"),
+                    glideinFrontendElement.__file__,
                     str(os.getpid()),
                     work_dir,
                     group_name,
@@ -196,11 +190,14 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
             frontendDescript.data['FrontendName'], ','.join(groups),
             glideinFrontendLib.getHAMode(frontendDescript.data))
         try:
+            # pylint: disable=E1136
+            #  (unsubscriptable-object, false positive)
             idle_jobs = {
                 'Total': stats['total']['Jobs']['Idle'],
                 '600': stats['total']['Jobs']['OldIdle'],
                 '3600': stats['total']['Jobs']['Idle_3600'],
             }
+            # pylint: enable=E1136
         except KeyError as err:
             idle_jobs = {'Total': 0, '600': 0, '3600': 0}
             logSupport.log.error("Error in RRD Database. Setting idle_jobs[%s] Failed. Reconfig the frontend with -fix_rrd to fix this error" % (err.message,))
@@ -266,7 +263,6 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         
 ############################################################
 def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
-    global STARTUP_DIR
 
     # Invalidate glidefrontendmonitor classad
     try:
@@ -281,8 +277,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
     for group_name in groups:
         try:
             command_list = [sys.executable,
-                            os.path.join(STARTUP_DIR,
-                                         "glideinFrontendElement.py"),
+                            glideinFrontendElement.__file__,
                             str(os.getpid()),
                             work_dir,
                             group_name,
@@ -412,8 +407,9 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
         master_frontend_name = str(ha.get('ha_frontends')[0].get('frontend_name'))
 
         for group in groups:
-            element = glideinFrontendElement(os.getpid(), work_dir,
-                                             group, "run")
+            element = glideinFrontendElement.glideinFrontendElement(
+                os.getpid(), work_dir, group, "run"
+            )
             # Set environment required to query factory collector
             set_frontend_htcondor_env(work_dir, frontendDescript, element)
 
@@ -470,8 +466,9 @@ def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
     groups = frontendDescript.data['Groups'].split(',')
     if groups:
         if element is None:
-            element = glideinFrontendElement(os.getpid(), work_dir,
-                                             groups[0], "run")
+            element = glideinFrontendElement.glideinFrontendElement(
+                os.getpid(), work_dir, groups[0], "run"
+            )
         htc_env = {
             'CONDOR_CONFIG': frontendDescript.data['CondorConfig'],
             'X509_USER_PROXY': frontendDescript.data['ClassAdProxy'],
@@ -591,7 +588,10 @@ def main(work_dir, action):
         except HUPException:
             logSupport.log.info("Received SIGHUP, reload config")
             pid_obj.relinquish()
-            os.execv( os.path.join(FRONTEND_DIR, "../creation/reconfig_frontend"), ['reconfig_frontend', '-sighupreload', '-xml', '/etc/gwms-frontend/frontend.xml'] )
+            os.execv(
+                os.path.join(glideinFrontendLib.__file__, "../creation/reconfig_frontend"),
+                ['reconfig_frontend', '-sighupreload', '-xml', '/etc/gwms-frontend/frontend.xml']
+            )
         except:
             logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
