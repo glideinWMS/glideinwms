@@ -1,4 +1,3 @@
-
 #
 # Project:
 #   glideinWMS
@@ -31,24 +30,25 @@ class DictFile:
     Comments start w/ '#' at the beginning of the line
     Empty lines are nor tolerated by the parser in the glidein (bash)
     """
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
-                 fname_idx=None):      # if none, use fname
-        self.dir=dir
-        self.fname=fname
+
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False,
+                 fname_idx=None):  # if none, use fname
+        self.dir = dir
+        self.fname = fname
         if fname_idx is None:
-            fname_idx=fname
-        self.fname_idx=fname_idx
+            fname_idx = fname
+        self.fname_idx = fname_idx
 
         if sort_keys and order_matters:
             raise RuntimeError("Cannot preserve the order and sort the keys")
-        self.sort_keys=sort_keys
-        self.order_matters=order_matters
+        self.sort_keys = sort_keys
+        self.order_matters = order_matters
 
-        self.is_readonly=False
-        self.changed=True
+        self.is_readonly = False
+        self.changed = True
 
-        self.keys=[]
-        self.vals={}
+        self.keys = []
+        self.vals = {}
 
     def has_key(self, key):
         return key in self.keys
@@ -69,12 +69,12 @@ class DictFile:
         return os.path.join(self.dir, self.fname)
 
     def erase(self):
-        self.keys=[]
-        self.vals={}
-        self.changed=True
+        self.keys = []
+        self.vals = {}
+        self.changed = True
 
-    def set_readonly(self,readonly=True):
-        self.is_readonly=readonly
+    def set_readonly(self, readonly=True):
+        self.is_readonly = readonly
 
     def add(self, key, val, allow_overwrite=False):
         """
@@ -110,39 +110,40 @@ class DictFile:
         self.vals[key] = val
         self.changed = True
 
-    def remove(self,key,fail_if_missing=False):
+    def remove(self, key, fail_if_missing=False):
         if not (key in self.keys):
             if not fail_if_missing:
-                raise RuntimeError("Key '%s' does not exist"%key)
+                raise RuntimeError("Key '%s' does not exist" % key)
             else:
-                return # nothing to do
+                return  # nothing to do
 
         self.keys.remove(key)
         del self.vals[key]
-        self.changed=True
+        self.changed = True
 
-    def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
-             sort_keys=None,set_readonly=True,reset_changed=True,
+    def save(self, dir=None, fname=None,
+             # if dir and/or fname are not specified, use the defaults specified in __init__
+             sort_keys=None, set_readonly=True, reset_changed=True,
              save_only_if_changed=True,
              want_comments=True):
         if save_only_if_changed and (not self.changed):
             return  # no change -> don't save
 
         if dir is None:
-            dir=self.dir
+            dir = self.dir
         if fname is None:
-            fname=self.fname
+            fname = self.fname
         if sort_keys is None:
-            sort_keys=self.sort_keys
+            sort_keys = self.sort_keys
 
         if not os.path.exists(dir):
             os.makedirs(dir)
-        filepath=os.path.join(dir, fname)
+        filepath = os.path.join(dir, fname)
         try:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
+            raise RuntimeError("Error creating or writing to %s: %s" % (filepath, e))
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -155,48 +156,50 @@ class DictFile:
         return
 
     def save_into_fd(self, fd,
-                     sort_keys=None,set_readonly=True,reset_changed=True,
+                     sort_keys=None, set_readonly=True, reset_changed=True,
                      want_comments=True):
         if sort_keys is None:
-            sort_keys=self.sort_keys
+            sort_keys = self.sort_keys
 
-        header=self.file_header(want_comments)
+        header = self.file_header(want_comments)
         if header is not None:
-            fd.write(b"%s\n"%header.encode('utf-8'))
+            fd.write(b"%s\n" % header.encode('utf-8'))
         if sort_keys:
-            keys=sorted(self.keys[0:])  # makes a copy
+            keys = sorted(self.keys[0:])  # makes a copy
         else:
-            keys=self.keys
+            keys = self.keys
         for k in keys:
             val = self.format_val(k, want_comments)
             if type(val) == str:
                 val = val.encode('utf-8')
             fd.write(b"%s\n" % val)
-        footer=self.file_footer(want_comments)
+        footer = self.file_footer(want_comments)
         if footer is not None:
-            fd.write(b"%s\n"%footer.encode('utf-8'))
+            # noinspection PyUnresolvedReferences
+            fd.write(b"%s\n" % footer.encode('utf-8'))  # pylint: disable=assignment-from-none
 
         if set_readonly:
             self.set_readonly(True)
 
         if reset_changed:
-            self.changed=False
+            self.changed = False
         return
 
     def save_into_str(self,
-                      sort_keys=None,set_readonly=True,reset_changed=True,
+                      sort_keys=None, set_readonly=True, reset_changed=True,
                       want_comments=True):
-        fd=io.BytesIO()
+        fd = io.BytesIO()
         self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         fd.seek(0)
-        data=fd.read()
+        data = fd.read()
         fd.close()
         return data
 
     def load(self, dir=None, fname=None,
-             change_self=True,        # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
-             erase_first=True,        # if True, delete old content first
-             set_not_changed=True):   # if True, set self.changed to False
+             change_self=True,
+             # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
+             erase_first=True,  # if True, delete old content first
+             set_not_changed=True):  # if True, set self.changed to False
         if dir is None:
             dir = self.dir
         if fname is None:
@@ -222,8 +225,8 @@ class DictFile:
         return
 
     def load_from_fd(self, fd,
-                     erase_first=True,        # if True, delete old content first
-                     set_not_changed=True):   # if True, set self.changed to False
+                     erase_first=True,  # if True, delete old content first
+                     set_not_changed=True):  # if True, set self.changed to False
         if erase_first:
             self.erase()
 
@@ -245,8 +248,8 @@ class DictFile:
         return
 
     def load_from_str(self, data,
-                      erase_first=True,        # if True, delete old content first
-                      set_not_changed=True):   # if True, set self.changed to False
+                      erase_first=True,  # if True, delete old content first
+                      set_not_changed=True):  # if True, set self.changed to False
         fd = io.BytesIO()
         # TODO: there may be an optimization here adding a load_from_strfd() method to avoid the encode+decode steps
         fd.write(data.encode('utf-8'))
@@ -258,7 +261,7 @@ class DictFile:
         fd.close()
         return
 
-    def is_equal(self, other,         # other must be of the same class
+    def is_equal(self, other,  # other must be of the same class
                  compare_dir=False, compare_fname=False,
                  compare_keys=None):  # if None, use order_matters
         if compare_dir and (self.dir != other.dir):
@@ -318,6 +321,7 @@ class DictFile:
 class DictFileTwoKeys(DictFile):
     """DictFile double keyed: both key and val are keys
     """
+
     def __init__(self, dir, fname, sort_keys=False, order_matters=False,
                  fname_idx=None):
         """constructor
@@ -464,7 +468,7 @@ class GridMapDict(DictFileTwoKeys):
     def parse_val(self, line):
         if not line or line[0] == '#':
             return  # ignore comments
-        arr=line.split()
+        arr = line.split()
         if len(arr) == 0:
             return  # empty line
         if len(arr[0]) == 0:
@@ -475,10 +479,10 @@ class GridMapDict(DictFileTwoKeys):
 
         user = arr[-1]
 
-        if line[-len(user)-2:-len(user)-1] != '"':
+        if line[-len(user) - 2:-len(user) - 1] != '"':
             raise RuntimeError('Not a valid gridmap line; DN not ending with ": %s' % line)
 
-        dn = line[1:-len(user)-2]
+        dn = line[1:-len(user) - 2]
         return self.add(dn, user)
 
 
@@ -487,20 +491,20 @@ class GridMapDict(DictFileTwoKeys):
 class SHA1DictFile(DictFile):
     def add_from_file(self,filepath,allow_overwrite=False,
                       key=None): # if key==None, use basefname
-        sha1=hashCrypto.extract_sha1(filepath).decode("utf-8")
+        sha1 = hashCrypto.extract_sha1(filepath).decode("utf-8")
         if key is None:
-            key=os.path.basename(filepath)
+            key = os.path.basename(filepath)
         self.add(key, sha1, allow_overwrite)
 
     def format_val(self, key, want_comments):
-        return "%s  %s"%(self.vals[key], key)
+        return "%s  %s" % (self.vals[key], key)
 
     def parse_val(self, line):
-        if not line or line[0]=='#':
-            return # ignore comments
-        arr=line.split(None, 1)
-        if len(arr)!=2:
-            raise RuntimeError("Not a valid SHA1 line: '%s'"%line)
+        if not line or line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 1)
+        if len(arr) != 2:
+            raise RuntimeError("Not a valid SHA1 line: '%s'" % line)
 
         return self.add(arr[1], arr[0])
 
@@ -508,35 +512,36 @@ class SHA1DictFile(DictFile):
 # summary signatures
 # values are (sha1,fname2)
 class SummarySHA1DictFile(DictFile):
-    def add(self,key,val,allow_overwrite=False):
+    def add(self, key, val, allow_overwrite=False):
         if not (type(val) in (type(()), type([]))):
-            raise RuntimeError("Values '%s' not a list or tuple"%val)
-        if len(val)!=2:
-            raise RuntimeError("Values '%s' not (sha1,fname)"%val)
+            raise RuntimeError("Values '%s' not a list or tuple" % val)
+        if len(val) != 2:
+            raise RuntimeError("Values '%s' not (sha1,fname)" % val)
         return DictFile.add(self, key, val, allow_overwrite)
 
-    def add_from_file(self,filepath,
-                      fname2=None, # if fname2==None, use basefname
+    def add_from_file(self, filepath,
+                      fname2=None,  # if fname2==None, use basefname
                       allow_overwrite=False,
                       key=None):   # if key==None, use basefname
-        sha1=hashCrypto.extract_sha1(filepath).decode("utf-8")
+        sha1 = hashCrypto.extract_sha1(filepath).decode("utf-8")
         if key is None:
-            key=os.path.basename(filepath)
+            key = os.path.basename(filepath)
         if fname2 is None:
-            fname2=os.path.basename(filepath)
+            fname2 = os.path.basename(filepath)
         DictFile.add(self, key, (sha1, fname2), allow_overwrite)
 
     def format_val(self, key, want_comments):
-        return "%s  %s  %s"%(self.vals[key][0], self.vals[key][1], key)
+        return "%s  %s  %s" % (self.vals[key][0], self.vals[key][1], key)
 
     def parse_val(self, line):
-        if not line or line[0]=='#':
-            return # ignore comments
-        arr=line.split(None, 2)
-        if len(arr)!=3:
-            raise RuntimeError("Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line))
+        if not line or line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 2)
+        if len(arr) != 3:
+            raise RuntimeError(
+                "Not a valid summary signature line (expected 4, found %i elements): '%s'" % (len(arr), line))
 
-        key=arr[2]
+        key = arr[2]
         return self.add(key, (arr[0], arr[1]))
 
 
@@ -551,6 +556,7 @@ class SimpleFileDictFile(DictFile):
     Only the file name and the first element of the value are saved in the dictionary file (serialized dictionary).
     SimpleFileDictFile is used for file lists.
     """
+
     def get_immutable_files(self):
         return self.keys  # keys are files, and all are immutable in this implementation
 
@@ -584,7 +590,7 @@ class SimpleFileDictFile(DictFile):
         if not (type(val) in (type(()), type([]))):
             DictFile.add(self, key, (val, data), allow_overwrite)
         else:
-            DictFile.add(self, key, tuple(val)+(data,), allow_overwrite)
+            DictFile.add(self, key, tuple(val) + (data,), allow_overwrite)
 
     def add_from_str(self, key, val, data, allow_overwrite=False):
         """Add an entry to the dictionary, parameters and content are both available
@@ -748,9 +754,9 @@ class FileDictFile(SimpleFileDictFile):
         return self.val_to_file_name(self.vals[key])
 
     def add_from_bytes(self, key, val,
-                     data,
-                     allow_overwrite=False,
-                     allow_overwrite_placeholder=True):
+                       data,
+                       allow_overwrite=False,
+                       allow_overwrite_placeholder=True):
 
         if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
@@ -770,7 +776,7 @@ class FileDictFile(SimpleFileDictFile):
         return SimpleFileDictFile.add_from_str(self, key, val, data, allow_overwrite)
 
     def add(self, key,
-            val,     # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
+            val,  # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
             allow_overwrite=False,
             allow_overwrite_placeholder=True):
         """Add a file to the list
@@ -802,11 +808,12 @@ class FileDictFile(SimpleFileDictFile):
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
             return DictFile.add(self, key, tuple(val), allow_overwrite)
-        elif len(val) == self.DATA_LENGTH-1:
+        elif len(val) == self.DATA_LENGTH - 1:
             # Added a safety check that the last element is an attribute and not the value
             # Maybe check also string length or possible values?
             if '\n' in val[-1]:
-                raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+                raise RuntimeError(
+                    "Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
@@ -820,7 +827,7 @@ class FileDictFile(SimpleFileDictFile):
             return (DictFile.file_header(self, want_comments) + "\n" +
                     ("# %s \t%s \t%s \t%s \t%s \t%s \t%s\n" %
                      ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut')) +
-                    ("#"*89))
+                    ("#" * 89))
         else:
             return None
 
@@ -833,7 +840,7 @@ class FileDictFile(SimpleFileDictFile):
         """
         if not line or line[0] == '#':
             return  # ignore empty lines and comments
-        arr = line.split(None, self.DATA_LENGTH-1)  # split already eliminates multiple spaces (no need for strip)
+        arr = line.split(None, self.DATA_LENGTH - 1)  # split already eliminates multiple spaces (no need for strip)
         if len(arr) == 0:
             return  # empty line (only separators)
         if len(arr[0]) == 0:
@@ -844,10 +851,10 @@ class FileDictFile(SimpleFileDictFile):
             # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
             # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
             # TODO: remove in 3.3 or after a few version (will break upgrade)
-            if len(arr) == self.DATA_LENGTH-1:
+            if len(arr) == self.DATA_LENGTH - 1:
                 # For upgrade from 3.2.13 to 3.2.11
                 return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
-            elif len(arr) == self.DATA_LENGTH-2:
+            elif len(arr) == self.DATA_LENGTH - 2:
                 # For upgrade from 3.2.10 or earlier
                 return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
             raise RuntimeError("Not a valid file line (expected %i, found %i elements): '%s'" %
@@ -902,26 +909,26 @@ class FileDictFile(SimpleFileDictFile):
 #   given that it does not call any parent methods, implement an interface first
 class ReprDictFileInterface:
     def format_val(self, key, want_comments):
-        return "%s \t%s"%(key, repr(self.vals[key]))
+        return "%s \t%s" % (key, repr(self.vals[key]))
 
     def parse_val(self, line):
-        if not line or line[0]=='#':
-            return # ignore comments
-        arr=line.split(None, 1)
-        if len(arr[0])==0:
-            return # empty key
+        if not line or line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 1)
+        if len(arr[0]) == 0:
+            return  # empty key
 
-        key=arr[0]
-        if len(arr)==1:
-            val=''
+        key = arr[0]
+        if len(arr) == 1:
+            val = ''
         else:
-            val=arr[1]
+            val = arr[1]
         return self.add(key, eval(val))
 
     # fake init to make pylint happy
     def interface_fake_init(self):
-        self.vals={}
-        self.add=lambda x, y:True
+        self.vals = {}
+        self.add = lambda x, y: True
         raise NotImplementedError("This function must never be called")
 
 
@@ -946,7 +953,7 @@ class StrWWorkTypeDictFile(StrDictFile):
     """
 
     def __init__(self, dir, fname, sort_keys=False, order_matters=False,
-                 fname_idx=None):      # if none, use fname
+                 fname_idx=None):  # if none, use fname
         StrDictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
         self.typed_vals = {}
 
@@ -972,14 +979,15 @@ class VarsDictFile(DictFile):
     """
 
     def is_compatible(self, old_val, new_val):
-        return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
+        return ((old_val[0] == new_val[0]) and (
+            old_val[4] == new_val[4]))  # at least the type and the export must be preserved
 
     def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self, want_comments)+"\n"+
-                    "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
-                    "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
-                    "#                                                                                                + = Use VarName   \n"+
+            return (DictFile.file_header(self, want_comments) + "\n" +
+                    "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n" +
+                    "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n" +
+                    "#                                                                                                + = Use VarName   \n" +
                     "#                                                                                                @ = Use CondorName\n"
                     "###################################################################################################################")
         else:
@@ -999,14 +1007,14 @@ class VarsDictFile(DictFile):
         return DictFile.add(self, key, val, allow_overwrite)
 
     # valid types are "string", "expr" and "integer" (anything different from the first 2 strings is considered integer)
-    def add_extended(self,key,
+    def add_extended(self, key,
                      type,
                      val_default,  # None or False==No default (i.e. -)
                      condor_name,  # if None or false, Varname (i.e. +)
                      required,
                      export_condor,
-                     user_name,    # If None or false, do not export (i.e. -)
-                                   # if True, set to VarName (i.e. +)
+                     user_name,  # If None or false, do not export (i.e. -)
+                     # if True, set to VarName (i.e. +)
                      allow_overwrite=0):
         if type == "string":
             type_str = 'S'
@@ -1045,7 +1053,7 @@ class VarsDictFile(DictFile):
     def parse_val(self, line):
         if not line or line[0] == '#':
             return  # ignore comments
-        arr=line.split(None, 6)
+        arr = line.split(None, 6)
         if len(arr) == 0:
             return  # empty line
         if len(arr) != 7:
@@ -1073,11 +1081,11 @@ class SimpleFile(DictFile):
         if key == 'content':
             return self.vals[key]
         else:
-            raise RuntimeError("Invalid key '%s'!='content'"%key)
+            raise RuntimeError("Invalid key '%s'!='content'" % key)
 
     def load_from_fd(self, fd,
-                     erase_first=True,        # if True, delete old content first
-                     set_not_changed=True):   # if True, set self.changed to False
+                     erase_first=True,  # if True, delete old content first
+                     set_not_changed=True):  # if True, set self.changed to False
         if erase_first:
             self.erase()
 
@@ -1105,27 +1113,27 @@ class ExeFile(SimpleFile):
     When saving the content to the file, it will make it executable
     """
 
-    def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
-             sort_keys=None,set_readonly=True,reset_changed=True,
+    def save(self, dir=None, fname=None,
+             # if dir and/or fname are not specified, use the defaults specified in __init__
+             sort_keys=None, set_readonly=True, reset_changed=True,
              save_only_if_changed=True,
              want_comments=True):
         if save_only_if_changed and (not self.changed):
             return  # no change -> don't save
 
         if dir is None:
-            dir=self.dir
+            dir = self.dir
         if fname is None:
-            fname=self.fname
+            fname = self.fname
         if sort_keys is None:
-            sort_keys=self.sort_keys
+            sort_keys = self.sort_keys
 
-
-        filepath=os.path.join(dir, fname)
+        filepath = os.path.join(dir, fname)
         try:
             with open(filepath, "wb") as fd:
                 self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         except IOError as e:
-            raise RuntimeError("Error creating or writing to %s: %s"%(filepath, e))
+            raise RuntimeError("Error creating or writing to %s: %s" % (filepath, e))
         os.chmod(filepath, 0o755)
 
         return
@@ -1141,7 +1149,7 @@ class dirSupport:
     """abstract class for a directory creation
     """
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         """Create the directory
 
         Args:
@@ -1168,20 +1176,20 @@ class simpleDirSupport(dirSupport):
             dir: the path of the directory
             dir_name: name of the directory to be used in error messages
         """
-        self.dir=dir
-        self.dir_name=dir_name
+        self.dir = dir
+        self.dir_name = dir_name
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError("Cannot create %s dir %s, already exists."%(self.dir_name, self.dir))
+                raise RuntimeError("Cannot create %s dir %s, already exists." % (self.dir_name, self.dir))
             else:
-                return False # already exists, nothing to do
+                return False  # already exists, nothing to do
 
         try:
             os.mkdir(self.dir)
         except OSError as e:
-            raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
+            raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
         return True
 
     def delete_dir(self):
@@ -1191,19 +1199,19 @@ class simpleDirSupport(dirSupport):
 class chmodDirSupport(simpleDirSupport):
     def __init__(self, dir, chmod, dir_name):
         simpleDirSupport.__init__(self, dir, dir_name)
-        self.chmod=chmod
+        self.chmod = chmod
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError("Cannot create %s dir %s, already exists."%(self.dir_name, self.dir))
+                raise RuntimeError("Cannot create %s dir %s, already exists." % (self.dir_name, self.dir))
             else:
-                return False # already exists, nothing to do
+                return False  # already exists, nothing to do
 
         try:
             os.mkdir(self.dir, self.chmod)
         except OSError as e:
-            raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
+            raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
         return True
 
 
@@ -1211,40 +1219,41 @@ class symlinkSupport(dirSupport):
     """Symlink to a directory"""
 
     def __init__(self, target_dir, symlink, dir_name):
-        self.target_dir=target_dir
-        self.symlink=symlink
-        self.dir_name=dir_name
+        self.target_dir = target_dir
+        self.symlink = symlink
+        self.dir_name = dir_name
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         if os.path.islink(self.symlink):
             if fail_if_exists:
-                raise RuntimeError("Cannot create %s symlink %s, already exists."%(self.dir_name, self.symlink))
+                raise RuntimeError("Cannot create %s symlink %s, already exists." % (self.dir_name, self.symlink))
             else:
-                return False # already exists, nothing to do
+                return False  # already exists, nothing to do
 
         try:
             os.symlink(self.target_dir, self.symlink)
         except OSError as e:
-            raise RuntimeError("Failed to create %s symlink: %s"%(self.dir_name, e))
+            raise RuntimeError("Failed to create %s symlink: %s" % (self.dir_name, e))
         return True
 
     def delete_dir(self):
         os.unlink(self.symlink)
 
+
 # class for many directory creation
 class dirsSupport:
     def __init__(self):
-        self.dir_list=[]
+        self.dir_list = []
 
     # dir obj must support create_dir and delete_dir
     def add_dir_obj(self, dir_obj):
         self.dir_list.append(dir_obj)
 
-    def create_dirs(self,fail_if_exists=True):
-        created_dirs=[]
+    def create_dirs(self, fail_if_exists=True):
+        created_dirs = []
         try:
             for dir_obj in self.dir_list:
-                res=dir_obj.create_dir(fail_if_exists)
+                res = dir_obj.create_dir(fail_if_exists)
                 if res:
                     created_dirs.append(dir_obj)
         except:
@@ -1255,29 +1264,31 @@ class dirsSupport:
             # then rethrow exception
             raise
 
-        return len(created_dirs)!=0
+        return len(created_dirs) != 0
 
     def delete_dirs(self):
-        idxs=list(range(len(self.dir_list)))
+        idxs = list(range(len(self.dir_list)))
         idxs.reverse()
         for i in idxs:
             self.dir_list[i].delete_dir()
+
 
 # multiple simple dirs
 class multiSimpleDirSupport(dirSupport, dirsSupport):
     def __init__(self, list_of_dirs, dir_name):
         dirsSupport.__init__(self)
-        self.list_of_dirs=list_of_dirs
-        self.dir_name=dir_name
+        self.list_of_dirs = list_of_dirs
+        self.dir_name = dir_name
 
         for dir in list_of_dirs:
             self.add_dir_obj(simpleDirSupport(dir, self.dir_name))
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
 
     def delete_dir(self):
         self.delete_dirs()
+
 
 ###########################################
 
@@ -1287,45 +1298,52 @@ class workDirSupport(multiSimpleDirSupport):
                                        (work_dir, os.path.join(work_dir, 'lock')),
                                        workdir_name)
 
+
 # similar to workDirSupport but without lock subdir
 class simpleWorkDirSupport(simpleDirSupport):
     pass
 
+
 class logDirSupport(simpleDirSupport):
-    def __init__(self,log_dir,dir_name='log'):
+    def __init__(self, log_dir, dir_name='log'):
         simpleDirSupport.__init__(self, log_dir, dir_name)
 
+
 class logSymlinkSupport(symlinkSupport):
-    def __init__(self,log_dir,work_dir,symlink_subdir='log',dir_name='log'):
+    def __init__(self, log_dir, work_dir, symlink_subdir='log', dir_name='log'):
         symlinkSupport.__init__(self, log_dir, os.path.join(work_dir, symlink_subdir), dir_name)
 
+
 class stageDirSupport(simpleDirSupport):
-    def __init__(self,stage_dir,dir_name='stage'):
+    def __init__(self, stage_dir, dir_name='stage'):
         simpleDirSupport.__init__(self, stage_dir, dir_name)
 
+
 class monitorDirSupport(dirSupport, dirsSupport):
-    def __init__(self,monitor_dir,dir_name="monitor"):
+    def __init__(self, monitor_dir, dir_name="monitor"):
         dirsSupport.__init__(self)
 
-        self.dir_name=dir_name
-        self.monitor_dir=monitor_dir
+        self.dir_name = dir_name
+        self.monitor_dir = monitor_dir
         self.add_dir_obj(simpleDirSupport(self.monitor_dir, self.dir_name))
         self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir, 'lock'), self.dir_name))
 
-    def create_dir(self,fail_if_exists=True):
+    def create_dir(self, fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
 
     def delete_dir(self):
         self.delete_dirs()
 
+
 class monitorWLinkDirSupport(monitorDirSupport):
-    def __init__(self,monitor_dir,work_dir,work_subdir="monitor",monitordir_name="monitor"):
+    def __init__(self, monitor_dir, work_dir, work_subdir="monitor", monitordir_name="monitor"):
         monitorDirSupport.__init__(self, monitor_dir, monitordir_name)
 
-        self.work_dir=work_dir
-        self.monitor_symlink=os.path.join(self.work_dir, work_subdir)
+        self.work_dir = work_dir
+        self.monitor_symlink = os.path.join(self.work_dir, work_subdir)
 
         self.add_dir_obj(symlinkSupport(self.monitor_dir, self.monitor_symlink, self.dir_name))
+
 
 ################################################
 #
@@ -1351,14 +1369,15 @@ class fileCommonDicts:
     def __getitem__(self, key):
         return self.dicts[key]
 
-    def set_readonly(self,readonly=True):
+    def set_readonly(self, readonly=True):
         for el in list(self.dicts.values()):
-            #condor_jdl are lists. Iterating over its elements in this case
+            # condor_jdl are lists. Iterating over its elements in this case
             if isinstance(el, list):
                 for cj in el:
                     cj.set_readonly(readonly)
             else:
                 el.set_readonly(readonly)
+
 
 ################################################
 #
@@ -1368,10 +1387,10 @@ class fileCommonDicts:
 
 class fileMainDicts(fileCommonDicts, dirsSupport):
     def __init__(self,
-                 work_dir,stage_dir,
+                 work_dir, stage_dir,
                  workdir_name,
-                 simple_work_dir=False,     # if True, do not create the lib and lock work_dir subdirs
-                 log_dir=None):             # used only if simple_work_dir=False
+                 simple_work_dir=False,  # if True, do not create the lib and lock work_dir subdirs
+                 log_dir=None):  # used only if simple_work_dir=False
 
         self.active_sub_list = []
         self.disabled_sub_list = []
@@ -1380,16 +1399,16 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
-        self.work_dir=work_dir
-        self.stage_dir=stage_dir
-        self.workdir_name=workdir_name
+        self.work_dir = work_dir
+        self.stage_dir = stage_dir
+        self.workdir_name = workdir_name
 
-        self.simple_work_dir=simple_work_dir
+        self.simple_work_dir = simple_work_dir
         if simple_work_dir:
-            self.log_dir=None
+            self.log_dir = None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir, self.workdir_name))
         else:
-            self.log_dir=log_dir
+            self.log_dir = log_dir
             self.add_dir_obj(workDirSupport(self.work_dir, self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir))
             # make it easier to find; create a symlink in work
@@ -1402,11 +1421,11 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 
         self.erase()
 
-    def get_summary_signature(self): # you can discover most of the other things from this
+    def get_summary_signature(self):  # you can discover most of the other things from this
         return self.dicts['summary_signature']
 
     def erase(self):
-        self.dicts=self.get_main_dicts()
+        self.dicts = self.get_main_dicts()
 
     def populate(self, params=None):
         raise NotImplementedError("populate() not implemented in child!")
@@ -1416,15 +1435,15 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         raise RuntimeError("Undefined")
 
     # child must overwrite this
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         raise RuntimeError("Undefined")
 
-    def is_equal(self,other,             # other must be of the same class
-                 compare_work_dir=False,compare_stage_dir=False,
+    def is_equal(self, other,  # other must be of the same class
+                 compare_work_dir=False, compare_stage_dir=False,
                  compare_fnames=False):
-        if compare_work_dir and (self.work_dir!=other.work_dir):
+        if compare_work_dir and (self.work_dir != other.work_dir):
             return False
-        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
+        if compare_stage_dir and (self.stage_dir != other.stage_dir):
             return False
         for k in list(self.dicts.keys()):
             if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
@@ -1432,12 +1451,13 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         return True
 
     # reuse as much of the other as possible
-    def reuse(self, other):             # other must be of the same class
-        if self.work_dir!=other.work_dir:
-            raise RuntimeError("Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir))
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError("Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir))
-        return # nothing else to be done in this
+    def reuse(self, other):  # other must be of the same class
+        if self.work_dir != other.work_dir:
+            raise RuntimeError(
+                "Cannot change main %s base_dir! '%s'!='%s'" % (self.workdir_name, self.work_dir, other.work_dir))
+        if self.stage_dir != other.stage_dir:
+            raise RuntimeError("Cannot change main stage base_dir! '%s'!='%s'" % (self.stage_dir, other.stage_dir))
+        return  # nothing else to be done in this
 
     ####################
     # Internal
@@ -1451,6 +1471,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
     def get_main_dicts(self):
         raise RuntimeError("Undefined")
 
+
 ################################################
 #
 # This Class contains the sub dicts
@@ -1458,55 +1479,55 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 ################################################
 
 class fileSubDicts(fileCommonDicts, dirsSupport):
-    def __init__(self,base_work_dir,base_stage_dir,sub_name,
-                 summary_signature,workdir_name,
-                 simple_work_dir=False,           # if True, do not create the lib and lock work_dir subdirs
-                 base_log_dir=None):              # used only if simple_work_dir=False
+    def __init__(self, base_work_dir, base_stage_dir, sub_name,
+                 summary_signature, workdir_name,
+                 simple_work_dir=False,  # if True, do not create the lib and lock work_dir subdirs
+                 base_log_dir=None):  # used only if simple_work_dir=False
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
-        self.sub_name=sub_name
+        self.sub_name = sub_name
 
-        work_dir=self.get_sub_work_dir(base_work_dir)
-        stage_dir=self.get_sub_stage_dir(base_stage_dir)
+        work_dir = self.get_sub_work_dir(base_work_dir)
+        stage_dir = self.get_sub_stage_dir(base_stage_dir)
 
-        self.work_dir=work_dir
-        self.stage_dir=stage_dir
-        self.workdir_name=workdir_name
+        self.work_dir = work_dir
+        self.stage_dir = stage_dir
+        self.workdir_name = workdir_name
 
-        self.simple_work_dir=simple_work_dir
+        self.simple_work_dir = simple_work_dir
         if simple_work_dir:
-            self.log_dir=None
+            self.log_dir = None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir, self.workdir_name))
         else:
-            self.log_dir=self.get_sub_log_dir(base_log_dir)
+            self.log_dir = self.get_sub_log_dir(base_log_dir)
             self.add_dir_obj(workDirSupport(self.work_dir, self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir))
 
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
-        self.summary_signature=summary_signature
+        self.summary_signature = summary_signature
         self.erase()
 
     def erase(self):
-        self.dicts=self.get_sub_dicts()
+        self.dicts = self.get_sub_dicts()
 
     # child must overwrite this
     def load(self):
         raise ValueError("Undefined")
 
     # child must overwrite this
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         raise ValueError("Undefined")
 
     # child can overwrite this
-    def save_final(self,set_readonly=True):
-        pass # not always needed, use default of empty
+    def save_final(self, set_readonly=True):
+        pass  # not always needed, use default of empty
 
-    def is_equal(self,other,             # other must be of the same class
+    def is_equal(self, other,  # other must be of the same class
                  compare_sub_name=False,
                  compare_fnames=False):
-        if compare_sub_name and (self.sub_name!=other.sub_name):
+        if compare_sub_name and (self.sub_name != other.sub_name):
             return False
         for k in list(self.dicts.keys()):
             if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
@@ -1514,14 +1535,14 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
         return True
 
     # reuse as much of the other as possible
-    def reuse(self, other):             # other must be of the same class
-        if self.work_dir!=other.work_dir:
-            raise RuntimeError("Cannot change sub %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir))
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError("Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir))
+    def reuse(self, other):  # other must be of the same class
+        if self.work_dir != other.work_dir:
+            raise RuntimeError(
+                "Cannot change sub %s base_dir! '%s'!='%s'" % (self.workdir_name, self.work_dir, other.work_dir))
+        if self.stage_dir != other.stage_dir:
+            raise RuntimeError("Cannot change sub stage base_dir! '%s'!='%s'" % (self.stage_dir, other.stage_dir))
 
-        return # nothing more to be done here
-
+        return  # nothing more to be done here
 
     ####################
     # Internal
@@ -1529,15 +1550,15 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 
     # Child should overwrite this
     def get_sub_work_dir(self, base_dir):
-        return base_dir+"/sub_"+self.sub_name
+        return base_dir + "/sub_" + self.sub_name
 
     # Child should overwrite this
     def get_sub_log_dir(self, base_dir):
-        return base_dir+"/sub_"+self.sub_name
+        return base_dir + "/sub_" + self.sub_name
 
     # Child should overwrite this
     def get_sub_stage_dir(self, base_dir):
-        return base_dir+"/sub_"+self.sub_name
+        return base_dir + "/sub_" + self.sub_name
 
     # Child must overwrite this
     def get_sub_dicts(self):
@@ -1547,6 +1568,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
     def reuse_nocheck(self, other):
         raise RuntimeError("Undefined")
 
+
 ################################################
 #
 # This Class contains both the main and
@@ -1555,89 +1577,89 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 ################################################
 
 class fileDicts:
-    def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
-                 simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs
-                 log_dir=None):         # used only if simple_work_dir=False
-        self.work_dir=work_dir
-        self.workdir_name=workdir_name
-        self.stage_dir=stage_dir
-        self.simple_work_dir=simple_work_dir
-        self.log_dir=log_dir
+    def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work",
+                 simple_work_dir=False,  # if True, do not create the lib and lock work_dir subdirs
+                 log_dir=None):  # used only if simple_work_dir=False
+        self.work_dir = work_dir
+        self.workdir_name = workdir_name
+        self.stage_dir = stage_dir
+        self.simple_work_dir = simple_work_dir
+        self.log_dir = log_dir
 
-        self.main_dicts=self.new_MainDicts()
-        self.sub_list=sub_list[:]
-        self.sub_dicts={}
+        self.main_dicts = self.new_MainDicts()
+        self.sub_list = sub_list[:]
+        self.sub_dicts = {}
         for sub_name in sub_list:
-            self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+            self.sub_dicts[sub_name] = self.new_SubDicts(sub_name)
         return
 
-    def set_readonly(self,readonly=True):
+    def set_readonly(self, readonly=True):
         self.main_dicts.set_readonly(readonly)
         for el in list(self.sub_dicts.values()):
             el.set_readonly(readonly)
 
-    def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
+    def erase(self, destroy_old_subs=True):  # if false, the sub names will be preserved
         self.main_dicts.erase()
         if destroy_old_subs:
-            self.sub_list=[]
-            self.sub_dicts={}
+            self.sub_list = []
+            self.sub_dicts = {}
         else:
             for sub_name in self.sub_list:
                 self.sub_dicts[sub_name].erase()
         return
 
-    def load(self,destroy_old_subs=True): # if false, overwrite the subs you load, but leave the others as they are
+    def load(self, destroy_old_subs=True):  # if false, overwrite the subs you load, but leave the others as they are
         self.main_dicts.load()
         if destroy_old_subs:
-            self.sub_list=[]
-            self.sub_dicts={}
+            self.sub_list = []
+            self.sub_dicts = {}
         # else just leave as it is, will rewrite just the loaded ones
 
         for sign_key in self.main_dicts.get_summary_signature().keys:
-            if sign_key!='main': # main is special, not an sub
-                sub_name=self.get_sub_name_from_sub_stage_dir(sign_key)
-                if not(sub_name in self.sub_list):
+            if sign_key != 'main':  # main is special, not an sub
+                sub_name = self.get_sub_name_from_sub_stage_dir(sign_key)
+                if not (sub_name in self.sub_list):
                     self.sub_list.append(sub_name)
-                self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+                self.sub_dicts[sub_name] = self.new_SubDicts(sub_name)
                 self.sub_dicts[sub_name].load()
 
-
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save(set_readonly=set_readonly)
         self.main_dicts.save(set_readonly=set_readonly)
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
 
-    def create_dirs(self,fail_if_exists=True):
+    def create_dirs(self, fail_if_exists=True):
         self.main_dicts.create_dirs(fail_if_exists)
         try:
             for sub_name in self.sub_list:
                 self.sub_dicts[sub_name].create_dirs(fail_if_exists)
         except:
-            self.main_dicts.delete_dirs() # this will clean up also any created subs
+            self.main_dicts.delete_dirs()  # this will clean up also any created subs
             raise
 
     def delete_dirs(self):
-        self.main_dicts.delete_dirs() # this will clean up also all subs
+        self.main_dicts.delete_dirs()  # this will clean up also all subs
 
-    def is_equal(self,other,             # other must be of the same class
-                 compare_work_dir=False,compare_stage_dir=False,
+    def is_equal(self, other,  # other must be of the same class
+                 compare_work_dir=False, compare_stage_dir=False,
                  compare_fnames=False):
-        if compare_work_dir and (self.work_dir!=other.work_dir):
+        if compare_work_dir and (self.work_dir != other.work_dir):
             return False
-        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
+        if compare_stage_dir and (self.stage_dir != other.stage_dir):
             return False
-        if not self.main_dicts.is_equal(other.main_dicts, compare_work_dir=False, compare_stage_dir=False, compare_fnames=compare_fnames):
+        if not self.main_dicts.is_equal(other.main_dicts, compare_work_dir=False, compare_stage_dir=False,
+                                        compare_fnames=compare_fnames):
             return False
-        my_subs=self.sub_list[:]
-        other_subs=other.sub_list[:]
-        if len(my_subs)!=len(other_subs):
+        my_subs = self.sub_list[:]
+        other_subs = other.sub_list[:]
+        if len(my_subs) != len(other_subs):
             return False
 
         my_subs.sort()
         other_subs.sort()
-        if my_subs!=other_subs: # need to be in the same order to make a comparison
+        if my_subs != other_subs:  # need to be in the same order to make a comparison
             return False
 
         for k in my_subs:
@@ -1647,11 +1669,12 @@ class fileDicts:
         return True
 
     # reuse as much of the other as possible
-    def reuse(self, other):             # other must be of the same class
-        if self.work_dir!=other.work_dir:
-            raise RuntimeError("Cannot change %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir))
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError("Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir))
+    def reuse(self, other):  # other must be of the same class
+        if self.work_dir != other.work_dir:
+            raise RuntimeError(
+                "Cannot change %s base_dir! '%s'!='%s'" % (self.workdir_name, self.work_dir, other.work_dir))
+        if self.stage_dir != other.stage_dir:
+            raise RuntimeError("Cannot change stage base_dir! '%s'!='%s'" % (self.stage_dir, other.stage_dir))
 
         # compare main dictionaires
         self.main_dicts.create_dirs(fail_if_exists=False)
@@ -1678,7 +1701,8 @@ class fileDicts:
     # this should be redefined by the child
     # and return a child of fileSubDicts
     def new_SubDicts(self, sub_name):
-        return fileSubDicts(self.work_dir, self.stage_dir, sub_name, self.main_dicts.get_summary_signature(), self.workdir_name, self.simple_work_dir, self.log_dir)
+        return fileSubDicts(self.work_dir, self.stage_dir, sub_name, self.main_dicts.get_summary_signature(),
+                            self.workdir_name, self.simple_work_dir, self.log_dir)
 
     # this should be redefined by the child
     def get_sub_name_from_sub_stage_dir(self, sign_key):
@@ -1686,18 +1710,18 @@ class fileDicts:
 
 
 class MonitorFileDicts:
-    def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
-        self.work_dir=work_dir
-        self.workdir_name=workdir_name
-        self.stage_dir=stage_dir
-        self.simple_work_dir=simple_work_dir
+    def __init__(self, work_dir, stage_dir, sub_list=[], workdir_name="work",
+                 simple_work_dir=False):  # if True, do not create the lib and lock work_dir subdirs
+        self.work_dir = work_dir
+        self.workdir_name = workdir_name
+        self.stage_dir = stage_dir
+        self.simple_work_dir = simple_work_dir
 
-        self.main_dicts=self.new_MainDicts()
-        self.sub_list=sub_list[:]
-        self.sub_dicts={}
+        self.main_dicts = self.new_MainDicts()
+        self.sub_list = sub_list[:]
+        self.sub_dicts = {}
         for sub_name in sub_list:
-            self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+            self.sub_dicts[sub_name] = self.new_SubDicts(sub_name)
         return
 
     def new_MainDicts(self):
@@ -1709,41 +1733,38 @@ class MonitorFileDicts:
     def get_sub_name_from_sub_stage_dir(self, sign_key):
         raise NotImplementedError("get_sub_name_from_sub_stage_dir() not implemented in child!")
 
-
-
-    def set_readonly(self,readonly=True):
+    def set_readonly(self, readonly=True):
         self.main_dicts.set_readonly(readonly)
         for el in list(self.sub_dicts.values()):
             el.set_readonly(readonly)
 
-    def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
+    def erase(self, destroy_old_subs=True):  # if false, the sub names will be preserved
         self.main_dicts.erase()
         if destroy_old_subs:
-            self.sub_list=[]
-            self.sub_dicts={}
+            self.sub_list = []
+            self.sub_dicts = {}
         else:
             for sub_name in self.sub_list:
                 self.sub_dicts[sub_name].erase()
         return
 
-    def load(self,destroy_old_subs=True): # if false, overwrite the subs you load, but leave the others as they are
+    def load(self, destroy_old_subs=True):  # if false, overwrite the subs you load, but leave the others as they are
 
         self.main_dicts.load()
         if destroy_old_subs:
-            self.sub_list=[]
-            self.sub_dicts={}
+            self.sub_list = []
+            self.sub_dicts = {}
         # else just leave as it is, will rewrite just the loaded ones
 
         for sign_key in self.main_dicts.get_summary_signature().keys:
-            if sign_key!='main': # main is special, not an sub
-                sub_name=self.get_sub_name_from_sub_stage_dir(sign_key)
-                if not(sub_name in self.sub_list):
+            if sign_key != 'main':  # main is special, not an sub
+                sub_name = self.get_sub_name_from_sub_stage_dir(sign_key)
+                if not (sub_name in self.sub_list):
                     self.sub_list.append(sub_name)
-                self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+                self.sub_dicts[sub_name] = self.new_SubDicts(sub_name)
                 self.sub_dicts[sub_name].load()
 
-
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save(set_readonly=set_readonly)
         self.main_dicts.save(set_readonly=set_readonly)
@@ -1804,7 +1825,8 @@ def validate_node(nodestr, allow_range=False):
                     found_range = True
                     try:
                         if int(match.groups()[1]) >= int(match.groups()[2]):
-                            raise RuntimeError("In the end-point, left value in the sock range must be lower than the right one: '%s'" % nodestr)
+                            raise RuntimeError(
+                                "In the end-point, left value in the sock range must be lower than the right one: '%s'" % nodestr)
                     except (TypeError, ValueError):
                         # match.group can be None (or not an integer?)
                         raise RuntimeError("Invalid 'sock' value in in the end-point's sinful string: '%s'" % nodestr)

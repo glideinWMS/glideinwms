@@ -57,12 +57,10 @@ TAG_ALIAS = {
 
 
 class ParameterException(Exception):
-    def __init__(self):
+    def __init__(self, message=None):
         super()
-
-    def __init__(self, message):
-        super()
-        self.message = message
+        if message:
+            self.message = message
 
 
 # Not used in python3

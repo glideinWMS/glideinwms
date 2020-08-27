@@ -49,7 +49,7 @@
         src="./images/simple_diagram.png" usemap="#rightimage">
     <map name="rightimage">
         <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/user_pool.html" />
         <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
     </map>
 
@@ -74,78 +74,38 @@
 <div class="related">
 Frontend:
 <ul>
-<li> <a href="./frontend/install.html">Install</a></li>
+    <li> <a href="https://opensciencegrid.github.io/docs/other/install-gwms-frontend/">Install</a></li>
 </ul>
 Factory:
 <ul>
-<li> <a href="./factory/install.html">Install</a></li>
+    <li> <a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">Install</a></li>
 </ul>
-<a href="upgrade.html">Upgrade Guide</a>
 </div>
 <div class="section">
    <a name="release" />
     <h2>Current release distributions</h2>
-    The GlideinWMS software is available via OSG as RPM (the Frontend, the Factory and HTCondor with special configurations) and as 
-    TAR bundle (from the links below in this page). 
-    The supported platforms are currently RHEL6 and RHEL7 (and derivates like CentOS and SL).
-    RPM installations are more structured.
-    Installations from the TAR files allow more flexibility.
-
-    <h4>TAR file distribution</h4>
-
-    <table frame="box" width="750px" style="vertical-align:top;">
-      <thead style="background-color:grey; font-weight:bold; border-width:1; border-color:black; border-style:solid; ">
-        <td width="150px"><b>Release Type</b></td>
-        <td width="120px"><b>Release Version</b></td>
-        <td width="130px"><b>Release Date</b></td>
-        <td><b>Download Link</b></td>
-      </thead>
-
-      <tr style="vertical-align:top;">
-        <td>Stable Series</td>
-        <td>v3_6_2</td>
-        <td>March 26, 2020</td>
-        <td>
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_6_2_factory.tgz">GlideinWMS Factory</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_6_2_frontend.tgz">GlideinWMS Frontend</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_6_2.tgz">GlideinWMS full download</a>]
-        </td>
-      </tr>
-      <tr style="vertical-align:top;">
-        <td>Old Stable Series (GT2 support, multiuser Factory)</td>
-        <td>v3_4_6</td>
-        <td>August 8, 2019</td>
-        <td>
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_4_6_factory.tgz">GlideinWMS Factory</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_4_6_frontend.tgz">GlideinWMS Frontend</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_4_6.tgz">GlideinWMS full download</a>]
-        </td>
-      </tr>
-      <tr style="vertical-align:top;">
-	<td>Development Series</td>
-        <td>v3_7</td>
-        <td>April 3, 2020</td>
-        <td>
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_7.tgz">GlideinWMS Factory</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_7.tgz">GlideinWMS Frontend</a>]
-          [<a target="_blank" href="http://glideinwms.fnal.gov/glideinWMS_v3_7.tgz">GlideinWMS full download</a>]
-        </td>
-      </tr>
-
-    </table>
-    <br/>
+    <p>
+      The GlideinWMS software is available via OSG as RPM (the Frontend, the Factory and HTCondor with special configurations). 
+      The supported platforms are currently RHEL6 and RHEL7 (and derivates like CentOS and SL).
+    </p>
+    
     <h4>GlideinWMS Frontend RPM</h4>
-    GlideinWMS Frontend RPM is available for download from the OSG RPM repository. The installation process will install and setup also the User Pool and User Schedd. Refer to <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG GlideinWMS Frontend installation guide</a> for details.
-    <br/><br/>
+    <p>
+      GlideinWMS Frontend RPM is available for download from the OSG RPM repository. The installation process will install and setup also the User Pool and User Schedd. Refer to <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG GlideinWMS Frontend installation guide</a> for details.
+    </p>
+    
     <h4>GlideinWMS Factory RPM</h4>
-    GlideinWMS Factory RPM is available for download from the OSG RPM repository. The installation process will install and setup also the WMS Pool. Refer to <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">OSG GlideinWMS Factory installation guide</a> for details.
-    <a name="download" />
+    <p>
+      GlideinWMS Factory RPM is available for download from the OSG RPM repository. The installation process will install and setup also the WMS Pool. Refer to <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">OSG GlideinWMS Factory installation guide</a> for details.
+      <a name="download" />
+    </p>
 
 
 <h2>Downloading from the Code Repository </h2>
-    The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
-    <br><br>
-    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v3_6_1<br> # Development Series<br> git checkout v3_7</pre>
+    <p>
+      The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
+    </p>
+    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v3_6_3<br> # Development Series<br> git checkout v3_7_1</pre>
 </div>
 
 <h2>GlideinWMS Cloud VMs</h2>

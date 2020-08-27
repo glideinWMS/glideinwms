@@ -40,7 +40,7 @@ class TestLogSupport(unittest.TestCase):
 
         config_file = "%s/test_logSupport.yaml" %\
             os.path.join(sys.path[0], "test_configurations")
-        self.config = yaml.load(file(config_file, 'r'))
+        self.config = yaml.load(open(config_file, 'r'))
         self.replace = Replacer()
         self.replace('glideinwms.lib.logSupport.time.time',
                      test_time(2018, 6, 13, 16, 0, 1, delta=60, delta_type='seconds'))

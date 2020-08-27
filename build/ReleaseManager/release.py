@@ -1,7 +1,6 @@
 #!/usr/bin/python -B
 
 
-
 import sys
 import os
 import optparse
@@ -10,34 +9,25 @@ import optparse
 if __name__ == "__main__" and __package__ is None:
     sys.path.append(os.path.join(sys.path[0], '..'))
     __package__ = "ReleaseManager"
-from ReleaseManager import ReleaseManagerLib
+from .ReleaseManagerLib import *
 
 
 def manager_version():
     try:
+        if os.path.exists("/var/lib/gwms-factory/work-dir/checksum.factory"):
+            chksum_file = "checksum.factory"
+        elif os.path.exists("/var/lib/gwms-frontend/vofrontend/checksum.frontend"):
+            chksum_file = "checksum.frontend"
         from glideinwms.lib import glideinWMSVersion
     except ImportError:
         return "UNKNOWN"
     try:
-        if os.path.exists("../etc/checksum.factory"):
-            glidein_dir = "../etc"
-            chksum_file = "checksum.factory"
-        elif os.path.exists("/var/lib/gwms-factory/work-dir/checksum.factory"):
-            glidein_dir = "/var/lib/gwms-factory/work-dir"
-            chksum_file = "checksum.factory"
-        elif os.path.exists("/var/lib/gwms-frontend/vofrontend/checksum.frontend"):
-            glidein_dir = "/var/lib/gwms-frontend/vofrontend"
-            chksum_file = "checksum.frontend"
-        else:
-            return "UNKNOWN"
-        return glideinWMSVersion.GlideinWMSDistro(glidein_dir,
-                                                  chksum_file).version()
+        return glideinWMSVersion.GlideinWMSDistro(chksum_file).version()
     except RuntimeError:
         return "UNKNOWN"
 
 
 def usage():
-
     help = ["%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0]),
             "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
             "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz",
@@ -112,11 +102,13 @@ def required_args_present(options):
     try:
         if ((options.relVersion is None) or
             (options.srcDir is None) or
-                (options.relDir is None)):
+            (options.relDir is None)):
             return False
     except AttributeError:
         return False
     return True
+
+
 #   check_required_args
 
 
@@ -137,16 +129,13 @@ def main(argv):
         (ver, srcDir, relDir, rc, rpmRel))
     print("___________________________________________________________________")
     print()
-    rel = ReleaseManagerLib.Release(ver, srcDir, relDir, rc, rpmRel)
+    rel = Release(ver, srcDir, relDir, rc, rpmRel)
 
-    rel.addTask(ReleaseManagerLib.TaskClean(rel))
-    rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
-    # rel.addTask(ReleaseManagerLib.TaskPylint(rel))
-    rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
-    rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskFrontendTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskFactoryTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel))
+    rel.addTask(TaskClean(rel))
+    rel.addTask(TaskSetupReleaseDir(rel))
+    rel.addTask(TaskVersionFile(rel))
+    rel.addTask(TaskTar(rel))
+    rel.addTask(TaskRPM(rel))
 
     rel.executeTasks()
     rel.printReport()

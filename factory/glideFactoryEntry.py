@@ -20,8 +20,6 @@ import copy
 import logging
 import tempfile
 
-sys.path.append(os.path.join(sys.path[0], "../../"))
-
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
@@ -122,7 +120,7 @@ class Entry:
         self.gfiFactoryConfig.factory_collector = self.glideinDescript.data['FactoryCollector']
 
         try:
-            self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0])), 'checksum.factory').version()
+            self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro('checksum.factory').version()
         except:
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],

@@ -92,6 +92,32 @@ v3_6_2:
     - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
     - Total of frontend info is 0 in Factory monitring
 
+v3_6_3:
+  Date: July 16, 2020
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Add Python condor_chirp to PATH
+    - Dropped tarball installation support
+    - Add Python condor_chirp and other GWMS tools to PATH in Singularity
+    - Removed "Group:System Environment/Daemons" from glideinwms.spec in OSG repo
+    - Added new API documentation using sphinx
+    - Added a runner to run the different tests with consistent CLI
+    - Added new RHEL 8 Singularity image
+    - Updated the singularity wrapper with new features form the OSG wrapper
+    - Clean PYTHONPATH and setup GWMS environment in Singularity containers
+    - Improved the environment handling of the Singularity wrapper
+  Bug fix: 
+    - Upgrade the factory documentation not to ask to install the switchboard
+    - The Python version of condor_chirp now works with Singularity jobs
+    - Enable RFC proxies by default for direct proxies
+    - Fix OSG_autoconf and gfdiff
+    - Added COMPLETED to the known list of "GridJobStatus"es
+    - Add a knob to set entry limits in OSG_autoconf
+    - Stop pilots even after the downtime timestamp has been reached when draining pilots
+    - Glideins are unrecoverable unless listed as recoverable
+    - User job invocation via singularity eating up -e or -n
+
 v3_7:
   Date: March 31, 2020
   Series: Development
@@ -101,3 +127,10 @@ v3_7:
     - Use of HTCondor token-auth for Glideins authentication
     - Added secure logging channel
     - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+
+v3_7_1:
+  Date: August 21, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.3

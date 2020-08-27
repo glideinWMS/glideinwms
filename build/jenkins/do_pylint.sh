@@ -21,8 +21,6 @@ ${filename} [options] ${COMMAND} -a [other command options]
 Command options:
   -h        print this message
   -a        run on all Python scripts (see above)
-  -n        show the list of flags passed to pylint and pycodestyle
-  -l        show the list of files checked
   -t TESTS  string including the digits of the tests to run (Default: 12)
             add 1 for pylint
             add 2 for pycodestyle
@@ -74,7 +72,7 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS""E111"
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E121"
 # E122 (^)  continuation line missing indentation or outdented
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E122"
-# E123 (*)  closing bracket does not match indentation of opening bracket’s line
+# E123 (*)  closing bracket does not match indentation of opening bracket's line
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E123"
 # E124 (^)  closing bracket does not match visual indentation
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E124"
@@ -94,13 +92,13 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS""E111"
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E13
 # E2    Whitespace3"
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E2"
-# E201  whitespace after ‘(‘
+# E201  whitespace after '('
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E201"
-# E202  whitespace before ‘)’
+# E202  whitespace before ')'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E202"
-# E203  whitespace before ‘:’
+# E203  whitespace before ':'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E203"
-# E211  whitespace before ‘(‘
+# E211  whitespace before '('
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E211"
 # E221  multiple spaces before operator
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E221"
@@ -118,21 +116,21 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E226"
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E227"
 # E228  missing whitespace around modulo operator
 PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E228"
-# E231  missing whitespace after ‘,’, ‘;’, or ‘:’
+# E231  missing whitespace after ',', ';', or ':'
 PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E231"
-# E241 (*)  multiple spaces after ‘,’
+# E241 (*)  multiple spaces after ','
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E241"
-# E242 (*)  tab after ‘,’
+# E242 (*)  tab after ','
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E242"
 # E251  unexpected spaces around keyword / parameter equals
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E251"
 # E261  at least two spaces before inline comment
 PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E261"
-# E262  inline comment should start with ‘# ‘
+# E262  inline comment should start with '# '
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E262"
-# E265  block comment should start with ‘# ‘
+# E265  block comment should start with '# '
 PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E265"
-# E266  too many leading ‘#’ for block comment
+# E266  too many leading '#' for block comment
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E266"
 # E271  multiple spaces after keyword
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E271"
@@ -180,25 +178,25 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E501"
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E703"
 # E704 (*)  multiple statements on one line (def)
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E704"
-# E711 (^)  comparison to None should be ‘if cond is None:’
+# E711 (^)  comparison to None should be 'if cond is None:'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E711"
-# E712 (^)  comparison to True should be ‘if cond is True:’ or ‘if cond:’
+# E712 (^)  comparison to True should be 'if cond is True:' or 'if cond:'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E712"
-# E713  test for membership should be ‘not in’
+# E713  test for membership should be 'not in'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E713"
-# E714  test for object identity should be ‘is not’
+# E714  test for object identity should be 'is not'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E714"
-# E721 (^)  do not compare types, use ‘isinstance()’
+# E721 (^)  do not compare types, use 'isinstance()'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E721"
 # E722  do not use bare except, specify exception instead
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E722"
 # E731  do not assign a lambda expression, use a def
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E731"
-# E741  do not use variables named ‘l’, ‘O’, or ‘I’
+# E741  do not use variables named 'l', 'O', or 'I'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E741"
-# E742  do not define classes named ‘l’, ‘O’, or ‘I’
+# E742  do not define classes named 'l', 'O', or 'I'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E742"
-# E743  do not define functions named ‘l’, ‘O’, or ‘I’
+# E743  do not define functions named 'l', 'O', or 'I'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,E743"
 
 # E9    Runtime
@@ -232,27 +230,23 @@ PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W293"
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W505"
 
 # W6    Deprecation warning
-# W601  .has_key() is deprecated, use ‘in’
+# W601  .has_key() is deprecated, use 'in'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W601"
 # W602  deprecated form of raising exception
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W602"
-# W603  ‘<>’ is deprecated, use ‘!=’
+# W603  '<>' is deprecated, use '!='
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W603"
-# W604  backticks are deprecated, use ‘repr()’
+# W604  backticks are deprecated, use 'repr()'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W604"
-# W605  invalid escape sequence ‘x’
+# W605  invalid escape sequence 'x'
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W605"
-# W606  ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
+# W606  'async' and 'await' are reserved keywords starting with Python 3.7
 #PYSTYLE_OPTIONS="$PYSTYLE_OPTIONS,W606"
 
 
 # Uncomment to see all pep8 errors
 #PYSTYLE_OPTIONS=""
 
-do_show_files() {
-    echo "Pylint and PyCodeStyle will inspect the following files:"
-    echo "$(get_python_scripts) $(get_python_files)"
-}
 
 do_show_flags() {
     echo "Pylint will run with options:"
@@ -263,17 +257,14 @@ do_show_flags() {
 
 DO_TESTS="12"
 LIST_FILES=
-SHOW_FILES=
 
 do_parse_options() {
-    while getopts ":hanlt:" option
+    while getopts ":hat:" option
     do
       case "${option}"
       in
       h) help_msg; do_help_msg; exit 0;;
       a) LIST_FILES=yes;;
-      n) do_show_flags; exit 0;;
-      l) SHOW_FILES=yes;;
       t) DO_TESTS="$OPTARG";;
       : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
       *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; do_help_msg 1>&2; exit 1;;
@@ -285,15 +276,13 @@ do_parse_options() {
 
     CMD_OPTIONS="$@"
 
-}
-
-do_use_python() {
-    if [[ -z "${SHOW_FILES}" ]]; then
-        true
-    else
-        false
+    if [[ -n "${SHOW_FLAGS}" ]]; then
+        do_show_flags
+        TEST_COMPLETE=branch
     fi
 }
+
+do_use_python() { true; }
 
 do_get_dependencies() { true; }
 
@@ -313,6 +302,7 @@ do_check_requirements() {
 do_process_branch() {
     # 1 - branch
     # 2 - output file (output directory/output.branch)
+    # 3... - files to process (optional)
 
     local branch="$1"
     local branch_no_slash=$(echo "${1}" | sed -e 's/\//_/g')
@@ -325,21 +315,21 @@ do_process_branch() {
     local test_date=$(date "+%Y-%m-%d %H:%M:%S")
 
     local fail
-    local fail_all=0
 
     local file_list
     if [[ -n "$LIST_FILES" ]]; then
-        files_list="$(get_python_scripts) $(get_python_files)"
+        if is_python3_branch "${branch}"; then
+            files_list="$(get_python3_scripts) $(get_python_files)"
+        else
+            files_list="$(get_python2_scripts) $(get_python_files)"
+        fi
     else
         files_list="$*"
     fi
 
-    if [[ -n  "${SHOW_FILES}" ]]; then
-        echo "Pylint and PyCodeStyle will inspect the following files:"
-        echo "${files_list}"
-        return
-    fi
-    [ -z "${files_list}" ] && logerror "no files specified (use -a or add files as arguments)"
+    print_files_list "Pylint and PyCodeStyle will inspect the following files:" "${files_list}" && return
+
+    is_python3_branch && gwms_python=python3 || gwms_python=python
 
     # Initialize logs
     > ${out_pylint}
@@ -350,44 +340,109 @@ do_process_branch() {
     loginfo "Start : ${branch}"
     start_time="$(date -u +%s.%N)"
 
+    if ! do_check_requirements; then
+        # pylint and pycodestyle depend on the Python environment, can change branch by branch
+        logerror "Essential software is missing. Skipping branch ${branch}"
+        return 1
+    fi
+
     # ALT
     # while read -r filename
     # do
     # done <<< "${files_list}"
+    local filename
+    local files_checked=
+    local files_errors=
     for filename in ${files_list}; do
         if [[ "${DO_TESTS}" == *1* ]]; then
             #can't seem to get --ignore or --ignore-modules to work, so do it this way
             if [[ " ${PYLINT_IGNORE_LIST} " == *" ${filename} "* ]]; then
                 loginfo "pylint skipping ${filename}"
             else
-                python3 -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+                $gwms_python -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+                [[ $? -ne 0 ]] && files_errors="${files_errors} ${filename}"
+                files_checked="${files_checked} ${filename}"
             fi
         fi
         if [[ "${DO_TESTS}" == *2* ]]; then
-            python3 -m pycodestyle $PEP8_OPTIONS ${filename} >> ${out_pycs} || log_nonzero_rc "pep8" $?
+            $gwms_python -m pycodestyle $PEP8_OPTIONS ${filename} >> ${out_pycs} || log_nonzero_rc "pep8" $?
         fi
     done
 
-    files_checked="$(echo ${files_list})"
+    #files_checked="$(echo ${files_list})"
 
-    awk '{$1=""; print $0}' ${outfile} | sort | uniq -c | sort -n > "${outfile}.sorted"
-    echo "# -------------------" >> ${outfile}
-    echo "# error count summary" >> ${outfile}
-    echo "# -------------------" >> ${outfile}
-    cat ${outfile}.sorted     >> ${outfile}
+    local out_pycs_summary="${out_pycs}.summary"
+    echo "# -------------------" > "${out_pycs_summary}"
+    echo "# Error count summary" >> "${out_pycs_summary}"
+    echo "# -------------------" >> "${out_pycs_summary}"
+    awk '{$1=""; print $0}' ${out_pycs} | sort | uniq -c | sort -n >> "${out_pycs_summary}"
+    # cat ${out_pycs}.summary     >> ${out_pycs}
 
-    echo "FILES_CHECKED=\"$files_checked\"" >> $outfile
-    echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $outfile
-    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $outfile | wc -l | tr -d " "`" >> $outfile
-    echo "PYLINT_ERROR_COUNT=`grep '^E:' $outfile | wc -l | tr -d " "`" >> $outfile
-    echo "PEP8_ERROR_COUNT=`cat ${outfile} | wc -l | tr -d " "`" >> $outfile
+    echo "# Pylint and PyCodeStyle output" > "${outfile}"
+    echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
+    echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
+    # Includes error and fatal:
+    echo "PYLINT_ERROR_FILES=\"${files_errors}\"" >> "${outfile}"
+    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " "`" >> "${outfile}"
+    # Formats differ from pylint version but only errors were requested. The following will include errors and fatal 
+    # (all lines except file names)
+    # TODO: in the future, different categories could be checked and a msg-format used, e.g. 2.5 default:
+    #       --msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})' 
+    #       masg_id will start w/ category initial: Fatal Error Warning Refactor Convention
+    local pylint_error_count=$(grep -v '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")
+    PYLINT_ERROR_COUNT=${pylint_error_count}
+    echo "PYLINT_ERROR_COUNT=${PYLINT_ERROR_COUNT}" >> "${outfile}"
+    echo "PEP8_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
+    echo "PEP8_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
+    local pep8_error_count=$(cat ${out_pycs} | wc -l | tr -d " ")
+    PEP8_ERROR_COUNT=${pep8_error_count}
+    echo "PEP8_ERROR_COUNT=${PEP8_ERROR_COUNT}" >> "${outfile}"
+    echo "$(get_commom_info "$branch")" >> "${outfile}"
+    echo "PYLINT=$(do_get_status)" >> "${outfile}"
     echo "----------------"
-    cat $outfile
+    cat "${outfile}"
     echo "----------------"
 
-    fail_all=0
-#    [[ $total_error -gt 0 ]] && fail_all=1
-    return ${fail_all}
+    # Ignore PEP8 errors/warning for failure status
+    fail=${pylint_error_count}
+    return ${fail}
+}
+
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    echo -e "Pylint,Files\t,ErrFiles\t,ErrNum\tPyCodeStyle,ErrNum"
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. output format: if not empty triggers annotation
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    # If the summary file is missing return tab separated "na" strings 
+    [[ -n "$1" ]] && . "$1" || { echo -e "na\tna\tna\tna"; return; }
+    if [[ "$2" = NOTAG ]]; then
+        echo -e "${PYLINT_FILES_CHECKED_COUNT}\t${PYLINT_ERROR_FILES_COUNT}\t${PYLINT_ERROR_COUNT}\t${PEP8_ERROR_COUNT}"
+    else
+        local res="${PYLINT_FILES_CHECKED_COUNT}\t"
+        res="${res}$(get_annotated_value check0 ${PYLINT_ERROR_FILES_COUNT})\t"
+        res="${res}$(get_annotated_value check0 ${PYLINT_ERROR_COUNT})\t"
+        echo -e "${res}$(get_annotated_value check0 ${PEP8_ERROR_COUNT} warning)"
+    fi
+}
+
+do_get_status() {
+    # 1. branch summary file (optional if the necessary variables are provided)
+    # Return unknown, success, warning, error
+    [[ -n "$1" ]] && . "$1"
+    [[ -z "${PYLINT_ERROR_COUNT}" ]] && { echo unknown; return 2; }
+    if [[ "${PYLINT_ERROR_COUNT}" -eq 0 ]]; then
+        [[ "${PEP8_ERROR_COUNT}" -eq 0 ]] && { echo success; return; }
+        echo warning
+        return
+    fi
+    echo error
+    return 1
 }
 
 do_log_init() {

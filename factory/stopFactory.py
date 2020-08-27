@@ -19,13 +19,11 @@
 import signal
 import sys
 import os
-import os.path
 import fcntl
 import string
 import time
 import subprocess
 
-sys.path.append(os.path.join(sys.path[0], "../../"))
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 

@@ -15,7 +15,7 @@ future
 # std in p3 importlib
 # std in p3 argparse
 pyyaml
-jwt
+PyJWT
 
 # for tests
 jsonpickle

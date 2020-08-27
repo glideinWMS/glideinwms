@@ -46,11 +46,10 @@
     <h2>Components</h2>
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
-	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
-	     <li> <a href="./collector_install.html">User Pool</a></li>
-	     <li> <a href="./pool_install.html">User Schedd</a></li>
+	     <li> <a href="./user_pool.html">User Pool</a></li>
+	     <li> <a href="./user_schedd.html">User Schedd</a></li>
          <li> <a href="./gsi.html">GSI</a></li>
-	     <li class="last"> Condor</li>
+	     <li class="last">HTCondor</li>
 	</ul>
         <h3>Advanced Condor Configuration</h3>
 	</div>
@@ -61,7 +60,7 @@
     <li><a href="#schedds">Multiple Schedds / Shared Port</a></li>
     <li><a href="#collectors">Multiple Collectors for Scalability /Shared Port</a></li>
     <li><a href="#collectors_ha">Multiple Collectors for Reliability / Condor High Availability (HA) Feature</a></li>
-    <li><a href="#quill">Quill</a></li>
+    <li><a href="#fine_tune">Fine User Schedd Tunning for Large Scale Installations</a></li>
 </ol>
 </div>
 <div class="related">
@@ -362,172 +361,22 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 </div>
     <hr width="90%">
 
-<div class="section">
-    <h2><a name="quill">Installing Quill</a></h2>
+    <div class="section">
 
-<p>The <a href="https://htcondor.readthedocs.io/en/latest/contrib-source-modules/introduction-contrib-source-modules.html?highlight=Quill#introduction">HTCondor manual section about Quill</a> may have instructions more updated than this section. Keep in mind that Quill has been removed from HTCondor codebase in 
-  HTCondor version 8.7.6, meaning that the current version of the manual may not have mmuch reference to it.
-</p>
-<h3><a name="software">Required software</a></h3>
-    <ul>
-    <li>
-        A reasonably recent Linux OS (SL4 used at press time).
-    </li>
-    <li>
-        A <a target="_blank" href="http://www.postgresql.org/" title="PostgreSQL Hoe Page">
-            PostgreSQL server</a>.
-    </li>
+      <h2><a name="fine_tune">Fine User Schedd Tunning for Large Scale Installations</a></h2>
+      <h3>Increase the number of available file descriptors</h3>
+  
+      <p>
+          Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
+          of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in 
+          the queue at any given time. This is particularly required for large scale installations. 
+          <br><br>
+          In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor. This
+          is a good place to set higher file descriptor limit for the schedd process.
+      </p>
+  
+  </div>
 
-    <li>
-        The
-        <a target="_blank" href="http://research.cs.wisc.edu/htcondor/downloads/" title="HTCondor download page">
-            HTCondor distribution</a>.<br>
-    </li>
-    </ul>
-<h3><a name="install">Installation instructions</a></h3>
-
-    <p>
-    The installation will assume you have installed HTCondor v8+.
-    </p>
-    <p>
-    The install directory is <b>/opt/glidecondor</b>, the working directory is
-    <b>/opt/glidecondor/condor_local</b> and the machine name is 
-    <b>mymachine.fnal.gov</b>. and its IP 
-    <b>131.225.70.222</b>.
-    </p>
-
-    <p>
-    If you want to use a different setup, make the necessary changes.
-    </p>
-    <p>
-    Unless explicity mentioned, all operations are to be done as root.
-    </p>
-<h3>Obtain and install PostgreSQL RPMs</h3>
-    <p>
-
-    Most Linux distributions come with very old versions of PostgreSQL, so you will
-    want to download the latest version.
-    </p>
-    <p>
-    The RPMs can be found on
-    <a target="_blank" href="http://www.postgresql.org/ftp/binary/" title="PostgreSQL Download page">http://www.postgresql.org/ftp/binary/</a>
-    </p>
-    <p>
-    At the time of writing, the latest version is v8.2.4, and the RPM files to install are
-    </p><blockquote>
-      postgresql-8.2.4-1PGDG.i686.rpm<br>
-
-      postgresql-libs-8.2.4-1PGDG.i686.rpm<br>
-      postgresql-server-8.2.4-1PGDG.i686.rpm<br>
-    </blockquote>
-<h3>Initialize PostgreSQL</h3>
-    <p>
-    Switch to user postgres:
-    </p><blockquote>
-
-      su - postgres<br>
-    </blockquote>
-    And initialize initialize the database with:
-    <blockquote>
-      initdb -A "ident sameuser" -D /var/lib/pgsql/data<br>
-    </blockquote>
-    <p></p>
-
-<h3>Configure PostgreSQL</h3>
-    <p>
-    PostgreSQL by default only accepts local connections., so you need to configure
-it in order for Quill to use it.
-    </p>
-    <p>
-    Please do it as user postgres.
-    </p>
-    <p>
-    To enable TCP/IP traffic, you need to change
-    <b>listen_addresses</b> in <b>/var/lib/pgsql/data/postgresql.conf</b> to:<br>
-
-    </p><blockquote>
-      # Make it listen to TCP ports<br>
-      listen_addresses = '*'<br>
-    </blockquote>
-    <p></p>
-    <p>
-    Moreover, you need to specify which machines will be able to access it.<br>
-
-    Unless you have strict security policies forbiding this, I recommend enabling
-    read access to the whole world by adding the following line
-    to <b>/var/lib/pgsql/data/pg_hba.conf</b>:
-    </p><blockquote>
-      host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
-      quillreader&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; md5<br>
-
-    </blockquote>
-    On the other hand, we want only the local machine to be able to write the
-    database.  So, we will add to
-    <b>/var/lib/pgsql/data/pg_hba.conf</b>:
-    <blockquote>
-      host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
-      quillwriter&nbsp;&nbsp;&nbsp;&nbsp; 131.225.70.222/32 &nbsp; md5<br>
-
-    </blockquote>
-    <p></p>
-<h3>Start PostgreSQL</h3>
-    To start PostgreSQL, just run:
-    <blockquote>
-      /etc/init.d/postgresql start<br>
-    </blockquote>
-
-    There should be no error messages.
-<h3>Initalize Quill users</h3>
-    Switch to user postgres:<br>
-    <blockquote>
-      su - postgres<br>
-    </blockquote>
-
-    And initialize initialize the Quill users with:<br>
-    <blockquote>
-  createuser quillreader --no-createdb --no-adduser --no-createrole --pwprompt<br>
-  # passwd <b>reader</b><br>
-  createuser quillwriter --createdb --no-adduser --no-createrole --pwprompt<br>
-  # password &lt;writer passwd&gt;<br>
-
-  psql -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
-  psql -d template1 -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
-  psql -d template1 -c "GRANT CREATE ON SCHEMA public TO quillwriter; GRANT USAGE ON SCHEMA public TO quillwriter;"<br>
-    </blockquote>
-<h3>Configure Condor</h3>
-Append the following lines to
-
-<b>/opt/glidecondor/etc/condor_config</b>:
-    <blockquote>
-      #############################<br>
-      # Quill settings<br>
-      #############################<br>
-      QUILL_ENABLED = TRUE<br>
-      QUILL_NAME = quill@$(FULL_HOSTNAME)<br>
-
-      QUILL_DB_NAME = $(HOSTNAME)<br>
-      QUILL_DB_QUERY_PASSWORD = reader<br>
-      QUILL_DB_IP_ADDR = $(HOSTNAME):5432<br>
-      QUILL_MANAGE_VACUUM = TRUE<br>
-    </blockquote>
-    In <b>/opt/glidecondor/condor_local/condor_config.local</b>,
-    add <b>QUILL</b> to <b>DAEMON_LIST,</b> getting something like:
-    <blockquote>
-
-DAEMON_LIST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  = MASTER, QUILL, SCHEDD
-    </blockquote>
-    Finally, put the writer passwd into
-    <b>/opt/glidecondor/condor_local/spool/.quillwritepassword</b>:
-    <blockquote>
-      echo "&lt;writer passwd&gt;" &gt;
-      /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
-
-      chown condor /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
-      chmod go-rwx /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
-    </blockquote>
-</div>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

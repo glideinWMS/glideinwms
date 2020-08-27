@@ -73,7 +73,7 @@ fi
 
 
 if [ "x$VIRTUAL_ENV" = "x" ]; then
-    setup_python_venv "$WORKSPACE"
+    setup_python3_venv "$WORKSPACE"
 fi
 
 if ! cd "$GLIDEINWMS_SRC"/unittests ; then
@@ -103,18 +103,10 @@ fi
 
 for file in $files_list ; do
     [ -n "$VERBOSE" ] && echo "TESTING ==========> $file"
-    if [ -n "$VERBOSE" ]; then
-        if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_nonzero_rc "$file" $?
-        else
-            ./"$file" || log_nonzero_rc "$file" $?
-        fi
+    if [ "$RUN_COVERAGE" = "yes" ]; then
+        coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file" || log_verbose_nonzero_rc "$file" $?
     else
-        if [ "$RUN_COVERAGE" = "yes" ]; then
-            coverage run   --source="${SOURCES}" --omit="test_*.py"  -a "$file"
-        else
-            ./"$file"
-        fi
+        ./"$file" || log_verbose_nonzero_rc "$file" $?
     fi
 done
 

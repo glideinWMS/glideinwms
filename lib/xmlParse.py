@@ -11,15 +11,16 @@
 #
 
 import xml.dom.minidom
-from collections import UserDict
+from collections import UserDict, OrderedDict
 
 class CorruptXML(Exception):
     pass
 
 
+# TODO: remove this class once tests pass. replaced by collections.OrderedDict
 # This Class was obtained from
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/107747
-class OrderedDict(UserDict):
+class OrderedDict2(UserDict):
     def __init__(self, dict=None):
         self._keys = []
         UserDict.__init__(self, dict)
