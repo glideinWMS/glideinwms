@@ -88,16 +88,18 @@ log_nonzero_rc() {
     return $2
 }
 
-check_python() {
-    echo "Python environment:"
-    echo "python: `command -v python 2>/dev/null`"
-    echo "python2: `command -v python2 2>/dev/null`"
-    echo "python3: `command -v python3 2>/dev/null`"
-    echo "pip: `command -v pip 2>/dev/null`"
-    echo "pip3: `command -v pip3 2>/dev/null`"
-    echo "PATH: $PATH"
-    echo "PYTHONPATH: $PYTHONPATH"
-    echo "Python in env: `env | grep -i python`"
+log_python() {
+    echo "# Python environment:"
+    echo "python=`command -v python 2>/dev/null`"
+    echo "python2=`command -v python2 2>/dev/null`"
+    echo "python3=`command -v python3 2>/dev/null`"
+    echo "pip=`command -v pip 2>/dev/null`"
+    echo "pip3=`command -v pip3 2>/dev/null`"
+    echo "PATH=\"$PATH\""
+    echo "PYTHONPATH=\"$PYTHONPATH\""
+    echo "venv2=${SETUP_VENV2}"
+    echo "venv3=${SETUP_VENV3}"
+    echo "# Python in env: `env | grep -i python`"
 }
 
 ############################
@@ -196,7 +198,7 @@ setup_python3_venv() {
 
         # TODO: load the list from requirements.txt
 
-        loginfo "$(check_python)"
+        # Uncomment to troubleshoot setup:  loginfo "$(log_python)"
 
         # To avoid: Cache entry deserialization failed, entry ignored
         # curl https://bootstrap.pypa.io/get-pip.py | python3
@@ -357,7 +359,7 @@ setup_python2_venv() {
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
-	    loginfo "$(check_python)"	
+	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"	
 
         failed_packages=""
         for package in $pip_packages; do
@@ -461,6 +463,12 @@ print_python_info() {
 
 ###############################################################################
 # HTML inline CSS
+HTML_RED="#FF7070"     # ff0000
+HTML_ORANGE="#FFB370"  # ffcc00
+HTML_GREEN="#8CFF8F"   # 70FF70 00ff00
+HTML_BLUE="#8CC6FF"    # 00ccff
+HTML_GRAY="#DCE4EB"
+
 HTML_TABLE="border: 1px solid black;border-collapse: collapse;"
 HTML_THEAD="font-weight: bold;border: 0px solid black;background-color: #ffcc00;"
 HTML_THEAD_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #ffb300;padding: 8px;"
@@ -470,10 +478,10 @@ HTML_TR="padding: 5px;text-align: center;"
 HTML_TD="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
 
 HTML_TR_PASSED="padding: 5px;text-align: center;"
-HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
+HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: ${HTML_GREEN};padding: 5px;text-align: center;"
 
 HTML_TR_FAILED="padding: 5px;text-align: center;"
-HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: ${HTML_RED};padding: 5px;text-align: center;"
 
 get_annotated_value(){
     # Return an annotated value (the value followed by a known semantic annotation that will be recognized for formatting)
@@ -517,15 +525,15 @@ annotated_to_td() {
         esac
     elif [[ "$html_format" == html4 ]]; then
         case "$note_only" in
-            =success=) note_only='style="background-color: #00ff00"';;
-            =error=) note_only='style="background-color: #ff0000"';;
-            =warning=) note_only='style="background-color: #ffaa00"';;
+            =success=) note_only="style=\"background-color: ${HTML_GREEN}\"";;
+            =error=) note_only="style=\"background-color: ${HTML_RED}\"";;
+            =warning=) note_only="style=\"background-color: ${HTML_ORANGE}\"";;
         esac
     elif [[ "$html_format" == html4f ]]; then
         case "$note_only" in
-            =success=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"';;
-            =error=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"';;
-            =warning=) note_only='style="border: 0px solid black;border-collapse: collapse;background-color: #ffaa00;padding: 5px;text-align: center;"';;
+            =success=) note_only="style=\"border: 0px solid black;border-collapse: collapse;background-color: ${HTML_GREEN};padding: 5px;text-align: center;\"";;
+            =error=) note_only="style=\"border: 0px solid black;border-collapse: collapse;background-color: ${HTML_RED};padding: 5px;text-align: center;\"";;
+            =warning=) note_only="style=\"border: 0px solid black;border-collapse: collapse;background-color: ${HTML_ORANGE};padding: 5px;text-align: center;\"";;
         esac
     else
         note_only=
