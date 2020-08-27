@@ -114,7 +114,7 @@ class MonitoringConfig:
                                                                         ('nosuccess="%i"' % waste_mill['nosuccess']),
                                                                         ('badput="%i"' % waste_mill['badput']))))
 
-    def write_file(self, relative_fname, output_data):
+    def write_file(self, relative_fname, output_str):
         """
         Writes out a string or bytes to a file
         @param relative_fname: The relative path name to write out

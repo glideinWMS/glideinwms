@@ -202,7 +202,7 @@ def init2():
     global condor_sbin_path
     # try using condor commands to find it out
     try:
-        condor_sbin_path = iexe_cmd("condor_config_val SBIN")[0].strip().decode("utf-8")  # remove trailing newline
+        condor_sbin_path = iexe_cmd("condor_config_val SBIN")[0].strip()  # remove trailing newline
     except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:

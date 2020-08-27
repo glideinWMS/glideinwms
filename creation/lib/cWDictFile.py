@@ -491,7 +491,7 @@ class GridMapDict(DictFileTwoKeys):
 class SHA1DictFile(DictFile):
     def add_from_file(self,filepath,allow_overwrite=False,
                       key=None): # if key==None, use basefname
-        sha1 = hashCrypto.extract_sha1(filepath).decode("utf-8")
+        sha1 = hashCrypto.extract_sha1(filepath)
         if key is None:
             key = os.path.basename(filepath)
         self.add(key, sha1, allow_overwrite)
@@ -523,7 +523,7 @@ class SummarySHA1DictFile(DictFile):
                       fname2=None,  # if fname2==None, use basefname
                       allow_overwrite=False,
                       key=None):   # if key==None, use basefname
-        sha1 = hashCrypto.extract_sha1(filepath).decode("utf-8")
+        sha1 = hashCrypto.extract_sha1(filepath)
         if key is None:
             key = os.path.basename(filepath)
         if fname2 is None:
