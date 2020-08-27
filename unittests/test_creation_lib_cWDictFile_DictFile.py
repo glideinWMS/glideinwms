@@ -15,7 +15,7 @@ Project:
 
 import os
 import copy
-import unittest2 as unittest
+import unittest
 import xmlrunner
 from glideinwms.unittests.unittest_utils import create_temp_file
 from glideinwms.unittests.unittest_utils import TestImportError
@@ -207,9 +207,9 @@ class TestDictFile(unittest.TestCase):
     def test_save_into_load_from_fd(self):
         other = copy.deepcopy(self.dict_file)
         fnm = create_temp_file()
-        with open(fnm, "w") as fd:
+        with open(fnm, "wb") as fd:
             self.dict_file.save_into_fd(fd)
-        with open(fnm, "r") as fd:
+        with open(fnm, "rb") as fd:
             other.load_from_fd(fd, erase_first=True)
         self.assertTrue(self.dict_file.is_equal(other))
         os.remove(fnm)

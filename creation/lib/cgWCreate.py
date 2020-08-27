@@ -525,7 +525,7 @@ def ldd(file):
     """
 
     rlist = []
-    if os.path.exists(file):
+    if os.path.exists(file) and shutil.which('ldd') is not None:
         process = subprocess.Popen(['ldd', file], shell=False,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)

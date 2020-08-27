@@ -8,7 +8,7 @@
 
 
 import getpass
-import unittest2 as unittest
+import unittest
 import os
 import tempfile
 import xmlrunner

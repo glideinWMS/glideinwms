@@ -13,7 +13,7 @@ import sys
 import shutil
 import tempfile
 import tarfile
-import unittest2 as unittest
+import unittest
 import time
 import xmlrunner
 

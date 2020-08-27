@@ -22,7 +22,9 @@ import string
 # import socket
 # import types
 # import traceback
-from collections import UserDict, OrderedDict
+from collections import UserDict
+#from collections import UserDict, OrderedDict
+from glideinwms.lib.xmlParse import OrderedDict
 
 from glideinwms.lib import xmlParse
 import xml.parsers.expat
@@ -45,10 +47,10 @@ class SubParams(UserDict):
 
     def validate(self, base, path_text):
         """Validate input against base template (i.e. the defaults)
-        
+
         Args:
-            base: 
-            path_text: 
+            base:
+            path_text:
 
         Returns:
 
@@ -89,9 +91,9 @@ class SubParams(UserDict):
 
     def use_defaults(self, defaults):
         """Put default values where there is nothing
-        
+
         Args:
-            defaults: 
+            defaults:
 
         Returns:
 
@@ -137,14 +139,19 @@ class SubParams(UserDict):
     #
     def get_el(self, name):
         """
-        
+
         Args:
-            name: 
+            name:
 
         Returns:
 
         """
-        el=self.data[name]
+        try:
+            el=self.data[name]
+        except KeyError:
+            print("MMDB: %s missing %s: %r, data: %r" % (type(self).__name__, name, self, self.data))
+            raise AttributeError("%s object has no attribute/key %s" % (type(self).__name__, name))
+        
         if isinstance(el, OrderedDict):
             return self.__class__(el)
         elif isinstance(el, list):
@@ -161,13 +168,13 @@ class SubParams(UserDict):
 
 class Params:
     """abstract class
-    
+
     Children must define:
         get_top_element(self)
         init_defaults(self)
         derive(self)
         get_xml_format(self)
-    
+
     """
     def __init__(self, usage_prefix, src_dir, argv):
         self.usage_prefix=usage_prefix
@@ -229,9 +236,9 @@ class Params:
         """Load from a file
         one element per line
          -opt val
-        
+
         Args:
-            fname: 
+            fname:
 
         Returns:
 
@@ -260,10 +267,10 @@ class Params:
     def save_into_file(self,fname,set_ro=False):
         """Save into a file
         The file should be usable for reload
-        
+
         Args:
-            fname: 
-            set_ro: 
+            fname:
+            set_ro:
 
         Returns:
 
@@ -278,10 +285,10 @@ class Params:
     def save_into_file_wbackup(self,fname,set_ro=False):
         """Save into a file (making a backup)
         The file should be usable for reload
-        
+
         Args:
-            fname: 
-            set_ro: 
+            fname:
+            set_ro:
 
         Returns:
 
@@ -320,12 +327,13 @@ class Params:
 class CommentedOrderedDict(OrderedDict):
     """Ordered dictionary with comment support
     """
-    def __init__(self, dict = None):
-        # cannot call directly the parent due to the particular implementation restrictions
-        self._keys = []
-        # TODO: double check restriction, why not OrderedDict?
-        # was: UserDict.__init__(self, dict)
-        OrderedDict.__init__(self, dict)
+    def __init__(self, indict={}):
+        # TODO: double check restriction, all can be removed?
+        #   cannot call directly the parent due to the particular implementation restrictions
+        #   self._keys = []
+        #   #was: UserDict.__init__(self, dict)
+        #   OrderedDict.__init__(self, indict)
+        super().__init__(indict)
         self["comment"] = (None, "string", "Humman comment, not used by the code", None)
 
 
@@ -335,12 +343,12 @@ class CommentedOrderedDict(OrderedDict):
 #
 def extract_attr_val(attr_obj):
     """Return attribute value in the proper python format
-    
+
     INTERNAL, don't use directly
     Use the class definition instead
 
     Args:
-        attr_obj: 
+        attr_obj:
 
     Returns:
 
@@ -409,13 +417,13 @@ VALID_NAME_CHARS = string.ascii_letters+string.digits+'._-'
 
 def is_valid_name(name):
     """Check if a string can be used as a valid name
-    
+
     Whitelist based:
         only allow ascii characters, numbers and a few punctuations
         no spaces, no special characters or other punctuation
 
     Args:
-        name (str): name to validate 
+        name (str): name to validate
 
     Returns:
         bool: True if the name is not empty and has only valid characters, False otherwise
@@ -439,11 +447,11 @@ def is_valid_name(name):
 
 def col_wrap(text, width, indent):
     """Wrap a text string to a fixed length
-    
+
     Args:
-        text (str): string to wrap 
-        width (int): length 
-        indent (str): indentation string 
+        text (str): string to wrap
+        width (int): length
+        indent (str): indentation string
 
     Returns:
 
@@ -477,10 +485,10 @@ def shorten_text(text, width):
     """Shorten text, make sure you properly account tabs
 
     Tabs are every 8 spaces (counted as number of chars to the next tab stop)
-        
+
     Args:
-        text (str): text to shorten 
-        width (int): length 
+        text (str): text to shorten
+        width (int): length
 
     Returns (tuple):
         shorten text (str): shortened text
@@ -505,11 +513,11 @@ def shorten_text(text, width):
 
 def defdict2string(defaults, indent, width=80):
     """Convert defualts to a string
-    
+
     Args:
-        defaults: 
-        indent: 
-        width: 
+        defaults:
+        indent:
+        width:
 
     Returns:
 

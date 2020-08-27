@@ -13,12 +13,7 @@ Project:
 import os
 import time
 import tempfile
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
+import unittest
 import xmlrunner
 
 from glideinwms.lib.disk_cache import DiskCache

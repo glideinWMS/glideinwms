@@ -11,7 +11,7 @@ Author:
 
 import os
 import tempfile
-import unittest2 as unittest
+import unittest
 import xmlrunner
 
 # pylint: disable=no-member

@@ -11,9 +11,8 @@
 #
 
 
-
 import xmlrunner
-import unittest2 as unittest
+import unittest
 
 from glideinwms.lib.util import safe_boolcomp
 
