@@ -873,7 +873,6 @@ class glideinFrontendElement:
         tkn_str = None
         # does condor version of entry point support condor token auth
         if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
-            (fd, tmpnm) = tempfile.mkstemp()
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
@@ -885,21 +884,20 @@ class glideinFrontendElement:
                 tkn_age = sys.maxsize
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
-                    logSupport.log.debug("token %s age is %s" % tkn_file, tkn_age)
+                    # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
+                tmpnm = ''
                 if tkn_age > one_hr:    
+                    (fd, tmpnm) = tempfile.mkstemp()
                     cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                     tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-
-                    os.chmod(tmpnm,0600)
                     os.write(fd, tkn_str)
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
-                    file_tmp2final(tkn_file, tmpnm)
                     os.chmod(tkn_file, 0600)
-                    logSupport.log.debug("created token %s" % tkn_file)
+                    logSupport.log.info("created token %s" % tkn_file)
             except Exception as err:
-                logSupport.log.debug('failed to create %s' % tkn_file)
-                logSupport.log.debug('%s' % err)
+                logSupport.log.warning('failed to create %s' % tkn_file)
+                logSupport.log.warning('%s' % err)
             finally:
                 if os.path.exists(tmpnm):
                     os.remove(tmpnm)
