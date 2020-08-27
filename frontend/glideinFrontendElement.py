@@ -884,7 +884,8 @@ class glideinFrontendElement:
                 one_hr = 3600
                 tkn_age = sys.maxsize
                 if os.path.exists(tkn_file):
-                    tkn_age = time.time() - os.stat(tkn_file)[stat.ST_MTIME]
+                    tkn_age = time.time() - os.stat(tkn_file).st_mtime
+                    logSupport.log.debug("token %s age is %s" % tkn_file, tkn_age)
                 if tkn_age > one_hr:    
                     cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                     tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
