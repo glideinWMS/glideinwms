@@ -530,7 +530,7 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").decode("utf-8").split('\n')[0]).strip()
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
 
     def create(self,*args):
         cmdline = '%s create %s'%(self.rrd_bin, string_quote_join(args))
@@ -544,7 +544,7 @@ class rrdtool_exe:
     
     def info(self,*args):
         cmdline = '%s info %s'%(self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
+        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
         outarr = {}
         for line in outstr:
             if '=' in line:
