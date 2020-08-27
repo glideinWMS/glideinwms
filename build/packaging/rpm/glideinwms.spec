@@ -881,10 +881,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Tue Aug 25 2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
+* Thu Aug 27 2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
 - GlideinWMS v3.7.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_1/history.html
-- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.3.rc3
+- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.4.rc4
 
 * Mon Aug 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.3-1
 - GlideinWMS v3.6.3
