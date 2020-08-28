@@ -645,13 +645,13 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 # empty stdout and stderr
                 try:
                     tempOut = child.stdout.read()
-                    if len(tempOut) != 0:
+                    if tempOut and len(tempOut) != 0:
                         logSupport.log.warning("EntryGroup %s STDOUT: %s" % (group, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.stderr.read()
-                    if len(tempErr) != 0:
+                    if tempErr and len(tempErr) != 0:
                         logSupport.log.warning("EntryGroup %s STDERR: %s" % (group, tempErr))
                 except IOError:
                     pass  # ignore

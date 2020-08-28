@@ -93,11 +93,11 @@ def fetch_fork_result(r, pid):
     @return: Unpickled object
     """
 
-    rin = ""
+    rin = b""
     out = None
     try:
         s = os.read(r, 1024*1024)
-        while s != "":  # "" means EOF
+        while s != b"":  # "" means EOF
             rin += s
             s = os.read(r, 1024*1024)
         # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.' 

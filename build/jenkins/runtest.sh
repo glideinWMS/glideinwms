@@ -260,6 +260,8 @@ parse_options() {
     # Default test log file name
     [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
     export TESTLOG_FILE="${TESTLOG_FILE}"
+    # link a last log path to the last log (unless there is a file with that name)
+    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "${OUT_DIR}/gwms.last.log"
     # > "$TESTLOG_FILE"
 }
 
@@ -456,6 +458,7 @@ process_branch() {
             loglog "RESULT_${COMMAND}_${git_branch}=2:failed"
             return 2
         fi
+        loglog "$(log_python)"
     fi
 
     # Not working on the Mac: logstep test "${COMMAND^^}-${git_branch}"

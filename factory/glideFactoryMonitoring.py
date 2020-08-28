@@ -121,6 +121,9 @@ class MonitoringConfig:
         @param output_str: the string (typed as string or bytes) to write to the file
         """
         fname = os.path.join(self.monitor_dir, relative_fname)
+        if type(fname) is bytes:
+            fname = fname.decode("utf-8")
+
         # print "Writing "+fname
 
         # Check to see if the output_str represented as bytes

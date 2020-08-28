@@ -22,15 +22,16 @@ sys.path.append(os.path.join(sys.path[0], "../.."))
 
 from glideinwms.lib import condorMonitor
 
-
 ################################################################################
 # GLOBAL
 
 data = {}
 
+
 ################################################################################
 def help():
-    print("glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]")
+    print(
+        "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]")
     print()
     print("Options:")
     print(" -gatekeeper   : Print out the glidein gatekeeper")
@@ -45,34 +46,38 @@ def help():
     print()
 
 
+def cmp(a, b):
+    return (a > b) - (a < b)
+
+
 def machine_cmp(x, y):
     # sort on the Machine attribute
-    res=cmp(data[x]['Machine'], data[y]['Machine'])
-    if res==0:
-        res=cmp(x, y)
+    res = cmp(data[x]['Machine'], data[y]['Machine'])
+    if res == 0:
+        res = cmp(x, y)
     return res
 
 
 def fmt_time(t):
-    now=int(time.time())
-    diff=now-t
-    diff_secs=diff%60
-    diff=diff/60
-    diff_mins=diff%60
-    diff=diff/60
-    diff_hours=diff%24
-    diff_days=diff/24
-    return "%i+%02i:%02i:%02i"%(diff_days, diff_hours, diff_mins, diff_secs)
+    now = int(time.time())
+    diff = now - t
+    diff_secs = diff % 60
+    diff = diff / 60
+    diff_mins = diff % 60
+    diff = diff / 60
+    diff_hours = diff % 24
+    diff_days = diff / 24
+    return "%i+%02i:%02i:%02i" % (diff_days, diff_hours, diff_mins, diff_secs)
 
 
-def ltotal_cmp(x, y): # Total last
+def ltotal_cmp(x, y):  # Total last
     # Total always last
-    if x=='Total':
-       if y=='Total':
-           return 0
-       else:
-           return 1
-    elif y=='Total':
+    if x == 'Total':
+        if y == 'Total':
+            return 0
+        else:
+            return 1
+    elif y == 'Total':
         return -1
 
     return cmp(x, y)
@@ -80,22 +85,23 @@ def ltotal_cmp(x, y): # Total last
 
 def entry_cmp(x, y):
     # Total always last
-    if x=='Total':
-       if y=='Total':
-           return 0
-       else:
-           return 1
-    elif y=='Total':
+    if x == 'Total':
+        if y == 'Total':
+            return 0
+        else:
+            return 1
+    elif y == 'Total':
         return -1
 
     # split in pieces and sort end to front
-    x_arr=x.split('@')
-    y_arr=y.split('@')
+    x_arr = x.split('@')
+    y_arr = y.split('@')
     for i in (2, 1, 0):
-        res=cmp(x_arr[i], y_arr[i])
-        if res!=0:
+        res = cmp(x_arr[i], y_arr[i])
+        if res != 0:
             return res
     return 0
+
 
 """
     print " -bench        : Print out the benchmarking numbers, too"
@@ -104,6 +110,7 @@ def entry_cmp(x, y):
     print " -pool         : Same as -pool in condor_status"
     print " -constraint   : Same as -constraint in condor_status"
 """
+
 
 def get_opts():
     parser = argparse.ArgumentParser(description='Equivalent to condor_status but with glidein specific info')
@@ -139,7 +146,6 @@ def get_opts():
     return args
 
 
-
 def main():
     opts = get_opts()
 
@@ -154,17 +160,19 @@ def main():
     summarize = 'entry'
     if opts.summarize_site:
         summarize = 'size'
-    
+
     if not want_monitor:
         if constraint is None:
-            constraint='IS_MONITOR_VM =!= TRUE'
+            constraint = 'IS_MONITOR_VM =!= TRUE'
         else:
-            constraint='(%s) && (IS_MONITOR_VM =!= TRUE)'%constraint
+            constraint = '(%s) && (IS_MONITOR_VM =!= TRUE)' % constraint
 
-    format_list=[('Machine', 's'), ('State', 's'), ('Activity', 's'),
-                 ('GLIDEIN_Site', 's'),
-                 ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('EnteredCurrentActivity', 'i')]
-    attrs=['State', 'Activity', 'GLIDEIN_Site', 'GLIDEIN_Factory', 'GLIDEIN_Name', 'GLIDEIN_Entry_Name', 'EnteredCurrentActivity']
+    format_list = [('Machine', 's'), ('State', 's'), ('Activity', 's'),
+                   ('GLIDEIN_Site', 's'),
+                   ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'),
+                   ('EnteredCurrentActivity', 'i')]
+    attrs = ['State', 'Activity', 'GLIDEIN_Site', 'GLIDEIN_Factory', 'GLIDEIN_Name', 'GLIDEIN_Entry_Name',
+             'EnteredCurrentActivity']
 
     if want_gk:
         format_list.append(('GLIDEIN_Gatekeeper', 's'))
@@ -192,159 +200,156 @@ def main():
         attrs.append('KFlops')
         attrs.append('Mips')
 
-    cs=condorMonitor.CondorStatus(pool_name=pool_name)
+    cs = condorMonitor.CondorStatus(pool_name=pool_name)
     cs.load(constraint=constraint, format_list=format_list)
 
     global data
-    data=cs.stored_data
-    keys=list(data.keys())
+    data = cs.stored_data
+    keys = list(data.keys())
 
     keys.sort(machine_cmp)
 
-
-    counts_header=('Total', 'Owner', 'Claimed/Busy', 'Claimed/Retiring', 'Claimed/Other', 'Unclaimed', 'Matched', 'Other')
+    counts_header = (
+        'Total', 'Owner', 'Claimed/Busy', 'Claimed/Retiring', 'Claimed/Other', 'Unclaimed', 'Matched', 'Other')
 
     if want_bench:
-        counts_header+=('GFlops', '  GIPS')
+        counts_header += ('GFlops', '  GIPS')
 
-
-    print_mask="%-39s %-9s"
+    print_mask = "%-39s %-9s"
     if want_gk:
-        print_mask+=" %-5s %-43s"
-    print_mask+=" %-19s %-19s"
+        print_mask += " %-5s %-43s"
+    print_mask += " %-19s %-19s"
     if want_gc:
-        print_mask+=" %-39s %-14s"
+        print_mask += " %-39s %-14s"
     if want_glexec:
-        print_mask+=" %-7s"
+        print_mask += " %-7s"
     if want_bench:
-        print_mask+=" %-5s %-5s"
-    print_mask+=" %-9s %-8s %-10s"
+        print_mask += " %-5s %-5s"
+    print_mask += " %-9s %-8s %-10s"
 
-    header=('Name', 'Site')
+    header = ('Name', 'Site')
     if want_gk:
-        header+=('Grid', 'Gatekeeper')
-    header+=('Factory', 'Entry')
+        header += ('Grid', 'Gatekeeper')
+    header += ('Factory', 'Entry')
     if want_gc:
-        header+=('GlideSchedd', 'GlideCluster')
+        header += ('GlideSchedd', 'GlideCluster')
     if want_glexec:
-        header+=('gLExec',)
+        header += ('gLExec',)
     if want_bench:
-        header+=('MFlop', 'Mips')
-    header+=('State', 'Activity', 'ActvtyTime')
+        header += ('MFlop', 'Mips')
+    header += ('State', 'Activity', 'ActvtyTime')
 
     if not total_only:
         print()
-        print(print_mask%header)
+        print(print_mask % header)
         print()
 
-    counts={'Total':{}}
+    counts = {'Total': {}}
     for c in counts_header:
-        counts['Total'][c]=0
+        counts['Total'][c] = 0
 
     for vm_name in keys:
-        el=data[vm_name]
+        el = data[vm_name]
 
-        cel={} # this will have all the needed attributes (??? if nothing else)
+        cel = {}  # this will have all the needed attributes (??? if nothing else)
         for a in attrs:
             if a in el:
-                cel[a]=el[a]
+                cel[a] = el[a]
             else:
-                cel[a]='???'
-        if cel['EnteredCurrentActivity']!='???':
-            cel['EnteredCurrentActivity']=fmt_time(int(cel['EnteredCurrentActivity']))
+                cel[a] = '???'
+        if cel['EnteredCurrentActivity'] != '???':
+            cel['EnteredCurrentActivity'] = fmt_time(int(cel['EnteredCurrentActivity']))
 
-        state=cel['State']
-        activity=cel['Activity']
+        state = cel['State']
+        activity = cel['Activity']
 
         if 'KFlops' in el:
-            gflops=(el['KFlops']*1.e-6)
-            mflops_str="%i"%(el['KFlops']/1000)
+            gflops = (el['KFlops'] * 1.e-6)
+            mflops_str = "%i" % (el['KFlops'] / 1000)
         else:
-            mflops=0.0
-            mflops_str="???"
+            mflops = 0.0
+            mflops_str = "???"
 
         if 'Mips' in el:
-            gips=el['Mips']*1.e-3
-            mips_str=el['Mips']
+            gips = el['Mips'] * 1.e-3
+            mips_str = el['Mips']
         else:
-            mips=0.0
-            mips_str="???"
+            mips = 0.0
+            mips_str = "???"
 
-        if summarize=='site':
-            sum_str=cel['GLIDEIN_Site']
+        if summarize == 'site':
+            sum_str = cel['GLIDEIN_Site']
         else:
-            sum_str="%s@%s@%s"%(cel['GLIDEIN_Entry_Name'], cel['GLIDEIN_Name'], cel['GLIDEIN_Factory'])
+            sum_str = "%s@%s@%s" % (cel['GLIDEIN_Entry_Name'], cel['GLIDEIN_Name'], cel['GLIDEIN_Factory'])
         if sum_str not in counts:
-            counts[sum_str]={}
+            counts[sum_str] = {}
             for c in counts_header:
-                counts[sum_str][c]=0
+                counts[sum_str][c] = 0
 
         for t in ('Total', sum_str):
-            ct=counts[t]
-            ct['Total']+=1
+            ct = counts[t]
+            ct['Total'] += 1
             if state in ('Owner', 'Unclaimed', 'Matched'):
-                ct[state]+=1
-            elif state=='Claimed':
+                ct[state] += 1
+            elif state == 'Claimed':
                 if activity in ('Busy', 'Retiring'):
-                    ct['%s/%s'%(state, activity)]+=1
+                    ct['%s/%s' % (state, activity)] += 1
                 else:
-                    ct['Claimed/Other']+=1
+                    ct['Claimed/Other'] += 1
             else:
-                ct['Other']+=1
+                ct['Other'] += 1
             if want_bench:
-                ct['GFlops']+=gflops
-                ct['  GIPS']+=gips
-
+                ct['GFlops'] += gflops
+                ct['  GIPS'] += gips
 
         if not total_only:
-            print_arr=(vm_name, cel['GLIDEIN_Site'])
+            print_arr = (vm_name, cel['GLIDEIN_Site'])
             if want_gk:
-                print_arr+=(cel['GLIDEIN_GridType'], cel['GLIDEIN_Gatekeeper'])
-            print_arr+=("%s@%s"%(cel['GLIDEIN_Name'], cel['GLIDEIN_Factory']), cel['GLIDEIN_Entry_Name'])
+                print_arr += (cel['GLIDEIN_GridType'], cel['GLIDEIN_Gatekeeper'])
+            print_arr += ("%s@%s" % (cel['GLIDEIN_Name'], cel['GLIDEIN_Factory']), cel['GLIDEIN_Entry_Name'])
             if want_gc:
-                print_arr+=(cel['GLIDEIN_Schedd'], "%i.%i"%(cel['GLIDEIN_ClusterId'], cel['GLIDEIN_ProcId']))
+                print_arr += (cel['GLIDEIN_Schedd'], "%i.%i" % (cel['GLIDEIN_ClusterId'], cel['GLIDEIN_ProcId']))
             if want_glexec:
-                glexec_str='None'
+                glexec_str = 'None'
                 if 'GLEXEC_JOB' in el and el['GLEXEC_JOB']:
-                    glexec_str='Job'
+                    glexec_str = 'Job'
                 elif 'GLEXEC_STARTER' in el and el['GLEXEC_STARTER']:
-                    glexec_str='Starter'
-                print_arr+=(glexec_str,)
+                    glexec_str = 'Starter'
+                print_arr += (glexec_str,)
             if want_bench:
-                print_arr+=(mflops_str, mips_str)
-            print_arr+=(state, activity, cel['EnteredCurrentActivity'])
+                print_arr += (mflops_str, mips_str)
+            print_arr += (state, activity, cel['EnteredCurrentActivity'])
 
-            print(print_mask%print_arr)
+            print(print_mask % print_arr)
 
     print()
 
-    count_print_mask="%39s"
+    count_print_mask = "%39s"
     for c in counts_header:
-        count_print_mask+=" %%%is"%len(c)
-    print(count_print_mask%(('',)+counts_header))
+        count_print_mask += " %%%is" % len(c)
+    print(count_print_mask % (('',) + counts_header))
 
-    ckeys=list(counts.keys())
+    ckeys = list(counts.keys())
 
-
-    if summarize=='site':
+    if summarize == 'site':
         ckeys.sort(ltotal_cmp)
-    else: # default is entry
+    else:  # default is entry
         ckeys.sort(entry_cmp)
 
-    if len(ckeys)>1:
-        print() # put a space before the entry names
+    if len(ckeys) > 1:
+        print()  # put a space before the entry names
 
     count_print_val = None
     for t in ckeys:
-        if t=='Total':
-            print() # put an empty line before Total
-            count_print_val=[t]
+        if t == 'Total':
+            print()  # put an empty line before Total
+            count_print_val = [t]
         else:
             count_print_val = ['']
         for c in counts_header:
             count_print_val.append(int(counts[t][c]))
 
-        print(count_print_mask%tuple(count_print_val))
+        print(count_print_mask % tuple(count_print_val))
 
     print()
 

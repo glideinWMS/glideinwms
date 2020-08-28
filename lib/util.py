@@ -259,7 +259,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """
     data = default
     try:
-        with open(fname, 'r') as fo:
+        with open(fname, 'br') as fo:
             if expiration >= 0:
                 # check date of file and time
                 fname_time = os.path.getmtime(fname)

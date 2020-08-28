@@ -68,7 +68,7 @@ def exe_cmd(condor_exe, args, stdin_data=None, env={}):
 
     if condor_bin_path is None:
         raise UnconfigError("condor_bin_path is undefined!")
-    condor_exe_path = os.path.join(condor_bin_path, condor_exe)
+    condor_exe_path = os.path.join(condor_bin_path.decode("utf-8"), condor_exe)
 
     cmd = "%s %s" % (condor_exe_path, args)
 

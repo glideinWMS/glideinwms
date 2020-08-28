@@ -279,7 +279,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
             # Verify that the identity the client claims to be is the
             # identity that Condor thinks it is
             try:
-                enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
+                enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity']).decode("utf-8")
             except:
                 logSupport.log.warning("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k)
                 continue # Corrupted classad
@@ -538,7 +538,7 @@ class EntryClassad(classadSupport.Classad):
         if pub_key_obj is not None:
             self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
             self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-            self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace('\n', '\\n')
+            self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().decode('ascii').replace('\n', '\\n')
         if 'grid_proxy' in auth_method:
             self.adParams['GlideinAllowx509_Proxy'] = '%s' % True
             self.adParams['GlideinRequirex509_Proxy'] = '%s' % True
@@ -614,7 +614,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
         self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
         self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-        self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().replace('\n', '\\n')
+        self.adParams['PubKeyValue'] = "%s" % pub_key_obj.get_pub_key_value().decode('ascii').replace('\n', '\\n')
 
 
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,

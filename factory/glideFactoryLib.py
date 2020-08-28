@@ -1226,7 +1226,7 @@ def schedd_name2str(schedd_name):
         return "-name %s" % schedd_name
 
 
-extractJobId_recmp = re.compile("^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
+extractJobId_recmp = re.compile(rb"^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
 def extractJobId(submit_out):
     for line in submit_out:
         found = extractJobId_recmp.search(line.strip())

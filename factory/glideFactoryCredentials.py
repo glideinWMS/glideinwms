@@ -112,7 +112,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     safe_update(fname, credential_data)
     compressed_credential = compress_credential(credential_data)
     # Compressed+encoded credentials are used for GCE and AWS and have a key=value format (glidein_credentials= ...)
-    safe_update(fname_compressed, 'glidein_credentials=%s' % compressed_credential)
+    safe_update(fname_compressed, b'glidein_credentials=%s' % compressed_credential)
 
     return fname, fname_compressed
 
@@ -155,7 +155,7 @@ def process_global(classad, glidein_descript, frontend_descript):
             cred_id = key[prefix_len:]
             
             cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
-            security_class = sym_key_obj.decrypt_hex(classad[key])
+            security_class = sym_key_obj.decrypt_hex(classad[key]).decode("utf-8")
             username = frontend_descript.get_username(frontend_sec_name, security_class)
 
             msg = "updating credential for %s" % username
@@ -216,7 +216,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
     # verify that the identity that the client claims to be is the identity that Condor thinks it is 
     try:
-        enc_identity = sym_key_obj.decrypt_hex(classad['ReqEncIdentity'])
+        enc_identity = sym_key_obj.decrypt_hex(classad['ReqEncIdentity']).decode("utf-8")
     except:
         error_str = "Cannot decrypt ReqEncIdentity."
         logSupport.log.exception(error_str)
@@ -227,7 +227,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
                     "Skipping for security reasons." % (enc_identity, authenticated_identity)
         raise CredentialError(error_str)
     try:
-        frontend_sec_name = sym_key_obj.decrypt_hex(classad['GlideinEncParamSecurityName'])
+        frontend_sec_name = sym_key_obj.decrypt_hex(classad['GlideinEncParamSecurityName']).decode("utf-8")
     except:
         error_str = "Cannot decrypt GlideinEncParamSecurityName."
         logSupport.log.exception(error_str)
@@ -353,7 +353,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
 
 
 def compress_credential(credential_data):
-    cfile = io.StringIO()
+    cfile = io.BytesIO()
     f = gzip.GzipFile(fileobj=cfile, mode='wb')
     f.write(credential_data)
     f.close()

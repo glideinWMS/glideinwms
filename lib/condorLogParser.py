@@ -883,7 +883,7 @@ def parseSubmitLogFastRaw(fname):
             status = buf[idx:idx+3]
             idx += 5
             # extract job id 
-            i1 = buf.find(")", idx)
+            i1 = buf.find(b")", idx)
             if i1 < 0:
                 break
             jobid = buf[idx:i1-4]
@@ -894,7 +894,7 @@ def parseSubmitLogFastRaw(fname):
             else:
                 jobs[jobid] = status
 
-            i1 = buf.find("...", idx)
+            i1 = buf.find(b"...", idx)
             if i1 < 0:
                 break
             idx = i1 + 4 #the 3 dots plus newline
@@ -937,7 +937,7 @@ def parseSubmitLogFastRawTimings(fname):
             status = buf[idx:idx+3]
             idx += 5
             # extract job id 
-            i1 = buf.find(")", idx)
+            i1 = buf.find(b")", idx)
             if i1 < 0:
                 break
             jobid = buf[idx:i1-4]
@@ -951,15 +951,15 @@ def parseSubmitLogFastRawTimings(fname):
             last_time = line_time
             
             if jobid in jobs:
-                if status == '001':
+                if status == b'001':
                     running_time = line_time
                 else:
                     running_time = jobs[jobid][2]
                 jobs[jobid] = (get_new_status(jobs[jobid][0], status), jobs[jobid][1], running_time, line_time) #start time never changes
             else:
-                jobs[jobid] = (status, line_time, '', line_time)
+                jobs[jobid] = (status, line_time, b'', line_time)
 
-            i1 = buf.find("...", idx)
+            i1 = buf.find(b"...", idx)
             if i1 < 0:
                 break
             idx = i1 + 4 #the 3 dots plus newline
@@ -996,7 +996,7 @@ def parseSubmitLogFastRawCallback(fname, callback):
             status = buf[idx:idx+3]
             idx += 5
             # extract job id 
-            i1 = buf.find(")", idx)
+            i1 = buf.find(b")", idx)
             if i1 < 0:
                 break
             jobid = buf[idx:i1-4]
@@ -1032,7 +1032,7 @@ def rawJobId2Nr(str):
     
     Return (-1,-1) in case of error
     """
-    arr=str.split(".")
+    arr=str.split(b".")
     try:
         return (int(arr[0]), int(arr[1]))
     except (IndexError, ValueError):
