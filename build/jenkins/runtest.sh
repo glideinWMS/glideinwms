@@ -493,7 +493,8 @@ summary_command_help() {
 ${COMMAND} command:
   Build summary table by joining existing summary files
   The only main options used are -w and -v, all the others are ignored
-  The output file is the per-test summary in csv format and optionally HTML format. It will generate also the per-branch file
+  The output file is the per-test summary in csv format and optionally a second file in HTML format with the same name
+  but ".html" extension. It will generate also the per-branch file.
   The input files are all per-branch files that have been generated during the tests (gwms.ALL.summary_append.csv files)
   With per-test ot per-branch I refer to tables that have respectively tests or branches as column headers (first row)
   NOTE All the summary files must ne homogeneous: same branches in the same orde and same output format
@@ -501,6 +502,7 @@ ${COMMAND} command:
 ${filename} [options] ${COMMAND} [other command options] OUTPUT_FILE INPUT_SUMMARY_FILES
 Command options:
   -h        print this message
+E.g.: ${filename} -v -w html4 ${COMMAND} output/gwms.summary.csv output/gwms.ALL.summary_append.csv
 EOF
 }
 
@@ -527,8 +529,14 @@ summary_command() {
     done
     loginfo "Writing summary table per branch: $summary_table_file"
     echo "$(transpose_table "$(cat "$append_table_file")" , )" > "$summary_table_file"  
-    [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]] && sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_table_file" > "${summary_table_file%.csv}.txt"
-    [[ "$SUMMARY_TABLE_FORMAT" == html* ]] && echo "$(table_to_html "$summary_table_file" ${SUMMARY_TABLE_FORMAT})" > "${summary_table_file%.csv}.html"
+    if [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]]; then 
+        loginfo "Writing summary table in txt format: ${summary_table_file%.csv}.txt"
+        sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_table_file" > "${summary_table_file%.csv}.txt"
+    fi
+    if [[ "$SUMMARY_TABLE_FORMAT" == html* ]]; then
+        loginfo "Writing summary table in HTML format: ${summary_table_file%.csv}.html"
+        echo "$(table_to_html "$summary_table_file" ${SUMMARY_TABLE_FORMAT})" > "${summary_table_file%.csv}.html"
+    fi
 }
 
 

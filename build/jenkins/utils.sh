@@ -227,12 +227,12 @@ setup_python3_venv() {
             loginfo "REINSTALLING $package"
             if ! python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
                 if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
-                    logwarn "WARNING $package could not be installed, but is available form the system.  Continuing."                    
+                    logwarn "$package could not be installed, but is available form the system.  Continuing."
                 else
                     if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
-                        logerror "ERROR $package could not be installed.  Continuing."
+                        logerror "$package could not be installed.  Continuing."
                     else
-                        logerror "ERROR $package could not be installed.  Stopping venv setup."
+                        logerror "$package could not be installed.  Stopping venv setup."
                         return 1
                     fi
                 fi
@@ -403,12 +403,12 @@ setup_python2_venv() {
             fi
             if [[ $? -ne 0 ]]; then
                 if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
-                    logwarn "WARNING $package could not be installed, but is available form the system.  Continuing."                    
+                    logwarn "$package could not be installed, but is available form the system.  Continuing."
                 else
                     if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
-                        logerror "ERROR $package could not be installed.  Continuing."
+                        logerror "$package could not be installed.  Continuing."
                     else
-                        logerror "ERROR $package could not be installed.  Stopping venv setup."
+                        logerror "$package could not be installed.  Stopping venv setup."
                         return 1
                     fi
                 fi
