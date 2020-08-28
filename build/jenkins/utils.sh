@@ -226,7 +226,7 @@ setup_python3_venv() {
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
             if python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
-                if echo "$installed_packages" | grep "^${package}=" > /dev/null ; then
+                if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
                     logwarn "WARNING $package could not be installed, but is available form the system.  Continuing."                    
                 else
                     if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
@@ -402,7 +402,7 @@ setup_python2_venv() {
                 python -m pip install -I "$package"
             fi
             if [[ $? -ne 0 ]]; then
-                if echo "$installed_packages" | grep "^${package}=" > /dev/null ; then
+                if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
                     logwarn "WARNING $package could not be installed, but is available form the system.  Continuing."                    
                 else
                     if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
