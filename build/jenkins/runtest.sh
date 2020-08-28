@@ -370,13 +370,13 @@ is_python3_branch() {
 
 transpose_table() {
     # 1. table to transpose
-    # 2. input separator (\t bu default)
-    # 3. size (calculated is not provided
+    # 2. input separator (\t by default)
+    # 3. size (calculated if not provided)
     local sep="${2:-$'\t'}"
     local table_size=$3
     [[ -z "$table_size" ]] && table_size=$(($(echo "${1%%$'\n'*}" | tr -cd "$sep" | wc -c)+1))
     for ((i=1; i<="$table_size"; i++)); do
-        echo "$1" | cut -d"$sep" -f"$i" - | paste -s -d ','
+        echo "$1" | cut -d"$sep" -f"$i" - | paste -s -d ',' -
     done
 }
 

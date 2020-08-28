@@ -225,7 +225,7 @@ setup_python3_venv() {
         local installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            if python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
+            if ! python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
                 if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
                     logwarn "WARNING $package could not be installed, but is available form the system.  Continuing."                    
                 else
@@ -373,11 +373,11 @@ setup_python2_venv() {
 	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"	
 
         failed_packages=""
-        local installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
+        local installed_packages="$(python -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-	    if $is_python26; then
+            if $is_python26; then
                 # py26 seems to error out w/ python -m pip: 
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
                 pip install -I --quiet "$package"
