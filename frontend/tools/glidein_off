@@ -51,7 +51,6 @@ import threading
 import optparse
 import random
 
-sys.path.append(os.path.join(sys.path[0],"../../.."))
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
 from glideinwms.lib import condorMonitor
