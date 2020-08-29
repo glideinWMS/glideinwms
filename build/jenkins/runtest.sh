@@ -127,7 +127,6 @@ get_files_pattern() {
     # -readable not valid on Mac, needed?
     # e.g. $(find . -readable -name  '*.bats' -print)"
     #echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name '*.'${extension} -print)"
-    #echo "MMDB (`pwd`): find \"$src_dir\" -path \"${src_dir}\"/.git -prune -o ${prune_opts} -name '$1' -print" >&2
     echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name "$1" -print)"
 }
 
