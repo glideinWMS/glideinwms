@@ -131,6 +131,7 @@ Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-ldap
 Requires: python2-jwt
+Requires: PyYAML
 Requires: m2crypto
 %description libs
 This package provides common libraries used by glideinwms.
@@ -180,6 +181,8 @@ Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-argparse
 Requires: python-ldap
+Requires: python-requests
+Requires: python2-jwt
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
 Requires(post): /sbin/service

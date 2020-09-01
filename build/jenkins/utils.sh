@@ -99,6 +99,7 @@ log_python() {
     echo "PYTHONPATH=\"$PYTHONPATH\""
     echo "venv2=${SETUP_VENV2}"
     echo "venv3=${SETUP_VENV3}"
+    echo "venv_packages='`python -m pip list --format json`'"
     echo "# Python in env: `env | grep -i python`"
 }
 
@@ -109,6 +110,7 @@ log_python() {
 PRE_VENV_PATH=
 SETUP_VENV3=
 setup_python3_venv() {
+    # 1. install location ($PWD by default)
     if [ $# -gt 1 ]; then
         logexit "Invalid number of arguments to setup_python_venv. Will accept the location to install venv or use PWD as default"
     fi
@@ -133,7 +135,7 @@ setup_python3_venv() {
     JSONPICKLE="jsonpickle"
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
-    M2CRYPTO="M2Crypto" # M2CRYPTO="M2Crypto==0.20.2"
+    M2CRYPTO="m2crypto" # M2CRYPTO="M2Crypto==0.20.2"
 
     # pip install of M2Crypto is failing, use RPM: python36-m2crypto.x86_64 : Support for using OpenSSL in Python 3 scripts
     
@@ -191,8 +193,8 @@ setup_python3_venv() {
         # pep8 has been replaced by pycodestyle
         # importlib and argparse are in std Python 3.6 (>=3.1)
         # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
-        pip_packages="toml ${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner jwt"
+        pip_packages="toml ${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
+        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
@@ -204,26 +206,35 @@ setup_python3_venv() {
         # curl https://bootstrap.pypa.io/get-pip.py | python3
         python3 -m pip install --quiet --upgrade pip
 
-        failed_packages=""
+        # pip options: -I --use-feature=2020-resolver
+        # -I (--ignore-installed) it is to override system versions if different
+        # --use-feature=2020-resolver is to avoid a warning message
+        local failed_packages=""
         for package in ${pip_packages}; do
             loginfo "Installing $package ..."
             status="DONE"
-            if ! python3 -m pip install --quiet "$package" ; then
+            if ! python3 -m pip install -I --use-feature=2020-resolver --quiet "$package" ; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
             loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order
-        NOT_FATAL="htcondor ${M2CRYPTO}"
+        #NOT_FATAL="htcondor ${M2CRYPTO}"
+        NOT_FATAL="htcondor"
+        local installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            if ! python3 -m pip install "$package" ; then
-                if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
-                    logerror "ERROR $package could not be installed.  Continuing."
+            if ! python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
+                if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
+                    logwarn "$package could not be installed, but is available form the system.  Continuing."
                 else
-                    logerror "ERROR $package could not be installed.  Stopping venv setup."
-                    return 1
+                    if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
+                        logerror "$package could not be installed.  Continuing."
+                    else
+                        logerror "$package could not be installed.  Stopping venv setup."
+                        return 1
+                    fi
                 fi
             fi
         done
@@ -355,20 +366,21 @@ setup_python2_venv() {
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner future importlib argparse"
+        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
 	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"	
 
         failed_packages=""
+        local installed_packages="$(python -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $pip_packages; do
             loginfo "Installing $package ..."
             status="DONE"
-	    if $is_python26; then
+            if $is_python26; then
                 # py26 seems to error out w/ python -m pip: 
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
-                pip install --quiet "$package"
+                pip install -I --quiet "$package"
             else
                 python -m pip install --quiet "$package"
             fi
@@ -379,22 +391,26 @@ setup_python2_venv() {
             loginfo "Installing $package ... $status"
         done
         #try again if anything failed to install, sometimes its order matters
-        NOT_FATAL="htcondor ${M2CRYPTO}"
+        NOT_FATAL="htcondor ${M2CRYPTO} PyJWT"
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-	    if $is_python26; then
+            if $is_python26; then
                 # py26 seems to error out w/ python -m pip: 
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
                 pip install "$package"
             else
-                python -m pip install "$package"
+                python -m pip install -I "$package"
             fi
             if [[ $? -ne 0 ]]; then
-                if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
-                    logerror "ERROR $package could not be installed.  Continuing."
+                if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
+                    logwarn "$package could not be installed, but is available form the system.  Continuing."
                 else
-                    logerror "ERROR $package could not be installed.  Stopping venv setup."
-                    return 1
+                    if [[ " ${NOT_FATAL} " == *" ${package} "* ]]; then
+                        logerror "$package could not be installed.  Continuing."
+                    else
+                        logerror "$package could not be installed.  Stopping venv setup."
+                        return 1
+                    fi
                 fi
             fi
         done

@@ -1,6 +1,9 @@
 # for runtime
 htcondor
 m2crypto
+requests
+pyyaml
+pyjwt
 
 # commented out until we drop python2 support
 ## classad ##
@@ -16,7 +19,6 @@ coverage
 future
 importlib
 argparse
-pyyaml
 
 # for tests
 jsonpickle
