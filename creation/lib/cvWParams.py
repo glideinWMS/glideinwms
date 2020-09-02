@@ -313,7 +313,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.work_dir=self.buildDir(frontendVersioning, self.work.base_dir)
         self.log_dir=self.buildDir(frontendVersioning, self.work.base_log_dir)
         self.web_url=self.buildDir(frontendVersioning, self.stage.web_base_url)
-        print ("MMDB: %s, %s" % (type(self.monitor), self.monitor.data))
+        # print ("MMDB: %s, %s" % (type(self.monitor), self.monitor.data))
         if hasattr(self.monitor, "web_base_url") and (self.monitor.web_base_url is not None):
             self.monitoring_web_url=self.buildDir(frontendVersioning, self.monitor.web_base_url)
         else:

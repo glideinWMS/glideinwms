@@ -1051,7 +1051,20 @@ class FileDictFile(SimpleFileDictFile):
                        data,
                        allow_overwrite=False,
                        allow_overwrite_placeholder=True):
+        """Add a file to the list, the content is provided separately (not in the val tuple)
 
+        Args:
+            key (str): file ID
+            val (tuple): lists of 6 or 7 components (see class definition)
+            data (bytes): bytes string w/ data to add
+            allow_overwrite (bool): if True the existing files can be replaced (default: False)
+            allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
+                is False (default: True)
+
+        Raises:
+            DictFileError
+
+        """
         if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions know nothing about placeholders, need to force overwrite
@@ -1062,7 +1075,20 @@ class FileDictFile(SimpleFileDictFile):
                      data,
                      allow_overwrite=False,
                      allow_overwrite_placeholder=True):
+        """Add a file to the list, the content is provided separately (not in the val tuple)
+        
+        Args:
+            key (str): file ID
+            val (tuple): lists of 6 or 7 components (see class definition)
+            data (str): string w/ data to add
+            allow_overwrite (bool): if True the existing files can be replaced (default: False)
+            allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
+                is False (default: True)
 
+        Raises:
+            DictFileError
+
+        """
         if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions know nothing about placeholders, need to force overwrite

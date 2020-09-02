@@ -182,26 +182,26 @@ def refresh_file_list(dicts, is_main,  # update in place
     file_dict.add_from_bytes(
             cWConsts.CONSTS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['consts'].get_fname(), 'regular', config_out='CONSTS_FILE'),
-            dicts['consts'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            dicts['consts'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     file_dict.add_from_bytes(
             cWConsts.VARS_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['vars'].get_fname(), 'regular', config_out='CONDOR_VARS_FILE'),
-            dicts['vars'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            dicts['vars'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     file_dict.add_from_bytes(
             cWConsts.UNTAR_CFG_FILE,
             cWDictFile.FileDictFile.make_val_tuple(dicts['untar_cfg'].get_fname(), 'regular', config_out='UNTAR_CFG_FILE'),
-            dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            dicts['untar_cfg'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
     if is_main:
         file_dict.add_from_bytes(
                 cWConsts.GRIDMAP_FILE,
                 cWDictFile.FileDictFile.make_val_tuple(dicts['gridmap'].get_fname(), 'regular', config_out='GRIDMAP'),
-                dicts['gridmap'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+                dicts['gridmap'].save_into_bytes(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
                 allow_overwrite=True
         )
 
@@ -257,6 +257,7 @@ def save_common_dicts(dicts,     # will update in place, too
     if 'attrs' in dicts:
         dicts['attrs'].save(set_readonly=set_readonly)
 
+
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
                     set_readonly=True):
@@ -274,6 +275,7 @@ def save_group_dicts(group_dicts,                   # will update in place, too
     save_common_dicts(group_dicts, False, set_readonly=set_readonly)
     summary_signature.add_from_file(key=cvWConsts.get_group_stage_dir("", group_name), filepath=group_dicts['signature'].get_filepath(), fname2=group_dicts['description'].get_fname(), allow_overwrite=True)
 
+
 ################################################
 #
 # Functions that reuse dictionaries
@@ -290,9 +292,11 @@ def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
     else:
         return False
 
+
 def reuse_file_dict(dicts, other_dicts, key):
     dicts[key].reuse(other_dicts[key])
     return reuse_simple_dict(dicts, other_dicts, key)
+
 
 def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
     # save the immutable ones
