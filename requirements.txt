@@ -2,6 +2,9 @@
 htcondor
 classad
 m2crypto
+requests
+pyyaml
+pyjwt
 
 #for verifications
 pylint
