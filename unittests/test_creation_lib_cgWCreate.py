@@ -5,6 +5,9 @@
    Purpose: unit test of glideinwms/creation/lib/cgWCreate.py
    Author: Dennis Box, dbox@fnal.gov
 """
+
+import unittest
+
 import glideinwms.creation.lib.cgWCreate
 from glideinwms.creation.lib.cgWCreate import GlideinSubmitDictFile
 
@@ -17,7 +20,6 @@ from glideinwms.creation.lib.factoryXmlConfig import EntrySetElement
 from glideinwms.creation.lib.factoryXmlConfig import Config
 from glideinwms.creation.lib.factoryXmlConfig import parse
 
-import unittest2 as unittest
 
 XML = 'fixtures/factory/glideinWMS.xml'
 

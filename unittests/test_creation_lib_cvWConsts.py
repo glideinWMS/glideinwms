@@ -15,7 +15,7 @@ Project:
 
 import os
 import xmlrunner
-import unittest2 as unittest
+import unittest
 
 from glideinwms.creation.lib.cvWConsts import get_group_work_dir
 from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_work_dir

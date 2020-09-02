@@ -14,7 +14,7 @@ Author:
 
 import os
 import mock
-import unittest2 as unittest
+import unittest
 import xmlrunner
 
 from glideinwms.creation.lib.cvWCreate import create_client_mapfile

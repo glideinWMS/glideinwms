@@ -15,7 +15,7 @@ import shutil
 import sys
 import tempfile
 import time
-import unittest2 as unittest
+import unittest
 import xmlrunner
 
 # pylint: disable=E0611,F0401

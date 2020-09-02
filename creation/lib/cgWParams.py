@@ -20,9 +20,9 @@ import os.path
 import socket
 # import types
 # import traceback
-from collections import OrderedDict
+#from collections import OrderedDict
 
-# from glideinwms.lib import xmlParse
+from glideinwms.lib.xmlParse import OrderedDict
 from glideinwms.lib import condorExe
 from glideinwms.lib.util import safe_boolcomp
 from . import cWParams

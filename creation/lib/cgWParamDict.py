@@ -11,7 +11,8 @@
 #   created out of the parameter object
 #
 
-import os, os.path, shutil, string
+import os, os.path
+import shutil
 import sys
 import glob
 from . import cgWDictFile, cWDictFile
@@ -27,6 +28,7 @@ from . import factoryXmlConfig
 
 from glideinwms.lib import pubCrypto
 #from factoryXmlConfig import EntrySetElement
+
 
 class UnconfiguredScheddError(Exception):
 
@@ -49,6 +51,7 @@ def str2bool(val):
     else:
         return False
 
+
 ################################################
 #
 # This Class contains the main dicts
@@ -56,6 +59,8 @@ def str2bool(val):
 ################################################
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
+    """This Class contains the main dicts
+    """
     def __init__(self, conf, workdir_name):
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()

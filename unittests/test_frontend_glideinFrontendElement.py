@@ -11,7 +11,7 @@ Author:
 
 import mock
 import os
-import unittest2 as unittest
+import unittest
 import xmlrunner
 
 import glideinwms

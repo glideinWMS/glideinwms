@@ -11,7 +11,7 @@ Project:
 """
 
 import string
-import unittest2 as unittest
+import unittest
 import xmlrunner
 import hypothesis
 import hypothesis.strategies as st
