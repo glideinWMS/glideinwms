@@ -909,11 +909,11 @@ class glideinFrontendElement:
                 if tkn_age > one_hr:    
                     (fd, tmpnm) = tempfile.mkstemp()
                     cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                    tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    tkn_str = subprocessSupport.iexe_cmd(cmd)
                     os.write(fd, tkn_str)
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
-                    os.chmod(tkn_file, 0600)
+                    os.chmod(tkn_file, 0o600)
                     logSupport.log.info("created token %s" % tkn_file)
             except Exception as err:
                 logSupport.log.warning('failed to create %s' % tkn_file)

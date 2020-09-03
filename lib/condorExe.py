@@ -17,14 +17,20 @@ from . import logSupport
 from . import subprocessSupport
 
 
-class UnconfigError(RuntimeError):
+class CondorExeError(RuntimeError):
+    """Base class for condorExe module errors"""
     def __init__(self, err_str):
         RuntimeError.__init__(self, err_str)
 
 
-class ExeError(RuntimeError):
+class UnconfigError(CondorExeError):
     def __init__(self, err_str):
-        RuntimeError.__init__(self, err_str)
+        CondorExeError.__init__(self, err_str)
+
+
+class ExeError(CondorExeError):
+    def __init__(self, err_str):
+        CondorExeError.__init__(self, err_str)
 
 
 #
@@ -33,12 +39,12 @@ class ExeError(RuntimeError):
 
 def set_path(new_condor_bin_path, new_condor_sbin_path=None):
     """Set path to condor binaries, if needed
+    
+    Works changing the global variables condor_bin_path and condor_sbin_path
 
     Args:
-        new_condor_bin_path:
-        new_condor_sbin_path:
-
-    Returns:
+        new_condor_bin_path (str): directory where the HTCondor binaries are located 
+        new_condor_sbin_path (str): directory where the HTCondor system binaries are located 
 
     """
     global condor_bin_path, condor_sbin_path
@@ -68,7 +74,7 @@ def exe_cmd(condor_exe, args, stdin_data=None, env={}):
 
     if condor_bin_path is None:
         raise UnconfigError("condor_bin_path is undefined!")
-    condor_exe_path = os.path.join(condor_bin_path.decode("utf-8"), condor_exe)
+    condor_exe_path = os.path.join(condor_bin_path, condor_exe)
 
     cmd = "%s %s" % (condor_exe_path, args)
 
@@ -126,7 +132,6 @@ def generate_bash_script(cmd, environment):
     return '\n'.join(script)
 
 
-# can throw ExeError
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
     """Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
@@ -137,14 +142,18 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         child_env (dict): Environment to be set before execution
 
     Returns:
-        Lines of stdout from the command
+        list of str: Lines of stdout from the command 
+        
+    Raises:
+        ExeError
+        
     """
-    stdoutdata = ""
+    stdout_data = ""
     try:
-        stdoutdata = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data,
-                                                child_env=child_env)
+        # invoking subprocessSupport.iexe_cmd w/ text=True (default), stdin_data and returned output are str
+        stdout_data = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data, child_env=child_env)
     except Exception as ex:
-        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdoutdata)
+        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdout_data)
         try:
             logSupport.log.error(msg)
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
@@ -152,14 +161,15 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
             pass
         raise ExeError(msg)
 
-    return stdoutdata.splitlines()
+    return stdout_data.splitlines()
 
 
-#
-# Set condor_bin_path
+#########################
+# Module initialization
 #
 
 def init1():
+    """Set condor_bin_path"""
     global condor_bin_path
     # try using condor commands to find it out
     try:
@@ -194,11 +204,8 @@ def init1():
                         pass  # don't know what else to try
 
 
-#
-# Set condor_sbin_path
-#
-
 def init2():
+    """Set condor_sbin_path"""
     global condor_sbin_path
     # try using condor commands to find it out
     try:
@@ -234,6 +241,7 @@ def init2():
 
 
 def init():
+    """Set both Set condor_bin_path and condor_sbin_path"""
     init1()
     init2()
 

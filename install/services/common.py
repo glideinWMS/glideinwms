@@ -3,7 +3,6 @@
 
 import sys
 import os.path
-import string
 import time
 import stat
 import shutil
