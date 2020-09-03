@@ -1037,6 +1037,11 @@ SHADOW_WORKLIFE = 0
     #-- checking for zero swap space - affects schedd's only --
     cmd = "free | tail -1 |awk '{ print $2 }'" 
     swap = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
+    try:
+        swap = int(swap)
+    except (TypeError, ValueError):
+        # None gives TypeError, empty or non numeric strings give ValueError
+        swap = ""
     if swap == 0:
       self.condor_config_data[type] +=  """
 #-- No swap space 
