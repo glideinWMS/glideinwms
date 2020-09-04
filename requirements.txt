@@ -26,6 +26,6 @@ jsonpickle
 mock
 pytest
 tabulate
-unittest2
+# std in p3 unittest
 xmlrunner
 
