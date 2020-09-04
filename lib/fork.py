@@ -25,13 +25,20 @@ from .pidSupport import register_sighandler, unregister_sighandler, termsignal
 from . import logSupport
 
 
-class FetchError(RuntimeError):
+class ForkError(RuntimeError):
+    """Base class for this module's errors
+    """
+    def __init__(self, msg):
+        RuntimeError.__init__(self, msg)
+
+
+class FetchError(ForkError):
     pass
 
-    
-class ForkResultError(RuntimeError):
+
+class ForkResultError(ForkError):
     def __init__(self, nr_errors, good_results, failed=[]):
-        RuntimeError.__init__(self, "Found %i errors" % nr_errors)
+        ForkError.__init__(self, "Found %i errors" % nr_errors)
         self.nr_errors = nr_errors
         self.good_results = good_results
         self.failed = failed
@@ -41,12 +48,23 @@ class ForkResultError(RuntimeError):
 # Low level fork and collect functions
 
 def fork_in_bg(function_torun, *args):
-    # fork and call a function with args
-    #  return a dict with {'r': fd, 'pid': pid} where fd is the stdout from a pipe.
-    #    example:
-    #      def add(i, j): return i+j
-    #      d = fork_in_bg(add, i, j)
+    """Fork and call a function with args
 
+    This function returns right away, returning the pid and a pipe to the stdout of the function process
+    where the output of the function will be pickled
+
+    example:
+          def add(i, j): return i+j
+          d = fork_in_bg(add, i, j)
+
+    Args:
+        function_torun (function): function to call after forking the process
+        *args: arguments list to pass to the function
+
+    Returns:
+        dict: dict with {'r': fd, 'pid': pid} where fd is the stdout from a pipe.
+
+    """
     r, w = os.pipe()
     unregister_sighandler()
     pid = os.fork()
@@ -185,6 +203,7 @@ def fetch_ready_fork_result_list(pipe_ids):
     fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
     poll_obj = None
     time_this = False
+    t_begin = None
     if time_this:
         t_begin = time.time()
     try:
@@ -211,7 +230,7 @@ def fetch_ready_fork_result_list(pipe_ids):
         # EPOLLHUP events are registered by default. The consumer will read eventual data and close the fd
         readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
     except (AttributeError, IOError) as err:
-        logSupport.log.warning("Failed to load select.epoll() '%s'" % str(err))
+        logSupport.log.warning("Failed to load select.epoll(): %s" % str(err))
         try:
             # no epoll(), try poll(). Still supports > 1024 fds and
             # tested faster than select() on linux when multiple forks configured
@@ -221,7 +240,7 @@ def fetch_ready_fork_result_list(pipe_ids):
                 poll_obj.register(read_fd, select.POLLIN | select.POLLHUP | select.POLLERR)
             readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
         except (AttributeError, IOError) as err:
-            logSupport.log.warning("Failed to load select.poll() '%s'" % str(err))
+            logSupport.log.warning("Failed to load select.poll(): %s" % str(err))
             # no epoll() or poll(), use select()
             readable_fds = select.select(list(fds_to_entry.keys()), [], [], POLL_TIMEOUT/1000.0)[0]
             poll_type = "select"
@@ -231,6 +250,7 @@ def fetch_ready_fork_result_list(pipe_ids):
     for fd in readable_fds:
         if fd not in fds_to_entry:
             continue
+        key = None
         try:
             key = fds_to_entry[fd]
             pid = pipe_ids[key]['pid']
@@ -256,14 +276,15 @@ def fetch_ready_fork_result_list(pipe_ids):
     
     if time_this:
         logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %
-            ('fetch_ready_fork_result_list', poll_type, count, len(list(fds_to_entry.keys())), time.time()-t_begin))
+                             ('fetch_ready_fork_result_list', poll_type, count, len(list(fds_to_entry.keys())), 
+                              time.time() - t_begin)
+                             )
 
     return work_info
 
 
 def wait_for_pids(pid_list):
-    """
-    Wait for all pids to finish.
+    """Wait for all pids to finish.
     Throw away any stdout or err
     """
     for pidel in pid_list:
@@ -272,7 +293,7 @@ def wait_for_pids(pid_list):
         try:
             # empty the read buffer first
             s = os.read(r, 1024)
-            while s != "":  # "" means EOF
+            while s != b"":  # "" means EOF, pipes are binary
                 s = os.read(r, 1024)
         finally:
             os.close(r)
@@ -323,11 +344,11 @@ class ForkManager:
         # try to fork all the functions
         for key in self.key_list:
             # Check if we can fork more
-            if (forks_remaining == 0):
+            if forks_remaining == 0:
                 if log_progress:
                     # log here, since we will have to wait
-                    logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks, functions_remaining))
-            while (forks_remaining == 0):
+                    logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks, functions_remaining))
+            while forks_remaining == 0:
                 failed_keys = []
                 # Give some time for the processes to finish the work
                 # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
@@ -361,10 +382,11 @@ class ForkManager:
         # end for
 
         if log_progress:
-            logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
+            logSupport.log.info("Active forks = %i, Forks to finish = %i" %
+                                (max_forks-forks_remaining, functions_remaining))
 
         # now we just have to wait for all to finish
-        while (functions_remaining>0):
+        while functions_remaining > 0:
             failed_keys = []
             # Give some time for the processes to finish the work
             time.sleep(sleep_time)
@@ -388,12 +410,13 @@ class ForkManager:
             for i in (list(post_work_info_subset.keys()) + failed_keys):
                 del pipe_ids[i]
 
-            if len(post_work_info_subset)>0:
+            if len(post_work_info_subset) > 0:
                 if log_progress:
-                    logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
+                    logSupport.log.info("Active forks = %i, Forks to finish = %i" %
+                                        (max_forks-forks_remaining, functions_remaining))
         # end while
 
-        if nr_errors>0:
+        if nr_errors > 0:
             raise ForkResultError(nr_errors, post_work_info)
 
         return post_work_info
