@@ -576,7 +576,10 @@ class glideinFrontendElement:
         # Add glidein config limits to the glideclient classads
         advertizer.set_glidein_config_limits(self.glidein_config_limits)
 
-        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys())
+        # TODO: python2 allows None elements to be sorted putting them on top
+        #   recreating the behavior but should check if (None, None, None) is giving problems somewhere else
+        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys(),  
+                              key=lambda x: ("", "", "") if x == (None, None, None) else x )
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
         # sort for the sake of monitoring
