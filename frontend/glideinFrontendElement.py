@@ -931,16 +931,21 @@ class glideinFrontendElement:
         for globalid, globals_el in self.globals_dict.items():
             try:
                 globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
-            except:
+            except pubCrypto.PubCryptoError as e:
                 # if no valid key
                 # if key needed, will handle the error later on
-                logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
+                logSupport.log.warning("Factory Globals '%s', invalid RSA key: %s" % (globalid, e))
+                logSupport.log.exception("Factory Globals '%s', invalid RSA key: %s" % (globalid, e))
                 # but mark it for removal from the dictionary
                 bad_id_list.append(globalid)
-
+            except:
+                # Catch all to be more robust, was there, probably should be removed
+                logSupport.log.warning("Factory Globals '%s', unknown error, probably invalid RSA key" % globalid)
+                logSupport.log.exception("Factory Globals '%s', unknown error, probably invalid RSA key" % globalid)
+                # but mark it for removal from the dictionary
+                bad_id_list.append(globalid)
         for badid in bad_id_list:
-            logSupport.log.warning("Factory Globals removing:'%s': invalid RSA key" % badid)
+            logSupport.log.warning("Factory Globals removing'%s': invalid RSA key" % badid)
             del self.globals_dict[badid]
 
     def identify_bad_schedds(self):

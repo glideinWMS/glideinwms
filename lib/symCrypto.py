@@ -10,8 +10,14 @@
 #
 
 import M2Crypto
-import os
+# import os
 import binascii
+
+
+# All strings should be ASCII, so ASCII or latin-1 (256 safe) should be OK
+# Anyway M2Crypto uses 'utf8' to implement AnyStr (union of bytes and str)
+BINARY_ENCODING = 'utf8'
+
 
 ######################
 #
@@ -31,10 +37,34 @@ import binascii
 # you probably don't want to use this
 # Use the child classes instead
 class SymKey:
+    """Symmetric keys cryptography
+    
+    You probably don't want to use this, use the child classes instead
+    
+    self.key_str and self.iv_str are bytes (strings) with HEX encoded data
+
+    Available ciphers, too many to list them all, try `man enc`, a few of them are:
+        'aes_128_cbc'
+        'aes_128_ofb
+        'aes_256_cbc'
+        'aes_256_cfb'
+        'bf_cbc'
+        'des3'    
+    """
     def __init__(self,
                  cypher_name, key_len, iv_len,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
+        """Constructor
+        
+        Args:
+            cypher_name: 
+            key_len: 
+            iv_len: 
+            key_str: 
+            iv_str: 
+            key_iv_code: 
+        """
         self.cypher_name = cypher_name
         self.key_len = key_len
         self.iv_len = iv_len
@@ -49,34 +79,52 @@ class SymKey:
     def load(self,
              key_str=None, iv_str=None,
              key_iv_code=None):
+        """Load a new key from text (str/bytes)
+        
+        Args:
+            key_str (str/bytes): string w/ base64 encoded key 
+                Must be bytes-like object or ASCII string, like base64 inputs 
+            iv_str (str/bytes): initialization vector
+            key_iv_code (str/bytes): comma separated text with cypher, key, iv  
+
+        Returns:
+
+        """
         if key_str is not None:
             if key_iv_code is not None:
                 raise ValueError("Illegal to define both key_str and key_iv_code")
+            # just in case it was unicode"
+            if isinstance(key_str, str):
+                #raise Exception("ALREAY str!")
+                key_str = key_str.encode(BINARY_ENCODING)
 
-            key_str = str(key_str) # just in case it was unicode"
             if len(key_str) != (self.key_len*2):
                 raise ValueError("Key must be exactly %i long, got %i" % (self.key_len*2, len(key_str)))
 
             if iv_str is None:
                 # if key_str defined, one needs the iv_str, too
                 # set to default of 0
-                iv_str = '0'*(self.iv_len*2)
+                iv_str = b'0'*(self.iv_len*2)
             else:
                 if len(iv_str) != (self.iv_len*2):
                     raise ValueError("Initialization vector must be exactly %i long, got %i" % (self.iv_len*2, len(iv_str)))
-                iv_str = str(iv_str) # just in case it was unicode"
+                # just in case it was unicode"
+                if isinstance(iv_str, str):
+                    iv_str = iv_str.encode(BINARY_ENCODING)
         elif key_iv_code is not None:
-            key_iv_code = str(key_iv_code) # just in case it was unicode
-            ki_arr = key_iv_code.split(',')
+            # just in case it was unicode"
+            if isinstance(key_iv_code, str):
+                key_iv_code = key_iv_code.encode(BINARY_ENCODING)
+            ki_arr = key_iv_code.split(b',')
             if len(ki_arr) != 3:
                 raise ValueError("Invalid format, comas not found")
-            if ki_arr[0] != ('cypher:%s' % self.cypher_name):
+            if ki_arr[0] != (b'cypher:%s' % self.cypher_name):
                 raise ValueError("Invalid format, not my cypher(%s)" % self.cypher_name)
-            if ki_arr[1][:4] != 'key:':
+            if ki_arr[1][:4] != b'key:':
                 raise ValueError("Invalid format, key not found")
-            if ki_arr[2][:3] != 'iv:':
+            if ki_arr[2][:3] != b'iv:':
                 raise ValueError("Invalid format, iv not found")
-            # call itself, but with key and iv decoded
+            # call itself, but with key and iv decoded, to run the checks on key and iv
             return self.load(key_str=ki_arr[1][4:], iv_str=ki_arr[2][3:])
         #else keep None
             
@@ -89,19 +137,40 @@ class SymKey:
         return (self.key_str is not None)
 
     def get(self):
+        """Return the key and initialization vector
+        
+        Returns:
+            tuple: (key, iv) tuple wehere both key and iv are bytes
+
+        """
         return (self.key_str, self.iv_str)
 
     def get_code(self):
-        return "cypher:%s,key:%s,iv:%s" % (self.cypher_name, self.key_str, self.iv_str)
+        """Return the key code: cypher, key, iv, as a comma separated string
+        
+        Returns:
+            str: key description in the string
+
+        """
+        return "cypher:%s,key:%s,iv:%s" % (self.cypher_name, 
+                                           self.key_str.decode(BINARY_ENCODING), 
+                                           self.iv_str.decode(BINARY_ENCODING))
 
     ###########################################
     # generate key function
-    def new(self, random_iv=True): # if random_iv==False, set iv to 0
+    def new(self, random_iv=True):
+        """Generate a new key
+        
+        Set self.key_str and self.iv_str
+        
+        Args:
+            random_iv (bool): if False, set iv to 0
+        """
         self.key_str = binascii.b2a_hex(M2Crypto.Rand.rand_bytes(self.key_len))
         if random_iv:
             self.iv_str = binascii.b2a_hex(M2Crypto.Rand.rand_bytes(self.iv_len))
         else:
-            self.iv_str = '0'*(self.iv_len*2)
+            self.iv_str = b'0'*(self.iv_len*2)
         return
 
     ###########################################
@@ -153,8 +222,9 @@ class SymKey:
     def decrypt_hex(self, data):
         return self.decrypt(binascii.a2b_hex(data))
 
-# allows to change the crypto after instantiation
+
 class MutableSymKey(SymKey):
+    """SymKey class, allows to change the crypto after instantiation"""
     def __init__(self,
                  cypher_name=None, key_len=None, iv_len=None,
                  key_str=None, iv_str=None,
@@ -168,6 +238,19 @@ class MutableSymKey(SymKey):
                  cypher_name=None, key_len=None, iv_len=None,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
+        """Load a new crypto type and a new key
+        
+        Args:
+            cypher_name: 
+            key_len: 
+            iv_len: 
+            key_str: 
+            iv_str: 
+            key_iv_code: 
+
+        Returns:
+
+        """
         self.cypher_name = cypher_name
         self.key_len = key_len
         self.iv_len = iv_len
@@ -189,11 +272,11 @@ class MutableSymKey(SymKey):
 # Parametrized sym algo classes
 
 # dict of crypt_name -> (key_len, iv_len)
-cypher_dict = {'aes_128_cbc':(16, 16),
-             'aes_256_cbc':(32, 16),
-             'bf_cbc':(16, 8),
-             'des3':(24, 8),
-             'des_cbc':(8, 8)}
+cypher_dict = {'aes_128_cbc': (16, 16),
+               'aes_256_cbc': (32, 16),
+               'bf_cbc': (16, 8),
+               'des3': (24, 8),
+               'des_cbc': (8, 8)}
 
 class ParametryzedSymKey(SymKey):
     def __init__(self, cypher_name,
@@ -231,8 +314,6 @@ class AutoSymKey(MutableSymKey):
             if ki_arr[2][:3] != 'iv:':
                 raise ValueError("Invalid format, iv not found")
             iv_str = ki_arr[2][3:]
-
-
             cypher_params = cypher_dict[cypher_name]
             self.redefine(cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str)
         
@@ -246,11 +327,13 @@ class SymAES128Key(ParametryzedSymKey):
                  key_iv_code=None):
         ParametryzedSymKey.__init__(self, 'aes_128_cbc', key_str, iv_str, key_iv_code)
 
+
 class SymAES256Key(ParametryzedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
         ParametryzedSymKey.__init__(self, 'aes_256_cbc', key_str, iv_str, key_iv_code)
+
 
 class SymBlowfishKey(ParametryzedSymKey):
     def __init__(self,
@@ -258,11 +341,13 @@ class SymBlowfishKey(ParametryzedSymKey):
                  key_iv_code=None):
         ParametryzedSymKey.__init__(self, 'bf_cbc', key_str, iv_str, key_iv_code)
 
+
 class Sym3DESKey(ParametryzedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
         ParametryzedSymKey.__init__(self, 'des3', key_str, iv_str, key_iv_code)
+
 
 class SymDESKey(ParametryzedSymKey):
     def __init__(self,

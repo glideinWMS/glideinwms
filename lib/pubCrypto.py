@@ -19,6 +19,13 @@ def default_callback(*args):
     return b"default"
 
 
+class PubCryptoError(Exception):
+    """Exception masking M2Crypto exceptions, 
+    to ease error handling in modules importing pubCrypto
+    """
+    def __init__(self, msg):
+        Exception.__init__(self, msg)
+        
 ######################
 #
 # Available paddings:
@@ -51,10 +58,39 @@ def default_callback(*args):
 ##########################################################################
 # Public part of the RSA key
 class PubRSAKey:
+    """Public part of the RSA key"""
     def __init__(self,
                  key_str=None, key_fname=None,
                  encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
                  sign_algo='sha256'):
+        """Constructor for RSA public key
+        
+        One and only one of the two key_str or key_fname must be defined (not None)
+
+        Available paddings:
+            M2Crypto.RSA.no_padding
+            M2Crypto.RSA.pkcs1_padding
+            M2Crypto.RSA.sslv23_padding
+            M2Crypto.RSA.pkhas1_oaep_padding
+
+        Available sign algos: 
+            'sha1', 'sha224', 'sha256', 'ripemd160', 'md5'
+
+        Available ciphers, too many to list them all, try `man enc` a few of them are:
+            'aes_128_cbc'
+            'aes_128_ofb
+            'aes_256_cbc'
+            'aes_256_cfb'
+            'bf_cbc'
+            'des3'
+        
+        Args:
+            key_str (str/bytes): string w/ base64 encoded key 
+                Must be bytes-like object or ASCII string, like base64 inputs
+            key_fname (str): key file path 
+            encryption_padding: 
+            sign_algo (str): valid signing algorithm (default: 'sha256') 
+        """
         self.rsa_key = None
         self.has_private = False
         self.encryption_padding = encryption_padding
@@ -73,22 +109,39 @@ class PubRSAKey:
     ###########################################
     # Load key functions
 
-    def load(self,
-             key_str=None, key_fname=None):
+    def load(self, key_str=None, key_fname=None):
+        """Load key from a string or a file
+        
+        Only one of the two can be defined (not None)
+        Load the key into self.rsa_key
+        
+        Args:
+            key_str (str/bytes): string w/ base64 encoded key 
+                Must be bytes-like object or ASCII string, like base64 inputs
+            key_fname (str): file name 
+
+        Raises:
+            ValueError: if both key_str and key_fname are defined
+        """
         if key_str is not None:
             if key_fname is not None:
                 raise ValueError("Illegal to define both key_str and key_fname")
-            bio = M2Crypto.BIO.MemoryBuffer(key_str)
-            self.load_from_bio(bio)
+            if isinstance(key_str, str):
+                key_str = key_str.encode('ASCII')
+            try:
+                bio = M2Crypto.BIO.MemoryBuffer(key_str)
+                self._load_from_bio(bio)
+            except M2Crypto.RSA.RSAError as e:
+                raise PubCryptoError("M2Crypto.RSA.RSAError: %s" % e)
         elif key_fname is not None:
             bio = M2Crypto.BIO.openfile(key_fname)
-            self.load_from_bio(bio)
+            self._load_from_bio(bio)
         else:
             self.rsa_key = None
         return
 
     # meant to be internal
-    def load_from_bio(self, bio):
+    def _load_from_bio(self, bio):
         self.rsa_key = M2Crypto.RSA.load_pub_key_bio(bio)
         self.has_private = False
         return
@@ -99,7 +152,7 @@ class PubRSAKey:
     def save(self, key_fname):
         bio = M2Crypto.BIO.openfile(key_fname, 'wb')
         try:
-            return self.save_to_bio(bio)
+            return self._save_to_bio(bio)
         except Exception as e:
             # need to remove the file in case of error
             bio.close()
@@ -110,11 +163,11 @@ class PubRSAKey:
     # like save, but return a string
     def get(self):
         bio = M2Crypto.BIO.MemoryBuffer()
-        self.save_to_bio(bio)
+        self._save_to_bio(bio)
         return bio.read()
 
     # meant to be internal
-    def save_to_bio(self, bio):
+    def _save_to_bio(self, bio):
         if self.rsa_key is None:
             raise KeyError("No RSA key")
 
