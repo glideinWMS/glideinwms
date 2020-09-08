@@ -15,7 +15,6 @@ Parameters:
 
 import yaml
 import sys
-import os
 from collections import defaultdict
 
 # String constants for possible keys in the tag lines, to avoid typos

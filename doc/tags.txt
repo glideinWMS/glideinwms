@@ -1,3 +1,10 @@
+v3_9
+	Includes all features and fixes of 3.6.3 and 3.7.1
+	Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
+	Bug fix: custom disctionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
+	Bug fix: str vs bytes, especially in crypto libraries
+	Bug fix: None cannot be used in sorted string lists and we use (None, None, None) for unmatched jobs in the Frontend
+
 v3_7_1
 	Includes all features and fixes of 3.6.3
 	Configuration changes to make more compatible with HTCondor 8.9  on initial install
