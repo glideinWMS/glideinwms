@@ -525,10 +525,11 @@ def string_quote_join(arglist):
         l2.append('"%s"' % e)
     return " ".join(l2)
 
-#################################
-# this class is used in place of the rrdtool
-# python module, if that one is not available
+
 class rrdtool_exe:
+    """This class is a wrapper around the rrdtool client (binary) and 
+    is used in place of the rrdtool python module, if that one is not available
+    """
     def __init__(self):
         self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
 
@@ -552,30 +553,36 @@ class rrdtool_exe:
                 outarr[linearr[0].strip()] = linearr[1].strip()
         return outarr
     
-    def dump(self,*args):
-        """
-        Run rrd_tool dump
-
+    def dump(self, *args):
+        """Run rrd_tool dump
+        
         Input is usually just the file name.
         Output is a list of lines, as returned from rrdtool.
+
+        Args:
+            *args: rrdtool dump arguments, joined in single string for the command line
+
+        Returns:
+            str: multi-line string, output of rrd dump
+
         """
         cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
         return outstr
     
     def restore(self,*args):
-        cmdline = '%s restore %s'%(self.rrd_bin, string_quote_join(args))
+        cmdline = '%s restore %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def graph(self,*args):
-        cmdline = '%s graph %s'%(self.rrd_bin, string_quote_join(args))
+        cmdline = '%s graph %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
     
     def fetch(self,*args):
         cmdline = '%s fetch %s' % (self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
+        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
         headers = tuple(outstr.pop(0).split())
         lines = []
         for line in outstr:
@@ -591,8 +598,7 @@ class rrdtool_exe:
 
 
 def addDataStore(filenamein, filenameout, attrlist):
-    """
-    Add a list of data stores to a rrd export file
+    """Add a list of data stores to a rrd export file
     This will essentially add attributes to the end of a rrd row
 
     @param filenamein: filename path of a rrd exported with rrdtool dump

@@ -277,6 +277,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 "LeaveJobInQueue",
                 "((time() - EnteredCurrentStatus) < 12*60*60)")
 
+        # GLIDEIN_IDLE_LIFETIME comes from idle_glideins_lifetime in the config section of the Frontend configuration (glidein limits) 
+        # GlideinSkipIdleRemoval is set instead in the submit_attr section of the Factory
         remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
         max_walltime = next(iter([x for x in entry.get_child_list(
             'attrs') if x['name'] == 'GLIDEIN_Max_Walltime']), None)  # Get the GLIDEIN_Max_Walltime attribute

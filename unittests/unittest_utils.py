@@ -96,7 +96,7 @@ def runAllTests():
         test.main()
 
 
-class FakeLogger(object):
+class FakeLogger:
     """
     Super simple logger for the unittests
     """
@@ -114,7 +114,7 @@ class FakeLogger(object):
         @param msg: A message string.
         @param args: Arguments which should be evaluated into the message.
         """
-        print(str(msg) % args, file=self.file)
+        print(str(msg) % args, file=self.file, flush=True)
 
     def info(self, msg, *args):
         """
@@ -122,7 +122,7 @@ class FakeLogger(object):
 
         @see: debug
         """
-        print(str(msg) % args, file=self.file)
+        print(str(msg) % args, file=self.file, flush=True)
 
     def warning(self, msg, *args):
         """
@@ -130,7 +130,7 @@ class FakeLogger(object):
 
         @see: debug
         """
-        print(str(msg) % args, file=self.file)
+        print(str(msg) % args, file=self.file, flush=True)
 
     def error(self, msg, *args):
         """
@@ -138,7 +138,7 @@ class FakeLogger(object):
 
         @see: debug
         """
-        print(str(msg) % args, file=self.file)
+        print(str(msg) % args, file=self.file, flush=True)
 
     def exception(self, msg, *args):
         """
@@ -146,7 +146,7 @@ class FakeLogger(object):
 
         @see: debug
         """
-        print(str(msg) % args, file=self.file)
+        print(str(msg) % args, file=self.file, flush=True)
 
 
 class TestImportError(Exception):

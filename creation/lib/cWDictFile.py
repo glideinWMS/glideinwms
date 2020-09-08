@@ -16,15 +16,7 @@ import copy
 import socket
 import io
 from glideinwms.lib import hashCrypto
-
-# GlideinWMS has to be compatible across versions running on different Python interpreters
-# Python 2 text files are the same as binary files except some newline handling
-# and strings are the same as bytes
-# To maintain this in Python 3 is possible to write binary files and use for the strings
-# any encoding that preserves the bytes (0x80...0xff) through round-tripping from byte
-# streams to Unicode and back, latin-1 is the best known of these (more compact).
-# TODO: alt evaluate the use of latin-1 text files
-BINARY_ENCODING="latin-1"
+from glideinwms.lib.defaults import BINARY_ENCODING
 
 
 ########################################
@@ -1051,7 +1043,20 @@ class FileDictFile(SimpleFileDictFile):
                        data,
                        allow_overwrite=False,
                        allow_overwrite_placeholder=True):
+        """Add a file to the list, the content is provided separately (not in the val tuple)
 
+        Args:
+            key (str): file ID
+            val (tuple): lists of 6 or 7 components (see class definition)
+            data (bytes): bytes string w/ data to add
+            allow_overwrite (bool): if True the existing files can be replaced (default: False)
+            allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
+                is False (default: True)
+
+        Raises:
+            DictFileError
+
+        """
         if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions know nothing about placeholders, need to force overwrite
@@ -1062,7 +1067,20 @@ class FileDictFile(SimpleFileDictFile):
                      data,
                      allow_overwrite=False,
                      allow_overwrite_placeholder=True):
+        """Add a file to the list, the content is provided separately (not in the val tuple)
+        
+        Args:
+            key (str): file ID
+            val (tuple): lists of 6 or 7 components (see class definition)
+            data (str): string w/ data to add
+            allow_overwrite (bool): if True the existing files can be replaced (default: False)
+            allow_overwrite_placeholder (bool): if True, placeholder files can be replaced even if allow_overwrite
+                is False (default: True)
 
+        Raises:
+            DictFileError
+
+        """
         if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions know nothing about placeholders, need to force overwrite

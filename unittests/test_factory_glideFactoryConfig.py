@@ -9,7 +9,6 @@ Author:
 """
 
 
-
 import unittest
 import xmlrunner
 import os
@@ -38,7 +37,7 @@ class TestFactoryConfig(unittest.TestCase):
     def setUp(self):
         self.testdir = os.getcwd()
         self.confdir = 'fixtures/factory/work-dir'
-        os.system('git checkout %s' % self.confdir)
+        os.system('git checkout -q %s' % self.confdir)
         os.chdir(self.confdir)
         self.factory_config = FactoryConfig()
         self.entry_config = EntryConfigFile('el6_osg34', 'attributes.cfg')
@@ -54,7 +53,7 @@ class TestFactoryConfig(unittest.TestCase):
         os.chdir(self.testdir)
         rsafile = os.path.join(self.confdir, 'rsa.key')
         if os.path.exists(rsafile):
-            cmd = "git checkout %s " % rsafile
+            cmd = "git checkout -q %s " % rsafile
             os.system(cmd)
 
     def test__init__(self):

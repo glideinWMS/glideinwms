@@ -18,19 +18,21 @@
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
 #
 
-import signal
+#import signal
 import sys
 import os
 import copy
 import traceback
 import time
-import string
+#import string
 import logging
 import re
 import tempfile
 import shutil
 
-from glideinwms.lib import symCrypto, pubCrypto
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
+from glideinwms.lib import pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
@@ -574,7 +576,10 @@ class glideinFrontendElement:
         # Add glidein config limits to the glideclient classads
         advertizer.set_glidein_config_limits(self.glidein_config_limits)
 
-        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys())
+        # TODO: python2 allows None elements to be sorted putting them on top
+        #   recreating the behavior but should check if (None, None, None) is giving problems somewhere else
+        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys(),  
+                              key=lambda x: ("", "", "") if x == (None, None, None) else x )
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
         # sort for the sake of monitoring
@@ -879,25 +884,43 @@ class glideinFrontendElement:
         tkn_str = None
         # does condor version of entry point support condor token auth
         if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
-            (fd, tmpnm) = tempfile.mkstemp()
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
-                tkn_file += glidein_site
-                tkn_file += ".token"
-                cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                os.chmod(tmpnm, 0o600)
-                os.write(fd, tkn_str)
-                os.close(fd)
-                shutil.move(tmpnm, tkn_file)
-                file_tmp2final(tkn_file, tmpnm)
-                os.chmod(tkn_file, 0o600)
-                logSupport.log.debug("created token %s" % tkn_file)
+                #tkn_file = "/var/lib/gwms-frontend/.condor/tokens.d/"
+                #tkn_file += glidein_site
+                #tkn_file += ".token"
+                #cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                #tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                #os.chmod(tmpnm, 0o600)
+                #os.write(fd, tkn_str)
+                #os.close(fd)
+                #shutil.move(tmpnm, tkn_file)
+                #file_tmp2final(tkn_file, tmpnm)
+                #os.chmod(tkn_file, 0o600)
+                #logSupport.log.debug("created token %s" % tkn_file)
+                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
+                if not os.path.exists(tkn_dir):
+                    os.mkdir(tkn_dir,0o700)
+                tkn_file = tkn_dir + '/' +  glidein_site + ".token"
+                one_hr = 3600
+                tkn_age = sys.maxsize
+                if os.path.exists(tkn_file):
+                    tkn_age = time.time() - os.stat(tkn_file).st_mtime
+                    # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
+                tmpnm = ''
+                if tkn_age > one_hr:    
+                    (fd, tmpnm) = tempfile.mkstemp()
+                    cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    tkn_str = subprocessSupport.iexe_cmd(cmd)
+                    os.write(fd, tkn_str)
+                    os.close(fd)
+                    shutil.move(tmpnm, tkn_file)
+                    os.chmod(tkn_file, 0o600)
+                    logSupport.log.info("created token %s" % tkn_file)
             except Exception as err:
-                logSupport.log.debug('failed to fetch %s' % tkn_file)
-                logSupport.log.debug('%s' % err)
+                logSupport.log.warning('failed to create %s' % tkn_file)
+                logSupport.log.warning('%s' % err)
             finally:
                 if os.path.exists(tmpnm):
                     os.remove(tmpnm)
@@ -908,16 +931,21 @@ class glideinFrontendElement:
         for globalid, globals_el in self.globals_dict.items():
             try:
                 globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
-            except:
+            except pubCrypto.PubCryptoError as e:
                 # if no valid key
                 # if key needed, will handle the error later on
-                logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
+                logSupport.log.warning("Factory Globals '%s', invalid RSA key: %s" % (globalid, e))
+                logSupport.log.exception("Factory Globals '%s', invalid RSA key: %s" % (globalid, e))
                 # but mark it for removal from the dictionary
                 bad_id_list.append(globalid)
-
+            except:
+                # Catch all to be more robust, was there, probably should be removed
+                logSupport.log.warning("Factory Globals '%s', unknown error, probably invalid RSA key" % globalid)
+                logSupport.log.exception("Factory Globals '%s', unknown error, probably invalid RSA key" % globalid)
+                # but mark it for removal from the dictionary
+                bad_id_list.append(globalid)
         for badid in bad_id_list:
-            logSupport.log.warning("Factory Globals removing:'%s': invalid RSA key" % badid)
+            logSupport.log.warning("Factory Globals removing'%s': invalid RSA key" % badid)
             del self.globals_dict[badid]
 
     def identify_bad_schedds(self):

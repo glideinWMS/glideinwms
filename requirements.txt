@@ -2,6 +2,9 @@
 htcondor
 classad
 m2crypto
+requests
+pyyaml
+pyjwt
 
 #for verifications
 pylint
@@ -23,6 +26,6 @@ jsonpickle
 mock
 pytest
 tabulate
-unittest2
+# std in p3 unittest
 xmlrunner
 

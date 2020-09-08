@@ -11,11 +11,9 @@ Project:
 """
 
 
-
-
 import unittest
 import xmlrunner
-
+import ast
 
 import glideinwms.lib.exprParser as ep
 
@@ -32,12 +30,12 @@ class TestExprParserSymmetric(unittest.TestCase):
 
     def test_parse_symmetric(self):
         for itm in TEST_LIST:
-            self.assertEqual(repr(ep.parse(ep.unparse(ep.parse(itm)))),
-                             repr(ep.parse(itm)))
+            self.assertEqual(ast.dump(ep.exp_parse(ep.exp_unparse(ep.exp_parse(itm)))),
+                             ast.dump(ep.exp_parse(itm)))
 
     def test_unparse_ret(self):
         for itm in TEST_LIST:
-            self.assertTrue(isinstance(ep.unparse(ep.parse(itm)), str))
+            self.assertTrue(isinstance(ep.exp_unparse(ep.exp_parse(itm)), str))
 
     def test__compile(self):
         a = 3
@@ -48,7 +46,7 @@ class TestExprParserSymmetric(unittest.TestCase):
         # just test that nothing in TEST_LIST throws an exception when compiled
         for itm in TEST_LIST:
             try:
-                eval(ep.compile(ep.parse(itm)))
+                eval(ep.exp_compile(ep.exp_parse(itm)))
             except Exception as err:
                 bad_itm = str(err)
                 bad_itm += " for expr:"

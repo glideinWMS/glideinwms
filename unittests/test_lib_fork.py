@@ -4,21 +4,24 @@ Project:
    glideinWMS
 
  Description:
-   unit test for glideinwms/lib/fork..py
+   unit test for glideinwms/lib/fork.py
 
  Author:
    Dennis Box dbox@fnal.gov
 """
 
-import select
+# import select
 import time
 import os
+import sys
 import xmlrunner
 import platform
-import unittest2 as unittest
+import unittest
 
 from glideinwms.unittests.unittest_utils import FakeLogger
 from glideinwms.unittests.unittest_utils import create_temp_file
+# needed to manipulate the select seen by the functions in fork
+from glideinwms.lib import fork
 from glideinwms.lib.fork import ForkResultError
 from glideinwms.lib.fork import fork_in_bg
 from glideinwms.lib.fork import fetch_fork_result
@@ -147,7 +150,6 @@ class TestForkManager(unittest.TestCase):
         for i in range(0, num_forks):
             expected[i] = str(sleep_val)
             self.fork_manager.add_fork(i, sleep_fn, sleep_val)
-
         return expected
 
     def test___init__(self):
@@ -171,63 +173,76 @@ class TestForkManager(unittest.TestCase):
 
     def test_bounded_fork_and_collect_use_epoll(self):
         #
-        # the following 3 tests must be run in order
+        # the following 3 tests are better if run in order
         # which may be an artifact of different test runners
         #
-        if platform.system() != 'Linux':
-            return
+        # This test will fail on Darwin or other platforms w/o epoll
+        #if platform.system() != 'Linux':
+        #    return
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
             max_forks=50, log_progress=True, sleep_time=0.1)
         self.assertEqual(expected, results)
         fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
+        self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks =" in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
+        # The error messages changed in python 3:
+        # Failed to load select.epoll(): module 'select' has no attribute 'epoll'
+        # Failed to load select.poll(): module 'select' has no attribute 'poll'
         self.assertFalse(
-            "'module' object has no attribute 'epoll'" in log_contents)
+            "module 'select' has no attribute 'epoll'" in log_contents)
         self.assertFalse(
-            "'module' object has no attribute 'poll'" in log_contents)
+            "module 'select' has no attribute 'poll'" in log_contents)
 
     def test_bounded_fork_and_collect_use_poll(self):
-        #
         # force select.epoll to throw in import error so select.poll is used
-        #
-        if platform.system() != 'Linux':
-            return
-        del select.epoll
+        if hasattr(fork.select, 'epoll'):           
+            del fork.select.epoll
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
             max_forks=50, log_progress=True, sleep_time=0.1)
+        # restore select (fork.select) after running the test
+        del sys.modules['select']
+        import select
+        fork.select = select
+        # check results
         self.assertEqual(expected, results)
         fd = open(LOG_FILE, 'r')
         log_contents = fd.read()
-        self.assertTrue("Active forks =" in log_contents)
-        self.assertTrue("Forks to finish =" in log_contents)
-        self.assertTrue(
-            "'module' object has no attribute 'epoll'" in log_contents)
-        self.assertFalse(
-            "'module' object has no attribute 'poll'" in log_contents)
-
-    def test_bounded_fork_and_collect_use_select(self):
-        #
-        # force select.poll to throw an import error
-        # depends on select.epoll being removed by previous test
-        #
-        if platform.system() == 'Linux':
-            del select.poll
-        expected = self.load_forks()
-        results = self.fork_manager.bounded_fork_and_collect(
-            max_forks=50, log_progress=True, sleep_time=0.1)
-        self.assertEqual(expected, results)
-        fd = open(LOG_FILE, 'r')
-        log_contents = fd.read()
+        self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)
         self.assertTrue("Forks to finish =" in log_contents)
         self.assertTrue(
-            "'module' object has no attribute 'epoll'" in log_contents)
+            "module 'select' has no attribute 'epoll'" in log_contents)
+        self.assertFalse(
+            "module 'select' has no attribute 'poll'" in log_contents)
+
+    def test_bounded_fork_and_collect_use_select(self):
+        # force select.epoll and select.poll to throw an import error so select is used
+        if hasattr(fork.select, 'epoll'):           
+            del fork.select.epoll
+        if hasattr(fork.select, 'poll'):
+            del fork.select.poll
+        expected = self.load_forks()
+        results = self.fork_manager.bounded_fork_and_collect(
+            max_forks=50, log_progress=True, sleep_time=0.1)
+        # restore select (fork.select) after running the test
+        del sys.modules['select']
+        import select
+        fork.select = select
+        # check results
+        self.assertEqual(expected, results)
+        fd = open(LOG_FILE, 'r')
+        log_contents = fd.read()
+        self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
+        self.assertTrue("Active forks = " in log_contents)
+        self.assertTrue("Forks to finish =" in log_contents)
         self.assertTrue(
-            "'module' object has no attribute 'poll'" in log_contents)
+            "module 'select' has no attribute 'epoll'" in log_contents)
+        self.assertTrue(
+            "module 'select' has no attribute 'poll'" in log_contents)
 
 
 if __name__ == '__main__':

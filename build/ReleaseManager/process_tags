@@ -168,13 +168,11 @@ def load_txt(infile):
     """
     rel_dict = {}
     with open(infile, 'r') as lines:
-        fdb = open('/tmp/mmdb.txt', 'w')
         rel_lines = []
         version = None
         try:
             current: str = next(lines).rstrip('\n')
             while True:
-                fdb.write("%s\n" % current)
                 if not current or current.startswith('#') or current.isspace():
                     current = next(lines).rstrip('\n')
                     continue
@@ -212,7 +210,6 @@ def load_txt(infile):
                         rel_lines.append(rel_line)
                         rel_line = current.lstrip()
                     rel_dict[version] = make_rel_dict(rel_lines)
-                    print("MMDB added %s" % version)
         except StopIteration:
             if version is not None and version not in rel_dict:
                 # ended w/o empty line

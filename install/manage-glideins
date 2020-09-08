@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 import traceback
-import sys,os,os.path,string,time
-import socket
+import sys
+import os, os.path
+#import string
+import time
+#import socket
 import getopt
 
 
 STARTUP_DIR=os.path.abspath(sys.path[0])
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-
 OLD_DIR=os.path.abspath(os.curdir)
 os.chdir(STARTUP_DIR)
 

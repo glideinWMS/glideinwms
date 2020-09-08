@@ -19,27 +19,53 @@ import copy
 import sys
 import os.path
 import string
-# import socket
-# import types
-# import traceback
-from collections import UserDict
-#from collections import UserDict, OrderedDict
-from glideinwms.lib.xmlParse import OrderedDict
+from collections.abc import Mapping
+import xml.parsers.expat
 
 from glideinwms.lib import xmlParse
-import xml.parsers.expat
+from glideinwms.lib.xmlParse import OrderedDict
 from glideinwms.lib import xmlFormat
 
 
-class SubParams(UserDict):
+class SubParams(Mapping):
+    """Read-only dictionary containing Configuration info   
+    """
+    def __init__(self, data):
+        """Constructor, only method changing the value"""
+        self.data = data
 
+    # Abstract methods to implement for the Mapping
+    def __getitem__(self, key): 
+        return self.__get_el(key)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        return iter(self.data)
+
+    # Copy interface to allow copy and deepcopy
+    #def __copy__(self):
+    #    self.data.copy
+
+    #def __deepcopy__(self): 
+    #    copy._deepcopy_dispatch.get(self.data)
+    
+    # Make data elements look like class attributes
     def __getattr__(self, name):
-        """make data elements look like class attributes"""
-        return self.get_el(name)
-
-    def __getitem__(self, name):
-        """make data elements look like a dictionary"""
-        return self.get_el(name)
+        if name == 'data':
+            return super().__getattr__(self, name)
+        # work around for pickle bug in Python 3.4
+        # see http://bugs.python.org/issue16251
+        if name == "__getnewargs_ex__" or name == "__getnewargs__":
+            raise AttributeError("%r has no attribute %r" % (type(self), name))
+        if name == "__deepcopy__" or name == "__copy__":
+            raise AttributeError("%r has no attribute %r" % (type(self), name))
+        # if not name in self.data:
+        if name.startswith('__'):
+            raise AttributeError("%r has no attribute %r" % (type(self), name))
+        return self.__get_el(name)
+        #return super().__getattr__(self, name)
 
     #
     # PROTECTED
@@ -56,35 +82,37 @@ class SubParams(UserDict):
 
         """
         for k in self.data:
+            self.data
             if k not in base:
                 # element not in base, report
-                raise RuntimeError("Unknown parameter %s.%s"%(path_text, k))
+                raise RuntimeError("Unknown parameter %s.%s" % (path_text, k))
             else:
                 # verify sub-elements, if any
-                defel=base[k]
+                defel = base[k]
                 if isinstance(defel, OrderedDict):
                     # subdictionary
-                    self[k].validate(defel, "%s.%s"%(path_text, k))
+                    self[k].validate(defel, "%s.%s" % (path_text, k))
                 else:
                     # final element
-                    defvalue, ktype, txt, subdef=defel
+                    defvalue, ktype, txt, subdef = defel
 
                     if isinstance(defvalue, OrderedDict):
                         # dictionary el elements
-                        data_el=self[k]
+                        data_el = self[k]
                         for data_subkey in list(data_el.keys()):
-                            data_el[data_subkey].validate(subdef, "%s.%s.%s"%(path_text, k, data_subkey))
+                            data_el[data_subkey].validate(subdef, "%s.%s.%s" % (path_text, k, data_subkey))
                     elif isinstance(defvalue, list):
                         # list of elements
                         if isinstance(self.data[k], OrderedDict):
-                            if len(list(self.data[k].keys()))==0:
-                                self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
+                            if len(list(self.data[k].keys())) == 0:
+                                self.data[k] = []  # XML does not know if an empty list is a dictionary or not.. fix this
 
-                        mylist=self[k]
+                        mylist = self[k]
                         if not isinstance(mylist, list):
-                            raise RuntimeError("Parameter %s.%s not a list: %s %s"%(path_text, k, type(mylist), mylist))
+                            raise RuntimeError(
+                                "Parameter %s.%s not a list: %s %s" % (path_text, k, type(mylist), mylist))
                         for data_el in mylist:
-                            data_el.validate(subdef, "%s.*.%s"%(path_text, k))
+                            data_el.validate(subdef, "%s.*.%s" % (path_text, k))
                     else:
                         # a simple value
                         pass  # nothing to be done
@@ -99,31 +127,31 @@ class SubParams(UserDict):
 
         """
         for k in list(defaults.keys()):
-            defel=defaults[k]
+            defel = defaults[k]
             if isinstance(defel, OrderedDict):
                 # subdictionary
                 if k not in self.data:
-                    self.data[k]=OrderedDict()  # first create empty, if does not exist
+                    self.data[k] = OrderedDict()  # first create empty, if does not exist
 
                 # then, set defaults on all elements of subdictionary
                 self[k].use_defaults(defel)
             else:
                 # final element
-                defvalue, ktype, txt, subdef=defel
+                defvalue, ktype, txt, subdef = defel
 
                 if isinstance(defvalue, OrderedDict):
                     # dictionary el elements
                     if k not in self.data:
-                        self.data[k]=OrderedDict()  # no elements yet, set and empty dictionary
+                        self.data[k] = OrderedDict()  # no elements yet, set and empty dictionary
                     else:
                         # need to set defaults on all elements in the dictionary
-                        data_el=self[k]
+                        data_el = self[k]
                         for data_subkey in list(data_el.keys()):
                             data_el[data_subkey].use_defaults(subdef)
                 elif isinstance(defvalue, list):
                     # list of elements
                     if k not in self.data:
-                        self.data[k]=[] # no elements yet, set and empty list
+                        self.data[k] = []  # no elements yet, set and empty list
                     else:
                         # need to set defaults on all elements in the list
                         for data_el in self[k]:
@@ -131,31 +159,51 @@ class SubParams(UserDict):
                 else:
                     # a simple value
                     if k not in self.data:
-                        self.data[k]=copy.deepcopy(defvalue)
+                        self.data[k] = copy.deepcopy(defvalue)
                     # else nothing to do, already set
 
     #
     # PRIVATE
     #
-    def get_el(self, name):
-        """
-
-        Args:
-            name:
-
-        Returns:
-
-        """
-        try:
-            el=self.data[name]
-        except KeyError:
-            print("MMDB: %s missing %s: %r, data: %r" % (type(self).__name__, name, self, self.data))
-            raise AttributeError("%s object has no attribute/key %s" % (type(self).__name__, name))
-        
+    def __get_el2(self, name):
+        el = self.data[name]
         if isinstance(el, OrderedDict):
             return self.__class__(el)
         elif isinstance(el, list):
-            outlst=[]
+            outlst = []
+            for k in el:
+                if isinstance(k, OrderedDict):
+                    outlst.append(self.__class__(k))
+                else:
+                    outlst.append(k)
+            return outlst
+        else:
+            return el
+
+    def __get_el(self, name):
+        """Element getter, used by both __getitem__ and __getattr__
+
+        Args:
+            name (str): key or attribute name
+
+        Returns:
+            value
+            
+        Raises:
+            KeyError: when the key/attribute name is not in self.data
+            
+        """
+        try:
+            el = self.data[name]
+        except KeyError:
+            # This function is used also in __getattr__ which is expected to raise AttributeError
+            # Some methods with workarounds or defaults for missing attributes (hasattr, getattr, ...)
+            # do expect AttributeError and not KeyError
+            raise   # AttributeError("%s object has no attribute/key %s" % (type(self), name))
+        if isinstance(el, OrderedDict):
+            return self.__class__(el)
+        elif isinstance(el, list):
+            outlst = []
             for k in el:
                 if isinstance(k, OrderedDict):
                     outlst.append(self.__class__(k))
@@ -177,6 +225,16 @@ class Params:
 
     """
     def __init__(self, usage_prefix, src_dir, argv):
+        """Constructor. Load the default values and override with the config file content
+        
+        Args:
+            usage_prefix: 
+            src_dir (str): source directory of the config file(s) 
+            argv (list): TODO: this way for historical reasons, should probably be refactored
+                            [0] is the caller, sys.argv[0] (NOT USED)
+                            [1] can be the config file or '-help'
+                            it seems the length used is always 2, other elements are NOT USED   
+        """
         self.usage_prefix=usage_prefix
 
         # support dir
@@ -207,7 +265,6 @@ class Params:
             self.derive()
         except RuntimeError as e:
             raise RuntimeError("Unexpected error occurred loading the configuration file.\n\n%s" % e)
-        pass
 
     def derive(self):
         return  # by default nothing... children should overwrite this
@@ -262,6 +319,23 @@ class Params:
         return self.subparams==other.subparams
 
     def __getattr__(self, name):
+        """__getattr__ is called if the object (Params subclass) has not the 'name' attribute
+        Return the attribute from the included SubParam objects (self.subparams)
+        
+        Args:
+            name (str): name of the attribute 
+
+        Returns:
+            value of the attribute 
+            
+        Raises:
+            AttributeError: when subparams is requested 
+
+        """
+        if name == 'subparams':
+            # if there is no subparams, it cannot be used to retrieve values (ot itself!)
+            # this can happen w/ deepcopy or pickle, where __init__ is not called 
+            raise AttributeError("%r has no attribute %r" % (type(self), name))
         return self.subparams.__getattr__(name)
 
     def save_into_file(self,fname,set_ro=False):
@@ -327,13 +401,15 @@ class Params:
 class CommentedOrderedDict(OrderedDict):
     """Ordered dictionary with comment support
     """
-    def __init__(self, indict={}):
+    def __init__(self, indict=None):
         # TODO: double check restriction, all can be removed?
         #   cannot call directly the parent due to the particular implementation restrictions
         #   self._keys = []
         #   #was: UserDict.__init__(self, dict)
         #   OrderedDict.__init__(self, indict)
-        super().__init__(indict)
+        #super().__init__(indict)
+        self._keys = []
+        xmlParse.UserDict.__init__(self, indict)
         self["comment"] = (None, "string", "Humman comment, not used by the code", None)
 
 
