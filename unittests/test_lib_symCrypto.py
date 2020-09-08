@@ -17,14 +17,13 @@ import xmlrunner
 import hypothesis
 import hypothesis.strategies as st
 
-
 from glideinwms.unittests.unittest_utils import TestImportError
 try:
     from glideinwms.lib.symCrypto import SymKey
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.lib.symCrypto import BINARY_ENCODING
+from glideinwms.lib import defaults
 from glideinwms.lib.symCrypto import MutableSymKey
 from glideinwms.lib.symCrypto import ParametryzedSymKey
 from glideinwms.lib.symCrypto import AutoSymKey
@@ -105,8 +104,7 @@ class TestSymAES128Key(unittest.TestCase):
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        if isinstance(data, str):
-            data = data.encode(BINARY_ENCODING)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
@@ -134,8 +132,7 @@ class TestSymAES256Key(unittest.TestCase):
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        if isinstance(data, str):
-            data = data.encode(BINARY_ENCODING)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
@@ -162,8 +159,7 @@ class TestSymBlowfishKey(unittest.TestCase):
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        if isinstance(data, str):
-            data = data.encode(BINARY_ENCODING)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
@@ -192,8 +188,7 @@ class TestSym3DESKey(unittest.TestCase):
     @unittest.skip('des3 decrypt throws exception, come back to this later')
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        if isinstance(data, str):
-            data = data.encode(BINARY_ENCODING)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))
@@ -221,8 +216,7 @@ class TestSymDESKey(unittest.TestCase):
 
     @hypothesis.given(st.text(alphabet=string.printable, min_size=1))
     def test_symmetric(self, data):
-        if isinstance(data, str):
-            data = data.encode(BINARY_ENCODING)
+        data = defaults.force_bytes(data)
         sk2 = AutoSymKey(key_iv_code=self.key_iv_code)
         self.assertEqual(data, sk2.decrypt(self.key.encrypt(data)))
         self.assertEqual(data, sk2.decrypt_hex(self.key.encrypt_hex(data)))

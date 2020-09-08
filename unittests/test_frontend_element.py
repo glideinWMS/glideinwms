@@ -11,8 +11,6 @@ Project:
 """
 
 
-
-
 import os
 import mock
 import unittest

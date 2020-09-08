@@ -10,13 +10,9 @@
 #
 
 import M2Crypto
-# import os
 import binascii
 
-
-# All strings should be ASCII, so ASCII or latin-1 (256 safe) should be OK
-# Anyway M2Crypto uses 'utf8' to implement AnyStr (union of bytes and str)
-BINARY_ENCODING = 'utf8'
+from . import defaults
 
 
 ######################
@@ -34,8 +30,6 @@ BINARY_ENCODING = 'utf8'
 #
 ######################
 
-# you probably don't want to use this
-# Use the child classes instead
 class SymKey:
     """Symmetric keys cryptography
     
@@ -94,10 +88,7 @@ class SymKey:
             if key_iv_code is not None:
                 raise ValueError("Illegal to define both key_str and key_iv_code")
             # just in case it was unicode"
-            if isinstance(key_str, str):
-                #raise Exception("ALREAY str!")
-                key_str = key_str.encode(BINARY_ENCODING)
-
+            key_str = defaults.force_bytes(key_str)
             if len(key_str) != (self.key_len*2):
                 raise ValueError("Key must be exactly %i long, got %i" % (self.key_len*2, len(key_str)))
 
@@ -109,16 +100,14 @@ class SymKey:
                 if len(iv_str) != (self.iv_len*2):
                     raise ValueError("Initialization vector must be exactly %i long, got %i" % (self.iv_len*2, len(iv_str)))
                 # just in case it was unicode"
-                if isinstance(iv_str, str):
-                    iv_str = iv_str.encode(BINARY_ENCODING)
+                iv_str = defaults.force_bytes(iv_str)
         elif key_iv_code is not None:
             # just in case it was unicode"
-            if isinstance(key_iv_code, str):
-                key_iv_code = key_iv_code.encode(BINARY_ENCODING)
+            key_iv_code = defaults.force_bytes(key_iv_code)
             ki_arr = key_iv_code.split(b',')
             if len(ki_arr) != 3:
-                raise ValueError("Invalid format, comas not found")
-            if ki_arr[0] != (b'cypher:%s' % self.cypher_name):
+                raise ValueError("Invalid format, commas not found")
+            if ki_arr[0] != (b'cypher:%b' % self.cypher_name.encode(defaults.BINARY_ENCODING_CRYPTO)):
                 raise ValueError("Invalid format, not my cypher(%s)" % self.cypher_name)
             if ki_arr[1][:4] != b'key:':
                 raise ValueError("Invalid format, key not found")
@@ -131,13 +120,17 @@ class SymKey:
         self.key_str = key_str
         self.iv_str = iv_str
 
-    ###########################################
-    # get the stored key
     def is_valid(self):
+        """Return true if the key is valid
+        
+        Returns:
+            bool: True if the key string is not None
+
+        """
         return (self.key_str is not None)
 
     def get(self):
-        """Return the key and initialization vector
+        """Get the key and initialization vector
         
         Returns:
             tuple: (key, iv) tuple wehere both key and iv are bytes
@@ -153,11 +146,9 @@ class SymKey:
 
         """
         return "cypher:%s,key:%s,iv:%s" % (self.cypher_name, 
-                                           self.key_str.decode(BINARY_ENCODING), 
-                                           self.iv_str.decode(BINARY_ENCODING))
+                                           self.key_str.decode(defaults.BINARY_ENCODING_CRYPTO),
+                                           self.iv_str.decode(defaults.BINARY_ENCODING_CRYPTO))
 
-    ###########################################
-    # generate key function
     def new(self, random_iv=True):
         """Generate a new key
         
@@ -173,13 +164,20 @@ class SymKey:
             self.iv_str = b'0'*(self.iv_len*2)
         return
 
-    ###########################################
-    # encrypt data inline
-
     def encrypt(self, data):
+        """Encrypt data inline
+        
+        Args:
+            data (bytes): data to encrypt
+
+        Returns:
+            bytes: encrypted data
+
+        Raises:
+            KeyError: if there is no valid crypto key
+        """
         if not self.is_valid():
             raise KeyError("No key")
-        
         b = M2Crypto.BIO.MemoryBuffer()
         c = M2Crypto.BIO.CipherStream(b)
         c.set_cipher(self.cypher_name, binascii.a2b_hex(self.key_str), binascii.a2b_hex(self.iv_str), 1)
@@ -187,23 +185,31 @@ class SymKey:
         c.flush()
         c.close()
         e = b.read()
-        
         return e
 
-    # like encrypt, but base64 encoded 
     def encrypt_base64(self, data):
+        """like encrypt, but the result is base64 encoded"""
         return binascii.b2a_base64(self.encrypt(data))
 
-    # like encrypt, but hex encoded 
     def encrypt_hex(self, data):
+        """like encrypt, but the result is hex encoded"""
         return binascii.b2a_hex(self.encrypt(data))
 
-    ###########################################
-    # decrypt data inline
     def decrypt(self, data):
+        """Decrypt data inline
+        
+        Args:
+            data (bytes): data to decrypt
+
+        Returns:
+            bytes: decrypted data
+            
+        Raises:
+            KeyError: if there is no valid crypto key
+
+        """
         if not self.is_valid():
             raise KeyError("No key")
-        
         b = M2Crypto.BIO.MemoryBuffer()
         c = M2Crypto.BIO.CipherStream(b)
         c.set_cipher(self.cypher_name, binascii.a2b_hex(self.key_str), binascii.a2b_hex(self.iv_str), 0)
@@ -211,15 +217,14 @@ class SymKey:
         c.flush()
         c.close()
         d = b.read()
-        
         return d
 
-    # like decrypt, but base64 encoded 
     def decrypt_base64(self, data):
+        """like decrypt, but the input is base64 encoded"""
         return self.decrypt(binascii.a2b_base64(data))
 
-    # like decrypt, but hex encoded 
     def decrypt_hex(self, data):
+        """like decrypt, but the input is hex encoded"""
         return self.decrypt(binascii.a2b_hex(data))
 
 
@@ -232,8 +237,6 @@ class MutableSymKey(SymKey):
         self.redefine(cypher_name, key_len, iv_len,
                       key_str, iv_str, key_iv_code)
 
-    ###########################################
-    # load a new crypto type and a new key
     def redefine(self,
                  cypher_name=None, key_len=None, iv_len=None,
                  key_str=None, iv_str=None,
@@ -257,14 +260,26 @@ class MutableSymKey(SymKey):
         self.load(key_str, iv_str, key_iv_code)
         return
 
-    ###########################################
-    # get the stored key and the crypto name
-
-    # redefine, as null crypto name could be used in this class
     def is_valid(self):
+        """Return true if the key is valid.
+        
+        Redefine, as null crypto name could be used in this class
+        
+        Returns:
+             bool: True if both the key string and cypher name are not None
+
+        """
         return (self.key_str is not None) and (self.cypher_name is not None)
 
     def get_wcrypto(self):
+        """Get the stored key and the crypto name
+        
+        Returns:
+            str: cypher name 
+            bytes: key string
+            bytes: iv string
+
+        """
         return (self.cypher_name, self.key_str, self.iv_str)
 
 
@@ -278,6 +293,7 @@ cypher_dict = {'aes_128_cbc': (16, 16),
                'des3': (24, 8),
                'des_cbc': (8, 8)}
 
+
 class ParametryzedSymKey(SymKey):
     def __init__(self, cypher_name,
                  key_str=None, iv_str=None,
@@ -287,31 +303,43 @@ class ParametryzedSymKey(SymKey):
         cypher_params = cypher_dict[cypher_name]
         SymKey.__init__(self, cypher_name, cypher_params[0], cypher_params[1], key_str, iv_str, key_iv_code)
         
-# get cypher name from key_iv_code
+
 class AutoSymKey(MutableSymKey):
-    def __init__(self,
-                 key_iv_code=None):
+    """Symmetric Keys from code strings. Get cypher name from key_iv_code
+    """
+    def __init__(self, key_iv_code=None):
+        """Constructor
+        
+        Args:
+            key_iv_code (AnyStr): cypher byte string. str is encoded using BINARY_ENCODING_CRYPTO
+        """
         self.auto_load(key_iv_code)
 
-    ###############################################
-    # load a new key_iv_key and extract the cypther
     def auto_load(self, key_iv_code=None):
+        """Load a new key_iv_key and extract the cypher
+        
+        Args:
+            key_iv_code (AnyStr): cypher byte string. str is encoded using BINARY_ENCODING_CRYPTO
+
+        Raises:
+            ValueError: if the format of the code is incorrect
+
+        """
         if key_iv_code is None:
             self.cypher_name = None
             self.key_str = None
         else:
-            if type(key_iv_code) is bytes: # just in case it was unicode
-                key_iv_code = key_iv_code.decode("ascii")
-            ki_arr = key_iv_code.split(',')
+            key_iv_code = defaults.force_bytes(key_iv_code)  # just in case it was unicode"
+            ki_arr = key_iv_code.split(b',')
             if len(ki_arr) != 3:
-                raise ValueError("Invalid format, comas not found")
-            if ki_arr[0][:7] != 'cypher:':
+                raise ValueError("Invalid format, commas not found")
+            if ki_arr[0][:7] != b'cypher:':
                 raise ValueError("Invalid format, cypher not found")
-            cypher_name = ki_arr[0][7:]
-            if ki_arr[1][:4] != 'key:':
+            cypher_name = ki_arr[0][7:].decode(defaults.BINARY_ENCODING_CRYPTO)
+            if ki_arr[1][:4] != b'key:':
                 raise ValueError("Invalid format, key not found")
             key_str = ki_arr[1][4:]
-            if ki_arr[2][:3] != 'iv:':
+            if ki_arr[2][:3] != b'iv:':
                 raise ValueError("Invalid format, iv not found")
             iv_str = ki_arr[2][3:]
             cypher_params = cypher_dict[cypher_name]
