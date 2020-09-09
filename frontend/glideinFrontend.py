@@ -103,13 +103,13 @@ def poll_group_process(group_name, child):
     # empty stdout and stderr
     try:
         tempOut = child.stdout.read()
-        if len(tempOut) != 0:
+        if tempOut and len(tempOut) != 0:
             logSupport.log.info("[%s]: %s" % (group_name, tempOut))
     except IOError:
         pass  # ignore
     try:
         tempErr = child.stderr.read()
-        if len(tempErr) != 0:
+        if tempOut and len(tempErr) != 0:
             logSupport.log.warning("[%s]: %s" % (group_name, tempErr))
     except IOError:
         pass  # ignore

@@ -675,7 +675,7 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
     
     try:
         with open(fname + '.tmp', 'wb') as f:
-            f.write(output)
+            f.write(output.encode("utf-8"))
 
         tmp2final(fname)
     

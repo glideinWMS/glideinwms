@@ -576,7 +576,7 @@ class glideinFrontendElement:
         # Add glidein config limits to the glideclient classads
         advertizer.set_glidein_config_limits(self.glidein_config_limits)
 
-        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys())
+        glideid_list = sorted(condorq_dict_types['Idle']['count'], key=lambda t: ['0' if x is None else x for x in t])
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
         # sort for the sake of monitoring
@@ -927,7 +927,7 @@ class glideinFrontendElement:
         bad_id_list = []
         for globalid, globals_el in self.globals_dict.items():
             try:
-                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
+                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'].encode("latin1"))
             except:
                 # if no valid key
                 # if key needed, will handle the error later on

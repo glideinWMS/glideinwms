@@ -24,6 +24,8 @@ import traceback
 from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import condorMonitor, logSupport
 
+from collections import OrderedDict # needed for eval
+
 
 #############################################################################################
 #
