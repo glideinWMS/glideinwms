@@ -393,7 +393,7 @@ def aggregateStatus(in_downtime):
             del global_total[w]  # remove entry if not defined
         else:
             tel = global_total[w]
-            for a in tel:
+            for a in tel:  # pylint: disable=not-an-iterable
                 if a in avgEntries:
                     # since all entries must have this attr to be here, just divide by nr of entries
                     tel[a] = tel[a] / nr_entries
