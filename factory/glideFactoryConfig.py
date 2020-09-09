@@ -5,7 +5,6 @@
 # File Version:
 #
 
-import string
 import os
 import os.path
 import shutil
@@ -59,9 +58,9 @@ class ConfigFile:
             lines=fd.readlines()
             for line in lines:
                 if line[0]=="#":
-                    continue # comment
+                    continue  # comment
                 if len(line.strip())==0:
-                    continue # empty line
+                    continue  # empty line
                 larr=line.split(None, 1)
                 lname=larr[0]
                 if len(larr)==1:

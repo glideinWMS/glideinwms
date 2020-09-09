@@ -15,7 +15,7 @@
 
 import os
 import shutil
-import pickle as pickle
+import pickle
 import tempfile
 import time
 import subprocess
@@ -220,7 +220,7 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
       The callback function can access the exception via sys.exc_info()
       If a function is not provided, the exception is re-risen
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 2)
+    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8)
     @return: True if the saving was successful, False or an exception otherwise
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
