@@ -30,8 +30,8 @@ def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log)
     # Without randomization you would only send pilots to the first sub entries
     random.shuffle(submit_files)
 
-    sf_idle_limit = int(jobDescript.data['PerEntryMaxIdle']) / len(submit_files)
-    sf_run_limit = int(jobDescript.data['PerEntryMaxGlideins']) / len(submit_files)
+    sf_idle_limit = int(jobDescript.data['PerEntryMaxIdle']) // len(submit_files)
+    sf_run_limit = int(jobDescript.data['PerEntryMaxGlideins']) // len(submit_files)
 
     csf = 0 # current submit file
     for _ in range(nr_glideins):

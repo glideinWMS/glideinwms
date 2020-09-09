@@ -529,7 +529,7 @@ class factoryStats:
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
                         aorg=a[:-10]
-                        tel[aorg]=tel[aorg]/tel[a]
+                        tel[aorg]=tel[aorg]//tel[a]
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 

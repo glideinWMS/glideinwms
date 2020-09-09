@@ -62,11 +62,11 @@ def fmt_time(t):
     now = int(time.time())
     diff = now - t
     diff_secs = diff % 60
-    diff = diff / 60
+    diff = diff // 60
     diff_mins = diff % 60
-    diff = diff / 60
+    diff = diff // 60
     diff_hours = diff % 24
-    diff_days = diff / 24
+    diff_days = diff // 24
     return "%i+%02i:%02i:%02i" % (diff_days, diff_hours, diff_mins, diff_secs)
 
 
@@ -265,7 +265,7 @@ def main():
 
         if 'KFlops' in el:
             gflops = (el['KFlops'] * 1.e-6)
-            mflops_str = "%i" % (el['KFlops'] / 1000)
+            mflops_str = "%i" % (el['KFlops'] // 1000)
         else:
             mflops = 0.0
             mflops_str = "???"

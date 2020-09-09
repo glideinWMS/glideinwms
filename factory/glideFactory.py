@@ -299,7 +299,7 @@ def entry_grouper(size, entries):
     if len(entries) <= size:
         list.insert(0, entries)
     else:
-        for group in range(len(entries)/size):
+        for group in range(len(entries)//size):
             list.insert(group, entries[group*size:(group+1)*size])
 
         if (size*len(list) < len(entries)):
