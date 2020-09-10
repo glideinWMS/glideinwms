@@ -258,34 +258,8 @@ class Unparser:
             self.dispatch(t.finalbody)
             self.leave()
 
-    def _TryExcept(self, t):
-        self.fill("try")
-        self.enter()
-        self.dispatch(t.body)
-        self.leave()
-
-        for ex in t.handlers:
-            self.dispatch(ex)
-        if t.orelse:
-            self.fill("else")
-            self.enter()
-            self.dispatch(t.orelse)
-            self.leave()
-
-    def _TryFinally(self, t):
-        if len(t.body) == 1 and isinstance(t.body[0], ast.TryExcept):
-            # try-except-finally
-            self.dispatch(t.body)
-        else:
-            self.fill("try")
-            self.enter()
-            self.dispatch(t.body)
-            self.leave()
-
-        self.fill("finally")
-        self.enter()
-        self.dispatch(t.finalbody)
-        self.leave()
+    # Removed _TryExcept and _TryFinally that are only in Python 2
+    # Python 3 has only _Try including both the except and finally clauses
 
     def _ExceptHandler(self, t):
         self.fill("except")
