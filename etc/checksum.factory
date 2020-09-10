@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9
+# GLIDEINWMS_VERSION 3_9_0_rc2
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -20,7 +20,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 9f0ac608e8ab3002512bc01700825177  ./creation/lib/cWConsts.py
 f1a32776cf03d9b32545d8750174b2b3  ./creation/lib/cWDictFile.py
 59ec6c285c7af6c56a912c7003810e12  ./creation/lib/cWParamDict.py
-37a63470b3ccd0a41757a671d70afa5e  ./creation/lib/cWParams.py
+61221e6c2b90054ea4cfb589cf636384  ./creation/lib/cWParams.py
 c7cfb5edf10e2f15b19eaa6ae2546ce9  ./creation/lib/cgWConsts.py
 6fed579f820cd6bab409ceb8a82bc9ef  ./creation/lib/cgWCreate.py
 36f96acd3f2a37b4bddf26cf02a3e935  ./creation/lib/cgWDictFile.py
@@ -195,7 +195,7 @@ bdd3223439abb0d6ecea48a80d82a385  ./lib/pidSupport.py
 79887c3d987fc0189ed6d9ba5c679511  ./lib/symCrypto.py
 c70dffece49e6344962943bf42e52720  ./lib/tarSupport.py
 88dfb40f855547001758892c8eb5258c  ./lib/timeConversion.py
-049abffb3b1883d2e7ce569bf4fdbcaa  ./lib/unparser.py
+b96436a9acff1e10b8c67ef567bf5024  ./lib/unparser.py
 c104e74fbb16796f42d4fb4fa11f2c8e  ./lib/util.py
 fff4b33274801ee4684fdb192aa31016  ./lib/x509Support.py
 4412ede71fd2ace8a2c3c625d710f5c0  ./lib/xmlFormat.py
