@@ -52,6 +52,8 @@ Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
 
 BuildRequires:  python
+BuildRequires:  python3
+BuildRequires:  python3-devel
 
 %description
 This is a package for the glidein workload management system.
@@ -654,26 +656,13 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/wmsXMLView
 %{python3_sitelib}/glideinwms/tools
 %{python3_sitelib}/glideinwms/creation/__init__.py
-%{python3_sitelib}/glideinwms/creation/__init__.pyc
-%{python3_sitelib}/glideinwms/creation/__init__.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cWConsts.py
-%{python3_sitelib}/glideinwms/creation/lib/cWConsts.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cWConsts.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cWDictFile.py
-%{python3_sitelib}/glideinwms/creation/lib/cWDictFile.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cWDictFile.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cWParams.py
-%{python3_sitelib}/glideinwms/creation/lib/cWParams.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cWParams.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
-%{python3_sitelib}/glideinwms/creation/lib/cWParamDict.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cWParamDict.pyo
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
-%{python3_sitelib}/glideinwms/creation/lib/xslt.pyc
-%{python3_sitelib}/glideinwms/creation/lib/xslt.pyo
 %{python3_sitelib}/glideinwms/creation/lib/__init__.py
-%{python3_sitelib}/glideinwms/creation/lib/__init__.pyc
-%{python3_sitelib}/glideinwms/creation/lib/__init__.pyo
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/*
 
 %files factory
 %defattr(-,gfactory,gfactory,-)
@@ -739,27 +728,14 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %dir %{_localstatedir}/log/gwms-factory/client
 %attr(-, gfactory, gfactory) %{_localstatedir}/log/gwms-factory/server
 %{python3_sitelib}/glideinwms/creation/lib/cgWConsts.py
-%{python3_sitelib}/glideinwms/creation/lib/cgWConsts.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cgWConsts.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cgWCreate.py
-%{python3_sitelib}/glideinwms/creation/lib/cgWCreate.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cgWCreate.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cgWDictFile.py
-%{python3_sitelib}/glideinwms/creation/lib/cgWDictFile.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cgWDictFile.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cgWParamDict.py
-%{python3_sitelib}/glideinwms/creation/lib/cgWParamDict.pyo
-%{python3_sitelib}/glideinwms/creation/lib/cgWParamDict.pyc
 %{python3_sitelib}/glideinwms/creation/lib/cgWParams.py
-%{python3_sitelib}/glideinwms/creation/lib/cgWParams.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cgWParams.pyo
 %{python3_sitelib}/glideinwms/creation/lib/factoryXmlConfig.py
-%{python3_sitelib}/glideinwms/creation/lib/factoryXmlConfig.pyc
-%{python3_sitelib}/glideinwms/creation/lib/factoryXmlConfig.pyo
 %{python3_sitelib}/glideinwms/creation/lib/factory_defaults.xml
 %{python3_sitelib}/glideinwms/creation/lib/xmlConfig.py
-%{python3_sitelib}/glideinwms/creation/lib/xmlConfig.pyc
-%{python3_sitelib}/glideinwms/creation/lib/xmlConfig.pyo
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/*
 %{python3_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_glidein
 %{python3_sitelib}/glideinwms/factory
@@ -802,26 +778,13 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %{python3_sitelib}/glideinwms/frontend
 %{python3_sitelib}/glideinwms/creation/lib/cvWConsts.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWConsts.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cvWConsts.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cvWCreate.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWCreate.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cvWCreate.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cvWDictFile.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWDictFile.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cvWDictFile.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cvWParamDict.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWParamDict.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cvWParamDict.pyo
 %{python3_sitelib}/glideinwms/creation/lib/cvWParams.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWParams.pyc
-%{python3_sitelib}/glideinwms/creation/lib/cvWParams.pyo
 %{python3_sitelib}/glideinwms/creation/lib/matchPolicy.py
-%{python3_sitelib}/glideinwms/creation/lib/matchPolicy.pyc
-%{python3_sitelib}/glideinwms/creation/lib/matchPolicy.pyo
 %{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.py
-%{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.pyc
-%{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.pyo
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/*
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python_sitelib}/glideinwms/creation/templates/99_frontend_sudoers
 %{python3_sitelib}/glideinwms/creation/reconfig_frontend
@@ -871,8 +834,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %{python3_sitelib}/glideinwms/__init__.py
-%{python3_sitelib}/glideinwms/__init__.pyc
-%{python3_sitelib}/glideinwms/__init__.pyo
+%{python3_sitelib}/glideinwms/__pycache__/__init__.*.pyo
 %{python3_sitelib}/glideinwms/lib
 
 %files glidecondor-tools
