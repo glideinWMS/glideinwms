@@ -19,25 +19,16 @@
 #   Parag Mhashilkar (October 2012)
 #
 
-import signal
 import os
 import os.path
 import sys
-import fcntl
-import traceback
 import time
-import string
-import math
-import copy
-import random
 import pickle
-import select
 import logging
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib.fork import fetch_fork_result_list
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
@@ -47,7 +38,6 @@ from glideinwms.factory import glideFactoryConfig as gfc
 from glideinwms.factory import glideFactoryLib as gfl
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryPidLib
-from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 
 ############################################################

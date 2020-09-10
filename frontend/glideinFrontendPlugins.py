@@ -17,7 +17,6 @@ import copy
 import time
 import random
 import math
-import collections
 from glideinwms.lib import logSupport
 from glideinwms.lib import util
 from . import glideinFrontendLib

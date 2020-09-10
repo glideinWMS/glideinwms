@@ -253,14 +253,14 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
             os.mkdir(mydir)
         except:
             pass
-        with open(mydir+'/glidein_dict.pickle', 'w') as fd:
+        with open(mydir+'/glidein_dict.pickle', 'wb') as fd:
             pickle.dump(glidein_dict, fd)
-        with open(mydir+'/attr_dict.pickle', 'w') as fd:
+        with open(mydir+'/attr_dict.pickle', 'wb') as fd:
             pickle.dump(attr_dict, fd)
-        with open(mydir+'/condorq_match_list.pickle', 'w') as fd:
+        with open(mydir+'/condorq_match_list.pickle', 'wb') as fd:
             pickle.dump(condorq_match_list, fd)
         for schedd in list(condorq_dict.keys()):
-            pickle.dump(condorq_dict[schedd].fetchStored(), open(mydir+'/condorq_dict_%s.pickle' % schedd, 'w'))
+            pickle.dump(condorq_dict[schedd].fetchStored(), open(mydir+'/condorq_dict_%s.pickle' % schedd, 'wb'))
 
     out_glidein_counts={}
     out_cpu_counts={}
