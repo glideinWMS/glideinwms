@@ -13,7 +13,6 @@ Project:
 #   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
 
 
-
 import dis
 import re
 import sys
@@ -130,7 +129,7 @@ class FETestCaseCount(FETestCaseBase):
 
     def test_countMatch_otherException(self):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
-            match_obj = compile('3/0', "<string>", "eval")
+            match_obj = compile('3//0', "<string>", "eval")
             match_counts = glideinFrontendLib.countMatch(
                 match_obj, self.condorq_dict, self.glidein_dict, {}, False)
             log_msg = m_debug.call_args[0]
@@ -141,7 +140,7 @@ class FETestCaseCount(FETestCaseBase):
                 'ZeroDivisionError: integer division or modulo by zero' in str(log_msg), log_msg)
 
     def test_countMatch(self):
-        match_expr = 'not job.has_key("DESIRED_Sites") or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
+        match_expr = 'not "DESIRED_Sites" in job or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
         match_obj = compile(match_expr, "<string>", "eval")
         unmatched = (None, None, None)
         match_counts = glideinFrontendLib.countMatch(
@@ -189,7 +188,7 @@ class FETestCaseCount(FETestCaseBase):
         self.glidein_dict[self.glidein_dict_k1]['attrs']['GLIDEIN_In_Downtime'] = True
         # test_countMatch should give the same results unless we call countMatch with ignore_down_entries = False
         self.test_countMatch()
-        match_expr = 'not job.has_key("DESIRED_Sites") or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
+        match_expr = 'not "DESIRED_Sites" in job or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
         match_obj = compile(match_expr, "<string>", "eval")
         unmatched = (None, None, None)
         match_counts = glideinFrontendLib.countMatch(
