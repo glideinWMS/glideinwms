@@ -1,14 +1,3 @@
-import string
-import os.path
-import urllib.request, urllib.parse, urllib.error
-import pickle
-import copy
-import sys
-
-from glideinwms.creation.lib.matchPolicy import MatchPolicy
-from glideinwms.lib import hashCrypto
-from glideinwms.lib import util
-
 #
 # Project:
 #   glideinWMS
@@ -18,6 +7,13 @@ from glideinwms.lib import util
 # Description:
 #   Frontend config related classes
 #
+
+import os.path
+import urllib.request, urllib.parse, urllib.error
+
+from glideinwms.creation.lib.matchPolicy import MatchPolicy
+from glideinwms.lib import hashCrypto
+from glideinwms.lib import util
 
 
 ############################################################
