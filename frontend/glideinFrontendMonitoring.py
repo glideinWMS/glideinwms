@@ -19,6 +19,7 @@ import traceback
 from glideinwms.lib import xmlFormat, timeConversion
 from glideinwms.lib import rrdSupport
 from glideinwms.lib import logSupport
+from glideinwms.lib.defaults import BINARY_ENCODING
 ############################################################
 #
 # Configuration
@@ -529,7 +530,7 @@ class factoryStats:
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
                         aorg=a[:-10]
-                        tel[aorg]=tel[aorg]//tel[a]
+                        tel[aorg]=tel[aorg] // tel[a]
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 
@@ -675,7 +676,7 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
     
     try:
         with open(fname + '.tmp', 'wb') as f:
-            f.write(output.encode("utf-8"))
+            f.write(output.encode(BINARY_ENCODING))
 
         tmp2final(fname)
     
