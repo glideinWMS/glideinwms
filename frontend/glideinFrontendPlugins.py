@@ -233,8 +233,8 @@ class ProxyProjectName:
                 cred_copy.project_id = project
                 creds.append(cred_copy)
 
-            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
-            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
+            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins // float(self.total_jobs)))
+            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins // float(self.total_jobs)))
             creds[-1].add_usage_details(cred_max, cred_idle)
         return creds
 

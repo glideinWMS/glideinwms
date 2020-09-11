@@ -390,7 +390,7 @@ def aggregateStatus(in_downtime):
             for a in tel:
                 if a in avgEntries:
                     # since all entries must have this attr to be here, just divide by nr of entries
-                    tel[a] = tel[a] / nr_entries
+                    tel[a] = tel[a] // nr_entries
 
     # do average for per-fe stat--'InfoAge' only
     for fe in list(status_fe['frontends'].keys()):
@@ -398,7 +398,7 @@ def aggregateStatus(in_downtime):
             tel = status_fe['frontends'][fe][w]
             for a in list(tel.keys()):
                 if a in avgEntries and fe in nr_feentries:
-                    tel[a] = tel[a] / nr_feentries[fe]  # divide per fe
+                    tel[a] = tel[a] // nr_feentries[fe]  # divide per fe
 
     xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='',
                                          params={'status': str(in_downtime)},

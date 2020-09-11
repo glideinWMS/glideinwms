@@ -20,7 +20,7 @@ from . import cWDictFile
 
 def is_true(s):
     """Case insensitive string parsing helper. Return True for true (case insensitive matching), False otherwise."""
-    return s.lower() == 'true'
+    return type(s) == str and s.lower() == 'true'
 
 
 def has_file_wrapper(dicts):
@@ -68,7 +68,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     do_untar = is_true(user_file.untar)
     try:
         period_value = int(user_file.period)
-    except (AttributeError, KeyError, ValueError):
+    except (AttributeError, KeyError, ValueError, TypeError):
         period_value = 0
 
     if is_factory:

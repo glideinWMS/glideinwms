@@ -33,6 +33,9 @@ class SubParams(Mapping):
     def __init__(self, data):
         """Constructor, only method changing the value"""
         self.data = data
+    
+    def __repr__(self):
+        return self.data.__repr__()
 
     # Abstract methods to implement for the Mapping
     def __getitem__(self, key): 
