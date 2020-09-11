@@ -663,6 +663,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
 %{python3_sitelib}/glideinwms/creation/lib/__init__.py
+# without %dir it includes all files and sub-directories. Some modules are in different packages
 %dir %{python3_sitelib}/glideinwms/creation/lib/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWConsts.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWDictFile.*
@@ -742,8 +743,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/factoryXmlConfig.py
 %{python3_sitelib}/glideinwms/creation/lib/factory_defaults.xml
 %{python3_sitelib}/glideinwms/creation/lib/xmlConfig.py
-# without %dir it includes all files and sub-directories. Some modules are in different packages
-%dir %{python3_sitelib}/glideinwms/creation/lib/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cgWConsts.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cgWCreate.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cgWDictFile.*
@@ -799,7 +798,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/cvWParams.py
 %{python3_sitelib}/glideinwms/creation/lib/matchPolicy.py
 %{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.py
-%dir %{python3_sitelib}/glideinwms/creation/lib/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWConsts.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWCreate.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWDictFile.*
