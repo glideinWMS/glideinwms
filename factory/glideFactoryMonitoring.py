@@ -1084,7 +1084,7 @@ class condorLogSummary:
 
                         for e in list(tdata.keys()):
                             for sdel in sdiff[k][e]:
-                                tdata[e].append(sdel)
+                                tdata[e].append(sdel)  # pylint: disable=unsubscriptable-object
             out_data[client_name] = client_el
         return out_data
 
@@ -1098,7 +1098,7 @@ class condorLogSummary:
                     sdiff = self.stats_diff[client_name][username]
                     if ((sdiff is not None) and (k in list(sdiff.keys()))):
                         for e in list(tdata.keys()):
-                            tdata[e] = tdata[e] + sdiff[k][e]
+                            tdata[e] = tdata[e] + sdiff[k][e]  # pylint: disable=unsupported-assignment-operation,unsupported-assignment-operation,unsubscriptable-object
         return total
 
     def get_total_summary(self):
@@ -1106,13 +1106,13 @@ class condorLogSummary:
         diff_total = self.get_diff_total()
         out_total = {'Current': {}, 'Entered': {}, 'Exited': {}}
         for k in list(diff_total.keys()):
-            out_total['Entered'][k] = len(diff_total[k]['Entered'])
+            out_total['Entered'][k] = len(diff_total[k]['Entered'])  # pylint: disable=unsubscriptable-object
             if k in stats_total:
                 out_total['Current'][k] = len(stats_total[k])
                 # if no current, also exited does not have sense (terminal state)
-                out_total['Exited'][k] = len(diff_total[k]['Exited'])
+                out_total['Exited'][k] = len(diff_total[k]['Exited'])  # pylint: disable=unsubscriptable-object
             elif k == 'Completed':
-                completed_stats = self.get_completed_stats(diff_total[k]['Entered'])
+                completed_stats = self.get_completed_stats(diff_total[k]['Entered'])  # pylint: disable=unsubscriptable-object
                 completed_counts = self.summarize_completed_stats(completed_stats)
                 out_total['CompletedCounts'] = completed_counts
 

@@ -226,7 +226,7 @@ class DictFile:
             keys = sorted(self.keys[0:])  # makes a copy
         else:
             keys = self.keys
-        footer = self.file_footer(want_comments)
+        footer = self.file_footer(want_comments)  # pylint: disable=assignment-from-none
         try:
             if header is not None:
                 fd.write(b"%s\n" % header.encode(BINARY_ENCODING))
