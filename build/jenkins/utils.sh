@@ -194,7 +194,7 @@ setup_python3_venv() {
         # importlib and argparse are in std Python 3.6 (>=3.1)
         # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
         pip_packages="toml ${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT"
+        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT requests"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
@@ -366,7 +366,7 @@ setup_python2_venv() {
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT future importlib argparse"
+        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT requests future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 

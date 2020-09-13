@@ -110,7 +110,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("############################\n")
 
         fd.write("\n# Force GSI authentication\n")
-        fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = GSI\n")
+        fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = IDTOKENS, GSI\n")
         fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
 
         fd.write("\n#################################\n")
