@@ -523,9 +523,10 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
             # this is the cores on the worker node multiplied for the number
             # of nodes in one submission if multi-node submissions are enabled
             
-            prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index]) // out_glidein_counts[site]
-            prop_out_count = prop_cpus // glidein_cpus_nodes
-            final_out_cpu_counts[site] = math.ceil(prop_out_count)
+            # rounding only the result, prop_out_count and prop_cpus are float
+            prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index]) / out_glidein_counts[site]
+            prop_out_count = prop_cpus / glidein_cpus_nodes
+            final_out_cpu_counts[site] = math.ceil(prop_out_count)  # math.ceil(float) returns a float (N.0)
 
         final_unique[site] = unique_to_site[site_index]
 
