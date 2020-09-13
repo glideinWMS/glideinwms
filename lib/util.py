@@ -25,7 +25,7 @@ import subprocess
 #################################
 
 # imports and global for flattenDict
-from collections import Mapping
+from collections.abc import Mapping
 from operator import add
 
 _FLAG_FIRST = object()
