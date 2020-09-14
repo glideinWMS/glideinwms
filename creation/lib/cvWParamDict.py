@@ -12,15 +12,14 @@
 #   created out of the parameter object
 #
 
-import os, os.path, shutil, string
+import os, os.path
+import shutil
 from . import cvWDictFile, cWDictFile
 from . import cvWConsts, cWConsts
 from . import cvWCreate
 from .cWParamDict import is_true, add_file_unparsed, has_file_wrapper, has_file_wrapper_params
-import shutil
-# import re - not used
-from glideinwms.lib import x509Support
 from .cvWParams import MatchPolicy
+from glideinwms.lib import x509Support
 
 
 ################################################
@@ -74,7 +73,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         start_expr = None
 
         # put user attributes into config files
-        for attr_name in list(params.attrs.keys()):
+        for attr_name in list(params.attrs.keys()):  # keep list, modified below: params.data['attrs'] is params.attrs
             if attr_name in ('GLIDECLIENT_Start', 'GLIDECLIENT_Group_Start'):
                 if start_expr is None:
                     start_expr=params.attrs[attr_name].value
@@ -262,7 +261,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         start_expr = None
 
         # put user attributes into config files
-        for attr_name in list(sub_params.attrs.keys()):
+        for attr_name in list(sub_params.attrs.keys()):  # keep list, modified below: sub_params.data['attrs'] is sub_params.attrs
             if attr_name in ('GLIDECLIENT_Group_Start', 'GLIDECLIENT_Start'):
                 if start_expr is None:
                     start_expr = sub_params.attrs[attr_name].value
@@ -493,7 +492,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('SymKeyType', params.security.sym_key)
 
         active_sub_list[:]  # erase all
-        for sub in list(params.groups.keys()):
+        for sub in params.groups:
             if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
         frontend_dict.add('Groups', ','.join(active_sub_list))
@@ -704,7 +703,7 @@ def get_pool_list(credential):
 def match_attrs_to_array(match_attrs):
     ma_array = []
 
-    for attr_name in list(match_attrs.keys()):
+    for attr_name in match_attrs:
         attr_type = match_attrs[attr_name]['type']
         if not (attr_type in MATCH_ATTR_CONV):
             raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, list(MATCH_ATTR_CONV.keys())))
@@ -782,11 +781,10 @@ def populate_common_descript(descript_dict, params):
                                 'project_id': 'project_id'}
 
         # TODO: this list is used in for loops, replace with "for i in proxy_attr_names"
-        proxy_attrs = list(proxy_attr_names.keys())
+        proxy_attrs = proxy_attr_names
         proxy_descript_values = {}
         for attr in proxy_attrs:
             proxy_descript_values[attr] = {}
-        proxy_trust_domains = {}  # TODO: not used, remove
         # print params.security.credentials
         for pel in params.security.credentials:
             validate_credential_type(pel['type'])
@@ -814,7 +812,7 @@ def populate_common_descript(descript_dict, params):
 
         descript_dict.add('Proxies', repr(proxies))
         for attr in proxy_attrs:
-            if len(list(proxy_descript_values[attr].keys())) > 0:
+            if len(proxy_descript_values[attr]) > 0:
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
@@ -853,7 +851,7 @@ def calc_glidein_collectors(collectors):
             cWDictFile.validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
 
-    for group in list(collector_nodes.keys()):
+    for group in collector_nodes:
         if len(collector_nodes[group]['secondary']) > 0:
             glidein_collectors.append(",".join(collector_nodes[group]['secondary']))
         else:
@@ -881,7 +879,7 @@ def calc_glidein_ccbs(collectors):
             cWDictFile.validate_node(el.node)
             ccb_nodes[el.group].append(el.node)
 
-    for group in list(ccb_nodes.keys()):
+    for group in ccb_nodes:
         glidein_ccbs.append(",".join(ccb_nodes[group]))
 
     return ";".join(glidein_ccbs)

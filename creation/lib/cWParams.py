@@ -108,12 +108,12 @@ class SubParams(Mapping):
                     if isinstance(defvalue, OrderedDict):
                         # dictionary el elements
                         data_el = self[k]
-                        for data_subkey in list(data_el.keys()):
+                        for data_subkey in data_el:
                             data_el[data_subkey].validate(subdef, "%s.%s.%s" % (path_text, k, data_subkey))
                     elif isinstance(defvalue, list):
                         # list of elements
                         if isinstance(self.data[k], OrderedDict):
-                            if len(list(self.data[k].keys())) == 0:
+                            if len(self.data[k]) == 0:
                                 self.data[k] = []  # XML does not know if an empty list is a dictionary or not.. fix this
 
                         mylist = self[k]
@@ -130,12 +130,9 @@ class SubParams(Mapping):
         """Put default values where there is nothing
 
         Args:
-            defaults:
-
-        Returns:
-
+            defaults (dict): default values, used to fill in missing values in self.data
         """
-        for k in list(defaults.keys()):
+        for k in defaults:
             defel = defaults[k]
             if isinstance(defel, OrderedDict):
                 # subdictionary
@@ -155,7 +152,7 @@ class SubParams(Mapping):
                     else:
                         # need to set defaults on all elements in the dictionary
                         data_el = self[k]
-                        for data_subkey in list(data_el.keys()):
+                        for data_subkey in data_el:
                             data_el[data_subkey].use_defaults(subdef)
                 elif isinstance(defvalue, list):
                     # list of elements

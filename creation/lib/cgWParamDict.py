@@ -671,10 +671,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
     ###########
 
     ######################################
+    # TODO: this could be removed in python3 and its use replaced by sorted() w/ custom key
     def sortit(self, unsorted_dict):
         """ A temporary method for sorting a dictionary based on
             the value of the dictionary item.  In python 2.4+,
-            a 'key' arguement can be used in the 'sort' and 'sorted'
+            a 'key' argument can be used in the 'sort' and 'sorted'
             functions.  This is not available in python 2.3.4/SL4
             platforms.
             Returns a sorted list of the dictionary items based on
@@ -682,7 +683,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         """
         d = {}
         i = 0
-        for key in list(unsorted_dict.keys()):
+        for key in unsorted_dict:
             d[i] = (key, unsorted_dict[key])
             i = i + 1
         temp_list = sorted([ (x[1][1], x[0]) for x in list(d.items()) ])
@@ -1189,6 +1190,7 @@ def get_valid_condor_tarballs(condor_tarballs):
     return valid_tarballs
 
 
+# TODO: not needed in python3. Can be replaced w/ itertools.product()
 def itertools_product(*args, **kwds):
     """
     itertools.product() from Python 2.6
@@ -1219,7 +1221,7 @@ def calc_monitoring_collectors_string(collectors):
             cWDictFile.validate_node(el['node'])
             collector_nodes[el['group']]['primary'].append(el['node'])
 
-    for group in list(collector_nodes.keys()):
+    for group in collector_nodes:
         if len(collector_nodes[group]['secondary']) > 0:
             monitoring_collectors.append(",".join(collector_nodes[group]['secondary']))
         else:
@@ -1249,4 +1251,3 @@ def calc_primary_monitoring_collectors(collectors):
         return None
     else:
         return ",".join(list(collector_nodes.values()))
-

@@ -9,7 +9,7 @@
 #   And other support functions
 #
 
-import os, os.path  # string
+import os, os.path
 import re
 import shutil
 import copy
@@ -1623,9 +1623,7 @@ class dirsSupport:
         return len(created_dirs) != 0
 
     def delete_dirs(self):
-        idxs = list(range(len(self.dir_list)))
-        idxs.reverse()
-        for i in idxs:
+        for i in range(len(self.dir_list)-1, -1, -1):
             self.dir_list[i].delete_dir()
 
 
@@ -1709,12 +1707,18 @@ class monitorWLinkDirSupport(monitorDirSupport):
 ################################################
 
 # helper class, used below
+# TODO: extend from some standard dictionary (dict, Mapping, ..., toggleable read-only dict)
 class fileCommonDicts:
     def __init__(self):
         self.dicts = {}
 
+    def __len__(self):
+        return len (self.dicts)
+
     def keys(self):
-        return list(self.dicts.keys())
+        # changed the keys to be a view to be consistent w/ dict behaviour (was: list(self.dicts.keys()) )
+        # TODO: verify that it is not causing problems
+        return self.dicts.keys()
 
     def has_key(self, key):
         return key in self.dicts
@@ -1726,7 +1730,7 @@ class fileCommonDicts:
         return self.dicts[key]
 
     def set_readonly(self, readonly=True):
-        for el in list(self.dicts.values()):
+        for el in self.dicts.values():
             # condor_jdl are lists. Iterating over its elements in this case
             if isinstance(el, list):
                 for cj in el:
@@ -1812,7 +1816,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
             return False
         if compare_stage_dir and (self.stage_dir != other.stage_dir):
             return False
-        for k in list(self.dicts.keys()):
+        for k in self.dicts:
             if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
                 return False
         return True
@@ -1925,7 +1929,7 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
         """
         if compare_sub_name and (self.sub_name != other.sub_name):
             return False
-        for k in list(self.dicts.keys()):
+        for k in self.dicts:
             if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
                 return False
         return True
@@ -2004,7 +2008,7 @@ class fileDicts:
 
     def set_readonly(self, readonly=True):
         self.main_dicts.set_readonly(readonly)
-        for el in list(self.sub_dicts.values()):
+        for el in self.sub_dicts.values():
             el.set_readonly(readonly)
 
     def erase(self, destroy_old_subs=True):  # if false, the sub names will be preserved
@@ -2144,7 +2148,7 @@ class MonitorFileDicts:
 
     def set_readonly(self, readonly=True):
         self.main_dicts.set_readonly(readonly)
-        for el in list(self.sub_dicts.values()):
+        for el in self.sub_dicts.values():
             el.set_readonly(readonly)
 
     def erase(self, destroy_old_subs=True):  # if false, the sub names will be preserved
