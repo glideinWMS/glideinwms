@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_0_rc3
+# GLIDEINWMS_VERSION v3_9_0_rc4
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -9,7 +9,7 @@ beb5fa6bca65408c7c8575023c6fe576  ./.travis.yml
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 6f1c5269e2f53fb5c5195d866060c036  ./README.md
-f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
+9830eb1268332b9b7b23a6db43a0e4ec  ./__init__.py
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 109c2c20e109088a9c36fa11fc16af6e  ./creation/clone_glidein
@@ -21,7 +21,7 @@ b2c609b95364dd2529afe6418225ec69  ./creation/create_glidein
 c3294a9aa4060fdacf14ff5077d56ce5  ./creation/info_glidein
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 9f0ac608e8ab3002512bc01700825177  ./creation/lib/cWConsts.py
-f1a32776cf03d9b32545d8750174b2b3  ./creation/lib/cWDictFile.py
+2d9d7dfa7c45ae035d88f4a1e428b62f  ./creation/lib/cWDictFile.py
 421d6405ff1fea0a0cb6a7582dd91e5b  ./creation/lib/cWParamDict.py
 6cbd16d261160b9736f160437e79ecc4  ./creation/lib/cWParams.py
 c7cfb5edf10e2f15b19eaa6ae2546ce9  ./creation/lib/cgWConsts.py
@@ -31,7 +31,7 @@ c7cfb5edf10e2f15b19eaa6ae2546ce9  ./creation/lib/cgWConsts.py
 02d605b3879f8235a1e78864dd8f8922  ./creation/lib/cgWParams.py
 956d59e76cdd5a200e8d96426d596036  ./creation/lib/check_config_frontend.py
 431602a0ab8ffe513a4905f91abc6634  ./creation/lib/cvWConsts.py
-39ebc00a7db9bd8781fdb06c3670c6b6  ./creation/lib/cvWCreate.py
+0a7cec967799d342681fc9aa054328d6  ./creation/lib/cvWCreate.py
 acaee66c9028003324d49fa198def392  ./creation/lib/cvWDictFile.py
 ca470f40f4ebad6f5eb867c2419c56a9  ./creation/lib/cvWParamDict.py
 73ebbe762eda1ea4466dd788ef1ea330  ./creation/lib/cvWParams.py
@@ -144,8 +144,8 @@ e4d03bd9947175c90feb6cbb3d41bb57  ./factory/glideFactoryEntry.py
 115ce1725ac97fb3680e4efa43d7db04  ./factory/glideFactoryInterface.py
 183924338fba1c12b448aacee3422ded  ./factory/glideFactoryLib.py
 b9e23c335cf1ad9a0e8e95efb2d261f9  ./factory/glideFactoryLogParser.py
-fe0e572a925ff93c012508484b62725e  ./factory/glideFactoryMonitorAggregator.py
-85dc67560975782c88faa30501197411  ./factory/glideFactoryMonitoring.py
+a4f8b8819236efc2cc0071b49708ba6f  ./factory/glideFactoryMonitorAggregator.py
+a2fe3988240301a99481d3730aa8b030  ./factory/glideFactoryMonitoring.py
 551d0d1559285f9f44601d975ae6362c  ./factory/glideFactoryPidLib.py
 117d9847a9cb364cdca51017fb49aff4  ./factory/glideFactorySelectionAlgorithms.py
 5d01a24250507fb5b95e9afd2a237bb9  ./factory/manageFactoryDowntimes.py
@@ -183,11 +183,11 @@ d6f504e532123a1dac671d9b895bac09  ./frontend/glideinFrontendConfig.py
 43fae45cd5f9328417ed2c74e294a1d2  ./frontend/glideinFrontendDowntimeLib.py
 f89379f2cfbfc59b27d702342c556c7f  ./frontend/glideinFrontendElement.py
 c04c5cc2f40e90381408c5b49588f28b  ./frontend/glideinFrontendInterface.py
-1eaec82f75dc3cf00fe1187de2417579  ./frontend/glideinFrontendLib.py
-f678b48b4aeb3a9505b29983bc4dd750  ./frontend/glideinFrontendMonitorAggregator.py
+8c9cb37b61ee55691cfcc61b3b6fe4c5  ./frontend/glideinFrontendLib.py
+2a4bc838782591718b9364ddcc0648ae  ./frontend/glideinFrontendMonitorAggregator.py
 078146df33ccd872fec69309dd9a17b3  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py
-67a19816c38dd4ad946625b4d5ed29e9  ./frontend/glideinFrontendPlugins.py
+574c678450edf7ad44582ae645c13a2b  ./frontend/glideinFrontendPlugins.py
 7d7aa025ae65abdef6a4d61071b3c04d  ./frontend/gwms_renew_proxies.py
 0db3be260cd7b80c4c46c86d572c909a  ./frontend/manageFrontendDowntimes.py
 2af11aff8490f37a953a6e2c66327aab  ./frontend/stopFrontend.py
@@ -211,7 +211,7 @@ f76387765331a2fcd08757d4e07ce2ff  ./install/glidecondor_createSecSched
 f3020fad84303f36cf6a60b0c50ce77c  ./install/glideinWMS.ini
 55f2b6ecba8115b7321536ad4661e664  ./install/manage-glideins
 6689616d0e28718bdfde7dcc1fce1062  ./install/services/Certificates.py
-800c5b91d53a763249b3e8d8cd84f6e2  ./install/services/Condor.py
+e1c45dc59f3f82c03ddf3ee7b618808b  ./install/services/Condor.py
 04e746884f2d18c7a4d3fc02065a881b  ./install/services/Configuration.py
 b04b2940fc3566e1f2748c44f33998bf  ./install/services/Factory.py
 3773c1e3b1e1faa896e8ca58918f1b4d  ./install/services/Glidein.py
@@ -227,11 +227,11 @@ ea67816c599229ff9b7f45d7f9ae7313  ./install/services/common.py
 7d59e6f64b5902dd367f7270a0090116  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 f2fec408a3f23b97ed804ec474cd8c65  ./lib/classadSupport.py
-9e061e18dfa12e533f772a4d10a9fd3b  ./lib/cleanupSupport.py
+bde0e2e3f243b1577da5569d0fd9eb24  ./lib/cleanupSupport.py
 690e5ec63e9535f3b4cc3939c9786d34  ./lib/condorExe.py
 09b8518091ed4367fa40d1fcb617f484  ./lib/condorLogParser.py
 09402d8af64925ba9ccea58078d715dd  ./lib/condorManager.py
-a685334ed39fc3920e57a41e3b57d8bd  ./lib/condorMonitor.py
+7c70c5c400a8442766c001ae09e1333d  ./lib/condorMonitor.py
 c7d12df42111a15488354d2bc32a5052  ./lib/condorSecurity.py
 79c84691e46caf1b5b0a14d4f02b4faa  ./lib/config_util.py
 28fb2d20f59aa1ed34638fabaebacf3c  ./lib/defaults.py
@@ -253,7 +253,7 @@ bdd3223439abb0d6ecea48a80d82a385  ./lib/pidSupport.py
 c70dffece49e6344962943bf42e52720  ./lib/tarSupport.py
 096279edc132eb1a8d93095644c1701b  ./lib/timeConversion.py
 b96436a9acff1e10b8c67ef567bf5024  ./lib/unparser.py
-d7a9b500d0429f1d8422c8e6961ad4ed  ./lib/util.py
+2f6db2450b74996f82394d060c0cd7f1  ./lib/util.py
 fff4b33274801ee4684fdb192aa31016  ./lib/x509Support.py
 4412ede71fd2ace8a2c3c625d710f5c0  ./lib/xmlFormat.py
 8e3773f08f6affa1e2b099997f320a79  ./lib/xmlParse.py

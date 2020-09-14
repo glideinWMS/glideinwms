@@ -7,6 +7,7 @@ v3_9
 	Bug fix: Add __repr__ method to SubParams class
 	Bug fix: Fixed pycache of creation/lib included in multiple packages
 	Bug fix: Fixed spec file to include python3 compiled files and not python2 ones
+	Bug fix: Fixed Mapping import
 
 v3_7_1
 	Includes all features and fixes of 3.6.3
