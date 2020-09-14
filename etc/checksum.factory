@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_1_rc3
+# GLIDEINWMS_VERSION v3_7_1_rc6
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -10,7 +10,7 @@ a8c267df1e36c1c5e266724bc6b75277  ./creation/create_rpm_startup
 1c4efa608122748c0d534efb4b0aa750  ./creation/info_glidein
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 d5c1b3e12aca7aa6aee03d64838aecb2  ./creation/lib/cgWConsts.py
-34b30ad3b9894617eb082f11d0e294d5  ./creation/lib/cgWCreate.py
+7a9f12f8b85c430e01a43f4c20881186  ./creation/lib/cgWCreate.py
 e2ea505e39acabc29900ba8b32e10767  ./creation/lib/cgWDictFile.py
 de6bfcf46040ecd08db84e6e7c03abd2  ./creation/lib/cgWParamDict.py
 cf618dee5a243a93b88c06c6072c3630  ./creation/lib/cgWParams.py
@@ -100,17 +100,17 @@ eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 8dec516d7c68949aea913e288a4c9574  ./factory/checkFactory.py
 348b14c55e29e17ab2c42f685078953d  ./factory/glideFactoryConfig.py
-36a70ff7bf90c96f3583c1fc2f3b54a2  ./factory/glideFactoryCredentials.py
+23035edb1194d0d5f570bc36abce1ec2  ./factory/glideFactoryCredentials.py
 8726ae6b79f921d3ba618fb640c7c9e4  ./factory/glideFactoryDowntimeLib.py
 fc84bb656bff9c0069a13b7971ec938f  ./factory/glideFactoryEntryGroup.py
-3ba39390085f98d07fe4d0396e34dc88  ./factory/glideFactoryEntry.py
+749c33877c5469fe0f70f7bf97f43871  ./factory/glideFactoryEntry.py
 d36f0595ebc093447ed5b9ae658e8216  ./factory/glideFactoryInterface.py
 006e28d2fb5e9cc11db61b2cc859233a  ./factory/glideFactoryLib.py
 b1bd36643222a41a90d978ef27c53305  ./factory/glideFactoryLogParser.py
 4262810501628913cef0a5a2689ff4a0  ./factory/glideFactoryMonitorAggregator.py
 e50fb775d1147ee4eaafbd8c2fe95451  ./factory/glideFactoryMonitoring.py
 551d0d1559285f9f44601d975ae6362c  ./factory/glideFactoryPidLib.py
-55758defba46794a008fd4b1581cd56b  ./factory/glideFactory.py
+2c49eb44e4edab38f82b1822967461b8  ./factory/glideFactory.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 d11afb82236f7b31e47da477415b3624  ./factory/manageFactoryDowntimes.py
@@ -150,7 +150,7 @@ f3020fad84303f36cf6a60b0c50ce77c  ./install/glideinWMS.ini
 d47eaf4f178fa7f65320b83a2f56ce79  ./install/manage-glideins
 b3c31b69c6d30f967a7049b36a885d4a  ./install/services/Certificates.py
 f14d3d2b9bbff3d262cda7c17351b84d  ./install/services/common.py
-190c3845910d23cd9616e6a156d2d6eb  ./install/services/Condor.py
+89c59dc53475a68a8e34e2f5783f756c  ./install/services/Condor.py
 3f0de48b206ad1242bbbcba1104118ba  ./install/services/Configuration.py
 76dad58434fe42d1bae28b4260f3f25e  ./install/services/Factory.py
 e5bc9155aecb2166934b0f9ee711fee7  ./install/services/Glidein.py
@@ -198,8 +198,8 @@ cd59fc1720cd5485e50342613827f824  ./LICENSE
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 6f1c5269e2f53fb5c5195d866060c036  ./README.md
-6d1eb3ec8596e360ee0deb961f536d5f  ./requirements.txt
-6cbbe98e5b884d4bb1609f255a8324a4  ./test/bats/compat.bash
+ed315f07a89523a5a539508ea539fd47  ./requirements.txt
+d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
 fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
