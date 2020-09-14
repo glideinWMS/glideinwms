@@ -33,13 +33,20 @@ try:
 except ImportError as err:
     raise TestImportError(str(err))
 
-LOG_DATA = []
+LOG_INFO_DATA = []
+LOG_EXCEPTION_DATA = []
+
 def log_info_side_effect(*args, **kwargs):
     """
     keep logSupport.log.info data in an array so we can search it later
     """
-    LOG_DATA.append(args[0])
+    LOG_INFO_DATA.append(args[0])
 
+def log_exception_side_effect(*args, **kwargs):
+    """
+    keep logSupport.log.exception  data in an array so we can search it later
+    """
+    LOG_EXCEPTION_DATA.append(args[0])
 
 def uni_to_str_JSON(obj):
     """
@@ -70,8 +77,8 @@ def uni_to_str_JSON(obj):
 
 
 def fork_and_collect_side_effect():
-    """ 
-    populate data structures in 
+    """
+    populate data structures in
     glideinFrontendElement::iterate_one from
     json artifact in fixtures
     """
@@ -88,7 +95,7 @@ def fork_and_collect_side_effect():
 
 
 def bounded_fork_and_collect_side_effect():
-    """ 
+    """
     populate data structures in glideinFrontendElement::do_match
     from json artifact in fixtures
     """
@@ -266,6 +273,7 @@ class FEElementTestCase(unittest.TestCase):
         # evaluate success
         glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
         mockery.info = log_info_side_effect
+        mockery.exception = log_exception_side_effect
 
         # ForkManager mocked inside iterate_one, return data loaded from
         # fork_and_collect_side_effect
@@ -305,13 +313,26 @@ class FEElementTestCase(unittest.TestCase):
                 req_glexec[glideid_str] = safe_boolcomp(
                     gdata.get('GLIDEIN_REQUIRE_GLEXEC_USE'), True)
 
+        if self.debug_output:
+            print ("info log %s " % LOG_INFO_DATA)
+            print ("exception log %s " % LOG_EXCEPTION_DATA)
+
+        # examine the exception log, only test_site_3 should have tried to create a condor_token
+        # all sites except test_site_3 and test_fact_7 are in down time
+        # test_fact_7 is advertising a condor version that doesn't support tokens
+        for lgln in LOG_EXCEPTION_DATA:
+            self.assertTrue('test_fact_3' in lgln)
+            self.assertTrue('test_fact_7' not in lgln)
+            self.assertTrue('test_fact_4' not in lgln)
+
+
         # run through the info log
         # if GLIDEIN_REQUIRE_VOMS was set to True, 'True', 'tRUE' etc for an entry:
         #    'Voms Proxy Required,' will appear in previous line of log
         # elif GLIDEIN_REQUIRE_GLEXEC_USE was set:
         #     'Proxy required (GLEXEC)' will appear in log
         idx = 0
-        for lgln in LOG_DATA:
+        for lgln in LOG_INFO_DATA:
             parts = lgln.split()
             gid = parts[-1]
             if gid in glideids:
@@ -322,7 +343,7 @@ class FEElementTestCase(unittest.TestCase):
                                    in_downtime[gid],
                                    req_voms[gid],
                                    req_glexec[gid],
-                                   LOG_DATA[idx - 1])
+                                   LOG_INFO_DATA[idx - 1])
                 if self.debug_output:
                     print('%s' % state)
                 use_voms = req_voms[gid]
@@ -339,18 +360,19 @@ class FEElementTestCase(unittest.TestCase):
 
                 if use_voms:
                     self.assertTrue(
-                        'Voms proxy required,' in LOG_DATA[idx - 1], state)
+                        'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
                 else:
                     self.assertFalse(
-                        'Voms proxy required,' in LOG_DATA[idx - 1], state)
+                        'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
                     if use_glexec:
                         self.assertTrue(
-                            'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
+                            'Proxy required (GLEXEC)' in LOG_INFO_DATA[idx - 1], state)
                     else:
                         self.assertFalse(
-                            'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
+                            'Proxy required (GLEXEC)' in LOG_INFO_DATA[idx - 1], state)
 
             idx += 1
+
 
     def test_populate_pubkey(self):
         """ test that good public keys get populated
