@@ -155,4 +155,5 @@ v3_9:
     - Add __repr__ method to SubParams class
     - Fixed pycache of creation/lib included in multiple packages
     - Fixed spec file to include python3 compiled files and not python2 ones
+    - Fixed Mapping import
  
