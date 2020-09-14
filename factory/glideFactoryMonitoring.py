@@ -548,7 +548,7 @@ class condorQStats:
                         # this is an average counter, calc the average of the referred element
                         # like InfoAge=InfoAge/InfoAgeAvgCounter
                         aorg = a[:-10]
-                        tel[aorg] = tel[aorg] / tel[a]
+                        tel[aorg] = tel[aorg] // tel[a]
                         # the avgcount totals are just for internal purposes
                         del tel[a]
 
@@ -953,7 +953,7 @@ class condorLogSummary:
             count_jobnrs[enle_jobrange] += 1
 
             if enle_jobs_nr > 0:
-                enle_jobs_duration_range = getTimeRange(enle_jobs_duration['total'] / enle_jobs_nr)
+                enle_jobs_duration_range = getTimeRange(enle_jobs_duration['total'] // enle_jobs_nr)
             else:
                 enle_jobs_duration_range = getTimeRange(-1)
             count_jobs_duration[enle_jobs_duration_range] += 1
