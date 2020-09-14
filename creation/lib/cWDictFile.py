@@ -969,11 +969,11 @@ class SimpleFileDictFile(DictFile):
             fdata = self.vals[key][-1]
             # The file content should be already a binary blob (bytes); if it is a string,
             # then raise an error or convert it
-            filepath = os.path.join(self.dir, fname)
             if isinstance(fdata, str):
                 raise DictFileError("File content received as str instead of bytes: %s (in %s)" % (key, filepath))
                 # Use this instead of 'raise' to silently change the data and be more tolerant
                 # fdata = bytes(fdata, encoding=BINARY_ENCODING)
+            filepath = os.path.join(self.dir, fname)
             if (not allow_overwrite) and os.path.exists(filepath):
                 raise DictFileError("File %s already exists" % filepath)
             try:
