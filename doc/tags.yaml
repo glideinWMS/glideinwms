@@ -140,3 +140,19 @@ v3_7_1:
   Bug fix: 
     - Factory reconfigs and startups do not require manual creation of directories
     - Factory builds Condor Tarballs to send with glideins correctly
+
+v3_9:
+  Date: September 8, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.3 and 3.7.1
+    - Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
+  Bug fix: 
+    - custom disctionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
+    - str vs bytes, especially in crypto libraries
+    - None cannot be used in sorted string lists and we use (None, None, None) for unmatched jobs in the Frontend
+    - Add __repr__ method to SubParams class
+    - Fixed pycache of creation/lib included in multiple packages
+    - Fixed spec file to include python3 compiled files and not python2 ones
+ 

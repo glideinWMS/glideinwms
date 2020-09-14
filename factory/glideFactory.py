@@ -21,14 +21,11 @@ import json
 import fcntl
 import resource
 import subprocess
-# import traceback
 import signal
 import time
-import string
 import copy
 import logging
 import math
-# from datetime import datetime
 import glob
 import jwt
 import urllib.request, urllib.parse, urllib.error
@@ -52,9 +49,10 @@ from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 from glideinwms.factory import glideFactoryEntryGroup
 from glideinwms.lib import condorMonitor
-# from sets import Set
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
+
+
 ############################################################
 def aggregate_stats(in_downtime):
     """

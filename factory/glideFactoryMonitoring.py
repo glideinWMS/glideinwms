@@ -24,7 +24,6 @@ from glideinwms.lib import timeConversion
 from glideinwms.lib import rrdSupport
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.factory import glideFactoryLib
 from glideinwms.lib import util
 
 # list of rrd files that each site has
@@ -115,11 +114,14 @@ class MonitoringConfig:
                                                                         ('badput="%i"' % waste_mill['badput']))))
 
     def write_file(self, relative_fname, output_str):
+        """Write out a string or bytes to a file
+        
+        Args:
+            relative_fname (AnyStr): The relative path name to write out 
+            output_str (AnyStr): the string (unicode str or bytes) to write to the file 
+
         """
-        Writes out a string or bytes to a file
-        @param relative_fname: The relative path name to write out
-        @param output_str: the string (typed as string or bytes) to write to the file
-        """
+        # TODO: Fix str/bytes confusion in the pathname
         fname = os.path.join(self.monitor_dir, relative_fname)
         if type(fname) is bytes:
             fname = fname.decode("utf-8")
@@ -1082,7 +1084,7 @@ class condorLogSummary:
 
                         for e in list(tdata.keys()):
                             for sdel in sdiff[k][e]:
-                                tdata[e].append(sdel)
+                                tdata[e].append(sdel)  # pylint: disable=unsubscriptable-object
             out_data[client_name] = client_el
         return out_data
 
@@ -1096,7 +1098,7 @@ class condorLogSummary:
                     sdiff = self.stats_diff[client_name][username]
                     if ((sdiff is not None) and (k in list(sdiff.keys()))):
                         for e in list(tdata.keys()):
-                            tdata[e] = tdata[e] + sdiff[k][e]
+                            tdata[e] = tdata[e] + sdiff[k][e]  # pylint: disable=unsupported-assignment-operation,unsupported-assignment-operation,unsubscriptable-object
         return total
 
     def get_total_summary(self):
@@ -1104,13 +1106,13 @@ class condorLogSummary:
         diff_total = self.get_diff_total()
         out_total = {'Current': {}, 'Entered': {}, 'Exited': {}}
         for k in list(diff_total.keys()):
-            out_total['Entered'][k] = len(diff_total[k]['Entered'])
+            out_total['Entered'][k] = len(diff_total[k]['Entered'])  # pylint: disable=unsubscriptable-object
             if k in stats_total:
                 out_total['Current'][k] = len(stats_total[k])
                 # if no current, also exited does not have sense (terminal state)
-                out_total['Exited'][k] = len(diff_total[k]['Exited'])
+                out_total['Exited'][k] = len(diff_total[k]['Exited'])  # pylint: disable=unsubscriptable-object
             elif k == 'Completed':
-                completed_stats = self.get_completed_stats(diff_total[k]['Entered'])
+                completed_stats = self.get_completed_stats(diff_total[k]['Entered'])  # pylint: disable=unsubscriptable-object
                 completed_counts = self.summarize_completed_stats(completed_stats)
                 out_total['CompletedCounts'] = completed_counts
 

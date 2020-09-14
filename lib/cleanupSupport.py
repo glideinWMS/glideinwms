@@ -2,7 +2,6 @@ import os
 import stat
 import time
 import re
-import pwd
 from . import logSupport
 from .pidSupport import register_sighandler, unregister_sighandler
 

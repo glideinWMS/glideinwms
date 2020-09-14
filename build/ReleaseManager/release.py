@@ -1,5 +1,4 @@
-#!/usr/bin/python -B
-
+#!/usr/bin/env python3 -B
 
 import sys
 import os
@@ -7,9 +6,18 @@ import optparse
 
 # Necessary to allow relative import when started as executable
 if __name__ == "__main__" and __package__ is None:
-    sys.path.append(os.path.join(sys.path[0], '..'))
+    # append the parent directory to the path
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "ReleaseManager"
-from .ReleaseManagerLib import *
+    # This was suggested on line but seems not needed
+    #mod = __import__("ReleaseManager")
+    #sys.modules["ReleaseManager"] = mod
+
+try:
+    from .ReleaseManagerLib import *
+except (SystemError, ImportError) as e:
+    # Try also absolute import. Should not be needed
+    from ReleaseManagerLib import *
 
 
 def manager_version():

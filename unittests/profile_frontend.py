@@ -12,7 +12,6 @@
 #
 
 
-
 import os
 import sys
 import glob
@@ -20,7 +19,8 @@ import pickle
 import cProfile
 
 from glideinwms.lib import logSupport
-from glideinwms.frontend.glideinFrontendLib import countMatch
+# from glideinwms.frontend.glideinFrontendLib import countMatch
+
 
 # Replicating the class since this should be executed standalone on a production frontend
 class FakeLogger(object):
@@ -92,11 +92,11 @@ def main():
     logSupport.log = FakeLogger()
 
     # Load the saved dictionaries
-    with open(os.path.join(dumpdir, 'glidein_dict.pickle')) as fd:
+    with open(os.path.join(dumpdir, 'glidein_dict.pickle'), 'rb') as fd:
         glidein_dict = pickle.load(fd)
-    with open(os.path.join(dumpdir, 'attr_dict.pickle')) as fd:
+    with open(os.path.join(dumpdir, 'attr_dict.pickle'), 'rb') as fd:
         attr_dict= pickle.load(fd)
-    with open(os.path.join(dumpdir, 'condorq_match_list.pickle')) as fd:
+    with open(os.path.join(dumpdir, 'condorq_match_list.pickle'), 'rb') as fd:
         condorq_match_list = pickle.load(fd)
 
     cexpr = compile(mexpr, "<string>", "eval")
@@ -109,7 +109,7 @@ def main():
 
     condorq_dict = {}
     for schedd_name in qdicts:
-        with open(os.path.join(dumpdir, schedd_name)) as fd:
+        with open(os.path.join(dumpdir, schedd_name), 'rb') as fd:
             condorq_dict[schedd_name] = mock_condorq_el(pickle.load(fd))
 
     print("Frontend dump loaded")

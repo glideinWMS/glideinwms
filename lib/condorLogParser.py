@@ -21,7 +21,6 @@
 import os
 import os.path
 import stat
-import re
 import mmap
 import time
 

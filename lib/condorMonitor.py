@@ -382,7 +382,7 @@ class CondorQEdit:
             except:
                 j1 = j2 = j3 = 'unknown'
             err_str = 'Error querying schedd %s in pool %s using python bindings (qedit of job/attr/val %s/%s/%s): %s' % (
-            s, p, j1, j2, j3, ex)
+                s, p, j1, j2, j3, ex)
             raise QueryError(err_str)
 
 
@@ -495,7 +495,7 @@ class CondorQuery(StoredQuery):
                                             format_list=format_list)
         except Exception as ex:
             err_str = 'Error executing htcondor query to pool %s with constraint %s and format_list %s: %s. Env is %s' % (
-            self.pool_name, constraint, format_list, ex, os.environ)
+                self.pool_name, constraint, format_list, ex, os.environ)
             raise QueryError(err_str).with_traceback(sys.exc_info()[2])
 
     def fetch_using_exe(self, constraint=None, format_list=None):
@@ -908,13 +908,13 @@ def xml2list_start_element(name, attrs):
     elif name == "b":
         xml2list_intype = "b"
         if 'v' in attrs:
-            xml2list_inattr["val"] = (attrs["v"] in ('T', 't', '1'))
+            xml2list_inattr["val"] = (attrs["v"] in ('T', 't', '1'))  # pylint: disable=unsupported-assignment-operation
         else:
             # extended syntax... value in text area
-            xml2list_inattr["val"] = None
+            xml2list_inattr["val"] = None  # pylint: disable=unsupported-assignment-operation
     elif name == "un":
         xml2list_intype = "un"
-        xml2list_inattr["val"] = None
+        xml2list_inattr["val"] = None  # pylint: disable=unsupported-assignment-operation
     elif name in ("s", "e"):
         pass  # nothing to do
     elif name == "classads":
@@ -925,11 +925,13 @@ def xml2list_start_element(name, attrs):
 
 def xml2list_end_element(name):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
+    # The following would be resetting global variables and failing ./test_frontend.py 
+    # xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype = {}  
     if name == "c":
         xml2list_data.append(xml2list_inclassad)
         xml2list_inclassad = None
     elif name == "a":
-        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr["val"]
+        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr["val"]  # pylint: disable=unsubscriptable-object
         xml2list_inattr = None
     elif name in ("i", "b", "un", "r"):
         xml2list_intype = "s"

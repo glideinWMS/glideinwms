@@ -355,13 +355,13 @@ def aggregateStatus():
                 else:
                     # successive, sum 
                     for a in list(el.keys()):
-                        if a in tel:
-                            tel[a] += int(el[a])
+                        if a in tel:  # pylint: disable=unsupported-membership-test
+                            tel[a] += int(el[a])  # pylint: disable=unsupported-assignment-operation
 
                     # if any attribute from prev. factories are not in the current one, remove from total
                     for a in list(tel.keys()):
                         if a not in el:
-                            del tel[a]
+                            del tel[a]  # pylint: disable=unsupported-delete-operation
 
     for w in list(global_total.keys()):
         if global_total[w] is None:

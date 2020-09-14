@@ -46,18 +46,25 @@ class SubParams(Mapping):
 
     def __iter__(self):
         return iter(self.data)
-
-    # Copy interface to allow copy and deepcopy
-    #def __copy__(self):
-    #    self.data.copy
-
-    #def __deepcopy__(self): 
-    #    copy._deepcopy_dispatch.get(self.data)
     
-    # Make data elements look like class attributes
     def __getattr__(self, name):
+        """Make data elements look like class attributes
+
+        This is called if the interpreter failed to reference an attribute
+
+        Args:
+            name (str): attribute name
+
+        Returns:
+            attribute value
+
+        Returns:
+            AttributeError: if looking for 'data' or protected attributes that have not been defined in the class
+        """
         if name == 'data':
-            return super().__getattr__(self, name)
+            # needed because copy/deepcopy and pickle call __getattr__ on objects that have not been initialized
+            # they will catch and ignore the AttributeError exception
+            raise AttributeError("%r has no attribute data: the init method has not been called" % type(self))
         # work around for pickle bug in Python 3.4
         # see http://bugs.python.org/issue16251
         if name == "__getnewargs_ex__" or name == "__getnewargs__":
@@ -68,7 +75,6 @@ class SubParams(Mapping):
         if name.startswith('__'):
             raise AttributeError("%r has no attribute %r" % (type(self), name))
         return self.__get_el(name)
-        #return super().__getattr__(self, name)
 
     #
     # PROTECTED
@@ -168,21 +174,6 @@ class SubParams(Mapping):
     #
     # PRIVATE
     #
-    def __get_el2(self, name):
-        el = self.data[name]
-        if isinstance(el, OrderedDict):
-            return self.__class__(el)
-        elif isinstance(el, list):
-            outlst = []
-            for k in el:
-                if isinstance(k, OrderedDict):
-                    outlst.append(self.__class__(k))
-                else:
-                    outlst.append(k)
-            return outlst
-        else:
-            return el
-
     def __get_el(self, name):
         """Element getter, used by both __getitem__ and __getattr__
 
@@ -336,7 +327,7 @@ class Params:
 
         """
         if name == 'subparams':
-            # if there is no subparams, it cannot be used to retrieve values (ot itself!)
+            # if there is no subparams, it cannot be used to retrieve values (of itself!)
             # this can happen w/ deepcopy or pickle, where __init__ is not called 
             raise AttributeError("%r has no attribute %r" % (type(self), name))
         return self.subparams.__getattr__(name)

@@ -167,7 +167,7 @@ class TestForkManager(unittest.TestCase):
 
     def test_fork_and_wait(self):
         expected = self.load_forks()
-        results = self.fork_manager.fork_and_wait()
+        results = self.fork_manager.fork_and_wait()  # pylint: disable=assignment-from-no-return
         self.assertEqual(None, results)
         return
 
@@ -177,7 +177,7 @@ class TestForkManager(unittest.TestCase):
         # which may be an artifact of different test runners
         #
         # This test will fail on Darwin or other platforms w/o epoll
-        #if platform.system() != 'Linux':
+        # if platform.system() != 'Linux':
         #    return
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
@@ -198,7 +198,7 @@ class TestForkManager(unittest.TestCase):
 
     def test_bounded_fork_and_collect_use_poll(self):
         # force select.epoll to throw in import error so select.poll is used
-        if hasattr(fork.select, 'epoll'):           
+        if hasattr(fork.select, 'epoll'):
             del fork.select.epoll
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
@@ -221,7 +221,7 @@ class TestForkManager(unittest.TestCase):
 
     def test_bounded_fork_and_collect_use_select(self):
         # force select.epoll and select.poll to throw an import error so select is used
-        if hasattr(fork.select, 'epoll'):           
+        if hasattr(fork.select, 'epoll'):
             del fork.select.epoll
         if hasattr(fork.select, 'poll'):
             del fork.select.poll

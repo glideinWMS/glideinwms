@@ -15,7 +15,7 @@
 
 import os
 import shutil
-import pickle as pickle
+import pickle
 import tempfile
 import time
 import subprocess
@@ -25,7 +25,7 @@ import subprocess
 #################################
 
 # imports and global for flattenDict
-from collections import Mapping
+from collections.abc import Mapping
 from operator import add
 
 _FLAG_FIRST = object()
@@ -220,12 +220,12 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
       The callback function can access the exception via sys.exc_info()
       If a function is not provided, the exception is re-risen
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
-    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 2)
+    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 5 as of py3.8)
     @return: True if the saving was successful, False or an exception otherwise
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
-        with open(tmp_fname, "wb") as pfile:
+        with open(tmp_fname, 'wb') as pfile:
             pickle.dump(content, pfile, protocol)
     except:
         conditional_raise(mask_exceptions)
@@ -259,7 +259,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """
     data = default
     try:
-        with open(fname, 'br') as fo:
+        with open(fname, 'rb') as fo:
             if expiration >= 0:
                 # check date of file and time
                 fname_time = os.path.getmtime(fname)

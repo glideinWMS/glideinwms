@@ -16,7 +16,6 @@
 import os
 import pickle
 import os.path
-import string
 import math
 import sys
 import traceback
@@ -37,6 +36,22 @@ from glideinwms.lib.xmlParse import OrderedDict # needed for eval
 #
 def getCondorQ(schedd_names, constraint=None, format_list=None,
                want_format_completion=True, job_status_filter=(1, 2)):
+    """Return a dictionary of schedds containing interesting jobs
+    Each element is a condorQ
+    
+    If not all the jobs of the schedd has to be considered,
+    specify the appropriate constraint
+    
+    Args:
+        schedd_names: 
+        constraint (str): constraint string or None
+        format_list: 
+        want_format_completion (bool): 
+        job_status_filter: 
+
+    Returns:
+
+    """
     if format_list is not None:
         if want_format_completion:
             format_list = condorMonitor.complete_format_list(
@@ -240,14 +255,14 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
             os.mkdir(mydir)
         except:
             pass
-        with open(mydir+'/glidein_dict.pickle', 'w') as fd:
+        with open(mydir+'/glidein_dict.pickle', 'wb') as fd:
             pickle.dump(glidein_dict, fd)
-        with open(mydir+'/attr_dict.pickle', 'w') as fd:
+        with open(mydir+'/attr_dict.pickle', 'wb') as fd:
             pickle.dump(attr_dict, fd)
-        with open(mydir+'/condorq_match_list.pickle', 'w') as fd:
+        with open(mydir+'/condorq_match_list.pickle', 'wb') as fd:
             pickle.dump(condorq_match_list, fd)
         for schedd in list(condorq_dict.keys()):
-            pickle.dump(condorq_dict[schedd].fetchStored(), open(mydir+'/condorq_dict_%s.pickle' % schedd, 'w'))
+            pickle.dump(condorq_dict[schedd].fetchStored(), open(mydir+'/condorq_dict_%s.pickle' % schedd, 'wb'))
 
     out_glidein_counts={}
     out_cpu_counts={}
@@ -508,9 +523,10 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
             # this is the cores on the worker node multiplied for the number
             # of nodes in one submission if multi-node submissions are enabled
             
-            prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index]) // out_glidein_counts[site]
-            prop_out_count = prop_cpus // glidein_cpus_nodes
-            final_out_cpu_counts[site] = math.ceil(prop_out_count)
+            # rounding only the result, prop_out_count and prop_cpus are float
+            prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index]) / out_glidein_counts[site]
+            prop_out_count = prop_cpus / glidein_cpus_nodes
+            final_out_cpu_counts[site] = math.ceil(prop_out_count)  # math.ceil(float) returns a float (N.0)
 
         final_unique[site] = unique_to_site[site_index]
 

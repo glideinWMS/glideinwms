@@ -14,22 +14,16 @@
 
 import json
 import copy
-# import time
-# import string
 import pickle
 import os.path
 import tempfile
 import shutil
 import time
 
-# from glideinwms.lib import timeConversion
 from glideinwms.lib import xmlParse, xmlFormat
 from glideinwms.lib import logSupport
 from glideinwms.lib import rrdSupport
 from glideinwms.factory import glideFactoryMonitoring
-
-
-# from glideinwms.factory import glideFactoryLib
 
 
 ############################################################
@@ -393,7 +387,7 @@ def aggregateStatus(in_downtime):
             del global_total[w]  # remove entry if not defined
         else:
             tel = global_total[w]
-            for a in tel:
+            for a in tel:  # pylint: disable=not-an-iterable
                 if a in avgEntries:
                     # since all entries must have this attr to be here, just divide by nr of entries
                     tel[a] = tel[a] // nr_entries
@@ -509,7 +503,7 @@ def aggregateJobsSummary():
         status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry),
                                     monitorAggregatorConfig.jobsummary_relname)
         try:
-            with open(status_fname) as fd:
+            with open(status_fname, 'rb') as fd:
                 entry_joblist = pickle.load(fd)
         except IOError:
             continue
