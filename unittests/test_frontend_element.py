@@ -48,6 +48,13 @@ def log_exception_side_effect(*args, **kwargs):
     """
     LOG_EXCEPTION_DATA.append(args[0])
 
+def refresh_entry_token_side_effect(*args, **kwargs):
+    """
+    place holder, needs more token testing stuff here
+    """
+    return """eyJhbGciOiJIUzI1NiIsImtpZCI6ImVsN19vc2czNSJ9.eyJleHAiOjE2MDAyODQ4MzAsImlhdCI6MTYwMDE5ODQzMCwiaXNzIjoiZmVybWljbG91ZDMyMi5mbmFsLmdvdjo5NjE4IiwianRpIjoiMDYxY2VmMzY4ZThjYTM5MmZhYzk3MDkxOTZhODQyN2MiLCJzY29wZSI6ImNvbmRvcjpcL1JFQUQgY29uZG9yOlwvV1JJVEUgY29uZG9yOlwvQURWRVJUSVNFX1NUQVJURCBjb25kb3I6XC9BRFZFUlRJU0VfU0NIRUREIGNvbmRvcjpcL0FEVkVSVElTRV9NQVNURVIiLCJzdWIiOiJmcm9udGVuZEBmZXJtaWNsb3VkMzIyLmZuYWwuZ292In0.8vukKGjZhGL2t_bFoAc5yqu8CfGEURTVD3WLTaXJuoM"""
+
+
 def uni_to_str_JSON(obj):
     """
     on some machines jsonpickle.decode() returns unicode strings
@@ -290,8 +297,10 @@ class FEElementTestCase(unittest.TestCase):
                     with mock.patch('glideinFrontendInterface.ResourceClassadAdvertiser.advertiseAllClassads',
                                     return_value=None):
                         with mock.patch.object(glideinFrontendInterface, 'ResourceClassadAdvertiser'):
-                            # finally run iterate_one and collect the log data
-                            self.gfe.iterate_one()
+                                with mock.patch.object(self.gfe, 'refresh_entry_token',
+                                    return_value=refresh_entry_token_side_effect())
+                                    # finally run iterate_one and collect the log data
+                                    self.gfe.iterate_one()
 
         # go through glideinFrontendElement data structures
         # collecting data to match against log output
