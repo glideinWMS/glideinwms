@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_6_3
+# GLIDEINWMS_VERSION v3_6_4
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -23,7 +23,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 fd9f860317c23d1520aae1669a0d72f8  ./creation/lib/cWParamDict.py
 734d3c9d99b52a1b386330bcfbb3a257  ./creation/lib/cWParams.py
 21672dabcbc61d5d2fc346d4eb48ec49  ./creation/lib/cgWConsts.py
-e3021111deda1ba5310cb70795ed7033  ./creation/lib/cgWCreate.py
+c32c44da48ebddba0176ced1802d7f98  ./creation/lib/cgWCreate.py
 e2ea7a2bd315593b3d7d610cef5321bd  ./creation/lib/cgWDictFile.py
 de6bfcf46040ecd08db84e6e7c03abd2  ./creation/lib/cgWParamDict.py
 cf618dee5a243a93b88c06c6072c3630  ./creation/lib/cgWParams.py
@@ -63,7 +63,7 @@ dcc8d8111389ffc32201854adce0490d  ./creation/web_base/condor_chirp
 f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
-a98ca4601e352a0dfa0fdae56d5cccec  ./creation/web_base/condor_platform_select.sh
+1734666c3bba32d0ae2d22cfe0ded997  ./creation/web_base/condor_platform_select.sh
 629579f06b6f138e510f4f5abc8f8f15  ./creation/web_base/condor_startup.sh
 57981a8bf2952f5045c6e7a926c80079  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
@@ -89,7 +89,7 @@ ac116f57a06af281ba6353b508eb3ec4  ./creation/web_base/factoryLogStatus.html
 22aaad455cdb9456b1a1ff977e9857cd  ./creation/web_base/factoryStatus.html
 2753da74462d6e6484c44925613109dc  ./creation/web_base/factoryStatusNow.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-0634405243488b6f06a1ce65a5623f4d  ./creation/web_base/frontend/default_singularity_wrapper.sh
+5d54306eb61d3dbe87ed32a35f635866  ./creation/web_base/frontend/default_singularity_wrapper.sh
 50e6c4228266aa6ad14e3601e2f0a42f  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
@@ -110,7 +110,7 @@ f564843c0324a04e9248b1743cbb2598  ./creation/web_base/glidein_cpus_setup.sh
 f168da17276900b3ecb3f1e5b6ca100f  ./creation/web_base/glidein_memory_setup.sh
 ab6465250e201c27f167d09b382f7e0a  ./creation/web_base/glidein_sitewms_setup.sh
 de5f02a2aac92885e2d4c10be41f2a2b  ./creation/web_base/glidein_startup.sh
-0d2ba899ff96b66f2c2eb86d63b0f9de  ./creation/web_base/gwms-python
+5ee484c67a548e1ee10f8c102f414cc4  ./creation/web_base/gwms-python
 07f4886bbe4a452da2b25be6e54a0d95  ./creation/web_base/htchirp.tar.gz
 7729d6cdf743c3a86906e571d1683323  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
@@ -121,8 +121,8 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 d355fe111169577bd7bf743439712825  ./creation/web_base/setup_x509.sh
-72a0eec550217bf2d2459094edac388f  ./creation/web_base/singularity_lib.sh
-c9e42dfde98a967e5add2869075ebf8b  ./creation/web_base/singularity_setup.sh
+ebb827c4ae2abe710d7d45d30c2ce8f1  ./creation/web_base/singularity_lib.sh
+b07f18c7251002b115439f69bd689708  ./creation/web_base/singularity_setup.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
@@ -143,7 +143,7 @@ e50fb775d1147ee4eaafbd8c2fe95451  ./factory/glideFactoryMonitoring.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d11afb82236f7b31e47da477415b3624  ./factory/manageFactoryDowntimes.py
 ffc9d4d17c197ebb8b566664a121b94f  ./factory/stopFactory.py
-519353fe69030a1002ac76a2b1ba0e5c  ./factory/tools/OSG_autoconf.py
+e6252d40cba01ae7f80a47055d84611f  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/__init__.py
 c8f5df0e078377098b2c2f3aa75c0888  ./factory/tools/analyze_entries
 02a43c8e141e031877d1d28418caf3fa  ./factory/tools/analyze_frontends
@@ -223,7 +223,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
 47a5fcf23afbb4a60475685f138f30a6  ./lib/condorMonitor.py
 02a66f5b321cc476470976cd2b6edb50  ./lib/condorSecurity.py
-dfa09752b22fdd96fefa663d1531b448  ./lib/config_util.py
+33e0d6bd85d5235307cf7b48993958ae  ./lib/config_util.py
 a8cccdecf7b460b1b37c02da0190e99d  ./lib/disk_cache.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 fb537b1b763a733eda24e21658043f6d  ./lib/exprParser.py
@@ -246,9 +246,9 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 5319b0045ea9c48d8cf5a3b0535165d1  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
-6d1eb3ec8596e360ee0deb961f536d5f  ./requirements.txt
+ed315f07a89523a5a539508ea539fd47  ./requirements.txt
 96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md
-6cbbe98e5b884d4bb1609f255a8324a4  ./test/bats/compat.bash
+d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
 fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
@@ -270,4 +270,4 @@ b2eeb696543595c625bd5a2f83462fce  ./tools/lib/glideinCmd.py
 878f73b9559f115881cbba9fce9f71af  ./tools/manual_glidein_startup
 2255ed709df2365451d65ef22b38cf6c  ./tools/wmsTxtView.py
 d9f9002c264db4a47d153e529f65b25b  ./tools/wmsXMLView.py
-68a4a56ef497a762140f915d14a64b70  ./tox.ini
+61b9325a43493c89306308c4aebde347  ./tox.ini

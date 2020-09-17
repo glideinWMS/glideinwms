@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_6_3
+# GLIDEINWMS_VERSION v3_6_4
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -69,7 +69,7 @@ ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/factory/images/frontendStatus.small.png
 f447660440eb339d83e638c2f5a0f319  ./creation/web_base/factory/index.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-0634405243488b6f06a1ce65a5623f4d  ./creation/web_base/frontend/default_singularity_wrapper.sh
+5d54306eb61d3dbe87ed32a35f635866  ./creation/web_base/frontend/default_singularity_wrapper.sh
 50e6c4228266aa6ad14e3601e2f0a42f  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
@@ -87,7 +87,7 @@ f564843c0324a04e9248b1743cbb2598  ./creation/web_base/glidein_cpus_setup.sh
 2acf79fe244c24bce8febe79f27f3b47  ./creation/web_base/glidein_lib.sh
 f168da17276900b3ecb3f1e5b6ca100f  ./creation/web_base/glidein_memory_setup.sh
 ab6465250e201c27f167d09b382f7e0a  ./creation/web_base/glidein_sitewms_setup.sh
-0d2ba899ff96b66f2c2eb86d63b0f9de  ./creation/web_base/gwms-python
+5ee484c67a548e1ee10f8c102f414cc4  ./creation/web_base/gwms-python
 07f4886bbe4a452da2b25be6e54a0d95  ./creation/web_base/htchirp.tar.gz
 7729d6cdf743c3a86906e571d1683323  ./creation/web_base/java_setup.sh
 20a2b7ed9b71faeeccf79ab77bc7bfc4  ./creation/web_base/mjf_setparams.sh
@@ -96,7 +96,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-72a0eec550217bf2d2459094edac388f  ./creation/web_base/singularity_lib.sh
+ebb827c4ae2abe710d7d45d30c2ce8f1  ./creation/web_base/singularity_lib.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -158,7 +158,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
 47a5fcf23afbb4a60475685f138f30a6  ./lib/condorMonitor.py
 02a66f5b321cc476470976cd2b6edb50  ./lib/condorSecurity.py
-dfa09752b22fdd96fefa663d1531b448  ./lib/config_util.py
+33e0d6bd85d5235307cf7b48993958ae  ./lib/config_util.py
 a8cccdecf7b460b1b37c02da0190e99d  ./lib/disk_cache.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 fb537b1b763a733eda24e21658043f6d  ./lib/exprParser.py
@@ -181,9 +181,9 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 5319b0045ea9c48d8cf5a3b0535165d1  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
 ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
-6d1eb3ec8596e360ee0deb961f536d5f  ./requirements.txt
+ed315f07a89523a5a539508ea539fd47  ./requirements.txt
 96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md
-6cbbe98e5b884d4bb1609f255a8324a4  ./test/bats/compat.bash
+d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
 fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
@@ -205,4 +205,4 @@ b2eeb696543595c625bd5a2f83462fce  ./tools/lib/glideinCmd.py
 878f73b9559f115881cbba9fce9f71af  ./tools/manual_glidein_startup
 2255ed709df2365451d65ef22b38cf6c  ./tools/wmsTxtView.py
 d9f9002c264db4a47d153e529f65b25b  ./tools/wmsXMLView.py
-68a4a56ef497a762140f915d14a64b70  ./tox.ini
+61b9325a43493c89306308c4aebde347  ./tox.ini
