@@ -18,25 +18,23 @@
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
 #
 
-#import signal
 import sys
 import os
 import copy
 import traceback
 import time
-#import string
 import logging
 import re
 import tempfile
 import shutil
 
-sys.path.append(os.path.join(sys.path[0], "../.."))
+# this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
 from glideinwms.lib import pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
-from glideinwms.lib.util import file_tmp2final
+# from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import servicePerformance
 from glideinwms.lib import subprocessSupport
 from glideinwms.lib import condorMonitor
@@ -440,7 +438,7 @@ class glideinFrontendElement:
 
         (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[('collector', 0)]
 
-        # M2Crypto objects are not picklable, so do the transforamtion here
+        # M2Crypto objects are not pickleable, so do the transformation here
         self.populate_pubkey()
         self.identify_bad_schedds()
         self.populate_condorq_dict_types()
@@ -792,7 +790,7 @@ class glideinFrontendElement:
             trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain', 'Grid')
             auth_method = glidein_el['attrs'].get('GLIDEIN_SupportedAuthenticationMethod', 'grid_proxy')
 
-            # Only advertize if there is a valid key for encryption
+            # Only advertise if there is a valid key for encryption
             if key_obj is not None:
                 # determine whether to encrypt a condor token into the classad
                 tkn = None

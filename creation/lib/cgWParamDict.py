@@ -13,8 +13,7 @@
 
 import os, os.path
 import shutil
-import sys
-import glob
+
 from . import cgWDictFile, cWDictFile
 from . import cgWCreate
 from . import cgWConsts, cWConsts

@@ -3,14 +3,24 @@
 #
 # File Version:
 #
-# Description:
-#   This module defines classes to perform hash based cryptography
-#
+
+"""hashCrypto - This module defines classes to perform hash based cryptography
+
+It uses M2Crypto: https://github.com/mcepl/M2Crypto
+a wrapper around OpenSSL: https://www.openssl.org/docs/man1.1.1/man3/
+
+NOTE get_hash() and extract_hash() both return Unicode utf-8 (defaults.BINARY_ENCODING_CRYPTO) strings and
+    get_hash() accepts byte-like objects or utf-8 encoded Unicode strings.
+    Same for all the get_XXX or extract_XXX that use those functions.
+    Other class methods and functions use bytes for input and output
+
+"""
+# TODO: should this module be replaced (or reimplemented) by using Python's hashlib?
 
 import M2Crypto
 import binascii
-import os
 
+from . import defaults
 
 ######################
 #
@@ -27,72 +37,115 @@ import os
 ##########################################################################
 # Generic hash class
 class Hash:
-    def __init__(self,
-                 hash_algo):
+    """Generic hash class 
+    
+    Available hash algorithms:
+        'sha1'
+        'sha224'
+        'sha256',
+        'ripemd160'
+        'md5'   
+    """
+    def __init__(self, hash_algo):
         self.hash_algo = hash_algo
         return
 
-    def redefine(self,
-                 hash_algo):
+    def redefine(self, hash_algo):
         self.hash_algo = hash_algo
         return
 
     ###########################################
     # compute hash inline
 
-    # len(data) must be less than len(key)
     def compute(self, data):
+        """Compute hash inline
+        
+        len(data) must be less than len(key)
+        
+        Args:
+            data (bytes): data to calculate the hash of 
+
+        Returns:
+            bytes: digest value as bytes string (OpenSSL final and digest together)
+        """
         h = M2Crypto.EVP.MessageDigest(self.hash_algo)
         h.update(data)
         return h.final()
 
-    # like compute, but base64 encoded
     def compute_base64(self, data):
+        """like compute, but base64 encoded"""
         return binascii.b2a_base64(self.compute(data))
 
-    # like compute, but hex encoded
     def compute_hex(self, data):
+        """like compute, but hex encoded"""
         return binascii.b2a_hex(self.compute(data))
 
     ###########################################
     # extract hash from a file
 
-    # len(data) must be less than len(key)
     def extract(self, fname, block_size=1048576):
+        """Extract hash from a file
+        
+        len(data) must be less than len(key)
+
+        Args:
+            fname (str): input file path (binary file) 
+            block_size: 
+
+        Returns:
+            bytes: digest value as bytes string (OpenSSL final and digest together)
+        """
         h = M2Crypto.EVP.MessageDigest(self.hash_algo)
         with open(fname, 'rb') as fd:
             while True:
                 data = fd.read(block_size)
                 if data == b'':
                     break  # no more data, stop reading
+                # should check update return? -1 for Python error, 1 for success, 0 for OpenSSL failure
                 h.update(data)
         return h.final()
 
-    # like extract, but base64 encoded
     def extract_base64(self, fname, block_size=1048576):
+        """like extract, but base64 encoded"""
         return binascii.b2a_base64(self.extract(fname, block_size))
 
-    # like extract, but hex encoded
     def extract_hex(self, fname, block_size=1048576):
+        """like extract, but hex encoded"""
         return binascii.b2a_hex(self.extract(fname, block_size))
 
 
 #########################################
 
-# compute hash inline
 def get_hash(hash_algo, data):
+    """Compute hash inline
+    
+    Args:
+        hash_algo (str): hash algorithm to use
+        data (AnyStr): data of which to calculate the hash
+
+    Returns:
+        str: utf-8 encoded hash
+    """
     # Check to see if the data is already in bytes
-    if not isinstance(data, (bytes, bytearray)):
-        data = data.encode('utf-8')
+    bdata = defaults.force_bytes(data)
 
     h = Hash(hash_algo)
-    return h.compute_hex(data).decode('utf-8')
+    return h.compute_hex(bdata).decode(defaults.BINARY_ENCODING_CRYPTO)
 
 
-# compute hash from file
 def extract_hash(hash_algo, fname, block_size=1048576):
+    """Compute hash from file
+    
+    Args:
+        hash_algo (str): hash algorithm to use
+        fname (str): file path (file will be open in binary mode)
+        block_size (int): block size 
+
+    Returns:
+        str: utf-8 encoded hash
+    """
     h = Hash(hash_algo)
-    return h.extract_hex(fname, block_size).decode('utf-8')
+    return h.extract_hex(fname, block_size).decode(defaults.BINARY_ENCODING_CRYPTO)
 
 
 ##########################################################################

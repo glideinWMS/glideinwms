@@ -13,15 +13,17 @@ BINARY_ENCODING = "latin-1"
 # All strings should be ASCII, so ASCII or latin-1 (256 safe) should be OK
 # Anyway M2Crypto uses 'utf8' to implement AnyStr (union of bytes and str)
 BINARY_ENCODING_CRYPTO = 'utf8'
+BINARY_ENCODING_ASCII = 'acii'
 
 
-def force_bytes(instr):
+def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
     """Forces the output to be bytes, encoding the input if it is a unicode string (str)
 
     AnyStr is str or bytes types
 
     Args:
-        instr (AnyStr):
+        instr (AnyStr): string to be converted
+        encoding (str): a valid encoding, utf8, ascii, latin-1  
 
     Returns:
         bytes: instr as bytes string
@@ -30,9 +32,9 @@ def force_bytes(instr):
         ValueError: if it detects an improper str conversion (b'' around the string)
     """
     if isinstance(instr, str):
-        # raise Exception("ALREAY str!")
+        # raise Exception("ALREADY str!")
         if instr.startswith("b'"):
             raise ValueError("Input was improperly converted into string (resulting in b'' characters added): %s" %
                              instr)
-        return instr.encode(BINARY_ENCODING_CRYPTO)
+        return instr.encode(encoding)
     return instr

@@ -4,9 +4,23 @@
 #
 # File Version:
 #
-# Description:
-#   This module defines classes to perform public key cryptography
-#
+
+"""pubCrypto - This module defines classes to perform public key cryptography
+
+It uses M2Crypto: https://github.com/mcepl/M2Crypto
+a wrapper around OpenSSL: https://www.openssl.org/docs/man1.1.1/man3/
+
+NOTE For convenience and consistency w/ previous versions of this module, Encryption/Signing functions 
+    (b64, hex and .encrypt() ) accept bytes-like objects (bytes, bytearray) and also Unicode strings 
+    utf-8 encoded (defaults.BINARY_ENCODING_CRYPTO). 
+    B64 and hex Decryption functions, consistent w/ Python's binascii.a2b_* functions, accept bytes and 
+    Unicode strings containing only ASCII characters, .decrypt() only accepts bytes-like objects (such as bytes,  
+    bytearray and other objects that support the buffer protocol).
+    All these functions return bytes.
+
+    Keys can be loaded from AnyStr (str, bytes, bytearray). Keys are returned as bytes string. Key files are binary. 
+
+"""
 
 import M2Crypto
 import os
@@ -169,7 +183,7 @@ class PubRSAKey:
         Protected, overridden by child classes. Used by load
 
         Args:
-            bio:
+            bio (M2Crypto.BIO.BIO): BIO to retrieve the key from (file or memory buffer) 
         """
         self.rsa_key = M2Crypto.RSA.load_pub_key_bio(bio)
         self.has_private = False
@@ -179,6 +193,16 @@ class PubRSAKey:
     # Save key functions
 
     def save(self, key_fname):
+        """Save the key to a file
+        
+        The file is binary and is written using M2Crypto.BIO
+        
+        Args:
+            key_fname (str): file name 
+
+        Returns:
+
+        """
         bio = M2Crypto.BIO.openfile(key_fname, 'wb')
         try:
             return self._save_to_bio(bio)
@@ -191,12 +215,30 @@ class PubRSAKey:
 
     # like save, but return a string
     def get(self):
+        """Retrieve the key
+        
+        Returns:
+            bytes: key 
+
+        """
         bio = M2Crypto.BIO.MemoryBuffer()
         self._save_to_bio(bio)
         return bio.read()
 
     # meant to be internal
     def _save_to_bio(self, bio):
+        """Save the key from the object
+
+        Protected, overridden by child classes. Used by save and get
+        
+        Args:
+            bio (M2Crypto.BIO.BIO): BIO object to save the key to (file or memory buffer) 
+
+        Returns:
+            int: status returned by M2Crypto.m2.rsa_write_pub_key
+        Raises:
+            KeyError: if the key is not defined
+        """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
 
@@ -205,35 +247,55 @@ class PubRSAKey:
     ###########################################
     # encrypt/verify data inline
 
-    # len(data) must be less than len(key)
     def encrypt(self, data):
+        """Encrypt the data
+        
+        Args:
+            data (AnyStr): string to encrypt. bytes-like or str. If unicode, 
+                it is encoded using utf-8 before being encrypted. 
+                len(data) must be less than len(key)
+
+        Returns:
+            bytes: encrypted data
+        """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
+        bdata = defaults.force_bytes(data)
+        return self.rsa_key.public_encrypt(bdata, self.encryption_padding)
 
-        return self.rsa_key.public_encrypt(data.encode('utf-8'), self.encryption_padding)
-
-    # like encrypt, but base64 encoded
     def encrypt_base64(self, data):
+        """like encrypt, but base64 encoded"""
         return binascii.b2a_base64(self.encrypt(data))
 
-    # like encrypt, but hex encoded
     def encrypt_hex(self, data):
+        """like encrypt, but hex encoded"""
         return binascii.b2a_hex(self.encrypt(data))
 
-    # verify that the signature gets you the data
-    # return a Bool
     def verify(self, data, signature):
+        """Verify that the signature gets you the data
+        
+        Args:
+            data (AnyStr): string to verify. bytes-like or str. If unicode, 
+                it is encoded using utf-8 before being encrypted. : 
+            signature (bytes): signature to use in the verification 
+
+        Returns:
+            bool: True if the signature gets you the data
+
+        Raises:
+            KeyError: if the key is not defined
+        """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
+        bdata = defaults.force_bytes(data)
+        return self.rsa_key.verify(bdata, signature, self.sign_algo)
 
-        return self.rsa_key.verify(data.encode('utf-8'), signature, self.sign_algo)
-
-    # like verify, but the signature is base64 encoded
     def verify_base64(self, data, signature):
+        """like verify, but the signature is base64 encoded"""
         return self.verify(data, binascii.a2b_base64(signature))
 
-    # like verify, but the signature is hex encoded
     def verify_hex(self, data, signature):
+        """like verify, but the signature is hex encoded"""
         return self.verify(data, binascii.a2b_hex(signature))
 
 
@@ -273,15 +335,13 @@ class RSAKey(PubRSAKey):
     ###########################################
     # Load key functions
 
-    # meant to be internal
-    # load uses it
     def _load_from_bio(self, bio):
         """Load the key into the object
 
         Internal, overrides the parent _load_from_bio. Used by load
 
         Args:
-            bio:
+            bio (M2Crypto.BIO.BIO):
         """
         self.rsa_key = M2Crypto.RSA.load_key_bio(bio, self.private_callback)
         self.has_private = True
@@ -290,17 +350,32 @@ class RSAKey(PubRSAKey):
     ###########################################
     # Save key functions
 
-    # meant to be internal
-    # save and get use it
     def _save_to_bio(self, bio):
+        """Save the key from the object
+
+        Protected, overridden by child classes. Used by save and get
+
+        Args:
+            bio (M2Crypto.BIO.BIO): BIO to save the key into (file or memory buffer) 
+
+        Returns:
+
+        Raises:
+            KeyError: if the key is not defined
+        """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
         return self.rsa_key.save_key_bio(bio, self.private_cipher, self.private_callback)
 
     ###########################################
     # generate key function
-    # if no key_length provided, use the length of the existing one
     def new(self, key_length=None, exponent=65537):
+        """Refresh/Generate a new key and store it in the object
+        
+        Args:
+            key_length (int/None): if no key_length provided, use the length of the existing one 
+            exponent (int): exponent 
+        """
         if key_length is None:
             if self.rsa_key is None:
                 raise KeyError("No RSA key and no key length provided")
@@ -309,35 +384,52 @@ class RSAKey(PubRSAKey):
         return
 
     ###########################################
-    # sign/decrypt data inline
 
     def decrypt(self, data):
+        """Decrypt data inline
+        
+        Args:
+            data (bytes): data to decrypt
+
+        Returns:
+            bytes: decrypted string
+
+        Raises:
+            KeyError: if the key is not defined
+        """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
+        return self.rsa_key.private_decrypt(data, self.encryption_padding)
 
-        return self.rsa_key.private_decrypt(data, self.encryption_padding).decode('utf-8')
-
-    # like decrypt, but base64 encoded
     def decrypt_base64(self, data):
+        """like decrypt, but base64 encoded"""
         return self.decrypt(binascii.a2b_base64(data))
 
-    # like decrypt, but hex encoded
     def decrypt_hex(self, data):
+        """like decrypt, but hex encoded"""
         return self.decrypt(binascii.a2b_hex(data))
 
-    # synonim with private_encrypt
     def sign(self, data):
+        """Sign data inline. Same as private_encrypt
+        
+        Args:
+            data (AnyStr): string to encrypt. If unicode, it is encoded using utf-8 before being encrypted. 
+                len(data) must be less than len(key)
+
+        Returns:
+            bytes: encrypted data
+        """
         if self.rsa_key is None:
             raise KeyError("No RSA key")
+        bdata = defaults.force_bytes(data)
+        return self.rsa_key.sign(bdata, self.sign_algo)
 
-        return self.rsa_key.sign(data.encode('utf-8'), self.sign_algo)
-
-    # like sign, but base64 encoded
     def sign_base64(self, data):
+        """like sign, but base64 encoded"""
         return binascii.b2a_base64(self.sign(data))
 
-    # like sign, but hex encoded
     def sign_hex(self, data):
+        """like sign, but hex encoded"""
         return binascii.b2a_hex(self.sign(data))
 
 # def generate():

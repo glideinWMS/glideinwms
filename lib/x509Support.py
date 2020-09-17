@@ -1,6 +1,8 @@
 
 import sys
 import M2Crypto
+from lib import defaults
+
 
 def extract_DN(fname):
     """
@@ -30,4 +32,5 @@ def extract_DN(fname):
         else:
             break # ok, found it, end the loop
 
-    return str(m.get_subject())
+    # M2Crypto.X509.x509.get_subject() returns M2Crypto.X509.x509_Name, .__str__() returns bytes
+    return str(m.get_subject()).decode(defaults.BINARY_ENCODING_CRYPTO)
