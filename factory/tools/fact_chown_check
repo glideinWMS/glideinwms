@@ -58,7 +58,7 @@ def main():
     i = 0
     for query in htcondor.poll(queries):
         try:
-            users.add(query.next()["Owner"])
+            users.add(query.__next__()["Owner"])
             i += 1
         except StopIteration:
             pass
