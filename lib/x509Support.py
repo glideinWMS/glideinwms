@@ -30,7 +30,10 @@ def extract_DN(fname):
             # get the previous in the chain
             data = old_data
         else:
-            break # ok, found it, end the loop
+            break  # ok, found it, end the loop
 
     # M2Crypto.X509.x509.get_subject() returns M2Crypto.X509.x509_Name, .__str__() returns bytes
-    return str(m.get_subject()).decode(defaults.BINARY_ENCODING_CRYPTO)
+    #return str(m.get_subject()).decode(defaults.BINARY_ENCODING_CRYPTO)
+    #return m.get_subject().__str__().decode(defaults.BINARY_ENCODING_CRYPTO)
+    # leaving it as it was even if the str() method is returning bytes according to the documentation
+    return str(m.get_subject())
