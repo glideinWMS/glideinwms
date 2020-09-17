@@ -1,7 +1,7 @@
 
 import sys
 import M2Crypto
-from lib import defaults
+from . import defaults
 
 
 def extract_DN(fname):
