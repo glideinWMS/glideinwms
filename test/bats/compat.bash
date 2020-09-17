@@ -5,7 +5,6 @@
 
 check_os_mac() {
   if ! [[ "$OSTYPE" =~ darwin* ]]; then
-      echo "This is not macOS"
       false
   else
       true
@@ -18,12 +17,13 @@ check_os_mac() {
 # the BATS test uses xargs
 
 if check_os_mac ; then
-    if [ -x /usr/local/bin/genv ]; then
+    echo "Mac OS X: replacing env and xargs for compatibility"
+    if [[ -x /usr/local/bin/genv ]]; then
         env () {
             /usr/local/bin/genv "$@"
         }
     fi
-    if [ -x /usr/local/bin/gxargs ]; then
+    if [[ -x /usr/local/bin/gxargs ]]; then
         xargs () {
             /usr/local/bin/gxargs "$@"
         }

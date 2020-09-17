@@ -8,6 +8,12 @@ GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
 DEFAULT_OUTPUT_DIR=output
 SCRIPTS_SUBDIR=build/jenkins
 
+robust_realpath() {
+    if ! realpath "$1" 2>/dev/null; then
+        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
+    fi
+}
+
 # logerror() and logexit() are in util.sh, repeated here to use them in find_aux
 logerror() {
     echo "$filename ERROR: $1" >&2
@@ -16,7 +22,7 @@ logexit() {
     # replacing logreportfail in the function to avoid repeating all the other definitions
     if [[ -n "$3" ]]; then
         local msg="$3=\"FAILED\""
-        [[ -n "${TESTLOG}" ]] && echo "${msg}" >> "${TESTLOG}"
+        [[ -n "${TESTLOG_FILE}" ]] && echo "${msg}" >> "${TESTLOG_FILE}"
         echo "${msg}"
     fi
     logerror "$1"
@@ -82,6 +88,7 @@ ${filename} [options] COMMAND [command options]
   -n          show the flags passed to the COMMAND (without running it)
   -l          show the list of files with tests or checked by COMMAND (without running tests or checks)
   -v          verbose
+  -u LOGFILE  Log file path (default: OUT_DIR/gwms.DATE.log)
   -i          run in place without checking out a branch (default)
   -f          force git checkout of branch when processing multiple branches
   -b BNAMES   comma separated list of branches that needs to be inspected
@@ -97,6 +104,8 @@ ${filename} [options] COMMAND [command options]
               there is not already a repository.
               Relative to the start directory (if path is not absolute). Becomes the new WORKDIR.
   -T          like -t but creates a temporary directory with mktemp.
+  -e PYENV    Use the Python virtual env in PYENV
+  -E          Reuse the Python virtual env if the directory is there
   -z CLEAN    clean on completion (CLEAN: always, no, default:onsuccess)
   -w FMT      summary table format (html, html4, html4f, htmlplain, default:text)
 
@@ -118,7 +127,6 @@ get_files_pattern() {
     # -readable not valid on Mac, needed?
     # e.g. $(find . -readable -name  '*.bats' -print)"
     #echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name '*.'${extension} -print)"
-    #echo "MMDB (`pwd`): find \"$src_dir\" -path \"${src_dir}\"/.git -prune -o ${prune_opts} -name '$1' -print" >&2
     echo "$(find "$src_dir" -path "${src_dir}"/.git -prune -o ${prune_opts} -name "$1" -print)"
 }
 
@@ -142,19 +150,21 @@ get_python_files() {
 
 get_python2_scripts() {
     # Return to stdout a space separated list of Python scripts without .py extension
-    # Python2 files
+    # Python3 files (containing python and
     # 1 - source directory
     # 2 - magic_file for find
     magic_file="$(find_aux gwms_magic)"
     local src_dir="${1:-.}"
     FILE_MAGIC=
     [[ -e  "$magic_file" ]] && FILE_MAGIC="-m $magic_file"
-    scripts=$(find "${1:-.}" -path .git -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    scripts=$(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -exec file ${FILE_MAGIC} {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
+    # scripts=$(find glideinwms -readable -path glideinwms/.git -prune -o -exec file $FILE_MAGIC {} \; -a -type f | grep -i ':.*python' | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$" | sed -e 's/glideinwms\///g')
     #if [ -e  "$magic_file" ]; then
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file -m "$magic_file" {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #else
     #    scripts=$(find "${1:-.}" -path .git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi python3 | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$")
     #fi
+    # echo "-- DBG $(echo ${scripts} | wc -w | tr -d " ") scripts found using magic file (${FILE_MAGIC}) --" >&2
     echo "$scripts"
 }
 
@@ -188,7 +198,10 @@ parse_options() {
     SHOW_FLAGS=
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
-    while getopts ":hnlvifb:B:so:Cc:Tt:z:w:" option
+    TESTLOG_FILE=
+    TEST_PYENV_DIR=
+    TEST_PYENV_REUSE=
+    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
@@ -196,6 +209,7 @@ parse_options() {
         n) SHOW_FLAGS=yes;;
         l) SHOW_FILES=yes;;
         v) VERBOSE=yes;;
+        u) TESTLOG_FILE="$OPTARG";;
         i) INPLACE=yes;;
         f) GITFLAG='-f';;
         b) BRANCH_LIST="$OPTARG";;
@@ -206,6 +220,8 @@ parse_options() {
         C) REPO="$GWMS_REPO";;
         t) TEST_DIR="$OPTARG";;
         T) TEST_DIR=$(mktemp -t -d gwmstest.XXXXXXXX);;
+        e) TEST_PYENV_DIR="$OPTARG";;
+        E) TEST_PYENV_REUSE=yes;;
         z) TEST_CLEAN="$OPTARG";;
         w) SUMMARY_TABLE_FORMAT="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
@@ -239,6 +255,13 @@ parse_options() {
     fi
     # Default output dir
     [[ -z "${OUT_DIR}" ]] && OUT_DIR="${DEFAULT_OUTPUT_DIR}"
+    OUT_DIR="$(robust_realpath "${OUT_DIR}")"
+    # Default test log file name
+    [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
+    export TESTLOG_FILE="${TESTLOG_FILE}"
+    # link a last log path to the last log (unless there is a file with that name)
+    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "${OUT_DIR}/gwms.last.log"
+    # > "$TESTLOG_FILE"
 }
 
 
@@ -336,7 +359,7 @@ print_files_list() {
 }
 
 is_python3_branch() {
-    [[ "$1" == *p3* ]] && { true; return; }
+    [[ "$1" == *p3* || "$1" == v39* || "$1" == branch_v3_9 ]] && { true; return; }
     if grep '#!' factory/glideFactory.py | grep python3 > /dev/null; then
         true
         return
@@ -346,13 +369,13 @@ is_python3_branch() {
 
 transpose_table() {
     # 1. table to transpose
-    # 2. input separator (\t bu default)
-    # 3. size (calculated is not provided
+    # 2. input separator (\t by default)
+    # 3. size (calculated if not provided)
     local sep="${2:-$'\t'}"
     local table_size=$3
     [[ -z "$table_size" ]] && table_size=$(($(echo "${1%%$'\n'*}" | tr -cd "$sep" | wc -c)+1))
     for ((i=1; i<="$table_size"; i++)); do
-        echo "$1" | cut -d"$sep" -f"$i" - | paste -s -d ','
+        echo "$1" | cut -d"$sep" -f"$i" - | paste -s -d ',' -
     done
 }
 
@@ -386,8 +409,7 @@ write_summary_table() {
         for i in ${branches_list_noslash//,/ }; do
             outfile="${OUT_DIR}"/gwms.${i}.${COMMAND}
             if [[ ! -e "$outfile" ]]; then
-                logerror "Missing branch summary (${outfile}). Impossible to continue summary table."
-                return 1
+                logwarn "Missing branch summary (${outfile}). Filling in with 'na' values."
             fi
             table_tmp="$(echo "$table_tmp"; echo "$(do_table_values "${outfile}" $output_format)")"
         done
@@ -422,6 +444,7 @@ process_branch() {
     [[ -z "${UTILS_OK}" || -z "${COMMAND_OK}" ]] && logexit "cannot continue without utils and command files" 1 SETUP
 
     if isnot_dry_run && do_use_python; then
+        logstep pythonsetup
         if is_python3_branch "${git_branch}"; then
             loginfo "Processing Python3 branch $git_branch"
             setup_python3_venv "$WORKSPACE"
@@ -429,9 +452,16 @@ process_branch() {
             loginfo "Processing Python2 branch $git_branch"
             setup_python2_venv "$WORKSPACE"
         fi
-        [[ $? -ne 0 ]] && { logerror "Could not setup Python as required, skipping branch ${git_branch}"; return 1; }
+        if [[ $? -ne 0 ]]; then 
+            logerror "Could not setup Python as required, skipping branch ${git_branch}"
+            loglog "RESULT_${COMMAND}_${git_branch}=2:failed"
+            return 2
+        fi
+        loglog "$(log_python)"
     fi
 
+    # Not working on the Mac: logstep test "${COMMAND^^}-${git_branch}"
+    logstep test "$(echo $COMMAND | tr a-z A-Z)-${git_branch}"
     # ?? Global Variables Used: $mail_file $fail $TEST_COMPLETE - and HTML Constants
     do_process_branch "${git_branch}" "${outfile}" "${CMD_OPTIONS[@]}"
     exit_code=$?
@@ -439,11 +469,21 @@ process_branch() {
     [[ "${TEST_COMPLETE}" = branch ]] && return 0
     [[ "${TEST_COMPLETE}" = all ]] && exit 0
     log_branch "${outfile}"
-    local branch_result=$(do_get_status "${outfile}")
-    local branch_exit_code=$?
-    loginfo "Tested branch ${git_branch}: $branch_result"
-    loglog "RESULT_${COMMAND}_${branch_no_slash}=$branch_result"
+    local branch_result
+    local branch_exit_code
+    branch_result=$(do_get_status "${outfile}")
+    branch_exit_code=$?
+    loginfo "Tested branch ${git_branch} ($branch_exit_code): $branch_result"
+    loglog "RESULT_${COMMAND}_${git_branch}=${branch_exit_code}:${branch_result}"
     return ${branch_exit_code}
+}
+
+get_commom_info() {
+    # Echo standard branch info for end of branch processing report
+    # 1. branch name
+    echo "BRANCH=$1"
+    # not working on Mac: echo "${COMMAND^^}_TIME=$(logstep_elapsed)"
+    echo "$(echo $COMMAND | tr a-z A-Z)_TIME=$(logstep_elapsed)"
 }
 
 
@@ -452,7 +492,8 @@ summary_command_help() {
 ${COMMAND} command:
   Build summary table by joining existing summary files
   The only main options used are -w and -v, all the others are ignored
-  The output file is the per-test summary in csv format and optionally HTML format. It will generate also the per-branch file
+  The output file is the per-test summary in csv format and optionally a second file in HTML format with the same name
+  but ".html" extension. It will generate also the per-branch file.
   The input files are all per-branch files that have been generated during the tests (gwms.ALL.summary_append.csv files)
   With per-test ot per-branch I refer to tables that have respectively tests or branches as column headers (first row)
   NOTE All the summary files must ne homogeneous: same branches in the same orde and same output format
@@ -460,6 +501,7 @@ ${COMMAND} command:
 ${filename} [options] ${COMMAND} [other command options] OUTPUT_FILE INPUT_SUMMARY_FILES
 Command options:
   -h        print this message
+E.g.: ${filename} -v -w html4 ${COMMAND} output/gwms.summary.csv output/gwms.ALL.summary_append.csv
 EOF
 }
 
@@ -486,8 +528,14 @@ summary_command() {
     done
     loginfo "Writing summary table per branch: $summary_table_file"
     echo "$(transpose_table "$(cat "$append_table_file")" , )" > "$summary_table_file"  
-    [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]] && sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_table_file" > "${summary_table_file%.csv}.txt"
-    [[ "$SUMMARY_TABLE_FORMAT" == html* ]] && echo "$(table_to_html "$summary_table_file" ${SUMMARY_TABLE_FORMAT})" > "${summary_table_file%.csv}.html"
+    if [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]]; then 
+        loginfo "Writing summary table in txt format: ${summary_table_file%.csv}.txt"
+        sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_table_file" > "${summary_table_file%.csv}.txt"
+    fi
+    if [[ "$SUMMARY_TABLE_FORMAT" == html* ]]; then
+        loginfo "Writing summary table in HTML format: ${summary_table_file%.csv}.html"
+        echo "$(table_to_html "$summary_table_file" ${SUMMARY_TABLE_FORMAT})" > "${summary_table_file%.csv}.html"
+    fi
 }
 
 
@@ -556,176 +604,196 @@ do_get_status() {
 #################
 # Main
 
-# Setup the build environment
-filename="$(basename $0)"
-full_command_line="$*"
-export MYDIR=$(dirname $0)
-
-
-OUT_DIR=
-TEST_CLEAN=onsuccess
-parse_options "$@"
-# This needs to be outside to shift the general arglist
-shift $((OPTIND-1))
-# Needs to be reset for the next parsing
-OPTIND=1
-
-# Parse the (sub)command
-COMMAND=$1; shift  # Remove the command from the argument list
-
-case "$COMMAND" in
-    pyunittest|unittest) command_file=do_unittest.sh;;
-    bats) command_file=do_bats.sh;;
-    pylint) command_file=do_pylint.sh;;
-    shellcheck) command_file=do_shellcheck.sh;;
-    summary) summary_command "$@"; exit $?;;
-    *) logerror "invalid command ($COMMAND)"; help_msg 1>&2; exit 1;;
-esac
-
-UTILS_OK=
-COMMAND_OK=
-TEST_COMPLETE=
-# command help message can be processed also w/o utils
-if find_aux utils.sh source noexit; then
-    UTILS_OK=yes
-    if find_aux ${command_file} source noexit; then
-        COMMAND_OK=yes
-    fi
-fi
-
-# Parse options to the command, output in CMD_OPTIONS array
-# Postpone options parsing if the command file was not found
-[[ -n "${COMMAND_OK}" ]] && do_parse_options "$@"
-# Check if Dry-run, end here
-[[ -n "${TEST_COMPLETE}" ]] && exit 0
-
-## Need this because some strange control sequences when using default TERM=xterm
-export TERM="linux"
-
-# Start creating files
-OUT_DIR="$(robust_realpath "$OUT_DIR")"
-
-if [[ ! -d "${OUT_DIR}" ]]; then
-    if ! mkdir -p "${OUT_DIR}"; then
-        logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
-    fi
-    loginfo "created output directory ${OUT_DIR}"
-fi
-
-# Setup temporary directory (if selected) and clone repo
-if [[ -n "$REPO" ]]; then
-    # Checkout and run in temp directory (default mktemp)
-    if [[ -n "${TEST_DIR}" ]]; then
-        mkdir -p "${TEST_DIR}"
-        if ! cd "${TEST_DIR}"; then
-            logexit "failed to setup the test directory $TEST_DIR" 1 SETUP
+_main() {
+    # Setup the build environment
+    filename="$(basename $0)"
+    full_command_line="$*"
+    export MYDIR=$(dirname $0)
+    
+    
+    OUT_DIR=
+    TEST_CLEAN=onsuccess
+    parse_options "$@"
+    # This needs to be outside to shift the general arglist
+    shift $((OPTIND-1))
+    # Needs to be reset for the next parsing
+    OPTIND=1
+    
+    # Parse the (sub)command
+    COMMAND=$1; shift  # Remove the command from the argument list
+    
+    case "$COMMAND" in
+        pyunittest|unittest) COMMAND="pyunittest"; command_file=do_unittest.sh;;
+        bats) command_file=do_bats.sh;;
+        pylint) command_file=do_pylint.sh;;
+        shellcheck) command_file=do_shellcheck.sh;;
+        summary) summary_command "$@"; exit $?;;
+        *) logerror "invalid command ($COMMAND)"; help_msg 1>&2; exit 1;;
+    esac
+    
+    UTILS_OK=
+    COMMAND_OK=
+    TEST_COMPLETE=
+    # command help message can be processed also w/o utils
+    if find_aux utils.sh source noexit; then
+        UTILS_OK=yes
+        if find_aux ${command_file} source noexit; then
+            COMMAND_OK=yes
         fi
     fi
-
-    #if [[ -d glideinwms && -z "$GITFLAG" ]]; then
-    if [[ -d glideinwms ]]; then
-        if [[ -z "${GWMS_REPO_OPTIONAL}" ]]; then
-            logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms " 1 SETUP
-        else
-            logwarn "using existing glideinwms directory"
+    
+    # Parse options to the command, output in CMD_OPTIONS array
+    # Postpone options parsing if the command file was not found
+    [[ -n "${COMMAND_OK}" ]] && do_parse_options "$@"
+    # Check if Dry-run, end here
+    [[ -n "${TEST_COMPLETE}" ]] && exit 0
+    
+    ## Need this because some strange control sequences when using default TERM=xterm
+    export TERM="linux"
+    
+    # Start creating files
+    #OUT_DIR="$(robust_realpath "$OUT_DIR")"
+    
+    logstep start
+    
+    if [[ ! -d "${OUT_DIR}" ]]; then
+        if ! mkdir -p "${OUT_DIR}"; then
+            logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
         fi
-    else
-        # --recurse-submodules
-        if ! git clone "$REPO" ; then
-            logexit "failed to clone $REPO" 1 SETUP
-        fi
+        loginfo "created output directory ${OUT_DIR}"
     fi
-    # Adding do_git_init_command also here in case -i is used
-    [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
-fi
-
-# After this line the script is in the working directory and the source tree is in ./glideinwms
-WORKSPACE=$(pwd)
-export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
-# Verify that this is correct also for in-place executions, -i
-if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
-    logexit "repository not found in ./glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
-fi
-STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
-
-echo "command=$full_command_line" >> "$STATFILE"
-echo "workdir=$WORKSPACE" >> "$STATFILE"
-echo "srcdir=$GLIDEINWMS_SRC" >> "$STATFILE"
-echo "outdir=$OUT_DIR" >> "$STATFILE"
-
-# Iterate throughout the git_branches array
-fail_global=0
-
-cd "${GLIDEINWMS_SRC}"
-
-# Initialize and save the email to a file
-log_init "$OUT_DIR/email.txt"
-
-if [[ -n "$INPLACE" ]]; then
-    loginfo "Running on local files in glideinwms subdirectory"
-    process_branch LOCAL
-    fail_global=$?
-    loginfo "Complete with local files (ec:${fail_global})"
-else
-    do_git_init_command
-    for git_branch in "${git_branches[@]}"
-    do
-        # tell CI which branch is being processed
-        echo "Start : ${git_branch}"
-        # Back in the source directory in case processing changed the directory
-        cd "${GLIDEINWMS_SRC}"
-        loginfo "Now checking out branch $git_branch"
-        loglog "GIT_BRANCH=\"$git_branch\""
-        if ! git checkout ${GITFLAG} "$git_branch"; then
-            log_nonzero_rc "git checkout" $?
-            logwarn "Could not checkout branch ${git_branch}, continuing with the next"
-            logreportfail "GIT_CHECKOUT"
-            # Add a failed entry to the email
-            mail_file="$mail_file
-        <tr style=\"$HTML_TR\">
-            <th style=\"$HTML_TH\">$git_branch</th>
-            <td style=\"$HTML_TD_CRASHED\">ERROR: Could not checkout branch</td>
-        </tr>"
-            fail=301
-            [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
-            continue
-        else
-            # Do a pull in case the repo was not a new clone
-            if ! git pull; then
-                logwarn "Could not update (pull) branch ${git_branch}, continuing anyway"
+    
+    # Setup temporary directory (if selected) and clone repo
+    if [[ -n "$REPO" ]]; then
+        # Checkout and run in temp directory (default mktemp)
+        if [[ -n "${TEST_DIR}" ]]; then
+            mkdir -p "${TEST_DIR}"
+            if ! cd "${TEST_DIR}"; then
+                logexit "failed to setup the test directory $TEST_DIR" 1 SETUP
             fi
-            curr_branch=$(git rev-parse --abbrev-ref HEAD)
-            [[ ! "$git_branch" = "$curr_branch" ]] && logwarn "Current branch ${curr_branch} different from expected ${git_branch}, continuing anyway"
-            logreportok "GIT_CHECKOUT"
         fi
-        # Starting the test
-        process_branch "$git_branch" "$@"
-        fail=$?
-        loginfo "Complete with branch ${git_branch} (ec:${fail})"
-        [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
-        # tell CI about branch status
-        [[ ${fail} -eq 0 ]] && return_status="Passed" || return_status="Failed"
-        echo "# Test #: ${git_branch} .... ${return_status}"
-    done
-    # remove slashes
-    branches_list="${git_branches[*]}"
-    write_summary_table "${branches_list// /,}" $SUMMARY_TABLE_FORMAT
-fi
+    
+        #if [[ -d glideinwms && -z "$GITFLAG" ]]; then
+        if [[ -d glideinwms ]]; then
+            if [[ -z "${GWMS_REPO_OPTIONAL}" ]]; then
+                logexit "cannot clone the repository, a glideinwms directory exist already: `pwd`/glideinwms " 1 SETUP
+            else
+                logwarn "using existing glideinwms directory"
+            fi
+        else
+            logstep clone
+            # --recurse-submodules
+            if ! git clone "$REPO" ; then
+                logexit "failed to clone $REPO" 1 SETUP
+            fi
+        fi
+        # Adding do_git_init_command also here in case -i is used
+        [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
+    fi
+    
+    # After this line the script is in the working directory and the source tree is in ./glideinwms
+    WORKSPACE=$(pwd)
+    export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
+    # Verify that this is correct also for in-place executions, -i
+    if [[ ! -d "${GLIDEINWMS_SRC}" ]]; then
+        logexit "repository not found in ./glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
+    fi
+    STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
+    
+    echo "command=$full_command_line" >> "$STATFILE"
+    echo "workdir=$WORKSPACE" >> "$STATFILE"
+    echo "srcdir=$GLIDEINWMS_SRC" >> "$STATFILE"
+    echo "outdir=$OUT_DIR" >> "$STATFILE"
+    logreportstr command "$full_command_line"
+    logreportstr workdir "$WORKSPACE"
+    logreportstr srcdir "$GLIDEINWMS_SRC"
+    logreportstr outdir "$OUT_DIR"
+    
+    # Iterate throughout the git_branches array
+    fail_global=0
+    
+    cd "${GLIDEINWMS_SRC}"
+    
+    # Initialize and save the email to a file
+    log_init "$OUT_DIR/email.txt"
+    
+    if [[ -n "$INPLACE" ]]; then
+        loginfo "Running on local files in glideinwms subdirectory"
+        process_branch LOCAL
+        fail_global=$?
+        loginfo "Complete with local files (ec:${fail_global})"
+    else
+        do_git_init_command
+        for git_branch in "${git_branches[@]}"
+        do
+            # tell CI which branch is being processed
+            echo "Start : ${git_branch//\//_}"
+            logstep checkout ${git_branch}
+            # Back in the source directory in case processing changed the directory
+            cd "${GLIDEINWMS_SRC}"
+            loginfo "Now checking out branch $git_branch"
+            loglog "GIT_BRANCH=\"$git_branch\""
+            if ! git checkout ${GITFLAG} "$git_branch"; then
+                log_nonzero_rc "git checkout" $?
+                logwarn "Could not checkout branch ${git_branch}, continuing with the next"
+                logreportfail "GIT_CHECKOUT"
+                # Add a failed entry to the email
+                mail_file="$mail_file
+            <tr style=\"$HTML_TR\">
+                <th style=\"$HTML_TH\">$git_branch</th>
+                <td style=\"$HTML_TD_CRASHED\">ERROR: Could not checkout branch</td>
+            </tr>"
+                fail=301
+                [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
+                continue
+            else
+                # Do a pull in case the repo was not a new clone
+                if ! git pull; then
+                    logwarn "Could not update (pull) branch ${git_branch}, continuing anyway"
+                fi
+                curr_branch=$(git rev-parse --abbrev-ref HEAD)
+                [[ ! "$git_branch" = "$curr_branch" ]] && logwarn "Current branch ${curr_branch} different from expected ${git_branch}, continuing anyway"
+                logreportok "GIT_CHECKOUT"
+            fi
+            # Starting the test
+            process_branch "$git_branch" "$@"
+            fail=$?
+            loginfo "Complete with branch ${git_branch} (ec:${fail})"
+            [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
+            ## CI is using a different mechanism now, commenting these lines
+            ## tell CI about branch status
+            # [[ ${fail} -eq 0 ]] && return_status="Passed" || return_status="Failed"
+            # echo "# Test #: ${git_branch} .... ${return_status}"
+        done
+        # remove slashes
+        branches_list="${git_branches[*]}"
+        write_summary_table "${branches_list// /,}" $SUMMARY_TABLE_FORMAT
+    fi
+    
+    # Finish off the end of the email
+    log_close
+    
+    echo "exit_code=$fail_global" >> "${STATFILE}"
+    logreport RESULT_${COMMAND} $fail_global
+    
+    # All done
+    loginfo "Logs are in $OUT_DIR"
+    if [[ "$fail_global" -ne 0 ]]; then
+        loginfo "Tests Complete - Failed"
+        exit ${fail_global}
+    fi
+    loginfo "Tests Complete - Success"
+    
+    logstep cleanup
+    if [[ "${TEST_CLEAN}" = always ]] || [[ "${TEST_CLEAN}" = always && "$fail_global" -eq 0 ]]; then
+        test_cleanup "${TEST_DIR}"
+    fi
+    
+    logstep end
+}
 
-# Finish off the end of the email
-log_close
-
-
-echo "exit_code=$fail_global" >> "${STATFILE}"
-
-# All done
-loginfo "Logs are in $OUT_DIR"
-if [[ "$fail_global" -ne 0 ]]; then
-    loginfo "Tests Complete - Failed"
-    exit ${fail_global}
-fi
-loginfo "Tests Complete - Success"
-
-if [[ "${TEST_CLEAN}" = always ]] || [[ "${TEST_CLEAN}" = always && "$fail_global" -eq 0 ]]; then
-    test_cleanup "${TEST_DIR}"
+# https://stackoverflow.com/questions/29966449/what-is-the-bash-equivalent-to-pythons-if-name-main
+# Alt: [[ "$(caller)" != "0 "* ]] || _main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    _main "$@"
 fi

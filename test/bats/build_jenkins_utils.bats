@@ -37,13 +37,15 @@ no_teardown() {
     run logexit "This should be 1"
     [ "$output" == "$filename ERROR: This should be 1" ]
     [ "$status" -eq 1 ]
-    run logexit "$filename ERROR: This should be 2" 2
-    [ "$output" == "This should be 2" ]
+    run logexit "This should be 2" 2
+    [ "$output" == "$filename ERROR: This should be 2" ]
     [ "$status" -eq 2 ]
 }
 
 
 @test "test_robust_realpath" {
+    skip
+    # function moved to runtest.sh
     pushd /tmp
     run robust_realpath output
     [ "$output" == "/tmp/output" ]
@@ -59,15 +61,16 @@ no_teardown() {
 
 
 @test "test_get_source_directories" {
-    retult1=".,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./install/services,./lib"
-    retult1="${retult1},./tools,./tools/lib"
-    retult2="/p/w,/p/w/factory/,/p/w/factory/tools,/p/w/frontend,/p/w/frontend/tools,/p/w/install"
-    retult2="${retult2},/p/w/install/services,/p/w/lib,/p/w/tools,/p/w/tools/lib"
+    # .,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./install/services,./lib,./tools,./tools/lib
+    result1=".,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./install/services,./lib"
+    result1="${result1},./tools,./tools/lib"
+    result2="/p/w,/p/w/factory/,/p/w/factory/tools,/p/w/frontend,/p/w/frontend/tools,/p/w/install"
+    result2="${result2},/p/w/install/services,/p/w/lib,/p/w/tools,/p/w/tools/lib"
     echo "$sources"
-    run get_source_directories /p/w
-    [ "$output" == "$retult1" ]
+    run get_source_directories
+    [ "$output" == "$result1" ]
     [ "$status" -eq 0 ]
     run get_source_directories /p/w
-    [ "$output" == "$retult2" ]
+    [ "$output" == "$result2" ]
     [ "$status" -eq 0 ]
 }

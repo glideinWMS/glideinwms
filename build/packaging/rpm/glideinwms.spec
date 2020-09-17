@@ -124,9 +124,11 @@ This is a package for a glideinwms submit host.
 
 %package libs
 Summary:        The glideinWMS common libraries.
+Requires: python >= 2.7
 Requires: condor-python
 Requires: python-rrdtool
 Requires: python-ldap
+Requires: PyYAML
 Requires: m2crypto
 %description libs
 This package provides common libraries used by glideinwms.
@@ -175,6 +177,8 @@ Requires: fetch-crl
 Requires: python-rrdtool
 Requires: python-argparse
 Requires: python-ldap
+Requires: python-requests
+Requires: python2-jwt
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
 Requires(post): /sbin/service
@@ -857,6 +861,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Thu Sep 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.4-1
+- GlideinWMS v3.6.4
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_6_4/history.html
+- Release candidates: 3.6.4-0.1.rc1
+
 * Mon Aug 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.3-1
 - GlideinWMS v3.6.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_3/history.html
