@@ -6,8 +6,6 @@ directories are owned user running this process, and jobs owner is this user as 
 It further checks that there are no GT2 entries enabled in the configuration.
 """
 
-from __future__ import print_function
-
 import os
 import sys
 import getpass
