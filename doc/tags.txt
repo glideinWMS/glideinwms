@@ -8,6 +8,7 @@ v3_9
 	Bug fix: Fixed pycache of creation/lib included in multiple packages
 	Bug fix: Fixed spec file to include python3 compiled files and not python2 ones
 	Bug fix: Fixed Mapping import
+	Bug fix: Fixed str vs bytes confusion in cryptography functions and classes
 
 v3_7_1
 	Includes all features and fixes of 3.6.3
@@ -22,6 +23,15 @@ v3_7
 	Use of HTCondor token-auth for Glideins authentication
 	Added secure logging channel
 	Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+
+v3_6_4
+	Improved OSG_autoconf
+	Dropped Python 2.6 support
+	Added support for RHEL 8 worker nodes
+	Harmonized, improved and extended CI tests (same CLI, support for Python 3, ...)
+	Added tool to verify if the code for a ticket has been merged
+	Bug fix: Fix for condor_chirp not finding htchirp in the PYTHONPATH
+	Bug fix: Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
 
 v3_6_3
 	Add Python condor_chirp to PATH

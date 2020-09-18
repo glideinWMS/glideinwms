@@ -156,7 +156,7 @@ v3_7_1:
     - Factory builds Condor Tarballs to send with glideins correctly
 
 v3_9:
-  Date: September 8, 2020
+  Date: September 18, 2020
   Series: Development
   Tarball: false
   Feature:
@@ -170,4 +170,5 @@ v3_9:
     - Fixed pycache of creation/lib included in multiple packages
     - Fixed spec file to include python3 compiled files and not python2 ones
     - Fixed Mapping import
+    - Fixed str vs bytes confusion in cryptography functions and classes
  
