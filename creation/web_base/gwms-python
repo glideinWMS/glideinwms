@@ -18,7 +18,7 @@ if [ -f "$1" ]; then
     work_dir=$(grep '^GLIDEIN_WORK_DIR ' "$glidein_config" | awk '{print $2}')
 fi
 
-[ -n "$error_gen" ] && CONFIG=TRUE
+[ -n "$error_gen" ] && CONFIG=TRUE  # invoked during the startup/setup
 
 if command -v python3 > /dev/null 2>&1; then
     PYTHON="python3"
@@ -42,11 +42,15 @@ if [ -n "$GLIDEIN_DEBUG" ]; then
 fi
 
 if [ -n "$CONFIG" ]; then
+    # during startup create the directories and exit successfully
     mkdir -p "$work_dir"/lib/python "$work_dir"/lib/python2 "$work_dir"/lib/python3
     "$error_gen" -ok "libtest.sh" "WN_Resource" "$($PYTHON --version)"
 else
-    export PYTHONPATH="$PYTHONPATH:$my_path/lib/python"
-    [ "$PYTHON" != python ] && export PYTHONPATH="$PYTHONPATH:$my_path/lib/$PYTHON"
+    # invoked to execute a python script
+    # Apply the path correction if it ends in /bin:
+    # it may have been moved to the glidein bin dir (gwms/bin) with the libraries moved to the lib dir (gwms/lib)
+    export PYTHONPATH="$PYTHONPATH:${my_path%/bin}/lib/python"
+    [ "$PYTHON" != python ] && export PYTHONPATH="$PYTHONPATH:${my_path%/bin}/lib/$PYTHON"
     exec $PYTHON "$@"
     echo "$0: failed to execute $PYTHON" >&2
     exit 1
