@@ -9,10 +9,7 @@
 import os
 import shutil
 import re
-#import sys
 import pwd
-#import binascii
-#import traceback
 import gzip
 import io
 import base64
@@ -26,9 +23,11 @@ from glideinwms.lib import logSupport
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 SUPPORTED_AUTH_METHODS = ['grid_proxy', 'cert_pair', 'key_pair', 'auth_file', 'username_password']
 
-# defining new exception so that we can catch only the credential errors here
-# and let the "real" errors propagate up
+
 class CredentialError(Exception):
+    """defining new exception so that we can catch only the credential errors here
+    and let the "real" errors propagate up
+    """
     pass
 
 

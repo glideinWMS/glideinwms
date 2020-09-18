@@ -25,7 +25,7 @@ except ImportError as err:
 
 from glideinwms.lib import defaults
 from glideinwms.lib.symCrypto import MutableSymKey
-from glideinwms.lib.symCrypto import ParametryzedSymKey
+from glideinwms.lib.symCrypto import ParametrizedSymKey
 from glideinwms.lib.symCrypto import AutoSymKey
 from glideinwms.lib.symCrypto import SymAES128Key
 from glideinwms.lib.symCrypto import SymAES256Key
@@ -56,13 +56,13 @@ class TestMutableSymKey(unittest.TestCase):
                           key_str=None, iv_str=None, key_iv_code=None)
 
 
-class TestParametryzedSymKey(unittest.TestCase):
+class TestParametrizedSymKey(unittest.TestCase):
     def test___init__(self):
-        psk = ParametryzedSymKey('aes_128_cbc')
-        self.assertTrue(isinstance(psk, ParametryzedSymKey))
+        psk = ParametrizedSymKey('aes_128_cbc')
+        self.assertTrue(isinstance(psk, ParametrizedSymKey))
         self.assertTrue(isinstance(psk, SymKey))
         try:
-            psk2 = ParametryzedSymKey('bad_parameter')
+            psk2 = ParametrizedSymKey('bad_parameter')
             assert False
         except KeyError:
             pass

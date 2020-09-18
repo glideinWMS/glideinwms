@@ -100,6 +100,7 @@ class JoinConfigFile(ConfigFile):
         for k in list(entry_obj.data.keys()):
             self.data[k]=entry_obj.data[k]
 
+
 ############################################################
 #
 # Configuration
@@ -112,24 +113,18 @@ class GlideinKey:
         self.load(key_fname, recreate)
 
     def load(self,key_fname=None,recreate=False):
-        """
-        Create the key if required and initialize it
+        """Create the key if required and initialize it
         
-        @type key_fname: String
-        @param key_fname: Filename of the key
-        @type recreate: bool
-        @param recreate: Create a new key if True else load existing key. Defaults to False.
-          
+        Args:
+            key_fname (str): Filename of the key 
+            recreate (bool): Create a new key if True else load existing key. Defaults to False.
+
+        Raises:
+            RuntimeError: if asking for a key type different from RSA
         """
-        
         if self.pub_key_type=='RSA':
-            try:
-                # pylint: disable=E0611
-                #  (hashlib methods are called dynamically)
-                from hashlib import md5
-                # pylint: enable=E0611
-            except ImportError:
-                from md5 import md5
+            # hashlib methods are called dynamically
+            from hashlib import md5
 
             if key_fname is None:
                 key_fname='rsa.key'
@@ -159,9 +154,18 @@ class GlideinKey:
     def get_pub_key_id(self):
         return self.pub_key_id[0:]
 
-    # extracts the symkey from encrypted fronted attribute
-    # returns a SymKey child object
     def extract_sym_key(self, enc_sym_key):
+        """Extracts the symkey from encrypted fronted attribute
+
+        Args:
+            enc_sym_key (AnyStrASCII): encrypted symmetric key 
+
+        Returns:
+            SymKey: symmetric key (SymKey child object)
+
+        Raises:
+            RuntimeError: if the key type is not RSA
+        """
         if self.pub_key_type=='RSA':
             sym_key_code=self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)

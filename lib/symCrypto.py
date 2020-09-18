@@ -4,10 +4,24 @@
 #
 # File Version: 
 #
-# Description:
-#   This module defines classes to perform symmetric key cryptography
-#   (shared or hidden key)
-#
+
+"""symCrypto - This module defines classes to perform symmetric key cryptography (shared or hidden key)
+
+It uses M2Crypto: https://github.com/mcepl/M2Crypto
+a wrapper around OpenSSL: https://www.openssl.org/docs/man1.1.1/man3/
+
+NOTE For convenience and consistency w/ previous versions of this module, Encryption/Signing functions 
+    (b64, hex and .encrypt() ) accept bytes-like objects (bytes, bytearray) and also Unicode strings 
+    utf-8 encoded (defaults.BINARY_ENCODING_CRYPTO). 
+    B64 and hex Decryption functions, consistent w/ Python's binascii.a2b_* functions, accept bytes and 
+    Unicode strings containing only ASCII characters, .decrypt() only accepts bytes-like objects (such as bytes,  
+    bytearray and other objects that support the buffer protocol).
+    All these functions return bytes.
+
+    Key definitions accept AnyStr (str, bytes, bytearray), key_str are iv_str bytes, key_iv_code is a str,
+    so is the key
+
+"""
 
 import M2Crypto
 import binascii
@@ -98,7 +112,8 @@ class SymKey:
                 iv_str = b'0'*(self.iv_len*2)
             else:
                 if len(iv_str) != (self.iv_len*2):
-                    raise ValueError("Initialization vector must be exactly %i long, got %i" % (self.iv_len*2, len(iv_str)))
+                    raise ValueError("Initialization vector must be exactly %i long, got %i" % 
+                                     (self.iv_len*2, len(iv_str)))
                 # just in case it was unicode"
                 iv_str = defaults.force_bytes(iv_str)
         elif key_iv_code is not None:
@@ -115,7 +130,7 @@ class SymKey:
                 raise ValueError("Invalid format, iv not found")
             # call itself, but with key and iv decoded, to run the checks on key and iv
             return self.load(key_str=ki_arr[1][4:], iv_str=ki_arr[2][3:])
-        #else keep None
+        # else keep None
             
         self.key_str = key_str
         self.iv_str = iv_str
@@ -168,7 +183,7 @@ class SymKey:
         """Encrypt data inline
         
         Args:
-            data (bytes): data to encrypt
+            data (AnyStr): data to encrypt
 
         Returns:
             bytes: encrypted data
@@ -178,10 +193,11 @@ class SymKey:
         """
         if not self.is_valid():
             raise KeyError("No key")
+        bdata = defaults.force_bytes(data)
         b = M2Crypto.BIO.MemoryBuffer()
         c = M2Crypto.BIO.CipherStream(b)
         c.set_cipher(self.cypher_name, binascii.a2b_hex(self.key_str), binascii.a2b_hex(self.iv_str), 1)
-        c.write(data)
+        c.write(bdata)
         c.flush()
         c.close()
         e = b.read()
@@ -206,7 +222,6 @@ class SymKey:
             
         Raises:
             KeyError: if there is no valid crypto key
-
         """
         if not self.is_valid():
             raise KeyError("No key")
@@ -220,11 +235,25 @@ class SymKey:
         return d
 
     def decrypt_base64(self, data):
-        """like decrypt, but the input is base64 encoded"""
+        """like decrypt, but the input is base64 encoded
+        
+        Args:
+            data (AnyStrASCII): Base64 input data. bytes or ASCII encoded Unicode str
+
+        Returns:
+            bytes: decrypted data
+        """
         return self.decrypt(binascii.a2b_base64(data))
 
     def decrypt_hex(self, data):
-        """like decrypt, but the input is hex encoded"""
+        """like decrypt, but the input is hex encoded
+        
+        Args:
+            data (AnyStrASCII): HEX input data. bytes or ASCII encoded Unicode str
+
+        Returns:
+            bytes: decrypted data
+        """
         return self.decrypt(binascii.a2b_hex(data))
 
 
@@ -294,7 +323,9 @@ cypher_dict = {'aes_128_cbc': (16, 16),
                'des_cbc': (8, 8)}
 
 
-class ParametryzedSymKey(SymKey):
+class ParametrizedSymKey(SymKey):
+    """Helper class to build different types of Symmetric Keys from a parameter dictionary (cypher_dict). 
+    """
     def __init__(self, cypher_name,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
@@ -349,39 +380,39 @@ class AutoSymKey(MutableSymKey):
 ##########################################################################
 # Explicit sym algo classes
 
-class SymAES128Key(ParametryzedSymKey):
+class SymAES128Key(ParametrizedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
-        ParametryzedSymKey.__init__(self, 'aes_128_cbc', key_str, iv_str, key_iv_code)
+        ParametrizedSymKey.__init__(self, 'aes_128_cbc', key_str, iv_str, key_iv_code)
 
 
-class SymAES256Key(ParametryzedSymKey):
+class SymAES256Key(ParametrizedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
-        ParametryzedSymKey.__init__(self, 'aes_256_cbc', key_str, iv_str, key_iv_code)
+        ParametrizedSymKey.__init__(self, 'aes_256_cbc', key_str, iv_str, key_iv_code)
 
 
-class SymBlowfishKey(ParametryzedSymKey):
+class SymBlowfishKey(ParametrizedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
-        ParametryzedSymKey.__init__(self, 'bf_cbc', key_str, iv_str, key_iv_code)
+        ParametrizedSymKey.__init__(self, 'bf_cbc', key_str, iv_str, key_iv_code)
 
 
-class Sym3DESKey(ParametryzedSymKey):
+class Sym3DESKey(ParametrizedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
-        ParametryzedSymKey.__init__(self, 'des3', key_str, iv_str, key_iv_code)
+        ParametrizedSymKey.__init__(self, 'des3', key_str, iv_str, key_iv_code)
 
 
-class SymDESKey(ParametryzedSymKey):
+class SymDESKey(ParametrizedSymKey):
     def __init__(self,
                  key_str=None, iv_str=None,
                  key_iv_code=None):
-        ParametryzedSymKey.__init__(self, 'des_cbc', key_str, iv_str, key_iv_code)
+        ParametrizedSymKey.__init__(self, 'des_cbc', key_str, iv_str, key_iv_code)
 
 
 #def debug_print(description, text):

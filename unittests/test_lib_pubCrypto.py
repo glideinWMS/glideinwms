@@ -44,21 +44,21 @@ class TestPubCrypto(unittest.TestCase):
 
     def test_symmetric(self, plaintext="5105105105105100"):
         encrypted = self.cr_pub.encrypt(plaintext)
-        decrypted = self.cr.decrypt(encrypted)
+        decrypted = self.cr.decrypt(encrypted).decode('utf8')
         signed = self.cr.sign(plaintext)
         assert self.cr_pub.verify(plaintext, signed)
         assert plaintext == decrypted
 
     def test_symmetric_base64(self, plaintext="5105105105105100"):
         encrypted = self.cr_pub.encrypt_base64(plaintext)
-        decrypted = self.cr.decrypt_base64(encrypted)
+        decrypted = self.cr.decrypt_base64(encrypted).decode('utf8')
         signed = self.cr.sign_base64(plaintext)
         assert self.cr_pub.verify_base64(plaintext, signed)
         assert plaintext == decrypted
 
     def test_symmetric_hex(self, plaintext="5105105105105100"):
         encrypted = self.cr_pub.encrypt_hex(plaintext)
-        decrypted = self.cr.decrypt_hex(encrypted)
+        decrypted = self.cr.decrypt_hex(encrypted).decode('utf8')
         signed = self.cr.sign_hex(plaintext)
         assert self.cr_pub.verify_hex(plaintext, signed)
         assert plaintext == decrypted
