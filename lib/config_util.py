@@ -231,8 +231,8 @@ def get_limits_str(limits):
         for name, value in reversed(sorted(limits.items())):
             if value and value.get('glideins') and value.get('held') and value.get('idle'):
                 glideins = value['glideins']
-                held = max(1, min(int(glideins * value['held'] / 100), glideins))
-                idle = max(1, min(int(glideins * value['idle'] / 100), glideins))
+                held = min(max(int(glideins * value['held'] / 100), 5), glideins)
+                idle = min(max(int(glideins * value['idle'] / 100), 10), glideins)
                 if name == 'entry':
                     out += '\n               <per_entry glideins="%s" held="%s" idle="%s"/>' % (glideins, held, idle)
                 elif name == 'frontend':
