@@ -298,7 +298,7 @@ class FEElementTestCase(unittest.TestCase):
                                     return_value=None):
                         with mock.patch.object(glideinFrontendInterface, 'ResourceClassadAdvertiser'):
                                 with mock.patch.object(self.gfe, 'refresh_entry_token',
-                                    return_value=refresh_entry_token_side_effect())
+                                    return_value=refresh_entry_token_side_effect()):
                                     # finally run iterate_one and collect the log data
                                     self.gfe.iterate_one()
 
