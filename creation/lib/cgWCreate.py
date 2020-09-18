@@ -177,7 +177,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # if a token is found in the client proxies dir, add it to
         # the transfer/encrypt input file list
         base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
-        condor_token = "%s_token" % entry_name
+        condor_token = "%s.idtoken" % entry_name
         sci_token = "%s.scitoken" % entry_name
         token_list = []
         for root, dirs, files  in os.walk(base_client_proxies_dir):

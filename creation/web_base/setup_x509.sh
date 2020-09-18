@@ -183,7 +183,7 @@ copy_x509_proxy() {
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
     fi
-    for TK in "$x_dir/*_token" ; do
+    for TK in "$x_dir/*idtoken" ; do
     	echo "debug cp $TK $local_proxy_dir"
       	cp $TK $local_proxy_dir
         tk_name=`basename $TK`
