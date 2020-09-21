@@ -359,7 +359,7 @@ print_files_list() {
 }
 
 is_python3_branch() {
-    [[ "$1" == *p3* ]] && { true; return; }
+    [[ "$1" == *p3* || "$1" == v39* || "$1" == branch_v3_9 ]] && { true; return; }
     if grep '#!' factory/glideFactory.py | grep python3 > /dev/null; then
         true
         return

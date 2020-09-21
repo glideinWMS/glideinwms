@@ -239,7 +239,7 @@ esac
 # Also more importantly, this script itself needs a default image in order to conduct a validation test below!
 # we provide generic_pre_singularity_setup.sh for a generic use
 # So, if a VO wants to have their own _new_pre_singularity_setup.sh, they must copy and modify
-# generic_pre_singularity_setup.sh and also must put their default singularity images 
+# generic_pre_singularity_setup.sh and also must put their default singularity images
 # under /cvmfs/singularity.opensciencegrid.org
 SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' "$glidein_config" | cut -d ' ' -f 2-`"
 SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' "$glidein_config" | cut -d ' ' -f 2-`"
@@ -249,8 +249,8 @@ SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config"
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
 # TODO Should the image be on CVMFS or anywhere is OK?
-info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6] with restrictions $image_restrictions"
-GWMS_SINGULARITY_IMAGE="`singularity_get_image default,rhel7,rhel6,rhel8 $image_restrictions`"
+info_stdout "`date` Looking for Singularity image for [default,rhel7,rhel6,rhel8] with restrictions $image_restrictions"
+GWMS_SINGULARITY_IMAGE="$(singularity_get_image default,rhel7,rhel6,rhel8 $image_restrictions)"
 ec=$?
 if [[ $ec -ne 0 ]]; then
     out_str="ERROR selecting a Singularity image ($ec, $GWMS_SINGULARITY_IMAGE)"
@@ -286,8 +286,8 @@ fi
 # All tests passed, Singularity works w/ the default image
 advertise HAS_SINGULARITY "True" "C"
 advertise GWMS_SINGULARITY_STATUS "$gwms_singularity_status" "S"
-advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "C"
-advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "C"
+advertise SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
+advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
 advertise SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 advertise SINGULARITY_MODE "$GWMS_SINGULARITY_MODE" "S"

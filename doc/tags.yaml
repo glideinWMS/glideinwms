@@ -13,7 +13,7 @@ default:
   Tarball: false
 
 template:
-  Date: d, 2019
+  Date: d, 2020
   Feature:
     -
     -
@@ -118,6 +118,20 @@ v3_6_3:
     - Glideins are unrecoverable unless listed as recoverable
     - User job invocation via singularity eating up -e or -n
 
+v3_6_4:
+  Date: September 17, 2020
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Improved OSG_autoconf
+    - Dropped Python 2.6 support
+    - Added support for RHEL 8 worker nodes
+    - Harmonized, improved and extended CI tests (same CLI, support for Python 3, ...)
+    - Added tool to verify if the code for a ticket has been merged
+  Bug fix:
+    - Fix for condor_chirp not finding htchirp in the PYTHONPATH
+    - Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
+
 v3_7:
   Date: March 31, 2020
   Series: Development
@@ -129,11 +143,11 @@ v3_7:
     - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
 
 v3_7_1:
-  Date: August 21, 2020
+  Date: September 21, 2020
   Series: Development
   Tarball: false
   Feature:
-    - Includes all features and fixes of 3.6.3
+    - Includes all features and fixes of 3.6.4
     - Configuration changes to make more compatible with HTCondor 8.9  on initial install
     - SciTokens authentication between Factory and CE
     - IDTokens authentication between Factory and Frontend

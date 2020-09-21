@@ -118,7 +118,15 @@ do_process_branch() {
         #files_list="$(find . -readable -name  'test_*.py' -print)"
         files_list="$(get_files_pattern "test_*.py")"
     else
-        files_list="$*"
+        #files_list="$*"
+        files_list=""
+        for file in "$@"; do
+            if [[ ! -e "$file" && "$(dirname "$file")" == */unittests ]]; then
+                files_list="$files_list $(basename "$file")"
+            else
+                files_list="$files_list $file"
+            fi
+        done
     fi
 
     print_files_list "Python will use the following unit test files:" "${files_list}" && return

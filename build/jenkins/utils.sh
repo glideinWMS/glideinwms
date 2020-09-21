@@ -194,7 +194,7 @@ setup_python3_venv() {
         # importlib and argparse are in std Python 3.6 (>=3.1)
         # leaving mock, anyway mock is std in Python 3.6 (>=3.3), as unittest.mock
         pip_packages="toml ${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT"
+        pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT requests"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
@@ -362,11 +362,11 @@ setup_python2_venv() {
 
 	    export PYTHONPATH="${WORKSPACE}:$PYTHONPATH"
 
-        # Install dependancies first so we don't get uncompatible ones
+        # Install dependencies first so we don't get incompatible ones
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
         pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
-        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT future importlib argparse"
+        pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT requests future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
 
@@ -380,9 +380,9 @@ setup_python2_venv() {
             if $is_python26; then
                 # py26 seems to error out w/ python -m pip: 
                 # 4119: /scratch/workspace/glideinwms_ci/label_exp/RHEL6/label_exp2/swarm/venv-2.6/bin/python: pip is a package and cannot be directly executed
-                pip install -I --quiet "$package"
+                pip install --quiet "$package"
             else
-                python -m pip install --quiet "$package"
+                python -m pip install -I --quiet "$package"  # -I, --ignore-installed
             fi
             if [[ $? -ne 0 ]]; then
                 status="FAILED"

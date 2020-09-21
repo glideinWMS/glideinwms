@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_1_rc6
+# GLIDEINWMS_VERSION v3_7_1_rc7
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -66,7 +66,7 @@ ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/factory/images/frontendStatus.small.png
 f447660440eb339d83e638c2f5a0f319  ./creation/web_base/factory/index.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-0634405243488b6f06a1ce65a5623f4d  ./creation/web_base/frontend/default_singularity_wrapper.sh
+5d54306eb61d3dbe87ed32a35f635866  ./creation/web_base/frontend/default_singularity_wrapper.sh
 50e6c4228266aa6ad14e3601e2f0a42f  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 2f0406bfb9085c8e8bcb31e7a5617882  ./creation/web_base/frontendGroupGraphStatusNow.html
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
@@ -85,7 +85,7 @@ f564843c0324a04e9248b1743cbb2598  ./creation/web_base/glidein_cpus_setup.sh
 2acf79fe244c24bce8febe79f27f3b47  ./creation/web_base/glidein_lib.sh
 f168da17276900b3ecb3f1e5b6ca100f  ./creation/web_base/glidein_memory_setup.sh
 ab6465250e201c27f167d09b382f7e0a  ./creation/web_base/glidein_sitewms_setup.sh
-0d2ba899ff96b66f2c2eb86d63b0f9de  ./creation/web_base/gwms-python
+5ee484c67a548e1ee10f8c102f414cc4  ./creation/web_base/gwms-python
 07f4886bbe4a452da2b25be6e54a0d95  ./creation/web_base/htchirp.tar.gz
 7729d6cdf743c3a86906e571d1683323  ./creation/web_base/java_setup.sh
 18ed345d7f65cba88b4423ecbf1388aa  ./creation/web_base/logging_utils.source
@@ -95,7 +95,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-72a0eec550217bf2d2459094edac388f  ./creation/web_base/singularity_lib.sh
+ebb827c4ae2abe710d7d45d30c2ce8f1  ./creation/web_base/singularity_lib.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
@@ -161,7 +161,7 @@ a0f3a98f8ccc9adcb919999b8c861450  ./install/services/WMSCollector.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
 47a5fcf23afbb4a60475685f138f30a6  ./lib/condorMonitor.py
 02a66f5b321cc476470976cd2b6edb50  ./lib/condorSecurity.py
-dfa09752b22fdd96fefa663d1531b448  ./lib/config_util.py
+33e0d6bd85d5235307cf7b48993958ae  ./lib/config_util.py
 a8cccdecf7b460b1b37c02da0190e99d  ./lib/disk_cache.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 fb537b1b763a733eda24e21658043f6d  ./lib/exprParser.py
