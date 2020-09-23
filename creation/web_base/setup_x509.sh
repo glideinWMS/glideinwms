@@ -185,6 +185,26 @@ copy_x509_proxy() {
     return 0
 }
 
+copy_idtoken() {
+    #
+    orig_proxy_dir="$(dirname "$X509_USER_PROXY_ORIG" )"
+    local_proxy_dir="$(dirname "$X509_USER_PROXY" )"
+    for idtkn in $orig_proxy_dir/*idtoken ; do
+      	cp "$idtkn" "$local_proxy_dir"
+        tk_name="$(basename "$idtkn")"
+        export GLIDEIN_CONDOR_TOKEN="$local_proxy_dir/$tk_name"
+    done
+    if [ -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        head_node="$(grep '^GLIDEIN_Collector ' "$glidein_config" | cut -d ' ' -f 2- )"
+        if [ -z "$head_node" ]; then
+            head_node="$(grep '^CCB_ADDRESS ' "$glidein_config" | cut -d ' ' -f 2- )"
+        fi
+        echo "debug head_node=$head_node"
+        export TRUST_DOMAIN="$(echo "$head_node" | sed -e 's/?.*//' -e 's/-.*//' )"
+        echo "debug TRUST_DOMAIN=$TRUST_DOMAIN"
+    fi
+    return 0
+}
 
 openssl_get_x509_timeleft() {
     # $1 cert pathname
@@ -296,6 +316,16 @@ refresh_proxy && exit 0
 check_x509_certs
 check_x509_tools
 copy_x509_proxy
+
+# TODO: seperate out all the token stuff to its own script,
+#       change the flow of control where at least one of  the x509 or
+#       token scripts must succeed - right now if theres no
+#       x509 proxy the entire glidein fails here even if a
+#       usable token exists
+#
+
+copy_idtoken
+
 # no sub-shell, to allow to exit (all script) on error
 get_x509_expiration
 X509_EXPIRE="$RETVAL"
@@ -304,6 +334,8 @@ add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
 add_config_line X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"
 add_config_line X509_EXPIRE  "$X509_EXPIRE"
+test -e "$GLIDEIN_CONDOR_TOKEN" && add_config_line GLIDEIN_CONDOR_TOKEN "$GLIDEIN_CONDOR_TOKEN"
+test -n "$TRUST_DOMAIN" && add_config_line TRUST_DOMAIN "$TRUST_DOMAIN"
 
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
