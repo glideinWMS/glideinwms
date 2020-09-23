@@ -15,7 +15,6 @@ import time
 import os
 import sys
 import xmlrunner
-import platform
 import unittest
 
 from glideinwms.unittests.unittest_utils import FakeLogger
@@ -171,6 +170,7 @@ class TestForkManager(unittest.TestCase):
         self.assertEqual(None, results)
         return
 
+    @unittest.skipUnless(sys.platform.lower().startswith("linux"), "epoll available only on Linux")
     def test_bounded_fork_and_collect_use_epoll(self):
         #
         # the following 3 tests are better if run in order
