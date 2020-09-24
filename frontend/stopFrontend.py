@@ -19,11 +19,11 @@
 import signal
 import sys
 import os
-import string
 import time
 
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendConfig
+
 
 # this one should  never throw an exeption
 def get_element_pids(work_dir, frontend_pid):
