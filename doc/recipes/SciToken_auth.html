@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
     <title>Glidein Recipes -SciTokens Authorization</title>
-    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS2.css" media="screen, projection" />
     <style type="text/css">
     </style>
 </head>
@@ -82,7 +82,7 @@
         <div class="section">
           <h2 id="Description" class="western">Description</h2
             <p>
-             This page documents a recipe for enabling and managing SciTokens Authorization between Glidein Entry Points  and the Compute Elements they submit to.
+             This page documents a recipe for enabling and managing SciTokens Authorization between Glidein Factory Entries  and the Compute Elements they submit to.
             </p>
         </div>
         <div class="section">
@@ -97,32 +97,34 @@
                         <td scope="col">Description</td>
                     </tr>
                     <tr>
-                        <td>Compatible HTCondor and GlideinWMS Versions </td>
+                        <td>Compatible HTCondor and GlideinWMS Versions For both Factory and VOFrontend</td>
                         <td>
                           <a href="token_auth.html#Requirements">Version numbers and installation instructions</a>
                         </td>
                     </tr>
                     <tr>
-                      <td>An HTCondor Compute Element (htcondor-ce) Compatible with SciTokens</td>
+                      <td>An HTCondor Compute Element (htcondor-ce) Compatible with and correctly configured for SciTokens</td>
                         <td>
 Minimal version requirements at the time of this writing
 <pre>
-hhtcondor-ce.noarch                 4.2.0-1.el7            @htcondor-development
-htcondor-ce-client.noarch           4.2.0-1.el7            @htcondor-development
-htcondor-ce-condor.noarch           4.2.0-1.el7            @htcondor-development
+htcondor-ce.noarch          4.4.1-1.osg35.el7    @osg
+htcondor-ce-client.noarch   4.4.1-1.osg35.el7    @osg
+htcondor-ce-condor.noarch   4.4.1-1.osg35.el7    @osg
 </pre>
                         </td>
                     </tr>
                     <tr><td>A SciToken that the htcondor-ce will accept
                       </td>
-                      <td> An example method for generating a working token is given below.  This is not how SciTokens would be generated and used in a production environment.
+                      <td> Example method for generating a working token is given below.  This is not how SciTokens would be generated and used in a production environment.
                       </td>
                 </tbody>
             </table>
         </div>
         <div class="section">
           <h2 id="Generate" class="western">Obtain a SciToken </h2>
-          <p> The following is an example of how to configure a website 'jobsub.fnal.gov' into a SciToken issuing and authenticating site.  NB anyone that obtains the private keys used in this example could then use the website  to issue valid SciTokens.  These are NOT instructions on how to do this in a production environment.
+          <p> Method 1: follow instructions at https://opensciencegrid.org/technology/software/requesting-tokens/#requesting-tokens
+          <p> Method 2: generate your own self-signed Scitokens.  You need admin access to a  public facting web server. 
+          <p>The following is an example of Method 2 on  website 'jobsub.fnal.gov' 
           <pre>
 1.  yum install python2-scitokens or pip install scitokens
 
@@ -180,27 +182,9 @@ scitokens-admin-create-token --key_id 7b50 --keyfile test.scitoken.private.pem\
 [root@fermicloud359]# condor_config_val SEC_DEFAULT_AUTHENTICATION_METHODS
 SCITOKENS,TOKEN,FS,GSI
               </pre>
-              <li>Rename the previously genereated SciToken and place it in the correct directory so that the Factory
-                knows to submit it to the CE.
-          <p>The previously generated SciTokens included an 'aud' (audience) claim
-          for example aud="fermicloud349.fnal.gov:9619".  This host/portnumber will be found in the glidein entry point
-          configuration file.  The SciToken must be named for the corresponding entry name appended by '_scitoken'.  To illustrate:
-          <pre>
-[root@fermicloud359 config.d]# cd /etc/gwms-factory/config.d
-[root@fermicloud359 config.d]# grep fermicloud349.fnal.gov:9619 *.xml
-Dev_Sites3.xml:      &lt;entry name="el7_osg35" auth_method="grid_proxy" enabled="True"
-gatekeeper="fermicloud349.fnal.gov fermicloud349.fnal.gov:9619" gridtype="condor"
-rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov"
-trust_domain="OSG" verbosity="fast" work_dir="OSG"&gt;
-[root@fermicloud359 config.d]#
-[root@fermicloud359 config.d]#
-          </pre>
-          <p> In this example, the SciToken must be named <b>el7_osg35_scitoken</b> so the factory knows to associate it with entry point el7_osg35 and submit it to fermicloud349.fnal.gov:9619.  The SciToken goes in directory <br>/var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance. <br> In other words:
-          <pre>
-[root@fermicloud359 ~]# ls /var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance/el7_osg35_scitoken
-/var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance/el7_osg35_scitoken
-[root@fermicloud359 ~]#
-          </pre>
+              <li>Place the correctly named, previously genereated SciToken in the correct directory so that the VOFrontend
+                knows to send it on to the Factory, which uses it to authenticate with the CE.
+          <p> In this example, the SciToken must be named <b>el7_osg35.scitoken</b> to associate it with Factory entry el7_osg35 The SciToken goes in directory <br>/var/lib/gwms-frontend/tokens.d/ <br> 
 
           <p> As SciTokens expire, a mechanism must be in place to renew it periodically.  A cron job running 'scitokens-admin-create-token' would suffice for development purposes, but some other mechanism would be used in a production environment.
           </ol>
@@ -222,7 +206,7 @@ SCITOKENS_SERVER_AUDIENCE = $(COLLECTOR_HOST)
 SEC_CLIENT_AUTHENTICATION_METHODS = SCITOKENS, FS, GSI, PASSWORD
 SEC_DEFAULT_AUTHENTICATION_METHODS = SCITOKENS,FS, GSI
               </pre>
-            <li>Check that an entry in the CE's mapfile assigns your SciToken to a valid user.  In this example SciTokens issued by 'https://jobsub.fnal.gov' are mapped to user 'osg'
+            <li>Check that an entry in the CE's CONDOR_MAPFILE  assigns your SciToken to a valid user.  In this example SciTokens issued by 'https://jobsub.fnal.gov' are mapped to user 'osg'
               <pre>
 [root@fermicloud349 ~]# condor_ce_config_val -dump | grep mapfile
 CERTIFICATE_MAPFILE = /etc/condor-ce/condor_mapfile
@@ -240,24 +224,8 @@ FS "(.*)" \1
           <h2 id="Check" class="western">Verify Token Functionality</h2>
           <p>Here we see that the freshly installed SciToken can be decoded by command line tools and that condor_ping to the CE's collector authenticates some condor operations as user 'osg' as configured earlier in fermicloud349's  condor_mapfile:
 <pre>
-[root@fermicloud359 ~]# export SCF=/var/lib/gwms-factory/client-proxies/user_frontend/glidein_gfactory_instance/el7_osg35_scitoken
-[root@fermicloud359 ~]# ~dbox/bin/decode_jwt_human $SCF
-{
-  "alg": "RS256",
-  "typ": "JWT",
-  "kid": "7b50"
-}
-{
-  "jti": "9186e3ab-5664-448c-a57c-69745967ec91",
-  "sub": "condor",
-  "exp": "Wed Jun 10 06:25:18 CDT 2020",
-  "iat": "Wed Apr 29 14:25:18 CDT 2020",
-  "iss": "https://jobsub.fnal.gov",
-  "scope": "condor",
-  "nbf": "Wed Apr 29 14:25:18 CDT 2020",
-  "aud": "fermicloud349.fnal.gov:9619"
-}
-[root@fermicloud359 ~]# _condor_SCITOKENS_FILE=$SCF _condor_SSL_SKIP_HOST_CHECK=true condor_ping -address "<$(host fermicloud349.fnal.gov | awk '{print $4}'):9619>" -table ALL
+
+[root@fermicloud359 ~]# _condor_SCITOKENS_FILE=/var/lib/gwms-frontend/tokens.d/el7_osg35.scitoken condor_ping -address "<$(host fermicloud349.fnal.gov | awk '{print $4}'):9619>" -table ALL
          Instruction Authentication Encryption Integrity Decision Identity
                ALLOW      SCITOKENS       none       MD5    ALLOW osg@users.htcondor.org
                 READ           none       none      none    ALLOW unauthenticated@unmapped
@@ -273,6 +241,8 @@ FS "(.*)" \1
 [root@fermicloud359 ~]#
 </pre>
 <p> Verify that submitting a job to the Factories entry point uses SciTokens authentication by adding D_SECURITY to the ALL_DEBUG condor setting on the appropriate condor daemons.  The condor logs will show what authentication was used, and it should be SCITOKENS between the factory collector and the CE schedd.
+<p> A second verification method is to disable GSI communication between the Factory and the CE by commenting out the line in the Factories CONDOR_MAPFILE that does the GSI mapping for the CE, and submit a job.  If the factory can still submit jobs to the CE, SCITOKENS authentication must be working.
+
         </div>
         <div class="section">
           <h2 id="Useful" class="western">Useful Links</h2>
