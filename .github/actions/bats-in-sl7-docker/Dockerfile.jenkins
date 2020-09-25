@@ -1,5 +1,5 @@
 FROM fermilab/gwms-sl7
-RUN /usr/bin/yumalldeps.sh -i glideinwms-factory glideinwms-vofrontend
+RUN yum install -y bats
 COPY entrypoint.sh /entrypoint.sh
 RUN groupadd -g 500 glideinwms-ci
 RUN useradd -u 500 -g 500 glideinwms-ci

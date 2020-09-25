@@ -30,10 +30,10 @@ jobs:
           path: 'glideinwms'
       - name: unit test action step
         id: unit_test
-        uses: ./.github/actions/unittest-in-sl7-docker
+        uses: ./.github/actions/pyunittest-in-sl7-docker
       - name: Archive unittest log
         if: always()
         uses: actions/upload-artifact@v1
         with:
-          name: pytest-log
-          path: pytest.log
+          name: reports
+          path: logs.tar.bz2
