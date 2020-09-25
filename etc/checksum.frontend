@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_1_rc7
+# GLIDEINWMS_VERSION 3_7_1_rc8
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -51,7 +51,7 @@ dcc8d8111389ffc32201854adce0490d  ./creation/web_base/condor_chirp
 f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
-eb9c8fdc9e06471620bfa146ac96ba17  ./creation/web_base/condor_vars.lst
+3103de3a556c28cca031c8bcd88fca38  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
 ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh

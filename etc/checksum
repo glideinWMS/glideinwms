@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_1_rc7
+# GLIDEINWMS_VERSION 3_7_1_rc8
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -62,7 +62,7 @@ f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_st
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 1734666c3bba32d0ae2d22cfe0ded997  ./creation/web_base/condor_platform_select.sh
 a6a9c3fa9e10421f2a2e4a46a3924348  ./creation/web_base/condor_startup.sh
-eb9c8fdc9e06471620bfa146ac96ba17  ./creation/web_base/condor_vars.lst
+3103de3a556c28cca031c8bcd88fca38  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 a937c0ee624fe5acc855f0eb09155223  ./creation/web_base/create_mapfile.sh
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
@@ -119,7 +119,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-3ac21d52ea4973476694f04f5fb65903  ./creation/web_base/setup_x509.sh
+e00b646103dc240c56d7901cad824eee  ./creation/web_base/setup_x509.sh
 ebb827c4ae2abe710d7d45d30c2ce8f1  ./creation/web_base/singularity_lib.sh
 b07f18c7251002b115439f69bd689708  ./creation/web_base/singularity_setup.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh

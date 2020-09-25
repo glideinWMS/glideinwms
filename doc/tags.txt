@@ -1,6 +1,5 @@
-<<<<<<< HEAD
 v3_7_1
-	Includes all features and fixes of 3.6.3
+	Includes all features and fixes of 3.6.4
 	Configuration changes to make more compatible with HTCondor 8.9  on initial install
 	SciTokens authentication between Factory and CE
 	IDTokens authentication between Factory and Frontend
@@ -12,7 +11,7 @@ v3_7
 	Use of HTCondor token-auth for Glideins authentication
 	Added secure logging channel
 	Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
-=======
+
 v3_6_4
 	Improved OSG_autoconf
 	Dropped Python 2.6 support
@@ -21,7 +20,6 @@ v3_6_4
 	Added tool to verify if the code for a ticket has been merged
 	Bug fix: Fix for condor_chirp not finding htchirp in the PYTHONPATH
 	Bug fix: Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
->>>>>>> master
 
 v3_6_3
 	Add Python condor_chirp to PATH
