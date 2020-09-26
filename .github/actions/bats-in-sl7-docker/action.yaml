@@ -1,0 +1,5 @@
+name: 'BATS Tests'
+description: 'Run BATS tests in preconfigured SL7 docker image'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

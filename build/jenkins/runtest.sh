@@ -64,6 +64,7 @@ find_aux() {
         return
     fi
     [[ -n "${aux_file}" ]] && { echo "${aux_file}"; return ; }
+    logdebug "Unable to find $aux_file in $MYDIR/ or $GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/"
     false
 }
 
@@ -259,9 +260,7 @@ parse_options() {
     # Default test log file name
     [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
     export TESTLOG_FILE="${TESTLOG_FILE}"
-    # link a last log path to the last log (unless there is a file with that name)
-    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "${OUT_DIR}/gwms.last.log"
-    # > "$TESTLOG_FILE"
+    # log must be initialized outside, once OUT_DIR is created
 }
 
 
@@ -609,8 +608,7 @@ _main() {
     filename="$(basename $0)"
     full_command_line="$*"
     export MYDIR=$(dirname $0)
-    
-    
+
     OUT_DIR=
     TEST_CLEAN=onsuccess
     parse_options "$@"
@@ -618,10 +616,10 @@ _main() {
     shift $((OPTIND-1))
     # Needs to be reset for the next parsing
     OPTIND=1
-    
+
     # Parse the (sub)command
     COMMAND=$1; shift  # Remove the command from the argument list
-    
+
     case "$COMMAND" in
         pyunittest|unittest) COMMAND="pyunittest"; command_file=do_unittest.sh;;
         bats) command_file=do_bats.sh;;
@@ -650,19 +648,24 @@ _main() {
     
     ## Need this because some strange control sequences when using default TERM=xterm
     export TERM="linux"
-    
+
     # Start creating files
     #OUT_DIR="$(robust_realpath "$OUT_DIR")"
-    
-    logstep start
-    
+
     if [[ ! -d "${OUT_DIR}" ]]; then
         if ! mkdir -p "${OUT_DIR}"; then
             logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
         fi
         loginfo "created output directory ${OUT_DIR}"
     fi
-    
+
+    # Logging can begin once OUT_DIR has been created
+    # link a last log path to the last log (unless there is a file with that name)
+    lastlog_path="${OUT_DIR}/gwms.last.log"
+    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "$lastlog_path"
+    # > "$TESTLOG_FILE"
+    logstep start
+
     # Setup temporary directory (if selected) and clone repo
     if [[ -n "$REPO" ]]; then
         # Checkout and run in temp directory (default mktemp)
