@@ -2,14 +2,7 @@
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
 
-find_aux () {
-    # $1 basename of the aux file
-    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
-    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
-    false
-}
 
-# TODO
 do_help_msg() {
   cat << EOF
 ${COMMAND} command:

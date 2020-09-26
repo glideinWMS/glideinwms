@@ -25,7 +25,7 @@ logreport() {
 
 loglog() {
     [[ -n "${TESTLOG_FILE}" ]] && echo "$1" >> "${TESTLOG_FILE}"
-    echo "$1"
+    [[ -n "$VERBOSE" ]] && echo "$1"
 }
 
 logstep_elapsed() {
@@ -41,7 +41,7 @@ export TEST_STEP_START_TIME=$(date +"%s")
 logstep() {
     # 1. step name, string, case insensitive
     #    START is resetting the start time for elapsed timer
-    # Not working on Mac: local step=${1^^}
+    # 2. value associated w/ the step (optional)
     # Not working on Mac: local step=${1^^}
     local step=$(echo $1| tr a-z A-Z)
     export TEST_STEP_LAST_TIME=$(date +"%s")
@@ -59,6 +59,12 @@ loginfo() {
     # return 0 if not verbose (needed for bats test), print to stderr if verbose
     [[ -z "$VERBOSE" ]] && return
     echo "$filename INFO: $1" >&2
+}
+
+logdebug() {
+    # return 0 if not verbose (needed for bats test), print to stderr if verbose
+    [[ -z "$VERBOSE" ]] && return
+    echo "$filename DEBUG: $1" >&2
 }
 
 logwarn(){
