@@ -99,8 +99,8 @@ fi
 source ${GWMS_AUX_DIR}singularity_lib.sh
 
 # Calculating full version number, including md5 sums form the wrapper and singularity_lib
-GWMS_VERSION_SINGULARITY_WRAPPER="$GWMS_VERSION_SINGULARITY_WRAPPER_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
-info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER_) starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config)."
+GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
+info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config)."
 info_dbg "$GWMS_THIS_SCRIPT, in `pwd`, list: `ls -al`"
 
 exit_or_fallback () {
@@ -299,9 +299,23 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     #else
     #    export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
     #fi
+    # Should this be GWMS_THIS_SCRIPT_DIR? 
+    #   Problem at sites like MIT where the job is started in /condor/execute/.. hard link from
+    #   /export/data1/condor/execute/...
     # Do not trust _CONDOR_JOB_IWD when it comes to finding pwd for the job - M.Rynge
     export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
-
+    # Protect from jobs starting from linked or bind mounted directories
+    for i in "$_CONDOR_JOB_IWD" "$GWMS_THIS_SCRIPT_DIR"; do
+        if [[ "$i" != "$GWMS_SINGULARITY_OUTSIDE_PWD" ]]; then
+            [[ "$(robust_realpath "$i")" == "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && GWMS_SINGULARITY_OUTSIDE_PWD="$i"
+        fi
+    done
+#    if [[ "$_CONDOR_JOB_IWD" != "$GWMS_SINGULARITY_OUTSIDE_PWD" ]]; then
+#        [[ "$(robust_realpath "${_CONDOR_JOB_IWD}")" == "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
+#    fi
+#    if [[ "$GWMS_THIS_SCRIPT_DIR" != "$GWMS_SINGULARITY_OUTSIDE_PWD" ]]; then
+#        [[ "$(robust_realpath "${GWMS_THIS_SCRIPT_DIR}")" == "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && GWMS_SINGULARITY_OUTSIDE_PWD="$GWMS_THIS_SCRIPT_DIR"
+#    fi
 
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN
     singularity_update_path /srv "$@"

@@ -861,16 +861,26 @@ singularity_update_path() {
     GWMS_RETURN=()
     local outside_pwd="${GWMS_SINGULARITY_OUTSIDE_PWD:-$PWD}"
     local realpath_outside_pwd="$(robust_realpath "${outside_pwd}")"
+    # [[ "${realpath_outside_pwd}" = "${outside_pwd}" ]] && realpath_outside_pwd=
     local inside_pwd=$1
     shift
-    local arg
+    local arg arg2
     for arg in "$@"; do
-        # two sed commands to make sure we catch variations of the iwd,
-        # including symlinked ones
-        # TODO: should it become /execute/dir_[0-9a-zA-Z]* => /execute/dir_[^/]* ? Check w/ Mats and Edgar if OK
-        # arg="$(echo -n "" "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,")"
-        arg="${arg/#$outside_pwd/$inside_pwd}"
-        [[ "${realpath_outside_pwd}" != "${outside_pwd}" ]] && arg="${arg/#$realpath_outside_pwd/$inside_pwd}"
+        # the case is checking "/" ensuring that partial matches are discarded
+        case "$arg" in
+            $outside_pwd) arg="${inside_pwd}" ;;
+            $outside_pwd/*) arg="${arg/#$outside_pwd/$inside_pwd}";;
+            $realpath_outside_pwd) arg="${inside_pwd}";;
+            $realpath_outside_pwd/*) arg="${arg/#$realpath_outside_pwd/$inside_pwd}";;
+            /*) arg2="$(robust_realpath "${arg}")"
+                case "$arg2" in
+                    $outside_pwd) arg="${inside_pwd}";;
+                    $outside_pwd/*) arg="${arg2/#$outside_pwd/$inside_pwd}";;
+                    $realpath_outside_pwd) arg="${inside_pwd}";;
+                    $realpath_outside_pwd/*) arg="${arg2/#$realpath_outside_pwd/$inside_pwd}";;
+                esac
+        esac
+        # Warn about possible error conditions
         [[ "${arg}" == *"${outside_pwd}"* || "${arg}" == *"${realpath_outside_pwd}"* ]] && warn "Outside path still in argument path ($arg), the conversion to run in Singularity may be incorrect"
         [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
@@ -1487,17 +1497,35 @@ singularity_setup_inside() {
     unset TMPDIR
     unset TEMP
     unset X509_CERT_DIR
-    local val
+    local val old_val old_val2
+
     # Adapt for changes in filesystem space
-    for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
-               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
-               _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
-               OSG_WN_TMP ; do
-        # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
-        val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
-        eval ${key}="${val}"
-        info_dbg "changed $key => $val"
-    done
+    if [[ -n "${GWMS_SINGULARITY_OUTSIDE_PWD}" ]]; then
+        local realpath_outside_pwd="$(robust_realpath "${GWMS_SINGULARITY_OUTSIDE_PWD}")"
+        for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
+                   _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
+                   _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
+                   OSG_WN_TMP ; do
+            # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
+            # val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
+            old_val="${!key}"
+            case "$old_val" in
+                $GWMS_SINGULARITY_OUTSIDE_PWD) val=/srv ;;
+                $GWMS_SINGULARITY_OUTSIDE_PWD/*) val="${old_val/#$GWMS_SINGULARITY_OUTSIDE_PWD//srv}";;
+                $realpath_outside_pwd) val=/srv ;;
+                $realpath_outside_pwd/*) val="${old_val/#$realpath_outside_pwd//srv}";;
+                /*) old_val2="$(robust_realpath "${old_val}")"
+                    case "$old_val2" in
+                        $GWMS_SINGULARITY_OUTSIDE_PWD) val=/srv ;;
+                        $GWMS_SINGULARITY_OUTSIDE_PWD/*) val="${old_val2/#$GWMS_SINGULARITY_OUTSIDE_PWD//srv}";;
+                        $realpath_outside_pwd) val=/srv ;;
+                        $realpath_outside_pwd/*) val="${old_val2/#$realpath_outside_pwd//srv}";;
+                    esac
+            esac
+            eval ${key}="${val}"
+            info_dbg "changed $key: $old_val => $val"
+        done
+    fi
 
     # If CONDOR_CONFIG, X509_USER_PROXY and friends are not set by the job, we might see the
     # glidein one - in that case, just unset the env var
