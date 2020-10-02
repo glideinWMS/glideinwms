@@ -1440,7 +1440,7 @@ setup_classad_variables() {
     export REQUIRED_OS=$(get_prop_str ${_CONDOR_JOB_AD} REQUIRED_OS)
     export GWMS_SINGULARITY_IMAGE=$(get_prop_str ${_CONDOR_JOB_AD} SingularityImage)
     # If not provided default to whatever is Singularity availability
-    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad $HAS_SINGULARITY)
+    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad ${HAS_SINGULARITY})
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)
     export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindGPULibs 1)
     export CVMFS_REPOS_LIST=$(get_prop_str ${_CONDOR_JOB_AD} CVMFSReposList)
@@ -1482,22 +1482,24 @@ setup_classad_variables() {
     # TODO: Remove to allow this for toubleshooting purposes?
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
         warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
-        export GWMS_SINGULARITY_AUTOLOAD=$HAS_SINGULARITY
+        export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
     fi
 }
 
 
 singularity_setup_inside_env() {
-    # 1. GWMS_SINGULARITY_OUTSIDE_PWD passed as parameter
+    # 1. GWMS_SINGULARITY_OUTSIDE_PWD, outside run directory pre-Singularity
     local outside_pwd="$1"
     local key val old_val old_val2
     local realpath_outside_pwd="$(robust_realpath "${outside_pwd}")"
+    info_dbg "MMDB - updating env $1/$realpath_outside_pwd"
+    [[ -z "$realpath_outside_pwd" ]] && realpath_outside_pwd="${outside_pwd}"
     for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
                _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
                _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
                OSG_WN_TMP ; do
         # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
-        # val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
+        # val="$(echo "${!key}" | sed -E "s,${GWMS_SINGULARITY_OUTSIDE_PWD}/(.*),/srv/\1,;s,${GWMS_SINGULARITY_OUTSIDE_PWD}$,/srv,")"
         old_val="${!key}"
         val="$old_val"
         case "$old_val" in
@@ -1518,6 +1520,7 @@ singularity_setup_inside_env() {
             eval ${key}="${val}"
             info_dbg "changed $key: $old_val => $val"
         fi
+        info_dbg "MMDB - updated $key: $old_val (${old_val2})=> ${!key} (${val})"
         # Warn about possible error conditions
         [[ "${val}" == *"${outside_pwd}"* || "${val}" == *"${realpath_outside_pwd}"* ]] && 
             warn "Outside path (${outside_pwd};${realpath_outside_pwd}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" || 
@@ -1542,6 +1545,7 @@ singularity_setup_inside() {
     local val
     # Adapt for changes in filesystem space
     if [[ -n "${GWMS_SINGULARITY_OUTSIDE_PWD}" ]]; then
+        info_dbg "calling singularity_setup_inside_env w/ ${GWMS_SINGULARITY_OUTSIDE_PWD}."
         singularity_setup_inside_env "${GWMS_SINGULARITY_OUTSIDE_PWD}"
     else
         warn "GWMS_SINGULARITY_OUTSIDE_PWD not set, cannot remove possible outside path from env variables"
