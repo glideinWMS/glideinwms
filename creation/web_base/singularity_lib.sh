@@ -1513,8 +1513,11 @@ singularity_setup_inside_env() {
                     $realpath_outside_pwd/*) val="${old_val2/#$realpath_outside_pwd//srv}";;
                 esac
         esac
-        eval ${key}="${val}"
-        [[ "$val" != "$old_val" ]] && info_dbg "changed $key: $old_val => $val"
+        if [[ "$val" != "$old_val" ]]; then
+            # update only if the value changed
+            eval ${key}="${val}"
+            info_dbg "changed $key: $old_val => $val"
+        fi
         # Warn about possible error conditions
         [[ "${val}" == *"${outside_pwd}"* || "${val}" == *"${realpath_outside_pwd}"* ]] && 
             warn "Outside path (${outside_pwd};${realpath_outside_pwd}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" || 
