@@ -237,7 +237,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
         mkdir -p condor/lib
         cp -r ../../main/condor/lib condor/
-        info_dbg "copied condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
+        info_dbg "copied HTCondor condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
     fi
 
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp

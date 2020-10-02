@@ -881,8 +881,8 @@ singularity_update_path() {
                 esac
         esac
         # Warn about possible error conditions
-        [[ "${arg}" == *"${outside_pwd}"* || "${arg}" == *"${realpath_outside_pwd}"* ]] && warn "Outside path still in argument path ($arg), the conversion to run in Singularity may be incorrect"
-        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), the conversion to run in Singularity may be incorrect"
+        [[ "${arg}" == *"${outside_pwd}"* || "${arg}" == *"${realpath_outside_pwd}"* ]] && warn "Outside path (${outside_pwd};${realpath_outside_pwd}) still in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
+        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
     done
 }
@@ -1487,6 +1487,45 @@ setup_classad_variables() {
 }
 
 
+singularity_setup_inside_env() {
+    # 1. GWMS_SINGULARITY_OUTSIDE_PWD passed as parameter
+    local outside_pwd="$1"
+    local key val old_val old_val2
+    local realpath_outside_pwd="$(robust_realpath "${outside_pwd}")"
+    for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
+               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
+               _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
+               OSG_WN_TMP ; do
+        # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
+        # val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
+        old_val="${!key}"
+        val="$old_val"
+        case "$old_val" in
+            $outside_pwd) val=/srv ;;
+            $outside_pwd/*) val="${old_val/#$outside_pwd//srv}";;
+            $realpath_outside_pwd) val=/srv ;;
+            $realpath_outside_pwd/*) val="${old_val/#$realpath_outside_pwd//srv}";;
+            /*) old_val2="$(robust_realpath "${old_val}")"
+                case "$old_val2" in
+                    $outside_pwd) val=/srv ;;
+                    $outside_pwd/*) val="${old_val2/#$outside_pwd//srv}";;
+                    $realpath_outside_pwd) val=/srv ;;
+                    $realpath_outside_pwd/*) val="${old_val2/#$realpath_outside_pwd//srv}";;
+                esac
+        esac
+        eval ${key}="${val}"
+        [[ "$val" != "$old_val" ]] && info_dbg "changed $key: $old_val => $val"
+        # Warn about possible error conditions
+        [[ "${val}" == *"${outside_pwd}"* || "${val}" == *"${realpath_outside_pwd}"* ]] && 
+            warn "Outside path (${outside_pwd};${realpath_outside_pwd}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" || 
+            true
+        [[ "${val}" == */execute/dir_* ]] && 
+            warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" || 
+            true 
+    done
+}
+
+
 singularity_setup_inside() {
     # Setup some environment variables when the script is restarting in Singularity
     # In:
@@ -1497,34 +1536,12 @@ singularity_setup_inside() {
     unset TMPDIR
     unset TEMP
     unset X509_CERT_DIR
-    local val old_val old_val2
-
+    local val
     # Adapt for changes in filesystem space
     if [[ -n "${GWMS_SINGULARITY_OUTSIDE_PWD}" ]]; then
-        local realpath_outside_pwd="$(robust_realpath "${GWMS_SINGULARITY_OUTSIDE_PWD}")"
-        for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
-                   _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
-                   _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
-                   OSG_WN_TMP ; do
-            # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
-            # val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
-            old_val="${!key}"
-            case "$old_val" in
-                $GWMS_SINGULARITY_OUTSIDE_PWD) val=/srv ;;
-                $GWMS_SINGULARITY_OUTSIDE_PWD/*) val="${old_val/#$GWMS_SINGULARITY_OUTSIDE_PWD//srv}";;
-                $realpath_outside_pwd) val=/srv ;;
-                $realpath_outside_pwd/*) val="${old_val/#$realpath_outside_pwd//srv}";;
-                /*) old_val2="$(robust_realpath "${old_val}")"
-                    case "$old_val2" in
-                        $GWMS_SINGULARITY_OUTSIDE_PWD) val=/srv ;;
-                        $GWMS_SINGULARITY_OUTSIDE_PWD/*) val="${old_val2/#$GWMS_SINGULARITY_OUTSIDE_PWD//srv}";;
-                        $realpath_outside_pwd) val=/srv ;;
-                        $realpath_outside_pwd/*) val="${old_val2/#$realpath_outside_pwd//srv}";;
-                    esac
-            esac
-            eval ${key}="${val}"
-            info_dbg "changed $key: $old_val => $val"
-        done
+        singularity_setup_inside_env "${GWMS_SINGULARITY_OUTSIDE_PWD}"
+    else
+        warn "GWMS_SINGULARITY_OUTSIDE_PWD not set, cannot remove possible outside path from env variables"
     fi
 
     # If CONDOR_CONFIG, X509_USER_PROXY and friends are not set by the job, we might see the
@@ -1534,7 +1551,7 @@ singularity_setup_inside() {
         if [[ -n "$val" ]]; then
             if [[ ! -e "$val" ]]; then
                 eval unset $key >/dev/null 2>&1 || true
-                info_dbg "unset $key. File not found."
+                info_dbg "unset $key ($val). File not found."
             fi
         fi
     done

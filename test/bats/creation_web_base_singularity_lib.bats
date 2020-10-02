@@ -7,6 +7,17 @@ load 'lib/bats-assert/load'
 
 [[ -z "$GWMS_SOURCEDIR" ]] && GWMS_SOURCEDIR=../..
 
+
+robust_realpath_mock() {
+    # intercepting some inputs
+    case "$1" in
+        /condor/execute/dir_29865*)  echo "/export/data1$1";;
+        /export/data1/condor/execute/dir_29865*) echo "$1";;
+        *) robust_realpath_orig "$1";;
+    esac 
+}
+
+
 setup () {
     source compat.bash
     # glidein_config=fixtures/glidein_config
@@ -16,6 +27,12 @@ setup () {
     #echo "ENV: `env --help`" >&3
     #echo "ENVg: `genv --help`" >&3
     #echo "ENVmy: `myenv --help`" >&3
+    
+    # Mock robust_realpath intercepting some inputs
+    # used by singularity_update_path, singularity_setup_inside_env
+    eval "$(echo "robust_realpath_orig()"; declare -f robust_realpath | tail -n +2 )"
+    echo "Runnig setup" >&3
+    robust_realpath() { robust_realpath_mock "$@"; }
 
 }
 
@@ -251,4 +268,74 @@ preset_env () {
     [ $count_env_sing -eq 10 ]  # 10 variables in GWMS set, 1 already_protected, still 10
     [ "$(env | grep ^SINGULARITYENV_STASHCACHE= | cut -d'=' -f2 )" = val_notfromfile ]  # val_notfromfile preserved
     # Add a test also with a Job classad w/ a SINGULARITYENV_ in the environment to get a warning
+}
+
+
+@test "Verify mocked robust_realpath" {
+    pushd /tmp
+    run robust_realpath output
+    # on the Mac /tmp is really /private/tmp
+    [ "$output" == "/tmp/output" -o "$output" == "/private/tmp/output" ]
+    [ "$status" -eq 0 ]
+    popd
+    # check mocked value
+    run robust_realpath /condor/execute/dir_29865/glide_8QOQl2
+    [ "$output" == "/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
+    [ "$status" -eq 0 ]
+}
+
+@test "Verify singularity_update_path" {
+    GWMS_SINGULARITY_OUTSIDE_PWD=/notexist/test1
+    singularity_update_path /srv /notexist/test1 /notexist/test11 /notexist/test1/dir1 /root/notexist/test1/dir2 notexist/test1/dir2
+    [ "${GWMS_RETURN[0]}" = /srv ] 
+    [ "${GWMS_RETURN[1]}" = /notexist/test11 ] 
+    [ "${GWMS_RETURN[2]}" = /srv/dir1 ] 
+    [ "${GWMS_RETURN[3]}" = /root/notexist/test1/dir2 ] 
+    [ "${GWMS_RETURN[4]}" = notexist/test1/dir2 ] 
+    # test link or bind mount
+    pushd /tmp
+    mkdir -p /tmp/test.$$/dir1
+    cd /tmp/test.$$
+    ln -s dir1 dir2
+    cd dir2
+    mkdir sub1
+    GWMS_SINGULARITY_OUTSIDE_PWD=
+    singularity_update_path /srv ../dir1 sub1/fout output /tmp/test.$$/dir1 /tmp/test.$$/dir2/fout
+    echo "MMDB: ${GWMS_RETURN[@]}" >&3
+    [ "${GWMS_RETURN[0]}" = ../dir1 ] 
+    [ "${GWMS_RETURN[1]}" = sub1/fout ] 
+    [ "${GWMS_RETURN[2]}" = output ] 
+    [ "${GWMS_RETURN[3]}" = /srv ] 
+    [ "${GWMS_RETURN[4]}" = /srv/fout ]
+    popd
+    
+}
+
+
+@test "Verify singularity_setup_inside_env" {
+    X509_USER_PROXY=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182/602e17194771641967ee6db7e7b3ffe358a54c59
+    X509_USER_CERT=/condor/execute/dir_29865/glide_8QOQl2/hostcert.pem
+    X509_USER_KEY=/condor/execute/dir_29865/glide_8QOQl2/hostkey.pem
+    _CONDOR_CREDS=
+    _CONDOR_MACHINE_AD=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182/.machine.ad
+    _CONDOR_EXECUTE=/condor/execute/dir_29865/glide_8QOQl2/execute
+    _CONDOR_JOB_AD=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182/.job.ad
+    _CONDOR_SCRATCH_DIR=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
+    _CONDOR_CHIRP_CONFIG=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182/.chirp.config
+    _CONDOR_JOB_IWD=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
+    OSG_WN_TMP=/osg/tmp
+    GWMS_SINGULARITY_OUTSIDE_PWD=/export/data1/condor/execute/dir_29865/glide_8QOQl2
+    #GWMS_SINGULARITY_OUTSIDE_PWD=/export/data1/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
+    singularity_setup_inside_env "$GWMS_SINGULARITY_OUTSIDE_PWD"
+    [ "$X509_USER_PROXY" = /srv/execute/dir_9182/602e17194771641967ee6db7e7b3ffe358a54c59 ]
+    [ "$X509_USER_CERT" = /srv/hostcert.pem ]
+    [ "$X509_USER_KEY" = /srv/hostkey.pem ]
+    [ "$_CONDOR_CREDS" = "" ]
+    [ "$_CONDOR_MACHINE_AD" = /srv/execute/dir_9182/.machine.ad ]
+    [ "$_CONDOR_EXECUTE" = /srv/execute ]
+    [ "$_CONDOR_JOB_AD" = /srv/execute/dir_9182/.job.ad ]
+    [ "$_CONDOR_SCRATCH_DIR" = /srv/execute/dir_9182 ]
+    [ "$_CONDOR_CHIRP_CONFIG" = /srv/execute/dir_9182/.chirp.config ]
+    [ "$_CONDOR_JOB_IWD" = /srv/execute/dir_9182 ]
+    [ "$OSG_WN_TMP" = /osg/tmp ]
 }

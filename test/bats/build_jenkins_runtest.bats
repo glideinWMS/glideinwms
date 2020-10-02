@@ -33,7 +33,8 @@ no_teardown() {
 @test "test_robust_realpath" {
     pushd /tmp
     run robust_realpath output
-    [ "$output" == "/tmp/output" ]
+    # on the Mac /tmp is really /private/tmp
+    [ "$output" == "/tmp/output" -o "$output" == "/private/tmp/output" ]
     [ "$status" -eq 0 ]
     popd
 }
