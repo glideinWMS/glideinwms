@@ -284,6 +284,27 @@ preset_env () {
     [ "$status" -eq 0 ]
 }
 
+
+@test "Verify singularity_make_outside_pwd_list" {
+    # Using mocked value
+    run singularity_make_outside_pwd_list /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
+    [ "$output" == "/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
+    [ "$status" -eq 0 ]
+    run singularity_make_outside_pwd_list "" /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
+    [ "$output" == "/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
+    [ "$status" -eq 0 ]
+    run singularity_make_outside_pwd_list "/srv/sub1" /tmp
+    [ "$output" == "/srv/sub1" ]
+    [ "$status" -eq 0 ]
+    run singularity_make_outside_pwd_list ":/srv/sub1" /tmp
+    [ "$output" == "/srv/sub1:/tmp" ]
+    [ "$status" -eq 0 ]
+    run singularity_make_outside_pwd_list ":/srv/sub1" /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
+    [ "$output" == "/srv/sub1:/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
+    [ "$status" -eq 0 ]
+}
+
+
 @test "Verify singularity_update_path" {
     GWMS_SINGULARITY_OUTSIDE_PWD=/notexist/test1
     singularity_update_path /srv /notexist/test1 /notexist/test11 /notexist/test1/dir1 /root/notexist/test1/dir2 notexist/test1/dir2
@@ -292,21 +313,36 @@ preset_env () {
     [ "${GWMS_RETURN[2]}" = /srv/dir1 ] 
     [ "${GWMS_RETURN[3]}" = /root/notexist/test1/dir2 ] 
     [ "${GWMS_RETURN[4]}" = notexist/test1/dir2 ] 
-    # test link or bind mount
+    GWMS_SINGULARITY_OUTSIDE_PWD=
+    GWMS_SINGULARITY_OUTSIDE_PWD_LIST=/notexist/test1:/notexist/test2
+    singularity_update_path /srv /notexist/test1 /notexist/test2 /notexist/test2/dir1 
+    [ "${GWMS_RETURN[0]}" = /srv ] 
+    [ "${GWMS_RETURN[1]}" = /srv ] 
+    [ "${GWMS_RETURN[2]}" = /srv/dir1 ] 
+    # test link or bind mount. Check also that other values are not modified
     pushd /tmp
     mkdir -p /tmp/test.$$/dir1
     cd /tmp/test.$$
     ln -s dir1 dir2
     cd dir2
     mkdir sub1
+    mkdir sub2
     GWMS_SINGULARITY_OUTSIDE_PWD=
-    singularity_update_path /srv ../dir1 sub1/fout output /tmp/test.$$/dir1 /tmp/test.$$/dir2/fout
-    echo "MMDB: ${GWMS_RETURN[@]}" >&3
+    GWMS_SINGULARITY_OUTSIDE_PWD_LIST=:/srv/sub1
+    singularity_update_path /srv ../dir1 sub1/fout output /tmp/test.$$/dir1 /tmp/test.$$/dir2/fout sub* /tmp/test.$$/dir1/sub* -n -e a:b
+    # echo "Outputs: ${GWMS_RETURN[@]}" >&3
     [ "${GWMS_RETURN[0]}" = ../dir1 ] 
     [ "${GWMS_RETURN[1]}" = sub1/fout ] 
     [ "${GWMS_RETURN[2]}" = output ] 
     [ "${GWMS_RETURN[3]}" = /srv ] 
     [ "${GWMS_RETURN[4]}" = /srv/fout ]
+    [ "${GWMS_RETURN[5]}" = sub1 ]
+    [ "${GWMS_RETURN[6]}" = sub2 ]
+    [ "${GWMS_RETURN[7]}" = /srv/sub1 ]
+    [ "${GWMS_RETURN[8]}" = /srv/sub2 ]
+    [ "${GWMS_RETURN[9]}" = "-n" ]
+    [ "${GWMS_RETURN[10]}" = "-e" ]
+    [ "${GWMS_RETURN[11]}" = "a:b" ]
     popd
     
 }
@@ -324,9 +360,9 @@ preset_env () {
     _CONDOR_CHIRP_CONFIG=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182/.chirp.config
     _CONDOR_JOB_IWD=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
     OSG_WN_TMP=/osg/tmp
-    GWMS_SINGULARITY_OUTSIDE_PWD=/export/data1/condor/execute/dir_29865/glide_8QOQl2
+    GWMS_SINGULARITY_OUTSIDE_PWD_LIST=/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2
     #GWMS_SINGULARITY_OUTSIDE_PWD=/export/data1/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
-    singularity_setup_inside_env "$GWMS_SINGULARITY_OUTSIDE_PWD"
+    singularity_setup_inside_env "$GWMS_SINGULARITY_OUTSIDE_PWD_LIST"
     [ "$X509_USER_PROXY" = /srv/execute/dir_9182/602e17194771641967ee6db7e7b3ffe358a54c59 ]
     [ "$X509_USER_CERT" = /srv/hostcert.pem ]
     [ "$X509_USER_KEY" = /srv/hostkey.pem ]
