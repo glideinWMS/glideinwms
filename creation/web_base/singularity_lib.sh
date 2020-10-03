@@ -848,47 +848,6 @@ singularity_get_binds() {
 }
 
 
-# TODO: to remove MMDB
-MMDB_singularity_update_path_old() {
-    # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
-    # so that they can work inside. Also "/execute/dir_[0-9a-zA-Z]*" directories are replaced
-    # In:
-    #  1 - PWD inside path (path of current PWD once singularity is invoked)
-    #  2... Arguments to correct
-    #  GWMS_SINGULARITY_OUTSIDE_PWD (or PWD if not defined)
-    # Out:
-    #  nothing in stdout
-    #  GWMS_RETURN - Array variable w/ the commands
-    GWMS_RETURN=()
-    local outside_pwd="${GWMS_SINGULARITY_OUTSIDE_PWD:-$PWD}"
-    local realpath_outside_pwd="$(robust_realpath "${outside_pwd}")"
-    # [[ "${realpath_outside_pwd}" = "${outside_pwd}" ]] && realpath_outside_pwd=
-    local inside_pwd=$1
-    shift
-    local arg arg2
-    for arg in "$@"; do
-        # the case is checking "/" ensuring that partial matches are discarded
-        case "$arg" in
-            $outside_pwd) arg="${inside_pwd}" ;;
-            $outside_pwd/*) arg="${arg/#$outside_pwd/$inside_pwd}";;
-            $realpath_outside_pwd) arg="${inside_pwd}";;
-            $realpath_outside_pwd/*) arg="${arg/#$realpath_outside_pwd/$inside_pwd}";;
-            /*) arg2="$(robust_realpath "${arg}")"
-                case "$arg2" in
-                    $outside_pwd) arg="${inside_pwd}";;
-                    $outside_pwd/*) arg="${arg2/#$outside_pwd/$inside_pwd}";;
-                    $realpath_outside_pwd) arg="${inside_pwd}";;
-                    $realpath_outside_pwd/*) arg="${arg2/#$realpath_outside_pwd/$inside_pwd}";;
-                esac
-        esac
-        # Warn about possible error conditions
-        [[ "${arg}" == *"${outside_pwd}"* || "${arg}" == *"${realpath_outside_pwd}"* ]] && warn "Outside path (${outside_pwd};${realpath_outside_pwd}) still in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
-        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
-        GWMS_RETURN+=("${arg}")
-    done
-}
-
-
 singularity_make_outside_pwd_list() {
     # 1 GWMS_SINGULARITY_OUTSIDE_PWD_LIST
     # 2..N list of paths to add to GWMS_SINGULARITY_OUTSIDE_PWD_LIST
@@ -936,7 +895,6 @@ singularity_update_path() {
     local inside_pwd=$1
     shift
     info_dbg "Outside paths $GWMS_SINGULARITY_OUTSIDE_PWD_LIST => $inside_pwd in Singularity"
-    info_dbg "MMDB $GWMS_SINGULARITY_OUTSIDE_PWD_LIST ($GWMS_SINGULARITY_OUTSIDE_PWD,$PWD,$(robust_realpath "${outside_pwd}"),${GWMS_THIS_SCRIPT_DIR},${_CONDOR_JOB_IWD}) => $inside_pwd"
     local arg arg2 old_ifs out_path arg_found
     for arg in "$@"; do
         arg_found=false
@@ -1569,7 +1527,6 @@ singularity_setup_inside_env() {
     # 1. GWMS_SINGULARITY_OUTSIDE_PWD, $GWMS_SINGULARITY_OUTSIDE_PWD_LIST, outside run directory pre-Singularity
     local outside_pwd_list="$1"
     local key val old_val old_ifs
-    info_dbg "MMDB - updating env $1"
     for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
                _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
                _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
@@ -1599,7 +1556,6 @@ singularity_setup_inside_env() {
             fi
         done
         IFS="$old_ifs"
-        info_dbg "MMDB - processed $key: $old_val => ${!key} (${val})"
         # Warn about possible error conditions
         [[ "${val}" == */execute/dir_* ]] && 
             warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" || 

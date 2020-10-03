@@ -286,18 +286,21 @@ preset_env () {
 
 
 @test "Verify singularity_make_outside_pwd_list" {
-    # Using mocked value
-    run singularity_make_outside_pwd_list /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
-    [ "$output" == "/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
-    [ "$status" -eq 0 ]
-    run singularity_make_outside_pwd_list "" /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
-    [ "$output" == "/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
-    [ "$status" -eq 0 ]
+    # discard values w/ different realpath
     run singularity_make_outside_pwd_list "/srv/sub1" /tmp
     [ "$output" == "/srv/sub1" ]
     [ "$status" -eq 0 ]
+    # : ignores the first parameter for realpath
     run singularity_make_outside_pwd_list ":/srv/sub1" /tmp
     [ "$output" == "/srv/sub1:/tmp" ]
+    [ "$status" -eq 0 ]
+    # Using mocked value (same realpath)
+    run singularity_make_outside_pwd_list /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
+    [ "$output" == "/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
+    [ "$status" -eq 0 ]
+    # Ignore empty values
+    run singularity_make_outside_pwd_list "" /condor/execute/dir_29865/glide_8QOQl2 "" /export/data1/condor/execute/dir_29865/glide_8QOQl2
+    [ "$output" == "/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
     [ "$status" -eq 0 ]
     run singularity_make_outside_pwd_list ":/srv/sub1" /condor/execute/dir_29865/glide_8QOQl2 /export/data1/condor/execute/dir_29865/glide_8QOQl2
     [ "$output" == "/srv/sub1:/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2" ]
@@ -360,9 +363,8 @@ preset_env () {
     _CONDOR_CHIRP_CONFIG=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182/.chirp.config
     _CONDOR_JOB_IWD=/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
     OSG_WN_TMP=/osg/tmp
-    GWMS_SINGULARITY_OUTSIDE_PWD_LIST=/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2
-    #GWMS_SINGULARITY_OUTSIDE_PWD=/export/data1/condor/execute/dir_29865/glide_8QOQl2/execute/dir_9182
-    singularity_setup_inside_env "$GWMS_SINGULARITY_OUTSIDE_PWD_LIST"
+    outdir_list=/condor/execute/dir_29865/glide_8QOQl2:/export/data1/condor/execute/dir_29865/glide_8QOQl2
+    singularity_setup_inside_env "$outdir_list"
     [ "$X509_USER_PROXY" = /srv/execute/dir_9182/602e17194771641967ee6db7e7b3ffe358a54c59 ]
     [ "$X509_USER_CERT" = /srv/hostcert.pem ]
     [ "$X509_USER_KEY" = /srv/hostkey.pem ]
