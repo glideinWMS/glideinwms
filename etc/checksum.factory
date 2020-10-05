@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6_4
+# GLIDEINWMS_VERSION v3_6_5
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -95,7 +95,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 d355fe111169577bd7bf743439712825  ./creation/web_base/setup_x509.sh
-ebb827c4ae2abe710d7d45d30c2ce8f1  ./creation/web_base/singularity_lib.sh
+def035e511a56b75e86aacc6ec5239be  ./creation/web_base/singularity_lib.sh
 b07f18c7251002b115439f69bd689708  ./creation/web_base/singularity_setup.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
@@ -117,7 +117,7 @@ e50fb775d1147ee4eaafbd8c2fe95451  ./factory/glideFactoryMonitoring.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d11afb82236f7b31e47da477415b3624  ./factory/manageFactoryDowntimes.py
 ffc9d4d17c197ebb8b566664a121b94f  ./factory/stopFactory.py
-e6252d40cba01ae7f80a47055d84611f  ./factory/tools/OSG_autoconf.py
+cc310abd417ea642c21f0e7ee2d6ce71  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/__init__.py
 c8f5df0e078377098b2c2f3aa75c0888  ./factory/tools/analyze_entries
 b7bda453d9361861d30042e3f60002ba  ./factory/tools/analyze_queues
@@ -135,13 +135,13 @@ c0c6ade8276d75856c22fc69f8da4f30  ./factory/tools/fact_chown
 b445ccad8fddbb12829d1f54ebfa2e53  ./factory/tools/fact_chown_check
 4909525cdce44cbfa328ad84b12867ae  ./factory/tools/find_StartdLogs.py
 f756c3ba9a458bb8dee41fc291f4127b  ./factory/tools/find_logs.py
-82633b7d7ab19f2b2004db71b0e0b968  ./factory/tools/gfdiff.py
+065b8aaaaabe1f309f64de4f94abc502  ./factory/tools/gfdiff.py
 7f67a59fb0026281726d9b165306f591  ./factory/tools/gwms-logcat.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 dca88f2b927c71bd1724945f11fec3ce  ./factory/tools/lib/analyze.py
 154408c1d79eba1fd6c37a2dbca176b2  ./factory/tools/lib/gWftArgsHelper.py
 aab96c1f39e4bddeac51e6297f4a9677  ./factory/tools/lib/gWftLogParser.py
-84384e158126e02be830eadadb56d392  ./factory/tools/manual_glidein_submit.py
+7c8f84982c50a7a865f6115478426676  ./factory/tools/manual_glidein_submit.py
 9372e3312529f81507a59fb1afb98fe9  ./install/__init__.py
 d7dea2188826d8f2818ea62f736beb94  ./install/glidecondor_addDN
 0c8dd20d4214ba64c842ed376f3803da  ./install/glidecondor_createSecCol
@@ -198,13 +198,13 @@ ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
 ed315f07a89523a5a539508ea539fd47  ./requirements.txt
 96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md
 d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
-fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
+d43c586b40d330f60c530f6c5e931de0  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
 13059fe60b63b6911848ac4d2144653a  ./test/bats/fixtures/environment_singularity
 f3478630b393e10984a3a2a0be257757  ./test/bats/fixtures/glidein_config
 61374cf1efa5ff699a67fe8c832d0f4d  ./test/bats/helper.bash
-ec0040c1037b55ad40078e62c7d6a353  ./test/bats/mock_gwms_logs.bash
+abe6c47c1feaada5bd01ae28c7921dc5  ./test/bats/mock_gwms_logs.bash
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 1c9c14257fa443e0aa031ae44f867122  ./tools/glidein_cat.py
 543db027e898d6b9960ecd44f513086e  ./tools/glidein_gdb.py
