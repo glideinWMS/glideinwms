@@ -279,6 +279,7 @@ install -d $RPM_BUILD_ROOT%{python3_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python3_sitelib}
 
 # Some of the files are not needed by RPM
+<<<<<<< HEAD
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/etc
@@ -311,6 +312,40 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_frontend
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/info_glidein
 
+=======
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/install
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/doc
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/etc
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/build
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/config
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/config_examples
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_rpm_startup
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.editorconfig
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitattributes
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.github
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitignore
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitmodules
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.mailmap
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.pep8speaks.yml
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.travis.yml
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/test
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/unittests
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/chksum.sh
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/requirements.txt
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/tox.ini
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/LICENSE
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/README.md
+
+# Following files are Put in other places. Remove them from python_sitelib
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/web_base
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/add_entry
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/clone_glidein
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_condor_tarball
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_frontend
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_glidein
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
+>>>>>>> branch_v3_7
 # For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
 # under this directory
 # Following 4 sl7 templates are only needed by create_rpm_startup above,
@@ -871,16 +906,20 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Mon Oct 5 2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
+- GlideinWMS v3.7.1
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_1/history.html
+- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.4.rc4
+
+* Mon Oct 5 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.5-1
+- GlideinWMS v3.6.5
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_6_5/history.html
+- Release candidates: 3.6.5-0.1.rc1
 
 * Fri Sep 18 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.9-1
 - GlideinWMS v3.9
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9/history.html
 - Release candidates: 3.9-0.1.rc1 to 3.9-0.1.rc4
-
-* Fri Sep 18 2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
-- GlideinWMS v3.7.1
-- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_1/history.html
-- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.4.rc4
 
 * Thu Sep 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.4-1
 - GlideinWMS v3.6.4

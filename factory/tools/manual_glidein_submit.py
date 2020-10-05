@@ -8,6 +8,8 @@ import socket
 import logging
 import argparse
 
+from glideinwms.creation.lib.factoryXmlConfig import parse
+
 try:
     import htcondor # pylint: disable=import-error
 except:
@@ -109,6 +111,9 @@ def main():
         logging.error("Cannot chdir to /var/lib/gwms-factory/work-dir/: %s", ose)
         return 1
 
+    # Parse the configuration
+    conf = parse("/etc/gwms-factory/glideinWMS.xml")
+
     # Parse command line options
     options = parse_opts()
     entry_name = options.entry_name
@@ -127,7 +132,7 @@ def main():
     req_name = get_reqname(collector, options.fe_name, entry_name)
     logging.debug("Using reques name %s" % req_name)
 
-    factory_config.submit_dir = '/var/lib/gwms-factory/work-dir'
+    factory_config.submit_dir = conf.get_submit_dir()
     constraint_gc = '(MyType=="glideclient") && (Name=="%s")' % (req_name)
 
     ads_gc = collector.query(htcondor.AdTypes.Any, constraint_gc)
@@ -168,7 +173,7 @@ def main():
         # Create the submit_credentials object
         credentials = SubmitCredentials(user_name, security_class)
         credentials.id = proxyid
-        credentials.cred_dir = '/var/lib/gwms-factory/client-proxies/user_%s/glidein_gfactory_instance' % user_name
+        credentials.cred_dir = conf.get_client_proxy_dirs()[user_name]
         credfname = '%s_%s' % (ad_gc['ClientName'], proxyid)
         if not credentials.add_security_credential('SubmitProxy', credfname):
             fname = os.path.join(credentials.cred_dir,
