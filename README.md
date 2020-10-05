@@ -1,5 +1,9 @@
 # GlideinWMS
 
+![.github/workflows/pyunittest.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pyunittest.yaml/badge.svg)
+![.github/workflows/pylint.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pylint.yaml/badge.svg)
+![.github/workflows/bats.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/bats.yaml/badge.svg)
+
 The purpose of the GlideinWMS is to provide a simple way to access the Grid resources. GlideinWMS is a Glidein Based WMS (Workload Management System) that works on top of HTCondor. Glideins are like placeholders, a mechanism by which one or more remote resources temporarily join a local HTCondor pool. The HTCondor system is used for scheduling and job control.
 
 The code is available as RPM via the Open Science Grid yum repository
