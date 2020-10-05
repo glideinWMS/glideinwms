@@ -848,31 +848,77 @@ singularity_get_binds() {
 }
 
 
+singularity_make_outside_pwd_list() {
+    # 1 GWMS_SINGULARITY_OUTSIDE_PWD_LIST
+    # 2..N list of paths to add to GWMS_SINGULARITY_OUTSIDE_PWD_LIST
+    #   to be added must be new and have same real path (if GWMS_SINGULARITY_OUTSIDE_PWD_LIST is prefixed by ":",
+    #   only the new values are considered for the real path comparison)
+    # Out: new value for GWMS_SINGULARITY_OUTSIDE_PWD_LIST
+    # NOTE: this will not work inside Singularity where some path do not exist and cannot be resolved correctly by
+    #   robust_realpath
+    local path_list="$1"
+    shift
+    local first="${path_list%%:*}"
+    for i in "$@"; do
+        [[ -z "$i" ]] && continue
+        [[ -z "$first" ]] && first="$i"
+        if [[ -z "$path_list" ]]; then
+            path_list="$i"
+        else
+            if [[ ":${path_list}:" != *":${i}:"* ]]; then
+                [[ $(robust_realpath "$first") == $(robust_realpath "$i") ]] && path_list="${path_list}:$i"
+            fi
+        fi
+    done
+    echo "${path_list#:}"
+}
+
+
 singularity_update_path() {
     # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
-    # so that they can work inside. Also "/execute/dir_[0-9a-zA-Z]*" directories are replaced
+    # or a path in GWMS_SINGULARITY_OUTSIDE_PWD_LIST (paths linked or bind mounted to the working directory)
+    # so that they can work inside.
+    # "*/execute/dir_[0-9a-zA-Z]*" directories trigger a warning if remaining
     # In:
     #  1 - PWD inside path (path of current PWD once singularity is invoked)
-    #  2... Arguments to correct
-    #  GWMS_SINGULARITY_OUTSIDE_PWD (or PWD if not defined)
+    #  2..N Arguments to correct
+    #  GWMS_SINGULARITY_OUTSIDE_PWD_LIST, GWMS_SINGULARITY_OUTSIDE_PWD (or PWD if not defined)
     # Out:
     #  nothing in stdout
     #  GWMS_RETURN - Array variable w/ the commands
     GWMS_RETURN=()
     local outside_pwd="${GWMS_SINGULARITY_OUTSIDE_PWD:-$PWD}"
-    local realpath_outside_pwd="$(robust_realpath "${outside_pwd}")"
+    local outside_pwd_list="$(singularity_make_outside_pwd_list "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" \
+        "${outside_pwd}" "$(robust_realpath "${outside_pwd}")" \
+        "${GWMS_THIS_SCRIPT_DIR}" "${_CONDOR_JOB_IWD}")"
+    export GWMS_SINGULARITY_OUTSIDE_PWD_LIST="${outside_pwd_list}"
     local inside_pwd=$1
     shift
-    local arg
+    info_dbg "Outside paths $GWMS_SINGULARITY_OUTSIDE_PWD_LIST => $inside_pwd in Singularity"
+    local arg arg2 old_ifs out_path arg_found
     for arg in "$@"; do
-        # two sed commands to make sure we catch variations of the iwd,
-        # including symlinked ones
-        # TODO: should it become /execute/dir_[0-9a-zA-Z]* => /execute/dir_[^/]* ? Check w/ Mats and Edgar if OK
-        # arg="$(echo -n "" "$arg" | sed -E "s,$outside_pwd/(.*),$inside_pwd/\1,;s,.*/execute/dir_[0-9a-zA-Z]*(.*),$inside_pwd\1,")"
-        arg="${arg/#$outside_pwd/$inside_pwd}"
-        [[ "${realpath_outside_pwd}" != "${outside_pwd}" ]] && arg="${arg/#$realpath_outside_pwd/$inside_pwd}"
-        [[ "${arg}" == *"${outside_pwd}"* || "${arg}" == *"${realpath_outside_pwd}"* ]] && warn "Outside path still in argument path ($arg), the conversion to run in Singularity may be incorrect"
-        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), the conversion to run in Singularity may be incorrect"
+        arg_found=false
+        arg2=
+        old_ifs="$IFS"
+        IFS=:
+        for out_path in $outside_pwd_list; do
+            # the case is checking "/" ensuring that partial matches are discarded
+            case "$arg" in
+                $out_path) arg="${inside_pwd}"; arg_found=true;;
+                $out_path/*) arg="${arg/#$out_path/$inside_pwd}"; arg_found=true;;
+                /*) [[ -z "$arg2" ]] && arg2="$(robust_realpath "${arg}")"
+                    case "$arg2" in
+                        $out_path) arg="${inside_pwd}"; arg_found=true;;
+                        $out_path/*) arg="${arg2/#$out_path/$inside_pwd}"; arg_found=true;;
+                    esac
+            esac
+            # Warn about possible error conditions
+            [[ "${arg}" == *"${out_path}"* ]] && warn "Outside path (${outside_pwd}) still in argument ($arg), the path is a partial match or the conversion to run in Singularity may be incorrect"
+            $arg_found && break
+        done
+        IFS="$old_ifs"
+        # Warn about possible error conditions
+        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
     done
 }
@@ -1430,7 +1476,7 @@ setup_classad_variables() {
     export REQUIRED_OS=$(get_prop_str ${_CONDOR_JOB_AD} REQUIRED_OS)
     export GWMS_SINGULARITY_IMAGE=$(get_prop_str ${_CONDOR_JOB_AD} SingularityImage)
     # If not provided default to whatever is Singularity availability
-    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad $HAS_SINGULARITY)
+    export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad ${HAS_SINGULARITY})
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)
     export GWMS_SINGULARITY_BIND_GPU_LIBS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindGPULibs 1)
     export CVMFS_REPOS_LIST=$(get_prop_str ${_CONDOR_JOB_AD} CVMFSReposList)
@@ -1472,41 +1518,79 @@ setup_classad_variables() {
     # TODO: Remove to allow this for toubleshooting purposes?
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
         warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
-        export GWMS_SINGULARITY_AUTOLOAD=$HAS_SINGULARITY
+        export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
     fi
+}
+
+
+singularity_setup_inside_env() {
+    # 1. GWMS_SINGULARITY_OUTSIDE_PWD, $GWMS_SINGULARITY_OUTSIDE_PWD_LIST, outside run directory pre-Singularity
+    local outside_pwd_list="$1"
+    local key val old_val old_ifs
+    for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
+               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
+               _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
+               OSG_WN_TMP ; do
+        # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
+        # val="$(echo "${!key}" | sed -E "s,${GWMS_SINGULARITY_OUTSIDE_PWD}/(.*),/srv/\1,;s,${GWMS_SINGULARITY_OUTSIDE_PWD}$,/srv,")"
+        old_val="${!key}"
+        val="$old_val"
+        old_ifs="$IFS"
+        IFS=":"
+        for out_path in $outside_pwd_list; do
+            # double substitution to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
+            case "$val" in
+                $out_path) val=/srv ;;
+                $out_path/*) val="${old_val/#$out_path//srv}";;
+                # Not worth checking "$(robust_realpath "${old_val}")": outside paths are not existing
+            esac
+            # Warn about possible error conditions
+            [[ "${val}" == *"${out_path}"*  ]] &&
+                warn "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+                true
+            # update and exit loop if the value changed
+            if [[ "$val" != "$old_val" ]]; then
+                eval export ${key}="${val}"
+                info_dbg "changed $key: $old_val => $val"
+                break
+            fi
+        done
+        IFS="$old_ifs"
+        # Warn about possible error conditions
+        [[ "${val}" == */execute/dir_* ]] &&
+            warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+            true
+    done
 }
 
 
 singularity_setup_inside() {
     # Setup some environment variables when the script is restarting in Singularity
     # In:
-    #   $GWMS_SINGULARITY_OUTSIDE_PWD, $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE as fallback)
+    #   $GWMS_SINGULARITY_OUTSIDE_PWD_LIST ($GWMS_SINGULARITY_OUTSIDE_PWD), $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE as fallback)
     # Out:
     #   Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     unset TMP
     unset TMPDIR
     unset TEMP
     unset X509_CERT_DIR
-    local val
     # Adapt for changes in filesystem space
-    for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
-               _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
-               _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
-               OSG_WN_TMP ; do
-        # double sed to avoid matching a directory starting w/ the same name (e.g. /my /mydir)
-        val="$(echo "${!key}" | sed -E "s,$GWMS_SINGULARITY_OUTSIDE_PWD/(.*),/srv/\1,;s,$GWMS_SINGULARITY_OUTSIDE_PWD$,/srv,")"
-        eval ${key}="${val}"
-        info_dbg "changed $key => $val"
-    done
+    if [[ -n "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" || -n "${GWMS_SINGULARITY_OUTSIDE_PWD}" ]]; then
+        info_dbg "calling singularity_setup_inside_env w/ ${GWMS_SINGULARITY_OUTSIDE_PWD_LIST} (${GWMS_SINGULARITY_OUTSIDE_PWD})."
+        singularity_setup_inside_env "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST:-${GWMS_SINGULARITY_OUTSIDE_PWD}}"
+    else
+        warn "GWMS_SINGULARITY_OUTSIDE_PWD_LIST and GWMS_SINGULARITY_OUTSIDE_PWD not set, cannot remove possible outside path from env variables"
+    fi
 
     # If CONDOR_CONFIG, X509_USER_PROXY and friends are not set by the job, we might see the
     # glidein one - in that case, just unset the env var
+    local key val
     for key in CONDOR_CONFIG X509_USER_PROXY X509_USER_CERT X509_USER_KEY ; do
         val="${!key}"
         if [[ -n "$val" ]]; then
             if [[ ! -e "$val" ]]; then
                 eval unset $key >/dev/null 2>&1 || true
-                info_dbg "unset $key. File not found."
+                info_dbg "unset $key ($val). File not found."
             fi
         fi
     done
