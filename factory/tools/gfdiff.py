@@ -146,8 +146,7 @@ def get_entry_text(entry, conf):
 def handle_mergely(entry_a, conf_a, entry_b, conf_b, mergely_only):
     """Function that prints the link to the mergely website
     """
-    url = 'http://www.mergely.com/ajax/handle_file.php'
-
+    url = 'https://www.mergely.com/ajax/handle_file.php'
     # get a unique 8char key
     unique_id = uuid.uuid4()
     myhash = hashlib.sha1(str(unique_id).encode("UTF-8"))
@@ -162,7 +161,7 @@ def handle_mergely(entry_a, conf_a, entry_b, conf_b, mergely_only):
     payload["name"] = "rhs"
     payload["content"] = get_entry_text(entry_b, conf_b)
     requests.post(url, data=payload)
-    requests.get("http://www.mergely.com/ajax/handle_save.php?key=" + key)
+    requests.get("https://www.mergely.com/ajax/handle_save.php?key=" + key)
     if mergely_only:
         print("http://www.mergely.com/" + key)
     else:
