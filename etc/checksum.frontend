@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_6_4
+# GLIDEINWMS_VERSION v3_6_5
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -69,7 +69,7 @@ ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/factory/images/frontendStatus.small.png
 f447660440eb339d83e638c2f5a0f319  ./creation/web_base/factory/index.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
-5d54306eb61d3dbe87ed32a35f635866  ./creation/web_base/frontend/default_singularity_wrapper.sh
+51c34b46c9650be93ed56bd7bb434e02  ./creation/web_base/frontend/default_singularity_wrapper.sh
 50e6c4228266aa6ad14e3601e2f0a42f  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
@@ -96,7 +96,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3b62e86bcfe78e25f1ac2d81ba893436  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-ebb827c4ae2abe710d7d45d30c2ce8f1  ./creation/web_base/singularity_lib.sh
+def035e511a56b75e86aacc6ec5239be  ./creation/web_base/singularity_lib.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -184,13 +184,13 @@ ff6c89a556ab42b543b4316d2169ddef  ./lib/xmlParse.py
 ed315f07a89523a5a539508ea539fd47  ./requirements.txt
 96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md
 d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
-fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
+d43c586b40d330f60c530f6c5e931de0  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
 13059fe60b63b6911848ac4d2144653a  ./test/bats/fixtures/environment_singularity
 f3478630b393e10984a3a2a0be257757  ./test/bats/fixtures/glidein_config
 61374cf1efa5ff699a67fe8c832d0f4d  ./test/bats/helper.bash
-ec0040c1037b55ad40078e62c7d6a353  ./test/bats/mock_gwms_logs.bash
+abe6c47c1feaada5bd01ae28c7921dc5  ./test/bats/mock_gwms_logs.bash
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
 1c9c14257fa443e0aa031ae44f867122  ./tools/glidein_cat.py
 543db027e898d6b9960ecd44f513086e  ./tools/glidein_gdb.py
