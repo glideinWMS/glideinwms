@@ -854,7 +854,7 @@ singularity_make_outside_pwd_list() {
     #   to be added must be new and have same real path (if GWMS_SINGULARITY_OUTSIDE_PWD_LIST is prefixed by ":",
     #   only the new values are considered for the real path comparison)
     # Out: new value for GWMS_SINGULARITY_OUTSIDE_PWD_LIST
-    # NOTE: this will not work inside Singularity where some path do not exist and cannot be resolved correctly by 
+    # NOTE: this will not work inside Singularity where some path do not exist and cannot be resolved correctly by
     #   robust_realpath
     local path_list="$1"
     shift
@@ -877,7 +877,7 @@ singularity_make_outside_pwd_list() {
 singularity_update_path() {
     # Replace all outside paths in the command line referring GWMS_SINGULARITY_OUTSIDE_PWD (working directory)
     # or a path in GWMS_SINGULARITY_OUTSIDE_PWD_LIST (paths linked or bind mounted to the working directory)
-    # so that they can work inside. 
+    # so that they can work inside.
     # "*/execute/dir_[0-9a-zA-Z]*" directories trigger a warning if remaining
     # In:
     #  1 - PWD inside path (path of current PWD once singularity is invoked)
@@ -899,8 +899,8 @@ singularity_update_path() {
     for arg in "$@"; do
         arg_found=false
         arg2=
-        old_ifs="$IFS" 
-        IFS=: 
+        old_ifs="$IFS"
+        IFS=:
         for out_path in $outside_pwd_list; do
             # the case is checking "/" ensuring that partial matches are discarded
             case "$arg" in
@@ -1545,8 +1545,8 @@ singularity_setup_inside_env() {
                 # Not worth checking "$(robust_realpath "${old_val}")": outside paths are not existing
             esac
             # Warn about possible error conditions
-            [[ "${val}" == *"${out_path}"*  ]] && 
-                warn "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" || 
+            [[ "${val}" == *"${out_path}"*  ]] &&
+                warn "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
                 true
             # update and exit loop if the value changed
             if [[ "$val" != "$old_val" ]]; then
@@ -1557,9 +1557,9 @@ singularity_setup_inside_env() {
         done
         IFS="$old_ifs"
         # Warn about possible error conditions
-        [[ "${val}" == */execute/dir_* ]] && 
-            warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" || 
-            true 
+        [[ "${val}" == */execute/dir_* ]] &&
+            warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+            true
     done
 }
 

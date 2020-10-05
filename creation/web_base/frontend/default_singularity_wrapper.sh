@@ -299,23 +299,21 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     #else
     #    export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
     #fi
-    # Should this be GWMS_THIS_SCRIPT_DIR? 
+    # Should this be GWMS_THIS_SCRIPT_DIR?
     #   Problem at sites like MIT where the job is started in /condor/execute/.. hard link from
     #   /export/data1/condor/execute/...
     # Do not trust _CONDOR_JOB_IWD when it comes to finding pwd for the job - M.Rynge
-    export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
+    GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
     # Protect from jobs starting from linked or bind mounted directories
     for i in "$_CONDOR_JOB_IWD" "$GWMS_THIS_SCRIPT_DIR"; do
         if [[ "$i" != "$GWMS_SINGULARITY_OUTSIDE_PWD" ]]; then
             [[ "$(robust_realpath "$i")" == "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && GWMS_SINGULARITY_OUTSIDE_PWD="$i"
         fi
     done
-#    if [[ "$_CONDOR_JOB_IWD" != "$GWMS_SINGULARITY_OUTSIDE_PWD" ]]; then
-#        [[ "$(robust_realpath "${_CONDOR_JOB_IWD}")" == "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
-#    fi
-#    if [[ "$GWMS_THIS_SCRIPT_DIR" != "$GWMS_SINGULARITY_OUTSIDE_PWD" ]]; then
-#        [[ "$(robust_realpath "${GWMS_THIS_SCRIPT_DIR}")" == "$GWMS_SINGULARITY_OUTSIDE_PWD" ]] && GWMS_SINGULARITY_OUTSIDE_PWD="$GWMS_THIS_SCRIPT_DIR"
-#    fi
+    export GWMS_SINGULARITY_OUTSIDE_PWD="$GWMS_SINGULARITY_OUTSIDE_PWD"
+    export GWMS_SINGULARITY_OUTSIDE_PWD_LIST="$(singularity_make_outside_pwd_list \
+        "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" "${PWD}" "$(robust_realpath "${PWD}")" \
+        "${GWMS_THIS_SCRIPT_DIR}" "${_CONDOR_JOB_IWD}")"
 
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN
     singularity_update_path /srv "$@"

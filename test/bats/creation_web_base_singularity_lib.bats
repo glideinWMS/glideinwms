@@ -14,7 +14,7 @@ robust_realpath_mock() {
         /condor/execute/dir_29865*)  echo "/export/data1$1";;
         /export/data1/condor/execute/dir_29865*) echo "$1";;
         *) robust_realpath_orig "$1";;
-    esac 
+    esac
 }
 
 
@@ -27,7 +27,7 @@ setup () {
     #echo "ENV: `env --help`" >&3
     #echo "ENVg: `genv --help`" >&3
     #echo "ENVmy: `myenv --help`" >&3
-    
+
     # Mock robust_realpath intercepting some inputs
     # used by singularity_update_path, singularity_setup_inside_env
     eval "$(echo "robust_realpath_orig()"; declare -f robust_realpath | tail -n +2 )"
@@ -311,17 +311,17 @@ preset_env () {
 @test "Verify singularity_update_path" {
     GWMS_SINGULARITY_OUTSIDE_PWD=/notexist/test1
     singularity_update_path /srv /notexist/test1 /notexist/test11 /notexist/test1/dir1 /root/notexist/test1/dir2 notexist/test1/dir2
-    [ "${GWMS_RETURN[0]}" = /srv ] 
-    [ "${GWMS_RETURN[1]}" = /notexist/test11 ] 
-    [ "${GWMS_RETURN[2]}" = /srv/dir1 ] 
-    [ "${GWMS_RETURN[3]}" = /root/notexist/test1/dir2 ] 
-    [ "${GWMS_RETURN[4]}" = notexist/test1/dir2 ] 
+    [ "${GWMS_RETURN[0]}" = /srv ]
+    [ "${GWMS_RETURN[1]}" = /notexist/test11 ]
+    [ "${GWMS_RETURN[2]}" = /srv/dir1 ]
+    [ "${GWMS_RETURN[3]}" = /root/notexist/test1/dir2 ]
+    [ "${GWMS_RETURN[4]}" = notexist/test1/dir2 ]
     GWMS_SINGULARITY_OUTSIDE_PWD=
     GWMS_SINGULARITY_OUTSIDE_PWD_LIST=/notexist/test1:/notexist/test2
-    singularity_update_path /srv /notexist/test1 /notexist/test2 /notexist/test2/dir1 
-    [ "${GWMS_RETURN[0]}" = /srv ] 
-    [ "${GWMS_RETURN[1]}" = /srv ] 
-    [ "${GWMS_RETURN[2]}" = /srv/dir1 ] 
+    singularity_update_path /srv /notexist/test1 /notexist/test2 /notexist/test2/dir1
+    [ "${GWMS_RETURN[0]}" = /srv ]
+    [ "${GWMS_RETURN[1]}" = /srv ]
+    [ "${GWMS_RETURN[2]}" = /srv/dir1 ]
     # test link or bind mount. Check also that other values are not modified
     pushd /tmp
     mkdir -p /tmp/test.$$/dir1
@@ -334,10 +334,10 @@ preset_env () {
     GWMS_SINGULARITY_OUTSIDE_PWD_LIST=:/srv/sub1
     singularity_update_path /srv ../dir1 sub1/fout output /tmp/test.$$/dir1 /tmp/test.$$/dir2/fout sub* /tmp/test.$$/dir1/sub* -n -e a:b
     # echo "Outputs: ${GWMS_RETURN[@]}" >&3
-    [ "${GWMS_RETURN[0]}" = ../dir1 ] 
-    [ "${GWMS_RETURN[1]}" = sub1/fout ] 
-    [ "${GWMS_RETURN[2]}" = output ] 
-    [ "${GWMS_RETURN[3]}" = /srv ] 
+    [ "${GWMS_RETURN[0]}" = ../dir1 ]
+    [ "${GWMS_RETURN[1]}" = sub1/fout ]
+    [ "${GWMS_RETURN[2]}" = output ]
+    [ "${GWMS_RETURN[3]}" = /srv ]
     [ "${GWMS_RETURN[4]}" = /srv/fout ]
     [ "${GWMS_RETURN[5]}" = sub1 ]
     [ "${GWMS_RETURN[6]}" = sub2 ]
@@ -347,7 +347,6 @@ preset_env () {
     [ "${GWMS_RETURN[10]}" = "-e" ]
     [ "${GWMS_RETURN[11]}" = "a:b" ]
     popd
-    
 }
 
 
