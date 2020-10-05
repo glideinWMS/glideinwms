@@ -131,3 +131,15 @@ v3_6_4:
   Bug fix:
     - Fix for condor_chirp not finding htchirp in the PYTHONPATH
     - Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
+
+v3_6_5:
+  Date: October 5, 2020
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Added GitHub actions to test the code (Python unit tests, BARS, pylint, pycodestyle)
+  Bug fix:
+    - Fix for paths in Singularity not substituted correctly when the execute directory has a link or bind mount
+    - Fixed shared_port_port to adapt to HTCondor 8.8.10 changes
+    - Fixed overrides in OSG_autoconf using depcopy, use https for gfdiff
+    - Fixed credential dir in manual_glidein_submit removing hardcoding

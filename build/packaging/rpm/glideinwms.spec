@@ -861,6 +861,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Mon Oct 5 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.5-1
+- GlideinWMS v3.6.5
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_6_5/history.html
+- Release candidates: 3.6.5-0.1.rc1
+
 * Thu Sep 17 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.4-1
 - GlideinWMS v3.6.4
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_4/history.html
