@@ -92,6 +92,16 @@ v3_6_2:
     - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
     - Total of frontend info is 0 in Factory monitring
 
+v3_7:
+  Date: March 31, 2020
+  Series: Development
+  Tarball: true
+  Feature:
+    - Includes all features and fixes of 3.6.2
+    - Use of HTCondor token-auth for Glideins authentication
+    - Added secure logging channel
+    - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+
 v3_6_3:
   Date: July 16, 2020
   Series: Stable
@@ -132,15 +142,17 @@ v3_6_4:
     - Fix for condor_chirp not finding htchirp in the PYTHONPATH
     - Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
 
-v3_7:
-  Date: March 31, 2020
-  Series: Development
-  Tarball: true
+v3_6_5:
+  Date: October 5, 2020
+  Series: Stable
+  Tarball: false
   Feature:
-    - Includes all features and fixes of 3.6.2
-    - Use of HTCondor token-auth for Glideins authentication
-    - Added secure logging channel
-    - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+    - Added GitHub actions to test the code (Python unit tests, BARS, pylint, pycodestyle)
+  Bug fix:
+    - Fix for paths in Singularity not substituted correctly when the execute directory has a link or bind mount
+    - Fixed shared_port_port to adapt to HTCondor 8.8.10 changes
+    - Fixed overrides in OSG_autoconf using depcopy, use https for gfdiff
+    - Fixed credential dir in manual_glidein_submit removing hardcoding
 
 v3_7_1:
   Date: August 21, 2020

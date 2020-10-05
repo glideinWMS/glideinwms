@@ -8,6 +8,13 @@ info_stdout () {
 export -f info_stdout
 
 
+info_dbg () {
+    [[ -z "$GLIDEIN_QUIET" ]] && echo "DBG - " "$@" >&3
+    true
+}
+export -f info_dbg
+
+
 info_raw () {
     [[ -z "$GLIDEIN_QUIET" ]] && echo "MK" "$@"  1>&3
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
