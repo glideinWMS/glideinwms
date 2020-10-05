@@ -274,6 +274,7 @@ rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/config_examples
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.editorconfig
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitattributes
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.github
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitignore
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitmodules
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.mailmap
