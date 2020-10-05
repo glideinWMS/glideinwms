@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+import copy
 import argparse
 import fractions
 
@@ -151,7 +152,7 @@ def get_entries_configuration(data):
     for _, site_information in sorted(data.items()):
         for celem, ce_information in sorted(site_information.items()):
             for entry, entry_information in sorted(ce_information.items()):
-                entry_configuration = entry_information
+                entry_configuration = copy.deepcopy(entry_information)
                 entry_configuration["entry_name"] = entry
                 # Can we get these information (next two keys)?
                 entry_configuration["attrs"]["GLEXEC_BIN"] = {"value": "NONE"}
