@@ -8,11 +8,54 @@ The new tests comprise
 
 They must implement the following functions
 ```bash
-
+do_parse_options() { pass; }
+#do_process_branch "$1" "$outfile" "${CMD_OPTIONS[@]}"
+# 1 - branch name
+# 2 - outfile
+# 3... - options/arguments passed to the command (e.g. files/test list)
+do_process_branch() { pass; }
+# Run the test/linting on the current branch 
+# 1 - branch
+# 2 - output file (output directory/output.branch)
+# 3... - files to process (optional)
 ```
-They can implement the following functions
+They can implement the following functions (here the defaults from runtest.sh)
 ```bash
+do_show_flags() {
+    echo "Dry run: $COMMAND not providing the invocation options."
+}
+do_use_python() { false; }
+do_check_requirements() { true; }
+# Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
+# do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
+do_git_init_command() { true; }
+# Empty logging commands
+do_log_init() { false; }
+do_log_branch() { true; }
+do_log_close() { true; }
 
+do_table_headers() {
+    # Tab separated list of fields
+    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    # echo -e "TestName,var1\t,var2\t,var3"
+    false
+}
+
+do_table_values() {
+    # 1. branch summary file
+    # 2. format html,html4,html4f ir nothing for plain text
+    # Return a tab separated list of the values
+    # $VAR1 $VAR2 $VAR3 expected in $1
+    . "$1"
+    # echo -e "${VAR1}\t${VAR2}\t${VAR3}"
+}
+
+do_get_status() {
+    # 1. branch summary file
+    # Return unknown, success, warning, error
+    echo unknown
+    return 2
+}
 ```
 
 ## Running it and Examples
@@ -78,6 +121,9 @@ Once the test completes all these directories can be removed if so desired.
 Each test will receive an output namespace: `output/gwms.BRANCH.TESTNAME`
 This will be the name of the file with the summary of the branch results.
 Different tests can have additional files or folders for detailed results, etc.
+Normally other names are defined adding '.' (dot) and the additional name. 
+'.d' is used for directories containing many additional files of the test 
+(e.g. one file per source or test file).
 
 Here files in the output directory:
 ```text
