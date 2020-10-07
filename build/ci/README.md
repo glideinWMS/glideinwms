@@ -64,7 +64,7 @@ Normally the scripts are invoked outside the `glideinwms` source directory.
 It can be invoked to run in place on the current files or checking out branches.
 It can be invoked to run on a new clone of the repository in a random directory or a provided one.
 ```bash
-$ ./glideinwms/build/jenkins/runtest.sh unittest -h
+$ ./glideinwms/build/ci/runtest.sh unittest -h
 runtest.sh [options] COMMAND [command options]
   Runs the test form COMMAND on the current glideinwms subdirectory, as is or checking out a branch from the repository.
   Unless you use -c, a glidienwms subdirectory of WORKDIR with the git repository must exist.

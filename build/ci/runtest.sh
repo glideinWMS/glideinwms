@@ -6,7 +6,7 @@ GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
 #  http://cdcvs.fnal.gov/projects/glideinwms
 #  https://cdcvs.fnal.gov/projects/glideinwms
 DEFAULT_OUTPUT_DIR=output
-SCRIPTS_SUBDIR=build/jenkins
+SCRIPTS_SUBDIR=build/ci
 
 robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then
