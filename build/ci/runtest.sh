@@ -6,7 +6,7 @@ GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
 #  http://cdcvs.fnal.gov/projects/glideinwms
 #  https://cdcvs.fnal.gov/projects/glideinwms
 DEFAULT_OUTPUT_DIR=output
-SCRIPTS_SUBDIR=build/jenkins
+SCRIPTS_SUBDIR=build/ci
 
 robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then
@@ -560,6 +560,10 @@ do_parse_options() { logexit "command not implemented"; }
 # 2 - outfile
 # 3... - options/arguments passed to the command (e.g. files/test list)
 do_process_branch() { logexit "command not implemented"; }
+# Run the test/linting on the current branch 
+# 1 - branch
+# 2 - output file (output directory/output.branch)
+# 3... - files to process (optional)
 
 ## Optional functions
 # Defaults for commands' functions and variables

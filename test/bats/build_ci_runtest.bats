@@ -10,7 +10,7 @@ load 'lib/bats-assert/load'
 setup() {
     # executed before each test
     source compat.bash
-    source "$GWMS_SOURCEDIR"/build/jenkins/runtest.sh 2>&3
+    source "$GWMS_SOURCEDIR"/build/ci/runtest.sh 2>&3
 }
 
 no_teardown() {
