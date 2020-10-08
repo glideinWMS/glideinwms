@@ -783,34 +783,51 @@ class glideinFrontendElement:
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
-                # determine whether to encrypt a condor token into the classad
-                tkn = None
-                gp_encrypt = None
-                # are we submitting glideins? try to get a token
-                if count_status['Total']:
-                    tkn = self.refresh_entry_token(glidein_el)
-                if tkn:
-                    # mark token for encryption
-                    entry_token_name = "%s_token" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                    gp_encrypt = {entry_token_name: tkn}
+                # determine whether to encrypt a condor token or scitoken into the classad
+                ctkn = ''
+                stkn = ''
+                gp_encrypt = {}
+                # see if site supports condor token
+                ctkn = self.refresh_entry_token(glidein_el)
+                if ctkn:
+                    # mark token for encrypted advertisement
+                    entry_token_name = "%s.idtoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
+                    logSupport.log.info("found condor token: %s" % entry_token_name)
+                    gp_encrypt[entry_token_name] = ctkn
+                # now see if theres a scitoken for this site
+                entry_scitoken_name = "%s.scitoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
+                spath = "/var/lib/gwms-frontend/tokens.d"
+                scitoken_fullpath = os.path.join(spath, entry_scitoken_name)
+                if os.path.exists(scitoken_fullpath):
+                    try:
+                        logSupport.log.info('found scitoken %s' % scitoken_fullpath)
+                        with open(scitoken_fullpath,'r') as fbuf:
+                            for line in fbuf:
+                                stkn += line
+                        if stkn:
+                            gp_encrypt[entry_scitoken_name] =  stkn
+                    except Exception as err:
+                        logSupport.log.exception("failed to read scitoken: %s" % err)
+
 
                 # now advertise
+                logSupport.log.info('advertising tokens %s' % gp_encrypt.keys())
                 advertizer.add(factory_pool_node,
-                               request_name, request_name,
-                               glidein_min_idle,
-                               glidein_max_run,
-                               self.idle_lifetime,
-                               glidein_params=glidein_params,
-                               glidein_monitors=glidein_monitors,
-                               glidein_monitors_per_cred=glidein_monitors_per_cred,
-                               remove_excess_str=remove_excess_str,
-                               remove_excess_margin=remove_excess_margin,
-                               key_obj=key_obj,
-                               glidein_params_to_encrypt=gp_encrypt,
-                               security_name=self.security_name,
-                               trust_domain=trust_domain,
-                               auth_method=auth_method,
-                               ha_mode=self.ha_mode)
+                           request_name, request_name,
+                           glidein_min_idle,
+                           glidein_max_run,
+                           self.idle_lifetime,
+                           glidein_params=glidein_params,
+                           glidein_monitors=glidein_monitors,
+                           glidein_monitors_per_cred=glidein_monitors_per_cred,
+                           remove_excess_str=remove_excess_str,
+                           remove_excess_margin=remove_excess_margin,
+                           key_obj=key_obj,
+                           glidein_params_to_encrypt=gp_encrypt,
+                           security_name=self.security_name,
+                           trust_domain=trust_domain,
+                           auth_method=auth_method,
+                           ha_mode=self.ha_mode)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" %
                                        (request_name, factory_pool_node))
@@ -869,8 +886,8 @@ class glideinFrontendElement:
             returns:  jwt encoded condor token on success
                       None on failure
         """
-        tkn_file = None
-        tkn_str = None
+        tkn_file = ''
+        tkn_str = ''
         # does condor version of entry point support condor token auth
         if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
             try:
@@ -879,7 +896,7 @@ class glideinFrontendElement:
                 tkn_dir = "/var/lib/gwms-frontend/tokens.d"
                 if not os.path.exists(tkn_dir):
                     os.mkdir(tkn_dir,0o700)
-                tkn_file = tkn_dir + '/' +  glidein_site + ".token"
+                tkn_file = tkn_dir + '/' +  glidein_site + ".idtoken"
                 one_hr = 3600
                 tkn_age = sys.maxsize
                 if os.path.exists(tkn_file):
@@ -895,6 +912,10 @@ class glideinFrontendElement:
                     shutil.move(tmpnm, tkn_file)
                     os.chmod(tkn_file, 0600)
                     logSupport.log.info("created token %s" % tkn_file)
+                elif os.path.exists(tkn_file):
+                    with open(tkn_file, 'r') as fbuf:
+                        for line in fbuf:
+                            tkn_str += line
             except Exception as err:
                 logSupport.log.warning('failed to create %s' % tkn_file)
                 logSupport.log.warning('%s' % err)
