@@ -32,7 +32,8 @@ def create_condor_tar_fd(condor_base_dir):
 
         # List of optional files, included if found in condor distro
         condor_opt_bins = [
-            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise'
+            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise',
+            'bin/condor_nsenter', 'bin/condor_docker_enter'
         ]
 
         condor_opt_libs = [
