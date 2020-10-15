@@ -6,7 +6,7 @@ GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"
 #  http://cdcvs.fnal.gov/projects/glideinwms
 #  https://cdcvs.fnal.gov/projects/glideinwms
 DEFAULT_OUTPUT_DIR=output
-SCRIPTS_SUBDIR=build/jenkins
+SCRIPTS_SUBDIR=build/ci
 
 robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then
@@ -64,6 +64,7 @@ find_aux() {
         return
     fi
     [[ -n "${aux_file}" ]] && { echo "${aux_file}"; return ; }
+    logdebug "Unable to find $aux_file in $MYDIR/ or $GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/"
     false
 }
 
@@ -259,9 +260,7 @@ parse_options() {
     # Default test log file name
     [[ -z "${TESTLOG_FILE}" ]] && TESTLOG_FILE="${OUT_DIR}/gwms.$(date +"%Y%m%d_%H%M%S").log"
     export TESTLOG_FILE="${TESTLOG_FILE}"
-    # link a last log path to the last log (unless there is a file with that name)
-    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "${OUT_DIR}/gwms.last.log"
-    # > "$TESTLOG_FILE"
+    # log must be initialized outside, once OUT_DIR is created
 }
 
 
@@ -359,7 +358,7 @@ print_files_list() {
 }
 
 is_python3_branch() {
-    [[ "$1" == *p3* ]] && { true; return; }
+    [[ "$1" == *p3* || "$1" == v39* || "$1" == branch_v3_9 ]] && { true; return; }
     if grep '#!' factory/glideFactory.py | grep python3 > /dev/null; then
         true
         return
@@ -561,6 +560,10 @@ do_parse_options() { logexit "command not implemented"; }
 # 2 - outfile
 # 3... - options/arguments passed to the command (e.g. files/test list)
 do_process_branch() { logexit "command not implemented"; }
+# Run the test/linting on the current branch 
+# 1 - branch
+# 2 - output file (output directory/output.branch)
+# 3... - files to process (optional)
 
 ## Optional functions
 # Defaults for commands' functions and variables
@@ -609,8 +612,7 @@ _main() {
     filename="$(basename $0)"
     full_command_line="$*"
     export MYDIR=$(dirname $0)
-    
-    
+
     OUT_DIR=
     TEST_CLEAN=onsuccess
     parse_options "$@"
@@ -618,10 +620,10 @@ _main() {
     shift $((OPTIND-1))
     # Needs to be reset for the next parsing
     OPTIND=1
-    
+
     # Parse the (sub)command
     COMMAND=$1; shift  # Remove the command from the argument list
-    
+
     case "$COMMAND" in
         pyunittest|unittest) COMMAND="pyunittest"; command_file=do_unittest.sh;;
         bats) command_file=do_bats.sh;;
@@ -650,19 +652,24 @@ _main() {
     
     ## Need this because some strange control sequences when using default TERM=xterm
     export TERM="linux"
-    
+
     # Start creating files
     #OUT_DIR="$(robust_realpath "$OUT_DIR")"
-    
-    logstep start
-    
+
     if [[ ! -d "${OUT_DIR}" ]]; then
         if ! mkdir -p "${OUT_DIR}"; then
             logexit "failed to create output directory ${OUT_DIR}" 1 SETUP
         fi
         loginfo "created output directory ${OUT_DIR}"
     fi
-    
+
+    # Logging can begin once OUT_DIR has been created
+    # link a last log path to the last log (unless there is a file with that name)
+    lastlog_path="${OUT_DIR}/gwms.last.log"
+    [[ ! -e "$lastlog_path" || -L "$lastlog_path" ]] && ln -fs "$TESTLOG_FILE" "$lastlog_path"
+    # > "$TESTLOG_FILE"
+    logstep start
+
     # Setup temporary directory (if selected) and clone repo
     if [[ -n "$REPO" ]]; then
         # Checkout and run in temp directory (default mktemp)

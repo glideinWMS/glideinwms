@@ -10,7 +10,7 @@ load 'lib/bats-assert/load'
 setup() {
     # executed before each test
     source compat.bash
-    source "$GWMS_SOURCEDIR"/build/jenkins/runtest.sh 2>&3
+    source "$GWMS_SOURCEDIR"/build/ci/runtest.sh 2>&3
 }
 
 no_teardown() {
@@ -33,7 +33,8 @@ no_teardown() {
 @test "test_robust_realpath" {
     pushd /tmp
     run robust_realpath output
-    [ "$output" == "/tmp/output" ]
+    # on the Mac /tmp is really /private/tmp
+    [ "$output" == "/tmp/output" -o "$output" == "/private/tmp/output" ]
     [ "$status" -eq 0 ]
     popd
 }

@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_1_rc3
+# GLIDEINWMS_VERSION 3_7_1_rc8
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -11,7 +11,7 @@ a8c267df1e36c1c5e266724bc6b75277  ./creation/create_rpm_startup
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 08af9ee9230d763dea382203faf4d401  ./creation/lib/check_config_frontend.py
 fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
-431f3ff96a0d7cf93ad375e42ebdf2bd  ./creation/lib/cvWCreate.py
+3e83f15935ffe3274bf5c5446de92141  ./creation/lib/cvWCreate.py
 003648b0c16bb7c6b0c3fb740b1e2168  ./creation/lib/cvWDictFile.py
 c8fdc7f96b7224abfc1d73ba67fbc2c5  ./creation/lib/cvWParamDict.py
 c9b0300da5738d55a350e5ff2d114d90  ./creation/lib/cvWParams.py
@@ -51,7 +51,7 @@ dcc8d8111389ffc32201854adce0490d  ./creation/web_base/condor_chirp
 f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
-eb9c8fdc9e06471620bfa146ac96ba17  ./creation/web_base/condor_vars.lst
+3103de3a556c28cca031c8bcd88fca38  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
 ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
@@ -100,14 +100,14 @@ ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 348b14c55e29e17ab2c42f685078953d  ./factory/glideFactoryConfig.py
-36a70ff7bf90c96f3583c1fc2f3b54a2  ./factory/glideFactoryCredentials.py
+23035edb1194d0d5f570bc36abce1ec2  ./factory/glideFactoryCredentials.py
 d36f0595ebc093447ed5b9ae658e8216  ./factory/glideFactoryInterface.py
 cf2770f3d34a6e5c6ec719b6e4da9456  ./factory/glideFactorySelectionAlgorithms.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 194a647100540d5a636dfb31975c0869  ./frontend/checkFrontend.py
 19313063656cfe9a178ea07116497bd4  ./frontend/glideinFrontendConfig.py
 2bc4d50f3f03afe26d4af82c0b98d011  ./frontend/glideinFrontendDowntimeLib.py
-8987fb7e6dee4745a0a39438f4c0753f  ./frontend/glideinFrontendElement.py
+462e54fe9fb29e5d42ae4c9871d882f5  ./frontend/glideinFrontendElement.py
 af97a3c1808be18c5d67681a51523ced  ./frontend/glideinFrontendInterface.py
 435c7054ae2ac473d96cc09128b500b5  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
@@ -141,7 +141,7 @@ f3020fad84303f36cf6a60b0c50ce77c  ./install/glideinWMS.ini
 d47eaf4f178fa7f65320b83a2f56ce79  ./install/manage-glideins
 b3c31b69c6d30f967a7049b36a885d4a  ./install/services/Certificates.py
 f14d3d2b9bbff3d262cda7c17351b84d  ./install/services/common.py
-190c3845910d23cd9616e6a156d2d6eb  ./install/services/Condor.py
+89c59dc53475a68a8e34e2f5783f756c  ./install/services/Condor.py
 3f0de48b206ad1242bbbcba1104118ba  ./install/services/Configuration.py
 76dad58434fe42d1bae28b4260f3f25e  ./install/services/Factory.py
 e5bc9155aecb2166934b0f9ee711fee7  ./install/services/Glidein.py
@@ -189,8 +189,8 @@ cd59fc1720cd5485e50342613827f824  ./LICENSE
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 6f1c5269e2f53fb5c5195d866060c036  ./README.md
-6d1eb3ec8596e360ee0deb961f536d5f  ./requirements.txt
-6cbbe98e5b884d4bb1609f255a8324a4  ./test/bats/compat.bash
+ed315f07a89523a5a539508ea539fd47  ./requirements.txt
+d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
 fe42ae031ec6429e686142db05450571  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
