@@ -742,6 +742,21 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         </TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_DISK</b> </td>
+        <TD> Str </td>
+
+        <TD> EMPTY </TD>
+        <TD>
+            <P>Disk amout that the jobs running in the Glidein should use. This is used to configure the HTCondor SLOT_TYPE_ definitions that affect the value of Disk/TotalSlotDisk. 
+	    Valid values are the ones accepted by HTCondor for the "disk=" keyword in the SLOT_TYPE_ definition. The default is an empty string (undefined) which is equivalent to "auto". 
+	    It seems that for disk, valid values are the "auto" string (that lets HTCondor discover and handle the space), fractions or percentages, not absolute values.
+	    See the <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html#dividing-system-resources-in-multi-core-machines">HTCondor manual</a>. 
+	    </P>
+	    <p>NOTE: this setting does not assure that a certain amount of disk space will be available. To do so you'll have to use request_disk in the submit_attr section
+	    </p>
+        </TD>
+    </TR>
+     <TR>
         <td> <b>GLIDEIN_Factory_Report_Failed</b> </td>
         <td> String </TD>
         <td> ALIVEONLY </TD>
@@ -1916,6 +1931,7 @@ is used.
 <p>For more information, see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_Resource_Slots above. And
  <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=NUM_CPUS#condor-starter-configuration-file-entries">NUM_CPUS</a> in the HTCondor manual.
 </p>
+  <p>Other variables related to resource definition are GLIDEIN_DISK, GLIDEIN_MaxMemMBs, and GLIDEIN_MaxMemMBs_Estimate. See above.</p>
 </div>
 
 <div class="section">
