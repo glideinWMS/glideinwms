@@ -1126,7 +1126,9 @@ singularity_test_bin() {
     local sin_type
     local sin_image="$2"
     if [[ "$step" = module ]]; then
-        module load singularity >/dev/null 2>&1
+        local module_name=singularity
+	[[ -n "$sin_path" ]] && module_name=$sin_path
+        module load "$module_name" >/dev/null 2>&1
         # message on error?
         sin_path=$(which singularity)
         [[ -z "$sin_path" && "x$LMOD_CMD" = x/cvmfs/* ]] &&
@@ -1204,9 +1206,10 @@ singularity_locate_bin() {
     if [[ "$HAS_SINGULARITY" != True ]]; then
         # 2. Look in the default OSG location
         # 3. Look in $PATH
-        # 4. Invoke module
+        # 4. Invoke module singularitypro
+        # 5. Invoke module singularity
         #    some sites requires us to do a module load first - not sure if we always want to do that
-        for attempt in "OSG,${osg_singularity_binary}" "PATH,singularity" "module"; do
+        for attempt in "OSG,${osg_singularity_binary}" "PATH,singularity" "module,singularitypro" "module,singularity"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
