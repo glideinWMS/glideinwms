@@ -227,7 +227,8 @@ def main():
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
                       proxy_config['output'], proxy_config['lifetime'],
-                      fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], proxy_config['path_length'], proxy_config['bits'])
+                      fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], 
+                      proxy_config['path_length'], proxy_config['bits'])
 
         # Users used to be able to control the frequency of the renewal when they were instructed to write their own
         # script and cronjob. Since the automatic proxy renewal cron/timer runs every hour, we allow the users to
