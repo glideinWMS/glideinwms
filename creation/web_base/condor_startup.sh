@@ -427,12 +427,12 @@ let "x509_duration=$X509_EXPIRE - $now - 300"
 
 # Get relevant attributes from glidein_config if they exist
 # if they do not, check condor config from vars population above
-max_walltime=`grep -i "^GLIDEIN_Max_Walltime " "$config_file" | cut -d ' ' -f 2-`
-job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " "$config_file" | cut -d ' ' -f 2-`
-graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown " "$config_file" | cut -d ' ' -f 2-`
+max_walltime=$(grep -i "^GLIDEIN_Max_Walltime " "$config_file" | cut -d ' ' -f 2-)
+job_maxtime=$(grep -i "^GLIDEIN_Job_Max_Time " "$config_file" | cut -d ' ' -f 2-)
+graceful_shutdown=$(grep -i "^GLIDEIN_Graceful_Shutdown " "$config_file" | cut -d ' ' -f 2-)
 # randomize the retire time, to smooth starts and terminations
-retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " "$config_file" | cut -d ' ' -f 2-`
-expose_x509=`grep -i "^GLIDEIN_Expose_X509 " "$config_file" | cut -d ' ' -f 2-`
+retire_spread=$(grep -i "^GLIDEIN_Retire_Time_Spread " "$config_file" | cut -d ' ' -f 2-)
+expose_x509=$(grep -i "^GLIDEIN_Expose_X509 " "$config_file" | cut -d ' ' -f 2-)
 
 if [ -z "$expose_x509" ]; then
     expose_x509=`grep -i "^GLIDEIN_Expose_X509=" "$CONDOR_CONFIG" | awk -F"=" '{print $2}'`
@@ -706,17 +706,20 @@ EOF
 
         # Set number of CPUs (otherwise the physical number is used)
         echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+        # glidein_disk empty is the same as auto, used in the slot_type definitions
+        glidein_disk=$(grep -i "^GLIDEIN_DISK " "$config_file" | cut -d ' ' -f 2-)
         # set up the slots based on the slots_layout entry parameter
-        slots_layout=`grep -i "^SLOTS_LAYOUT " "$config_file" | cut -d ' ' -f 2-`
+	slots_layout=$(grep -i "^SLOTS_LAYOUT " "$config_file" | cut -d ' ' -f 2-)
         if [ "X$slots_layout" = "Xpartitionable" ]; then
             echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
-            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS) ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
             echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=1
         else
             # fixed slot
-            echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
+	    [[ -n "$glidein_disk" ]] && glidein_disk=$(unit_division $glidein_disk $GLIDEIN_CPUS)
+            echo "SLOT_TYPE_1 = cpus=1 ${glidein_disk:+disk=${glidein_disk}}" >> "$CONDOR_CONFIG"
             echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
             num_slots_for_shutdown_expr=$GLIDEIN_CPUS
         fi
