@@ -14,6 +14,7 @@ global_args="$*"
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 GWMS_PATH=""
 # Relative to the work directory
+# bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
 GWMS_DIR="gwms"
 
 export LANG=C
@@ -22,7 +23,7 @@ export LANG=C
 # Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
 # This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
-# Comment the following line is GlExec or similar will not be used
+# Comment the following line if GlExec or similar will not be used
 GWMS_MULTIUSER_GLIDEIN=true
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
@@ -389,6 +390,28 @@ print_tail() {
 work_dir_created=0
 glide_local_tmp_dir_created=0
 
+
+glidien_cleanup() {
+    # Remove Glidein directories (work_dir, glide_local_tmp_dir)
+    # 1 - exit code
+    # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, 
+    #   glide_local_tmp_dir_created, glide_local_tmp_dir
+    if ! cd "${start_dir}"; then
+        warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
+    else
+        if [[ ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]]; then
+            warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
+        else
+            if [ "${work_dir_created}" -eq "1" ]; then
+                rm -fR "${work_dir}"
+            fi
+            if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
+                rm -fR "${glide_local_tmp_dir}"
+            fi
+        fi
+    fi
+}
+
 # use this for early failures, when we cannot assume we can write to disk at all
 # too bad we end up with some repeated code, but difficult to do better
 early_glidein_failure() {
@@ -411,16 +434,7 @@ early_glidein_failure() {
   # have no global section
   final_result_long="$(simplexml2longxml "${final_result_simple}" "")"
 
-  if ! cd "${start_dir}"; then
-      warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
-      exit "$1"
-  fi
-  if [ "${work_dir_created}" -eq "1" ]; then
-    rm -fR "${work_dir}"
-  fi
-  if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
-    rm -fR "${glide_local_tmp_dir}"
-  fi
+  glidien_cleanup
 
   print_tail 1 "${final_result_simple}" "${final_result_long}"
 
@@ -557,16 +571,7 @@ glidein_exit() {
   log_write "glidein_startup.sh" "text" "glidein is about to exit with retcode $1" "info"
   send_logs_to_remote
 
-  if ! cd "${start_dir}"; then
-      warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
-      exit "$1"
-  fi
-  if [ "${work_dir_created}" -eq "1" ]; then
-    rm -fR "${work_dir}"
-  fi
-  if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
-    rm -fR "${glide_local_tmp_dir}"
-  fi
+  glidien_cleanup
 
   print_tail "$1" "${final_result_simple}" "${final_result_long}"
 
@@ -857,6 +862,21 @@ md5wrapper() {
     echo "${res}"
 }
 
+# Generate directory ID
+dir_id() {
+    # create an id to distinguish the directories when preserved
+    [[ ! ",${GLIDEIN_DEBUG_OPTIONS}," = *,nocleanup,* ]] && return
+    local dir_id=""
+    local tmp="${repository_url%%.*}"
+    tmp="${tmp#*//}"
+    dir_id="${tmp: -4}"
+    tmp="${client_repository_url%%.*}"
+    tmp="${tmp#*//}"
+    dir_id="${dir_id}${tmp: -4}"
+    [[ -z "${dir_id}" ]] && dir_id='debug'
+    echo "${dir_id}_"
+}
+
 # Generate glidein UUID
 if command -v uuidgen >/dev/null 2>&1; then
     glidein_uuid="$(uuidgen)"
@@ -1021,7 +1041,7 @@ fi
 start_dir="$(pwd)"
 echo "Started in ${start_dir}"
 
-def_work_dir="${work_dir}/glide_XXXXXX"
+def_work_dir="${work_dir}/glide_$(dir_id)XXXXXX"
 if ! work_dir="$(mktemp -d "${def_work_dir}")"; then
     early_glidein_failure "Cannot create temp '${def_work_dir}'"
 else
@@ -1037,15 +1057,17 @@ work_dir_created=1
 if ! mkdir "$GWMS_DIR" ; then
     early_glidein_failure "Cannot create '$GWMS_DIR'"
 fi
-
 gwms_lib_dir="${GWMS_DIR}/lib"
 if ! mkdir -p "$gwms_lib_dir" ; then
     early_glidein_failure "Cannot create '$gwms_lib_dir'"
 fi
-
 gwms_bin_dir="${GWMS_DIR}/bin"
 if ! mkdir -p "$gwms_bin_dir" ; then
     early_glidein_failure "Cannot create '$gwms_bin_dir'"
+fi
+gwms_exec_dir="${GWMS_DIR}/exec"
+if ! mkdir -p "$gwms_exec_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_exec_dir'"
 fi
 
 # mktemp makes it user readable by definition (ignores umask)
@@ -1054,7 +1076,7 @@ if ! chmod a+rx "${work_dir}"; then
     early_glidein_failure "Failed chmod '${work_dir}'"
 fi
 
-def_glide_local_tmp_dir="/tmp/glide_$(id -u -n)_XXXXXX"
+def_glide_local_tmp_dir="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
 if ! glide_local_tmp_dir="$(mktemp -d "${def_glide_local_tmp_dir}")"; then
     early_glidein_failure "Cannot create temp '${def_glide_local_tmp_dir}'"
 fi
@@ -1318,6 +1340,16 @@ fetch_file_regular() {
 }
 
 fetch_file() {
+    # custom_scripts parameters format is set in the GWMS configuration (creation/lib)
+    # 1. ID
+    # 2. target fname
+    # 3. real fname
+    # 4. file type (regular, exec, exec:s, untar, nocache)
+    # 5. period (0 if not a periodic file)
+    # 6. periodic scripts prefix
+    # 7. config check TRUE,FALSE
+    # 8. config out TRUE,FALSE
+    # The above is the most recent list, below some adaptations for different versions 
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
@@ -1632,7 +1664,7 @@ fetch_file_base() {
     fi
 
     # if executable, execute
-    if [ "${ffb_file_type}" = "exec" ]; then
+    if [[ "${ffb_file_type}" = "exec" || "${ffb_file_type}" = "exec:"* ]]; then
         if ! chmod u+x "${ffb_outname}"; then
             warn "Error making '${ffb_outname}' executable"
             return 1
@@ -1640,7 +1672,7 @@ fetch_file_base() {
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
         else
-            echo "Executing ${ffb_outname}"
+            "Executing (flags:${ffb_file_type#exec:}) ${ffb_outname}"
             # have to do it here, as this will be run before any other script
             chmod u+rx "${main_dir}"/error_augment.sh
 
@@ -1648,7 +1680,11 @@ fetch_file_base() {
             have_dummy_otrx=0
             "${main_dir}"/error_augment.sh -init
             START=$(date +%s)
-            "${ffb_outname}" glidein_config "${ffb_id}"
+            if [[ "${ffb_file_type}" = "exec:s" ]]; then
+                "${main_dir}/singularity_wrapper.sh" "${ffb_outname}" glidein_config "${ffb_id}"
+            else
+                "${ffb_outname}" glidein_config "${ffb_id}"
+            fi
             ret=$?
             END=$(date +%s)
             "${main_dir}"/error_augment.sh  -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
@@ -1824,62 +1860,65 @@ fi
 # Fetch all the other files
 for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
-  gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
+    gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
 
-  if [ -z "${client_repository_url}" ]; then
-      if [ "${gs_id}" = "client" ]; then
-          # no client file when no client_repository
-          continue
-      fi
-  fi
-  if [ -z "${client_repository_group_url}" ]; then
-      if [ "${gs_id}" = "client_group" ]; then
-          # no client group file when no client_repository_group
-          continue
-      fi
-  fi
+    if [ -z "${client_repository_url}" ]; then
+        if [ "${gs_id}" = "client" ]; then
+            # no client file when no client_repository
+            continue
+        fi
+    fi
+    if [ -z "${client_repository_group_url}" ]; then
+        if [ "${gs_id}" = "client_group" ]; then
+            # no client group file when no client_repository_group
+            continue
+        fi
+    fi
 
-  gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
-
-  gs_id_work_dir="$(get_work_dir "${gs_id}")"
-  gs_id_descript_file="$(get_descript_file "${gs_id}")"
-
-  # extract list file name
-  if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
-      if [ -z "${client_repository_group_url}" ]; then
-          if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
-              # afterfile_.. files optional when no client_repository_group
-              continue
-          fi
-      fi
+    gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
+    
+    gs_id_work_dir="$(get_work_dir "${gs_id}")"
+    gs_id_descript_file="$(get_descript_file "${gs_id}")"
+    
+    # extract list file name
+    if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
+        if [ -z "${client_repository_group_url}" ]; then
+            if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
+                # afterfile_.. files optional when no client_repository_group
+                continue
+            fi
+        fi
       warn "No '${gs_file_list_id}' in description file ${gs_id_work_dir}/${gs_id_descript_file}."
       glidein_exit 1
-  fi
-  # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
-  gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
-
-  # fetch list file
-  fetch_file_regular "${gs_id}" "${gs_file_list}"
-
-  # Fetch files contained in list
-  # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
-  # shellcheck disable=2086
-  while read -r file
-    do
-    if [ "${file:0:1}" != "#" ]; then
-      fetch_file "${gs_id}" $file
     fi
-  done < "${gs_id_work_dir}/${gs_file_list}"
-
-  # Files to go into the GWMS_PATH
-  if [ "$gs_file_id" = "main after_file_list" ]; then
-    cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
-    add_to_path "$PWD/$gwms_bin_dir"
-    for file in "gwms-python" "condor_chirp"
+    # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
+    gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
+    
+    # fetch list file
+    fetch_file_regular "${gs_id}" "${gs_file_list}"
+    
+    # Fetch files contained in list
+    # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
+    # shellcheck disable=2086
+    while read -r file
     do
-        cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
-    done
-  fi
+        if [ "${file:0:1}" != "#" ]; then
+            fetch_file "${gs_id}" $file
+        fi
+    done < "${gs_id_work_dir}/${gs_file_list}"
+
+    # Files to go into the GWMS_PATH
+    if [ "$gs_file_id" = "main after_file_list" ]; then
+        cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+        add_to_path "$PWD/$gwms_bin_dir"
+        for file in "gwms-python" "condor_chirp"
+        do
+            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
+        done
+    elif [[ "$gs_file_id" = client* ]]; then
+        # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
+        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/ ; chmod a-x "$gwms_exec_dir"/setup_prejob.sh ; } 
+    fi
 done
 
 ##############################

@@ -5,7 +5,7 @@ EXITSLEEP=10m
 GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
 GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
-GWMS_VERSION_SINGULARITY_WRAPPER=20200413
+GWMS_VERSION_SINGULARITY_WRAPPER=20201013
 # Updated using OSG wrapper #5d8b3fa9b258ea0e6640727405f20829d2c5d4b9
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
 # Link to the CMS wrapper
@@ -55,6 +55,8 @@ exit_wrapper () {
         publish_fail="${publish_fail}condor_chirp"
     fi
 
+    # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
+
     [[ -n "$publish_fail" ]] && warn "Failed to communicate ERROR with ${publish_fail}"
 
     #  TODO: Add termination stamp? see OSG
@@ -103,7 +105,8 @@ GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "
 info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config)."
 info_dbg "$GWMS_THIS_SCRIPT, in `pwd`, list: `ls -al`"
 
-exit_or_fallback () {
+# TODO: CodeRM1 to remove once singularity_prepare_and_invoke from singularity_lib.sh is in all the factories
+exit_or_fallback() {
     # An error in Singularity occurred. Fallback to no Singularity if preferred or fail if required
     # If this function returns, then is OK to fall-back to no Singularity (otherwise it will exit)
     # OSG is continuing after sleep, no fall-back, no exit
@@ -112,6 +115,7 @@ exit_or_fallback () {
     #  2: Exit code (1 by default)
     #  3: sleep time (default: $EXITSLEEP)
     #  $GWMS_SINGULARITY_STATUS
+    #  exit_wrapper (exit callback)
     if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]]; then
         # Fall back to no Singularity
         export HAS_SINGULARITY=0
@@ -124,8 +128,8 @@ exit_or_fallback () {
     fi
 }
 
-
-prepare_and_invoke_singularity () {
+# TODO: CodeRM1 to remove once singularity_prepare_and_invoke from singularity_lib.sh is in all the factories
+prepare_and_invoke_singularity() {
     # Code moved into a function to allow early return in case of failure
     # In:
     #   SINGULARITY_IMAGES_DICT: dictionary w/ Singularity images
@@ -325,21 +329,24 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
 
-    # Disabling outside LD_LIBRARY_PATH and PATH to avoid problems w/ different OS
+    # Always disabling outside LD_LIBRARY_PATH, PATH and PYTHONPATH to avoid problems w/ different OS
     # Singularity is supposed to handle this, but different versions behave differently
+    # Restore them only if continuing after the exec of singularity failed (end of this function)
+    local old_ld_library_path=
     if [[ -n "$LD_LIBRARY_PATH" ]]; then
+        old_ld_library_path=$LD_LIBRARY_PATH
         info "GWMS Singularity wrapper: LD_LIBRARY_PATH is set to $LD_LIBRARY_PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset LD_LIBRARY_PATH
     fi
-    OLD_PATH=
+    local old_path=
     if [[ -n "$PATH" ]]; then
-        OLD_PATH="$PATH"
+        old_path=$PATH
         info "GWMS Singularity wrapper: PATH is set to $PATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset PATH
     fi
-    OLD_PYTHONPATH=
+    local old_pythonpath=
     if [[ -n "$PYTHONPATH" ]]; then
-        OLD_PYTHONPATH="$PYTHONPATH"
+        old_pythonpath=$PYTHONPATH
         info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset PYTHONPATH
     fi
@@ -367,7 +374,12 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     # Continuing here only if exec of singularity failed
     GWMS_SINGULARITY_REEXEC=0
     env_restore "${GLIDEIN_CONTAINER_ENV}"
-    [[ -n "$OLD_PATH" ]] && PATH="$OLD_PATH"
+    # Restoring paths that are always cleared before invoking Singularity, 
+    # may contain something used for error communication
+    [[ -n "$old_path" ]] && PATH=$old_path
+    [[ -n "$old_ld_library_path" ]] && PATH=$old_ld_library_path
+    [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
+    # Exit or return to run w/o Singularity
     exit_or_fallback "exec of singularity failed" $?
 }
 
@@ -401,7 +413,12 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
         # We make sure that every cvmfs repository that users specify in CVMFSReposList is available, otherwise this script exits with 1
         cvmfs_test_and_open "$CVMFS_REPOS_LIST" exit_wrapper
 
-        prepare_and_invoke_singularity "$@"
+        # TODO: CodeRM1 to remove once singularity_prepare_and_invoke from singularity_lib.sh is in all the factories
+        if [[ "$(type -t singularity_prepare_and_invoke)" == 'function' ]]; then
+            singularity_prepare_and_invoke "${@}"
+        else
+            prepare_and_invoke_singularity "$@"
+        fi
 
         # If we arrive here, then something failed in Singularity but is OK to continue w/o
 
@@ -435,123 +452,131 @@ fi
 # This section will be executed:
 # - in Singularity (if $GWMS_SINGULARITY_REEXEC not empty)
 # - if is OK to run w/o Singularity ( $HAS_SINGULARITY" not true OR $GWMS_SINGULARITY_PATH" empty )
-# - if setup or exec of singularity failed (and it is possible to fall-back)
+# - if setup or exec of singularity failed (and it is possible to fall-back to no Singularity)
 #
 
 info_dbg "GWMS singularity wrapper, final setup."
 
-#############################
-#
-#  modules and env
-#
 
-# TODO: to remove for sure once 'pychirp' is tried and tested
-# TODO: not needed here? It is in singularity_setup_inside for when Singularity is invoked, and should be already in the PATH when it is not
-# Checked - glidin_startup seems not to add condor to the path
-# Add Glidein provided HTCondor back to the environment (so that we can call chirp) - same is in
-# TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
-if ! command -v condor_chirp > /dev/null 2>&1; then
-    # condor_chirp not found, setting up form the condor library
-    if [[ -e ../../main/condor/libexec ]]; then
-        DER="`(cd ../../main/condor; pwd)`"
-        export PATH="$DER/libexec:$PATH"
-        # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
-        # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
-    fi
-fi
-
-# fix discrepancy for Squid proxy URLs
-if [[ "x$GLIDEIN_Proxy_URL" = "x"  ||  "$GLIDEIN_Proxy_URL" = "None" ]]; then
-    if [[ "x$OSG_SQUID_LOCATION" != "x"  &&  "$OSG_SQUID_LOCATION" != "None" ]]; then
-        export GLIDEIN_Proxy_URL="$OSG_SQUID_LOCATION"
-    fi
-fi
-
-# load modules and spack, if available
-# InitializeModulesEnv and MODULE_USE are 2 variables to enable the use of modules
-[[ "x$InitializeModulesEnv" = "x1" ]] && MODULE_USE=1
-
-if [[ "x$MODULE_USE" = "x1" ]]; then
-    # Removed LMOD_BETA (/cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh), obsolete
-    if [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
-        . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
-    fi
-    module -v >/dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        # module setup did not work, ignore it for the rest of the script
-        MODULE_USE=0
-    fi
-fi
-
-
-#############################
-#
-#  Stash cache
-#
-
-setup_stashcp () {
-    if [[ "x$MODULE_USE" != "x1" ]]; then
-        warn "Module unavailable. Unable to setup Stash cache if not in the environment."
-        return 1
-    fi
-
-    # if we do not have stashcp in the path, load stashcache and xrootd from modules
-    if ! which stashcp >/dev/null 2>&1; then
-        module load stashcache >/dev/null 2>&1 || module load stashcp >/dev/null 2>&1
-
-        # The OSG wrapper (as of 5d8b3fa9b258ea0e6640727405f20829d2c5d4b9) removed this xrdcp setup
-        # We need xrootd, which is available both in the OSG software stack
-        # as well as modules - use the system one by default
-        if ! which xrdcp >/dev/null 2>&1; then
-            module load xrootd >/dev/null 2>&1
-        fi
-
-        # Determine XRootD plugin directory.
-        # in lieu of a MODULE_<name>_BASE from lmod, this will do:
-        if [ -n "$XRD_PLUGINCONFDIR" ]; then
-            export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
-            export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
+# TODO: CodeRM1 to remove once gwms_process_scripts from singularity_lib.sh and the new setup_prejob.sh 
+#  are in all the factories and frontends
+if [[ "$(type -t gwms_process_scripts)" == 'function' ]]; then
+    gwms_process_scripts "$GWMS_AUX_DIR" prejob
+else
+    #############################
+    #
+    #  modules and env
+    #
+    
+    # TODO: to remove for sure once 'pychirp' is tried and tested
+    # TODO: not needed here? It is in singularity_setup_inside for when Singularity is invoked, and should be already in the PATH when it is not
+    # Checked - glidin_startup seems not to add condor to the path
+    # Add Glidein provided HTCondor back to the environment (so that we can call chirp) - same is in
+    # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
+    if ! command -v condor_chirp > /dev/null 2>&1; then
+        # condor_chirp not found, setting up form the condor library
+        if [[ -e ../../main/condor/libexec ]]; then
+            DER="`(cd ../../main/condor; pwd)`"
+            export PATH="$DER/libexec:$PATH"
+            # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
+            # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
         fi
     fi
-
-}
-
-# Check for PosixStashCache first
-if [[ "x$POSIXSTASHCACHE" = "x1" ]]; then
-    setup_stashcp
-    if [[ $? -eq 0 ]]; then
-
-        # Add the LD_PRELOAD hook
-        export LD_PRELOAD="$MODULE_XROOTD_BASE/lib64/libXrdPosixPreload.so:$LD_PRELOAD"
-
-        # Set proxy for virtual mount point
-        # Format: cache.domain.edu/local_mount_point=/storage_path
-        # E.g.: export XROOTD_VMP=data.ci-connect.net:/stash=/
-        # Currently this points _ONLY_ to the OSG Connect source server
-        export XROOTD_VMP=$(stashcp --closest | cut -d'/' -f3):/stash=/
+    
+    # fix discrepancy for Squid proxy URLs
+    if [[ "x$GLIDEIN_Proxy_URL" = "x"  ||  "$GLIDEIN_Proxy_URL" = "None" ]]; then
+        if [[ "x$OSG_SQUID_LOCATION" != "x"  &&  "$OSG_SQUID_LOCATION" != "None" ]]; then
+            export GLIDEIN_Proxy_URL="$OSG_SQUID_LOCATION"
+        fi
     fi
-elif [[ "x$STASHCACHE" = "x1"  ||  "x$STASHCACHE_WRITABLE" = "x1" ]]; then
-    setup_stashcp
-    # No more extra path for $STASHCACHE_WRITABLE
-    # [[ $? -eq 0 ]] && [[ "x$STASHCACHE_WRITABLE" = "x1" ]]export PATH="/cvmfs/oasis.opensciencegrid.org/osg/projects/stashcp/writeback:$PATH"
+    
+    # load modules and spack, if available
+    # InitializeModulesEnv and MODULE_USE are 2 variables to enable the use of modules
+    [[ "x$InitializeModulesEnv" = "x1" ]] && MODULE_USE=1
+    
+    if [[ "x$MODULE_USE" = "x1" ]]; then
+        # Removed LMOD_BETA (/cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh), obsolete
+        if [[ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh  &&  -e /cvmfs/connect.opensciencegrid.org/modules/spack/share/spack/setup-env.sh ]]; then
+            . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
+        fi
+        module -v >/dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            # module setup did not work, ignore it for the rest of the script
+            MODULE_USE=0
+        fi
+    fi
+    
+    
+    #############################
+    #
+    #  Stash cache
+    #
+    
+    setup_stashcp () {
+        if [[ "x$MODULE_USE" != "x1" ]]; then
+            warn "Module unavailable. Unable to setup Stash cache if not in the environment."
+            return 1
+        fi
+    
+        # if we do not have stashcp in the path, load stashcache and xrootd from modules
+        if ! which stashcp >/dev/null 2>&1; then
+            module load stashcache >/dev/null 2>&1 || module load stashcp >/dev/null 2>&1
+    
+            # The OSG wrapper (as of 5d8b3fa9b258ea0e6640727405f20829d2c5d4b9) removed this xrdcp setup
+            # We need xrootd, which is available both in the OSG software stack
+            # as well as modules - use the system one by default
+            if ! which xrdcp >/dev/null 2>&1; then
+                module load xrootd >/dev/null 2>&1
+            fi
+    
+            # Determine XRootD plugin directory.
+            # in lieu of a MODULE_<name>_BASE from lmod, this will do:
+            if [ -n "$XRD_PLUGINCONFDIR" ]; then
+                export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
+                export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
+            fi
+        fi
+    
+    }
+    
+    # Check for PosixStashCache first
+    if [[ "x$POSIXSTASHCACHE" = "x1" ]]; then
+        setup_stashcp
+        if [[ $? -eq 0 ]]; then
+    
+            # Add the LD_PRELOAD hook
+            export LD_PRELOAD="$MODULE_XROOTD_BASE/lib64/libXrdPosixPreload.so:$LD_PRELOAD"
+    
+            # Set proxy for virtual mount point
+            # Format: cache.domain.edu/local_mount_point=/storage_path
+            # E.g.: export XROOTD_VMP=data.ci-connect.net:/stash=/
+            # Currently this points _ONLY_ to the OSG Connect source server
+            export XROOTD_VMP=$(stashcp --closest | cut -d'/' -f3):/stash=/
+        fi
+    elif [[ "x$STASHCACHE" = "x1"  ||  "x$STASHCACHE_WRITABLE" = "x1" ]]; then
+        setup_stashcp
+        # No more extra path for $STASHCACHE_WRITABLE
+        # [[ $? -eq 0 ]] && [[ "x$STASHCACHE_WRITABLE" = "x1" ]]export PATH="/cvmfs/oasis.opensciencegrid.org/osg/projects/stashcp/writeback:$PATH"
+    fi
+    
+    
+    ################################
+    #
+    #  Load user specified modules
+    #
+    if [[ "X$LoadModules" != "X" ]]; then
+        if [[ "x$MODULE_USE" != "x1" ]]; then
+            warn "Module unavailable. Unable to load desired modules: $LoadModules"
+        else
+            ModuleList=`echo $LoadModules | sed 's/^LoadModules = //i;s/"//g'`
+            for Module in $ModuleList; do
+                info_dbg "Loading module: $Module"
+                module load $Module
+            done
+        fi
+    fi
 fi
 
-
-################################
-#
-#  Load user specified modules
-#
-if [[ "X$LoadModules" != "X" ]]; then
-    if [[ "x$MODULE_USE" != "x1" ]]; then
-        warn "Module unavailable. Unable to load desired modules: $LoadModules"
-    else
-        ModuleList=`echo $LoadModules | sed 's/^LoadModules = //i;s/"//g'`
-        for Module in $ModuleList; do
-            info_dbg "Loading module: $Module"
-            module load $Module
-        done
-    fi
-fi
 
 # TODO: This is OSG specific. Should there be something similar in GWMS?
 ###############################

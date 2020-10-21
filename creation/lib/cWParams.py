@@ -336,6 +336,8 @@ class CommonParams(Params):
         self.file_defaults["untar"]=("False", 'Bool', 'Do I need to untar it? ', None)
         self.file_defaults["period"]=(0, 'int', 'Re-run the executable every "period" seconds if > 0.', None)
         self.file_defaults["prefix"]=("GLIDEIN_PS_", 'string', 'Prefix used for periodic jobs (STARTD_CRON).', None)
+        self.file_defaults["type"]=(None, 'string', 'File type (regular,run,source). Allows modifiers like ":singularity" to run in singularity.', None)
+        # TODO: consider adding "time" setup, prejob, postjob, cleanup, periodic. setup & cleanup w/ qualifier :bebg-aeag before/after entry + before/after group og na (group positioning does not apply to factory files)
         # to add check scripts around jobs: self.file_defaults["job_wrap"]=("no","pre|post|no",'Run the executable before (pre) or after (post) each job.',None)
 
         untar_defaults=commentedOrderedDict()
@@ -361,7 +363,7 @@ class CommonParams(Params):
 # Check is a string can be used as a valid name
 # Whitelist based
 
-# only allow ascii charactersm, the numbers and a few punctuations
+# only allow ascii characters, the numbers and a few punctuations
 # no spaces, not special characters or other punctuation
 VALID_NAME_CHARS=string.ascii_letters+string.digits+'._-'
 
