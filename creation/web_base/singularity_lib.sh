@@ -161,8 +161,9 @@ gwms_process_scripts() {
     #  run the executable files, source the remaining files if extentsion is .sh .source 
     # 1- directory scripts to process
     # 2- a modifier to search only in subdirectories (prejob)
-    local old_pwd=$(robust_realpath "$PWD")
-    local my_pwd=$(robust_realpath "$1")
+    local old_pwd my_pwd
+    old_pwd=$(robust_realpath "$PWD")
+    my_pwd=$(robust_realpath "$1")
     if [[ -n "$2" ]]; then 
         case "$2" in
             prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
@@ -292,7 +293,8 @@ dict_get_keys() {
     # Returning the elements would flatten the array and cause problems w/ spaces
     # $1 dict
     local my_dict=${!1}
-    local res="`echo "$my_dict," | sed 's/:[^,]*,/,/g; s/,\+/,/g'`"
+    local res
+    res=$(echo "$my_dict," | sed 's/:[^,]*,/,/g; s/,\+/,/g')
     echo "${res%,}"
 }
 
@@ -443,16 +445,19 @@ get_prop_str() {
 # $glidein_config from the file importing this
 # add_config_line and add_condor_vars_line are in add_config_line.source (ADD_CONFIG_LINE_SOURCE in $glidein_config)
 if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$glidein_config" != "NONE" ]
-    error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+    error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
     if [[ "x$SOURCED_ADD_CONFIG_LINE" = "x" ]]; then
         # import add_config_line and add_condor_vars_line functions used in advertise
         if [[ "x$add_config_line_source" = "x" ]]; then
-            export add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-`"
-            export       condor_vars_file="`grep -i "^CONDOR_VARS_FILE "    $glidein_config | cut -d ' ' -f 2-`"
+            add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | cut -d ' ' -f 2-)
+            export add_config_line_source
+            condor_vars_file=$(grep -i "^CONDOR_VARS_FILE "    $glidein_config | cut -d ' ' -f 2-)
+            export condor_vars_file
         fi
 
         if [[ -e "$add_config_line_source" ]]; then
             info "Sourcing add config line: $add_config_line_source"
+            # shellcheck source=./add_config_line.source
             . "$add_config_line_source"
             # make sure we don't source a second time inside the container
             export SOURCED_ADD_CONFIG_LINE=1
@@ -629,7 +634,8 @@ env_clear() {
     #  2 - singularity options (GWMS_SINGULARITY_EXTRA_OPTS)
     # Out
     #  stdout - modified singularity option (w/ cleanenv option added if needed)
-    local env_options=",$(env_process_options "$1"),"
+    local env_options
+    env_options=",$(env_process_options "$1"),"
     local singularity_opts="$2"
     if [[ "${env_options}" = *",clearall,"* ]]; then
         # add cleanenv option to singularity
@@ -719,7 +725,8 @@ env_preserve() {
     X509_USER_KEY \
     X509_USER_PROXY"
 
-    local env_options=",$(env_process_options "$1"),"
+    local env_options
+    env_options=",$(env_process_options "$1"),"
     local env_preserve=
     local all_condor_set_envvars varname singenv_condor_set_envvars="" singenv_regex="^SINGULARITYENV_"
     # Protect GWMS variables all the time the environment is cleared
@@ -792,8 +799,8 @@ env_restore() {
     #
     # In
     #  1 - list of environment options (see env_process_options)
-    local env_options=",$(env_process_options "$1"),"
-    local varname
+    local env_options varname
+    env_options=",$(env_process_options "$1"),"
     if [[ "${env_options}" = *",clearall,"* || "${env_options}" = *",clearpaths,"* ]]; then
         # clear the ...PATH variables
         # PATH should be cleared also by Singularity, but the behavior is inconsistent across versions
@@ -936,7 +943,8 @@ singularity_update_path() {
     #  GWMS_RETURN - Array variable w/ the commands
     GWMS_RETURN=()
     local outside_pwd="${GWMS_SINGULARITY_OUTSIDE_PWD:-$PWD}"
-    local outside_pwd_list="$(singularity_make_outside_pwd_list "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" \
+    local outside_pwd_list
+    outside_pwd_list="$(singularity_make_outside_pwd_list "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" \
         "${outside_pwd}" "$(robust_realpath "${outside_pwd}")" \
         "${GWMS_THIS_SCRIPT_DIR}" "${_CONDOR_JOB_IWD}")"
     export GWMS_SINGULARITY_OUTSIDE_PWD_LIST="${outside_pwd_list}"
@@ -952,12 +960,12 @@ singularity_update_path() {
         for out_path in $outside_pwd_list; do
             # the case is checking "/" ensuring that partial matches are discarded
             case "$arg" in
-                $out_path) arg="${inside_pwd}"; arg_found=true;;
-                $out_path/*) arg="${arg/#$out_path/$inside_pwd}"; arg_found=true;;
+                "$out_path") arg="${inside_pwd}"; arg_found=true;;
+                "$out_path"/*) arg="${arg/#$out_path/$inside_pwd}"; arg_found=true;;
                 /*) [[ -z "$arg2" ]] && arg2="$(robust_realpath "${arg}")"
                     case "$arg2" in
-                        $out_path) arg="${inside_pwd}"; arg_found=true;;
-                        $out_path/*) arg="${arg2/#$out_path/$inside_pwd}"; arg_found=true;;
+                        "$out_path") arg="${inside_pwd}"; arg_found=true;;
+                        "$out_path"/*) arg="${arg2/#$out_path/$inside_pwd}"; arg_found=true;;
                     esac
             esac
             # Warn about possible error conditions
@@ -1443,7 +1451,8 @@ singularity_check() {
     # Test for privileged singularity suggested by D.Dykstra
     # singularity exec -c -i -p ~/work/singularity/cvmfs-fuse3 cat /proc/self/uid_map 2>/dev/null|awk '{if ($2 == "0") print "privileged"; else print "unprivileged"; gotone=1;exit} END{if (gotone != 1) print "failed"}'
     if [[ -e /proc/self/uid_map ]]; then
-        local check_privileged="$(cat /proc/self/uid_map 2>/dev/null | head -n1 | tr -s '[:blank:]' ','),"
+        local check_privileged
+        check_privileged="$(cat /proc/self/uid_map 2>/dev/null | head -n1 | tr -s '[:blank:]' ','),"
         if [[ "$check_privileged" = ,0,* ]]; then
             [[ "$check_privileged" = ,0,0,* ]] && in_singularity=${in_singularity}_privileged || in_singularity=${in_singularity}_fakeroot
         fi
@@ -1522,7 +1531,7 @@ singularity_prepare_and_invoke() {
         # Use OS matching to determine default; otherwise, set to the global default.
         #  # Correct some legacy names? What if they are used in the dictionary?
         #  REQUIRED_OS="`echo ",$REQUIRED_OS," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
-        DESIRED_OS="`list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}"`"
+        DESIRED_OS=$(list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}")
         if [[ -z "$DESIRED_OS" ]]; then
             msg="ERROR   VO (or job) REQUIRED_OS and Entry GLIDEIN_REQUIRED_OS have no intersection. Cannot select a Singularity image."
             singularity_exit_or_fallback "$msg" 1
@@ -1530,9 +1539,9 @@ singularity_prepare_and_invoke() {
         fi
         if [[ "x$DESIRED_OS" = xany ]]; then
             # Prefer the platforms default,rhel7,rhel6,rhel8, otherwise pick the first one available
-            GWMS_SINGULARITY_IMAGE="$(singularity_get_image default,rhel7,rhel6,rhel8 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)"
+            GWMS_SINGULARITY_IMAGE=$(singularity_get_image default,rhel7,rhel6,rhel8 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)
         else
-            GWMS_SINGULARITY_IMAGE="$(singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS)"
+            GWMS_SINGULARITY_IMAGE=$(singularity_get_image "$DESIRED_OS" $GWMS_SINGULARITY_IMAGE_RESTRICTIONS)
         fi
     fi
 
@@ -1596,30 +1605,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "using image $GWMS_SINGULARITY_IMAGE_HUMAN ($GWMS_SINGULARITY_IMAGE)"
     # Singularity image is OK, continue w/ other init
 
-    # If gwms dir is present, then copy it inside the container.
-    if [[ -d ../../gwms ]]; then
-        if mkdir -p gwms && cp -r ../../gwms/* gwms/; then
-            # Should copy only lib and bin instead?
-            # TODO: change the message when condor_chirp requires no more special treatment
-            info_dbg "copied GlideinWMS utilities (bin and libs, including condor_chirp) inside the container ($(pwd)/gwms)"
-        else
-	    warn "Unable to copy GlideinWMS utilities inside the container (to $(pwd)/gwms)"
-        fi
-    else
-        warn "Unable to find GlideinWMS utilities (../../gwms from $(pwd))"
-    fi
-
-    # TODO: this is no more needed once 'pychirp' in gwms is tried and tested
-    # If condor_chirp is present, then copy it inside the container.
-    # This is used in singularity_lib.sh/singularity_setup_inside()
-    if [ -e ../../main/condor/libexec/condor_chirp ]; then
-        mkdir -p condor/libexec
-        cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
-        mkdir -p condor/lib
-        cp -r ../../main/condor/lib condor/
-        info_dbg "copied HTCondor condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
-    fi
-
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
     if [[ -n "$GLIDEIN_Tmp_Dir"  &&  -e "$GLIDEIN_Tmp_Dir" ]]; then
         if mkdir "$GLIDEIN_Tmp_Dir/singularity-work.$$" ; then
@@ -1665,16 +1650,46 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
+    # TODO: this is no more needed once 'pychirp' in gwms is tried and tested
+    # If condor_chirp is present, then copy it inside the container.
+    # This is used in singularity_lib.sh/singularity_setup_inside()
+    if [ -e ../../main/condor/libexec/condor_chirp ]; then
+        mkdir -p condor/libexec
+        cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
+        mkdir -p condor/lib
+        cp -r ../../main/condor/lib condor/
+        info_dbg "copied HTCondor condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
+    fi
+
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
-    # notably the user-job-wrapper.sh (this script!) and singularity_lib.sh (in $GWMS_AUX_SUBDIR)
+    # notably $GWMS_DIR (bin, lib, ...), the user-job-wrapper.sh (this script!) 
+    # and singularity_lib.sh (in $GWMS_AUX_SUBDIR)
+    #
+    # If gwms dir is present, then copy it inside the container
+    [[ -z "$GWMS_SUBDIR" ]] && { GWMS_SUBDIR=".gwms.d"; warn "GWMS_SUBDIR was undefined, setting to '.gwms.d'"; }
+    local gwms_dir=${GWMS_DIR:-"../../$GWMS_SUBDIR"}
+    if [[ -d "$gwms_dir" ]]; then
+        if mkdir -p "$GWMS_SUBDIR" && cp -r "$gwms_dir"/* "$GWMS_SUBDIR/"; then
+            # Should copy only lib and bin instead?
+            # TODO: change the message when condor_chirp requires no more special treatment
+            info_dbg "copied GlideinWMS utilities (bin and libs, including condor_chirp) inside the container ($(pwd)/$GWMS_SUBDIR)"
+        else
+            warn "Unable to copy GlideinWMS utilities inside the container (to $(pwd)/$GWMS_SUBDIR)"
+        fi
+    else
+        warn "Unable to find GlideinWMS utilities ($gwms_dir from $(pwd))"
+    fi
+    # copy singularity_lib.sh (in $GWMS_AUX_SUBDIR)
     mkdir -p "$GWMS_AUX_SUBDIR"
-    cp "${GWMS_AUX_DIR}singularity_lib.sh" "$GWMS_AUX_SUBDIR/"
+    cp "${GWMS_AUX_DIR}/singularity_lib.sh" "$GWMS_AUX_SUBDIR/"       
+    # mount the original glidein directory (for setup scripts only, not jobs)
     if [[ -n "$GWMS_BASE_SUBDIR" ]]; then
         # Make the glidein directory visible in singularity
         mkdir -p "$GWMS_BASE_SUBDIR"
         GWMS_SINGULARITY_WRAPPER_BINDPATHS_OVERRIDE="${GWMS_SINGULARITY_WRAPPER_BINDPATHS_OVERRIDE:+${GWMS_SINGULARITY_WRAPPER_BINDPATHS_OVERRIDE},}$( dirname "${GWMS_THIS_SCRIPT_DIR}"):/srv/$GWMS_BASE_SUBDIR"
     fi
+    # copy the wrapper.sh (this script!)
     if [[ "$GWMS_THIS_SCRIPT" == */main/singularity_wrapper.sh ]]; then
         export JOB_WRAPPER_SINGULARITY="/srv/$GWMS_BASE_SUBDIR/main/singularity_wrapper.sh"
     else
@@ -1701,9 +1716,10 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         fi
     done
     export GWMS_SINGULARITY_OUTSIDE_PWD="$GWMS_SINGULARITY_OUTSIDE_PWD"
-    export GWMS_SINGULARITY_OUTSIDE_PWD_LIST="$(singularity_make_outside_pwd_list \
+    GWMS_SINGULARITY_OUTSIDE_PWD_LIST="$(singularity_make_outside_pwd_list \
         "${GWMS_SINGULARITY_OUTSIDE_PWD_LIST}" "${PWD}" "$(robust_realpath "${PWD}")" \
         "${GWMS_THIS_SCRIPT_DIR}" "${_CONDOR_JOB_IWD}")"
+    export GWMS_SINGULARITY_OUTSIDE_PWD_LIST
 
     # Build a new command line, with updated paths. Returns an array in GWMS_RETURN
     singularity_update_path /srv "$@"
@@ -1951,10 +1967,10 @@ singularity_setup_inside() {
     [[ -n "$OSG_WN_TMP" ]] && export OSG_WN_TMP=/tmp
 
     # GlideinWMS utility files and libraries
-    if [[ -e "$PWD/gwms/bin" ]]; then
+    if [[ -e "$PWD/$GWMS_SUBDIR/bin" ]]; then
         # This includes the portable Python only condor_chirp
-        export PATH="$PWD/gwms/bin:$PATH"
-        # export LD_LIBRARY_PATH="$PWD/gwms/lib/lib:$LD_LIBRARY_PATH"
+        export PATH="$PWD/$GWMS_SUBDIR/bin:$PATH"
+        # export LD_LIBRARY_PATH="$PWD/$GWMS_SUBDIR/lib/lib:$LD_LIBRARY_PATH"
     fi
 
     if ! command -v condor_chirp > /dev/null 2>&1; then

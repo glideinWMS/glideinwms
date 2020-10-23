@@ -2,9 +2,15 @@
 # GlideinWMS singularity wrapper. Invoked by HTCondor as user_job_wrapper
 # default_singularity_wrapper USER_JOB [job options and arguments]
 EXITSLEEP=10m
-GWMS_AUX_SUBDIR=.gwms_aux
 GWMS_THIS_SCRIPT="$0"
-GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
+GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
+
+# Directory in Singularity where auxiliary files are copied (e.g. singularity_lib.sh)
+GWMS_AUX_SUBDIR=${GWMS_AUX_SUBDIR:-".gwms_aux"}
+# GWMS_BASE_SUBDIR (directory where the base glidein directory is mounted) not defiled in Singularity for the user jobs, only for setup scripts
+# Directory to use for bin, lib, exec, ...
+GWMS_SUBDIR=${GWMS_SUBDIR:-".gwms.d"}
+
 GWMS_VERSION_SINGULARITY_WRAPPER=20201013
 # Updated using OSG wrapper #5d8b3fa9b258ea0e6640727405f20829d2c5d4b9
 # https://github.com/opensciencegrid/osg-flock/blob/master/job-wrappers/user-job-wrapper.sh
@@ -89,21 +95,37 @@ export PATH=$PATH
 # condor_job_wrapper is in the base directory, singularity_lib.sh in main
 # and copied to RUNDIR/$GWMS_AUX_SUBDIR (RUNDIR becomes /srv in Singularity)
 if [[ -e "$GWMS_THIS_SCRIPT_DIR/main/singularity_lib.sh" ]]; then
-    GWMS_AUX_DIR="$GWMS_THIS_SCRIPT_DIR/main/"
+    GWMS_AUX_DIR="$GWMS_THIS_SCRIPT_DIR/main"
 elif [[ -e /srv/$GWMS_AUX_SUBDIR/singularity_lib.sh ]]; then
     # In Singularity
-    GWMS_AUX_DIR="/srv/$GWMS_AUX_SUBDIR/"
+    GWMS_AUX_DIR="/srv/$GWMS_AUX_SUBDIR"
 else
     echo "ERROR: $GWMS_THIS_SCRIPT: Unable to source singularity_lib.sh! File not found. Quitting" 1>&2
     warn=warn_raw
     exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to source singularity_lib.sh" 1
 fi
-source ${GWMS_AUX_DIR}singularity_lib.sh
+# shellcheck source=../singularity_lib.sh
+. "${GWMS_AUX_DIR}"/singularity_lib.sh
+
+# Directory to use for bin, lib, exec, ... full path
+if [[ -n "$GWMS_DIR" && -e "$GWMS_DIR/bin" ]]; then
+    # already set, keep it
+    true
+elif [[ -e $GWMS_THIS_SCRIPT_DIR/$GWMS_SUBDIR/bin ]]; then
+    GWMS_DIR=$GWMS_THIS_SCRIPT_DIR/$GWMS_SUBDIR
+elif [[ -e /srv/$GWMS_SUBDIR/bin ]]; then
+    GWMS_DIR=/srv/$GWMS_SUBDIR
+elif [[ -e /srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin ]]; then
+    GWMS_DIR=/srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin
+else
+    echo "ERROR: $GWMS_THIS_SCRIPT: Unable to gind GWMS_DIR! File not found. Quitting" 1>&2
+    exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to find GWMS_DIR" 1
+fi
 
 # Calculating full version number, including md5 sums form the wrapper and singularity_lib
-GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
-info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, `date`. Imported singularity_lib.sh. glidein_config ($glidein_config)."
-info_dbg "$GWMS_THIS_SCRIPT, in `pwd`, list: `ls -al`"
+GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}/singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
+info_dbg "GWMS singularity wrapper ($GWMS_VERSION_SINGULARITY_WRAPPER) starting, $(date). Imported singularity_lib.sh. glidein_config ($glidein_config)."
+info_dbg "$GWMS_THIS_SCRIPT, in $(pwd), list: $(ls -al)"
 
 # TODO: CodeRM1 to remove once singularity_prepare_and_invoke from singularity_lib.sh is in all the factories
 exit_or_fallback() {
@@ -142,7 +164,7 @@ prepare_and_invoke_singularity() {
         # Use OS matching to determine default; otherwise, set to the global default.
         #  # Correct some legacy names? What if they are used in the dictionary?
         #  REQUIRED_OS="`echo ",$REQUIRED_OS," | sed "s/,el7,/,rhel7,/;s/,el6,/,rhel6,/;s/,+/,/g;s/^,//;s/,$//"`"
-        DESIRED_OS="`list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}"`"
+        DESIRED_OS=$(list_get_intersection "${GLIDEIN_REQUIRED_OS:-any}" "${REQUIRED_OS:-any}")
         if [[ -z "$DESIRED_OS" ]]; then
             msg="ERROR   VO (or job) REQUIRED_OS and Entry GLIDEIN_REQUIRED_OS have no intersection. Cannot select a Singularity image."
             exit_or_fallback "$msg" 1
@@ -182,7 +204,7 @@ ERROR   If you get this error when you did not specify required OS, your VO does
             EXITSLEEP=10m
             msg="\
 ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
-        Site and node: $OSG_SITE_NAME `hostname -f`"
+        Site and node: $OSG_SITE_NAME $(hostname -f)"
             # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
             exit_or_fallback "$msg" 1
             return
@@ -210,7 +232,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         export GWMS_SINGULARITY_BIND_CVMFS=1
         if (cd "$GWMS_SINGULARITY_IMAGE") >/dev/null 2>&1; then
             # This will fail for images that are not expanded in CVMFS, just ignore the failure
-            NEW_IMAGE_PATH="`(cd "$GWMS_SINGULARITY_IMAGE" && pwd -P) 2>/dev/null`"
+            NEW_IMAGE_PATH=$( (cd "$GWMS_SINGULARITY_IMAGE" && pwd -P) 2>/dev/null )
             if [[ "x$NEW_IMAGE_PATH" != "x" ]]; then
                 GWMS_SINGULARITY_IMAGE="$NEW_IMAGE_PATH"
             fi
@@ -227,7 +249,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
             # TODO: change the message when condor_chirp requires no more special treatment
             info_dbg "copied GlideinWMS utilities (bin and libs, including condor_chirp) inside the container ($(pwd)/gwms)"
         else
-	    warn "Unable to copy GlideinWMS utilities inside the container (to $(pwd)/gwms)"
+            warn "Unable to copy GlideinWMS utilities inside the container (to $(pwd)/gwms)"
         fi
     else
         warn "Unable to find GlideinWMS utilities (../../gwms from $(pwd))"
@@ -262,7 +284,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # CVMFS access inside container (default, but optional)
     if [[ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]]; then
-        GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs`"
+        GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs)
     fi
 
     # GPUs - bind outside GPU library directory to inside /host-libs
@@ -275,10 +297,10 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
                 HOST_LIBS="$PWD/.host-libs"
             fi
             if [[ "x$HOST_LIBS" != "x" ]]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "$HOST_LIBS" /host-libs`"
+                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "$HOST_LIBS" /host-libs)
             fi
             if [[ -e /etc/OpenCL/vendors ]]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
+                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS=$(dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors)
             fi
         fi
         GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --nv"
@@ -286,7 +308,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         # if not using gpus, we can limit the image more
         # Already in default: GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --contain"
     fi
-    info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
+    info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:$([ -n "$HOST_LIBS" ] && echo 1), ocl:$([ -e /etc/OpenCL/vendors ] && echo 1)): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
@@ -324,7 +346,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
 
     # Get Singularity binds, uses also GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT
     # remove binds w/ non existing src (e)
-    singularity_binds="`singularity_get_binds e "$GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"`"
+    singularity_binds=$(singularity_get_binds e "$GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS")
     # Run and log the Singularity command.
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
@@ -442,7 +464,7 @@ else
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
-    info_dbg "GWMS singularity wrapper, running inside singularity env = "`printenv`
+    info_dbg "GWMS singularity wrapper, running inside singularity env = $(printenv)"
 
 fi
 
@@ -476,7 +498,7 @@ else
     if ! command -v condor_chirp > /dev/null 2>&1; then
         # condor_chirp not found, setting up form the condor library
         if [[ -e ../../main/condor/libexec ]]; then
-            DER="`(cd ../../main/condor; pwd)`"
+            DER=$( (cd ../../main/condor; pwd) )
             export PATH="$DER/libexec:$PATH"
             # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
             # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
@@ -532,7 +554,8 @@ else
             # Determine XRootD plugin directory.
             # in lieu of a MODULE_<name>_BASE from lmod, this will do:
             if [ -n "$XRD_PLUGINCONFDIR" ]; then
-                export MODULE_XROOTD_BASE="$(which xrdcp | sed -e 's,/bin/.*,,')"
+                MODULE_XROOTD_BASE=$(which xrdcp | sed -e 's,/bin/.*,,')
+                export MODULE_XROOTD_BASE
                 export XRD_PLUGINCONFDIR="$MODULE_XROOTD_BASE/etc/xrootd/client.plugins.d"
             fi
         fi
@@ -568,10 +591,10 @@ else
         if [[ "x$MODULE_USE" != "x1" ]]; then
             warn "Module unavailable. Unable to load desired modules: $LoadModules"
         else
-            ModuleList=`echo $LoadModules | sed 's/^LoadModules = //i;s/"//g'`
+            ModuleList=$(echo $LoadModules | sed 's/^LoadModules = //i;s/"//g')
             for Module in $ModuleList; do
                 info_dbg "Loading module: $Module"
-                module load $Module
+                module load "$Module"
             done
         fi
     fi
@@ -603,7 +626,7 @@ rm -f .gwms-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 #  Run the real job
 #
-info_dbg "current directory at execution (`pwd`): `ls -al`"
+info_dbg "current directory at execution ($(pwd)): $(ls -al)"
 info_dbg "GWMS singularity wrapper, job exec: $*"
 info_dbg "GWMS singularity wrapper, messages after this line are from the actual job ##################"
 exec "$@"

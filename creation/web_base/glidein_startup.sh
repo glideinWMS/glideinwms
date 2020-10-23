@@ -13,9 +13,9 @@ global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 GWMS_PATH=""
-# Relative to the work directory
+# Relative to the work directory (GWMS_DIR will be the absolute path)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
-GWMS_DIR="gwms"
+GWMS_SUBDIR=".gwms.d"
 
 export LANG=C
 
@@ -1053,7 +1053,8 @@ else
 fi
 work_dir_created=1
 
-# GWMS_DIR defined on top
+# GWMS_SUBDIR defined on top
+GWMS_DIR="${work_dir}/$GWMS_SUBDIR"
 if ! mkdir "$GWMS_DIR" ; then
     early_glidein_failure "Cannot create '$GWMS_DIR'"
 fi
@@ -1913,18 +1914,18 @@ do
 
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then
+        # setup here to make them available for other setup scripts
         add_to_path "$PWD/$gwms_bin_dir"
-        for file in "condor_chirp"
+        # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
+        for file in "gwms-python" "condor_chirp"
         do
-            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
+            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"/
         done
-    elif [ "$gs_file_id" = "main after_file_list" ]; then
         cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
-        # already done above - add_to_path "$PWD/$gwms_bin_dir"
-        for file in "gwms-python"
-        do
-            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
-        done
+    elif [ "$gs_file_id" = "main after_file_list" ]; then
+        # in case some library has been added/updated
+        rsync -ar "${gs_id_work_dir}/lib"/ "$gwms_lib_dir"/
+        # new knowns binaries? add a loop like above: for file in ...
     elif [[ "$gs_file_id" = client* ]]; then
         # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
         [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; } 

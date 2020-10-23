@@ -104,6 +104,8 @@ def add_file_unparsed(user_file, dicts, is_factory):
         file_type = "exec"
         if user_file.type:
             if user_file.type == "run:s" or user_file.type == "run:singularity":
+                if file_list_idx.endswith("preentry_file_list"):
+                    raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
                 file_type="exec:s"
             else:
                 if not user_file.type.startswith("run"):

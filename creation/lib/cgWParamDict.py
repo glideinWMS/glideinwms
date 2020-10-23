@@ -236,9 +236,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'script_wrapper.sh',
                                    'smart_partitionable.sh']
         # Only execute scripts once
-        duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
-        duplicate_scripts += set(file_list_scripts).intersection(at_file_list_scripts)
-        duplicate_scripts += set(at_file_list_scripts).intersection(after_file_list_scripts)
+        duplicate_scripts = list(set(file_list_scripts).intersection(after_file_list_scripts))
+        duplicate_scripts += list(set(file_list_scripts).intersection(at_file_list_scripts))
+        duplicate_scripts += list(set(at_file_list_scripts).intersection(after_file_list_scripts))
         if duplicate_scripts:
             raise RuntimeError("Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts))
 

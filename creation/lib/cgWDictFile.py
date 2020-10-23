@@ -252,8 +252,13 @@ def load_main_dicts(main_dicts): # update in place
     # all others are keyed in the description
     #print "\ndebug %s main_dicts.items() = %s" % (__file__, main_dicts.items()) 
     #print "\ndebug %s main_dicts['description'].keys2 = %s" % (__file__, main_dicts['description'].keys2) 
-    #print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description'])) 
-    main_dicts['at_file_list'].load(fname=main_dicts['description'].vals2['at_file_list'])
+    #print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description']))
+    # TODO: To remove if upgrade from older versions is not a problem
+    try:
+        main_dicts['at_file_list'].load(fname=main_dicts['description'].vals2['at_file_list'])
+    except KeyError:
+        # when upgrading form older version the new at_file_list may not be in the description
+        main_dicts['at_file_list'].load()
     main_dicts['after_file_list'].load(fname=main_dicts['description'].vals2['after_file_list'])
     load_common_dicts(main_dicts, main_dicts['description'])
 
