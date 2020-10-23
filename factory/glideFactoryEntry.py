@@ -1426,7 +1426,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
     #
 
-    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0))
+    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0), work['requests'].get('IdleGlideins', 0))
     idle_lifetime = work['requests'].get('IdleLifetime', 0)
 
     if 'IdleGlideins' not in work['requests']:
