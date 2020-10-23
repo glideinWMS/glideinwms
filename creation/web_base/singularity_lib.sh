@@ -100,7 +100,7 @@ GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
 # To increment each time the API changes
 export GWMS_SINGULARITY_LIB_VERSION=2
 
-GWMS_SCRIPT_LOG="`dirname "$GWMS_THIS_SCRIPT"`/.LOG_`basename "$GWMS_THIS_SCRIPT"`.$$.txt"
+GWMS_SCRIPT_LOG="$(dirname "$GWMS_THIS_SCRIPT")/.LOG_$(basename "$GWMS_THIS_SCRIPT").$$.txt"
 # Change this to enable script log
 SCRIPT_LOG=
 [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]] && SCRIPT_LOG="$GWMS_SCRIPT_LOG"
@@ -169,7 +169,7 @@ gwms_process_scripts() {
         esac
     fi
     if ! cd "$my_pwd"; then
-        warn "Scripts directory ($my_pwd) not found. Skipping execution."
+        warn "Scripts directory ($my_pwd) not found. Skipping scripts processing."
         return
     fi
     for i in * ; do

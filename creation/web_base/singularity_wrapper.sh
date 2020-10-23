@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
-# Setup script singularity wrapper. Invoked by glidein_startup.sh when the script requires singularity
+# Auxiliary singularity wrapper script. Invoked by glidein_startup.sh when the script requires singularity
 # singularity_wrapper VO_SCRIPT [script options and arguments - usually glidein_config, entry_id ]
 # $1 - the script to run in Singularity
 # $2 - glidien_config
 # $3 - entry_id main, ...
+#
+# This script will also be invoked right after the download, no need to do test, ... here. No $3
+# $1 - glidien_config
+# $2 - entry_id main, ...
 
 # Directory in Singularity where auxiliary files are copied (e.g. singularity_lib.sh)
 GWMS_AUX_SUBDIR=.gwms_aux
@@ -73,11 +77,16 @@ warn_raw() {
 #
 
 script_to_invoke=$1
+glidein_config=$2
 entry_id=$3
+
+if [[ -z "$3" ]]; then
+    # initial invocation w/o script
+    glidein_config=$1
+fi
 
 # Accessing glidein_config. This is the same file used by all other scripts 
 # TODO: evaluate the use of a copy to control visibility/updates
-glidein_config=$2
 if [[ ! -e "$glidein_config" ]]; then
     if [[ -e "$GWMS_THIS_SCRIPT_DIR/glidein_config" ]]; then
         glidein_config="$GWMS_THIS_SCRIPT_DIR/glidein_config"
@@ -91,11 +100,17 @@ fi
 # error_gen defined also in singularity_lib.sh
 [[ -e "$glidein_config" ]] && error_gen="$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)"
 
+if [[ -z "$3" ]]; then
+    # initial invocation w/o script
+    "$error_gen" -ok "singularity_wrapper.sh"
+    exit 0
+fi
+
 # Source utility files, outside and inside Singularity
 # condor_job_wrapper is in the base directory, singularity_lib.sh in main
 # and copied to RUNDIR/$GWMS_AUX_SUBDIR (RUNDIR becomes /srv in Singularity)
-if [[ -e "$GWMS_THIS_SCRIPT_DIR/main/singularity_lib.sh" ]]; then
-    GWMS_AUX_DIR="$GWMS_THIS_SCRIPT_DIR/main/"
+if [[ -e "$GWMS_THIS_SCRIPT_DIR/singularity_lib.sh" ]]; then
+    GWMS_AUX_DIR="$GWMS_THIS_SCRIPT_DIR/"
 elif [[ -e /srv/$GWMS_AUX_SUBDIR/singularity_lib.sh ]]; then
     # In Singularity
     GWMS_AUX_DIR="/srv/$GWMS_AUX_SUBDIR/"

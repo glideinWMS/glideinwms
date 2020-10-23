@@ -207,6 +207,7 @@ def get_main_dicts(submit_dir, stage_dir):
     main_dicts['glidein']=cWDictFile.StrDictFile(submit_dir, cgWConsts.GLIDEIN_FILE)
     main_dicts['frontend_descript']=cWDictFile.ReprDictFile(submit_dir, cgWConsts.FRONTEND_DESCRIPT_FILE)
     main_dicts['gridmap']=cWDictFile.GridMapDict(stage_dir, cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
+    main_dicts['at_file_list'] = cWDictFile.FileDictFile(stage_dir, cWConsts.insert_timestr(cgWConsts.AT_FILE_LISTFILE), fname_idx=cgWConsts.AT_FILE_LISTFILE)
     main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir, cWConsts.insert_timestr(cgWConsts.AFTER_FILE_LISTFILE), fname_idx=cgWConsts.AFTER_FILE_LISTFILE)
     return main_dicts
 
@@ -252,6 +253,7 @@ def load_main_dicts(main_dicts): # update in place
     #print "\ndebug %s main_dicts.items() = %s" % (__file__, main_dicts.items()) 
     #print "\ndebug %s main_dicts['description'].keys2 = %s" % (__file__, main_dicts['description'].keys2) 
     #print "\ndebug %s dir(main_dicts['description']) = %s" % (__file__, dir(main_dicts['description'])) 
+    main_dicts['at_file_list'].load(fname=main_dicts['description'].vals2['at_file_list'])
     main_dicts['after_file_list'].load(fname=main_dicts['description'].vals2['after_file_list'])
     load_common_dicts(main_dicts, main_dicts['description'])
 
@@ -277,7 +279,7 @@ def load_entry_dicts(entry_dicts,                   # update in place
 def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(), "signature", allow_overwrite=True)
-    for k in ('file_list', 'after_file_list'):
+    for k in ('file_list', 'at_file_list', 'after_file_list'):
         if k in dicts:
             description_dict.add(dicts[k].get_fname(), k, allow_overwrite=True)
 
@@ -315,11 +317,11 @@ def refresh_file_list(dicts, is_main, # update in place
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts):  # update in place
     signature_dict = dicts['signature']
-    for k in ('consts', 'vars', 'untar_cfg', 'gridmap', 'file_list', 'after_file_list', 'description'):
+    for k in ('consts', 'vars', 'untar_cfg', 'gridmap', 'file_list', 'at_file_list', 'after_file_list', 'description'):
         if k in dicts:
             signature_dict.add_from_file(dicts[k].get_filepath(), allow_overwrite=True)
     # add signatures of all the files linked in the lists
-    for k in ('file_list', 'after_file_list'):
+    for k in ('file_list', 'at_file_list', 'after_file_list'):
         if k in dicts:
             filedict = dicts[k]
             for fname in filedict.get_immutable_files():
@@ -346,11 +348,11 @@ def save_common_dicts(dicts,     # will update in place, too
     # 'consts','untar_cfg','vars' will be loaded
     refresh_file_list(dicts, is_main)
     # save files in the file lists
-    for k in ('file_list', 'after_file_list'):
+    for k in ('file_list', 'at_file_list', 'after_file_list'):
         if k in dicts:
             dicts[k].save_files(allow_overwrite=True)
     # then save the lists
-    for k in ('file_list', 'after_file_list'):
+    for k in ('file_list', 'at_file_list', 'after_file_list'):
         if k in dicts:
             dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
@@ -416,7 +418,7 @@ def reuse_common_dicts(dicts, other_dicts, is_main, all_reused):
     # since the file names may have changed, refresh the file_list
     refresh_file_list(dicts, is_main)
     # check file-based dictionaries
-    for k in ('file_list', 'after_file_list'):
+    for k in ('file_list', 'at_file_list', 'after_file_list'):
         if k in dicts:
             all_reused = reuse_file_dict(dicts, other_dicts, k) and all_reused
 

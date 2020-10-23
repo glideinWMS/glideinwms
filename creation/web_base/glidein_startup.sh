@@ -1068,6 +1068,10 @@ fi
 gwms_exec_dir="${GWMS_DIR}/exec"
 if ! mkdir -p "$gwms_exec_dir" ; then
     early_glidein_failure "Cannot create '$gwms_exec_dir'"
+else
+    for i in setup prejob postjob cleanup setup_singularity ; do
+        mkdir -p "$gwms_exec_dir"/$i
+    done
 fi
 
 # mktemp makes it user readable by definition (ignores umask)
@@ -1672,7 +1676,7 @@ fetch_file_base() {
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
         else
-            "Executing (flags:${ffb_file_type#exec:}) ${ffb_outname}"
+            echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
             # have to do it here, as this will be run before any other script
             chmod u+rx "${main_dir}"/error_augment.sh
 
@@ -1687,7 +1691,7 @@ fetch_file_base() {
             fi
             ret=$?
             END=$(date +%s)
-            "${main_dir}"/error_augment.sh  -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
+            "${main_dir}"/error_augment.sh -process ${ret} "${ffb_id}/${ffb_target_fname}" "${PWD}" "${ffb_outname} glidein_config" "${START}" "${END}" #generating test result document
             "${main_dir}"/error_augment.sh -concat
             if [ ${ret} -ne 0 ]; then
                 echo "=== Validation error in ${ffb_outname} ===" 1>&2
@@ -1858,7 +1862,7 @@ fi
 
 ##############################
 # Fetch all the other files
-for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
+for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
 
@@ -1908,16 +1912,22 @@ do
     done < "${gs_id_work_dir}/${gs_file_list}"
 
     # Files to go into the GWMS_PATH
-    if [ "$gs_file_id" = "main after_file_list" ]; then
-        cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+    if [ "$gs_file_id" = "main at_file_list" ]; then
         add_to_path "$PWD/$gwms_bin_dir"
-        for file in "gwms-python" "condor_chirp"
+        for file in "condor_chirp"
+        do
+            cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
+        done
+    elif [ "$gs_file_id" = "main after_file_list" ]; then
+        cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+        # already done above - add_to_path "$PWD/$gwms_bin_dir"
+        for file in "gwms-python"
         do
             cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
         done
     elif [[ "$gs_file_id" = client* ]]; then
         # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
-        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/ ; chmod a-x "$gwms_exec_dir"/setup_prejob.sh ; } 
+        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; } 
     fi
 done
 
