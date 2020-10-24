@@ -293,6 +293,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['at_file_list'].add_from_file(script_name,
                                                      cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                      os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
+        for script_name in after_file_list_scripts:
+            self.dicts['after_file_list'].add_from_file(script_name,
+                                                        cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                        os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # populate complex files
         populate_factory_descript(self.work_dir, self.dicts['glidein'],

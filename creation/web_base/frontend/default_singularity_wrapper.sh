@@ -7,9 +7,11 @@ GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
 
 # Directory in Singularity where auxiliary files are copied (e.g. singularity_lib.sh)
 GWMS_AUX_SUBDIR=${GWMS_AUX_SUBDIR:-".gwms_aux"}
+export GWMS_AUX_SUBDIR
 # GWMS_BASE_SUBDIR (directory where the base glidein directory is mounted) not defiled in Singularity for the user jobs, only for setup scripts
 # Directory to use for bin, lib, exec, ...
 GWMS_SUBDIR=${GWMS_SUBDIR:-".gwms.d"}
+export GWMS_SUBDIR
 
 GWMS_VERSION_SINGULARITY_WRAPPER=20201013
 # Updated using OSG wrapper #5d8b3fa9b258ea0e6640727405f20829d2c5d4b9
@@ -121,6 +123,7 @@ else
     echo "ERROR: $GWMS_THIS_SCRIPT: Unable to gind GWMS_DIR! File not found. Quitting" 1>&2
     exit_wrapper "Wrapper script $GWMS_THIS_SCRIPT failed: Unable to find GWMS_DIR" 1
 fi
+export GWMS_DIR
 
 # Calculating full version number, including md5 sums form the wrapper and singularity_lib
 GWMS_VERSION_SINGULARITY_WRAPPER="${GWMS_VERSION_SINGULARITY_WRAPPER}_$(md5sum "$GWMS_THIS_SCRIPT" 2>/dev/null | cut -d ' ' -f1)_$(md5sum "${GWMS_AUX_DIR}/singularity_lib.sh" 2>/dev/null | cut -d ' ' -f1)"
@@ -483,7 +486,7 @@ info_dbg "GWMS singularity wrapper, final setup."
 # TODO: CodeRM1 to remove once gwms_process_scripts from singularity_lib.sh and the new setup_prejob.sh 
 #  are in all the factories and frontends
 if [[ "$(type -t gwms_process_scripts)" == 'function' ]]; then
-    gwms_process_scripts "$GWMS_AUX_DIR" prejob
+    gwms_process_scripts "$GWMS_DIR" prejob
 else
     #############################
     #

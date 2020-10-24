@@ -88,8 +88,10 @@ OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity
 GWMS_MODULE_USE_DEFAULT=1
 
 # Directory structure inside .gwms_aux (or main glidein directory)
-# bin, lib [python, python3, python2], exec [prejob]
+# bin, lib [python, python3, python2], exec [prejob, postjob]
 GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
+GWMS_SUBDIR_EXEC_POSTJOB="exec/postjob"
+GWMS_SUBDIR_EXEC_CLEANUP="exec/cleanup"
 
 # Output log levels:
 # WARN used also for error, always to stderr
@@ -167,6 +169,8 @@ gwms_process_scripts() {
     if [[ -n "$2" ]]; then 
         case "$2" in
             prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
+            postjob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_POSTJOB";;
+            cleanup) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_CLEANUP";;
         esac
     fi
     if ! cd "$my_pwd"; then
