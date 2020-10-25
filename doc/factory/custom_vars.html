@@ -1789,8 +1789,10 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>Controls which environment variables will be cleared or restored in Singularity. Can have the following values: clearall - clear all from the environment (at your own risk);  osgset - set of OSG variables (get it from OSG wrapper);
-            gwmsset - set of GWMS utilities variables; clear - same as: clearall,gwmsset,osgset; clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default);
+	<td><P>Controls which environment variables will be cleared or restored in Singularity. Can have a comma separated list (no spaces) of the following values: <br/>
+		clearall - clear all from the environment unless other sets are listed (clearing evrything may cause problems also w/ some Glidein functionalities);<br/> 
+		osgset - preserve the set of OSG variables (originally from OSG wrapper);<br/>
+		gwmsset - preserve the set of GWMS utilities variables;<br/> clear - same as: clearall,gwmsset,osgset;<br/> clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default);<br/>
             keepall - clear no variable, incompatible w/ any clear... option
             </P>
         </td>
