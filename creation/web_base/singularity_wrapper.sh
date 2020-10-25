@@ -119,6 +119,7 @@ fi
 . "${GWMS_AUX_DIR}"/singularity_lib.sh
 
 # Directory to use for bin, lib, exec, ... full path
+# echo "DEBUG: checking for GWMS_DIR: env:$GWMS_DIR, `[[ -n "$GWMS_DIR" && -e "$GWMS_DIR/bin" ]] && echo OK`, $GWMS_THIS_SCRIPT_DIR/../$GWMS_SUBDIR/bin: `[[ -e $(dirname "$GWMS_THIS_SCRIPT_DIR")/$GWMS_SUBDIR/bin ]] && echo OK`, /srv/$GWMS_SUBDIR/bin : `[[ -e /srv/$GWMS_SUBDIR/bin ]] && echo OK`, /srv/$GWMS_BASE_SUBDIR/$GWMS_SUBDIR/bin: `[[ -e /srv/$GWMS_BASE_SUBDIR/$GWMS_SUBDIR/bin ]] && echo OK`, $GWMS_AUX_DIR/../$GWMS_SUBDIR/bin: `[[ -e /srv/$(dirname "$GWMS_AUX_DIR")/$GWMS_SUBDIR/bin ]] && echo OK`"
 if [[ -n "$GWMS_DIR" && -e "$GWMS_DIR/bin" ]]; then
     # already set, keep it
     true
@@ -148,7 +149,8 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
     # Outside Singularity - Run this only on the 1st invocation
     info_dbg "GWMS singularity wrapper, first invocation"
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
-    setup_classad_variables
+    # In the Glidein/setup: use the current environment or glidein_config, not the HTCondor ClassAd (condor not started yet)  
+    setup_from_environment
 
     # Check if singularity is disabled or enabled
     # This script could run when singularity is optional and not wanted

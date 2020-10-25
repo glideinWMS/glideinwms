@@ -157,40 +157,6 @@ robust_realpath() {
 }
 
 
-gwms_process_scripts() {
-    # Process all the scripts in the directory, in lexicographic order
-    #  ignore the files named .ignore files
-    #  run the executable files, source the remaining files if extentsion is .sh .source 
-    # 1- directory scripts to process
-    # 2- a modifier to search only in subdirectories (prejob)
-    local old_pwd my_pwd
-    old_pwd=$(robust_realpath "$PWD")
-    my_pwd=$(robust_realpath "$1")
-    if [[ -n "$2" ]]; then 
-        case "$2" in
-            prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
-            postjob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_POSTJOB";;
-            cleanup) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_CLEANUP";;
-        esac
-    fi
-    if ! cd "$my_pwd"; then
-        warn "Scripts directory ($my_pwd) not found. Skipping scripts processing."
-        return
-    fi
-    for i in * ; do
-        [[ "$i" = *.ignore ]] && continue
-        if [[ -x "$i" ]]; then
-            # run w/ some protection?
-            "./$i"
-            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
-        elif [[ "$i" = *.sh || "$i" = *.source ]]; then
-            . "$i"
-        fi
-    done
-    cd "$old_pwd"            
-}
-
-
 ######################################################
 #
 # Dictionary functions
@@ -362,9 +328,62 @@ list_get_intersection() {
 # GWMS aux functions
 #
 
+gwms_from_config() {
+    # 1. - parameter to parse from glidein_cinfig
+    # 2. - default
+    # 3. - function to validate or process (get_prop_bool or same interface)
+    if [[ -n "$glidein_config" ]]; then
+        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
+    fi
+    if [[ -n "$ret" ]]; then
+        if [[ -n "$3" ]]; then
+            "$3" VALUE_PROVIDED "$ret" "$2"
+        else
+            [[ -z "$ret" ]] && ret=$2
+            echo "$ret"
+        fi
+    fi
+
+}
+
+
+gwms_process_scripts() {
+    # Process all the scripts in the directory, in lexicographic order
+    #  ignore the files named .ignore files
+    #  run the executable files, source the remaining files if extentsion is .sh .source
+    # 1- directory scripts to process
+    # 2- a modifier to search only in subdirectories (prejob)
+    local old_pwd my_pwd
+    old_pwd=$(robust_realpath "$PWD")
+    my_pwd=$(robust_realpath "$1")
+    if [[ -n "$2" ]]; then
+        case "$2" in
+            prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
+            postjob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_POSTJOB";;
+            cleanup) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_CLEANUP";;
+        esac
+    fi
+    if ! cd "$my_pwd"; then
+        warn "Scripts directory ($my_pwd) not found. Skipping scripts processing."
+        return
+    fi
+    for i in * ; do
+        [[ "$i" = *.ignore ]] && continue
+        if [[ -x "$i" ]]; then
+            # run w/ some protection?
+            "./$i"
+            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+        elif [[ "$i" = *.sh || "$i" = *.source ]]; then
+            . "$i"
+        fi
+    done
+    cd "$old_pwd"
+}
+
+
 get_prop_bool() {
     # In:
-    #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
+    #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD) special keywords: NONE, VALUE_PROVIDED
     #  $2 the key
     #  $3 default value (optional, must be 1->true or 0->false, 0 if unset)
     # For HTCondor consider True: true (case insensitive), any integer != 0
@@ -384,8 +403,12 @@ get_prop_bool() {
     elif [[ "x$1" = "xNONE" ]]; then
         val=$default
     else
-        # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
-        val=`(grep -i "^$2 " $1 | cut -d= -f2 | tr -d '\040\011\012\015') 2>/dev/null`
+        if [[ "x$1" = "xVALUE_PROVIDED" ]]; then
+            val=$2
+        else
+            # sed "s/[\"' \t\r\n]//g" not working on OS X, '\040\011\012\015' = ' '$'\t'$'\r'$'\n'
+            val=$( (grep -i "^$2 " "$1" | cut -d= -f2 | tr -d '\040\011\012\015') 2>/dev/null )
+        fi
         # Convert variations of true to 1
         re="^[0-9]+$"  # bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
         if (echo "x$val" | grep -i true) >/dev/null 2>&1; then
@@ -439,8 +462,11 @@ get_prop_str() {
     elif [[ "x$1" = "xNONE" ]]; then
         echo "$3"
         return 1
+    elif [[ "x$1" = "xVALUE_PROVIDED" ]]; then
+        val=$2
+    else
+        val=$( (grep -i "^$2 " "$1" | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null )
     fi
-    val=`(grep -i "^$2 " $1 | cut -d= -f2 | sed -e "s/^[\"' \t\n\r]//g" -e "s/[\"' \t\n\r]$//g" | sed -e "s/^[\"' \t\n\r]//g" ) 2>/dev/null`
     [[ -z "$val" ]] && val="$3"
     echo "$val"
     return 0
@@ -696,7 +722,10 @@ env_preserve() {
     STASHCACHE \
     STASHCACHE_WRITABLE \
     LoadModules \
-    GWMS_AUX_SUBDIR"
+    GWMS_AUX_SUBDIR \
+    GWMS_BASE_SUBDIR \
+    GWMS_SUBDIR \
+    GWMS_DIR"
 
     envvars_osgset="OSG_SINGULARITY_REEXEC \
     _CHIRP_DELAYED_UPDATE_PREFIX \
@@ -1790,6 +1819,83 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     singularity_exit_or_fallback "exec of singularity failed" $?
 }
 
+
+setup_from_environment() {
+    # Retrieve variables from Machine and Job ClassAds
+    # Retrieve variables from Machine and Job ClassAds
+    # Set up environment to know if Singularity is enabled and so we can execute Singularity
+    # Out:
+    #  export all of HAS_SINGULARITY, GWMS_SINGULARITY_STATUS, GWMS_SINGULARITY_PATH, GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_IMAGES_DICT,
+    #    GLIDEIN_REQUIRED_OS, GLIDEIN_DEBUG_OUTPUT, REQUIRED_OS, GWMS_SINGULARITY_IMAGE, CVMFS_REPOS_LIST,
+    #    GLIDEIN_DEBUG_OUTPUT (if not already set)
+
+    # For OSG - from Job ClassAd
+    #export OSGVO_PROJECT_NAME=$(get_prop_str ${_CONDOR_JOB_AD} ProjectName)
+    #export OSGVO_SUBMITTER=$(get_prop_str ${_CONDOR_JOB_AD} User)
+
+    # from singularity_setup.sh executed earlier (Machine ClassAd)
+    export HAS_SINGULARITY=${HAS_SINGULARITY:-$(gwms_from_config HAS_SINGULARITY 0 get_prop_bool)}
+    export GWMS_SINGULARITY_STATUS=${GWMS_SINGULARITY_STATUS:-$(gwms_from_config GWMS_SINGULARITY_STATUS "" get_prop_str)}
+    export GWMS_SINGULARITY_PATH=${GWMS_SINGULARITY_PATH:-$(gwms_from_config SINGULARITY_PATH)}
+    export GWMS_SINGULARITY_VERSION=${GWMS_SINGULARITY_VERSION:-$(gwms_from_config SINGULARITY_VERSION)}
+    # Removed old GWMS_SINGULARITY_IMAGE_DEFAULT6 GWMS_SINGULARITY_IMAGE_DEFAULT7, now in _DICT
+    # TODO: send also the image used during test in setup? in case the VO does not care
+    # export GWMS_SINGULARITY_IMAGE_DEFAULT=$(get_prop_str $_CONDOR_MACHINE_AD SINGULARITY_IMAGE_DEFAULT)
+    export GWMS_SINGULARITY_IMAGES_DICT=${GWMS_SINGULARITY_IMAGES_DICT:-$(gwms_from_config SINGULARITY_IMAGES_DICT)}
+    export SINGULARITY_IMAGES_DICT=${GWMS_SINGULARITY_IMAGES_DICT}
+    export GWMS_SINGULARITY_IMAGE_RESTRICTIONS=${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:-$(gwms_from_config SINGULARITY_IMAGE_RESTRICTIONS)}
+    export OSG_MACHINE_GPUS=${OSG_MACHINE_GPUS:-$(gwms_from_config GPUs 0)}
+    # Setting below 0 as default for GPU_USE, to distinguish when undefined in machine AD
+    export GPU_USE=${GPU_USE:-$(gwms_from_config GPU_USE)}
+    # http_proxy from OSG advertise script
+    export http_proxy=${http_proxy:-$(gwms_from_config http_proxy)}
+    [[ -z "$http_proxy" ]] && unset http_proxy
+    export GLIDEIN_REQUIRED_OS=${GLIDEIN_REQUIRED_OS:-$(gwms_from_config GLIDEIN_REQUIRED_OS)}
+    export GLIDEIN_DEBUG_OUTPUT=${GLIDEIN_DEBUG_OUTPUT:-$(gwms_from_config GLIDEIN_DEBUG_OUTPUT)}
+    export MODULE_USE=${MODULE_USE:-$(gwms_from_config MODULE_USE ${GWMS_MODULE_USE_DEFAULT} get_prop_bool)}
+
+    # from Job ClassAd
+    # Setting to defaults because Job ClassAd not available at setup time. Commenting values w/o default specified
+    #export REQUIRED_OS=$(get_prop_str ${_CONDOR_JOB_AD} REQUIRED_OS)
+    #export GWMS_SINGULARITY_IMAGE=$(get_prop_str ${_CONDOR_JOB_AD} SingularityImage)
+    export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
+    export GWMS_SINGULARITY_BIND_CVMFS=1
+    export GWMS_SINGULARITY_BIND_GPU_LIBS=1
+    #export CVMFS_REPOS_LIST=$(get_prop_str ${_CONDOR_JOB_AD} CVMFSReposList)
+    # StashCache
+    export STASHCACHE=0
+    export STASHCACHE_WRITABLE=0
+    export POSIXSTASHCACHE=0
+
+    # OSG Modules
+    # For MODULE_USE, the Factory and Frontend (machine ad) set the default. Job can override
+    # TODO: TO REMOVE. For now don't load modules for LIGO. Later they will have to set MODULE_USE=0/false in the frontend
+    if (echo "X$GLIDEIN_Client" | grep ligo) >/dev/null 2>&1; then
+        export MODULE_USE=0
+        export InitializeModulesEnv=0
+    else
+        export InitializeModulesEnv=${MODULE_USE}
+    fi
+    #export LoadModules=$(get_prop_str ${_CONDOR_JOB_AD} LoadModules)   # List of modules to load
+
+    # CHECKS
+    # SingularityAutoLoad is deprecated, see https://opensciencegrid.atlassian.net/browse/SOFTWARE-2770
+    # SingularityAutoload effects on HAS_SINGULARITY depending on GWMS_SINGULARITY_STATUS
+    if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]]; then
+        # both variables are defined (w/ defaults)
+        if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != x1  &&  "x$HAS_SINGULARITY" = x1 ]]; then
+            #warn "Using +SingularityAutoLoad is no longer allowed. Ignoring."
+            #export GWMS_SINGULARITY_AUTOLOAD=1
+            info "Singularity available but not required, disabled by +SingularityAutoLoad=0."
+            export HAS_SINGULARITY=0
+        fi
+    fi
+    # TODO: Remove to allow this for toubleshooting purposes?
+    if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
+        warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
+        export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
+    fi
+}
 
 setup_classad_variables() {
     # Retrieve variables from Machine and Job ClassAds
