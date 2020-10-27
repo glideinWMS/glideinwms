@@ -35,22 +35,24 @@
 
 # find the real path even if realpath is not installed
 # realpath file
-function robust_realpath {
+robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then 
         echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
     fi
 }
 
 # input parameters sanityzed
-glidein_config="`robust_realpath $1`"
+glidein_config=$(robust_realpath "$1")
 s_ffb_id="$2"
 # the name is used in the included functions
 s_name=$3
-s_fname="`robust_realpath $4`"
+s_fname=$(robust_realpath "$4")
 # This is the prefix used for the startd_cron. This wrapper uses GLIDEIN_PS_ for the lines added to config
-# and adds GLIDEIN_PS_ if the startd_cron has no prefix (s_prefix==NOPREFIX)
+# and adds GLIDEIN_PS_ to stdout if the startd_cron has no prefix (s_prefix==NOPREFIX)
 s_prefix="$5"
 
+# Add the default GLIDEIN_PS_ prefix to stdout prints from this wrapper (sent to startd) 
+# if there is no prefix (NOPREFIX special keyword)
 if [ "x${s_prefix}" = "xNOPREFIX" ]; then
     add_prefix=YES
 else
@@ -58,7 +60,7 @@ else
 fi
 
 # find error reporting helper script 
-error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
+error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
 
 if [ -z "$3" ]; then
     # no script passed, wrapper invoked by the initial test
@@ -67,26 +69,27 @@ if [ -z "$3" ]; then
 fi
 
 verbose=
-[ -n "$DEBUG" ] && verbose=yes
+[[ -n "$DEBUG" ]] && verbose=yes
 
 # write to stderr only if verbose is set
-function vmessage {
+vmessage() {
     # echo `date` $@ 1>&2 
     [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" "$@" 1>&2
 }
 
 
 # temporary function until the correct one is sourced
-function add_config_line_safe {
-    echo "$@" >> $glidein_config
+add_config_line_safe() {
+    echo "$@" >> "$glidein_config"
 }
 
 
-# publish to startd classad and to the glidein_config file
+# publish to startd classad and to the glidein_config file, used by this wrapper
+# add the default "GLIDEIN_PS_" prefix when no prefix is set in HTCondor to avoid clashes
 # (key must have no spaces)
 # publish key value
-function publish {
-    prefix=GLIDEIN_PS_
+publish() {
+    local prefix=GLIDEIN_PS_
     if [ -z "$add_prefix" ]; then
         echo "$1 = ${*:2}"
     else
@@ -96,10 +99,10 @@ function publish {
 }
 
 
-# Manage failure listst in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
+# Manage failure lists in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
 # GLIDEIN_PS_FAILING_LIST empty -> GLIDEIN_PS_OK True, GLIDEIN_PS_FAILING_LIST not empty -> GLIDEIN_PS_OK False 
 # list_manage add|del name list_name 
-function list_manage {
+list_manage() {
     # invoked locally, trust 3 parameters
     # $1 command (add|del), $2 value_to_add_to_list, $3 list_name (in glidein_config, case insensitive)
     # Uses $glidein_config
@@ -128,7 +131,7 @@ function list_manage {
 # Advertise failure, cleanup and exit
 # failed "message" [error_type [ec]]
 #    error_type is one of: WN_Resource, Network, Config, VO_Config, Corruption, VO_Proxy
-function failed {
+failed() {
     [ -n "$verbose" ] || echo "Script wrapper failure: $1" 1>&2
     if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
         rm -r "$tmp_dir"
@@ -162,7 +165,7 @@ function failed {
 
 vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id" 
 
-# start_dir should be the same as wrok_dir in glidein_startup.sh and GLIDEIN_WORK_DIR
+# start_dir should be the same as work_dir in glidein_startup.sh and GLIDEIN_WORK_DIR
 export start_dir="`pwd`"
 main_dir="$start_dir/main"
 
@@ -179,7 +182,7 @@ source ./add_config_line.source
 
 ### Setup: move to personal temp dir not to step over other programs
 temp_base_dir="$start_dir"
-tmp_dir="`mktemp -d --tmpdir="$temp_base_dir"`"
+tmp_dir=$(mktemp -d --tmpdir="$temp_base_dir")
 if [ $? -ne 0 ]; then
     failed "Failed to create temporary directory" wrapper
 fi

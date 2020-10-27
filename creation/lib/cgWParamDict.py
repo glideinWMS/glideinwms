@@ -81,6 +81,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
     def populate(self, other=None):
         # put default files in place first
+        # Why placeholder and right after the file? error_gen, error_augment, setup_script, should be removed?
         self.dicts['file_list'].add_placeholder('error_gen.sh', allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('error_augment.sh', allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('setup_script.sh', allow_overwrite=True)
@@ -88,9 +89,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
         self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE, allow_overwrite=True)  # this one must be loaded before setup_x509.sh is run
-        self.dicts['file_list'].add_placeholder('singularity_lib.sh', allow_overwrite=True)  # this one must be loaded before singularity_setup.sh and any singularity wrapper are run
+        # TODO: remove. these files are in the lists below, non need for defaults
+        # self.dicts['file_list'].add_placeholder('singularity_lib.sh', allow_overwrite=True)  # this one must be loaded before singularity_setup.sh and any singularity wrapper are run
+        # self.dicts['file_list'].add_placeholder('singularity_wrapper.sh', allow_overwrite=True)  # this one must be loaded after singularity_setup.sh and before any script running in singularity
 
-        #load system files
+        # Load system files
         for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
                           'condor_config', 'condor_config.multi_schedd.include',
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
@@ -119,7 +122,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('setup_script.sh', 'cat_consts.sh', 'condor_platform_select.sh'):
+        for script_name in ('setup_script.sh', 'cat_consts.sh', 'condor_platform_select.sh', 'singularity_wrapper.sh'):
             self.dicts['file_list'].add_from_file(script_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
@@ -216,23 +219,26 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                              'create_temp_mapfile.sh',
                              'gwms-python',
                              cgWConsts.CONDOR_STARTUP_FILE]
+        # These are right after the entry, before some VO scripts. The order in the following list is important
+        at_file_list_scripts = ['singularity_setup.sh',
+                                'condor_chirp']
         # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
                                    'create_mapfile.sh',
                                    'validate_node.sh',
                                    'setup_network.sh',
                                    'gcb_setup.sh',
-                                   'singularity_setup.sh',
                                    'glexec_setup.sh',
                                    'java_setup.sh',
                                    'glidein_memory_setup.sh',
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh',
-                                   'condor_chirp']
+                                   'smart_partitionable.sh']
         # Only execute scripts once
-        duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
+        duplicate_scripts = list(set(file_list_scripts).intersection(after_file_list_scripts))
+        duplicate_scripts += list(set(file_list_scripts).intersection(at_file_list_scripts))
+        duplicate_scripts += list(set(at_file_list_scripts).intersection(after_file_list_scripts))
         if duplicate_scripts:
             raise RuntimeError("Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts))
 
@@ -283,6 +289,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             add_attr_unparsed(attr, self.dicts, "main")
 
         # add additional system scripts
+        for script_name in at_file_list_scripts:
+            self.dicts['at_file_list'].add_from_file(script_name,
+                                                     cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                     os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
         for script_name in after_file_list_scripts:
             self.dicts['after_file_list'].add_from_file(script_name,
                                                         cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
@@ -737,7 +747,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         dicts[file_list_idx].add_from_file(relfname,
                                            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'exec', period_value, prefix),
                                            absfname)
-    elif is_wrapper:  # a sourceable script for the wrapper
+    elif is_wrapper:  # a source-able script for the wrapper
         dicts[file_list_idx].add_from_file(relfname,
                                            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'wrapper'),
                                            absfname)
@@ -746,7 +756,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if u'dir' in untar_opts:
             wnsubdir = untar_opts['dir']
         else:
-            wnsubdir = string.split(relfname, '.', 1)[0]  # deafult is relfname up to the first .
+            wnsubdir = string.split(relfname, '.', 1)[0]  # default is relfname up to the first .
 
         if 'absdir_outattr' in untar_opts:
             config_out = untar_opts['absdir_outattr']

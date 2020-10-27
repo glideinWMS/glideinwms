@@ -48,7 +48,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     """Add a user file residing in the stage area
     file as described by Params.file_defaults
     :param user_file: file from the config files "files" sections
-    :param dicts: parameters dctionaries
+    :param dicts: parameters dictionaries
     :param is_factory: True if invoked for the factory (cgWParamDict.py), false for the frontend (cvWParamDict.py)
     :return: None (dictionaries are modified)
     """
@@ -101,12 +101,22 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A tar file cannot be executable: %s" % user_file)
         if is_wrapper:
             raise RuntimeError("A wrapper file cannot be an executable: %s" % user_file)
+        file_type = "exec"
+        if user_file.type:
+            if user_file.type == "run:s" or user_file.type == "run:singularity":
+                if file_list_idx.endswith("preentry_file_list"):
+                    raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
+                file_type="exec:s"
+            else:
+                if not user_file.type.startswith("run"):
+                    raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
         dicts[file_list_idx].add_from_file(relfname,
-                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'exec',
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 
+                                                                                  file_type,
                                                                                   user_file.period, user_file.prefix),
                                            absfname)
 
-    elif is_wrapper:  # a sourceable script for the wrapper
+    elif is_wrapper:  # a source-able script for the wrapper
         if not is_const:
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
         if do_untar:

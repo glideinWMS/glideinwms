@@ -943,8 +943,10 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
         <TD> Str </TD>
         <TD>
 		<P>Comma separated list of keywords affecting Glidein debug. Possible options are:<br>
-		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
-		nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes
+		  userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
+		  nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes<br>
+      nocleanup - disable the cleanup (removal of working directories on the worker node). The batch manager may have its own cleanup. 
+        Adds also an extension to the Glidein directory name. 
                 </P>
         </TD>
     </TR>
