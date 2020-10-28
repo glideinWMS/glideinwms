@@ -252,7 +252,17 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
                 <li>The VOFrontend admin must upgrade to a GWMs version that supports IDTOKENS, 3.7.1 or later.
                 <li>The Factory  admin must upgrade to a GWMs version that supports IDTOKENS, 3.7.1 or later.
                 <li>The Factory admin must configure the Factory Entry to  use an HTCondor version 
-                  that supports IDTOKENS, 8.9.8 or later.
+                  that supports IDTOKENS, 8.9.1 or later.
+                <li>The Factory admin must ensure that the entry is advertising the afore-mentioned HTCondor version in its classad.  Example:
+              
+                  <pre>
+&lt;glidein&gt;
+   &lt;entries&gt;
+      &lt;entry name=..... &gt;
+         &lt;attrs&gt;
+            &lt;attr name="CONDOR_VERSION"  value="8.9.5" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" /&gt;
+     </pre>
+                </li>
                 </ul>
           </ul>
 
