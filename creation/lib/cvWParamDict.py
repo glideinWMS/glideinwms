@@ -65,6 +65,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.dicts['preentry_file_list'].add_from_file(script_name,
                                                            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                            os.path.join(params.src_dir, script_name))
+        # TODO: gwms25073 change the following lines, this file will have to be fixed w/ special type/time 
+        #  to be picked as file to source pre-job
+        for script_name in ('setup_prejob.sh',):
+            self.dicts['preentry_file_list'].add_from_file(script_name,
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'regular'),
+                                                           os.path.join(params.src_dir, script_name))
 
         # put user files in stage
         for user_file in params.files:
@@ -247,6 +253,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                                                                               config_out='BLACKLIST_FILE'),
                                                        os.path.join(params.src_dir, file_name))
 
+        # TODO: should these 2 scripts be removed? files above and blacklist may be different between global and group
+        #  but the scripts should be the same and could be used from the other client directory 
+        #  or should all be duplicate?
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh', "check_blacklist.sh"):

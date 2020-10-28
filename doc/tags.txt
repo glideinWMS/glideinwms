@@ -1,5 +1,5 @@
 v3_7_1
-	Includes all features and fixes of 3.6.4
+	Includes all features and fixes of 3.6.5
 	Configuration changes to make more compatible with HTCondor 8.9  on initial install
 	SciTokens authentication between Factory and CE
 	IDTokens authentication between Factory and Frontend
