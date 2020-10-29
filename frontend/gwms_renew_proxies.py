@@ -24,6 +24,7 @@ DEFAULTS = {'use_voms_server': 'false',
             'lifetime': '24',
             'path_length': '20',
             'rfc': 'true',
+            'bits': '1024',
             'owner': 'frontend'}
 
 
@@ -36,7 +37,7 @@ class ConfigError(BaseException):
 class Proxy(object):
     """Class for holding information related to the proxy
     """
-    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength='20'):
+    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength='20', bits='1024'):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)
@@ -46,6 +47,7 @@ class Proxy(object):
         self.gid = gid
         self.rfc = rfc
         self.pathlength = pathlength
+        self.bits = bits
 
     def _voms_proxy_info(self, *opts):
         """Run voms-proxy-info. Returns stdout, stderr, and return code of voms-proxy-info
@@ -149,9 +151,12 @@ def voms_proxy_init(proxy, voms_attr=None):
            '-cert', proxy.cert,
            '-key', proxy.key,
            '-out', proxy.tmp_output_fd.name,
+           '-bits', proxy.bits,
            '-valid', '%s:00' % proxy.lifetime]
+
     if proxy.rfc:
         cmd.append('-rfc')
+
     if voms_attr:
         # Some VOMS servers don't support capability/role/group selection so we just use the VO name when making
         # the request. We don't handle this in the VO class because voms-proxy-fake requires the full VO name
@@ -178,6 +183,7 @@ def voms_proxy_fake(proxy, vo_info):
            '-cert', proxy.cert,
            '-key', proxy.key,
            '-out', proxy.tmp_output_fd.name,
+           '-bits', proxy.bits,
            '-hours', proxy.lifetime,
            '-voms', vo_info.name,
            '-hostcert', vo_info.cert,
@@ -221,7 +227,8 @@ def main():
         proxy_config = dict(config.items(proxy_section))
         proxy = Proxy(proxy_config['proxy_cert'], proxy_config['proxy_key'],
                       proxy_config['output'], proxy_config['lifetime'],
-                      fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], proxy_config['path_length'])
+                      fe_user.pw_uid, fe_user.pw_gid, proxy_config['rfc'], 
+                      proxy_config['path_length'], proxy_config['bits'])
 
         # Users used to be able to control the frequency of the renewal when they were instructed to write their own
         # script and cronjob. Since the automatic proxy renewal cron/timer runs every hour, we allow the users to
