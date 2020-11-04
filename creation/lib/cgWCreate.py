@@ -42,6 +42,7 @@ def create_condor_tar_fd(condor_base_dir):
             'lib/CondorJavaWrapper.class',
             'lib/scimark2lib.jar',
             'lib/condor',
+            'lib/libgetpwnam.so',
         ]
         condor_opt_libexecs = [
             'libexec/glexec_starter_setup.sh',
