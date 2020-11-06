@@ -1681,8 +1681,8 @@ fetch_file_base() {
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
         elif [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
-            echo "Skipping cleanup script ${ffb_target_fname} (${cleanup_script})" 1>&2
-            cp "${ffb_target_fname}" "$gwms_exec_dir"/cleanup/ 
+            echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
+            cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
             chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
         else
             echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"

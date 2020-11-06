@@ -962,7 +962,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
-
         <TD> Int </TD>
         <TD>
             <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
@@ -973,7 +972,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
@@ -985,11 +983,21 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
                 followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLEANUP_SCRIPT</b> </td>
+        <TD> String </TD>
+        <TD>
+            <P>Used to run a custom file at cleanup time (right before quitting the Glidein) 
+              instead of the default setup time. The custom file must be specified in the file list as usual.
+              The value is the file name, as specified in the file list. 
                 NOTE: parameter and job_publish should be both True for this attribute.
             <b>Must be a parameter.</b></P>
         </TD>
