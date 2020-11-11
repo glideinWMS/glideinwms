@@ -218,10 +218,17 @@ def merge_yaml(config, white_list):
                     entry_information = out[site][celem][entry]
                 else:
                     if osg_info[site][celem]["DEFAULT_ENTRY"]["gridtype"] == "condor":
-                        if "attrs" in entry_information:
+                        if "attrs" in entry_information and entry_information["attrs"]:
                             entry_information = update_submit_attrs(entry_information, "GLIDEIN_CPUS", "+xcount")
                             entry_information = update_submit_attrs(entry_information, "GLIDEIN_MaxMemMBs", "+maxMemory")
                             entry_information = update_submit_attrs(entry_information, "GLIDEIN_Max_Walltime", "+maxWallTime")
+                        if "submit_attrs" in entry_information:
+                            if "+WantWholeNode" in entry_information["submit_attrs"]:
+                                want_whole_node = entry_information["submit_attrs"]["+WantWholeNode"]
+                                if want_whole_node == True or want_whole_node == "True":
+                                    entry_information = set_whole_node_entry(entry_information)
+                            if "Request_GPUs" in entry_information["submit_attrs"]:
+                                entry_information = set_gpu_entry(entry_information)
                     if "limits" in entry_information:
                         if "entry" in entry_information["limits"] and "frontend" not in entry_information["limits"]:
                             entry_information["limits"]["frontend"] = entry_information["limits"]["entry"]
@@ -236,6 +243,51 @@ def merge_yaml(config, white_list):
                 )
     return out
 
+def set_gpu_entry(entry_information):
+    """Set gpu entry
+
+    Args:
+        entry_information (dict): a dictionary of entry information from white list file
+
+    Returns:
+        dict: a dictionary of entry information from white list file with gpu settings
+    """
+    if "attrs" not in entry_information:
+        entry_information["attrs"] = {}
+    if "GLIDEIN_Resource_Slots" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_Resource_Slots"] = {"value": "GPUs," + str(entry_information["submit_attrs"]["Request_GPUs"]) + ",type=main"}
+
+    return entry_information
+
+
+def set_whole_node_entry(entry_information):
+    """Set whole node entry
+
+    Args:
+        entry_information (dict): a dictionary of entry information from white list file
+
+    Returns:
+        dict: a dictionary of entry information from white list file with whole node settings
+    """
+    if "submit_attrs" in entry_information:
+        if "+xcount" not in entry_information["submit_attrs"]:
+            entry_information["submit_attrs"]["+xcount"] = None
+        if "+maxMemory" not in entry_information["submit_attrs"]:
+            entry_information["submit_attrs"]["+maxMemory"] = None
+
+    if "attrs" not in entry_information:
+        entry_information["attrs"] = {}
+    if "GLIDEIN_CPUS" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_CPUS"] = {"value": "auto"}
+    if "GLIDEIN_ESTIMATED_CPUS" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_ESTIMATED_CPUS"] = {"value": 32}
+    if "GLIDEIN_MaxMemMBs" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_MaxMemMBs"] = {"type": "string", "value": ""}
+    if "GLIDEIN_MaxMemMBs_Estimate" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_MaxMemMBs_Estimate"] = {"value": "True"}
+
+    return entry_information
+
 
 def update_submit_attrs(entry_information, attr, submit_attr):
     """Update submit attribute according to produced attribute if submit attribute is not defined
@@ -243,10 +295,10 @@ def update_submit_attrs(entry_information, attr, submit_attr):
     Args:
         entry_information (dict): a dictionary of entry information from white list file
         attr (str): attribute name
-        submit_attr: submit attribute name
+        submit_attr (str): submit attribute name
 
     Returns:
-        dict: a dictionary of entry iformation from white list file with possible updated submit attribute
+        dict: a dictionary of entry information from white list file with possible updated submit attribute
     """
     if attr in entry_information["attrs"] and entry_information["attrs"][attr]:
         if "submit_attrs" in entry_information:
