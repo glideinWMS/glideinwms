@@ -82,6 +82,7 @@
                     "monitor":{
                     },
                     "params":{
+                        "CONDOR_VERSION": "8.9.3"
                     }
                 },
                 "json://{\"py/tuple\": [\"fermicloud377.fnal.gov\", \"test_fact_2@gfactory_instance@gfactory_service\", \"vofrontend_service@fermicloud377.fnal.gov\"]}":{
@@ -104,13 +105,14 @@
                     "monitor":{
                     },
                     "params":{
+                        "CONDOR_VERSION": "8.9.3"
                     }
                 },
                 "json://{\"py/tuple\": [\"fermicloud377.fnal.gov\", \"test_fact_3@gfactory_instance@gfactory_service\", \"vofrontend_service@fermicloud377.fnal.gov\"]}":{
                     "attrs":{
                         "AuthenticatedIdentity":"gfactory@fermicloud377.fnal.gov",
                         "AuthenticationMethod":"FS",
-                        "EntryName":"test_fact_2",
+                        "EntryName":"test_fact_3",
                         "FactoryName":"gfactory_service",
                         "GLEXEC_JOB":"True",
                         "GLIDEIN_CPUS":3,
@@ -126,6 +128,7 @@
                     "monitor":{
                     },
                     "params":{
+                        "CONDOR_VERSION": "8.9.3"
                     }
                 },
                 "json://{\"py/tuple\": [\"fermicloud377.fnal.gov\", \"test_fact_4@gfactory_instance@gfactory_service\", \"vofrontend_service@fermicloud377.fnal.gov\"]}":{
@@ -147,6 +150,7 @@
                     "monitor":{
                     },
                     "params":{
+                        "CONDOR_VERSION": "8.9.3"
                     }
                 },
                 "json://{\"py/tuple\": [\"fermicloud377.fnal.gov\", \"test_fact_5@gfactory_instance@gfactory_service\", \"vofrontend_service@fermicloud377.fnal.gov\"]}":{
@@ -169,6 +173,7 @@
                     "monitor":{
                     },
                     "params":{
+                        "CONDOR_VERSION": "8.9.3"
                     }
                 },
                 "json://{\"py/tuple\": [\"fermicloud377.fnal.gov\", \"test_fact_6@gfactory_instance@gfactory_service\", \"vofrontend_service@fermicloud377.fnal.gov\"]}":{
@@ -213,6 +218,7 @@
                     "monitor":{
                     },
                     "params":{
+                        "CONDOR_VERSION": "8.7.3"
                     }
                 }
             },

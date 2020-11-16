@@ -1,0 +1,330 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Glidein Recipes - HTCondor IDTokens Authorization</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS2.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li><a href="./token_auth.html">Token Authorization</a></li>
+        <li>HTCondor IDTokens Authorization</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+            </map>
+
+            <h2>HTCondor IDTokens Authorization</h2>
+            <ul class="subcomponents">
+                <li><a href="./index.html">Overview</a></li>
+                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
+                <li><a href="./cloud.html">Cloud Recipes</a></li>
+                <li><a href="./token_auth.html">Token Auth</a></li>
+                <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
+            </ul>
+        <div class="space">
+          <p>&nbsp</p>
+          <p>&nbsp</p>
+        </div>
+        </div>
+        <div class="jump">
+           <u>Jump to:</u>
+            <ol>
+                <li><a href="#Description">Description</a> </li>
+                <li><a href="#Requirements">Requirements</a> </li>
+                <li><a href="#VOFrontendFactory">VOFrontend, Factory Processes</a></li>
+                <ol>
+                <li><a href="#OutOfBox">Out of the Box</a></li>
+                <li><a href="#Frontendp">Frontend uid Processes</a></li>
+                <li><a href="#Factoryp">Factory uid Processes</a></li>
+                </ol>
+                <li><a href="#VOFrontendCE">VOFrontend, glideins</a></li>
+                <ol>
+                <li><a href="#adminCE">Required Steps</a> </li> 
+                <li><a href="#Check">Verify Token Functionality</a> </li>
+                <li><a href="#Revoke">Revoking Tokens for Entries</a> </li>
+                </ol>
+                <li><a href="#ToDo">Limitations</a> </li>
+                <li><a href="#Useful">Useful Links</a> </li>
+            </ol>
+        </div>
+        <div class="section">
+          <h2 id="Description" class="western">Description</h2
+            <p>
+             This page documents several for enabling and managing HTCondor IDTokens authorization between VOFrontends 
+             and Factories,  and also between VOFrontends and glideins on Compute Elements  (CE's).
+            </p>
+        </div>
+        <div class="section">
+            <h2 id="Requirements" class="western">Requirements</h2>
+            <p>
+
+            </p>
+            <table summary="Requirements for Frontend-CE Token Authorization" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Requirement</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>Compatible HTCondor and GlideinWMS Versions </td>
+                        <td>
+                          <a href="token_auth.html#Requirements">Version numbers and installation instructions</a>
+                        </td>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+          <h2 id="VOFrontendFactory" class="western">VOFrontend to Factory IDTokens Authentication </h2>
+        <div class="subsection">
+          <h3 id="OutOfBox" class="western">Out of the Box </h3>
+          <p>GlideinWMS comes pre-configured with a list of authentication methods to try for HTCondor interprocess communication. 
+          Starting with version 3.7.1 the IDTOKENS method was prepended to the existing  method list, which was 
+          previously "FS, GSI" .  
+          HTCondor processes owned by the 'condor' uid (i.e. most of them) on a 3.7.1 installation will use 
+          IDTOKENS auth for internal communication 'out of the box'.
+          If IDTOKENS  auth fails, FS, then  GSI authentication are tried next.  A  GWMS Factory or VOFrontend that 
+          is upgraded to 3.7.1 will mostly authenticate internally with IDTOKENS and externally with GSI. 
+        </div>
+        <div class="subsection">
+          <h3 id="Frontendp" class="western">Frontend uid Processes </h3>
+          <p>The VOFrontend runs some HTCondor processes under the vofrontend owner uid, which is typically 'frontend'.  
+          To make these processes authenticate with IDTOKENS, the VOFrontend admin must  manually generate a 
+          token for these processes to use. One way to do this as is follows:
+          <p>First, verify that the 'frontend' uid is the one  running VOFrontend processes:
+          <pre>
+[root@fermicloud170 ~]# ps auxww | grep glidein | grep -v grep
+frontend    4017  0.0  1.9 420712 36592 ?        S<   14:18   0:13 python /usr/sbin/glideinFrontend /var/lib/gwms-frontend/vofrontend
+          </pre>
+          <p>Query the HTCondor system for VOFrontend processes and what authentication method they are using:
+          <pre>
+[root@fermicloud170 ~]# condor_status -any -constraint 'regexp("glide.*",MyType)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
+glidefrontendmonitor Frontend-master-v1_0 vofrontend_service@fermicloud170.fnal.gov GSI
+glideresource el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov GSI
+glideresource el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov GSI
+glideresource el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov GSI
+[root@fermicloud170 ~]#
+          </pre>
+          <p>We see that we need an IDTOKEN with the subject 'vofrontend_service@fermicloud170.fnal.gov' to replace existing GSI 
+          authentication.  The following commands accomplish this:
+          <pre>
+[root@fermicloud170 ~]# mkdir -p ~frontend/.condor/tokens.d
+[root@fermicloud170 ~]# condor_token_create -id vofrontend_service@fermicloud170.fnal.gov -key POOL > ~frontend/.condor/tokens.d/frontend.$HOSTNAME.idtoken
+[root@fermicloud170 ~]# chown -R frontend:frontend ~frontend/.condor
+[root@fermicloud170 ~]# chmod 600 ~frontend/.condor/tokens.d/*          
+          </pre>
+          <p>Verify that the processes are now  using IDTOKENS authentication:
+          <pre>
+[root@fermicloud170 ~]# condor_status -any -constraint 'regexp("glide.*",MyType)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
+glidefrontendmonitor Frontend-master-v1_0 vofrontend_service@fermicloud170.fnal.gov IDTOKENS
+glideresource el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov IDTOKENS
+glideresource el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov IDTOKENS
+glideresource el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov IDTOKENS
+[root@fermicloud170 ~]#
+          </pre>
+        </div>
+        <div class="subsection">
+          <h3 id="Factoryp" class="western">Factory uid Processes </h3>
+          <p>Most HTCondor Factory processes run under the uid 'condor', and as of version 3.7.1 are already using IDTOKENS authentication.  Some processes run under the Factory owner uid, typically 'gfactory'.  The factory operator can verify this uid with the following query:
+          <pre>
+[root@fermicloud161 ~]# ps -auxww | grep glideinwms | grep -v grep
+gfactory    4318  0.1  1.5 416720 28884 ?        S   14:15   0:22 /bin/python /usr/lib/python2.7/site-packages/glideinwms/factory/glideFactoryEntryGroup.pyc 4311 60 5 /var/lib/gwms-factory/work-dir el6_osg34:el7_osg34:el7_osg35 0
+[root@fermicloud161 ~]#
+        </pre>
+        <p>Look for HTCondor processes authenticating as user 'gfactory':
+        <pre>
+[root@fermicloud161 ~]# condor_status -any  -constraint 'regexp("gfactory.*",AuthenticatedIdentity)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
+glidefactory el6_osg34@gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov FS
+glidefactoryclient el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main gfactory@fermicloud161.fnal.gov FS
+glidefactory el7_osg34@gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov FS
+glidefactoryclient el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main gfactory@fermicloud161.fnal.gov FS
+glidefactory el7_osg35@gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov FS
+glidefactoryclient el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main gfactory@fermicloud161.fnal.gov FS
+glidefactoryglobal gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov FS
+[root@fermicloud161 ~]#
+        </pre>
+        <p>Generate an IDTOKEN for gfactory to use that presents as 'gfactory@fermicloud161.fnal.gov':
+        <pre>
+[root@fermicloud161 ~]# mkdir -p ~gfactory/.condor/tokens.d
+[root@fermicloud161 ~]# condor_token_create -id gfactory@$HOSTNAME > ~gfactory/.condor/tokens.d/gfactory.$HOSTNAME.idtoken
+[root@fermicloud161 ~]# chown -R gfactory:gfactory ~gfactory/.condor/tokens.d
+[root@fermicloud161 ~]# chmod 600 ~gfactory/.condor/tokens.d/*
+[root@fermicloud161 ~]#
+         </pre>
+         <p>Check that the new IDTOKEN is authenticating:
+         <pre>
+[root@fermicloud161 ~]# condor_status -any  -constraint 'regexp("gfactory.*",AuthenticatedIdentity)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
+glidefactory el6_osg34@gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov IDTOKENS
+glidefactoryclient el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main gfactory@fermicloud161.fnal.gov IDTOKENS
+glidefactory el7_osg34@gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov IDTOKENS
+glidefactoryclient el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main gfactory@fermicloud161.fnal.gov IDTOKENS
+glidefactory el7_osg35@gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov IDTOKENS
+glidefactoryclient el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main gfactory@fermicloud161.fnal.gov IDTOKENS
+glidefactoryglobal gfactory_instance@gfactory_service gfactory@fermicloud161.fnal.gov IDTOKENS
+[root@fermicloud161 ~]#
+        </pre>
+          <p>Factories also have HTCondor processes authenticating from other machines (like VOFrontends) that do not use IDTOKENS auth, but can be made to do so.  This can be looked for  with a query such as:
+          <pre>
+[root@fermicloud161 ~]# condor_status -any  -constraint '!regexp("IDTOKENS",AuthenticationMethod)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
+glideclient 67748_el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI 
+glideclient 67748_el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
+glideclient 67748_el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
+glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
+[root@fermicloud161 ~]#
+         </pre>
+         <p>These are HTCondor processes controlled by the VOFrontend that we made an IDTOKEN for earlier.  For these to authenticate with IDTOKENS, the VOFrontend (fermicloud170) needs to present an IDTOKEN trusted by the factory (fermicloud161). This is done in two steps.  First, the Factory admin generates a token the Factory trusts:
+         <pre>
+root@fermicloud161 ~]# condor_token_create -id vofrontend_service@fermicloud161.fnal.gov -key POOL > ~/frontend.fermicloud161.fnal.gov.idtoken
+         </pre>
+         <p>Next, the VOFrontend admin securely transfers the  new IDTOKEN to where the VOFrontend 'frontend' uid can use it:
+         <pre>
+[root@fermicloud170 ~]# scp root@fermicloud161.fnal.gov:/root/frontend.fermicloud161.fnal.gov.idtoken  ~frontend/.condor/tokens.d/frontend.fermicloud161.fnal.gov.idtoken
+frontend.fermicloud161.fnal.gov.idtoken                                                                           100%  278   335.3KB/s   00:00
+[root@fermicloud170 ~]# chown -R frontend:frontend ~frontend/.condor/tokens.d
+[root@fermicloud170 ~]# chmod 600 ~frontend/.condor/tokens.d/*
+         </pre>
+         <p>The Factory admin can now verify that IDTOKENS are being used to authenticate by these processes:
+         <pre>
+[root@fermicloud161 ~]# condor_status -any  -constraint 'regexp("vofrontend_service.*",AuthenticatedIdentity)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
+glideclient 67748_el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov IDTOKENS
+glideclient 67748_el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov IDTOKENS
+glideclient 67748_el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov IDTOKENS
+glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov IDTOKENS
+[root@fermicloud161 ~]#
+         </pre>
+
+        </div>
+        <div class="section">
+          <h2 id="VOFrontendCE" class="western">VOFrontend to glidein IDTokens Authentication </h2>
+          <p>When the VOFrontend requests glideins from a Factory Entry, it checks what version of HTCondor
+          the Factory Entry is sending along with the glidein code to the CE.  If the version of HTCondor
+          it finds supports IDTOKENS, the VOFrontend generates an IDTOKEN for the glidein to use to authenticate
+          back to the VOFrontend collector.  The newly generated IDTOKEN is encrypted and passed to the Factory,
+          which passes it securely to the CE along with the glidein code.  When the glidein starts, if  IDTOKENS
+          authentication fails for some reason, GSI is used to authenticate back to the VOFrontend.
+        <div class="subsection">
+          <h3 id="adminCE" class="western">Required Steps</h3>
+          <p>
+          <ul>
+            <li>This authentication chain requires some  manual steps by admins: 
+              <ul>
+                <li>The VOFrontend admin must upgrade to a GWMs version that supports IDTOKENS, 3.7.1 or later.
+                <li>The Factory  admin must upgrade to a GWMs version that supports IDTOKENS, 3.7.1 or later.
+                <li>The Factory admin must configure the Factory Entry to  use an HTCondor version 
+                  that supports IDTOKENS, 8.9.1 or later.
+                <li>The Factory admin must ensure that the entry is advertising the afore-mentioned HTCondor version in its classad.  Example:
+              
+                  <pre>
+&lt;glidein&gt;
+   &lt;entries&gt;
+      &lt;entry name=..... &gt;
+         &lt;attrs&gt;
+            &lt;attr name="CONDOR_VERSION"  value="8.9.5" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" /&gt;
+     </pre>
+                </li>
+                </ul>
+          </ul>
+
+        </div>
+        <div class="subsection">
+          <h3 id="Check" class="western">Verifying Token Functionality in the Glidein</h3>
+          <p>Once the required steps have been implemented, there are a few different ways to verify that 
+          IDTOKENS authentication is working. These include:
+          <ul>
+          <li> Submit a condor job to the Frontend with condor requirements that make it run on the newly 
+            modified Factory Entry.  Make sure the job has a 'printenv' or equivalent in it to show the 
+            environment the glidein runs the job under.   When the job completes, check the output from 
+            the 'printenv' command.  If a token was generated 
+            by the VOFrontend, forwarded to the Factory, forwarded again to the CE, and integrated into the glidein 
+            enviroment, GLIDEIN_CONDOR_TOKEN will be set and its value will include the GLIDEIN_Site name, for 
+            example if the GLIDEIN_Site is named 'el7_osg34', GLIDEIN_CONDOR_TOKEN will contain the string
+            'el7_osg34.idtoken'. </li>
+          <li> Edit the CERTIFICATE_MAPFILE of the VOFrontend to comment out the GSI entry for the CE that
+            corresponds to the Factory Entry.  This disables GSI communication from the VOFrontend to the CE
+            so if glideins are still connecting back to the VOFrontend from this CE, you are guaranteed
+            to be using IDTOKENS communication . </li>
+          <li> Change the condor debug level on both the VOFrontend and glidein to ALL_DEBUG=D_FULLDEBUG,D_SECURITY.
+            The condor logs will become very verbose, but they will report every authentication attempt and
+            what method was used. It is recommended to reset ALL_DEBUG to something less verbose after
+            verification/debugging. </li>
+          </ul>
+        </div> 
+        <div class="subsection">
+          <h3 id="Revoke" class="western">Revoking Tokens for Entry Points</h3>
+          <ul>
+            <li>Each Glidein_Site that a VOFrontend submits to is sent IDTOKENS generated from a unique password for that site.  If the password is changed, all existing IDTOKENS for that site previously generated become invalid, and IDTOKENS authentication for any running glideins at that site will stop working.  New glideins requested by the Frontend will use the new password, and valid tokens will be sent to the Factory and on to the CE's.  A quick way to change a token generating password from the command line is
+            <pre>
+# export GLIDEIN_SITE='HCC_US_Omaha_crane_gpu'
+# openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${GLIDEIN_SITE} add
+            </pre>
+            </li>
+
+          </ul>
+        </div>
+        </div>
+          <h2 id="ToDo" class="western">Limitations</h2>
+          <ul>
+            <li>More fine grained management of IDTOKENS lifetime and HTCondor capabilities is possible and desirable. It
+              has not been addressed in this recipe.
+            <li>SciToken authentication and its interactions with Condor and GlideinWMS are addressed  <a href="SciToken_auth.html">here</a>.</li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2 id="Useful" class="western">Useful Links </h2>
+          <ul>
+            <li> <a href="https://docs.google.com/document/d/10uSYp6sePbHPFzKmkTMAwr1uKzuSxebr_Om89IUgyUs">HTCondor Token Design Document</a></li>
+            <li> <a href="https://htcondor.readthedocs.io/en/latest/man-pages/condor_token_create.html">HTCondor IDTOKENS Command Line Tools</a></li>
+          </ul>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+            GlideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>

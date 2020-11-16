@@ -218,8 +218,8 @@ install of wmscollector + wms factory
 %build
 cp %{SOURCE7} .
 chmod 700 chksum.sh
-./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh  creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh  creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/singularity_wrapper.sh creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh creation/web_base/singularity_wrapper.sh creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -909,7 +909,7 @@ rm -rf $RPM_BUILD_ROOT
 * Mon Oct 5 2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
 - GlideinWMS v3.7.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_1/history.html
-- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.4.rc4
+- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.4.rc8
 
 * Mon Oct 5 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.5-1
 - GlideinWMS v3.6.5

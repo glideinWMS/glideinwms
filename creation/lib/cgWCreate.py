@@ -19,6 +19,7 @@ import stat
 import tarfile
 import io
 from . import cgWDictFile
+from . import cWDictFile
 
 
 ##############################
@@ -36,7 +37,6 @@ def create_condor_tar_fd(condor_base_dir):
     Returns:
         StringIO: representation of tarfile.
     """
-
     try:
         # List of required files
         condor_bins = [
@@ -45,7 +45,8 @@ def create_condor_tar_fd(condor_base_dir):
 
         # List of optional files, included if found in condor distro
         condor_opt_bins = [
-            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise'
+            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise',
+            'bin/condor_nsenter', 'bin/condor_docker_enter'
         ]
 
         condor_opt_libs = [
@@ -54,6 +55,7 @@ def create_condor_tar_fd(condor_base_dir):
             'lib/CondorJavaWrapper.class',
             'lib/scimark2lib.jar',
             'lib/condor',
+            'lib/libgetpwnam.so',
         ]
         condor_opt_libexecs = [
             'libexec/glexec_starter_setup.sh',
@@ -173,28 +175,47 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         client_log_base_dir = conf.get_child('submit')['base_client_log_dir']
         submit_attrs = entry.get_child('config').get_child('submit').get_child_list('submit_attrs')
         enc_input_files = []
-        # if a token is found in the client proxies dir, add it to
+
+        # if entry condor version supports tokens, add them to 
         # the transfer/encrypt input file list
-        base_client_proxies_dir = conf.get_child('submit')['base_client_proxies_dir']
-        token_file_name = "%s_token" % entry_name
-        for root, dirs, files  in os.walk(base_client_proxies_dir):
-            for fname in files:
-                if fname == token_file_name:
-                    pth = os.path.join(root, fname)
-                    enc_input_files.append(pth)
-                    self.append('environment', '"AUTH_TOKEN=%s"' % fname)
-                    self.add('+AUTH_TOKEN', fname)
-                    break
+
+        # OLD token version
+        # base_client_proxies_dir = conf.get_child('submit')['base_client_proxies_dir']
+        # token_file_name = "%s_token" % entry_name
+        # for root, dirs, files  in os.walk(base_client_proxies_dir):
+        #     for fname in files:
+        #         if fname == token_file_name:
+        #             pth = os.path.join(root, fname)
+        #             enc_input_files.append(pth)
+        #             self.append('environment', '"AUTH_TOKEN=%s"' % fname)
+        #             self.add('+AUTH_TOKEN', fname)
+        #             break
+        param_c = cWDictFile.ReprDictFile(self.get_dir(), 'params.cfg')
+        param_c.load()
+        version = 'default'
+        if 'CONDOR_VERSION' in param_c: 
+            version = param_c['CONDOR_VERSION']
+
+        if version > '8.9.1' and version != 'default': 
+            enc_input_files.append('$ENV(IDTOKENS_FILE)')
+            enc_input_files.append('$ENV(SCITOKENS_FILE)')
+            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
+        token_list = []
         token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
         token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
         token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
         if os.path.exists(token_tgz_file):
             enc_input_files.append(token_tgz_file)
+            token_list.append(token_tgz_file)
         url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
         if os.path.exists(url_dirs_desc_file):
             enc_input_files.append(url_dirs_desc_file)
+        if token_list:
+            self.append('environment', "JOB_TOKENS='"+','.join(token_list)+"'")
+
 
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)

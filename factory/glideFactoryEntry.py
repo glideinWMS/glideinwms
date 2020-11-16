@@ -1212,23 +1212,52 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials = glideFactoryCredentials.SubmitCredentials(
                              credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
-    token_name = "%s_token" % entry.name
-    frontend_supplied_token = decrypted_params.get(token_name)
-    if frontend_supplied_token:
+
+    condortoken = "%s.idtoken" % entry.name
+    condortoken_file = os.path.join(submit_credentials.cred_dir, condortoken)
+    condortoken_data = decrypted_params.get(condortoken)
+    if condortoken_data:
         (fd, tmpnm) = tempfile.mkstemp()
         try:
-            tkn_file = os.path.join(submit_credentials.cred_dir, token_name)
-            entry.log.debug("frontend_token supplied, writing to %s" % tkn_file)
-            os.chmod(tmpnm, 0o400)
-            os.write(fd, frontend_supplied_token)
+            entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
+            os.chmod(tmpnm,0o600)
+            os.write(fd, condortoken_data)
             os.close(fd)
-            util.file_tmp2final(tkn_file, tmpnm)
+            util.file_tmp2final(condortoken_file, tmpnm)
+                
         except Exception as err:
-            entry.log.error('failed to create token: %s' % err)
+            entry.log.exception('failed to create token: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
+    if not os.path.exists(condortoken_file):
+        with open(condortoken_file, 'a'):
+            pass
+    if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
+        entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
+
+    scitoken = "%s.scitoken" % entry.name
+    scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
+    scitoken_data = decrypted_params.get(scitoken)
+    if scitoken_data:
+        (fd, tmpnm) = tempfile.mkstemp()
+        try:
+            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+            os.chmod(tmpnm,0o600)
+            os.write(fd, scitoken_data)
+            os.close(fd)
+            util.file_tmp2final(scitoken_file, tmpnm)
+        except Exception as err:
+            entry.log.exception('failed to create scitoken: %s' % err)
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
 
+    if not os.path.exists(scitoken_file):
+        with open(scitoken_file, 'a'):
+            pass
+    if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
+        entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
 
     if 'grid_proxy' in auth_method:

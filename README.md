@@ -1,5 +1,7 @@
 # GlideinWMS
 
+[![DOI](https://zenodo.org/badge/1833401.svg)](https://zenodo.org/badge/latestdoi/1833401)
+
 ![.github/workflows/pyunittest.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pyunittest.yaml/badge.svg)
 ![.github/workflows/pylint.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pylint.yaml/badge.svg)
 ![.github/workflows/bats.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/bats.yaml/badge.svg)

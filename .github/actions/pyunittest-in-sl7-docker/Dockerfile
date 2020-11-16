@@ -1,6 +1,4 @@
-FROM mambelli/gwms-ci-sl7
-#FROM mambelli/gwms-sl7
-#RUN /usr/bin/yumalldeps.sh -i -y "--enablerepo=osg-contrib" glideinwms-factory glideinwms-vofrontend
+FROM glideinwms/gwms-ci-sl7
 COPY entrypoint.sh /entrypoint.sh
 RUN groupadd -g 115 glideinwms-ci
 RUN useradd -u 1001 -g 115 glideinwms-ci

@@ -623,6 +623,7 @@ Example: recoverable_exitcodes="c1, c2 s1, c3 s1 s3 s4, ..."
         period=&quot;period in seconds&quot;
         prefix=&quot;cron prefix&quot;
         after_entry=&quot;True&quot;
+          type="file type"
         comment=&quot;<I>comment</I>&quot; /&gt;
         </div>
 
@@ -2005,6 +2006,14 @@ daemons are started up.</P>
         <TR>
             <TD> <P><b>untar</b></P></TD>
             <TD> <P>True if the file is a tarball that needs to be expanded (see example below), default is False</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>type</b></P></TD>
+            <TD> <P>File type, must be one of the valid types (regular, run, source, wrapper, untar). 
+              Can have qualifiers depending on the type after a colon (":"). Valid qualifier for <i>run</i> is
+              "singularity" causes setup scripts to run in Singularity. 
+              Currently <i>type</i> is ignored for non executables and the only values used are "run" or "run:singularity".
+              Default is empty</P></TD>
         </TR>
         <TR>
             <TD> <P><b>const</b></P></TD>
