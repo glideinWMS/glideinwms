@@ -1,6 +1,6 @@
 <glidein>
     <entries>
-      <entry name="TEST_SITE_3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud025.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+      <entry name="TEST_SITE_3" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud046.fnal.gov fermicloud046.fnal.gov:9619" gridtype="condor" trust_domain="grid" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
@@ -34,7 +34,7 @@
          <monitorgroups>
          </monitorgroups>
       </entry>
-      <entry name="TEST_SITE_4" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud121.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="fermicloud173.fnal.gov" trust_domain="OSG" verbosity="fast" work_dir="OSG">
+      <entry name="TEST_SITE_4" auth_method="grid_proxy" enabled="True" gatekeeper="fermicloud105.fnal.gov fermicloud105.fnal.gov:9619" gridtype="condor" trust_domain="grid" verbosity="fast" work_dir="OSG">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>

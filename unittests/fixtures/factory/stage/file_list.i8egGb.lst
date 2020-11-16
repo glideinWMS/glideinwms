@@ -1,8 +1,0 @@
-# File: file_list.i8egGb.lst
-#
-# Outfile 	InFile         	Cache/exec 	Period 	Prefix 	Condition 	ConfigOut
-#########################################################################################
-constants.cfg 	constants.i8egGb.cfg 	regular 	0 	GLIDEIN_PS_ 	TRUE 	CONSTS_FILE
-condor_vars.lst 	condor_vars.i8egGb.lst 	regular 	0 	GLIDEIN_PS_ 	TRUE 	CONDOR_VARS_FILE
-untar.cfg 	untar.i8egGb.cfg 	regular 	0 	GLIDEIN_PS_ 	TRUE 	UNTAR_CFG_FILE
-grid-mapfile 	grid-mapfile.i8egGb 	regular 	0 	GLIDEIN_PS_ 	TRUE 	GRIDMAP

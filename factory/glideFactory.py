@@ -30,8 +30,7 @@ import logging
 import math
 # from datetime import datetime
 
-STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "../../"))
+from M2Crypto.RSA import RSAError
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
@@ -46,8 +45,9 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
+from glideinwms.factory import glideFactoryEntryGroup
 from glideinwms.lib import condorMonitor
-from sets import Set
+# from sets import Set
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 ############################################################
@@ -317,7 +317,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     @param restart_attempts: Number of allowed restart attempts in the interval
     """
 
-    global STARTUP_DIR
     childs = {}
 
     # Number of glideFactoryEntry processes to spawn and directly relates to
@@ -379,8 +378,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
             # Converted to using the subprocess module
             command_list = [sys.executable,
-                            os.path.join(STARTUP_DIR,
-                                         "glideFactoryEntryGroup.py"),
+                            glideFactoryEntryGroup.__file__,
                             str(os.getpid()),
                             str(sleep_time),
                             str(advertize_rate),
@@ -401,7 +399,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
         logSupport.log.info("EntryGroup startup times: %s" % childs_uptime)
 
         for group in childs:
-            #childs[entry_name].tochild.close()
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
             for fd in (childs[group].stdout.fileno(),
@@ -410,6 +407,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         # If RemoveOldCredFreq < 0, do not do credential cleanup.
+        curr_time = 0  # To ensure curr_time is always initialized
         if int(glideinDescript.data['RemoveOldCredFreq']) > 0:
             # Convert credential removal frequency from hours to seconds
             remove_old_cred_freq = int(glideinDescript.data['RemoveOldCredFreq']) * 60 * 60
@@ -423,21 +421,21 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             logSupport.log.info("Adding cleaners for old credentials")
             cred_base_dir = glideinDescript.data['ClientProxiesBaseDir']
             for username in frontendDescript.get_all_usernames():
-                cred_base_user = os.path.join(cred_base_dir, "user_%s"%username)
+                cred_base_user = os.path.join(cred_base_dir, "user_%s" % username)
                 cred_user_instance_dirname = os.path.join(cred_base_user, "glidein_%s" % glideinDescript.data['GlideinName'])
-                cred_cleaner = cleanupSupport.PrivsepDirCleanupCredentials(
-                    username, cred_user_instance_dirname,
+                cred_cleaner = cleanupSupport.DirCleanupCredentials(
+                    cred_user_instance_dirname,
                     "(credential_*)", remove_old_cred_age)
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 
         iteration_basetime = time.time()
         while True:
             # retrieves WebMonitoringURL from glideclient classAd
-            iteration_timecheck  = time.time()
+            iteration_timecheck = time.time()
             iteration_timediff = iteration_timecheck - iteration_basetime
 
-            if iteration_timediff >= 3600: # every hour
-                iteration_basetime = time.time() # reset the start time
+            if iteration_timediff >= 3600:  # every hour
+                iteration_basetime = time.time()  # reset the start time
                 fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
                 fronmonconstraint = '(MyType=="glideclient")'
                 fronmonformat_list = [('WebMonitoringURL', 's'), ('FrontendName', 's')]
@@ -445,7 +443,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
                 fronmon_list_names = fronmondata.keys()
                 if fronmon_list_names is not None:
-                    urlset = Set()
+                    urlset = set()
                     if os.path.exists(fronmonpath):
                         os.remove(fronmonpath)
                     for frontend_entry in fronmon_list_names:
@@ -455,7 +453,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         if (fronmonfrt, fronmonurl) not in urlset:
                             urlset.add((fronmonfrt, fronmonurl))
                             with open(fronmonpath, 'w') as fronmonf:
-                                fronmonf.write("%s, %s"%(fronmonfrt, fronmonurl))
+                                fronmonf.write("%s, %s" % (fronmonfrt, fronmonurl))
 
             # Record the iteration start time
             iteration_stime = time.time()
@@ -465,8 +463,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # If a compromised key is left around and if attacker can somehow
             # trigger FactoryEntry process crash, we do not want the entry
             # to pick up the old key again when factory auto restarts it.
-            if ( (time.time() > oldkey_eoltime) and
-                 (glideinDescript.data['OldPubKeyObj'] is not None) ):
+            if time.time() > oldkey_eoltime and glideinDescript.data['OldPubKeyObj'] is not None:
                 glideinDescript.data['OldPubKeyObj'] = None
                 glideinDescript.data['OldPubKeyType'] = None
                 try:
@@ -479,8 +476,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Only removing credentials in the v3+ protocol
             # Affects Corral Frontend which only supports the v3+ protocol.
             # IF freq < zero, do not do cleanup.
-            if ( (int(glideinDescript.data['RemoveOldCredFreq']) > 0) and
-                 (curr_time >= update_time) ):
+            if int(glideinDescript.data['RemoveOldCredFreq']) > 0 and curr_time >= update_time:
                 logSupport.log.info("Checking credentials for cleanup")
 
                 # Query queue for glideins. Don't remove proxies in use.
@@ -551,8 +547,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         del childs[group]
 
                         command_list = [sys.executable,
-                                        os.path.join(STARTUP_DIR,
-                                                     "glideFactoryEntryGroup.py"),
+                                        glideFactoryEntryGroup.__file__,
                                         str(os.getpid()),
                                         str(sleep_time),
                                         str(advertize_rate),
@@ -562,12 +557,13 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         childs[group] = subprocess.Popen(command_list,
                                                          shell=False,
                                                          stdout=subprocess.PIPE,
-                                                         stderr=subprocess.PIPE)
+                                                         stderr=subprocess.PIPE,
+                                                         close_fds=True,
+                                                         preexec_fn=_set_rlimit)                                                         
 
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
                         childs_uptime[group].append(time.time())
-                        childs[group].tochild.close()
                         for fd in (childs[group].stdout.fileno(),
                                    childs[group].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -745,6 +741,19 @@ def main(startup_dir):
             glideinDescript.load_pub_key(recreate=False)
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
+    except RSAError as e:
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
+        key_fname = getattr(e, 'key_fname', None)
+        cwd = getattr(e, 'cwd', None)
+        if key_fname and cwd:
+            logSupport.log.error("Failed to load RSA key %s with current working direcotry %s", key_fname, cwd)
+            logSupport.log.error("If you think the rsa key might be corrupted, try to remove it, and then reconfigure the factory to recreate it")
+        raise
+    except IOError as ioe:
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
+        if ioe.filename == 'rsa.key' and ioe.errno == 2:
+             logSupport.log.error("Missing rsa.key file. Please, reconfigure the factory to recreate it")
+        raise
     except:
         logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
@@ -760,8 +769,7 @@ def main(startup_dir):
     restart_interval = int(glideinDescript.data['RestartInterval'])
 
     try:
-        glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.factory').version()
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro('checksum.factory').version()
     except:
         logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
 

@@ -1,0 +1,7 @@
+# File: signature.ia5eiy.sha1
+#
+1c1d7dea37399d58f53b6c80b97d5dc42f6a8350  constants.ia5eiy.cfg
+cc1185fd9aacecf4ad3499de59d85b25ff6f93d2  condor_vars.ia5eiy.lst
+054817e58f0cdcd18e0c9322ff348a8c123daa53  untar.ia5eiy.cfg
+65fd43b6ff5a18540e39ae19cb1f00b67c75d7d6  file_list.ia5eiy.lst
+8dabc9a170c76279f7c04bff1f3fd0ca6cb04362  description.ia5eiy.cfg

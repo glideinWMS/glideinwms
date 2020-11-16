@@ -1,4 +1,6 @@
 #!/bin/bash
+# chkconfig: 345 99 9
+# description: GWMS-RENEW-PROXIES
 # Code and configuration files contributed by Brian Lin, OSG Software
 
 . /etc/rc.d/init.d/functions

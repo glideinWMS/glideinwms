@@ -86,15 +86,13 @@ class Classad(object):
         except:
             raise
 
-        try:
+        with f:
             if append and f.tell() > 0:
                 # Write empty line when in append mode to be considered a separate classad
                 # Skip at the beginning of the file (HTCondor bug #5147)
                 # (one or more empty lines separate multiple classads on the same file)
                 f.write('\n')
             f.write("%s" % self)
-        finally:
-            f.close()
 
     def __str__(self):
         """
@@ -179,15 +177,11 @@ class ClassadAdvertiser:
         fname = self.getUniqClassadFilename()
 
         try:
-            fd = file(fname, "w")
+            with open(fname, "w") as fd:
+                fd.write("%s" % self.classads[ad])
         except:
             logSupport.log.error("Error creating a classad file %s" % fname)
             return ""
-
-        try:
-            fd.write("%s" % self.classads[ad])
-        finally:
-            fd.close()
 
         return fname
 
@@ -207,19 +201,15 @@ class ClassadAdvertiser:
         fname = self.getUniqClassadFilename()
 
         try:
-            fd = file(fname, "w")
+            with open(fname, "w") as fd:
+                for ad in ads:
+                    fd.write('%s' % self.classads[ad])
+                    # Condor uses an empty line as classad delimiter
+                    # Append an empty line for advertising multiple classads
+                    fd.write(self.multiClassadDelimiter)
         except:
             logSupport.log.error("Error creating a classad file %s" % fname)
             return ""
-
-        try:
-            for ad in ads:
-                fd.write('%s' % self.classads[ad])
-                # Condor uses an empty line as classad delimiter
-                # Append an empty line for advertising multiple classads
-                fd.write(self.multiClassadDelimiter)
-        finally:
-            fd.close()
 
         return fname
 
@@ -317,13 +307,10 @@ class ClassadAdvertiser:
 
         try:
             fname = self.getUniqClassadFilename()
-            fd = file(fname, "w")
-            try:
+            with open(fname, "w") as fd:
                 fd.write('MyType = "Query"\n')
                 fd.write('TargetType = "%s"\n' % self.adType)
                 fd.write('Requirements = %s' % constraint)
-            finally:
-                fd.close()
 
             exe_condor_advertise(fname, self.adInvalidateCmd, self.pool,
                                  is_multi=self.multiAdvertiseSupport,

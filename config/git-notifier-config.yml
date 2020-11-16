@@ -5,7 +5,7 @@ ignore_merge: false
 #emailprefix: GIT
 
 # Limit lines per diff (default = no limit)
-ines_per_diff: 300
+lines_per_diff: 300
 
 # The recipient for the commit:
 mailinglist: glideinwms-commit@listserv.fnal.gov

@@ -1,0 +1,8 @@
+# File: file_list.ia5eiy.lst
+#
+# Outfile 	InFile         	Cache/exec 	Period 	Prefix 	Condition 	ConfigOut
+#########################################################################################
+constants.cfg 	constants.ia5eiy.cfg 	regular 	0 	GLIDEIN_PS_ 	TRUE 	CONSTS_FILE
+condor_vars.lst 	condor_vars.ia5eiy.lst 	regular 	0 	GLIDEIN_PS_ 	TRUE 	CONDOR_VARS_FILE
+untar.cfg 	untar.ia5eiy.cfg 	regular 	0 	GLIDEIN_PS_ 	TRUE 	UNTAR_CFG_FILE
+grid-mapfile 	grid-mapfile.ia5eiy 	regular 	0 	GLIDEIN_PS_ 	TRUE 	GRIDMAP

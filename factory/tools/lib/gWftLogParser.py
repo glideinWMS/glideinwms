@@ -71,8 +71,7 @@ def get_Compressed_raw(log_fname,start_str, start_pos=0):
     size = os.path.getsize(log_fname)
     if size==0:
         return "" # mmap would fail... and I know I will not find anything anyhow
-    fd=open(log_fname)
-    try:
+    with open(log_fname) as fd:
         buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
         try:
             # first find the header that delimits the log in the file
@@ -89,8 +88,6 @@ def get_Compressed_raw(log_fname,start_str, start_pos=0):
                 return buf[log_start_idx:log_end_idx]
         finally:
             buf.close()
-    finally:
-        fd.close()
 
 # extract the blob from a glidein log file
 def get_Compressed(log_fname, start_str):
@@ -111,8 +108,7 @@ def get_Simple(log_fname, start_str, end_str):
     size = os.path.getsize(log_fname)
     if size==0:
         return "" # mmap would fail... and I know I will not find anything anyhow
-    fd=open(log_fname)
-    try:
+    with open(log_fname) as fd:
         buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
         try:
             # first find the header that delimits the log in the file
@@ -129,8 +125,6 @@ def get_Simple(log_fname, start_str, end_str):
                 return buf[log_start_idx:log_end_idx.start()]
         finally:
             buf.close()
-    finally:
-        fd.close()
 
 # extract the Condor Log from a glidein log file
 # condor_log_id should be something like "StartdLog"
@@ -157,14 +151,10 @@ def get_StarterSlotNames(log_fname, condor_log_id='(StarterLog.slot[0-9]*[_]*[0-
     size = os.path.getsize(log_fname)
     if size==0:
         return "" # mmap would fail... and I know I will not find anything anyhow
-    fd=open(log_fname)
-    try:
+    with open(log_fname) as fd:
         buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
         try:
             strings = SL_START_RE.findall(buf, 0)
             return strings
         finally:
             buf.close()
-    finally:
-        fd.close()
-

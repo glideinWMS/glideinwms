@@ -53,7 +53,7 @@ def main(conf):
         # copy glidein_startup.sh to the stage area for cloud entries
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR)
 
-        # copy privsep helper executables
+        # copy helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
 
         # create the init.d startup file

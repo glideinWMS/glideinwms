@@ -1486,6 +1486,8 @@ class TarFile(object):
 
         # Append the tar header and data to the archive.
         if tarinfo.isreg():
+            # TODO #23166: Use context managers[with statement] when python 3
+            # once we get rid of SL6 and tarballs
             f = file(name, "rb")
             self.addfile(tarinfo, f)
             f.close()
@@ -1697,6 +1699,8 @@ class TarFile(object):
         """Make a file called targetpath.
         """
         source = self.extractfile(tarinfo)
+        # TODO #23166: Use context managers[with statement] when python 3
+        # once we get rid of SL6 and tarballs
         target = file(targetpath, "wb")
         copyfileobj(source, target)
         source.close()
@@ -2185,6 +2189,8 @@ def is_tarfile(name):
        are able to handle, else return False.
     """
     try:
+        # TODO #23166: Use context managers[with statement] when python 3
+        # once we get rid of SL6 and tarballs
         t = open(name)
         t.close()
         return True

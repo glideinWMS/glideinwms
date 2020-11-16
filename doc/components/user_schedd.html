@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>GlideinWMS</title>
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Components</a></li>
+        <li>User Schedd</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+    <div class="content">
+        <div class="heading">
+        <h2>User Schedd</h2>
+        <ul class="subcomponents">
+            <li> <a href="./index.html">Overview</a></li>
+            <li> <a href="./user_pool.html">User Pool</a></li>
+            <li> User Schedd</li>
+            <li> <a href="./gsi.html">GSI</a></li>
+            <li class="last"> <a href="./condor.html">HTCondor</a></li>
+        </ul>
+            <h3>User Schedd</h3>
+        </div>
+    <div class="jump">
+    <u>Jump to:</u>
+    <ol>
+        <li><a href="#description">Description</a></li>
+        <li><a href="#hardware">Hardware requirements</a></li>
+        <li><a href="#fine_tune">Large Scale Fine Tuning</a></li>
+    </ol>
+    </div>
+
+
+    <div class="section">
+
+    <h2>1. Description</a></h2>
+            <p><img src="../images/overview_schedd.png" name="Schedd Overview" align="right" border="0"></p>
+            <p>
+                This node will be a 
+                <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Submit node</a>
+                for the user jobs.  You can install many such nodes to improve scalability of your system.
+            </p>
+    </div>
+
+
+    <div class="section">
+                        
+            <h2><a name="hardware">2. Hardware requirements</a></h2>
+		<table class="requirements" style="width: 500px;">
+            <tbody><tr class="head">
+                <td>CPUs</td>
+                <td>Memory</td>
+                <td>Disk</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>min 2GB (16GB recommended)</td>
+                <td>~5GB</td>
+            </tr>
+            </tbody></table>
+            
+           <p>
+                This machine needs <b>a reasonably recent CPUs</b> and <b>a large amount of memory</b> (min <b>2GB</b>, recommended <b>16GB</b>, 
+                <b>~1.5MB per running job</b>).  The amount of <b>disk</b> needed <b>depends on the user jobs</b>; HTCondor itself uses very little 
+                (5 GB should be enough for HTCondor alone)
+            </p>
+                       
+    </div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+GlideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

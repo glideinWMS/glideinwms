@@ -131,8 +131,8 @@ case "$use_glexec" in
         echo "`date` VO does not want to use glexec"
         if [ "$require_glexec_use" == "True" ]; then
             #echo "`date` Factory requires glidein to use glexec. Exiting."
-	    STR="Factory requires glidein to use glexec."
-	    "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Glexec_Use"
+            STR="Factory requires glidein to use glexec."
+            "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Glexec_Use"
             exit 1
         fi
         no_use_glexec_config
@@ -141,8 +141,8 @@ case "$use_glexec" in
         if [ "$require_glexec_use" == "True" ]; then
             if [ "$glexec_bin" == "NONE" ]; then
                 #echo "`date` Factory requires glidein to use glexec but glexec_bin is NONE. Exiting."
-		STR="Factory requires glidein to use glexec but glexec_bin is NONE."
-		"$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLEXEC_BIN" "attribute" "GLIDEIN_Glexec_Use"
+                STR="Factory requires glidein to use glexec but glexec_bin is NONE."
+                "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLEXEC_BIN" "attribute" "GLIDEIN_Glexec_Use"
                 exit 1
             fi
         else
@@ -164,7 +164,7 @@ case "$use_glexec" in
     *)
         #echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
         STR="USE_GLEXEC in VO Frontend configured to be $use_glexec.\nAccepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
-	STR1=`echo -e "$STR"`
+        STR1=`echo -e "$STR"`
         "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR1" "attribute" "GLIDEIN_Glexec_Use"
         exit 1
         ;;

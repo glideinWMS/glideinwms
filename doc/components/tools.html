@@ -48,7 +48,7 @@
         src="../images/simple_diagram.png" usemap="#rightimage">
     <map name="rightimage">
         <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
-        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/user_pool.html" />
         <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
     </map>
 
@@ -56,9 +56,8 @@
     <h2>Components</h2>
 	<ul class="subcomponents">
 	     <li> Overview</li>
-	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
-	     <li> <a href="./collector_install.html">User Pool</a></li>
-	     <li> <a href="./pool_install.html">User Schedd</a></li>
+	     <li> <a href="./user_pool.html">User Pool</a></li>
+	     <li> <a href="./user_schedd.html">User Schedd</a></li>
          <li> <a href="./gsi.html">GSI</a></li>
 	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
 	</ul>
@@ -246,7 +245,7 @@ fe1    client /DC=org/DC=doegrids/OU=Services/CN=osg-glidein-fe.example.gov
 The <tt>glidecondor_createSecSched</tt> script (found in the ./install directory of 
 the GlideinWMS tree) can help manage the HTCondor's secondary schedds. It can be used
 when HTCondor's configuration is stored in 
-<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+<a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Configuration%20Macros#configuration-macros#">LOCAL_CONFIG_DIR</a>.
 </p>
 <p>
 Usage:
@@ -284,7 +283,7 @@ Example:
 The <tt>glidecondor_createSecCol</tt> script (found in the ./install directory of 
 the GlideinWMS tree) can help manage the HTCondor's secondary collectors. It can be used
 when HTCondor's configuration is stored in 
-<a href="http://research.cs.wisc.edu/htcondor/manual/current/3_5Configuration_Macros.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+<a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=Configuration%20Macros#configuration-macros#">LOCAL_CONFIG_DIR</a>.
 </p>
 <p>
 Usage:

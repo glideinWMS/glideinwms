@@ -1,0 +1,8 @@
+# Include the following 2 lines (uncommented) in the .git/config at the base of the repository
+# [include]
+# 	path = ../config/gitconfig.addon
+
+# Driver to resolve conflicts in checksum files
+[merge "ours"]
+	driver = true
+	name = In conflict keep the branch you are merging into

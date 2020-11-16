@@ -17,8 +17,13 @@ import unittest2 as unittest
 import xmlrunner
 
 
-from glideinwms.lib.pubCrypto import PubRSAKey
-from glideinwms.lib.pubCrypto import RSAKey
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.pubCrypto import PubRSAKey
+    from glideinwms.lib.pubCrypto import RSAKey
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class TestPubCrypto(unittest.TestCase):
@@ -32,7 +37,7 @@ class TestPubCrypto(unittest.TestCase):
         self.cr_pub = self.cr.PubRSAKey()
         self.cr.save(self.privkey_file)
         self.cr_pub.save(self.pubkey_file)
-    
+
     def tearDown(self):
         os.remove(self.privkey_file)
         os.remove(self.pubkey_file)

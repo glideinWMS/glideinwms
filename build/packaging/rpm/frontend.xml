@@ -10,8 +10,8 @@
          <match_attrs>
          </match_attrs>
          <collectors>
-            <collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=gfactory-1.t2.ucsd.edu" comment="Define factory collector globally for simplicity" factory_identity="gfactory@gfactory-1.t2.ucsd.edu" my_identity="<username>@gfactory-1.t2.ucsd.edu" node="gfactory-1.t2.ucsd.edu"/>
-            <collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=glidein.grid.iu.edu" comment="Define factory collector globally for simplicity" factory_identity="gfactory@glidein.grid.iu.edu" my_identity="<username>@glidein.grid.iu.edu" node="glidein.grid.iu.edu"/>
+            <collector DN="/DC=org/DC=incommon/C=US/ST=WI/L=Madison/O=University of Wisconsin-Madison/OU=OCIS/CN=gfactory-2.opensciencegrid.org" comment="Define factory collector globally for simplicity" factory_identity="gfactory@gfactory-2.opensciencegrid.org" my_identity="<username>@gfactory-2.opensciencegrid.org" node="gfactory-2.opensciencegrid.org"/>
+            <collector DN="/DC=org/DC=incommon/C=US/ST=WI/L=Madison/O=University of Wisconsin-Madison/OU=OCIS/CN=gfactory-itb-1.opensciencegrid.org" comment="Define factory collector globally for simplicity" factory_identity="gfactory@gfactory-itb-1.opensciencegrid.org" my_identity="<username>@gfactory-itb-1.opensciencegrid.org" node="gfactory-itb-1.opensciencegrid.org"/>
          </collectors>
       </factory>
       <job comment="Define job constraint and schedds globally for simplicity" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)">

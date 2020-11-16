@@ -27,11 +27,11 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
     filename wildcards.  Refer to the python manual for more information on
     this.  When used, the 'cmd' string is not tokenized.
 
-    One possible improvment would be to add a function to accept
+    One possible improvement would be to add a function to accept
     an array instead of a command string.
 
     @type cmd: string
-    @param cmd: Sting containing the entire command including all arguments
+    @param cmd: String containing the entire command including all arguments
     @type stdin_data: string
     @param stdin_data: Data that will be fed to the command via stdin
     @type env: dict

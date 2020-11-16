@@ -20,6 +20,7 @@ import string
 import copy
 import socket
 import xml.parsers.expat
+from itertools import groupby
 from . import condorExe
 from . import condorSecurity
 
@@ -33,15 +34,30 @@ try:
     # In case of non default locations of CONDOR_CONFIG, frontend will always
     # set the CONDOR_CONFIG appropriately before every command. Since import
     # happens before frontend can do anything, htcondor module is initialized
-    # without the knowledge of CONDOR_CONFIG. This mandates that we do a
-    # htcondor.reload_config() everytime to use the bindings.
-    import htcondor # pylint: disable=import-error
+    # without the knowledge of CONDOR_CONFIG. A reload is needed.
+    # Furthemore _CONDOR_ variables are ignored by htcondor and need to be added
+    # manually to htcondor.param.
+    # This mandates that we do a htcondor_full_reload() every time to use the bindings.
+    import htcondor  # pylint: disable=import-error
     import classad   # pylint: disable=import-error
     USE_HTCONDOR_PYTHON_BINDINGS = True
-except:
+except ImportError:
     # TODO Maybe we should print a message here? Even though I don't know if
     # logSupport has been initialized. But I'd try to put it log.debug
     pass
+
+
+def htcondor_full_reload():
+    HTCONDOR_ENV_PREFIX = "_CONDOR_"
+    HTCONDOR_ENV_PREFIX_LEN = len(HTCONDOR_ENV_PREFIX)  # len of _CONDOR_ = 8
+    if not USE_HTCONDOR_PYTHON_BINDINGS:
+        return
+    # Reload configuration reading CONDOR_CONFIG from the environment
+    htcondor.reload_config()
+    # _CONDOR_ variables need to be added manually to _Params
+    for i in os.environ:
+        if i.startswith(HTCONDOR_ENV_PREFIX):
+            htcondor.param[i[HTCONDOR_ENV_PREFIX_LEN:]] = os.environ[i]
 
 
 #
@@ -167,11 +183,15 @@ class LocalScheddCache(NoneScheddCache):
     # return None if not found
     # Can raise exceptions
     def iGetEnv(self, schedd_name, pool_name):
-        cs = CondorStatus('schedd', pool_name)
-        data = cs.fetch(constraint='Name=?="%s"' % schedd_name,
-                        format_list=[('ScheddIpAddr', 's'),
-                                     ('SPOOL_DIR_STRING', 's'),
-                                     ('LOCAL_DIR_STRING', 's')])
+        global disk_cache
+        data = disk_cache.get(schedd_name + '.igetenv')
+        if data is None:
+            cs = CondorStatus('schedd', pool_name)
+            data = cs.fetch(constraint='Name=?="%s"' % schedd_name,
+                            format_list=[('ScheddIpAddr', 's'),
+                                         ('SPOOL_DIR_STRING', 's'),
+                                         ('LOCAL_DIR_STRING', 's')])
+            disk_cache.save(schedd_name + '.igetenv', data)
         if schedd_name not in data:
             raise RuntimeError("Schedd '%s' not found" % schedd_name)
 
@@ -200,8 +220,22 @@ class LocalScheddCache(NoneScheddCache):
             return None
 
 
+# The class does not belong here, it should be in the disk_cache module.
+# However, condorMonitor is not importing anything from glideinwms.lib, it is a standalon module
+# We might revisit this in the future
+class NoneDiskCache:
+    """Dummy class used if a regular DiskCache is not specified
+    """
+    def get(self, objid):
+        return None
+
+    def save(self, objid, obj):
+        return None
+
+
 # default global object
 local_schedd_cache = LocalScheddCache()
+disk_cache = NoneDiskCache()
 
 
 def condorq_attrs(q_constraint, attribute_list):
@@ -306,21 +340,26 @@ class CondorQEdit:
         """ Given equal sized lists of job ids, attributes and values,
             executes in one large transaction a single qedit for each job.
         """
+        global disk_cache
         joblist = joblist or []
         attributes = attributes or []
         values = values or []
         if not (len(joblist) == len(attributes) == len(values)):
             raise QueryError("Arguments to QEdit.executeAll should have the same length")
         try:
-            htcondor.reload_config()
+            htcondor_full_reload()
             if self.pool_name:
                 collector = htcondor.Collector(str(self.pool_name))
             else:
                 collector = htcondor.Collector()
 
             if self.schedd_name:
-                schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
-                                             self.schedd_name)
+                schedd_ad = disk_cache.get(self.schedd_name + '.locate')
+                if schedd_ad is None:
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
+                                                 self.schedd_name)
+                    disk_cache.save(self.schedd_name + '.locate', schedd_ad)
+
                 schedd = htcondor.Schedd(schedd_ad)
             else:
                 schedd = htcondor.Schedd()
@@ -380,8 +419,11 @@ class CondorQuery(StoredQuery):
             self.security_obj = condorSecurity.ProtoRequest()
 
     def require_integrity(self, requested_integrity):
-        """
-        Set client integerity settings to use for condor commands
+        """Set client integrity settings to use for condor commands
+
+        Args:
+            requested_integrity (str): HTCondor integrity level
+
         """
         if requested_integrity is None:
             condor_val = None
@@ -393,10 +435,10 @@ class CondorQuery(StoredQuery):
         self.security_obj.set('CLIENT', 'INTEGRITY', condor_val)
 
     def get_requested_integrity(self):
-        """
-        Get the current integrity settings
+        """Get the current integrity settings
 
-        @return: None->None; REQUIRED->True; OPTIONAL->False
+        Returns: None->None; REQUIRED->True; OPTIONAL->False
+
         """
         condor_val = self.security_obj.get('CLIENT', 'INTEGRITY')
         if condor_val is None:
@@ -404,8 +446,11 @@ class CondorQuery(StoredQuery):
         return (condor_val == 'REQUIRED')
 
     def require_encryption(self, requested_encryption):
-        """
-        Set client encryption settings to use for condor commands
+        """Set client encryption settings to use for condor commands
+
+        Args:
+            requested_encryption (str): HTCondor encryption level
+
         """
         if requested_encryption is None:
             condor_val = None
@@ -417,20 +462,26 @@ class CondorQuery(StoredQuery):
         self.security_obj.set('CLIENT', 'ENCRYPTION', condor_val)
 
     def get_requested_encryption(self):
-        """
-        Get the current encryption settings
+        """Get the current encryption settings
 
-        @return: None->None; REQUIRED->True; OPTIONAL->False
-        """
+        Returns: None->None; REQUIRED->True; OPTIONAL->False
 
+        """
         condor_val = self.security_obj.get('CLIENT', 'ENCRYPTION')
         if condor_val is None:
             return None
         return (condor_val == 'REQUIRED')
 
     def fetch(self, constraint=None, format_list=None):
-        """
-        Return the results obtained using HTCondor commands or python bindings
+        """Return the results obtained using HTCondor commands or python bindings
+
+
+        Args:
+            constraint (str): query constraint
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the query results
+
         """
         try:
             if USE_HTCONDOR_PYTHON_BINDINGS:
@@ -444,19 +495,15 @@ class CondorQuery(StoredQuery):
             raise QueryError(err_str), None, sys.exc_info()[2]
 
     def fetch_using_exe(self, constraint=None, format_list=None):
+        """Return the results obtained from executing the HTCondor query command
+
+        Args:
+            constraint (str): Constraints to be applied to the query
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the results
+
         """
-        Return the results obtained from executing the HTCondor query command
-
-        @param constraint: Constraints to be applied to the query
-        @type constraint: string
-
-        @param format_list: Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
-        @type format_list: list
-
-        @return: Dict containing the results
-        @rtype: dict
-        """
-
         if constraint is None:
             constraint_str = ""
         else:
@@ -493,8 +540,17 @@ class CondorQuery(StoredQuery):
         return dict_data
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
-        """
-        Fetch the results using htcondor-python bindings
+        """Fetch the results using htcondor-python bindings
+
+        Args:
+            constraint (str): Constraints to be applied to the query
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the results
+
+        Raises:
+            NotImplementedError: the operation is not implemented using bindings
+
         """
         raise NotImplementedError("fetch_using_bindings() not implemented")
 
@@ -519,8 +575,7 @@ class CondorQuery(StoredQuery):
 
 
 class CondorQ(CondorQuery):
-    """
-    Class to implement condor_q. Uses htcondor-python bindings if possible.
+    """Class to implement condor_q. Uses htcondor-python bindings if possible.
     """
 
     def __init__(self, schedd_name=None, pool_name=None, security_obj=None,
@@ -545,10 +600,16 @@ class CondorQ(CondorQuery):
                                  format_list=format_list)
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
-        """
-        Fetch the results using htcondor-python bindings
-        """
+        """Fetch the condor_q results using htcondor-python bindings
 
+        Args:
+            constraint (str): Constraints to be applied to the query
+            format_list (list): Classad attr & type. [(attr1, 'i'), ('attr2', 's')]
+
+        Returns (dict): Dict containing the results
+
+        """
+        global disk_cache
         results_dict = {}  # defined here in case of exception
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
@@ -556,7 +617,7 @@ class CondorQ(CondorQuery):
         self.security_obj.save_state()
         try:
             self.security_obj.enforce_requests()
-            htcondor.reload_config()
+            htcondor_full_reload()
             if self.pool_name:
                 collector = htcondor.Collector(str(self.pool_name))
             else:
@@ -565,8 +626,11 @@ class CondorQ(CondorQuery):
             if self.schedd_name is None:
                 schedd = htcondor.Schedd()
             else:
-                schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
-                                             self.schedd_name)
+                schedd_ad = disk_cache.get(self.schedd_name + '.locate')
+                if schedd_ad is None:
+                    schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
+                                                 self.schedd_name)
+                    disk_cache.save(self.schedd_name + '.locate', schedd_ad)
                 schedd = htcondor.Schedd(schedd_ad)
             results = schedd.query(constraint, attrs)
             results_dict = list2dict(results, self.group_attribute)
@@ -617,7 +681,7 @@ class CondorStatus(CondorQuery):
         self.security_obj.save_state()
         try:
             self.security_obj.enforce_requests()
-            htcondor.reload_config()
+            htcondor_full_reload()
             if self.pool_name:
                 collector = htcondor.Collector(str(self.pool_name))
             else:
@@ -686,6 +750,7 @@ class SubQuery(BaseSubQuery):
 class Group(BaseSubQuery):
     """
     Sub Query class with grouping functionality
+    Each element has a value that is the summary of the values in a group
     """
 
     def __init__(self, query, group_key_func, group_data_func):
@@ -699,6 +764,27 @@ class Group(BaseSubQuery):
         """
         BaseSubQuery.__init__(
             self, query, lambda d: doGroup(d, group_key_func, group_data_func))
+
+
+class NestedGroup(BaseSubQuery):
+    """
+    Sub Query class with grouping functionality to create nested results
+    Each element is a dictionary with elements reduced from the original elements in the group
+    """
+
+    def __init__(self, query, group_key_func, group_element_func=None):
+        """
+        group_key_func  - Key extraction function
+                          One argument: classad dictionary
+                          Returns: value of the group key
+        group_element_func - Group extraction function
+                          One argument: list of tuples (key, classad dictionaries)
+                          Returns: a dictionary of classad dictionary
+                          If None, 'dict' is used
+        """
+
+        BaseSubQuery.__init__(
+            self, query, lambda d: doNestedGroup(d, group_key_func, group_element_func))
 
 
 class Summarize:
@@ -720,14 +806,18 @@ class Summarize:
     #    hash_func  - if !=None, use this instead of the main one
     # Returns a dictionary of hash values
     #    Elements are counts (or more dictionaries if hash returns lists)
-    def count(self, constraint=None, hash_func=None):
+    def count(self, constraint=None, hash_func=None, flat_hash=False):
         data = self.query.fetch(constraint)
+        if flat_hash:
+            return fetch2count_flat(data, self.getHash(hash_func))
         return fetch2count(data, self.getHash(hash_func))
 
     # Use data pre-stored in query
     # Same output as count
-    def countStored(self, constraint_func=None, hash_func=None):
+    def countStored(self, constraint_func=None, hash_func=None, flat_hash=False):
         data = self.query.fetchStored(constraint_func)
+        if flat_hash:
+            return fetch2count_flat(data, self.getHash(hash_func))
         return fetch2count(data, self.getHash(hash_func))
 
     # Parameters, same as count
@@ -904,9 +994,30 @@ def xml2list(xml_data):
 
 def list2dict(list_data, attr_name):
     """
-    Convert a list to a dictionary and group the results based on
-    attributes specified by attr_name
+    Convert a list to a dictionary where the keys are tuples with the values of the attributes listed in attr_name
+
+    :param list_data: list of dictionaries to convert
+    :param attr_name: string (1 attribute) or list or tuple (one or more attributes) with the attributes to use as key
+    :return: dictionary of dictionaries
     """
+
+    # Original description: Convert a list to a dictionary and group the results based on
+    #     attributes specified by attr_name
+
+    # This function has a couple of quirks, but is OK because the ways it is used (MM)
+    # The way it is used, attr_name is the job cluster, process, which are both present in all jobs from condor_q and unique,
+    # or the Name that is always present and unique in condor_status
+    # so the quirks should not cause problems
+    # 1. Type checking (of attr_name) probably should use isistance()
+    # 2. dict_name is a tuple including elements of attr_name translated to value in list_el
+    #  if them or the lowercase is a key in list_el
+    #  BUT from the value ( dict_data[dict_name] ) only exact match is excluded, not the lowercase version
+    # 3. keys (dict_name) may have different cardinality if one or some of the elements is not matching list_el keys
+    # 4. if 2 or more list_el have the same dict_name (same valies in attr_list attributes), the newest ones overwrite
+    #  the older ones without any warning
+    #  AND the original description mentions ... "and group the results" ... there is no grouping
+    # 5. 'Undefined' attributes are not added to the dict_el (dict elements may have different keys)
+    # 6. using '%s'%a_value != 'Undefined' and  str(list_el[a]) != 'Undefined' for the same. Use twice the better one
 
     if type(attr_name) in (type([]), type((1, 2))):
         attr_list = attr_name
@@ -975,8 +1086,10 @@ def applyConstraint(data, constraint_func):
 
 def doGroup(indata, group_key_func, group_data_func):
     """
-    Group the indata based on the keys that satisfy group_key_func
-    Return dict of groups that satisfy group_data_func
+    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    Return a dict of groups summarized by group_data_func
+    Each group returned by group_data_func must be a dictionary,
+    possibly similar to the original value of the indata elements
     """
 
     gdata = {}
@@ -989,7 +1102,45 @@ def doGroup(indata, group_key_func, group_data_func):
 
     outdata = {}
     for k in gdata:
+        # value is a summary of the values
         outdata[k] = group_data_func(gdata[k])
+
+    return outdata
+
+
+def doNestedGroup(indata, group_key_func, group_element_func=None):
+    """
+    Group the indata based on the keys that satisfy group_key_func (applied to the value)
+    Return a dict of dictionaries created by group_element_func
+    Each each value of the dictionaries returned by group_element_func
+    must be a dictionary, possibly similar to the original value of the indata elements
+
+    If group_element_func is None (not provided), then the dictionaries in the groups are a copy of the
+    original dictionaries in indata
+
+    @param indata: data to group
+    @param group_key_func: group_by function
+    @param group_element_func: how to handle the data in each group (by default is a copy of the original one)
+    @return: dictionary of dictionaries with grouped indata
+    """
+
+    gdata = {}
+    for k, inel in indata.iteritems():
+        gkey = group_key_func(inel)
+        if gkey in gdata:
+            gdata[gkey].append((k, inel))
+        else:
+            gdata[gkey] = [(k, inel)]
+
+    outdata = {}
+    if group_element_func:
+        for k in gdata:
+            # dictionary produced using  original dictionary elements in the group
+            outdata[k] = group_element_func(gdata[k])
+    else:
+        for k in gdata:
+            # just grouping the original elements without changing them
+            outdata[k] = dict(gdata[k])
 
     return outdata
 
@@ -1034,6 +1185,21 @@ def fetch2count(data, hash_func):
             count_el = 1
         cel[hid] = count_el
 
+    return count
+
+
+def fetch2count_flat(data, hash_func):
+    """Count the hash values returned from all the elements in data
+
+    :param data: data from a fetch()
+    :param hash_func: Hashing function
+                One argument: classad dictionary
+                Returns: flat hash value (for hashing functions returning also lists, use fetch2count
+                          if None, will not be counted
+    :return: a dictionary with a count of the hash values returned
+    """
+    data_list = sorted(hash_func(v) for v in data.values())
+    count = dict((key, len(list(group))) for key, group in groupby([ i for i in data_list if i is not None]))
     return count
 
 

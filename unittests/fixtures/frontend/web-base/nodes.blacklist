@@ -1,0 +1,8 @@
+#
+# This file contains a list of bad nodes
+# Each node to be blacklisted must be put in a separate line
+# Use only fully specified nodes, or ips,
+# and include the in single apices
+#  like 'cms-xen6.fnal.gov' or '131.225.209.25'
+# No spaces allowed before the name
+#

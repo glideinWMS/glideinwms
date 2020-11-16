@@ -202,11 +202,8 @@ def parse_import_args(args, QUIET_OPS):
         if importfname=='-':
             lines=sys.stdin.readlines()
         else:
-            fd=open(importfname,"r")
-            try:
+            with open(importfname,"r") as fd:
                 lines=fd.readlines()
-            finally:
-                fd.close()
 
         count=0
         for rawline in lines:
@@ -264,9 +261,8 @@ def update_mapfile(mapfile,dnlist,opts):
     enable_checks=opts['enable_checks']
 
     mapmode=os.stat(mapfile)[stat.ST_MODE]
-    fd=open(mapfile,'r')
-    lines=fd.readlines()
-    fd.close()
+    with open(mapfile,'r') as fd:
+        lines=fd.readlines()
 
     if enable_checks and (len(lines)<2):
         # must have at least the GSI anon and FS anon
@@ -324,9 +320,8 @@ def update_mapfile(mapfile,dnlist,opts):
     if os.path.isfile(tmpfile):
         os.unlink(tmpfile)
     
-    fd=open(tmpfile,'w')
-    fd.writelines(lines)
-    fd.close()
+    with open(tmpfile,'w') as fd:
+        fd.writelines(lines)
     os.chmod(tmpfile,mapmode)
 
     bakfile="%s~"%mapfile
@@ -354,9 +349,8 @@ def cond_update_config(config_file,dnlist,opts):
         # if not allowing others, set to true, so GSI_DAEMON_NAME will be cleaned up
         is_first=not allow_others
     else:
-        fd=open(config_file,'r')
-        lines=fd.readlines()
-        fd.close()
+        with open(config_file,'r') as fd:
+            lines=fd.readlines()
         # never destroy anything... we will just append to the end of the file
         is_first=False
     
@@ -380,9 +374,8 @@ def cond_update_config(config_file,dnlist,opts):
         assert not allow_others
         lines.append("GSI_DAEMON_NAME=\n")
 
-    fd = open(tmpfile, 'w')
-    fd.writelines(lines)
-    fd.close()
+    with open(tmpfile, 'w') as fd:
+        fd.writelines(lines)
 
     bakfile = "%s~" % config_file
     if os.path.isfile(bakfile):

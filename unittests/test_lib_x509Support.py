@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+Project: 
+    glideinwms
+Purpose:
+    unit test of glideinwms/lib/x509Support.py
+
+Author:
+    Dennis Box dbox@fnal.gov
+"""
 from __future__ import absolute_import
 from __future__ import print_function
 import glideinwms.lib.subprocessSupport
@@ -6,7 +15,12 @@ import glideinwms.lib.subprocessSupport
 import unittest2 as unittest
 import xmlrunner
 
-from glideinwms.lib.x509Support import extract_DN
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.lib.x509Support import extract_DN
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class TestExtractDN(unittest.TestCase):

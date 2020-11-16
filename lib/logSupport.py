@@ -30,7 +30,7 @@ except ImportError:
    pass
 
 
-log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
+log = None  # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
 disable_rotate = False
 handlers = []
@@ -41,8 +41,6 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(l
 # Adding in the capability to use the built in Python logging Module
 # This will allow us to log anything, anywhere
 #
-# Note:  We may need to create a custom class later if we need to handle
-#        logging with privilege separation
 
 def alternate_log(msg):
     """
@@ -238,12 +236,13 @@ class GlideinHandler(BaseRotatingHandler):
         elif self.compression == "gz":
             if os.path.exists(dfn + ".gz"):
                 os.remove(dfn + ".gz")
-            f_in = open(dfn, "rb")
             try:
+                # TODO #23166: Use context managers[with statement] when python 3
+                # once we get rid of SL6 and tarballs
                 f_out = gzip.open(dfn + ".gz", "wb")
-                f_out.writelines(f_in)
+                with open(dfn, "rb") as f_in:
+                    f_out.writelines(f_in)
                 f_out.close()
-                f_in.close()
                 os.remove(dfn)
             except IOError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)

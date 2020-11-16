@@ -1,0 +1,18 @@
+# Taken from https://github.com/htcondor/htcondor/blob/master/src/condor_q.V6/queue.cpp#L4713-L4723
+SELECT
+   ClusterId     AS ' ID'  NOSUFFIX  WIDTH 9
+   ProcId        AS ' '    NOPREFIX  WIDTH 4 PRINTF '.%-4d'
+# Replacing Owner (gfactory) with the frontend owner to maintain condor_privsep behavior (job sent
+# with frontend user as the owner).
+# N.B.: 3.6.1 introduces a new frontend_owner classad which can be used in place of the regexp.
+# However, we can't assume old jobs will have the frontend_owner classad, so let's use the regexp
+# for now, and let's put the new classad in the future (3.8?)
+#   Owner         AS  OWNER           WIDTH -14 PRINTAS OWNER OR ??
+   regexps("user_([^/]*)", Out, "\1") AS  FRONTEND_OWNER           WIDTH -14
+   QDate         AS '  SUBMITTED'    WIDTH 11 PRINTAS QDATE
+   RemoteUserCpu AS '    RUN_TIME'   WIDTH 12 PRINTAS CPU_TIME
+   JobStatus     AS ST                       PRINTAS JOB_STATUS
+   JobPrio       AS PRI             WIDTH AUTO
+   ImageSize     AS SIZE            WIDTH 4 PRINTAS MEMORY_USAGE
+   Cmd           AS CMD             WIDTH -100 PRINTAS JOB_DESCRIPTION
+SUMMARY STANDARD

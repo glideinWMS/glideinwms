@@ -48,11 +48,8 @@ class MonitoringConfig:
         if not os.path.isdir(os.path.dirname(fname)):
             os.makedirs(os.path.dirname(fname))
         #print "Writing "+fname
-        fd=open(fname+".tmp", "w")
-        try:
+        with open(fname+".tmp", "w") as fd:
             fd.write(output_str+"\n")
-        finally:
-            fd.close()
 
         tmp2final(fname)
         return
@@ -677,11 +674,8 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
     fname = os.path.join(monitor_dir, 'descript.xml')
     
     try:
-        f = open(fname + '.tmp', 'wb')
-        try:
+        with open(fname + '.tmp', 'wb') as f:
             f.write(output)
-        finally:
-            f.close()
 
         tmp2final(fname)
     

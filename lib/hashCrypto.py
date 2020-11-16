@@ -59,15 +59,12 @@ class Hash:
     # len(data) must be less than len(key)
     def extract(self, fname, block_size=1048576):
         h = M2Crypto.EVP.MessageDigest(self.hash_algo)
-        fd = open(fname, 'rb')
-        try:
+        with open(fname, 'rb') as fd:
             while True:
                 data = fd.read(block_size)
                 if data == '':
                     break # no more data, stop reading
                 h.update(data)               
-        finally:
-            fd.close()
         return h.final()
 
     # like extract, but base64 encoded 

@@ -17,7 +17,9 @@ import select
 import time
 import os
 import xmlrunner
+import platform
 import unittest2 as unittest
+
 from glideinwms.unittests.unittest_utils import FakeLogger
 from glideinwms.unittests.unittest_utils import create_temp_file
 from glideinwms.lib.fork import ForkResultError
@@ -175,6 +177,8 @@ class TestForkManager(unittest.TestCase):
         # the following 3 tests must be run in order
         # which may be an artifact of different test runners
         #
+        if platform.system() != 'Linux':
+            return
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
             max_forks=50, log_progress=True, sleep_time=0.1)
@@ -192,6 +196,8 @@ class TestForkManager(unittest.TestCase):
         #
         # force select.epoll to throw in import error so select.poll is used
         #
+        if platform.system() != 'Linux':
+            return
         del select.epoll
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
@@ -211,7 +217,8 @@ class TestForkManager(unittest.TestCase):
         # force select.poll to throw an import error
         # depends on select.epoll being removed by previous test
         #
-        del select.poll
+        if platform.system() == 'Linux':
+            del select.poll
         expected = self.load_forks()
         results = self.fork_manager.bounded_fork_and_collect(
             max_forks=50, log_progress=True, sleep_time=0.1)

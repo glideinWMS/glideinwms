@@ -26,8 +26,13 @@ from glideinwms.unittests.unittest_utils import FakeLogger
 
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
-from glideinwms.frontend import glideinFrontendPlugins
-from glideinwms.frontend.glideinFrontendInterface import Credential
+from glideinwms.unittests.unittest_utils import TestImportError
+try:
+    from glideinwms.frontend.glideinFrontendInterface import Credential
+    from glideinwms.frontend import glideinFrontendPlugins
+except ImportError as err:
+    raise TestImportError(str(err))
+
 
 
 class fakeObj:

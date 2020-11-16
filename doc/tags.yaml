@@ -1,0 +1,145 @@
+---
+# GlideinWMS release notes ordered by release version
+# YAML format used to generate tags.txt and history.html, starting w/ GlideinWMS v3.6
+# Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing ine string) and NOTES
+# (NOTE: dictionaries containing one string)
+
+# Special version names:
+# default
+# template...
+
+default:
+  Series: Stable
+  Tarball: false
+
+template:
+  Date: d, 2020
+  Feature:
+    -
+    -
+  Bug fix:
+    -
+    -
+  NOTE:
+    -
+  NOTE-FACTORY:
+    -
+  NOTE-FRONTEND:
+    -
+
+v3_6:
+  Date: September 25, 2019
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Renaming of v3_5_1 (released on 9/18) to respect the odd/even numbering
+    - Includes all 3.4.6 features
+    - Updated SW and docs for the change in OSG factories
+    - Updated all the obsolete links to HTCondor manual in GlideinWMS website
+    - Set up an ITB Frontend for GWMS and FIFE testing
+    - Updated gitattributes to resolve conflicts w/ checksum files
+    - Added editorconfig and default encoding
+    - GlideinWMS code will use now Google docstring format
+    - Advertise if a Glidein can use privileged or unprivileged Singularity
+    - Check if single user factory migration script has been run before startup
+  Bug fix:
+    - pip errors in nightly CI
+    - Unittest failing at times on SL7
+    - Factory could start also w/ a GT2 entry enabled
+  NOTE:
+    - v3_6 is fully interoperable w/ v3_5 and v3_4. I.e. You can mix v3_6_x, v3_5_x and v3_4_x Factories and Frontends in your system
+  NOTE-FACTORY:
+    - The v3.6 Factory (like v3.5) is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to:\
+      1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory.
+      For detailed instructions see http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
+
+v3_6_1:
+  Date: Novemver 13, 2019
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Added compatibility w/ HTCondor 8.8.x in OSG 3.5
+    - Monitoring pages use https if available
+    - Improved search and testing of Singularity binary
+    - Unset LD_LIBRARY_PATH and PATH for jobs in Singularity
+    - Updated documentation links and Google search
+    - Improved CI testing
+    - Stop considering held limits when counting maximum jobs in Factory
+  Bug fix:
+    - Fix Fatcory tools (entry_rm, entry_q and entry_ls) to be more verbose with single user Factory
+    - Removed hardcoded CVMFS requirement for Singularity
+    - Improve diagnostic messages when rsa.key file is corrupted
+    - Improve control of the worker node draining, avoiding to stop accepting jobs as soon as the draining file is present
+
+v3_6_2:
+  Date: March 26, 2020
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Add a portable condor_chirp for user jobs running in the glideins
+    - Automate the generation of factory configuration
+    - Improve control of setup of module and spack in Singularity using MODULE_USE
+    - Adding GPU monitor as default for pilots
+    - Reduce number of queries from Frontend to User collector
+    - Make lgwms-logcat.sh work with non standard factory instance names
+  Bug fix:
+    - Pilot using an expired proxy when authenticating to the collector
+    - CI issues (coverage broken in SL6, script selection affected by file name)
+    - Incorrect CERTIFICATE_MAPFILE used when using HTCondor python binding (failed schedd authentication)
+    - Fix release manager relative imports
+    - Broken submission to GCE and AWS
+    - Correct how entry_ls detect an rpm installation
+    - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
+    - Total of frontend info is 0 in Factory monitring
+
+v3_6_3:
+  Date: July 16, 2020
+  Series: Stable
+  Tarball: true
+  Feature:
+    - Add Python condor_chirp to PATH
+    - Dropped tarball installation support
+    - Add Python condor_chirp and other GWMS tools to PATH in Singularity
+    - Removed "Group:System Environment/Daemons" from glideinwms.spec in OSG repo
+    - Added new API documentation using sphinx
+    - Added a runner to run the different tests with consistent CLI
+    - Added new RHEL 8 Singularity image
+    - Updated the singularity wrapper with new features form the OSG wrapper
+    - Clean PYTHONPATH and setup GWMS environment in Singularity containers
+    - Improved the environment handling of the Singularity wrapper
+  Bug fix: 
+    - Upgrade the factory documentation not to ask to install the switchboard
+    - The Python version of condor_chirp now works with Singularity jobs
+    - Enable RFC proxies by default for direct proxies
+    - Fix OSG_autoconf and gfdiff
+    - Added COMPLETED to the known list of "GridJobStatus"es
+    - Add a knob to set entry limits in OSG_autoconf
+    - Stop pilots even after the downtime timestamp has been reached when draining pilots
+    - Glideins are unrecoverable unless listed as recoverable
+    - User job invocation via singularity eating up -e or -n
+
+v3_6_4:
+  Date: September 17, 2020
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Improved OSG_autoconf
+    - Dropped Python 2.6 support
+    - Added support for RHEL 8 worker nodes
+    - Harmonized, improved and extended CI tests (same CLI, support for Python 3, ...)
+    - Added tool to verify if the code for a ticket has been merged
+  Bug fix:
+    - Fix for condor_chirp not finding htchirp in the PYTHONPATH
+    - Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
+
+v3_6_5:
+  Date: October 5, 2020
+  Series: Stable
+  Tarball: false
+  Feature:
+    - Added GitHub actions to test the code (Python unit tests, BARS, pylint, pycodestyle)
+  Bug fix:
+    - Fix for paths in Singularity not substituted correctly when the execute directory has a link or bind mount
+    - Fixed shared_port_port to adapt to HTCondor 8.8.10 changes
+    - Fixed overrides in OSG_autoconf using depcopy, use https for gfdiff
+    - Fixed credential dir in manual_glidein_submit removing hardcoding

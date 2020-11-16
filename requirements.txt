@@ -1,0 +1,30 @@
+# for runtime
+htcondor
+m2crypto
+requests
+pyyaml
+pyjwt
+
+# commented out until we drop python2 support
+## classad ##
+
+#for verifications
+pylint
+pycodestyle
+astroid
+hypothesis
+autopep8
+testfixtures
+coverage
+future
+importlib
+argparse
+
+# for tests
+jsonpickle
+mock
+pytest
+tabulate
+unittest2
+xmlrunner
+

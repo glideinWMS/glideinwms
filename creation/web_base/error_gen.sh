@@ -109,10 +109,10 @@ function status_error(){
 # print usage                                               #
 # --------------------------------------------------------- #
 usage() {
-	echo "Usage: -error|-ok [params]"; 
-	echo "       -error id failstr detailfail [metricid metricval]+"; 
-	echo "       -ok    id                    [metricid metricval]+"; 
-	return
+    echo "Usage: -error|-ok [params]"; 
+    echo "       -error id failstr detailfail [metricid metricval]+"; 
+    echo "       -ok    id                    [metricid metricval]+"; 
+    return
 }
 
 

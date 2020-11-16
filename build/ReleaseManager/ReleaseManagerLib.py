@@ -1,14 +1,15 @@
 #!/usr/bin/python -B
 
+from __future__ import absolute_import
 from __future__ import print_function
-import os, sys
-import subprocess, shlex
-import traceback
+import os
+import sys
+import subprocess
+# not used - import shlex
+# not used - import traceback
 import string
 import shutil
 import platform
-
-
 
 
 class ExeError(RuntimeError):
@@ -38,7 +39,7 @@ class Release:
                 self.rpmbuildDir, 'SRPMS',
                 'glideinwms-%s-%s.%s%s.src.rpm' % (self.rpmVersion,
                 self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]))
-            self.buildRPMs = True
+            self.buildRPMs = bool(which('rpmbuild'))
         except:
             print('RPMs will not be build for this platform')
 
@@ -227,28 +228,6 @@ class TaskTar(TaskRelease):
     #   execute
 
 
-class TaskFrontendTar(TaskTar):
-
-    def __init__(self, rel):
-        TaskTar.__init__(self, rel)
-        self.name = 'FrontendTar'
-        self.releaseFilename = 'glideinWMS_%s_frontend.tgz' % self.release.version
-        self.excludePattern = self.excludes.frontendPattern
-
-    #   __init__
-
-
-class TaskFactoryTar(TaskTar):
-
-    def __init__(self, rel):
-        TaskTar.__init__(self, rel)
-        self.name = 'FactoryTar'
-        self.releaseFilename = 'glideinWMS_%s_factory.tgz' % self.release.version
-        self.excludePattern = self.excludes.factoryPattern
-
-    #   __init__
-
-
 class TaskVersionFile(TaskRelease):
 
     def __init__(self, rel):
@@ -335,17 +314,15 @@ class TaskRPM(TaskTar):
         # No error checking because we want to fail in case of errors
 
         #shutil.copyfile(self.specFileTemplate, self.specFile)
-        fdin = open(self.specFileTemplate, 'r')
-        lines = fdin.readlines()
-        fdin.close()
-        fdout = open(self.specFile, 'w')
-
-        for line in lines:
-            line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)
-            line = line.replace('__GWMS_RPM_RELEASE__', self.release.rpmRelease)
-            fdout.write(line)
-        fdout.close()
-
+        #fdin = open(self.specFileTemplate, 'r')
+        with open(self.specFileTemplate, 'r') as fdin:
+            lines = fdin.readlines()
+        
+        with open(self.specFile, 'w') as fdout:
+            for line in lines:
+                line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)
+                line = line.replace('__GWMS_RPM_RELEASE__', self.release.rpmRelease)
+                fdout.write(line)
 
     def stageSources(self):
         dest_dir = os.path.join(self.release.rpmbuildDir, 'SOURCES')
@@ -357,10 +334,9 @@ class TaskRPM(TaskTar):
 
 
     def createRPMMacros(self):
-        fd = open( self.rpmmacrosFile, 'w')
-        for m in self.rpmMacros:
-            fd.write('%%%s %s\n' % (m,  self.rpmMacros[m]))
-        fd.close()
+        with open(self.rpmmacrosFile, 'w') as fd:
+            for m in self.rpmMacros:
+                fd.write('%%%s %s\n' % (m,  self.rpmMacros[m]))
 
 
     def buildSRPM(self):

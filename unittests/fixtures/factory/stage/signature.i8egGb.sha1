@@ -1,9 +1,0 @@
-# File: signature.i8egGb.sha1
-#
-09df168990b402ffab648e81a20a76fd057f37f9  constants.i8egGb.cfg
-14996947aeadc2010b3fff299e37f00c3bf54f30  condor_vars.i8egGb.lst
-313784b39514d3402ff0f6ba95f1cc99b0158c73  untar.i8egGb.cfg
-da39a3ee5e6b4b0d3255bfef95601890afd80709  grid-mapfile.i8egGb
-73ec5831d58c0d320e248a3476ab344787f26bf1  file_list.i8egGb.lst
-eaeba20c6a8d01b388a7458414861bc7c8dfcae7  after_file_list.i8egGb.lst
-88833497f758349e6ef713590fe3e8e5164c5c50  description.i8egGb.cfg

@@ -59,14 +59,14 @@ class SubParams:
     # PROTECTED
     #
 
-    # validate input against bae template (i.e. the defaults)
+    # validate input against base template (i.e. the defaults)
     def validate(self, base, path_text):
         for k in self.data.keys():
             if k not in base:
                 # element not in base, report
                 raise RuntimeError("Unknown parameter %s.%s"%(path_text, k))
             else:
-                # verify subelements, if any
+                # verify sub-elements, if any
                 defel=base[k]
                 if isinstance(defel, xmlParse.OrderedDict):
                     # subdictionary
@@ -245,12 +245,9 @@ class Params:
     #save into a file
     #The file should be usable for reload
     def save_into_file(self,fname,set_ro=False):
-        fd=open(fname, "w")
-        try:
+        with open(fname, "w") as fd:
             fd.write(self.get_xml())
             fd.write("\n")
-        finally:
-            fd.close()
         if set_ro:
             os.chmod(fname, os.stat(fname)[0]&0o444)
         return

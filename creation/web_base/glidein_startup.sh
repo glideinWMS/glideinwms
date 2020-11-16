@@ -3,28 +3,96 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 
 # default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
 IFS=$' \t\n'
 
 global_args="$@"
+# GWMS_STARTUP_SCRIPT=$0
+GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+GWMS_PATH=""
+# Relative to the work directory
+GWMS_DIR="gwms"
 
 export LANG=C
 
+function trap_with_arg {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+
+#function to handle passing signals to the child processes
+# no need to re-raise sigint, caller does unconditional exit (https://www.cons.org/cracauer/sigint.html)
 function on_die {
-        echo "Received kill signal... shutting down child processes" 1>&2
-        ON_DIE=1
-        kill %1
+    echo "Received kill signal... shutting down child processes (forwarding $1 signal)" 1>&2
+    ON_DIE=1
+    kill -s $1 %1
+}
+
+GWMS_MULTIGLIDEIN_CHILDS=
+function on_die_multi {
+    echo "Multi-Glidein received signal... shutting down child glideins (forwarding $1 signal to $GWMS_MULTIGLIDEIN_CHILDS)" 1>&2
+    ON_DIE=1
+    for i in $GWMS_MULTIGLIDEIN_CHILDS; do
+        kill -s $1 $i
+    done
 }
 
 function ignore_signal {
-        echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
+    echo "Ignoring SIGHUP signal... Use SIGTERM or SIGQUIT to kill processes" 1>&2
 }
 
 function warn {
- echo `date` "$@" 1>&2
+    echo `date` "$@" 1>&2
+}
+
+# Functions to start multiple glideins
+function copy_all {
+   # 1:prefix (of the files to skip), 2:directory
+   # should it copy also hidden files?
+   mkdir "$2"
+   for ii in `ls`; do
+       if [[ "$ii" = ${1}* ]]; then
+           continue
+       fi
+       cp -r "$ii" "$2"/
+   done
+}
+
+function do_start_all {
+    # 1:number of glideins
+    # GLIDEIN_MULTIGLIDEIN_LAUNCHALL - if set in attrs, command to start all Glideins at once (multirestart 0)
+    # GLIDEIN_MULTIGLIDEIN_LAUNCHER - if set in attrs, command to start the individual Glideins
+    local num_glideins=$1
+    local initial_dir="$(pwd)"
+    local multiglidien_launchall=$(params_decode $(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHALL "$params"))
+    local multiglidien_launcher=$(params_decode $(params_get_simple GLIDEIN_MULTIGLIDEIN_LAUNCHER "$params"))
+
+    local startup_script="$GWMS_STARTUP_SCRIPT"
+    if [[ -n "$multiglidien_launchall" ]]; then
+        echo "Starting multi-glidein using launcher: $multiglidien_launchall"
+        $multiglidien_launchall "$startup_script" -multirestart 0 $global_args &
+        GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
+    else
+        if [[ "$initial_dir" == "$(dirname "$startup_script")" ]]; then
+            startup_script="./$(basename "$startup_script")"
+        fi
+        for i in `seq 1 $num_glideins`; do
+            g_dir="glidein_dir$i"
+            copy_all glidein_dir "$g_dir"
+            echo "Starting glidein $i in $g_dir ${multiglidien_launcher:+"with launcher $GLIDEIN_MULTIGLIDEIN_LAUNCHER"}"
+            pushd "$g_dir"
+            chmod +x "$startup_script"
+            $multiglidien_launcher "$startup_script" -multirestart $i $global_args &
+            GWMS_MULTIGLIDEIN_CHILDS="$GWMS_MULTIGLIDEIN_CHILDS $!"
+            popd
+        done
+        echo "Started multiple glideins: $GWMS_MULTIGLIDEIN_CHILDS"
+    fi
 }
 
 function usage {
@@ -56,6 +124,8 @@ function usage {
     echo "  -clientdescriptgroup <fname>: client description file name for group"
     echo "  -slotslayout <type>         : how Condor will set up slots (fixed, partitionable)"
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
+    echo "  -multiglidein <num>         : spawn multiple (<num>) glideins (unless also multirestart is set)"
+    echo "  -multirestart <num>         : started as one of multiple glideins (glidein number <num>)"
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
 }
@@ -91,9 +161,11 @@ do case "$1" in
     -clientsigngroup)       client_sign_group_id="$2";;
     -clientdescript)        client_descript_file="$2";;
     -clientdescriptgroup)   client_descript_group_file="$2";;
-    -slotslayout)			slots_layout="$2";;
+    -slotslayout)           slots_layout="$2";;
     -v)          operation_mode="$2";;
-        -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
+    -multiglidein)  multi_glidein="$2";;
+    -multirestart)  multi_glidein_restart="$2";;
+    -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
 shift
@@ -128,14 +200,14 @@ function base64_b64uuencode {
 function b64uuencode {
     which uuencode >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-	uuencode -m -
+        uuencode -m -
     else
-	which base64 >/dev/null 2>&1
-	if [ $? -eq 0 ]; then
-	    base64_b64uuencode
-	else
-	    python_b64uuencode
-	fi
+        which base64 >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            base64_b64uuencode
+        else
+            python_b64uuencode
+        fi
     fi
 }
 
@@ -165,15 +237,15 @@ function extract_parent_fname {
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result=`cat otrx_output.xml`
- 
+
       if [ "$exitcode" -eq 0 ]; then
-	  echo "SUCCESS"
+          echo "SUCCESS"
       else
-	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
-	  echo ${last_script_name}
+          last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
+          echo ${last_script_name}
       fi
   else
-      echo "Unknown" 
+      echo "Unknown"
   fi
 }
 
@@ -184,28 +256,28 @@ function extract_parent_xml_detail {
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result=`cat otrx_output.xml`
- 
-      if [ "$exitcode" -eq 0 ]; then
-	  echo "  <result>"
-	  echo "    <status>OK</status>"
-	  # propagate metrics as well
-	  echo "$last_result" | grep '<metric '
-	  echo "  </result>"
-      else
-	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
 
-	  last_script_reason=`echo "$last_result" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}'`
-	  my_reason="     Validation failed in $last_script_name.
+      if [ "$exitcode" -eq 0 ]; then
+          echo "  <result>"
+          echo "    <status>OK</status>"
+          # propagate metrics as well
+          echo "$last_result" | grep '<metric '
+          echo "  </result>"
+      else
+          last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
+
+          last_script_reason=`echo "$last_result" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}'`
+          my_reason="     Validation failed in $last_script_name.
 
 $last_script_reason"
 
-	  echo "  <result>"
-	  echo "    <status>ERROR</status>
+          echo "  <result>"
+          echo "    <status>ERROR</status>
     <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>"
-	  # propagate metrics as well (will include the failure metric)
-	  echo "$last_result" | grep '<metric '
-	  echo "  </result>"
-	  echo "  <detail>
+          # propagate metrics as well (will include the failure metric)
+          echo "$last_result" | grep '<metric '
+          echo "  </result>"
+          echo "  <detail>
 ${my_reason}
   </detail>"
       fi
@@ -213,10 +285,10 @@ ${my_reason}
       # create a minimal XML file, else
       echo "  <result>"
       if [ "$exitcode" -eq 0 ]; then
-	  echo "    <status>OK</status>"
+          echo "    <status>OK</status>"
       else
-	  echo "    <status>ERROR</status>"
-	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>"
+          echo "    <status>ERROR</status>"
+          echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>"
       fi
       echo "  </result>
   <detail>
@@ -280,7 +352,7 @@ function print_tail {
   glidein_end_time=`date +%s`
   let total_time=$glidein_end_time-$startup_time
   echo "=== Glidein ending `date` ($glidein_end_time) with code ${exit_code} after $total_time ==="
- 
+
   echo ""
   echo "=== XML description of glidein activity ==="
   echo  "${final_result_simple}" | grep -v "<cmd>"
@@ -304,7 +376,7 @@ function early_glidein_failure {
 
   warn "${error_msg}"
 
-  sleep $sleep_time 
+  sleep $sleep_time
   # wait a bit in case of error, to reduce lost glideins
 
   glidein_end_time=`date +%s`
@@ -318,7 +390,7 @@ function early_glidein_failure {
   final_result_simple=`basexml2simplexml "${final_result}"`
   # have no global section
   final_result_long=`simplexml2longxml "${final_result_simple}" ""`
-  
+
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
@@ -335,7 +407,7 @@ function early_glidein_failure {
 
 # use this one once the most basic ops have been done
 function glidein_exit {
-  # lock file for whole machine 
+  # lock file for whole machine
   if [ "x$lock_file" != "x" ]; then
     rm -f $lock_file
   fi
@@ -360,7 +432,7 @@ function glidein_exit {
       report_failed=`grep -i "^GLIDEIN_Report_Failed " "$glidein_config" | cut -d ' ' -f 2-`
 
       if [ -z "$report_failed" ]; then
-	  report_failed="NEVER"
+          report_failed="NEVER"
       fi
 
       factory_report_failed=`grep -i "^GLIDEIN_Factory_Report_Failed " "$glidein_config" | cut -d ' ' -f 2-`
@@ -402,16 +474,16 @@ function glidein_exit {
          add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
          add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
          add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
-	 add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
          add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
       fi
       main_work_dir=`get_work_dir main`
 
       for ((t=`date +%s`; $t<$dl;t=`date +%s`))
       do
-	if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" = "1" ] ; then
-	    # if the file exists, we should be able to talk to the collectors
-	    # notify that things went badly and we are waiting
+        if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" = "1" ] ; then
+            # if the file exists, we should be able to talk to the collectors
+            # notify that things went badly and we are waiting
             if [ "$factory_report_failed" != "NEVER" ]; then
                 add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
                 warn "Notifying Factory of error"
@@ -422,21 +494,21 @@ function glidein_exit {
                 warn "Notifying VO of error"
                 "${main_work_dir}/$last_script" glidein_config
             fi
-	fi
+        fi
 
-	# sleep for about 5 mins... but randomize a bit
-	let "ds=250+$RANDOM%100"
-	let "as=`date +%s` + $ds"
-	if [ $as -gt $dl ]; then
-	    # too long, shorten to the deadline
-	    let "ds=$dl - `date +%s`"
-	fi
+        # sleep for about 5 mins... but randomize a bit
+        let "ds=250+$RANDOM%100"
+        let "as=`date +%s` + $ds"
+        if [ $as -gt $dl ]; then
+            # too long, shorten to the deadline
+            let "ds=$dl - `date +%s`"
+        fi
         warn "Sleeping $ds"
-	sleep $ds
+        sleep $ds
       done
 
       if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" = "1" ]; then
-	  # notify that things went badly and we are going away
+          # notify that things went badly and we are going away
           if [ "$factory_report_failed" != "NEVER" ]; then
               add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
               if [ "$factory_report_failed" = "ALIVEONLY" ]; then
@@ -540,7 +612,7 @@ function add_config_line {
             exit 1
         fi
         grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
-        # NOTE that parameters are flattened, if there are spaces they are separated
+        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
         echo "\$@" >> \$glidein_config
         rm -f \${glidein_config}.old
     fi
@@ -583,7 +655,7 @@ function add_condor_vars_line {
 EOF
 }
 
-# Create a script that defines various id based functions 
+# Create a script that defines various id based functions
 # This way other depending scripts can use it
 function create_get_id_selectors {
     cat > "$1" << EOF
@@ -671,6 +743,46 @@ function get_prefix {
 EOF
 }
 
+function params_get_simple {
+    # Retrieve a simple parameter (no special characters in its value) from the param list
+    # 1:param, 2:param_list (quoted string w/ spaces)
+    [[ ${2} = *\ ${1}\ * ]] || return
+    local retval="${2##*\ ${1}\ }"
+    echo ${retval%%\ *}
+}
+
+function params_decode {
+    echo "$1" | sed\
+ -e 's/\.nbsp,/ /g'\
+ -e 's/\.semicolon,/;/g'\
+ -e 's/\.colon,/:/g'\
+ -e 's/\.tilde,/~/g'\
+ -e 's/\.not,/!/g'\
+ -e 's/\.question,/?/g'\
+ -e 's/\.star,/*/g'\
+ -e 's/\.dollar,/$/g'\
+ -e 's/\.comment,/#/g'\
+ -e 's/\.sclose,/]/g'\
+ -e 's/\.sopen,/[/g'\
+ -e 's/\.gclose,/}/g'\
+ -e 's/\.gopen,/{/g'\
+ -e 's/\.close,/)/g'\
+ -e 's/\.open,/(/g'\
+ -e 's/\.gt,/>/g'\
+ -e 's/\.lt,/</g'\
+ -e 's/\.minus,/-/g'\
+ -e 's/\.plus,/+/g'\
+ -e 's/\.eq,/=/g'\
+ -e "s/\.singquot,/'/g"\
+ -e 's/\.quot,/"/g'\
+ -e 's/\.fork,/\`/g'\
+ -e 's/\.pipe,/|/g'\
+ -e 's/\.backslash,/\\/g'\
+ -e 's/\.amp,/\&/g'\
+ -e 's/\.comma,/,/g'\
+ -e 's/\.dot,/./g'
+}
+
 ###################################
 # Put parameters into the config file
 function params2file {
@@ -678,7 +790,9 @@ function params2file {
 
     while [ $# -gt 0 ]
     do
-       pfval=`echo "$2" | sed\
+        # TODO: Use params_decode. For 3.4.8, not to introduce many changes now. Use params_converter
+        #  Note the different backslash escape due to backtick \\\. Using $() would allow regular \\ like above
+        pfval=`echo "$2" | sed\
  -e 's/\.nbsp,/ /g'\
  -e 's/\.semicolon,/;/g'\
  -e 's/\.colon,/:/g'\
@@ -707,16 +821,16 @@ function params2file {
  -e 's/\.amp,/\&/g'\
  -e 's/\.comma,/,/g'\
  -e 's/\.dot,/./g'`
-	add_config_line "$1 $pfval"
+        add_config_line "$1 $pfval"
         if [ $? -ne 0 ]; then
-	    glidein_exit 1
-	fi
-	if [ -z "$param_list" ]; then
-	    param_list="$1"
-	else
-	    param_list="${param_list},$1"
-	fi
-	shift;shift
+            glidein_exit 1
+        fi
+        if [ -z "$param_list" ]; then
+            param_list="$1"
+        else
+            param_list="${param_list},$1"
+        fi
+        shift;shift
     done
     echo "PARAM_LIST ${param_list}"
     return 0
@@ -724,7 +838,14 @@ function params2file {
 
 
 ################
-# Parse arguments
+# Parse and verify arguments
+
+# allow some parameters to change arguments
+# multiglidein GLIDEIN_MULTIGLIDEIN -> multi_glidein
+tmp_par=`params_get_simple GLIDEIN_MULTIGLIDEIN "$params"`
+[ -n "$tmp_par" ] &&  multi_glidein=$tmp_par
+
+
 set_debug=1
 sleep_time=1199
 if [ "$operation_mode" = "nodebug" ]; then
@@ -736,7 +857,7 @@ elif [ "$operation_mode" = "check" ]; then
  sleep_time=150
  set_debug=2
 fi
- 
+
 if [ -z "$descript_file" ]; then
     warn "Missing descript fname." 1>&2
     usage
@@ -800,7 +921,7 @@ else
     warn "Unsupported signtype $sign_type found." 1>&2
     usage
 fi
-    
+
 if [ -n "$client_repository_url" ]; then
   # client data is optional, user url as a switch
   if [ -z "$client_sign_type" ]; then
@@ -813,7 +934,7 @@ if [ -n "$client_repository_url" ]; then
     warn "Unsupported clientsigntype $client_sign_type found." 1>&2
     usage
   fi
-    
+
   if [ -z "$client_descript_file" ]; then
     warn "Missing client descript fname." 1>&2
     usage
@@ -822,20 +943,20 @@ if [ -n "$client_repository_url" ]; then
   if [ -n "$client_repository_group_url" ]; then
       # client group data is optional, user url as a switch
       if [ -z "$client_group" ]; then
-	  warn "Missing client group name." 1>&2
-	  usage
+          warn "Missing client group name." 1>&2
+          usage
       fi
 
       if [ -z "$client_descript_group_file" ]; then
-	  warn "Missing client descript fname for group." 1>&2
-	  usage
+          warn "Missing client descript fname for group." 1>&2
+          usage
       fi
 
       if [ "$client_sign_type" = "sha1" ]; then
-	  client_sign_group_sha1="$client_sign_group_id"
+          client_sign_group_sha1="$client_sign_group_id"
       else
-	  warn "Unsupported clientsigntype $client_sign_type found." 1>&2
-	  usage
+          warn "Unsupported clientsigntype $client_sign_type found." 1>&2
+          usage
       fi
   fi
 fi
@@ -867,7 +988,7 @@ function md5wrapper {
         echo "???"
         return 1
     fi
-    echo "$res"  
+    echo "$res"
 }
 
 
@@ -887,8 +1008,9 @@ if [ -n "$client_name" ]; then
     echo "client_name       = '$client_name'"
 fi
 if [ -n "$client_group" ]; then
-    echo "client_group       = '$client_group'"
+    echo "client_group      = '$client_group'"
 fi
+echo "multi_glidein/restart = '$multi_glidein'/'$multi_glidein_restart'"
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_type         = '$sign_type'"
@@ -903,9 +1025,9 @@ if [ -n "$client_repository_url" ]; then
     echo "client_sign_type            = '$client_sign_type'"
     echo "client_sign_id              = '$client_sign_id'"
     if [ -n "$client_repository_group_url" ]; then
-	echo "client_web_group_dir        = '$client_repository_group_url'"
-	echo "client_descript_group_fname = '$client_descript_group_file'"
-	echo "client_sign_group_id        = '$client_sign_group_id'"
+        echo "client_web_group_dir        = '$client_repository_group_url'"
+        echo "client_descript_group_fname = '$client_descript_group_file'"
+        echo "client_sign_group_id        = '$client_sign_group_id'"
     fi
 fi
 echo
@@ -922,6 +1044,21 @@ if [ $set_debug -ne 0 ]; then
   echo "------- Initial environment ---------------"  1>&2
   env 1>&2
   echo "------- =================== ---------------" 1>&2
+fi
+
+# Before anything else, spawn multiple glideins and wait, if asked to do so
+if [[ -n "$multi_glidein" ]] && [[ -z "$multi_glidein_restart" ]] && [[ "$multi_glidein" -gt 1 ]]; then
+    # start multiple glideins
+    ON_DIE=0
+    trap 'ignore_signal' SIGHUP
+    trap_with_arg 'on_die_multi' SIGTERM SIGINT SIGQUIT
+    do_start_all $multi_glidein
+    # Wait for all glideins and exit 0
+    # TODO: Summarize exit codes and status from all child glideins
+    echo "------ Multi-glidein parent waiting for child processes ($GWMS_MULTIGLIDEIN_CHILDS) ----------" 1>&2
+    wait
+    echo "------ Exiting multi-glidein parent ----------" 1>&2
+    exit 0
 fi
 
 ########################################
@@ -970,10 +1107,10 @@ function set_proxy_fullpath {
     # Set the X509_USER_PROXY path to full path to the file
     fullpath="`readlink -f $X509_USER_PROXY`"
     if [ $? -eq 0 ]; then
-        echo "Setting X509_USER_PROXY $X09_USER_PROXY to canonical path $fullpath" 1>&2
+        echo "Setting X509_USER_PROXY $X509_USER_PROXY to canonical path $fullpath" 1>&2
         export X509_USER_PROXY="$fullpath"
     else
-        echo "Unable to get canonical path for X509_USER_PROXY, using $X09_USER_PROXY" 1>&2
+        echo "Unable to get canonical path for X509_USER_PROXY, using $X509_USER_PROXY" 1>&2
     fi
 }
 
@@ -1018,16 +1155,31 @@ if [ $? -ne 0 ]; then
 else
     cd "$work_dir"
     if [ $? -ne 0 ]; then
-	early_glidein_failure "Dir '$work_dir' was created but I cannot cd into it."
+        early_glidein_failure "Dir '$work_dir' was created but I cannot cd into it."
     else
-	echo "Running in $work_dir"
+        echo "Running in $work_dir"
     fi
 fi
 work_dir_created=1
 
+# GWMS_DIR defined on top
+if ! mkdir "$GWMS_DIR" ; then
+    early_glidein_failure "Cannot create '$GWMS_DIR'"
+fi
+
+gwms_lib_dir="${GWMS_DIR}/lib"
+if ! mkdir -p "$gwms_lib_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_lib_dir'"
+fi
+
+gwms_bin_dir="${GWMS_DIR}/bin"
+if ! mkdir -p "$gwms_bin_dir" ; then
+    early_glidein_failure "Cannot create '$gwms_bin_dir'"
+fi
+
 # mktemp makes it user readable by definition (ignores umask)
-chmod a+rx "$work_dir"
-if [ $? -ne 0 ]; then
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
+if ! chmod a+rx "$work_dir" ; then
     early_glidein_failure "Failed chmod '$work_dir'"
 fi
 
@@ -1038,56 +1190,50 @@ if [ $? -ne 0 ]; then
 fi
 glide_local_tmp_dir_created=1
 
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
 # the tmpdir should be world writable
-# This way it will work even if the user spawned by the glidein is different
-# than the glidein user
-chmod 1777 "$glide_local_tmp_dir"
-if [ $? -ne 0 ]; then
+# This way it will work even if the user spawned by the glidein is different than the glidein user
+# This happened in GlExec, outside user stays the same in Singularity
+if ! chmod 1777 "$glide_local_tmp_dir" ; then
     early_glidein_failure "Failed chmod '$glide_local_tmp_dir'"
 fi
 
 glide_tmp_dir="${work_dir}/tmp"
-mkdir "$glide_tmp_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$glide_tmp_dir" ; then
     early_glidein_failure "Cannot create '$glide_tmp_dir'"
 fi
+# TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
 # the tmpdir should be world writable
-# This way it will work even if the user spawned by the glidein is different
-# than the glidein user
-chmod 1777 "$glide_tmp_dir"
-if [ $? -ne 0 ]; then
+# This way it will work even if the user spawned by the glidein is different than the glidein user
+if ! chmod 1777 "$glide_tmp_dir" ; then
     early_glidein_failure "Failed chmod '$glide_tmp_dir'"
 fi
 
 short_main_dir=main
 main_dir="${work_dir}/${short_main_dir}"
-mkdir "$main_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$main_dir" ; then
     early_glidein_failure "Cannot create '$main_dir'"
 fi
 
 short_entry_dir=entry_${glidein_entry}
 entry_dir="${work_dir}/${short_entry_dir}"
-mkdir "$entry_dir"
-if [ $? -ne 0 ]; then
+if ! mkdir "$entry_dir" ; then
     early_glidein_failure "Cannot create '$entry_dir'"
 fi
 
 if [ -n "$client_repository_url" ]; then
     short_client_dir=client
     client_dir="${work_dir}/${short_client_dir}"
-    mkdir "$client_dir"
-    if [ $? -ne 0 ]; then
-	early_glidein_failure "Cannot create '$client_dir'"
+    if ! mkdir "$client_dir" ; then
+        early_glidein_failure "Cannot create '$client_dir'"
     fi
 
     if [ -n "$client_repository_group_url" ]; then
-	short_client_group_dir=client_group_${client_group}
-	client_group_dir="${work_dir}/${short_client_group_dir}"
-	mkdir "$client_group_dir"
-	if [ $? -ne 0 ]; then
-	    early_glidein_failure "Cannot create '$client_group_dir'"
-	fi
+        short_client_group_dir=client_group_${client_group}
+        client_group_dir="${work_dir}/${short_client_group_dir}"
+        if ! mkdir "$client_group_dir" ; then
+            early_glidein_failure "Cannot create '$client_group_dir'"
+        fi
     fi
 fi
 
@@ -1123,7 +1269,7 @@ echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
-echo "GLIDEIN_STARTUP_PID $$" >> glidein_config 
+echo "GLIDEIN_STARTUP_PID $$" >> glidein_config
 echo "GLIDEIN_WORK_DIR $main_dir" >> glidein_config
 echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
@@ -1138,9 +1284,9 @@ if [ -n "$client_repository_url" ]; then
     echo "GLIDECLIENT_DESCRIPTION_FILE $client_descript_file" >> glidein_config
     echo "GLIDECLIENT_Signature $client_sign_id" >> glidein_config
     if [ -n "$client_repository_group_url" ]; then
-	echo "GLIDECLIENT_GROUP_WORK_DIR $client_group_dir" >> glidein_config
-	echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE $client_descript_group_file" >> glidein_config
-	echo "GLIDECLIENT_Group_Signature $client_sign_group_id" >> glidein_config
+        echo "GLIDECLIENT_GROUP_WORK_DIR $client_group_dir" >> glidein_config
+        echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE $client_descript_group_file" >> glidein_config
+        echo "GLIDECLIENT_Group_Signature $client_sign_group_id" >> glidein_config
     fi
 fi
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
@@ -1164,16 +1310,16 @@ params2file $params
 # Arg: type (main/entry/client/client_group)
 function get_repository_url {
     if [ "$1" = "main" ]; then
-	echo $repository_url
+        echo $repository_url
     elif [ "$1" = "entry" ]; then
-	echo $repository_entry_url
+        echo $repository_entry_url
     elif [ "$1" = "client" ]; then
-	echo $client_repository_url
+        echo $client_repository_url
     elif [ "$1" = "client_group" ]; then
-	echo $client_repository_group_url
+        echo $client_repository_group_url
     else
-	echo "[get_repository_url] Invalid id: $1" 1>&2
-	return 1
+        echo "[get_repository_url] Invalid id: $1" 1>&2
+        return 1
     fi
 }
 
@@ -1189,26 +1335,26 @@ function check_file_signature {
     cfs_signature="${cfs_work_dir}/signature.sha1"
 
     if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
-	tmp_signname="${cfs_signature}_$$_`date +%s`_$RANDOM"
-	grep " $cfs_fname$" "$cfs_signature" > $tmp_signname
-	if [ $? -ne 0 ]; then
-	    rm -f $tmp_signname
-	    echo "No signature for $cfs_desc_fname." 1>&2
-	else
-	    (cd "$cfs_work_dir" && sha1sum -c "$tmp_signname") 1>&2
-	    cfs_rc=$?
-	    if [ $cfs_rc -ne 0 ]; then
-		$main_dir/error_augment.sh -init
-		$main_dir/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "$cfs_desc_fname" "source_type" "$cfs_id"
-		$main_dir/error_augment.sh  -process $cfs_rc "check_file_signature" "$PWD" "sha1sum -c $tmp_signname" "`date +%s`" "`date +%s`"
-		$main_dir/error_augment.sh -concat
-		warn "File $cfs_desc_fname is corrupted." 1>&2
-		rm -f $tmp_signname
-		return 1
-	    fi
-	    rm -f $tmp_signname
-	    echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
-	fi
+        tmp_signname="${cfs_signature}_$$_`date +%s`_$RANDOM"
+        grep " $cfs_fname$" "$cfs_signature" > $tmp_signname
+        if [ $? -ne 0 ]; then
+            rm -f $tmp_signname
+            echo "No signature for $cfs_desc_fname." 1>&2
+        else
+            (cd "$cfs_work_dir" && sha1sum -c "$tmp_signname") 1>&2
+            cfs_rc=$?
+            if [ $cfs_rc -ne 0 ]; then
+                $main_dir/error_augment.sh -init
+                $main_dir/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "$cfs_desc_fname" "source_type" "$cfs_id"
+                $main_dir/error_augment.sh  -process $cfs_rc "check_file_signature" "$PWD" "sha1sum -c $tmp_signname" "`date +%s`" "`date +%s`"
+                $main_dir/error_augment.sh -concat
+                warn "File $cfs_desc_fname is corrupted." 1>&2
+                rm -f $tmp_signname
+                return 1
+            fi
+            rm -f $tmp_signname
+            echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
+        fi
     fi
     return 0
 }
@@ -1225,14 +1371,14 @@ function get_untar_subdir {
 
     gus_config_file="`grep "^$gus_config_cfg " glidein_config | cut -d ' ' -f 2-`"
     if [ -z "$gus_config_file" ]; then
-	warn "Error, cannot find '$gus_config_cfg' in glidein_config." 1>&2
-	glidein_exit 1
+        warn "Error, cannot find '$gus_config_cfg' in glidein_config." 1>&2
+        glidein_exit 1
     fi
 
-    gus_dir="`grep -i "^$gus_fname " "$gus_config_file" | cut -d ' ' -f 2-`"
+    gus_dir="`grep -i "^$gus_fname " "$gus_config_file" | cut -s -f 2-`"
     if [ -z "$gus_dir" ]; then
-	warn "Error, untar dir for '$gus_fname' cannot be empty." 1>&2
-	glidein_exit 1
+        warn "Error, untar dir for '$gus_fname' cannot be empty." 1>&2
+        glidein_exit 1
     fi
 
     echo "$gus_dir"
@@ -1304,7 +1450,7 @@ function fetch_file {
             # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
             fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"
             if [ $? -ne 0 ]; then
-	        glidein_exit 1
+                glidein_exit 1
             fi
             return 0
         fi
@@ -1341,10 +1487,10 @@ function fetch_file_try {
     fft_config_out="$8"
 
     if [ "$fft_config_check" = "TRUE" ]; then
-	    # TRUE is a special case
-	    fft_get_ss=1
+        # TRUE is a special case
+        fft_get_ss=1
     else
-	    fft_get_ss=`grep -i "^$fft_config_check " glidein_config | cut -d ' ' -f 2-`
+        fft_get_ss=`grep -i "^$fft_config_check " glidein_config | cut -d ' ' -f 2-`
     fi
 
     # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
@@ -1382,13 +1528,13 @@ function perform_wget {
         wget_cmd=$(echo "wget ${wget_args[@]}"| sed 's/"/\\\"/g')
         wget_resp=$(wget "${wget_args[@]}" 2>&1)
         wget_retval=$?
-    fi    
+    fi
 
     if [ $wget_retval -ne 0 ]; then
         wget_version=$(wget --version 2>&1 | head -1)
-        warn "$wget_cmd failed. version:$wget_version  exit code $wget_retval stderr: $wget_resp " 
-	    # cannot use error_*.sh helper functions
-	    # may not have been loaded yet, and wget fails often
+        warn "$wget_cmd failed. version:$wget_version  exit code $wget_retval stderr: $wget_resp "
+        # cannot use error_*.sh helper functions
+        # may not have been loaded yet, and wget fails often
         echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
   <operatingenvironment>
     <env name=\"cwd\">$PWD</env>
@@ -1412,19 +1558,19 @@ function perform_wget {
   Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.  $wget_resp
   </detail>
 </OSGTestResult>" > otrb_output.xml
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 
+        warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'."
 
-	    if [ -f otr_outlist.list ]; then
-		    chmod u+w otr_outlist.list
-	    else
-		    touch otr_outlist.list
-	    fi
-	    cat otrb_output.xml >> otr_outlist.list
-	    echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        if [ -f otr_outlist.list ]; then
+            chmod u+w otr_outlist.list
+        else
+            touch otr_outlist.list
+        fi
+        cat otrb_output.xml >> otr_outlist.list
+        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
         cat otrb_output.xml >> otrx_output.xml
-	    rm -f otrb_output.xml
-	    chmod a-w otr_outlist.list
-	fi 
+        rm -f otrb_output.xml
+        chmod a-w otr_outlist.list
+    fi
     return $wget_retval
 }
 
@@ -1456,9 +1602,9 @@ function perform_curl {
 
     if [ $curl_retval -ne 0 ]; then
         curl_version=$(curl --version 2>&1 | head -1)
-        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp " 
-	    # cannot use error_*.sh helper functions
-	    # may not have been loaded yet, and wget fails often
+        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp "
+        # cannot use error_*.sh helper functions
+        # may not have been loaded yet, and wget fails often
         echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
   <operatingenvironment>
     <env name=\"cwd\">$PWD</env>
@@ -1482,19 +1628,19 @@ function perform_curl {
   Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.  ${curl_resp}
   </detail>
 </OSGTestResult>" > otrb_output.xml
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 
+        warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'."
 
-	    if [ -f otr_outlist.list ]; then
-		    chmod u+w otr_outlist.list
-	    else
-		    touch otr_outlist.list
-	    fi
-	    cat otrb_output.xml >> otr_outlist.list
-	    echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        if [ -f otr_outlist.list ]; then
+            chmod u+w otr_outlist.list
+        else
+            touch otr_outlist.list
+        fi
+        cat otrb_output.xml >> otr_outlist.list
+        echo "<?xml version=\"1.0\"?>" > otrx_output.xml
         cat otrb_output.xml >> otrx_output.xml
-	    rm -f otrb_output.xml
-	    chmod a-w otr_outlist.list
-	fi 
+        rm -f otrb_output.xml
+        chmod a-w otr_outlist.list
+    fi
     return $curl_retval
 }
 
@@ -1547,9 +1693,9 @@ function fetch_file_base {
     ffb_url="$ffb_repository/$ffb_real_fname"
     curl_version=$(curl --version | head -1 )
     wget_version=$(wget --version | head -1 )
-    #old wget command: 
+    #old wget command:
     #wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" "$ffb_nocache_str" -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
-    #equivalent to: 
+    #equivalent to:
     #wget ${ffb_url} --user-agent=${user_agent} -q  -O "${ffb_tmp_outname}" "${ffb_nocache_str}"
     #with env http_proxy=$proxy_url set if proxy_url != "None"
     #
@@ -1569,9 +1715,9 @@ function fetch_file_base {
             elif wget --help |grep -q "\-\-cache="; then
                 wget_args+=("--cache=off")
             else
-                warn "wget $wget_version cannot disable caching" 
+                warn "wget $wget_version cannot disable caching"
             fi
-         fi    
+         fi
     fi
 
     if [ "$proxy_url" != "None" ];then
@@ -1603,15 +1749,15 @@ function fetch_file_base {
     # check signature
     check_file_signature "$ffb_id" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
-	    # error already displayed inside the function
-	    return 1
+        # error already displayed inside the function
+        return 1
     fi
 
     # rename it to the correct final name, if needed
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
         mv "$ffb_tmp_outname" "$ffb_outname"
         if [ $? -ne 0 ]; then
-            warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 
+            warn "Failed to rename $ffb_tmp_outname into $ffb_outname"
             return 1
         fi
     fi
@@ -1638,7 +1784,7 @@ function fetch_file_base {
             ret=$?
             END=$(date +%s)
             $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
-	        $main_dir/error_augment.sh -concat
+            $main_dir/error_augment.sh -concat
             if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
                 warn "Error running '$ffb_outname'" 1>&2
@@ -1650,7 +1796,7 @@ function fetch_file_base {
                 if [ $ffb_period -gt 0 ]; then
                     add_periodic_script "$main_dir/script_wrapper.sh" $ffb_period "$work_dir" "$ffb_outname" glidein_config "$ffb_id" "$ffb_cc_prefix"
                 fi
-	        fi
+            fi
         fi
     elif [ "$ffb_file_type" = "wrapper" ]; then
         echo "$ffb_outname" >> "$wrapper_list"
@@ -1707,6 +1853,18 @@ function fetch_file_base {
    return 0
 }
 
+# Adds $1 to GWMS_PATH and update PATH
+function add_to_path {
+    local old_path=":${PATH%:}:"
+    old_path="${old_path//:$GWMS_PATH:/}"
+    local old_gwms_path=":${GWMS_PATH%:}:"
+    old_gwms_path="${old_gwms_path//:$1:/}"
+    old_gwms_path="${1%:}:${old_gwms_path#:}"
+    export GWMS_PATH="${old_gwms_path%:}"
+    old_path="${GWMS_PATH}:${old_path#:}"
+    export PATH="${old_path%:}"
+}
+
 echo "Downloading files from Factory and Frontend"
 
 #####################################
@@ -1720,14 +1878,14 @@ for gs_id in main entry client client_group
 do
   if [ -z "$client_repository_url" ]; then
       if [ "$gs_id" = "client" ]; then
-	  # no client file when no cilent_repository
-	  continue
+          # no client file when no cilent_repository
+          continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
       if [ "$gs_id" = "client_group" ]; then
-	      # no client group file when no cilent_repository_group
-	  continue
+          # no client group file when no cilent_repository_group
+          continue
       fi
   fi
 
@@ -1738,10 +1896,10 @@ do
   fetch_file_regular "$gs_id" "$gs_id_descript_file"
   signature_file_line="`grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}"`"
   if [ $? -ne 0 ]; then
-      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
       glidein_exit 1
   fi
-  signature_file="`echo $signature_file_line|cut -d ' ' -f 2-`"
+  signature_file="`echo "$signature_file_line" | cut -s -f 2-`"
 
   # Fetch signature file
   gs_id_signature=`get_signature $gs_id`
@@ -1767,14 +1925,14 @@ for gs_id in main entry client client_group
 do
   if [ -z "$client_repository_url" ]; then
       if [ "$gs_id" = "client" ]; then
-	  # no client file when no cilent_repository
-	  continue
+          # no client file when no cilent_repository
+          continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
       if [ "$gs_id" = "client_group" ]; then
-	      # no client group file when no cilent_repository_group
-	  continue
+          # no client group file when no cilent_repository_group
+          continue
       fi
   fi
 
@@ -1791,8 +1949,8 @@ done
 # get last_script, as it is used by the fetch_file
 gs_id_work_dir="`get_work_dir main`"
 gs_id_descript_file="`get_descript_file main`"
-last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -d ' ' -f 2-`"
-if [ $? -ne 0 ]; then
+last_script="`grep "^last_script " "${gs_id_work_dir}/$gs_id_descript_file" | cut -s -f 2-`"
+if [ -z "$last_script" ]; then
     warn "last_script not in description file ${gs_id_work_dir}/$gs_id_descript_file." 1>&2
     glidein_exit 1
 fi
@@ -1806,35 +1964,36 @@ do
 
   if [ -z "$client_repository_url" ]; then
       if [ "$gs_id" = "client" ]; then
-	  # no client file when no client_repository
-	  continue
+          # no client file when no client_repository
+          continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
       if [ "$gs_id" = "client_group" ]; then
-	      # no client group file when no client_repository_group
-	  continue
+          # no client group file when no client_repository_group
+          continue
       fi
   fi
 
   gs_file_list_id=`echo $gs_file_id |awk '{print $2}'`
-  
+
   gs_id_work_dir=`get_work_dir $gs_id`
   gs_id_descript_file=`get_descript_file $gs_id`
-  
+
   # extract list file name
-  gs_file_list_line=`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`
+  gs_file_list_line="`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`"
   if [ $? -ne 0 ]; then
       if [ -z "$client_repository_group_url" ]; then
-	      if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
-	          # afterfile_.. files optional when no client_repository_group
-	          continue
-	      fi
+          if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
+              # afterfile_.. files optional when no client_repository_group
+              continue
+          fi
       fi
       warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
-  gs_file_list="`echo $gs_file_list_line |cut -d ' ' -f 2-`"
+  # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
+  gs_file_list="`echo "$gs_file_list_line" | cut -s -f 2 | sed -e 's/[[:space:]]*$//'`"
 
   # fetch list file
   fetch_file_regular "$gs_id" "$gs_file_list"
@@ -1847,6 +2006,15 @@ do
     fi
   done < "${gs_id_work_dir}/${gs_file_list}"
 
+  # Files to go into the GWMS_PATH
+  if [ "$gs_file_id" = "main after_file_list" ]; then
+    cp -r "${gs_id_work_dir}/lib"/* "$gwms_lib_dir"/
+    add_to_path "$PWD/$gwms_bin_dir"
+    for file in "gwms-python" "condor_chirp"
+    do
+        cp "${gs_id_work_dir}/$file" "$gwms_bin_dir"
+    done
+  fi
 done
 
 ###############################
@@ -1859,9 +2027,10 @@ let validation_time=$last_startup_time-$startup_time
 echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
 echo
 ON_DIE=0
-trap 'ignore_signal' HUP
-trap 'on_die' TERM
-trap 'on_die' INT
+trap 'ignore_signal' SIGHUP
+trap_with_arg 'on_die' SIGTERM SIGINT SIGQUIT
+#trap 'on_die' TERM
+#trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
 $main_dir/error_augment.sh -init
 "${gs_id_work_dir}/$last_script" glidein_config &

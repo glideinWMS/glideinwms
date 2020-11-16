@@ -121,7 +121,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     #RPM has another layer of log directories
-    if os.path.realpath(gfactory_dir)=="/var/lib/gwms-factory/work-dir":
+    if os.path.realpath(gfactory_dir)==os.path.realpath("/var/lib/gwms-factory/work-dir"):
         gfactory_log_dir=os.path.join(gfactory_log_dir,"server")
     
     if entry[:6]=="entry_":

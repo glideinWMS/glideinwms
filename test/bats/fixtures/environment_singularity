@@ -1,0 +1,51 @@
+# This file must contain all the variables defined in the different sets in singularity_lib.sh
+# The numbers in the BATS file must be updated as well
+# General
+BATS_TEST_DIR=./
+# GWMS set, 10 variables
+GWMS_SINGULARITY_REEXEC=1
+GLIDEIN_Proxy_URL="http://my.proxy.net"
+MODULE_USE=1
+InitializeModulesEnv=1
+XRD_PLUGINCONFDIR=/cvmfs/oasis.opensciencedir.org/xrd.conf
+POSIXSTASHCACHE=1
+STASHCACHE=1
+STASHCACHE_WRITABLE=0
+LoadModules=1
+GWMS_AUX_SUBDIR=.gwms
+# HTCondor set, 4 variables
+_CONDOR_CONDOR_CONFIG=condor_config
+_CONDOR_HTCVAR1=val_htcvar1
+_CONDOR_HTCVAR2="val_htcvar2"
+_CONDOR_JOB_AD="$BATS_TEST_DIR"/fixtures/condor_job_ad
+# OSG set, 30 variables
+OSG_SINGULARITY_REEXEC=1
+_CHIRP_DELAYED_UPDATE_PREFIX=chde
+CONDOR_PARENT_ID=1234
+GLIDEIN_ResourceName=TEST_ResourceName
+GLIDEIN_Site=TEST_Site
+HAS_SINGULARITY=1
+http_proxy="http://my.proxy.net"
+InitializeModulesEnv=1
+LIGO_DATAFIND_SERVER=server1
+OSG_MACHINE_GPUS=2
+OSG_SINGULARITY_AUTOLOAD=1
+OSG_SINGULARITY_BIND_CVMFS=1
+OSG_SINGULARITY_CLEAN_ENV=1
+OSG_SINGULARITY_IMAGE=
+OSG_SINGULARITY_IMAGE_DEFAULT=
+OSG_SINGULARITY_IMAGE_HUMAN=
+OSG_SINGULARITY_OUTSIDE_PWD=
+OSG_SINGULARITY_PATH=
+OSG_SITE_NAME=TEST_OSG_Site
+OSGVO_PROJECT_NAME=test_project
+OSGVO_SUBMITTER=test_submitter
+OSG_WN_TMP=/tmp
+POSIXSTASHCACHE=1
+SINGULARITY_WORKDIR=/srv
+STASHCACHE=1
+STASHCACHE_WRITABLE=1
+TZ=UTC
+X509_USER_CERT=x509_user_cert
+X509_USER_KEY=x509_user_key
+X509_USER_PROXY=x509_user_proxy

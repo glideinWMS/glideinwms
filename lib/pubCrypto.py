@@ -58,7 +58,14 @@ class PubRSAKey:
         self.encryption_padding=encryption_padding
         self.sign_algo=sign_algo
 
-        self.load(key_str, key_fname)
+        try:
+            self.load(key_str, key_fname)
+        except M2Crypto.RSA.RSAError as e:
+            # Put some additional information in the exception object to be printed later on
+            # This helps operator understand which file might be corrupted so that they can try to delete it
+            e.key_fname = key_fname
+            e.cwd = os.getcwd()
+            raise
         return
 
     ###########################################

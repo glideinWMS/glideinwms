@@ -38,6 +38,17 @@ class UnconfiguredScheddError(Exception):
         return repr(self.err_str)
 
 
+def str2bool(val):
+    """ Convert u"True" or u"False" to boolean or raise ValueError
+    """
+    if val not in [u"True", u"False"]:
+        # Not using ValueError intentionally: all config errors are RuntimeError
+        raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
+    elif val == u"True":
+        return True
+    else:
+        return False
+
 ################################################
 #
 # This Class contains the main dicts
@@ -203,7 +214,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
-                             'setup_x509.sh',
+                             'gwms-python',
                              cgWConsts.CONDOR_STARTUP_FILE]
         # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
@@ -218,7 +229,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh',]
+                                   'smart_partitionable.sh',
+                                   'condor_chirp']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
@@ -229,6 +241,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(script_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
+
+        # Add the x509 setup script. It is periodical since it will refresh the pilot as well
+        x509script = 'setup_x509.sh'
+        self.dicts['file_list'].add_from_file(x509script,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(x509script), 'exec', 60, 'NOPREFIX'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, x509script))
 
         # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
@@ -241,6 +259,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_from_file(mjf_script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 1800, 'MJF_'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script))
+
+        # Add pychirp
+        pychirp_tarball = "htchirp.tar.gz"
+        self.dicts['file_list'].add_from_file(pychirp_tarball,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(pychirp_tarball), 'untar'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, pychirp_tarball))
+        self.dicts['untar_cfg'].add(pychirp_tarball, "lib/python/htchirp")
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
@@ -410,6 +435,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self, conf, sub_name,
                  summary_signature, workdir_name):
+        self.conf=conf
+        self.entry_name=sub_name
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()
         monitor_dir = conf.get_monitor_dir()
@@ -421,15 +448,20 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir, sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
-        self.conf=conf
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
-        condor_jdls = glob.glob(os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE_ENTRYSET % '*'))
-        if condor_jdls:
+        for entry in self.conf.get_entries():
+            if entry.getName()==self.entry_name:
+                break
+        else:
+            # This happens when old_dictionary contains something (e.g.: entries are removed from the conf)
+            entry = None
+        if entry and isinstance(entry, factoryXmlConfig.EntrySetElement):
             self.dicts['condor_jdl'] = []
-            for cj in condor_jdls:
-                self.dicts['condor_jdl'].append(cgWCreate.GlideinSubmitDictFile(self.work_dir, os.path.basename(cj)))
+            for sub_entry in entry.get_subentries():
+                self.dicts['condor_jdl'].append(cgWCreate.GlideinSubmitDictFile(self.work_dir,
+                                                os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE_ENTRYSET % sub_entry.getName())))
         else:
             self.dicts['condor_jdl'] = [cgWCreate.GlideinSubmitDictFile(self.work_dir, cgWConsts.SUBMIT_FILE)]
 
@@ -440,6 +472,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
     def save_final(self,set_readonly=True):
         sub_stage_dir = cgWConsts.get_entry_stage_dir("", self.sub_name)
+
+        # Let's remove the job.condor single entry file (in case the entry_set has the same name of an old entry)
+        if len(self.dicts['condor_jdl']) > 1:
+            fname = os.path.join(self.work_dir, cgWConsts.SUBMIT_FILE)
+            if os.path.isfile(fname):
+                os.remove(fname)
 
         for cj in self.dicts['condor_jdl']:
             cj.finalize(self.summary_signature['main'][0], self.summary_signature[sub_stage_dir][0],
@@ -516,7 +554,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts['mongroup'].add_extended(monitorgroup[u'group_name'], allow_overwrite=True)
 
         # populate complex files
-        populate_job_descript(self.work_dir, self.dicts['job_descript'],
+        populate_job_descript(self.work_dir, self.dicts['job_descript'], self.conf.num_factories,
                               self.sub_name, entry, schedd)
 
         # Now that we have the EntrySet fill the condor_jdl for its entries
@@ -860,6 +898,8 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('RestartAttempts', conf[u'restart_attempts'])
         glidein_dict.add('RestartInterval', conf[u'restart_interval'])
         glidein_dict.add('EntryParallelWorkers', conf[u'entry_parallel_workers'])
+
+        glidein_dict.add('RecoverableExitcodes', conf[u'recoverable_exitcodes'])
         glidein_dict.add('LogDir', conf.get_log_dir())
         glidein_dict.add('ClientLogBaseDir', sub_el[u'base_client_log_dir'])
         glidein_dict.add('ClientProxiesBaseDir', sub_el[u'base_client_proxies_dir'])
@@ -892,7 +932,7 @@ def populate_factory_descript(work_dir, glidein_dict,
 
 
 #######################
-def populate_job_descript(work_dir, job_descript_dict,
+def populate_job_descript(work_dir, job_descript_dict, num_factories,
                           sub_name, entry, schedd):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
@@ -911,6 +951,7 @@ def populate_job_descript(work_dir, job_descript_dict,
 
     config = entry.get_child(u'config')
     max_jobs = config.get_child(u'max_jobs')
+    num_factories = int(max_jobs.get('num_factories', num_factories))  # prefer entry settings
 
     job_descript_dict.add('EntryName', sub_name)
     job_descript_dict.add('GridType', entry[u'gridtype'])
@@ -932,13 +973,13 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('Verbosity', entry[u'verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
     per_entry = max_jobs.get_child(u'per_entry')
-    job_descript_dict.add('PerEntryMaxGlideins', per_entry[u'glideins'])
-    job_descript_dict.add('PerEntryMaxIdle', per_entry[u'idle'])
-    job_descript_dict.add('PerEntryMaxHeld', per_entry[u'held'])
+    job_descript_dict.add('PerEntryMaxGlideins', int(per_entry[u'glideins'])//num_factories)
+    job_descript_dict.add('PerEntryMaxIdle', int(per_entry[u'idle'])//num_factories)
+    job_descript_dict.add('PerEntryMaxHeld', int(per_entry[u'held'])//num_factories)
     def_per_fe = max_jobs.get_child(u'default_per_frontend')
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', def_per_fe[u'glideins'])
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', def_per_fe[u'idle'])
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', def_per_fe[u'held'])
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', int(def_per_fe[u'glideins'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', int(def_per_fe[u'idle'])//num_factories)
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', int(def_per_fe[u'held'])//num_factories)
     submit = config.get_child(u'submit')
     job_descript_dict.add('MaxSubmitRate', submit[u'max_per_cycle'])
     job_descript_dict.add('SubmitCluster', submit[u'cluster_size'])
@@ -965,9 +1006,9 @@ def populate_job_descript(work_dir, job_descript_dict,
     max_glideins_frontend = ""
     for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
         frontend_name = per_fe[u'name']
-        max_held_frontend += frontend_name + ";" + per_fe[u'held'] + ","
-        max_idle_frontend += frontend_name + ";" + per_fe[u'idle'] + ","
-        max_glideins_frontend += frontend_name + ";" + per_fe[u'glideins'] + ","
+        max_held_frontend += frontend_name + ";" + str(int(per_fe[u'held'])//num_factories) + ","
+        max_idle_frontend += frontend_name + ";" + str(int(per_fe[u'idle'])//num_factories) + ","
+        max_glideins_frontend += frontend_name + ";" + str(int(per_fe[u'glideins'])//num_factories) + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])

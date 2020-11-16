@@ -4,7 +4,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This program updates a glidein factory directory structure
@@ -15,7 +15,7 @@ import os
 import sys
 import logging
 import os.path
-# import subprocess
+import subprocess
 import tempfile
 import signal
 STARTUP_DIR = sys.path[0]
@@ -33,6 +33,7 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
 from glideinwms.factory import glideFactoryLib
+from glideinwms.lib.util import handle_hooks, HOOK_PRE_RECONFIG_DIRNAME, HOOK_POST_RECONFIG_DIRNAME
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
 # necessary because systemd is not on rhel6
@@ -58,21 +59,21 @@ class ReconfigError(Exception): pass
 
 def logReconfig(msg):
     glideinDescript = glideFactoryConfig.GlideinDescript()
-    # Set the Log directory 
+    # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
     # Configure factory process logging
     process_logs = eval(glideinDescript.data['ProcessLogs'])
     for plog in process_logs:
         if 'ADMIN' in plog['msg_types']:
-            logSupport.add_processlog_handler("factoryadmin", 
-                logSupport.log_dir, "DEBUG,INFO,WARN,ERR", 
+            logSupport.add_processlog_handler("factoryadmin",
+                logSupport.log_dir, "DEBUG,INFO,WARN,ERR",
                 plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
                 int(float(plog['max_mbytes'])),
                 plog['compression'])
         else:
-            logSupport.add_processlog_handler("factoryadmin", 
+            logSupport.add_processlog_handler("factoryadmin",
                 logSupport.log_dir, plog['msg_types'], plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
@@ -110,7 +111,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
                     print2("Aborting reconfig since this is just too scary.")
                     print2("Enable -force_delete if you really want to delete it.")
                     sys.exit(1)
-        
+
         glidein_dicts_obj.reuse(old_glidein_dicts_obj)
     else:
         # If no old params exist, make sure to create the new directory, (no reuse)
@@ -130,7 +131,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR, True)
         print2("...Updated the glidein_startup.sh file in the staging area")
 
-        # copy privsep helper executables
+        # copy helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
 
     if update_def_cfg == 'yes' or update_scripts == 'yes':
@@ -138,7 +139,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # This will never happen in RPM installations (because of the init.d file)
         startup_fname = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE)
         factory_dir = glidein_dicts_obj.main_dicts.work_dir
-        
+
         # Remove startup file if already exists
         if os.path.exists(os.path.join(factory_dir, startup_fname)):
             os.remove(os.path.join(factory_dir, startup_fname))
@@ -170,7 +171,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 if __name__ == '__main__':
@@ -220,6 +221,8 @@ if __name__ == '__main__':
             print2(usage)
             sys.exit(1)
 
+    handle_hooks(os.path.dirname(os.path.abspath(xml)), HOOK_PRE_RECONFIG_DIRNAME)
+
     if sighupreload:
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
     # conf is of type factoryXmlConfig.Config
@@ -248,9 +251,9 @@ if __name__ == '__main__':
         try:
             # This is the current running version, saved in the glidein work dir
             submit_dir = conf.get_submit_dir()
-            
+
             main(conf, update_scripts, update_def_cfg, comment=comment)
-    
+
         except RuntimeError as e:
             raise ReconfigError(str(e))
 
@@ -267,6 +270,8 @@ if __name__ == '__main__':
     except RuntimeError as e:
         print2(e)
         exit_code = 1
+
+    handle_hooks(os.path.dirname(os.path.abspath(xml)), HOOK_POST_RECONFIG_DIRNAME)
 
     if sighupreload:
         print2("switching back to the main glideFactory process")
