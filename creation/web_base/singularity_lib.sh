@@ -1145,6 +1145,8 @@ singularity_test_bin() {
     [[ -z "$sin_path" ]] && { echo "$bread_crumbs"; false; return; }
     sin_version=$("$sin_path" --version 2>/dev/null)
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
+    # more recent singularity versions add a "singularity version " prefix to the version number
+    sin_version=${sin_version#singularity version }
     if [[ -z "$sin_image" ]]; then
         sin_type=unknown
         bread_crumbs+="T"
@@ -1184,7 +1186,7 @@ singularity_locate_bin() {
     local s_image="$2"
     # bread_crumbs populated also in singularity_test_bin
     local bread_crumbs=""
-    local test_out
+    local s_test test_out
     HAS_SINGULARITY=False
     local osg_singularity_binary="${OSG_SINGULARITY_BINARY:-${OSG_SINGULARITY_BINARY_DEFAULT}}"
     local singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE}"
@@ -1204,16 +1206,17 @@ singularity_locate_bin() {
     if [[ "$HAS_SINGULARITY" != True && -n "$s_location" ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
+        s_step=s_bin
         # TODO: OSG is looked first in the sequence below. Does this make sense?
-        [[ "$s_location" == OSG ]] && s_location="${osg_singularity_binary%/singularity}"
+        [[ "$s_location" == OSG ]] && { s_location="${osg_singularity_binary%/singularity}"; s_step=s_bin_OSG; }
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
-            info "Suggested path '$1' (SINGULARITY_BIN?) is not a directory or does not contain singularity."
+            info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
             info "Will try to proceed with auto-discover but this mis-configuration may cause errors later"
         else
             # 2. Look in the path suggested, separate from $PATH (key OSG -> OSG_SINGULARITY_BINARY)
-            test_out=$(singularity_test_bin "s_bin,${s_location}/singularity" "$s_image") &&
+            test_out=$(singularity_test_bin "${s_step},${s_location}/singularity" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
         fi
