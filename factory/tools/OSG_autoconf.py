@@ -5,6 +5,7 @@
 from __future__ import division
 from __future__ import print_function
 
+import os
 import sys
 import copy
 import argparse
@@ -42,8 +43,8 @@ def get_vos(allowed_vos):
     for vorg in allowed_vos:
         if vorg in GLIDEIN_SUPPORTED_VO_MAP:
             vos.add(GLIDEIN_SUPPORTED_VO_MAP[vorg])
-        else:
-            print(vorg + " VO is not in GLIDEIN_Supported_VOs_map")
+#        else:
+#            print(vorg + " VO is not in GLIDEIN_Supported_VOs_map")
 
     return vos
 
@@ -118,8 +119,8 @@ def get_information(host):
                         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": resource}
                     if len(vos) > 0:
                         edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
-                    else:
-                        print(gatekeeper + " CE does not have VOs")
+#                    else:
+#                        print(gatekeeper + " CE does not have VOs")
                     edict["submit_attrs"] = {}
                     if cpus != "":
                         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
@@ -192,6 +193,8 @@ def merge_yaml(config, white_list):
     """
     out = get_yaml_file_info(white_list)
     osg_info = get_yaml_file_info(config["OSG_YAML"])
+    missing_info = get_yaml_file_info(config["MISSING_YAML"])
+    update(osg_info, missing_info)
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
     for site, site_information in out.items():
         if site_information is None:
@@ -209,8 +212,8 @@ def merge_yaml(config, white_list):
                 del out[site][celem]
                 continue
             if celem not in osg_info[site]:
-                print("Working on whitelisted site %s: cant find ce %s in the generated OSG.yaml"
-                      % (site, celem))
+                print("Working on whitelisted site %s: cant find ce %s in the generated %s or the missing %s files "
+                      % (site, celem, config["OSG_YAML"], config["MISSING_YAML"]))
                 raise ProgramError(3)
             for entry, entry_information in ce_information.items():
                 if entry_information is None:
@@ -317,15 +320,65 @@ def update_submit_attrs(entry_information, attr, submit_attr):
     return entry_information
 
 
+def create_missing_file(config, osg_collector_data):
+    """
+    """
+    print("Verifying missing sites and CEs")
+
+    osg_info = get_yaml_file_info(config["OSG_YAML"])
+    missing_info = get_yaml_file_info(config["MISSING_YAML"]) if os.path.isfile(config["MISSING_YAML"]) else {}
+
+    new_missing = {}
+    for white_list in sorted(config["OSG_WHITELISTS"]):
+        print("Checking if any site or CE in %s is missing in the OSG collector" % white_list)
+        whitelist_info = get_yaml_file_info(white_list)
+        tmp = create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)
+        update(new_missing, tmp)
+
+    write_to_yaml_file(config["MISSING_YAML"], new_missing)
+
+
+def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data):
+    """
+    """
+    new_missing = {}
+    for site, site_information in whitelist_info.items():
+        if site_information is None:
+            continue
+        if site not in osg_collector_data: # Check if the site disappeared from the OSG collector
+            if site in osg_info or site in missing_info:
+                print("WARNING! Site %s is in the whitelist file, but not in the collector. Retrieving it from old data (old OSG YAML or MISSING YAML), and saving it to the MISSING YAML" % site)
+                new_missing[site] = osg_info.get(site) or missing_info[site]
+            else:
+                print("ERROR! Site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML" % site)
+            continue
+        for celem, ce_information in site_information.items():
+            if ce_information is None:
+                continue
+            if celem not in osg_collector_data[site]:
+                if celem in osg_info.get(site, {}) or celem in missing_info.get(site, {}):
+                    print("WARNING! CE %s of site %s is in the whitelist file, but not in the collector. Retrieving it from old data (old OSG YAML or MISSING YAML), and saving it to the MISSING YAML" % (celem, site))
+                    new_missing.setdefault(site, {})
+                    new_missing[site][celem] = osg_info.get(site, {}).get(celem, False) or missing_info[site][celem]
+                else:
+                    print("ERROR! CE %s of site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML" % (celem, site))
+
+    # Returning for unit tests
+    return new_missing
+
+
+
 def main():
     """The main"""
     config = load_config()
     # Queries the OSG collector
     result = get_information(config["OSG_COLLECTOR"])
+    # Create the file for the missing CEs
+    create_missing_file(config, result)
     # Write the received information to the OSG.yml file
     write_to_yaml_file(config["OSG_YAML"], result)
     # Merges different yaml files: the defaults, the generated one, and the factory overrides
-    for white_list in config["OSG_WHITELISTS"]:
+    for white_list in sorted(config["OSG_WHITELISTS"]):
         result = merge_yaml(config, white_list)
         # Convert the resoruce dictionary obtained this way into a string (xml)
         entries_configuration = get_entries_configuration(result)
