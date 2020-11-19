@@ -438,7 +438,12 @@ mock_singularity_test_bin() {
     OSG_SINGULARITY_BINARY=
     run  singularity_locate_bin_wrapped "OSG" "/path/to/image"
     echo "part 6: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
+    # The result may change depending on whether CVMFS is installed or not
+    if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
+        [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
+    else
+        [ "$output" = "SLB: 0, True, mock_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
+    fi
     mock_singularity_test_bin_control=false  # all fail
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 7: $output" >&3
