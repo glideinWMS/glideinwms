@@ -1112,10 +1112,10 @@ singularity_test_bin() {
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
     # Side effects:
     #  bread_crumbs - documents the tests for debugging purposes
-    #     test:   -> test attempted, path not provided or singularity --version failed,
-    #     test:T  -> singularity --version succeeded, image for test not provided
-    #     test:TF -> singularity --version succeeded but image invocation failed
-    #     test:TT -> both singularity --version and image invocation succeeded
+    #     test:   -> test attempted, path not provided or 'singularity version' failed,
+    #     test:T  -> singularity version succeeded, image for test not provided
+    #     test:TF -> singularity version succeeded but image invocation failed
+    #     test:TT -> both singularity version and image invocation succeeded
     # Out:
     #  return 0 - all attempted tests succeeded, 1 - a test failed
     #  stdout "_$step\n_$sin_type\n_$sin_version\n_$bin_path\n_@$bread_crumbs" ("$bread_crumbs" if failing)
@@ -1142,7 +1142,7 @@ singularity_test_bin() {
         [[ "$step" = module || "$step" = PATH ]] && info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
         echo "$bread_crumbs"; false; return;
     fi
-    sin_version=$("$sin_path" --version 2>/dev/null)
+    sin_version=$("$sin_path" version 2>/dev/null)
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
     if [[ -z "$sin_image" ]]; then
         sin_type=unknown
