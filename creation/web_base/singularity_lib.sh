@@ -1118,7 +1118,7 @@ singularity_test_bin() {
     #     test:TT -> both singularity version and image invocation succeeded
     # Out:
     #  return 0 - all attempted tests succeeded, 1 - a test failed
-    #  stdout "_$step\n_$sin_type\n_$sin_version\n_$bin_path\n_@$bread_crumbs" ("$bread_crumbs" if failing)
+    #  stdout "_$step\n_$sin_type\n_$sin_version\n_$sin_path\n_@$bread_crumbs" ("$bread_crumbs" if failing)
 
     local step="${1%%,*}"
     local sin_path="${1#*,}"
@@ -1127,7 +1127,7 @@ singularity_test_bin() {
     local sin_image="$2"
     if [[ "$step" = module ]]; then
         local module_name=singularity
-	[[ -n "$sin_path" ]] && module_name=$sin_path
+        [[ -n "$sin_path" ]] && module_name=$sin_path
         module load "$module_name" >/dev/null 2>&1
         # message on error?
         sin_path=$(which singularity)
@@ -1137,13 +1137,15 @@ singularity_test_bin() {
         # find the full path
         sin_path=$(which singularity)
     fi
+    if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
+        info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
+        sin_path=$(command -v singularity)
+    fi    
     local bread_crumbs=" $step($sin_path):"
-    if [[ -z "$sin_path" ]]; then
-        [[ "$step" = module || "$step" = PATH ]] && info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
-        echo "$bread_crumbs"; false; return;
-    fi
     sin_version=$("$sin_path" version 2>/dev/null)
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
+    # more recent singularity versions add a "singularity version " prefix to the version number
+    sin_version=${sin_version#singularity version }
     if [[ -z "$sin_image" ]]; then
         sin_type=unknown
         bread_crumbs+="T"
@@ -1183,31 +1185,46 @@ singularity_locate_bin() {
     local s_image="$2"
     # bread_crumbs populated also in singularity_test_bin
     local bread_crumbs=""
-    local test_out
+    local s_test test_out
     HAS_SINGULARITY=False
     local osg_singularity_binary="${OSG_SINGULARITY_BINARY:-${OSG_SINGULARITY_BINARY_DEFAULT}}"
+    local singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE}"
 
-    if [[ -n "$s_location" ]]; then
+    if [[ -n "$singularity_binary_override" ]]; then
+        bread_crumbs+=" s_override_defined"
+        if [[ ! -x "$singularity_binary_override" ]]; then
+            info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary."
+            info "Will proceed with suggersted path and auto-discover"
+        else
+            # 1. Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
+            test_out=$(singularity_test_bin "s_override,${singularity_binary_override}" "$s_image") &&
+                HAS_SINGULARITY=True
+            bread_crumbs+="${test_out##*@}"
+        fi        
+    fi
+    if [[ "$HAS_SINGULARITY" != True && -n "$s_location" ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
-        [[ "$s_location" == OSG ]] && s_location="${osg_singularity_binary}"
+        s_step=s_bin
+        # TODO: OSG is looked first in the sequence below. Does this make sense?
+        [[ "$s_location" == OSG ]] && { s_location="${osg_singularity_binary%/singularity}"; s_step=s_bin_OSG; }
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
                 warn "SINGULARITY_BIN = NONE is no more a valid value, use GLIDEIN_SINGULARITY_REQUIRE to control the use of Singularity"
-            info "Suggested path '$1' (SINGULARITY_BIN?) is not a directory or does not contain singularity."
+            info "Suggested path (SINGULARITY_BIN?) '$1' ($s_location) is not a directory or does not contain singularity."
             info "Will try to proceed with auto-discover but this mis-configuration may cause errors later"
         else
-            # 1. Look first in the path suggested, separate from $PATH
-            test_out=$(singularity_test_bin "s_bin,${s_location}/singularity" "$s_image") &&
+            # 2. Look in the path suggested, separate from $PATH (key OSG -> OSG_SINGULARITY_BINARY)
+            test_out=$(singularity_test_bin "${s_step},${s_location}/singularity" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
-        # 2. Look in the default OSG location
-        # 3. Look in $PATH
-        # 4. Invoke module singularitypro
-        # 5. Invoke module singularity
+        # 3. Look in the default OSG location
+        # 4. Look in $PATH
+        # 5. Invoke module singularitypro
+        # 6. Invoke module singularity
         #    some sites requires us to do a module load first - not sure if we always want to do that
         for attempt in "OSG,${osg_singularity_binary}" "PATH,singularity" "module,singularitypro" "module,singularity"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
