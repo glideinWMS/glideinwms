@@ -81,7 +81,7 @@ Requires: httpd
 This subpackage includes the minimal configuration to start apache to
 serve the frontend files to the pilot.
 
-%packagae vofrontend-core
+%package vofrontend-core
 Summary: The intelligence logic for GWMS.
 Requires: condor >= 8.4.0
 Requires: python-rrdtool
@@ -1334,4 +1334,3 @@ rm -rf $RPM_BUILD_ROOT
   configuration variables.
 - Removed the rm's to delete the frontend-temp and log directories at uninstall,
   they removed files when updating, not wanted.  Let RPM handle those.
-
