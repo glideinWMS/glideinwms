@@ -98,7 +98,7 @@ Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
 %description vofrontend-core
-This subpackage includes all the phyton scripts need to run a
+This subpackage includes all the python scripts need to run a
 frontend.
 
 %package vofrontend-standalone
