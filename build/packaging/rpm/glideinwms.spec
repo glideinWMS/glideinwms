@@ -72,7 +72,7 @@ access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein Based
 WMS (Workload Management System) that works on top of Condor.
 For those familiar with the Condor system, it is used for
 scheduling and job control. This package is for a one-node
-vofrontend install (userschedd, submit, vofrontend).
+vofrontend install (userschedd, usercollector, vofrontend).
 
 %package vofrontend-httpd
 Summary:  The Apache http configuration for GWMS frontend.
@@ -101,7 +101,6 @@ Requires(post): /sbin/chkconfig
 This subpackage includes all the phyton scripts need to run a
 frontend.
 
-
 %package vofrontend-standalone
 Summary:        The VOFrontend for glideinWMS submission host
 Requires: glideinwms-vofrontend-httpd =%{version}-%{release}
@@ -113,7 +112,6 @@ Based WMS (Workload Management System) that works on top of
 Condor. For those familiar with the Condor system, it is used
 for scheduling and job control.
 This package is for a standalone vofrontend install
-
 
 %package usercollector
 Summary:        The VOFrontend glideinWMS collector host
