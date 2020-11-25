@@ -247,14 +247,12 @@ class TestGlideinFrontendElement(unittest.TestCase):
     @unittest.skip('for now')
     def test_populate_condorq_dict_types(self):
         self.gfe.condorq_dict = {
-            'Idle_3600': {
-                'abs': 0, 'dict': {}}, 'IdleAll': {
-                'abs': 0, 'dict': {}}, 'Running': {
-                'abs': 0, 'dict': {}}, 'ProxyIdle': {
-                    'abs': 0, 'dict': {}}, 'Idle': {
-                        'abs': 0, 'dict': {}}, 'OldIdle': {
-                            'abs': 0, 'dict': {}}, 'VomsIdle': {
-                                'abs': 0, 'dict': {}}}
+            'Idle_3600': {'abs': 0, 'dict': {}}, 
+            'IdleAll': {'abs': 0, 'dict': {}},
+            'Running': {'abs': 0, 'dict': {}},
+            'Idle': {'abs': 0, 'dict': {}},
+            'OldIdle': {'abs': 0, 'dict': {}},
+            'VomsIdle': {'abs': 0, 'dict': {}}}
         self.gfe.blacklist_schedds = []
         self.gfe.populate_condorq_dict_types()
 

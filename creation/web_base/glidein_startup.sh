@@ -20,11 +20,12 @@ GWMS_SUBDIR=".gwms.d"
 export LANG=C
 
 # General options
+GWMS_MULTIUSER_GLIDEIN=
 # Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
 # This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
 # Comment the following line if GlExec or similar will not be used
-GWMS_MULTIUSER_GLIDEIN=true
+#GWMS_MULTIUSER_GLIDEIN=true
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 
@@ -1077,8 +1078,10 @@ fi
 
 # mktemp makes it user readable by definition (ignores umask)
 # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
-if ! chmod a+rx "${work_dir}"; then
-    early_glidein_failure "Failed chmod '${work_dir}'"
+if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
+    if ! chmod a+rx "${work_dir}"; then
+        early_glidein_failure "Failed chmod '${work_dir}'"
+    fi
 fi
 
 def_glide_local_tmp_dir="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"

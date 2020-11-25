@@ -220,7 +220,7 @@ case "${gwms_singularity_status}" in
         exit 0
         ;;
     NEVER)
-        # If Group use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use and GLIDEIN_SINGULARITY_REQUIRE
+        # If Group use default_singularity_wrapper.sh with GLIDEIN_SINGULARITY_REQUIRE
         # resulting in NEVER, we need to set    advertise HAS_SINGULARITY "False" "C"
         no_use_singularity_config
         ;;

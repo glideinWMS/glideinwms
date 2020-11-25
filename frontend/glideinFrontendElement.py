@@ -455,13 +455,12 @@ class glideinFrontendElement:
              'Idle_3600':condorq_dict_types['Idle_3600']['abs'],
              'Running':condorq_dict_types['Running']['abs']})
 
-        logSupport.log.info("Jobs found total %i idle %i (good %i, old(10min %i, 60min %i),  grid %i, voms %i) running %i" %\
+        logSupport.log.info("Jobs found total %i idle %i (good %i, old(10min %i, 60min %i), voms %i) running %i" %\
                    (condorq_dict_abs,
                    condorq_dict_types['IdleAll']['abs'],
                    condorq_dict_types['Idle']['abs'],
                    condorq_dict_types['OldIdle']['abs'],
                    condorq_dict_types['Idle_3600']['abs'],
-                   condorq_dict_types['ProxyIdle']['abs'],
                    condorq_dict_types['VomsIdle']['abs'],
                    condorq_dict_types['Running']['abs']))
         self.populate_status_dict_types()
@@ -614,13 +613,13 @@ class glideinFrontendElement:
             # If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
-            if (self.glexec != 'NEVER'):
-                if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
-                        prop_jobs['Idle']=prop_jobs['VomsIdle']
-                        logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE'), True):
-                        prop_jobs['Idle']=prop_jobs['ProxyIdle']
-                        logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
+            # TODO: GlExec is gone (assuming same as NEVER), what is the meaning of GLIDEIN_REQUIRE_VOMS, 
+            #  VomsIdle, are they still needed?
+            #  The following lines should go and maybe all GLIDEIN_REQUIRE_VOMS 
+            #if (self.glexec != 'NEVER'):
+            #    if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
+            #            prop_jobs['Idle']=prop_jobs['VomsIdle']
+            #            logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
 
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
@@ -1010,7 +1009,6 @@ class glideinFrontendElement:
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_idle_600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
         condorq_dict_idle_3600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 3600)
-        condorq_dict_proxy = glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
         condorq_dict_voms = glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
 
         # then report how many we really had
@@ -1039,10 +1037,7 @@ class glideinFrontendElement:
             },
             'VomsIdle': {
                 'dict':condorq_dict_voms,
-                'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-            'ProxyIdle': {
-                'dict':condorq_dict_proxy,
-                'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)
             },
             'Running': {
                 'dict':self.condorq_dict_running,
@@ -1946,12 +1941,6 @@ class glideinFrontendElement:
             self.count_status_multi.update(tmp_count_status_multi)
             tmp_count_status_multi_per_cred = pipe_out[('Glidein', i)][1]
             self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
-
-        self.glexec='UNDEFINED'
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
-            self.glexec=self.elementDescript.frontend_data['GLIDEIN_Glexec_Use']
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.merged_data:
-            self.glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
 
     def subprocess_count_dt(self, dt):

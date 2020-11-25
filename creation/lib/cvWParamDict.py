@@ -301,9 +301,6 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                 self.sub_name, sub_params)
         populate_common_descript(self.dicts['group_descript'], sub_params)
 
-        # Apply group specific glexec policy
-        apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
-
         # Apply group specific singularity policy
         validate_singularity(self.dicts, sub_params, params, self.sub_name)
         apply_group_singularity_policy(self.dicts['group_descript'], sub_params, params)
@@ -563,51 +560,11 @@ def populate_group_descript(work_dir, group_descript_dict,        # will be modi
     group_descript_dict.add('RemovalWait', sub_params.config.glideins_removal.wait)
     group_descript_dict.add('RemovalRequestsTracking', sub_params.config.glideins_removal.requests_tracking)
     group_descript_dict.add('RemovalMargin', sub_params.config.glideins_removal.margin)
-    if ('GLIDEIN_Glexec_Use' in sub_params.attrs):
-        group_descript_dict.add('GLIDEIN_Glexec_Use', sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
 # Populate values common to frontend and group dicts
 MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
-
-
-def apply_group_glexec_policy(descript_dict, sub_params, params):
-
-    glidein_glexec_use = None
-    query_expr = descript_dict['FactoryQueryExpr']
-    match_expr = descript_dict['MatchExpr']
-    ma_arr = []
-    match_attrs = None
-
-    # Consider GLIDEIN_Glexec_Use from Group level, else global
-    if 'GLIDEIN_Glexec_Use' in sub_params.attrs:
-        glidein_glexec_use = sub_params.attrs['GLIDEIN_Glexec_Use']['value']
-    elif 'GLIDEIN_Glexec_Use' in params.attrs:
-        glidein_glexec_use = params.attrs['GLIDEIN_Glexec_Use']['value']
-
-    if (glidein_glexec_use):
-        descript_dict.add('GLIDEIN_Glexec_Use', glidein_glexec_use)
-
-        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
-        # REQUIRED: Entries with GLEXEC_BIN set
-        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
-        # NEVER   : Consider entries that do not want glidein to use GLEXEC
-        if (glidein_glexec_use == 'REQUIRED'):
-            query_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % query_expr
-            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
-            ma_arr.append(('GLEXEC_BIN', 's'))
-        elif (glidein_glexec_use == 'NEVER'):
-            # Not using glideinwms.lib.util.safe_boolcomp since this goes inside the match expression
-            match_expr = '(%s) and (str(glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False)).lower() == "false")' % match_expr
-
-        if ma_arr:
-            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
-            descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
-                              allow_overwrite=True)
-
-        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
-        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
 
 def apply_group_singularity_policy(descript_dict, sub_params, params):
