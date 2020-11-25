@@ -154,7 +154,6 @@ Click on any piece for a more detailed description.
         <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1" /&gt;</a><br/>
         <a href="#attr_client_start">&lt;attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
-        <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
@@ -553,19 +552,6 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         This determines whether or not you want to use match
         authentication. You specify the match expression in a
         group section of the config file.</P></li>
-        <LI><P>
-        <a name="attr_glexec" />
-            <div class="xml">
-            &lt;attr name=&quot;GLIDEIN_Glexec_Use&quot; &gt;
-            </div>
-        This determines whether or not you want to mandate
-        the use of GLEXEC. Possible values are
-            NEVER (do not use GLEXEC) or
-            OPTIONAL (use GLEXEC if the site is configured with it)
-            or REQUIRED (Always use GLEXEC).
-        Mandating the use of GLEXEC also enforces the
-        Factory to submit jobs to sites that have GLEXEC configured.
-        </P></li>
         <LI><P>
         <a name="attr_singularity" />
             <div class="xml">

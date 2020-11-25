@@ -139,7 +139,6 @@ for a more detailed description.
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="GCB_ORDER" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="NONE" /&gt;</a><br/>
-        <a href="#attrs">&lt;attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="False" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_MATCH_AUTH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
     </blockquote>
@@ -179,7 +178,6 @@ for a more detailed description.
             <blockquote>
                 <a href="#entry_attrs">&lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
-                <a href="#entry_attrs">&lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="FNAL_EXAMPLE_SITE"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="1"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr /&gt;</a><br/>
@@ -1089,7 +1087,7 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
               &lt;/max_jobs&gt;<br>
               &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
               &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
-              &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;<br>
+              &lt;restrictions require_voms_proxy="False"/&gt;<br>
               &lt;entry_selection algorithm_name="Default" &gt;<br>
               &lt;submit cluster_size="10" max_per_cycle="25" sleep="2" slots_layout="partitionable"&gt;<br>
                  <blockquote>
@@ -1107,7 +1105,6 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
                   publish="True" type="string" value="default"/&gt;<br>
               &lt;attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True"<br>
                   publish="True" type="string" value="default"/&gt;<br>
-              &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;<br>
               &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="UCSD"/&gt;<br>
               &lt;attr name="GLIDEIN_Supported_VOs" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CMS,ATLAS,Fermilab,LIGO,NWICG,HCCLONG"/&gt;<br>
               &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
@@ -1145,9 +1142,8 @@ The &lt;entry_selection&gt; parameter determines how the factory decides between
             &lt;/max_jobs&gt;<br>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br>
-            &lt;restrictions require_glidein_glexec_use="False"<br>
+            &lt;restrictions require_voms_proxy="False"/&gt;<br>
             &lt;entry_selection algorithm_name="Default" &gt;<br>
-require_voms_proxy="False"/&gt;<br>
             &lt;submit cluster_size="10" max_per_cycle="10" sleep="2"<br>
 slots_layout="fixed"&gt;<br>
                <blockquote>
@@ -1161,8 +1157,6 @@ slots_layout="fixed"&gt;<br>
          &lt;/allow_frontends&gt;<br>
          &lt;attrs&gt;<br>
             <blockquote>
-            &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True"<br>
-            &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="glite"/&gt;<br>
             &lt;attr name="GLIDEIN_CMSSite" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="T2_CH_CERN"/&gt;<br>
             &lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="False" job_publish="True" parameter="True" publish="True" type="string" value="8"/&gt;<br>
             &lt;attr name="GLIDEIN_Country" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="CH"/&gt;<br>
@@ -1389,140 +1383,15 @@ Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if 
 </UL>
 
 <div class="section">
-<H3 CLASS="western"><A NAME="glexec"></A>Integration with gLExec</H3>
+<H3 CLASS="western"><A NAME="glexec"></A>GlExec</H3>
 
-<P>As you may have noticed, all of the glideins are submitted with
-the same service proxy. While this has the advantage of simplifying
-the architecture and improve both efficiency and VO control, it does
-have a few problems:</P>
-<UL>
-    <LI><P STYLE="margin-bottom: 0in">All glidein scripts and HTCondor
-    daemons, AND user jobs all run under the same Unix UID. So users can
-    interfere with the glidein tasks, possibly hacking the
-    system.&nbsp;<BR>Plus, when several glideins start on the same node
-    (on multi processor/core machines), one user job can interfere with
-    another user job.
-    </P>
-    <LI><P>The real user is never authenticated against the Grid site
-    authorization infrastructure. This makes it impossible for the sites
-    to enforce their policies, nor can they analyze the usage of their
-    resources; they see only glideins. This makes them very unfriendly
-    toward the glidein based WMS.
-    </P>
-</UL>
-<P>To solve this problem, some Grid sites are deploying gLExec on the
-worker nodes. gLExec is a service that will take the following:</P>
-<UL>
-    <LI>the user proxy, and </li>
-
-    <LI>the desired command </li>
-</UL>
-    <p>
-    It will contact the local authorization and mapping system, switch to
-    the UID of the user (as opposed to the glidein UID), and execute
-    the provided command as that UID. </p>
-    <p>By using gLExec, a Glidein
-    Factory can get rid of both of the above problems, and still keep
-    all the advantages.</p>
-    <p>To enable gLExec support, you need to
-    specify:
-    </p>
-    <div class="xml">
-    &lt;glidein&gt;<BR/>
-
-    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
-    &nbsp;&lt;files&gt;<BR/>
-    &nbsp;&nbsp;&lt;file absfname=&quot;web_base/glexec_setup.sh>&quot;
-    executable=&quot;True&quot;/&gt;<BR/>
-
-    &nbsp;&lt;/files&gt;<BR/>
-    &nbsp;&lt;attrs&gt;<BR/>
-    &nbsp;&lt;attr name=&quot;GLEXEC_BIN&quot;
-    value=&quot;<I>path to glexec</I>&quot; publish=&quot;False&quot;
-
-    parameter=&quot;True&quot;/&gt;
-    </div>
-    <p>
-    For most current gLExec installation this comes down to:
-    </p>
-    <div class="xml">
-    &lt;attr name=&quot;GLEXEC_BIN&quot;
-
-    value=&quot;OSG&quot;
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-    </div>
-    <P>
-
-    More details about scripts in general can be found in the
-    <A HREF="#custom_code">&quot;custom code&quot;</A> section.
-    </P>
-    <p>You will also need to properly
-    configure the <B>shadow config files on the submit machine</B>, by
-    adding the following to the condor_config: </p>
-    <blockquote>
-    GLEXEC_STARTER = True<BR/>
-    GLEXEC = /bin/false
-    </blockquote>
-
-<P>Just some history information to understand about glexec:
-In the old gLExec operation mode, condor_startd invoked
-condor_starter through gLExec. The result was that ciondor_starter was
-running under the same UID as the user job, leaving it vulnerable to
-attack from a malicious user. The new operating mode solves this by
-having condor_starter run the user jobs via glexec; this adds a
-little more overhead to handle the user jobs, but makes the system
-much more secure.</P>
-<p>
-    To enable the new operation mode,
-    add the following line to your configuration file:
-</p>
-    <div class="xml">
-    &lt;attr name=&quot;GLEXEC_JOB&quot;
-    value=&quot;True&quot;
-
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-    </div>
-<P>
-Note that you still need to set <tt><B>GLEXEC_BIN</B></tt>,
-too.</p>
-<H4 CLASS="western"><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
-<p>
-    gLExec installations on at least
-    one site had problems with delegated proxies. If in doubt, try to
-    disable the delegation.
-</p>
-<p>
-    To disable delegation, add the following
-    to <B>the shadow configuration </B>file:
-</p>
-    <blockquote>
-    DELEGATE_JOB_GSI_CREDENTIALS=False<BR/>
-
-    SEC_DEFAULT_ENCRYPTION=PREFERRED
-    </blockquote>
-<p>
-    Then, set the following tags in the glidein creation file:
-    <div class="xml">
-    &lt;glidein&gt;<BR/>
-    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
-    &nbsp; &lt;attrs&gt;
-
-    &nbsp;&nbsp;&nbsp;&lt;attr
-    name=&quot;SEC_DEFAULT_ENCRYPTION&quot;
-    value=&quot;REQUIRED&quot;
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-
-    </div>
-    <p>Another thing to consider is the startup directory; it must be
-    accessible by both: the starting user and the target user(s). The
-    directory you usually start in the Grid is most often not readable
-    by any other user, so you must select something else.
-    Both <tt>HTCondor</tt>
-    and <tt>OSG</tt> should be fine, or you can
-    specify any other fixed, WN-local location.
+<P>All of the glideins in a Frontend group are submitted with the same service proxy.
+  gLExec is a tool, now unsupported, that was used before containers to 
+  achieve security (sandboxing) and isolation between different jobs in the same 
+  Glidein. It used a service with sudo privileges to switch the jobs to
+  different Unix users dpending on the identity in a x509/VOMS Proxy.
+  To obtain the same results look into Singularity.
+  This section is kept for historical reasons.
     </p>
 </div>
 
@@ -1835,14 +1704,6 @@ publish="False"
 type="string"
 <font color="blue"><b>value="<i>Condor_Version</i>"</b></font>/&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;
-    &lt;attr name="GLEXEC_JOB" const="True"
-parameter="True"
-glidein_publish="False"
-job_publish="False"
-publish="False"
-type="string"
-value="True"/&gt;<br/>
-&nbsp;&nbsp
     &lt;/attrs&gt;<br/>
         </blockquote>
                 The CONDOR_OS and the CONDOR_ARCH should match the <tt>os</tt> and <tt>arch</tt> defined in the tarball tag.  If set to "auto", the glidein will decide the appropriate tarball to use for that worker node.
