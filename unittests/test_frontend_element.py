@@ -330,7 +330,7 @@ class FEElementTestCase(unittest.TestCase):
 
         # run through the info log
         # if GLIDEIN_REQUIRE_VOMS was set to True, 'True', 'tRUE' etc for an entry:
-        #    'Voms Proxy Required,' will appear in previous line of log
+        #    'Voms Proxy Required,' will appear in previous line of log (if GlExec is used)
         idx = 0
         for lgln in LOG_INFO_DATA:
             parts = lgln.split()
@@ -356,12 +356,13 @@ class FEElementTestCase(unittest.TestCase):
                         upordown == 'Up', "%s logs this as %s" %
                         (gid, upordown))
 
-                if use_voms:
-                    self.assertTrue(
-                        'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
-                else:
-                    self.assertFalse(
-                        'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
+                # GLIDEIN_REQUIRE_VOMS checks were done only when GlExec was enabled
+                # if use_voms:
+                #     self.assertTrue(
+                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
+                # else:
+                #     self.assertFalse(
+                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
 
             idx += 1
 
