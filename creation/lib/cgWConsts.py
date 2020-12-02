@@ -52,7 +52,8 @@ WEB_BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "
 STARTUP_FILE_PAYLOAD = ("add_config_line.source",
                         "get_id_selectors.source",
                         "logging_utils.source",
-                        "b64uuencode.source"
+                        "b64uuencode.source",
+                        "glidein_paths.source"
                         )
 
 
