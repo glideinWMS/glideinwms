@@ -685,7 +685,11 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     for these totals to occur so it would be difficult to reflect the true state of the system.
 
     Args:
-        remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin
+        remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin, frontend_req_min_idle
+            The frontend_req_min_idle item of the tuple indicates the original frontend pressure. We use this 
+            instead of req_min_idle for the IDLE pilot removal because the factory could set req_min_idle to 0
+            if an entry is in downtime, or the factory limits are reached. We do not want to remove idle pilots in
+            these cases!
         glidein_totals:
         condorQ:
         req_min_idle: min_idle requested by the Frontend
