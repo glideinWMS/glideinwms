@@ -962,7 +962,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
-
         <TD> Int </TD>
         <TD>
             <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
@@ -973,7 +972,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
@@ -985,11 +983,21 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
                 followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLEANUP_SCRIPT</b> </td>
+        <TD> String </TD>
+        <TD>
+            <P>Used to run a custom file at cleanup time (right before quitting the Glidein) 
+              instead of the default setup time. The custom file must be specified in the file list as usual.
+              The value is the file name, as specified in the file list. 
                 NOTE: parameter and job_publish should be both True for this attribute.
             <b>Must be a parameter.</b></P>
         </TD>
@@ -1604,6 +1612,17 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
     "$singularity_image" "${@}"
 </pre>
+  <p>The singularity binary (see singularity_lib.sh/singularity_locate_bin) is the first binary passing the test, 
+    looking in order in:
+  <ol>
+    <li>If defined (in environment, Frontend or Factory): Try first the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)</li>
+    <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN (keyword OSG -> OSG_SINGULARITY_BINARY)</li>
+    <li>Try the default OSG location (OSG_SINGULARITY_BINARY)</li>
+    <li>Try the singularity binary in PATH</li>
+    <li>Try the singularity binary in PATH after invoking module singularitypro</li>
+    <li>Try the singularity binary in PATH after invoking module singularity</li>
+  </ol>
+  </p>
 
 <TABLE class="attributes">
     <TR class="head">
@@ -1659,6 +1678,21 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
             See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
             a table of how Singularity is calculated using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>[GWMS_]SINGULARITY_MODE</b></td>
+        <td> String (Enum) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is calculated if a valid singularity binary is found.
+            Possible values are (see the Singularity documentation for the meaning of privileged/unprivileged):
+    privileged,
+    unprivileged,
+    fakeroot (unprivileged mode with user mapped internally to uid 0).
+          A string &quot;singularity/GWMS_SINGULARITY_MODE&quot; is also added to GLIDEIN_PROVIDES.
+          There are other dynamic variables set when Singularity is found: [GWMS_]SINGULARITY_PATH, [GWMS_]SINGULARITY_VERSION.
             </P>
         </td>
     </TR>
@@ -1765,6 +1799,15 @@ or by running a pre_singularity setup script.
         <td></td>
         <td>Frontend Factory</td>
         <td><P>Extra options that will be added to the singularity invocation
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_SINGULARITY_BINARY_OVERRIDE</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Env Frontend Factory</td>
+        <td><P>Path singularity binary. If providedn, this is the first path searched by the Glidein.
             </P>
         </td>
     </TR>

@@ -70,9 +70,6 @@
 <li> <a href="#process">Installation Process</a></li>
 <li> <a href="#configurations">Possible Configurations</a></li>
 <li> <a href="#osg">Using the OSG Factory</a></li>
-<li> <a href="#configuration_based">Configuration-based Installer</a></li>
-<li> <a href="#ini_file">GlideinWMS ini file</a></li>
-<li> <a href="#manage_script">manage_glidens script</a></li>
 <li> <a href="#documents">Additional documents</a></li>
 </ol>
 </div>
@@ -98,7 +95,7 @@ Install documents:
 	<p>These RPMs install a default version of the system but with the option to manually edit settings for more complicated configurations. Check the
 	   <a href="factory/configuration.html">Factory configuration</a> and 
 	   <a href="frontend/configuration.html">Frontend configuration</a> for a more detailed reference about the configuration.</p>
-	<p><b>TAR Files distribution is no longer supported.</b></p>
+	<p><b>TAR Files distribution is no longer supported.</b> So for installation instructions see the RPM documents listed above amd hosted by OSG.</p>
 </div>
 
 <div class="section">
@@ -120,10 +117,10 @@ Install documents:
     </p> 
     <p><b>Two Server configuration</b> (recommended minimum):
 	<ul>
-	  <li><a href="factory/install.html">The GlideinWMS Pool and colocated
+	  <li><a href="factory/">The GlideinWMS Pool and colocated
 	    glidein Factory node</a> </li>
 	
-	  <li>A node containing the <a href="frontend/install.html">Glidein Frontend</a>,
+	  <li>A node containing the <a href="frontend/">Glidein Frontend</a>,
 	    the <a href="components/user_pool.html">glidein User Pool</a> together with the <a href="components/user_schedd.html">scheduler for user submissions</a>
 	  </li>
 	</ul>
@@ -131,10 +128,10 @@ Install documents:
 
 	<p><b>Three Server configuration</b> (recommended for 1000+ glideins)
 	<ul>
-	  <li><a href="factory/install.html">The glidein WMS Pool and colocated
+	  <li><a href="factory/">The glidein WMS Pool and colocated
 	    glidein Factory node</a> </li>
 	  <li>A node containing the <a href="components/user_pool.html">glidein User Pool</a> together with the 
-            <a href="frontend/install.html">glidein Frontend</a> </li>
+            <a href="frontend/">glidein Frontend</a> </li>
 	  <li>A node containing the <a href="components/user_schedd.html">scheduler for user
 	    submissions</a> </li>
 	</ul>
@@ -142,9 +139,9 @@ Install documents:
 
 	<p><b>One Server configuration</b> (Use only for test installs)
 	<ul>
-	  <li><a href="factory/install.html">The GlideinWMS Pool and colocated
+	  <li><a href="factory/">The GlideinWMS Pool and colocated
 	    glidein Factory node</a>, with the collector of the WMS Pool running on port 8618.
-	    <a href="frontend/install.html">Glidein Frontend</a>,
+	    <a href="frontend/">Glidein Frontend</a>,
 	    the <a href="components/user_pool.html">glidein User Pool</a> 
 	    (collector running on default port 9618) together with the <a href="components/user_schedd.html">scheduler for user submissions</a>.
 	    With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
@@ -159,7 +156,7 @@ Install documents:
 	    <ul>
 	    <li><a href="components/user_pool.html">glidein User Pool</a></li> 
 	    <li><a href="components/user_schedd.html">scheduler for user submissions</a></li> 
-	    <li><a href="frontend/install.html">Glidein Frontend</a></li>
+	    <li><a href="frontend/">Glidein Frontend</a></li>
 	    </ul>
 	</p>
 	<p>
@@ -176,156 +173,12 @@ Install documents:
 
 </div>
 
-<div class="section">
-	<a name="ini_file" />
-	<h3>GlideinWMS ini configuration file</h3>
-	<p>
-	The ini file determines the installation and configuration of the various services.  All ini file attributes are 
-	required. However, in several cases the value may be left empty.  See the service-specific documentation for the details for each 
-	attribute. 
-	</p>
-	<p><b>
-	The configuration based installer <b>requires</b> that the same ini file be used
-	for all service installations.  There are several areas where data is required
-	from other services.  Since most services can be installed on separate hosts, the installer can only validate 
-	data for the node being installed.
-	</p></b>
-	
-	<h4>Default Section</h4>
-	<p>
-	The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically 
-	in that section.  So, if the location/value of any option varies from host to host, you will need to 
-	override them in that section of the ini file. 
-        <!--The only options in the <i>glideinWMS.ini</i> template will be the pacman 
-	options in the next section.-->
-	</p>
-	<h4>Pacman options</h4>
-	<p>
-	The 2 pacman related attributes are in the Default section and were used to download and install 
-        the OSG/VDT client software and CA certificates with Pacman.
-        This is obsolete, please:
-	<ul>
-	<li>leave these options empty: these are still required but should contain no value.</li>
-	<li>set the vdt_location option if you  <a href="components/prerequisites.html#system_vdt">install OSG Client</a>
-using the tarball distribution. Set itempty if you  <a href="components/prerequisites.html#system_vdt">install OSG Client</a> 
-using the RPM (system install).</li>
-	<li>the install_vdt_client attribute should be set to 'n'.</li>
-	</ul>
-If OSG Client and the CA certificates are not already installed on the node see the <a href="components/prerequisites.html#system_vdt">
-        prerequisites section for instructions to install them</a>.
-	</p>
-	<h4>Service options</h4>
-    <p>The GlideinWMS system provides five different services, each one with a section in the ini file: 
-WMSCollector, Factory, VOFrontend, UserCollector, Submit (host). All service attributes are described 
-in their respective install pages.  Each page, e.g. the <a href="frontend/install.html">VO Frontend installation page</a> 
-describes what is required for installing and validating that service.  
-</p>
-    <p><a href="components/configuration_install.html">Here</a> you can find some example configuration files.
-	</p>
-</div>
-
-
-<div class="section">
-<a name="manage_script" />
-<h3>The manage-glideins script </h3>
-<p>
-This script is used to install and manage the GlideinWMS services.  It is located in <i>glideinWMS/install/manage-glideins</i> and can be invoked in different ways.  
-</p>
-<pre>./manage-glideins --ACTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</pre>
-
-<p>
-This invocation can be used to install, start, stop or check the status of
-the glidein services based on the configuration in the specified ini file.
-</p> 
-<p><b>ACTION</b> can be one of:
-<ul>
-<li> <b>validate</b>: Allows you to validate the ini file prior to installation</li>
-<li> <b>install</b>: Install the service</li>
-<li> <b>configure</b>: This allows  you to reconfigure your service based on changes to the ini file without re-installing HTCondor.<br/>
-     For services using HTCondor, it will update the config.d local config files,<br/> 
-     For the Factory and VO Frontend, it will update the respective xml config files.</li>
-<li> <b>start</b>: Starts the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
-<li> <b>stop</b>: Stops the service.  Remote stopping of services is possible if remote access (via ssh) is allowed.</li>
-<li> <b>status</b>: Returns the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
-</ul>
-</p>
-<p><b>SERVICE</b> can be one of:
-<ul>
-<li> wmscollector</li>
-<li> usercollector</li>
-<li> Factory</li>
-<li> submit</li>
-<li> vofrontend</li>
-<li> rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</li>
-<li> all: can only be used with start/stop/status actions</li>
-</ul>
-</p>
-<p><b>--ssh</b>: Allows the start/stop/status actions to be performed 
-remotely providing the user has valid access to the other service's node via 
-'ssh -l' using the service's username.  The '--ssh' option will use the ini file
-specified username attribute unless an optional 'user' is specified.
-</p>
-<p><b>--debug</b>: When used with start/stop/status actions, it will
-display the series of commands used.
-</p>
-
-<br/>
-<p>
-<pre>./manage-glideins --install-node --ini INIFILE</pre>
-This invocation allows you to install all services configured for the node where you are running
-the script. There are some limitation to this.
-</p>
-
-<br/>
-<p>
-<pre>./manage-glideins --create-entries --ini INIFILE</pre>
-This invocation can be used to select new glidein entry points after the
-initial installation of a Factory service. It will walk you through the same
-question and answer process querying ReSS and allowing for manual entries.
-It will then create a file containing the entry elements for the elements you selected. 
-This can then be merged with the existing Factory configuration file
-and a reconfiguration performed to update those elements. 
-</p>
-
-<br/>
-<p>
-<pre>./manage-glideins --create-group --ini INIFILE</pre>
-This invocation can be used to select new group selection criteria after the
-initial installation of a Frontend service. It will walk you through the same
-question and answer process as during the installation.
-It will then create a file containing the group element for the criteria selected.
-This can then be merged with the existing Frontend configuration file
-and a reconfiguration performed.
-</p>
-
-<br/>
-<p>
-<pre>./manage-glideins --show-ini INIFILE</pre>
-This invocation allows you to view the ini file options/values. It substitutes the variables and 
-is especially useful when the DEFAULT section is used to apply values to all sections/services.
-</p>
-
-<br/>
-<p>
-<pre>./manage-glideins --create-template SERVICE</pre>
-This invocation allows you to create an ini file template for installing a single 
-service.  It contains all the required attributes for that service.  It should
-be understood that many of the cross-validations that would normally insure a
-working installation are bypassed since those validations are normally 
-performed on the node for those services.
-</p>
-</div>
-
 
 <div class="section">
 <a name="documents" />
 
 <h3>Additional Documents:</h3>
 <ul>
-  <li><a href="components/prerequisites.html">Component Installation</a>: Installation tips for other software needed by the GlideinWMS, 
-    such as HTTP, OSG Client, JavascriptRRD, etc.
-    <b>NOTE:</b> If you install using the RPMs, the process will take care of the dependencies.
-  </li>
   <li>
     <a href="components/gsi.html">Quick Reference Guide to GSI Authentication Setup in GlideinWMS</a>:
     for information on how to configure the GSI security, and additional GSI configuration.
