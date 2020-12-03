@@ -23,8 +23,7 @@ except ImportError as err:
         pass
 
 try:
-#    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal
-    from OSG_autoconf import create_missing_file_internal
+    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal
 except ImportError as err:
     raise TestImportError(str(err))
 
