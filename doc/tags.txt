@@ -1,3 +1,11 @@
+v3_7_2
+    Drop GLExec support
+    Mechanism for running custom scripts at the end of glidein execution
+    OSG_autoconf: protection added to prevent failures when CE dissapears from OSG Collector
+    Bug fix: frontend over-enthusiastic generating tokens for entries
+    Bug fix: do not remove glideins when idle limit is hit
+    
+    
 v3_7_1
 	Includes all features and fixes of 3.6.5
 	Configuration changes to make more compatible with HTCondor 8.9  on initial install
