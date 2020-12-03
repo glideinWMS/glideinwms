@@ -124,15 +124,19 @@ if [ -z "$condor_arch" ]; then
     condor_arch="default"
 fi
 
-if [ "$condor_arch" == "auto" ]; then
+if [[ "$condor_arch" == "auto" ]]; then
     condor_arch=$(uname -m)
-    if [ "$condor_arch" == "x86_64" ]; then
-    condor_arch="x86_64,x86"
+    if [[ "$condor_arch" == "x86_64" ]]; then
+        condor_arch="x86_64,x86"
     elif [[ "$condor_arch" == "i386" || "$condor_arch" == "i486" || "$condor_arch" == "i586" || "$condor_arch" == "i686" ]]; then
-    condor_arch="x86"
+        condor_arch="x86"
+    elif [[ "$condor_arch" == "ppc64le" ]]; then
+        condor_arch="ppc64le"
+    elif [[ "$condor_arch" == "ppc64" ]]; then
+        condor_arch="ppc64"
     else
-        #echo "Not a x86 compatible system. Autodetect not supported"  1>&2
-        STR="Not a x86 compatible system. Autodetect not supported"
+        #echo "Not a x86 or PPC compatible system. Autodetect not supported"  1>&2
+        STR="Not a x86 or PPC compatible system. Autodetect not supported"
         "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "SupportAutodetect" "False" "ArchType" "Unknown"
         exit 1
     fi
