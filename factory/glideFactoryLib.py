@@ -685,7 +685,11 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     for these totals to occur so it would be difficult to reflect the true state of the system.
 
     Args:
-        remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin
+        remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin, frontend_req_min_idle
+            The frontend_req_min_idle item of the tuple indicates the original frontend pressure. We use this 
+            instead of req_min_idle for the IDLE pilot removal because the factory could set req_min_idle to 0
+            if an entry is in downtime, or the factory limits are reached. We do not want to remove idle pilots in
+            these cases!
         glidein_totals:
         condorQ:
         req_min_idle: min_idle requested by the Frontend
@@ -698,7 +702,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
     TODO:V could return the number of glideins removed
     """
 
-    remove_excess_str, remove_excess_margin = remove_excess_tp
+    remove_excess_str, remove_excess_margin, frontend_req_min_idle  = remove_excess_tp
 
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
@@ -725,12 +729,12 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
         if remove_excess_str != 'NO':
             log.info("Unknown RemoveExcess provided in the request '%s', assuming 'NO'" % remove_excess_str)
 
-    if (((remove_excess_wait or remove_excess_idle) and (sec_class_idle > req_min_idle + remove_excess_margin)) or
+    if (((remove_excess_wait or remove_excess_idle) and (sec_class_idle > frontend_req_min_idle + remove_excess_margin)) or
         ((remove_excess_running) and (sec_class_running + sec_class_idle > req_max_glideins + remove_excess_margin))):
         # too many glideins, remove
-        remove_nr = sec_class_idle - req_min_idle - remove_excess_margin
+        remove_nr = sec_class_idle - frontend_req_min_idle - remove_excess_margin
         if (remove_excess_running and sec_class_running + sec_class_idle > req_max_glideins + remove_excess_margin and
-                sec_class_running + req_min_idle > req_max_glideins):
+                sec_class_running + frontend_req_min_idle > req_max_glideins):
             # sec_class_running + sec_class_idle - req_max_glideins - remove_excess_margin > remove_nr
             # too many running and running excess is bigger
             # if we are past max_run, then min_idle does not make sense to start with
@@ -743,7 +747,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
             if len(idle_list) > remove_nr:
                 idle_list = idle_list[:remove_nr]  # shorten
 
-            stat_str = "min_idle=%i, margin=%i, idle=%i, unsubmitted=%i" % (req_min_idle, remove_excess_margin,
+            stat_str = "frontend_min_idle=%i, margin=%i, idle=%i, unsubmitted=%i" % (frontend_req_min_idle, remove_excess_margin,
                                                                             sec_class_idle, len(idle_list))
             log.info("Too many glideins: %s" % stat_str)
             log.info("Removing %i unsubmitted idle glideins" % len(idle_list))
@@ -758,7 +762,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
             # no unsubmitted, go for all the others idle now
             if len(idle_list) > remove_nr:
                 idle_list = idle_list[:remove_nr]  # shorten
-            stat_str = "min_idle=%i, margin=%i, idle=%i, unsubmitted=%i" % (req_min_idle, remove_excess_margin,
+            stat_str = "frontend_min_idle=%i, margin=%i, idle=%i, unsubmitted=%i" % (frontend_req_min_idle, remove_excess_margin,
                                                                             sec_class_idle, 0)
             logSupport.log.info("Too many glideins: %s" % stat_str)
             logSupport.log.info("Removing %i idle glideins" % len(idle_list))
