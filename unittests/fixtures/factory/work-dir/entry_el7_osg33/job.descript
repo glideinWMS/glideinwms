@@ -25,7 +25,6 @@ RemoveSleep 	0.2
 MaxReleaseRate 	20
 ReleaseSleep 	0.2
 RequireVomsProxy 	False
-RequireGlideinGlexecUse 	False
 PerFrontendMaxGlideins 	
 PerFrontendMaxHeld 	
 PerFrontendMaxIdle 	

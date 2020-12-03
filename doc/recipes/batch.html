@@ -159,7 +159,7 @@ and the credentials configuration on the Frontend.
         &lt;/max_jobs&gt;
         &lt;release max_per_cycle="20" sleep="0.2"/&gt;
         &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
-        &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;
+        &lt;restrictions require_voms_proxy="False"/&gt;
         &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;
             &lt;submit_attrs&gt;
                 &lt;submit_attr name="+remote_queue" value='"serial"'/&gt;
@@ -174,8 +174,6 @@ and the credentials configuration on the Frontend.
               parameter="True" publish="False" type="string" value="default"/&gt;
         &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False"
               parameter="True" publish="False" type="string" value="default"/&gt;
-        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False"
-              parameter="True" publish="True" type="string" value="NONE"/&gt;
         &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True"
               parameter="True" publish="True" type="string" value="BOSCO_PBS"/&gt;
         &lt;attr name="USE_CCB" const="False" glidein_publish="True" job_publish="False"

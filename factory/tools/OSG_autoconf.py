@@ -154,8 +154,7 @@ def get_entries_configuration(data):
             for entry, entry_information in sorted(ce_information.items()):
                 entry_configuration = copy.deepcopy(entry_information)
                 entry_configuration["entry_name"] = entry
-                # Can we get these information (next two keys)?
-                entry_configuration["attrs"]["GLEXEC_BIN"] = {"value": "NONE"}
+                # Can we get these information (next key)?
                 entry_configuration["attrs"]["GLIDEIN_REQUIRED_OS"] = (
                     {"comment": "This value has been hardcoded", "value": "any"}
                 )

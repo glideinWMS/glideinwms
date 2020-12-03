@@ -466,39 +466,6 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
  	</TD>
     </TR>
     <TR>
-
-        <td> <b>GLEXEC_BIN</b> </td>
-        <td> String </TD>
-        <td> None </TD>
-        <td>
-            <P>If set, HTCondor will launch all user jobs via glexec,
-            thus <A HREF="configuration.html#glexec">running the job under the
-            appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">GlideinWMS
-            security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
-            purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
-            automatically find the locally installed gLExec on OSG worker
-            nodes.</P>
-
-            <P>This variable is renamed to <B>GLEXEC</B> in the condor
-            config.</P>
-        </td>
-    </TR>
-    <TR>
-        <td><b> GLEXEC_JOB</b> </td>
-
-        <TD> Expr (Bool) </TD>
-        <TD> False </TD>
-        <TD>
-            <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
-            UID as the user job</A>. This has security implications.</P>
-            <P>NOTE: It is recommended to turn
-            this on and have the condor_starter be protected from the user
-            jobs.
-            </P>
-
-        </td>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Use_PGroups</b> </td>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
@@ -1871,34 +1838,6 @@ startup scripts.</P>
         <TD>
 
             <P>When is the proxy expected to expire.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_STARTER</b> </td>
-        <TD> Expr (Bool) </TD>
-
-        <TD>
-            <P>If gLExec is used and this is set to True, the condor_starter
-            will be run sharing the <A HREF="configuration.html#glexec">same UID as
-            the user job</A>.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>ALTERNATIVE_SHELL</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to a trusted copy of a
-            shell.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_USER_DIR</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to the working
-            directory under which all user jobs will be started.</P>
         </TD>
     </TR>
     <TR>

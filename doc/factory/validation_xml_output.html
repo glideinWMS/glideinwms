@@ -172,16 +172,16 @@ All failed scripts should have one of the following failure types:
 <P>
 This instead is an example of a failed invocation and includes a result section.</P>
 <PRE>
- &lt;OSGTestResult id=&quot;glexec_test.sh&quot; version=&quot;4.3.1&quot;&gt;
+ &lt;OSGTestResult id=&quot;mybin_test.sh&quot; version=&quot;4.3.1&quot;&gt;
    &lt;result&gt;
      &lt;status&gt;ERROR&lt;/status&gt;
      &lt;metric name=&quot;failure&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;WN_RESOURCE&lt;/metric&gt;
-     &lt;metric name=&quot;GLEXEC_BIN&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;/bin/glexec&lt;/metric&gt;
+     &lt;metric name=&quot;TEST_BIN&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;/bin/mytest&lt;/metric&gt;
    &lt;/result&gt;
    &lt;detail&gt;
-     The glexec binary does not exist.
+     The test binary does not exist.
 
-     Looked in /bin/glexec.
+     Looked in /bin/mytest.
    &lt;/detail&gt;
  &lt;/OSGTestResult&gt;
 </PRE>

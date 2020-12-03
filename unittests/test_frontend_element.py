@@ -162,7 +162,6 @@ class FEElementTestCase(unittest.TestCase):
                 '1')}
 
         self.attrDescript.data = {
-            'GLIDEIN_Glexec_Use': 'OPTIONAL',
             'GLIDECLIENT_Rank': '1',
             'GLIDEIN_Expose_Grid_Env': 'True',
             'GLIDECLIENT_Start': 'True',
@@ -171,7 +170,6 @@ class FEElementTestCase(unittest.TestCase):
             'GLIDEIN_Collector': 'frontend:9620-9640'}
 
         elementDescriptBase.data = {
-            'GLIDEIN_Glexec_Use': 'OPTIONAL',
             'MapFile': '/var/lib/gwms-frontend/vofrontend/group_main/group.mapfile',
             'MaxRunningTotal': '100000',
             'JobMatchAttrs': '[]',
@@ -264,8 +262,6 @@ class FEElementTestCase(unittest.TestCase):
         Mock our way into glideinFrontendElement:iterate_one() to test if
              glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_REQUIRE_VOMS']
                 and
-             glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_REQUIRE_GLEXEC_USE']
-                and
              glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_In_Downtime']
 
              are being evaluated correctly
@@ -309,7 +305,6 @@ class FEElementTestCase(unittest.TestCase):
         glideids = []
         in_downtime = {}
         req_voms = {}
-        req_glexec = {}
         for elm in glideid_list:
             if elm and elm[0]:
                 glideid_str = "%s@%s" % (str(elm[1]), str(elm[0]))
@@ -319,8 +314,6 @@ class FEElementTestCase(unittest.TestCase):
                     gdata.get('GLIDEIN_In_Downtime'), True)
                 req_voms[glideid_str] = safe_boolcomp(
                     gdata.get('GLIDEIN_REQUIRE_VOMS'), True)
-                req_glexec[glideid_str] = safe_boolcomp(
-                    gdata.get('GLIDEIN_REQUIRE_GLEXEC_USE'), True)
 
         if self.debug_output:
             print ("info log %s " % LOG_INFO_DATA)
@@ -337,9 +330,7 @@ class FEElementTestCase(unittest.TestCase):
 
         # run through the info log
         # if GLIDEIN_REQUIRE_VOMS was set to True, 'True', 'tRUE' etc for an entry:
-        #    'Voms Proxy Required,' will appear in previous line of log
-        # elif GLIDEIN_REQUIRE_GLEXEC_USE was set:
-        #     'Proxy required (GLEXEC)' will appear in log
+        #    'Voms Proxy Required,' will appear in previous line of log (if GlExec is used)
         idx = 0
         for lgln in LOG_INFO_DATA:
             parts = lgln.split()
@@ -347,16 +338,14 @@ class FEElementTestCase(unittest.TestCase):
             if gid in glideids:
                 upordown = parts[-2]
                 fmt_str = "glideid:%s in_downtime:%s req_voms:%s "
-                fmt_str += "req_glexec:%s\nlog_data:%s"
+                fmt_str += "\nlog_data:%s"
                 state = fmt_str % (gid,
                                    in_downtime[gid],
                                    req_voms[gid],
-                                   req_glexec[gid],
                                    LOG_INFO_DATA[idx - 1])
                 if self.debug_output:
                     print('%s' % state)
                 use_voms = req_voms[gid]
-                use_glexec = req_glexec[gid]
 
                 if in_downtime[gid]:
                     self.assertTrue(
@@ -367,18 +356,13 @@ class FEElementTestCase(unittest.TestCase):
                         upordown == 'Up', "%s logs this as %s" %
                         (gid, upordown))
 
-                if use_voms:
-                    self.assertTrue(
-                        'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
-                else:
-                    self.assertFalse(
-                        'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
-                    if use_glexec:
-                        self.assertTrue(
-                            'Proxy required (GLEXEC)' in LOG_INFO_DATA[idx - 1], state)
-                    else:
-                        self.assertFalse(
-                            'Proxy required (GLEXEC)' in LOG_INFO_DATA[idx - 1], state)
+                # GLIDEIN_REQUIRE_VOMS checks were done only when GlExec was enabled
+                # if use_voms:
+                #     self.assertTrue(
+                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
+                # else:
+                #     self.assertFalse(
+                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
 
             idx += 1
 
