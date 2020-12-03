@@ -1289,16 +1289,22 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr)
 
     def decide_removal_type(self, count_jobs, count_status, glideid):
-        """Picks the max removal type (unless disable is requested)
+        """Pick the max removal type (unless disable is requested)
         - if it was requested explicitly, send that one
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
-        If configured removal is selected, take into account also the margin
+        If configured removal is selected, take into account also the margin and the tracking
+        This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms 
+        in the Factory, like Glidein timeouts
 
-        :param count_jobs:
-        :param count_status:
-        :param glideid:
-        :return:
+        Args:
+            count_jobs (dict): dict with job stats
+            count_status (dict): dict with glidein stats
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string to send to the Factory, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+
         """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins via command line tool, and we have the explicit code to use
@@ -1330,10 +1336,17 @@ class glideinFrontendElement:
 
     def check_removal_type_config(self, glideid):
         """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
-            "ALL", "IDLE", "WAIT", "NO" or "DISABLE" (disable also automatic removal)
+        "ALL", "IDLE", "WAIT", "NO" (default) or "DISABLE" (disable also automatic removal)
 
-        @param glideid: ID of the glidein
-        @return: remove excess string, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+        If removal_requests_tracking or active removal are enabled, this may result in Glidein removals
+        depending on the parameters in the configuration and the current number of Glideins and requests
+
+        Args:
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string from configuration, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+
         """
         # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == 'NO':
@@ -1353,13 +1366,20 @@ class glideinFrontendElement:
         return 'NO'
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
-        """ Decides what kind of excess glideins to remove: control for request and automatic trigger:
+        """Decides what kind of excess glideins to remove: control for request and automatic trigger:
             "ALL", "IDLE", "WAIT", or "NO"
 
-        @param count_jobs: dict with job stats
-        @param count_status: dict with glidein stats
-        @param glideid: ID of the glidein
-        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+        If it is a request from the client (command line) then execute that
+        Otherwise calculate the result of the automatic removal mechanism: increasingly remove WAIT, IDLE and ALL
+        depending on how long (measured in Frontend cycles) there have been no requests.
+
+        Args:
+            count_jobs (dict): dict with job stats
+            count_status (dict): dict with glidein stats
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string from automatic mechanism, one of: "ALL", "IDLE", "WAIT", or "NO"
 
         """
         if self.request_removal_wtype is not None:
