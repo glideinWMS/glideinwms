@@ -30,7 +30,10 @@ except ImportError:
    pass
 
 
-log = None  # create a place holder for a global logger, individual modules can create their own loggers if necessary
+# create a place holder for a global logger (logging.Logger),
+# individual modules can create their own loggers if necessary
+log = None
+
 log_dir = None
 disable_rotate = False
 handlers = []

@@ -679,24 +679,31 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
 def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
                         req_max_glideins, frontend_name, log=logSupport.log,
                         factoryConfig=None):
+
     """Cleans up the glideins queue (removes any excesses) per the frontend request.
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
     for these totals to occur so it would be difficult to reflect the true state of the system.
+    
+    TODO: req_min_idle=0 when remove_excess_tp.frontend_req_min_idle is not means that a limit was reached in the Factory
+        or some component (Factory/Entry) is in downtime. Check if the removal behavior should change
 
     Args:
-        remove_excess: tuple remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin, frontend_req_min_idle
+        remove_excess_tp (tuple): remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin, frontend_req_min_idle
+            remove_excess_str and remove_excess_margin are the removal request form the Frontend
             The frontend_req_min_idle item of the tuple indicates the original frontend pressure. We use this 
             instead of req_min_idle for the IDLE pilot removal because the factory could set req_min_idle to 0
             if an entry is in downtime, or the factory limits are reached. We do not want to remove idle pilots in
             these cases!
-        glidein_totals:
-        condorQ:
+        glidein_totals (dict): Number of Glideins in different states for each Frontend
+        condorQ (dict): Results of condor_q, classified
         req_min_idle: min_idle requested by the Frontend
+            (NOT USED, used frontend_req_min_idle in remove_excess_tp instead to avoid Factory limits effects)
         req_max_glideins: max_glideins requested by the Frontend
-        frontend_name:
-        log:
-        factoryConfig:
+        frontend_name (str): Name of the Frontend, to use as key
+        log (logging.Logger): logger
+        factoryConfig (FactoryConfig): configuration object
+
     Returns:
         int: 1 if some glideins were removed, 0 otherwise
     TODO:V could return the number of glideins removed
@@ -731,7 +738,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
 
     if (((remove_excess_wait or remove_excess_idle) and (sec_class_idle > frontend_req_min_idle + remove_excess_margin)) or
         ((remove_excess_running) and (sec_class_running + sec_class_idle > req_max_glideins + remove_excess_margin))):
-        # too many glideins, remove
+        # too many Glideins, remove
         remove_nr = sec_class_idle - frontend_req_min_idle - remove_excess_margin
         if (remove_excess_running and sec_class_running + sec_class_idle > req_max_glideins + remove_excess_margin and
                 sec_class_running + frontend_req_min_idle > req_max_glideins):
@@ -757,7 +764,7 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
                 # Stop ... others will be retried in next round, if needed
                 return 1
 
-        idle_list = extractIdleQueued(condorQ)
+        idle_list = extractIdleQueued(condorQ)  # IdleQueued (+ IdleUnsubmitted makes all Idle)
         if remove_excess_idle and (len(idle_list) > 0):
             # no unsubmitted, go for all the others idle now
             if len(idle_list) > remove_nr:
@@ -1025,8 +1032,8 @@ def get_status_glideidx(el):
             el[factoryConfig.procid_startd_attribute])
 
 
-# Split idle depending on GridJobStatus
-#   1001 : Unsubmitted
+# Split Idle depending on GridJobStatus
+#   1001 : Unsubmitted (aka Waiting)
 #   1002 : Submitted/Pending
 #   1010 : Staging in
 #   1100 : Other
@@ -1153,6 +1160,15 @@ def extractRecoverableHeldSimpleWithinLimits(q, factoryConfig=None):
 
 
 def extractHeldSimple(q, factoryConfig=None):
+    """All Held Glideins: JobStatus == 5
+
+        q: dictionary of Glideins from condor_q
+        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+
+    Returns:
+        dict: dictionary of Held Glideins from condor_q
+
+    """
     #  Held==5
     qheld = q.fetchStored(lambda el: el["JobStatus"] == 5)
     qheld_list = qheld.keys()
@@ -1160,6 +1176,15 @@ def extractHeldSimple(q, factoryConfig=None):
 
 
 def extractIdleSimple(q, factoryConfig=None):
+    """All Idle Glideins: JobStatus == 1
+
+        q: dictionary of Glideins from condor_q
+        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+
+    Returns:
+        dict: dictionary of Idle Glideins from condor_q
+
+    """
     #  Idle==1
     qidle = q.fetchStored(lambda el: el["JobStatus"] == 1)
     qidle_list = qidle.keys()
@@ -1167,27 +1192,65 @@ def extractIdleSimple(q, factoryConfig=None):
 
 
 def extractIdleUnsubmitted(q, factoryConfig=None):
-    #  1001 == Unsubmitted
-    qidle = q.fetchStored(lambda el: hash_status(el) == 1001)
+    """All Idle Glideins not yet submitted (Unsubmitted, aka Waiting): with hash_status 1001
+
+    hash_status 1xxx implies JobStatus 1
+
+        q: dictionary of Glideins from condor_q
+        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+
+    Returns:
+        dict: dictionary of Idle not Submitted Glideins from condor_q
+
+    """
+    qidle = q.fetchStored(lambda el: hash_status(el) == 1001)  #  1001 == Unsubmitted (aka Waiting)
     qidle_list = qidle.keys()
     return qidle_list
 
 
 def extractIdleQueued(q, factoryConfig=None):
-    #  All 1xxx but 1001
-    qidle = q.fetchStored(lambda el: (hash_status(el) in (1002, 1010, 1100)))
+    """All Idle Glideins already submitted: with hash_status 1xxx except 1001
+
+    hash_status 1xxx implies JobStatus 1
+
+    Args:
+        q: dictionary of Glideins from condor_q
+        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+
+    Returns:
+        dict: dictionary of Idle and Submitted Glideins from condor_q
+
+    """
+    qidle = q.fetchStored(lambda el: (hash_status(el) in (1002, 1010, 1100)))  #  All 1xxx but 1001
     qidle_list = qidle.keys()
     return qidle_list
 
 
 def extractNonRunSimple(q, factoryConfig=None):
-    #  Run==2
-    qnrun = q.fetchStored(lambda el: el["JobStatus"] != 2)
+    """All NOT Running Glideins: JobStatus != 2
+
+        q: dictionary of Glideins from condor_q
+        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+
+    Returns:
+        dict: dictionary of Not Running Glideins from condor_q
+
+    """
+    qnrun = q.fetchStored(lambda el: el["JobStatus"] != 2)  #  Run==2
     qnrun_list = qnrun.keys()
     return qnrun_list
 
 
 def extractRunSimple(q, factoryConfig=None):
+    """All Running Glideins: JobStatus == 2
+
+        q: dictionary of Glideins from condor_q
+        factoryConfig (FactoryConfig): Factory configuartion (NOT USED, for interface)
+
+    Returns:
+        dict: dictionary of Running Glideins from condor_q
+
+    """
     #  Run==2
     qrun = q.fetchStored(lambda el: el["JobStatus"] == 2)
     qrun_list = qrun.keys()
