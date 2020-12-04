@@ -7,7 +7,7 @@
  * Support javascript module for the frontend monitoring
  * Part of the gldieinWMS package
  *
- * Original repository: http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+ * Original repository: https://glideinwms.fnal.gov/
  *
  */
 
