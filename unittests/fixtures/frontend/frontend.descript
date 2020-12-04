@@ -2,7 +2,7 @@
 #
 FrontendName 	frontend
 WebURL 	http://frontend/vofrontend/stage
-MonitoringWebURL 	http://frontend/vofrontend/monitor
+MonitoringWebURL 	https://frontend/vofrontend/monitor
 ClassAdProxy 	/tmp/host_proxy
 SymKeyType 	aes_256_cbc
 Groups 	group1
