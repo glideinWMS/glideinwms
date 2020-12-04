@@ -4,7 +4,7 @@
 <html>
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
 <head>
-<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
+<script type="text/javascript" src="//www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
 <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
 <style type="text/css">
 /*.thumbnail {
@@ -41,7 +41,7 @@ margin-right: -6px;
 opacity: .25;
 }
 </style>
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 <script type="text/javascript">
@@ -161,7 +161,7 @@ function getURLParameter(name) {
 }
 
 // Function to set the url attributes (with possible hashes)
-// source: http://stackoverflow.com/questions/6953944/how-to-add-parameters-to-a-url-that-already-contains-other-parameters-and-maybe
+// source: https://stackoverflow.com/questions/6953944/how-to-add-parameters-to-a-url-that-already-contains-other-parameters-and-maybe
 function addParameter(url, parameterName, parameterValue){
 
     replaceDuplicates = true;
@@ -593,7 +593,8 @@ function MakeChart(entry_points, data, title, image) {
     
     
     // Build the URL for the image
-    baseurl = "http://chart.apis.google.com/chart?cht=p&chf=bg,s,EFEFEF&chs=850x350&chtt=" + title + "&chco=FF0000,00FFFF&";
+    // baseurl = "http://chart.apis.google.com/chart?cht=p&chf=bg,s,EFEFEF&chs=850x350&chtt=" + title + "&chco=FF0000,00FFFF&";
+    baseurl = "//chart.apis.google.com/chart?cht=p&chf=bg,s,EFEFEF&chs=850x350&chtt=" + title + "&chco=FF0000,00FFFF&";
     baseurl += "chd=e:"
     baseurl += extendedEncode(normal_data, 100);
     baseurl += "&chl=";

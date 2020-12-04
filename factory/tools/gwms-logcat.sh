@@ -33,7 +33,7 @@ $0 -l
   -i INAME to use a different factory instance name from the default glidein_gfactory_instance one
   -r       Remote running jobs. pilot_launcher.log is fetched from the VM
   -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
-  -f URL   Forward the information (to a folder: file:///path/ via copy or a URL http:// via post)
+  -f URL   Forward the information (to a folder: file:///path/ via copy or a URL http://, https:// via post)
 EOF
 }
 
@@ -126,7 +126,7 @@ function forward_file {
   if [[ "$FORWARD_URL" =~ file://.* ]]; then
     # If starts w/ file:// consider it an output directory
     ${TOOLDIR}/${LOGNAME} $logid > "${FORWARD_URL#file://}/`get_unique_name $logid $logoption`"
-  elif [[ "$FORWARD_URL" =~ http://.* ]]; then
+  elif [[ "$FORWARD_URL" =~ http://.* || "$FORWARD_URL" =~ https://.* ]]; then
     # http:// URL trigger a post to the URL
     # TODO: elaborate more (e.g. use logstash to forward to elastic search)
     # TODO: may need to re-encode the file before sending it
