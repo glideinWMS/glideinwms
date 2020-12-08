@@ -19,6 +19,7 @@ import pickle
 import tempfile
 import time
 import subprocess
+import hashlib
 
 #################################
 # Dictionary functions
@@ -397,3 +398,20 @@ def handle_hooks(basedir, script_dir):
         if os.path.isfile(script_name) and os.access(script_name, os.X_OK):
             print("\nExecuting reconfigure hook: " + script_name)
             subprocess.call(script_name)
+
+def hash_nc(data, len=None):
+    """Non-cryptographic MD5 hashing function
+
+    Args:
+        data (bytes): Data to hash
+        len (int, optional): Hash length. Defaults to None.
+
+    Returns:
+        str: Hash
+    """
+    
+    out = hashlib.md5(data).hexdigest()
+    if len:
+        out = out[:len]
+
+    return out

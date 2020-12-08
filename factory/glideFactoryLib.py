@@ -30,9 +30,12 @@ from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
 from glideinwms.lib import x509Support
 from glideinwms.lib import subprocessSupport
+from glideinwms.lib.util import hash_nc
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
+
+from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -445,7 +448,8 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     except:
         logSupport.log.error("Unable to delete tempfile %s!" % tempfilename)
 
-    hash_val=str(abs(hash(dn+voms))%1000000)
+    #TODO: Currently not used. Should we keep it here?
+    hash_val = hash_nc((dn+voms).encode(BINARY_ENCODING), 8)
 
     #proxy_dir = factoryConfig.get_client_proxies_dir(username)
     # Have to hack this since the above code was modified to support v3plus going forward
