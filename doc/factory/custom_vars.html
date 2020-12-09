@@ -466,39 +466,6 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
  	</TD>
     </TR>
     <TR>
-
-        <td> <b>GLEXEC_BIN</b> </td>
-        <td> String </TD>
-        <td> None </TD>
-        <td>
-            <P>If set, HTCondor will launch all user jobs via glexec,
-            thus <A HREF="configuration.html#glexec">running the job under the
-            appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">GlideinWMS
-            security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
-            purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
-            automatically find the locally installed gLExec on OSG worker
-            nodes.</P>
-
-            <P>This variable is renamed to <B>GLEXEC</B> in the condor
-            config.</P>
-        </td>
-    </TR>
-    <TR>
-        <td><b> GLEXEC_JOB</b> </td>
-
-        <TD> Expr (Bool) </TD>
-        <TD> False </TD>
-        <TD>
-            <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
-            UID as the user job</A>. This has security implications.</P>
-            <P>NOTE: It is recommended to turn
-            this on and have the condor_starter be protected from the user
-            jobs.
-            </P>
-
-        </td>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Use_PGroups</b> </td>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
@@ -962,7 +929,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
-
         <TD> Int </TD>
         <TD>
             <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
@@ -973,7 +939,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
@@ -985,11 +950,21 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
                 followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLEANUP_SCRIPT</b> </td>
+        <TD> String </TD>
+        <TD>
+            <P>Used to run a custom file at cleanup time (right before quitting the Glidein) 
+              instead of the default setup time. The custom file must be specified in the file list as usual.
+              The value is the file name, as specified in the file list. 
                 NOTE: parameter and job_publish should be both True for this attribute.
             <b>Must be a parameter.</b></P>
         </TD>
@@ -1604,6 +1579,17 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
     "$singularity_image" "${@}"
 </pre>
+  <p>The singularity binary (see singularity_lib.sh/singularity_locate_bin) is the first binary passing the test, 
+    looking in order in:
+  <ol>
+    <li>If defined (in environment, Frontend or Factory): Try first the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)</li>
+    <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN (keyword OSG -> OSG_SINGULARITY_BINARY)</li>
+    <li>Try the default OSG location (OSG_SINGULARITY_BINARY)</li>
+    <li>Try the singularity binary in PATH</li>
+    <li>Try the singularity binary in PATH after invoking module singularitypro</li>
+    <li>Try the singularity binary in PATH after invoking module singularity</li>
+  </ol>
+  </p>
 
 <TABLE class="attributes">
     <TR class="head">
@@ -1659,6 +1645,21 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
             See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
             a table of how Singularity is calculated using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>[GWMS_]SINGULARITY_MODE</b></td>
+        <td> String (Enum) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is calculated if a valid singularity binary is found.
+            Possible values are (see the Singularity documentation for the meaning of privileged/unprivileged):
+    privileged,
+    unprivileged,
+    fakeroot (unprivileged mode with user mapped internally to uid 0).
+          A string &quot;singularity/GWMS_SINGULARITY_MODE&quot; is also added to GLIDEIN_PROVIDES.
+          There are other dynamic variables set when Singularity is found: [GWMS_]SINGULARITY_PATH, [GWMS_]SINGULARITY_VERSION.
             </P>
         </td>
     </TR>
@@ -1769,6 +1770,15 @@ or by running a pre_singularity setup script.
         </td>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_SINGULARITY_BINARY_OVERRIDE</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Env Frontend Factory</td>
+        <td><P>Path singularity binary. If providedn, this is the first path searched by the Glidein.
+            </P>
+        </td>
+    </TR>
+    <TR>
         <td> <b>OSG_SINGULARITY_BINARY</b></td>
         <td> String </td>
         <td></td>
@@ -1828,34 +1838,6 @@ startup scripts.</P>
         <TD>
 
             <P>When is the proxy expected to expire.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_STARTER</b> </td>
-        <TD> Expr (Bool) </TD>
-
-        <TD>
-            <P>If gLExec is used and this is set to True, the condor_starter
-            will be run sharing the <A HREF="configuration.html#glexec">same UID as
-            the user job</A>.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>ALTERNATIVE_SHELL</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to a trusted copy of a
-            shell.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_USER_DIR</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to the working
-            directory under which all user jobs will be started.</P>
         </TD>
     </TR>
     <TR>
@@ -2029,7 +2011,7 @@ N.B.: 12 hours after the walltime, a glidein is removed from the factory queue n
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
 GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

@@ -1220,17 +1220,21 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         (fd, tmpnm) = tempfile.mkstemp()
         try:
             entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
-            os.chmod(tmpnm,400)
+            os.chmod(tmpnm,0600)
             os.write(fd, condortoken_data)
             os.close(fd)
             util.file_tmp2final(condortoken_file, tmpnm)
+                
         except Exception as err:
             entry.log.exception('failed to create token: %s' % err)
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
-    if os.path.exists(condortoken_file):
-        submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file)
+    if not os.path.exists(condortoken_file):
+        with open(condortoken_file, 'a'):
+            pass
+    if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
+        entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
 
     scitoken = "%s.scitoken" % entry.name
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
@@ -1239,7 +1243,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         (fd, tmpnm) = tempfile.mkstemp()
         try:
             entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
-            os.chmod(tmpnm,400)
+            os.chmod(tmpnm,0600)
             os.write(fd, scitoken_data)
             os.close(fd)
             util.file_tmp2final(scitoken_file, tmpnm)
@@ -1248,9 +1252,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
-    if os.path.exists(scitoken_file):
-        submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file)
 
+    if not os.path.exists(scitoken_file):
+        with open(scitoken_file, 'a'):
+            pass
+    if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
+        entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
 
     if 'grid_proxy' in auth_method:
@@ -1464,7 +1471,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
     #
 
-    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0))
+    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0), work['requests'].get('IdleGlideins', 0))
     idle_lifetime = work['requests'].get('IdleLifetime', 0)
 
     if 'IdleGlideins' not in work['requests']:

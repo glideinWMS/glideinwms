@@ -32,7 +32,6 @@ GLIDEIN_Max_Tail 	I 	400 		+				N	Y	-
 GLIDEIN_Max_Walltime	I	-		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	-		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	-	+				N	N	-
-GLEXEC_JOB		C	True		+				N	Y	-
 GLIDEIN_HAS_SINGULARITY_AUX	C	\\$\\(HAS_SINGULARITY\\:False\\)		+		N	N	-
 GLIDEIN_Use_PGroups	C	\\$INT\\(GLIDEIN_HAS_SINGULARITY_AUX\\)		USE_PROCESS_GROUPS		N	N	-
 UPDATE_COLLECTOR_WITH_TCP	C	True	+				N	N	-
@@ -118,8 +117,6 @@ GLIDEIN_Job_Max_Time	I	129600		+				N	Y	-
 GLIDEIN_Graceful_Shutdown	I	120	+				N	Y	-
 WANT_VACATE		C	True		+				N	N	-
 GLIDEIN_Expose_Grid_Env	C	True		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
-GLIDEIN_Glexec_Use	S	REQUIRED	+				N	Y	+
-GLEXEC_BIN		C	-		GLEXEC				N	N	-
 GLIDEIN_Monitoring_Enabled	C	False	+				N	Y	+
 GLIDEIN_Resource_Slots  C   -       +               N   N   -
 # this will be used for MaxJobRetirementTime of the main startd

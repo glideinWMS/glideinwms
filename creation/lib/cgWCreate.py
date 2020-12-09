@@ -20,6 +20,7 @@ import tarfile
 import cStringIO
 import glob
 from . import cgWDictFile
+from . import cWDictFile
 
 
 ##############################
@@ -37,7 +38,6 @@ def create_condor_tar_fd(condor_base_dir):
     Returns:
         StringIO: representation of tarfile.
     """
-
     try:
         # List of required files
         condor_bins = [
@@ -56,16 +56,9 @@ def create_condor_tar_fd(condor_base_dir):
             'lib/CondorJavaWrapper.class',
             'lib/scimark2lib.jar',
             'lib/condor',
+            'lib/libgetpwnam.so',
         ]
         condor_opt_libexecs = [
-            'libexec/glexec_starter_setup.sh',
-            'libexec/condor_glexec_wrapper',
-            'libexec/condor_glexec_cleanup',
-            'libexec/condor_glexec_job_wrapper',
-            'libexec/condor_glexec_kill',
-            'libexec/condor_glexec_run',
-            'libexec/condor_glexec_update_proxy',
-            'libexec/condor_glexec_setup',
             'libexec/condor_shared_port',
             'libexec/condor_ssh_to_job_sshd_setup',
             'libexec/condor_ssh_to_job_shell_setup',
@@ -158,7 +151,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         method.  Any new attribute that may be in params or sub_params can be accessed here without having to add yet
         another parameter to the function.
         """
-
         glidein_name = conf[u'glidein_name']
         gridtype = entry[u'gridtype']
         gatekeeper = entry[u'gatekeeper']
@@ -175,25 +167,23 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         client_log_base_dir = conf.get_child(u'submit')[u'base_client_log_dir']
         submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
         enc_input_files = []
-        # if a token is found in the client proxies dir, add it to
+
+        # if entry condor version supports tokens, add them to 
         # the transfer/encrypt input file list
-        base_client_proxies_dir = conf.get_child(u'submit')[u'base_client_proxies_dir']
-        condor_token = "%s.idtoken" % entry_name
-        sci_token = "%s.scitoken" % entry_name
-        token_list = []
-        for root, dirs, files  in os.walk(base_client_proxies_dir):
-            for fname in files:
-                # send along condor_token with glidein if present
-                if fname == condor_token:
-                    token_list.append(fname)
-                    pth = os.path.join(root, fname)
-                    enc_input_files.append(pth)
-                # try to authenticate glidein with scitoken if present
-                if fname == sci_token:
-                    pth = os.path.join(root, fname)
-                    self.add('+SciTokensFile', '"'+pth+'"')
+        param_c = cWDictFile.ReprDictFile(self.get_dir(), 'params.cfg')
+        param_c.load()
+        version = 'default'
+        if 'CONDOR_VERSION' in param_c: 
+            version = param_c['CONDOR_VERSION']
+
+        if version > '8.9.1' and version != 'default': 
+            enc_input_files.append('$ENV(IDTOKENS_FILE)')
+            enc_input_files.append('$ENV(SCITOKENS_FILE)')
+            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
+        token_list = []
         token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
         token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
         token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')

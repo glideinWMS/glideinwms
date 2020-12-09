@@ -154,7 +154,6 @@ Click on any piece for a more detailed description.
         <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1" /&gt;</a><br/>
         <a href="#attr_client_start">&lt;attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
-        <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
@@ -554,19 +553,6 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         authentication. You specify the match expression in a
         group section of the config file.</P></li>
         <LI><P>
-        <a name="attr_glexec" />
-            <div class="xml">
-            &lt;attr name=&quot;GLIDEIN_Glexec_Use&quot; &gt;
-            </div>
-        This determines whether or not you want to mandate
-        the use of GLEXEC. Possible values are
-            NEVER (do not use GLEXEC) or
-            OPTIONAL (use GLEXEC if the site is configured with it)
-            or REQUIRED (Always use GLEXEC).
-        Mandating the use of GLEXEC also enforces the
-        Factory to submit jobs to sites that have GLEXEC configured.
-        </P></li>
-        <LI><P>
         <a name="attr_singularity" />
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
@@ -776,8 +762,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
      <li>The <b>glideins_removal</b> element is used to control the removal of glideins when they are not used.
         Glideins can expire and die when not used; the Frontend also has an automatic glidein removal mechanism, anyway you can trigger an early removal or stop all removals.
         Early removal is controlled by 4 attributes (type, requests_tracking, margin, wait) and is disabled bt default (type="NO").
-        <b>type</b> selects what to remove: NO (default) no early removal, IDLE only Idle glideins -not submitted-,
-        WAIT also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed),
+        <b>type</b> selects what to remove: NO (default) no early removal, WAIT only Idle glideins -not submitted-,
+        IDLE also glideins waiting in the remote queues, ALL also running glideins (all glideins except the ones already staging output can be removed),
 	DISABLE disables also the automatic removal mechanism of the Frontend (Glidein expiration is still in place).
         When <b>requests_tracking</b> is True and the current need for Glideins drops <b>margin</b> below the available Glideins,
             then the Glideins in excess are removed.
@@ -1424,7 +1410,7 @@ With the configutation above, all the activity messages will go into
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
-Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
 GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

@@ -77,7 +77,7 @@
                 <li><a href="#CEConfig">Configure CE to accept your SciToken</a> </li>
                 <li><a href="#Check">Verify Token Functionality</a> </li>
                 <li><a href="#Useful">Useful Links</a> </li>
-            </ol>
+          </ol>
         </div>
         <div class="section">
           <h2 id="Description" class="western">Description</h2
@@ -123,7 +123,8 @@ htcondor-ce-condor.noarch   4.4.1-1.osg35.el7    @osg
         <div class="section">
           <h2 id="Generate" class="western">Obtain a SciToken </h2>
           <p> Method 1: follow instructions at https://opensciencegrid.org/technology/software/requesting-tokens/#requesting-tokens
-          <p> Method 2: generate your own self-signed Scitokens.  You need admin access to a  public facting web server. 
+          <p> Method 2: generate your own self-signed Scitokens.  You need the python scitokens library and admin access to a web 
+              server that the Factory, Frontend, and CE can all access. 
           <p>The following is an example of Method 2 on  website 'jobsub.fnal.gov' 
           <pre>
 1.  yum install python2-scitokens or pip install scitokens
@@ -158,7 +159,9 @@ scp test.scitoken.public.jwks fnalu:/web/sites/j/jobsub.fnal.gov/htdocs/oauth2/c
 
 
 
-3. Generate a token to perform condor operations on  an htcondor-ce
+3. Generate a token to perform condor operations on  an htcondor-ce. NOTE: the scitokens-admin-create-token utility installed by
+   pip or yum generates tokens that are only valid for 10 minutes.  If this is not long enough for your tests copy the utility
+   (it is a python script) and modify to taste.
 
 #for ce fermicloud349.fnal.gov
 scitokens-admin-create-token --key_id 7b50 --keyfile test.scitoken.private.pem \

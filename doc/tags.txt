@@ -1,3 +1,11 @@
+v3_7_2
+    Drop GLExec support
+    Mechanism for running custom scripts at the end of glidein execution
+    OSG_autoconf: protection added to prevent failures when CE dissapears from OSG Collector
+    Bug fix: frontend over-enthusiastic generating tokens for entries
+    Bug fix: do not remove glideins when idle limit is hit
+    
+    
 v3_7_1
 	Includes all features and fixes of 3.6.5
 	Configuration changes to make more compatible with HTCondor 8.9  on initial install
@@ -11,6 +19,13 @@ v3_7
 	Use of HTCondor token-auth for Glideins authentication
 	Added secure logging channel
 	Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+
+v3_6_5
+	Added GitHub actions to test the code (Python unit tests, BARS, pylint, pycodestyle)
+	Bug fix: Fix for paths in Singularity not substituted correctly when the execute directory has a link or bind mount
+	Bug fix: Fixed shared_port_port to adapt to HTCondor 8.8.10 changes
+	Bug fix: Fixed overrides in OSG_autoconf using depcopy, use https for gfdiff
+	Bug fix: Fixed credential dir in manual_glidein_submit removing hardcoding
 
 v3_6_4
 	Improved OSG_autoconf

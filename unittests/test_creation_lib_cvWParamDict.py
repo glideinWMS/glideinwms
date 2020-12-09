@@ -25,7 +25,6 @@ try:
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.creation.lib.cvWParamDict import apply_group_glexec_policy
 from glideinwms.creation.lib.cvWParamDict import apply_group_singularity_policy
 from glideinwms.creation.lib.cvWParamDict import apply_multicore_policy
 from glideinwms.creation.lib.cvWParamDict import get_pool_list
@@ -82,13 +81,6 @@ class TestFrontendMainDicts(unittest.TestCase):
 
     def test_save_monitor(self):
         self.fed.save_monitor()
-
-    @unittest.skip('hmm')
-    def test_apply_group_glexec_policy(self):
-        apply_group_glexec_policy(
-            self.fed.dicts['group_descript'],
-            self.sub_params,
-            self.params)
 
     @unittest.skip('hmm')
     def test_apply_group_singularity_policy(self):

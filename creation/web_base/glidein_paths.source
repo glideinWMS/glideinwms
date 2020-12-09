@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# TODO: use this file for both singularity and the startup script
+
+# Directory structure inside .gwms_aux (or main glidein directory)
+# bin, lib [python, python3, python2], exec [prejob, postjob]
+GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
+GWMS_SUBDIR_EXEC_POSTJOB="exec/postjob"
+GWMS_SUBDIR_EXEC_CLEANUP="exec/cleanup"
+
+
+robust_realpath() {
+    # Echo to stdout the real path even if realpath is not installed
+    # 1. file path to find the real path of
+    if ! realpath "$1" 2>/dev/null; then
+        local first="$1"
+        local last=
+        if [[ ! -d "$1" ]]; then
+            first="$(dirname "$first")"
+            last="/$(basename "$1")"
+        fi
+        [[ -d "$first" ]] && first="$(cd "$first"; pwd -P)"
+        echo "${first}${last}"
+    fi
+}
+
+
+#######################################
+#
+# GWMS aux functions
+#
+
+gwms_from_config() {
+    # 1. - parameter to parse from glidein_config
+    # 2. - default
+    # 3. - function to validate or process (get_prop_bool or same interface)
+    if [[ -n "$glidein_config" ]]; then
+        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
+    fi
+    if [[ -n "$ret" ]]; then
+        if [[ -n "$3" ]]; then
+            "$3" VALUE_PROVIDED "$ret" "$2"
+        else
+            [[ -z "$ret" ]] && ret=$2
+            echo "$ret"
+        fi
+    fi
+
+}
+
+
+gwms_process_scripts() {
+    # Process all the scripts in the directory, in lexicographic order
+    #  ignore the files named .ignore files
+    #  run the executable files, source the remaining files if extentsion is .sh .source
+    # 1- directory scripts to process
+    # 2- a modifier to search only in subdirectories (prejob)
+    local old_pwd my_pwd
+    old_pwd=$(robust_realpath "$PWD")
+    my_pwd=$(robust_realpath "$1")
+    if [[ -n "$2" ]]; then
+        case "$2" in
+            prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
+            postjob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_POSTJOB";;
+            cleanup) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_CLEANUP";;
+        esac
+    fi
+    if ! cd "$my_pwd"; then
+        warn "Scripts directory ($my_pwd) not found. Skipping scripts processing."
+        return
+    fi
+    for i in * ; do
+        [[ "$i" = *.ignore ]] && continue
+        if [[ -x "$i" ]]; then
+            # run w/ some protection?
+            "./$i"
+            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+        elif [[ "$i" = *.sh || "$i" = *.source ]]; then
+            . "$i"
+        fi
+    done
+    cd "$old_pwd"
+}
