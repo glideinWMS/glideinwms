@@ -29,8 +29,6 @@ from glideinwms.lib import x509Support
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib.util import hash_nc
 
-from glideinwms.lib.defaults import BINARY_ENCODING
-
 
 ############################################################
 #
@@ -427,8 +425,8 @@ class Credential:
         else:
             hash_str = filename
         logSupport.log.debug("Using hash_str=%s (%s)"
-            % (hash_str, hash_nc(hash_str.encode(BINARY_ENCODING), 8)))
-        return hash_nc(hash_str.encode(BINARY_ENCODING), 8)
+            % (hash_str, hash_nc(hash_str, 8)))
+        return hash_nc(hash_str, 8)
 
 
     def time_left(self):

@@ -19,7 +19,11 @@ import pickle
 import tempfile
 import time
 import subprocess
-import hashlib
+
+# imports for hash_nc
+from hashlib import md5
+from base64 import b32encode
+from glideinwms.lib.defaults import force_bytes, BINARY_ENCODING_ASCII
 
 #################################
 # Dictionary functions
@@ -403,14 +407,15 @@ def hash_nc(data, len=None):
     """Non-cryptographic MD5 hashing function
 
     Args:
-        data (bytes): Data to hash
+        data (AnyStr): Data to hash
         len (int, optional): Hash length. Defaults to None.
 
     Returns:
         str: Hash
     """
     
-    out = hashlib.md5(data).hexdigest()
+    #TODO set md5 usedforsecurity to False when updating to Python 3.9
+    out = b32encode(md5(force_bytes(data)).digest()).decode(BINARY_ENCODING_ASCII)
     if len:
         out = out[:len]
 
