@@ -887,8 +887,12 @@ class glideinFrontendElement:
         """
         tkn_file = ''
         tkn_str = ''
+        tmpnm = ''
         # does condor version of entry point support condor token auth
-        if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
+        condor_version = glidein_el['params'].get('CONDOR_VERSION')
+        if condor_version \
+            and condor_version != 'default' \
+            and condor_version >= '8.9.2':
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
@@ -901,7 +905,6 @@ class glideinFrontendElement:
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
                     # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
-                tmpnm = ''
                 if tkn_age > one_hr:    
                     (fd, tmpnm) = tempfile.mkstemp()
                     cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
