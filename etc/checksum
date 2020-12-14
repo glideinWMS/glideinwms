@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_2_rc1
+# GLIDEINWMS_VERSION v3_7_2_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -174,7 +174,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 194a647100540d5a636dfb31975c0869  ./frontend/checkFrontend.py
 19313063656cfe9a178ea07116497bd4  ./frontend/glideinFrontendConfig.py
 2bc4d50f3f03afe26d4af82c0b98d011  ./frontend/glideinFrontendDowntimeLib.py
-e990931919ddb6473d7d846a27425519  ./frontend/glideinFrontendElement.py
+dc30ccbc4feeb1fd526a2653852153a8  ./frontend/glideinFrontendElement.py
 af97a3c1808be18c5d67681a51523ced  ./frontend/glideinFrontendInterface.py
 507351afc84a658c9ef716b1d9b366c7  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
