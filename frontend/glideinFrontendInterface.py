@@ -424,8 +424,8 @@ class Credential:
             hash_str = filename+dn
         else:
             hash_str = filename
-        logSupport.log.debug("Using hash_str=%s (%s)"
-            % (hash_str, hash_nc(hash_str, 8)))
+        logSupport.log.debug("Using hash_str=%s (%s)" %
+            (hash_str, hash_nc(hash_str, 8)))
         return hash_nc(hash_str, 8)
 
 

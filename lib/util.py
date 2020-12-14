@@ -404,7 +404,7 @@ def handle_hooks(basedir, script_dir):
             subprocess.call(script_name)
 
 def hash_nc(data, len=None):
-    """Non-cryptographic MD5 hashing function
+    """Returns a non-cryptographic MD5 hash encoded in base32
 
     Args:
         data (AnyStr): Data to hash
