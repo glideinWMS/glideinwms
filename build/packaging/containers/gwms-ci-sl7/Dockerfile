@@ -21,7 +21,8 @@ RUN /usr/bin/yumalldeps.sh -i -y "--enablerepo=osg-contrib" glideinwms-factory g
 RUN /usr/bin/yumalldeps.sh -i glideinwms-factory glideinwms-vofrontend
 
 # Other sw needed by CI
-RUN yum install -y bats
+# swig is used by pip to install m2crypto (TravisCI)
+RUN yum install -y bats swig
 
 # Cleaning caches to reduce size of image
 RUN yum clean all
@@ -31,5 +32,5 @@ CMD ["/bin/bash"]
 
 
 # build info
-RUN echo "Source: mambelli/gwms-ci-sl7" > /image-source-info.txt
+RUN echo "Source: glideinwms/gwms-ci-sl7" > /image-source-info.txt
 RUN echo "Timestamp:" `date --utc` | tee /image-build-info.txt
