@@ -24,6 +24,11 @@ RUN /usr/bin/yumalldeps.sh -i glideinwms-factory glideinwms-vofrontend
 # swig is used by pip to install m2crypto (TravisCI)
 RUN yum install -y bats swig
 
+# SL7 provides git 1.8, which is incompatible w/ some GitHub actions, updating to 2.20
+# Using WANDisco and disabling sl* repos to see the updated git
+RUN yum install -y http://opensource.wandisco.com/centos/7/git/x86_64/wandisco-git-release-7-2.noarch.rpm;\
+    yum install -y --disablerepo=slf* git
+
 # Cleaning caches to reduce size of image
 RUN yum clean all
 
