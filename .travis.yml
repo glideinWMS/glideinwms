@@ -6,6 +6,9 @@ python:
 # Just some useful info and prep work
 before_install:
   - uname -a
+  # Installing for m2crypto
+  - sudo apt-get install -qq -y swig python-dev openssl-devel openssl libssl-dev python-m2crypto
+
   - pip install -U pip
   - pip install -U pytest
 
