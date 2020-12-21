@@ -33,7 +33,8 @@ jobs:
         uses: ./.github/actions/bats-in-sl7-docker
       - name: Archive bats log
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: reports
           path: logs.tar.bz2
+          retention-days: 14

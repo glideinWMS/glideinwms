@@ -1,10 +1,34 @@
-on: [pull_request, push]
+name: PyCodeStyle
+on:
+  pull_request:
+  push:
+#    branches:  # to limit the actions only for push to some branches
+#      - main
+#      - branch*
+#    paths-ignore:  # to exclude the action when the commit is in one path
+#    - 'docs/**'
 
+# there can be multiple jobs and they run in independent environments, in parallel (unless there are dependencies),
+# can produce outputs (for dependent jobs)
+# jobs can be services, e.g. DB, needed by other jobs
 jobs:
-  pylint_job:
-    runs-on: ubuntu-latest
+  pycodestyle_job:
+    runs-on: ubuntu-latest  # ubuntu-latest or ubuntu-18.04
     name: A job to run the pycodestyle checks
+    env:
+      RESULTS_FILE: pycodestyle-results.txt
+    # there can be multiple steps, sequential, can skip if "if" expression evaluates to false ( failure(), ...)
+    # run on shell (unless bash {0} , -e is used) or
+    # uses actions or docker images (with entrypoint, args can override the image ones)
+    # the exit code of the last command is the one of the step and determines fail/succeed
+    # job fails if a step fails (unless continue-on-error is in the step)
     steps:
+      - name: Download previous pycodestyle warnings count
+        uses: actions/download-artifact@v2
+        id: download
+        with:
+          name: pycodestyle  # includes a file pycodestyle-warnings.txt
+        continue-on-error: true
       - name: Sparse checkout
         shell: bash
         run: |
@@ -21,6 +45,7 @@ jobs:
           git config core.sparseCheckout true
           # Add here contents of sparse-checkout line by line
           echo ".github" >> .git/info/sparse-checkout
+          # the --progress option requires git 2.x, SL7 has 1.8
           git -c protocol.version=2 fetch --no-tags --prune --progress --depth=10 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
           git checkout --progress --force -B ${BRANCH} refs/remotes/origin/${BRANCH}
         id: sparse-checkout
@@ -29,12 +54,50 @@ jobs:
         with:
           path: 'glideinwms'
         id: checkout
+#      - name: Setup python  # Not really needed because the test run in a container
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: '3.6' # was 3.x, Version range or exact version of a Python version to use, using SemVer's version range syntax
+#          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
       - name: pycodestyle action step
         uses: ./.github/actions/pycodestyle-in-sl7-docker
         id: pycodestyle
+      - name: Check pycodestyle results
+        id: pycodestyle_check
+        shell: bash
+        run: |
+          [[ ! -e pycodestyle-warnings.txt ]] && touch pycodestyle-warnings.txt || true
+          saved_warnings=$(cat pycodestyle-warnings.txt)
+          # current_warnings=`cat result-pycodestyle-warnings.txt`
+          current_warnings=${{ steps.pycodestyle.outputs.warnings }}
+          warnings_updated=false
+          test_ok=true
+          if [[ -z "$saved_warnings" ]] || [[ "$current_warnings" -lt "$saved_warnings" ]]; then
+            # No previos value, or new lower value, save the current one
+            echo "$current_warnings" > pycodestyle-warnings.txt
+            warnings_updated=true
+          elif [[ "$current_warnings" -gt "$saved_warnings" ]]; then
+            test_ok=false
+          fi
+          echo "PyCodeStyle warnings $current_warnings. Previous value $saved_warnings. Updated $warnings_updated, Success $test_ok"
+          echo "# pycodestyle results" > $RESULTS_FILE
+          echo "warnings_current=$current_warnings" >> $RESULTS_FILE
+          echo "warnings_previous=$saved_warnings" >> $RESULTS_FILE
+          echo "success=$test_ok" >> $RESULTS_FILE
+          echo "::set-output name=warnings_updated::$warnings_updated"
+          $test_ok
+      - name: Upload pycodestyle warnings count if improved
+        if: steps.pycodestyle_check.outputs.warnings_updated == 'true'
+        uses: actions/upload-artifact@v2
+        with:
+          name: pycodestyle
+          path: pycodestyle-warnings.txt
       - name: Archive reports
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: reports
-          path: logs.tar.bz2
+          path: |
+            $RESULTS_FILE
+            logs.tar.bz2
+          retention-days: 14
