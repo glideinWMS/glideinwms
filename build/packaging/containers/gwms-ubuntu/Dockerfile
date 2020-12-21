@@ -20,7 +20,11 @@ RUN apt-get update &&\
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash ;\
     apt-get install -y --no-install-recommends git-lfs ;\
     apt-get install git-ftp -y
-    
+
+# source https://github.com/actions/virtual-environments/tree/main/images/linux/scripts/helpers (permalink)
+# defins helper functions like setEtcEnvironmentVariable()
+RUN . <(curl -s https://raw.githubusercontent.com/actions/virtual-environments/4de7f89a42529d48d04cc7a7eb85b570b709448c/images/linux/scripts/helpers/etc-environment.sh)
+
 RUN apt-get install -y --no-install-recommends python python-dev python-pip python3 python3-dev python3-pip python3-venv;\
     export PIPX_BIN_DIR=/opt/pipx_bin;\
     export PIPX_HOME=/opt/pipx;\
