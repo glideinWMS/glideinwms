@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_2_rc2
+# GLIDEINWMS_VERSION v3_7_2_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -207,4 +207,4 @@ d41d8cd98f00b204e9800998ecf8427e  ./tools/lib/__init__.py
 2255ed709df2365451d65ef22b38cf6c  ./tools/wmsTxtView.py
 d9f9002c264db4a47d153e529f65b25b  ./tools/wmsXMLView.py
 61b9325a43493c89306308c4aebde347  ./tox.ini
-9bd8bfd5bedd0f279b18e9ac96d95637  ./.travis.yml
+2ba7b9138fda241be6a003a86ab10d55  ./.travis.yml
