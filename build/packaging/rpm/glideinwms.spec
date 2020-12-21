@@ -885,6 +885,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Mon Dec 21  2020 Dennis Box <dbox@fnal.gov> - 3.7.2-1
+- GlideinWMS v3.7.2
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_2/history.html
+- Release candidates: 3.7.220.1.rc1 to 3.7.2-0.3.rc3
+
 * Mon Sep 21  2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
 - GlideinWMS v3.7.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_1/history.html

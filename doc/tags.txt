@@ -1,4 +1,5 @@
 v3_7_2
+	Includes all features and fixes of 3.6.6
 	Drop GLExec support
 	Mechanism for running custom scripts at the end of glidein execution
 	OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
