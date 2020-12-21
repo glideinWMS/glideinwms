@@ -1,12 +1,12 @@
 name: PyCodeStyle
-on: 
+on:
   pull_request:
   push:
 #    branches:  # to limit the actions only for push to some branches
 #      - main
 #      - branch*
 #    paths-ignore:  # to exclude the action when the commit is in one path
-#    - 'docs/**'    
+#    - 'docs/**'
 
 # there can be multiple jobs and they run in independent environments, in parallel (unless there are dependencies),
 # can produce outputs (for dependent jobs)
@@ -18,7 +18,7 @@ jobs:
     env:
       RESULTS_FILE: pycodestyle-results.txt
     # there can be multiple steps, sequential, can skip if "if" expression evaluates to false ( failure(), ...)
-    # run on shell (unless bash {0} , -e is used) or 
+    # run on shell (unless bash {0} , -e is used) or
     # uses actions or docker images (with entrypoint, args can override the image ones)
     # the exit code of the last command is the one of the step and determines fail/succeed
     # job fails if a step fails (unless continue-on-error is in the step)
@@ -87,7 +87,7 @@ jobs:
           echo "::set-output name=warnings_updated::$warnings_updated"
           $test_ok
       - name: Upload pycodestyle warnings count if improved
-        if: steps.pycodestyle_check.outputs.warnings_updated == 'true' 
+        if: steps.pycodestyle_check.outputs.warnings_updated == 'true'
         uses: actions/upload-artifact@v2
         with:
           name: pycodestyle
