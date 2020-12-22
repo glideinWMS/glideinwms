@@ -542,7 +542,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             # without VOMS proxies can avoid sites that require VOMS proxies
             # using the normal Condor Requirements string.
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS", restrictions['require_voms_proxy'], allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE", restrictions['require_glidein_glexec_use'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain", entry['trust_domain'], allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod", entry['auth_method'], allow_overwrite=True)
             if 'rsl' in entry:
@@ -556,7 +555,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 self.dicts[dtype].add("GLIDEIN_ProxyURL", entry['proxy_url'], allow_overwrite=True)
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS", "boolean", restrictions['require_voms_proxy'], None, False, True, True)
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE", "boolean", restrictions['require_glidein_glexec_use'], None, False, True, True)
 
         # populate infosys
         for infosys_ref in entry.get_child_list('infosys_refs'):
@@ -1006,7 +1004,6 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     job_descript_dict.add('ReleaseSleep', release['sleep'])
     restrictions = config.get_child('restrictions')
     job_descript_dict.add('RequireVomsProxy', restrictions['require_voms_proxy'])
-    job_descript_dict.add('RequireGlideinGlexecUse', restrictions['require_glidein_glexec_use'])
 
     # Job submit file pick algorithm. Only present for metasites, will be Default otherwise
     if 'entry_selection' in config.children:
