@@ -447,22 +447,20 @@ class glideinFrontendElement:
         condorq_dict_abs = glideinFrontendLib.countCondorQ(self.condorq_dict)
 
         self.stats['group'].logJobs(
-            {'Total': condorq_dict_abs,
-             'Idle': condorq_dict_types['Idle']['abs'],
-             'OldIdle': condorq_dict_types['OldIdle']['abs'],
-             'Idle_3600': condorq_dict_types['Idle_3600']['abs'],
-             'Running': condorq_dict_types['Running']['abs']})
+            {'Total':condorq_dict_abs,
+             'Idle':condorq_dict_types['Idle']['abs'],
+             'OldIdle':condorq_dict_types['OldIdle']['abs'],
+             'Idle_3600':condorq_dict_types['Idle_3600']['abs'],
+             'Running':condorq_dict_types['Running']['abs']})
 
-        logSupport.log.info(
-            "Jobs found total %i idle %i (good %i, old(10min %i, 60min %i),  grid %i, voms %i) running %i" % \
-            (condorq_dict_abs,
-             condorq_dict_types['IdleAll']['abs'],
-             condorq_dict_types['Idle']['abs'],
-             condorq_dict_types['OldIdle']['abs'],
-             condorq_dict_types['Idle_3600']['abs'],
-             condorq_dict_types['ProxyIdle']['abs'],
-             condorq_dict_types['VomsIdle']['abs'],
-             condorq_dict_types['Running']['abs']))
+        logSupport.log.info("Jobs found total %i idle %i (good %i, old(10min %i, 60min %i), voms %i) running %i" %\
+                   (condorq_dict_abs,
+                   condorq_dict_types['IdleAll']['abs'],
+                   condorq_dict_types['Idle']['abs'],
+                   condorq_dict_types['OldIdle']['abs'],
+                   condorq_dict_types['Idle_3600']['abs'],
+                   condorq_dict_types['VomsIdle']['abs'],
+                   condorq_dict_types['Running']['abs']))
         self.populate_status_dict_types()
         glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
                                              self.status_dict_types['Running']['dict'])
@@ -620,13 +618,13 @@ class glideinFrontendElement:
             # If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
-            if (self.glexec != 'NEVER'):
-                if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
-                    prop_jobs['Idle'] = prop_jobs['VomsIdle']
-                    logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE'), True):
-                    prop_jobs['Idle'] = prop_jobs['ProxyIdle']
-                    logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
+            # TODO: GlExec is gone (assuming same as NEVER), what is the meaning of GLIDEIN_REQUIRE_VOMS, 
+            #  VomsIdle, are they still needed?
+            #  The following lines should go and maybe all GLIDEIN_REQUIRE_VOMS 
+            #if (self.glexec != 'NEVER'):
+            #    if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
+            #            prop_jobs['Idle']=prop_jobs['VomsIdle']
+            #            logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
 
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
@@ -897,8 +895,12 @@ class glideinFrontendElement:
         """
         tkn_file = ''
         tkn_str = ''
+        tmpnm = ''
         # does condor version of entry point support condor token auth
-        if glidein_el['params']['CONDOR_VERSION'] >= '8.9.2':
+        condor_version = glidein_el['params'].get('CONDOR_VERSION')
+        if condor_version \
+            and condor_version != 'default' \
+            and condor_version >= '8.9.2':
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
@@ -923,7 +925,6 @@ class glideinFrontendElement:
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
                     # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
-                tmpnm = ''
                 if tkn_age > one_hr:    
                     (fd, tmpnm) = tempfile.mkstemp()
                     cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
@@ -1039,7 +1040,6 @@ class glideinFrontendElement:
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_idle_600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
         condorq_dict_idle_3600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 3600)
-        condorq_dict_proxy = glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
         condorq_dict_voms = glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
 
         # then report how many we really had
@@ -1067,11 +1067,8 @@ class glideinFrontendElement:
                 'abs': glideinFrontendLib.countCondorQ(condorq_dict_idle_3600)
             },
             'VomsIdle': {
-                'dict': condorq_dict_voms,
-                'abs': glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-            'ProxyIdle': {
-                'dict': condorq_dict_proxy,
-                'abs': glideinFrontendLib.countCondorQ(condorq_dict_proxy)
+                'dict':condorq_dict_voms,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)
             },
             'Running': {
                 'dict': self.condorq_dict_running,
@@ -1411,16 +1408,22 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr)
 
     def decide_removal_type(self, count_jobs, count_status, glideid):
-        """Picks the max removal type (unless disable is requested)
+        """Pick the max removal type (unless disable is requested)
         - if it was requested explicitly, send that one
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
-        If configured removal is selected, take into account also the margin
+        If configured removal is selected, take into account also the margin and the tracking
+        This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms 
+        in the Factory, like Glidein timeouts
 
-        :param count_jobs:
-        :param count_status:
-        :param glideid:
-        :return:
+        Args:
+            count_jobs (dict): dict with job stats
+            count_status (dict): dict with glidein stats
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string to send to the Factory, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+
         """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins via command line tool, and we have the explicit code to use
@@ -1452,10 +1455,17 @@ class glideinFrontendElement:
 
     def check_removal_type_config(self, glideid):
         """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
-            "ALL", "IDLE", "WAIT", "NO" or "DISABLE" (disable also automatic removal)
+        "ALL", "IDLE", "WAIT", "NO" (default) or "DISABLE" (disable also automatic removal)
 
-        @param glideid: ID of the glidein
-        @return: remove excess string, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+        If removal_requests_tracking or active removal are enabled, this may result in Glidein removals
+        depending on the parameters in the configuration and the current number of Glideins and requests
+
+        Args:
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string from configuration, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+
         """
         # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == 'NO':
@@ -1475,13 +1485,20 @@ class glideinFrontendElement:
         return 'NO'
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
-        """ Decides what kind of excess glideins to remove: control for request and automatic trigger:
+        """Decides what kind of excess glideins to remove: control for request and automatic trigger:
             "ALL", "IDLE", "WAIT", or "NO"
 
-        @param count_jobs: dict with job stats
-        @param count_status: dict with glidein stats
-        @param glideid: ID of the glidein
-        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+        If it is a request from the client (command line) then execute that
+        Otherwise calculate the result of the automatic removal mechanism: increasingly remove WAIT, IDLE and ALL
+        depending on how long (measured in Frontend cycles) there have been no requests.
+
+        Args:
+            count_jobs (dict): dict with job stats
+            count_status (dict): dict with glidein stats
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string from automatic mechanism, one of: "ALL", "IDLE", "WAIT", or "NO"
 
         """
         if self.request_removal_wtype is not None:
@@ -1990,11 +2007,6 @@ class glideinFrontendElement:
             tmp_count_status_multi_per_cred = pipe_out[('Glidein', i)][1]
             self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
 
-        self.glexec = 'UNDEFINED'
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
-            self.glexec = self.elementDescript.frontend_data['GLIDEIN_Glexec_Use']
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.merged_data:
-            self.glexec = self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
     def subprocess_count_dt(self, dt):
         """Count the matches (glideins matching entries) using glideinFrontendLib.countMatch

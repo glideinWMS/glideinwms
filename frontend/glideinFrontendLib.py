@@ -80,15 +80,6 @@ def getIdleVomsCondorQ(condorq_dict):
     return out
 
 
-def getIdleProxyCondorQ(condorq_dict):
-    out={}
-    for schedd_name in list(condorq_dict.keys()):
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:((el.get('JobStatus')==1) and ('x509userproxy' in el)))
-        sq.load()
-        out[schedd_name]=sq
-    return out
-
-
 #
 # Return a dictionary of schedds containing idle jobs
 # Each element is a condorQ

@@ -19,7 +19,7 @@ ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="grid_proxy" comm
             </max_jobs>
             <release max_per_cycle="20" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
-            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>%(submission_speed)s
+            <restrictions require_voms_proxy="False"/>%(submission_speed)s
                <submit_attrs>%(submit_attrs)s
                </submit_attrs>
             </submit>

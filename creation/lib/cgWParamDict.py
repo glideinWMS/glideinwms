@@ -232,7 +232,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'validate_node.sh',
                                    'setup_network.sh',
                                    'gcb_setup.sh',
-                                   'glexec_setup.sh',
                                    'java_setup.sh',
                                    'glidein_memory_setup.sh',
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh

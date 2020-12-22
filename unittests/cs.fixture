@@ -5,7 +5,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.1:53807?CCBID=128.142.187.77:9877#21233%20131.225.191.126:10052#195696&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>4</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -13,7 +12,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins1@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>156</i></a>
@@ -59,7 +57,6 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409217107</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Claimed</s></a>
     <a n="ClientMachine"><s>cmssrv98.fnal.gov</s></a>
@@ -67,8 +64,6 @@
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="Activity"><s>Busy</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
@@ -141,7 +136,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>4</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -149,7 +143,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>13</i></a>
@@ -195,7 +188,6 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Claimed</s></a>
     <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
@@ -203,8 +195,6 @@
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="Activity"><s>Busy</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
@@ -277,7 +267,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.2:55684?CCBID=128.142.187.77:9706#22133%20131.225.191.126:10319#2021433&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>4</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -285,7 +274,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins3@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>13</i></a>
@@ -331,7 +319,6 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Claimed</s></a>
     <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
@@ -339,8 +326,6 @@
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="Activity"><s>Busy</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
@@ -413,7 +398,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.8:37399?CCBID=128.142.187.77:9922#21509%20131.225.191.126:10302#2011072&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>5</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -421,7 +405,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins4@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>51</i></a>
@@ -462,14 +445,11 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409260788</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Unclaimed</s></a>
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="Activity"><s>Idle</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
@@ -537,7 +517,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.8:37399?CCBID=128.142.187.77:9922#21509%20131.225.191.126:10302#2011072&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>5</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -545,7 +524,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins4@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>51</i></a>
@@ -587,14 +565,11 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409260788</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Unclaimed</s></a>
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
     <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
@@ -662,7 +637,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>4</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -670,7 +644,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>13</i></a>
@@ -716,7 +689,6 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Claimed</s></a>
     <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
@@ -724,8 +696,6 @@
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="Activity"><s>Busy</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
@@ -798,7 +768,6 @@
     <a n="SLOTS_LAYOUT"><s>fixed</s></a>
     <a n="MyAddress"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
     <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
-    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
     <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
     <a n="ClockDay"><i>4</i></a>
     <a n="USE_CCB"><s>True</s></a>
@@ -806,7 +775,6 @@
     <a n="Arch"><s>X86_64</s></a>
     <a n="CONDOR_VERSION"><s>8.0.4</s></a>
     <a n="Site_Req_Explicit_Auth"><s>False</s></a>
-    <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
     <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>13</i></a>
@@ -852,7 +820,6 @@
     <a n="SubnetMask"><s>255.255.0.0</s></a>
     <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
     <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
-    <a n="GLEXEC_JOB"><b v="f"/></a>
     <a n="SlotTypeID"><i>1</i></a>
     <a n="slot1_State"><s>Claimed</s></a>
     <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
@@ -860,8 +827,6 @@
     <a n="GLIDEIN_Max_Tail"><i>400</i></a>
     <a n="SlotType"><s>Static</s></a>
     <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
-    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
-    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
     <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
     <a n="Activity"><s>Busy</s></a>
     <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>

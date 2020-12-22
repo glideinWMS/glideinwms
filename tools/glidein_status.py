@@ -30,13 +30,12 @@ data = {}
 
 ################################################################################
 def help():
-    print(
-        "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]")
+    print("glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-singularity] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]")
     print()
     print("Options:")
     print(" -gatekeeper   : Print out the glidein gatekeeper")
     print(" -glidecluster : Print out the glidein cluster nr")
-    print(" -glexec       : Print out if glexec is used")
+    print(" -singularity  : Print out if singularity is used and its mode (if available)")
     print(" -withmonitor  : Print out the monitoring VMs, too")
     print(" -bench        : Print out the benchmarking numbers, too")
     print(" -total        : Print out only the totals (skip details)")
@@ -120,8 +119,8 @@ def get_opts():
     parser.add_argument('-glidecluster', '--glidecluster', dest='want_gc',
                         help='Print out the glidein cluster',
                         action='store_true', default=False)
-    parser.add_argument('-glexec', '--glexec', dest='want_glexec',
-                        help='Print out if glexec is used',
+    parser.add_argument('-singularity', '--singularity', dest='want_singularity',
+                        help='Print out if singularity is used',
                         action='store_true', default=False)
     parser.add_argument('-withmonitor', '--with-monitor', dest='want_monitor',
                         help='Print out the monitoring VMs',
@@ -155,7 +154,7 @@ def main():
     want_gc = opts.want_gc
     want_monitor = opts.want_monitor
     want_bench = opts.want_bench
-    want_glexec = opts.want_glexec
+    want_singularity = opts.want_singularity
     total_only = opts.total_only
     summarize = 'entry'
     if opts.summarize_site:
@@ -188,11 +187,11 @@ def main():
         attrs.append('GLIDEIN_ProcId')
         attrs.append('GLIDEIN_Schedd')
 
-    if want_glexec:
-        format_list.append(('GLEXEC_STARTER', 'b'))
-        format_list.append(('GLEXEC_JOB', 'b'))
-        attrs.append('GLEXEC_STARTER')
-        attrs.append('GLEXEC_JOB')
+    if want_singularity:
+        format_list.append(('HAS_SINGULARITY', 'b'))
+        format_list.append(('GWMS_SINGULARITY_STATUS', 's'))
+        attrs.append('HAS_SINGULARITY')
+        attrs.append('GWMS_SINGULARITY_STATUS')
 
     if want_bench:
         format_list.append(('KFlops', 'i'))
@@ -220,9 +219,9 @@ def main():
         print_mask += " %-5s %-43s"
     print_mask += " %-19s %-19s"
     if want_gc:
-        print_mask += " %-39s %-14s"
-    if want_glexec:
-        print_mask += " %-7s"
+        print_mask+=" %-39s %-14s"
+    if want_singularity:
+        print_mask+=" %-12s"
     if want_bench:
         print_mask += " %-5s %-5s"
     print_mask += " %-9s %-8s %-10s"
@@ -232,9 +231,9 @@ def main():
         header += ('Grid', 'Gatekeeper')
     header += ('Factory', 'Entry')
     if want_gc:
-        header += ('GlideSchedd', 'GlideCluster')
-    if want_glexec:
-        header += ('gLExec',)
+        header+=('GlideSchedd', 'GlideCluster')
+    if want_singularity:
+        header+=('Singularity',)
     if want_bench:
         header += ('MFlop', 'Mips')
     header += ('State', 'Activity', 'ActvtyTime')
@@ -309,13 +308,14 @@ def main():
             print_arr += ("%s@%s" % (cel['GLIDEIN_Name'], cel['GLIDEIN_Factory']), cel['GLIDEIN_Entry_Name'])
             if want_gc:
                 print_arr += (cel['GLIDEIN_Schedd'], "%i.%i" % (cel['GLIDEIN_ClusterId'], cel['GLIDEIN_ProcId']))
-            if want_glexec:
-                glexec_str = 'None'
-                if 'GLEXEC_JOB' in el and el['GLEXEC_JOB']:
-                    glexec_str = 'Job'
-                elif 'GLEXEC_STARTER' in el and el['GLEXEC_STARTER']:
-                    glexec_str = 'Starter'
-                print_arr += (glexec_str,)
+            if want_singularity:
+                singularity_str = 'No'
+                if 'HAS_SINGULARITY' in el and el['HAS_SINGULARITY']:
+                    singularity_str = 'Yes'
+                # Get more details if possible
+                if 'GWMS_SINGULARITY_STATUS' in el:
+                    singularity_str = el['GWMS_SINGULARITY_STATUS']
+                print_arr += (singularity_str,)
             if want_bench:
                 print_arr += (mflops_str, mips_str)
             print_arr += (state, activity, cel['EnteredCurrentActivity'])

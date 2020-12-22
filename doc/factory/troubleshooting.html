@@ -379,15 +379,15 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
 		HTCondor Collector (User Pool) as slots that are available to run jobs.
 		<br/>
 		<br/>
-		If a site uses gLExec, the user must provide a proxy as part of their job submission.  Once the user job gets matched to a glidein by the local 
-		HTCondor Collector (User Pool), this proxy is then used for authorization and to map the user to a local account.  This mapping prevents the security problem
-		introduced in pilot-based systems where there is no authentication of the actual user credentials so that the job is run on a local account.  
+    Once the user job gets matched to a glidein by the local HTCondor Collector (User Pool), 
+      there are security logs where the identity of the user, retrieved from job attributes, is logged.  
+      This mapping prevents the security problem introduced in pilot-based systems where there is no 
+      authentication of the actual user credentials so that the job is run on a local account.  
 		Because the jobs aren't being run explicitly as the user, it is also not obvious whose job is running at a site.
 		<br/>
 		<br/>
-		For more a more detailed explanation of the issues and for more information on integrating gLExec with GlideinWMS, see 
-		<a href="./configuration.html#glexec">here</a>.  It is recommended that you always set x509userproxy in user job submission since the glidein
-		may or may not run on a site with gLExec enabled.  A proxy may also be required for other reasons, such as having the job stage data.
+If you add a x509userproxy in the user job submission it will help w/ identification.
+     A proxy may also be required for other reasons, such as having the job stage data.
 		</p>
 		
 	    <h4>If the glideins have completed</h4>
@@ -409,17 +409,9 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
 	    <h4>If the glideins are still running</h4>
 		<p> 
 	    The user proxy DN is located in the Startd HTCondor logs as the x509UserProxyFQAN.  The site admin can access this log    
-		on the node under glide_*/log.  The location of the glide_* directory will change if gLExec is used.
-		<br/>
-		<br/>  
-                If gLExec is enabled on the site, you can also look in the <a href="http://vdt.cs.wisc.edu/components/glexec.html">gLExec</a> logs.
+		on the node under glide_*/log.  The location of the glide_* directory may change if multi-glidein or containers are used.
 		</p>
-
-            <h4>HTCondor Switchboard no longer used</h4>
-                <p>
-             Switchboard is no longer supported. If you are running an older factory version, please consult <a href="http://glideinwms.fnal.gov/doc.v3_4_3/factory/troubleshooting.html">3.4.3 manual</a>
-                </p>
-
+  
 	</div>
 
 <div class="section">
@@ -443,7 +435,7 @@ Checking inner xml:
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
 GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

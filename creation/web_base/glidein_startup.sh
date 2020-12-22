@@ -20,11 +20,12 @@ GWMS_SUBDIR=".gwms.d"
 export LANG=C
 
 # General options
+GWMS_MULTIUSER_GLIDEIN=
 # Set GWMS_MULTIUSER_GLIDEIN if the Glidein may spawn processes (for jobs) as a different user.
 # This will prepare the glidein, e.g. setting to 777 the permission of TEMP directories
 # This should never happen only when using GlExec. Not in Singularity, not w/o sudo mechanisms.
 # Comment the following line if GlExec or similar will not be used
-GWMS_MULTIUSER_GLIDEIN=true
+#GWMS_MULTIUSER_GLIDEIN=true
 # Default GWMS log server
 GWMS_LOGSERVER_ADDRESS='https://fermicloud152.fnal.gov/log'
 
@@ -38,7 +39,7 @@ get_data() {
 }
 
 source_data() {
-    # Source the specified data, which is appended as tarball
+    # Source the specified data, which is appended as tarball, without saving it
     # 1: selected file
     local data="$(get_data "$1")"
     [[ -n "$data" ]] && eval "$data"
@@ -60,7 +61,8 @@ extract_all_data() {
         echo "Extracting file ${f}"
         get_data "${f}" > "${f}"
         echo "Sourcing file ${f}"
-        source_data "${f}"
+        # source_data "${f}" - can source the file saved instead of re-extracting it
+        . "${f}"
     done
     IFS="${IFS_OLD}"
 }
@@ -445,6 +447,8 @@ early_glidein_failure() {
 # use this one once the most basic ops have been done
 glidein_exit() {
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
+
+  gwms_process_scripts "$GWMS_DIR" cleanup
 
   global_result=""
   if [ -f otr_outlist.list ]; then
@@ -1077,8 +1081,10 @@ fi
 
 # mktemp makes it user readable by definition (ignores umask)
 # TODO: MMSEC should this change to increase protection? Since GlExec is gone this should not be needed
-if ! chmod a+rx "${work_dir}"; then
-    early_glidein_failure "Failed chmod '${work_dir}'"
+if [ -n "${GWMS_MULTIUSER_GLIDEIN}" ]; then
+    if ! chmod a+rx "${work_dir}"; then
+        early_glidein_failure "Failed chmod '${work_dir}'"
+    fi
 fi
 
 def_glide_local_tmp_dir="/tmp/glide_$(dir_id)$(id -u -n)_XXXXXX"
@@ -1194,6 +1200,7 @@ if ! {
     echo "ADD_CONFIG_LINE_SOURCE ${PWD}/add_config_line.source"
     echo "GET_ID_SELECTORS_SOURCE ${PWD}/get_id_selectors.source"
     echo "LOGGING_UTILS_SOURCE ${PWD}/logging_utils.source"
+    echo "GLIDEIN_PATHS_SOURCE ${PWD}/glidein_paths.source"
     echo "WRAPPER_LIST ${wrapper_list}"
     echo "SLOTS_LAYOUT ${slots_layout}"
     # Add a line saying we are still initializing...
@@ -1676,6 +1683,10 @@ fetch_file_base() {
         fi
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
+        elif [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
+            echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
+            cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
+            chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
         else
             echo "Executing (flags:${ffb_file_type#exec}) ${ffb_outname}"
             # have to do it here, as this will be run before any other script
@@ -1859,6 +1870,8 @@ if [ -z "${last_script}" ]; then
     warn "last_script not in description file ${gs_id_work_dir}/${gs_id_descript_file}."
     glidein_exit 1
 fi
+#cleanup_script="$(grep "^cleanup_script " "${gs_id_work_dir}/${gs_id_descript_file}" | cut -s -f 2-)"
+cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' ' -f 2-)
 
 
 ##############################

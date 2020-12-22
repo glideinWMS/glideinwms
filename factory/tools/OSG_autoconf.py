@@ -5,6 +5,7 @@
 
 
 
+import os
 import sys
 import copy
 import argparse
@@ -42,8 +43,8 @@ def get_vos(allowed_vos):
     for vorg in allowed_vos:
         if vorg in GLIDEIN_SUPPORTED_VO_MAP:
             vos.add(GLIDEIN_SUPPORTED_VO_MAP[vorg])
-        else:
-            print(vorg + " VO is not in GLIDEIN_Supported_VOs_map")
+#        else:
+#            print(vorg + " VO is not in GLIDEIN_Supported_VOs_map")
 
     return vos
 
@@ -118,8 +119,8 @@ def get_information(host):
                         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": resource}
                     if len(vos) > 0:
                         edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
-                    else:
-                        print(gatekeeper + " CE does not have VOs")
+#                    else:
+#                        print(gatekeeper + " CE does not have VOs")
                     edict["submit_attrs"] = {}
                     if cpus != "":
                         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
@@ -154,8 +155,7 @@ def get_entries_configuration(data):
             for entry, entry_information in sorted(list(ce_information.items())):
                 entry_configuration = copy.deepcopy(entry_information)
                 entry_configuration["entry_name"] = entry
-                # Can we get these information (next two keys)?
-                entry_configuration["attrs"]["GLEXEC_BIN"] = {"value": "NONE"}
+                # Can we get these information (next key)?
                 entry_configuration["attrs"]["GLIDEIN_REQUIRED_OS"] = (
                     {"comment": "This value has been hardcoded", "value": "any"}
                 )
@@ -192,6 +192,8 @@ def merge_yaml(config, white_list):
     """
     out = get_yaml_file_info(white_list)
     osg_info = get_yaml_file_info(config["OSG_YAML"])
+    missing_info = get_yaml_file_info(config["MISSING_YAML"])
+    update(osg_info, missing_info)
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
     for site, site_information in out.items():
         if site_information is None:
@@ -209,8 +211,8 @@ def merge_yaml(config, white_list):
                 del out[site][celem]
                 continue
             if celem not in osg_info[site]:
-                print("Working on whitelisted site %s: cant find ce %s in the generated OSG.yaml"
-                      % (site, celem))
+                print("Working on whitelisted site %s: cant find ce %s in the generated %s or the missing %s files "
+                      % (site, celem, config["OSG_YAML"], config["MISSING_YAML"]))
                 raise ProgramError(3)
             for entry, entry_information in ce_information.items():
                 if entry_information is None:
@@ -218,10 +220,17 @@ def merge_yaml(config, white_list):
                     entry_information = out[site][celem][entry]
                 else:
                     if osg_info[site][celem]["DEFAULT_ENTRY"]["gridtype"] == "condor":
-                        if "attrs" in entry_information:
+                        if "attrs" in entry_information and entry_information["attrs"]:
                             entry_information = update_submit_attrs(entry_information, "GLIDEIN_CPUS", "+xcount")
                             entry_information = update_submit_attrs(entry_information, "GLIDEIN_MaxMemMBs", "+maxMemory")
                             entry_information = update_submit_attrs(entry_information, "GLIDEIN_Max_Walltime", "+maxWallTime")
+                        if "submit_attrs" in entry_information:
+                            if "+WantWholeNode" in entry_information["submit_attrs"]:
+                                want_whole_node = entry_information["submit_attrs"]["+WantWholeNode"]
+                                if want_whole_node == True or want_whole_node == "True":
+                                    entry_information = set_whole_node_entry(entry_information)
+                            if "Request_GPUs" in entry_information["submit_attrs"]:
+                                entry_information = set_gpu_entry(entry_information)
                     if "limits" in entry_information:
                         if "entry" in entry_information["limits"] and "frontend" not in entry_information["limits"]:
                             entry_information["limits"]["frontend"] = entry_information["limits"]["entry"]
@@ -236,6 +245,51 @@ def merge_yaml(config, white_list):
                 )
     return out
 
+def set_gpu_entry(entry_information):
+    """Set gpu entry
+
+    Args:
+        entry_information (dict): a dictionary of entry information from white list file
+
+    Returns:
+        dict: a dictionary of entry information from white list file with gpu settings
+    """
+    if "attrs" not in entry_information:
+        entry_information["attrs"] = {}
+    if "GLIDEIN_Resource_Slots" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_Resource_Slots"] = {"value": "GPUs," + str(entry_information["submit_attrs"]["Request_GPUs"]) + ",type=main"}
+
+    return entry_information
+
+
+def set_whole_node_entry(entry_information):
+    """Set whole node entry
+
+    Args:
+        entry_information (dict): a dictionary of entry information from white list file
+
+    Returns:
+        dict: a dictionary of entry information from white list file with whole node settings
+    """
+    if "submit_attrs" in entry_information:
+        if "+xcount" not in entry_information["submit_attrs"]:
+            entry_information["submit_attrs"]["+xcount"] = None
+        if "+maxMemory" not in entry_information["submit_attrs"]:
+            entry_information["submit_attrs"]["+maxMemory"] = None
+
+    if "attrs" not in entry_information:
+        entry_information["attrs"] = {}
+    if "GLIDEIN_CPUS" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_CPUS"] = {"value": "auto"}
+    if "GLIDEIN_ESTIMATED_CPUS" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_ESTIMATED_CPUS"] = {"value": 32}
+    if "GLIDEIN_MaxMemMBs" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_MaxMemMBs"] = {"type": "string", "value": ""}
+    if "GLIDEIN_MaxMemMBs_Estimate" not in entry_information["attrs"]:
+        entry_information["attrs"]["GLIDEIN_MaxMemMBs_Estimate"] = {"value": "True"}
+
+    return entry_information
+
 
 def update_submit_attrs(entry_information, attr, submit_attr):
     """Update submit attribute according to produced attribute if submit attribute is not defined
@@ -243,10 +297,10 @@ def update_submit_attrs(entry_information, attr, submit_attr):
     Args:
         entry_information (dict): a dictionary of entry information from white list file
         attr (str): attribute name
-        submit_attr: submit attribute name
+        submit_attr (str): submit attribute name
 
     Returns:
-        dict: a dictionary of entry iformation from white list file with possible updated submit attribute
+        dict: a dictionary of entry information from white list file with possible updated submit attribute
     """
     if attr in entry_information["attrs"] and entry_information["attrs"][attr]:
         if "submit_attrs" in entry_information:
@@ -265,15 +319,65 @@ def update_submit_attrs(entry_information, attr, submit_attr):
     return entry_information
 
 
+def create_missing_file(config, osg_collector_data):
+    """
+    """
+    print("Verifying missing sites and CEs")
+
+    osg_info = get_yaml_file_info(config["OSG_YAML"])
+    missing_info = get_yaml_file_info(config["MISSING_YAML"]) if os.path.isfile(config["MISSING_YAML"]) else {}
+
+    new_missing = {}
+    for white_list in sorted(config["OSG_WHITELISTS"]):
+        print("Checking if any site or CE in %s is missing in the OSG collector" % white_list)
+        whitelist_info = get_yaml_file_info(white_list)
+        tmp = create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data)
+        update(new_missing, tmp)
+
+    write_to_yaml_file(config["MISSING_YAML"], new_missing)
+
+
+def create_missing_file_internal(missing_info, osg_info, whitelist_info, osg_collector_data):
+    """
+    """
+    new_missing = {}
+    for site, site_information in whitelist_info.items():
+        if site_information is None:
+            continue
+        if site not in osg_collector_data: # Check if the site disappeared from the OSG collector
+            if site in osg_info or site in missing_info:
+                print("WARNING! Site %s is in the whitelist file, but not in the collector. Retrieving it from old data (old OSG YAML or MISSING YAML), and saving it to the MISSING YAML" % site)
+                new_missing[site] = osg_info.get(site) or missing_info[site]
+            else:
+                print("ERROR! Site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML" % site)
+            continue
+        for celem, ce_information in site_information.items():
+            if ce_information is None:
+                continue
+            if celem not in osg_collector_data[site]:
+                if celem in osg_info.get(site, {}) or celem in missing_info.get(site, {}):
+                    print("WARNING! CE %s of site %s is in the whitelist file, but not in the collector. Retrieving it from old data (old OSG YAML or MISSING YAML), and saving it to the MISSING YAML" % (celem, site))
+                    new_missing.setdefault(site, {})
+                    new_missing[site][celem] = osg_info.get(site, {}).get(celem, False) or missing_info[site][celem]
+                else:
+                    print("ERROR! CE %s of site %s is in the whitelist file, and I cant neither find it in the OSG YAML saved data, nor the MISSING YAML" % (celem, site))
+
+    # Returning for unit tests
+    return new_missing
+
+
+
 def main():
     """The main"""
     config = load_config()
     # Queries the OSG collector
     result = get_information(config["OSG_COLLECTOR"])
+    # Create the file for the missing CEs
+    create_missing_file(config, result)
     # Write the received information to the OSG.yml file
     write_to_yaml_file(config["OSG_YAML"], result)
     # Merges different yaml files: the defaults, the generated one, and the factory overrides
-    for white_list in config["OSG_WHITELISTS"]:
+    for white_list in sorted(config["OSG_WHITELISTS"]):
         result = merge_yaml(config, white_list)
         # Convert the resoruce dictionary obtained this way into a string (xml)
         entries_configuration = get_entries_configuration(result)

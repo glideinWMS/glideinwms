@@ -82,25 +82,7 @@ def monitor(jid,schedd_name,pool_name,
     monitorVM=getMonitorVM(pool_name, remoteVM)
 
     condor_status=getMonitorVMStatus(pool_name, monitorVM)
-    validateMonitorVMStatus(condor_status, monitorVM)
-
-    if 'GLEXEC_STARTER' in condor_status:
-        glexec_starter=condor_status['GLEXEC_STARTER']
-    else:
-        glexec_starter=False #if not defined, assume no gLExec for old way
-
-    if 'GLEXEC_JOB' in condor_status:
-        glexec_job=condor_status['GLEXEC_JOB']
-    else:
-        glexec_job=False #if not defined, assume no gLExec for new way
-
-    if glexec_starter or glexec_job:
-        if 'X509_USER_PROXY' not in os.environ:
-            raise RuntimeError("Job running on a gLExec enabled resource; X509_USER_PROXY must be defined")
-        x509_file=os.environ['X509_USER_PROXY']
-    else:
-        x509_file=None
-
+    validateMonitorVMStatus(condor_status, monitorVM)        
 
     tmpdir=tempfile.mkdtemp(prefix="glidein_intmon_")
     try:
@@ -113,7 +95,7 @@ def monitor(jid,schedd_name,pool_name,
         mcname=os.path.join(tmpdir, mc_relname)
         createMonitorFile(mfname, mc_relname, argv, condor_status, monitorVM)
         createSubmitFile(tmpdir, sname, mlog, mfname, mfout, mferr,
-                         monitorVM, timeout, x509_file)
+                         monitorVM, timeout)
         jid=condorManager.condorSubmitOne(sname, schedd_name, pool_name)
         try:
             checkFile(mcname, schedd_name, pool_name, timeout, reschedule_freq=10)
@@ -127,7 +109,6 @@ def monitor(jid,schedd_name,pool_name,
     return
 
 ######## Internal ############
-
 
 
 def getRemoteVM(pool_name, schedd_name, constraint):
@@ -165,7 +146,8 @@ def getMonitorVM(pool_name, jobVM):
 def getMonitorVMStatus(pool_name, monitorVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
-                  format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('State', 's'), ('Activity', 's'), ('vm2_State', 's'), ('vm2_Activity', 's'), ('GLEXEC_STARTER', 'b'), ('USES_MONITOR_STARTD', 'b'), ('GLEXEC_JOB', 'b')])
+                  format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('State', 's'), ('Activity', 's'), 
+                               ('vm2_State', 's'), ('vm2_Activity', 's'), ('USES_MONITOR_STARTD', 'b')])
     if monitorVM not in data:
         raise RuntimeError("Monitor slot %s does not exist!"%monitorVM)
 
@@ -196,7 +178,7 @@ def validateMonitorVMStatus(condor_status, monitorVM):
 
 def createSubmitFile(work_dir,sfile,mlog,
                      mfname,mfout,mferr,
-                     monitorVM,timeout,x509_file=None):
+                     monitorVM,timeout):
     with open(sfile, "w") as fd:
         fd.write("universe=vanilla\n")
         fd.write("executable=%s\n"%mfname)
@@ -209,8 +191,6 @@ def createSubmitFile(work_dir,sfile,mlog,
         fd.write("notification=Never\n")
         fd.write("+GLIDEIN_Is_Monitor=True\n")
         fd.write("+Owner=Undefined\n")
-        if x509_file is not None:
-            fd.write('x509userproxy = %s\n'%x509_file)
         fd.write('Requirements=(Name=?="%s")&&(Arch=!="Absurd")\n'%monitorVM)
         fd.write("periodic_remove=(CurrentTime>%li)\n"%(int(time.time())+timeout+30)) # karakiri after timeout+delta
         fd.write("queue\n")
