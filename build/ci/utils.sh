@@ -371,7 +371,7 @@ setup_python2_venv() {
         # Install dependencies first so we don't get incompatible ones
         # Following RPMs need to be installed on the machine:
         # pep8 has been replaced by pycodestyle
-        pip_packages="${PYCODESTYLE} unittest2 ${COVERAGE} ${PYLINT} ${ASTROID}"
+        pip_packages="${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT requests future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
         pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"

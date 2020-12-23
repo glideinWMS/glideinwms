@@ -13,7 +13,7 @@ from __future__ import print_function
 
 import copy
 import xmlrunner
-import unittest2 as unittest
+import unittest
 #from unittest.mock import patch
 
 try:
