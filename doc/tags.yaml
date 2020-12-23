@@ -193,4 +193,25 @@ v3_9:
     - Fixed spec file to include python3 compiled files and not python2 ones
     - Fixed Mapping import
     - Fixed str vs bytes confusion in cryptography functions and classes
- 
+
+v3_7_2:
+  Date: December 21, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.6
+    - Drop GLExec support
+    - Mechanism for running custom scripts at the end of glidein execution
+    - OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
+  Bug fix:
+    - Frontend no longer over-generates tokens for entries
+    - Factory does not remove glideins when idle limit is hi
+
+v3_9_1:
+  Date: December 23, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.2
+  Bug fix:
+    - Frontend no longer reports duplicate glideclient daemons to the Factory

@@ -1,3 +1,7 @@
+v3_9_1
+	Includes all features and fixes of 3.7.2
+	Bug fix: Frontend no longer reports duplicate glideclient daemons to the Factory
+
 v3_9
 	Includes all features and fixes of 3.6.3 and 3.7.1
 	Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
@@ -9,6 +13,14 @@ v3_9
 	Bug fix: Fixed spec file to include python3 compiled files and not python2 ones
 	Bug fix: Fixed Mapping import
 	Bug fix: Fixed str vs bytes confusion in cryptography functions and classes
+
+v3_7_2
+	Includes all features and fixes of 3.6.6
+	Drop GLExec support
+	Mechanism for running custom scripts at the end of glidein execution
+	OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
+	Bug fix: Frontend no longer over-generates tokens for entries
+	Bug fix: Factory does not remove glideins when idle limit is hi
 
 v3_7_1
 	Includes all features and fixes of 3.6.5
@@ -30,15 +42,6 @@ v3_6_5
 	Bug fix: Fixed shared_port_port to adapt to HTCondor 8.8.10 changes
 	Bug fix: Fixed overrides in OSG_autoconf using depcopy, use https for gfdiff
 	Bug fix: Fixed credential dir in manual_glidein_submit removing hardcoding
-
-v3_6_4
-	Improved OSG_autoconf
-	Dropped Python 2.6 support
-	Added support for RHEL 8 worker nodes
-	Harmonized, improved and extended CI tests (same CLI, support for Python 3, ...)
-	Added tool to verify if the code for a ticket has been merged
-	Bug fix: Fix for condor_chirp not finding htchirp in the PYTHONPATH
-	Bug fix: Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
 
 v3_6_4
 	Improved OSG_autoconf
