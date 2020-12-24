@@ -74,12 +74,19 @@ For those familiar with the Condor system, it is used for
 scheduling and job control. This package is for a one-node
 vofrontend install (userschedd, usercollector, vofrontend).
 
-%package vofrontend-httpd
-Summary:  The Apache http configuration for GWMS frontend.
-Requires: httpd
-%description vofrontend-httpd
-This subpackage includes the minimal configuration to start apache to
-serve the frontend files to the pilot.
+
+%package vofrontend-standalone
+Summary:        The VOFrontend for glideinWMS submission host
+Requires: glideinwms-vofrontend-core =%{version}-%{release}
+Requires: glideinwms-vofrontend-httpd =%{version}-%{release}
+%description vofrontend-standalone
+The purpose of the glideinWMS is to provide a simple way
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
+Based WMS (Workload Management System) that works on top of
+Condor. For those familiar with the Condor system, it is used
+for scheduling and job control.
+This package is for a standalone vofrontend install
+
 
 %package vofrontend-core
 Summary: The intelligence logic for GWMS.
@@ -101,17 +108,14 @@ Requires(post): /sbin/chkconfig
 This subpackage includes all the python scripts need to run a
 frontend.
 
-%package vofrontend-standalone
-Summary:        The VOFrontend for glideinWMS submission host
-Requires: glideinwms-vofrontend-httpd =%{version}-%{release}
-Requires: glideinwms-vofrontend-core =%{version}-%{release}
-%description vofrontend-standalone
-The purpose of the glideinWMS is to provide a simple way
-to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
-Based WMS (Workload Management System) that works on top of
-Condor. For those familiar with the Condor system, it is used
-for scheduling and job control.
-This package is for a standalone vofrontend install
+
+%package vofrontend-httpd
+Summary:  The Apache http configuration for GWMS frontend.
+Requires: httpd
+%description vofrontend-httpd
+This subpackage includes the minimal configuration to start Apache to
+serve the frontend files to the pilot and the monitoring pages.
+
 
 %package usercollector
 Summary:        The VOFrontend glideinWMS collector host
