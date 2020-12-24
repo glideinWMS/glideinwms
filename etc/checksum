@@ -1,11 +1,10 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_1_rc1
+# GLIDEINWMS_VERSION v3_9_1_rc2
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
 f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 fd5dc5fa30a4ff27f3953cdb2654da1e  ./.travis.yml
-f4576d8ff6ad92013bef007cc4ba49fa  ./.vscode/settings.json
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
 0bfae2b4e45856ba9e34130adc59f4ae  ./README.md
@@ -61,7 +60,7 @@ daf8699ff7a31ea6d69522e41c7a3d5f  ./creation/web_base/cat_consts.sh
 d21df4d1e3e170fcd7f7ae66b752d7ac  ./creation/web_base/check_blacklist.sh
 8801da02d237a168b907f85e30a61287  ./creation/web_base/check_proxy.sh
 f5461e2880a7193fef8ec2f4ee0d6628  ./creation/web_base/check_wn_drainstate.sh
-ebb4fc040330f2636ed25be3c5afc83d  ./creation/web_base/collector_setup.sh
+84d18c374766a53eee2eba92deca9b70  ./creation/web_base/collector_setup.sh
 dcc8d8111389ffc32201854adce0490d  ./creation/web_base/condor_chirp
 17d43f51d40bf91e58876f3d38535084  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
@@ -244,11 +243,13 @@ ea8d319407e6cbdcaa3a03f5b25d4452  ./lib/x509Support.py
 ef8fe62ce57594d3446163cf4a083e5d  ./requirements.txt
 a081a33337efb62855c3142eb550574b  ./test/bats/README.md
 d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
+9eae19e8e4dceb4be80d79a05a459831  ./test/bats/creation_web_base_collector_setup.bats
 fa866769bccc721d498b993b9c6bdb19  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
+3d011ed7b144a76e21c0cf3ef775c586  ./test/bats/fixtures/condor_vars_file.source
 13059fe60b63b6911848ac4d2144653a  ./test/bats/fixtures/environment_singularity
-f3478630b393e10984a3a2a0be257757  ./test/bats/fixtures/glidein_config
+197a26c2c9cd1352132589f5f674937d  ./test/bats/fixtures/glidein_config
 61374cf1efa5ff699a67fe8c832d0f4d  ./test/bats/helper.bash
 abe6c47c1feaada5bd01ae28c7921dc5  ./test/bats/mock_gwms_logs.bash
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
