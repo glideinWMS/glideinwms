@@ -29,7 +29,7 @@ function replace_range {
     # that can contain a port range or a range in the sock names
     # The output replaces ranges N1-N2 with $RANDOM_INTEGER(N1,N2)
     # The Frontend is verifying the correctnes when checking the configuration
-    echo "$(echo "$1" | sed -E 's;^([^?:]+):([0-9]+)-([0-9]+);\1:\$RANDOM_INTEGER(\2,\3);;s;^([^?\-]+)\?(.*&)*sock=([^&\-]*[^0-9&]+)([0-9]+)-([0-9]+)(&.*)*$;\1?\2sock=\3\$RANDOM_INTEGER(\4,\5)\6;')"
+    echo "$(echo "$1" | sed -E 's;^([^?:]+):([0-9]+)-([0-9]+);\1:\$RANDOM_INTEGER(\2,\3);;s;^([^?]+)\?(.*&)*sock=([^&\-]*[^0-9&]+)([0-9]+)-([0-9]+)(&.*)*$;\1?\2sock=\3\$RANDOM_INTEGER(\4,\5)\6;')"
 }
 
 function select_collector {
