@@ -144,9 +144,9 @@ This is a package for a glideinwms submit host.
 
 %package libs
 Summary:        The glideinWMS common libraries.
+Requires: python3 >= 3.6
 Requires: python3-condor
 # was condor-python for python2
-Requires: python3 >= 3.6
 Requires: python-rrdtool
 Requires: python36-ldap3
 Requires: python36-jwt
@@ -320,6 +320,7 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/config_examples
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.editorconfig
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitattributes
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.github
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitignore
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitmodules
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.mailmap
@@ -906,7 +907,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Fri Dec 23 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.9.1-1
+* Thu Dec 24 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.9.1-1
 - GlideinWMS v3.9.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9/history.html
 - Release candidates: 3.9-0.1.rc1 to 3.9.1-0.1.rc1
