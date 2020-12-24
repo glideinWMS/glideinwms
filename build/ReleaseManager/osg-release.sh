@@ -39,6 +39,8 @@ archive_gwms() {
 
 archive_gwms
 
+echo "Tarball Created for $gwms_tag (sha1sum, file): $(sha1sum "$gwms_tar")"
+
 ssh $username@$osg_buildmachine "mkdir -p $osg_uploaddir"
 
 if [ $? -eq 0 ]; then
