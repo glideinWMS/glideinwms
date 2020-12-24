@@ -80,8 +80,8 @@ vofrontend install (userschedd, usercollector, vofrontend).
 
 %package vofrontend-standalone
 Summary:        The VOFrontend for glideinWMS submission host
-Requires: glideinwms-vofrontend-core =%{version}-%{release}
-Requires: glideinwms-vofrontend-httpd =%{version}-%{release}
+Requires: glideinwms-vofrontend-core = %{version}-%{release}
+Requires: glideinwms-vofrontend-httpd = %{version}-%{release}
 %description vofrontend-standalone
 The purpose of the glideinWMS is to provide a simple way
 to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
@@ -189,8 +189,8 @@ standalone packages.
 %package factory
 Summary:        The Factory for glideinWMS
 Provides:       GlideinWMSFactory = %{version}-%{release}
-Requires: glideinwms-factory-httpd =%{version}-%{release}
-Requires: glideinwms-factory-core =%{version}-%{release}
+Requires: glideinwms-factory-httpd = %{version}-%{release}
+Requires: glideinwms-factory-core = %{version}-%{release}
 %description factory
 The purpose of the glideinWMS is to provide a simple way
 to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
