@@ -75,12 +75,24 @@ access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein Based
 WMS (Workload Management System) that works on top of Condor.
 For those familiar with the Condor system, it is used for
 scheduling and job control. This package is for a one-node
-vofrontend install (userschedd, submit, vofrontend).
+vofrontend install (userschedd, usercollector, vofrontend).
 
 
 %package vofrontend-standalone
 Summary:        The VOFrontend for glideinWMS submission host
-Requires: httpd
+Requires: glideinwms-vofrontend-core =%{version}-%{release}
+Requires: glideinwms-vofrontend-httpd =%{version}-%{release}
+%description vofrontend-standalone
+The purpose of the glideinWMS is to provide a simple way
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
+Based WMS (Workload Management System) that works on top of
+Condor. For those familiar with the Condor system, it is used
+for scheduling and job control.
+This package is for a standalone vofrontend install
+
+
+%package vofrontend-core
+Summary:        The intelligence logic for GWMS Frontend.
 Requires: condor >= 8.9.5
 Requires: python3 >= 3.6
 Requires: python-rrdtool
@@ -96,13 +108,17 @@ Requires: glideinwms-common-tools = %{version}-%{release}
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
-%description vofrontend-standalone
-The purpose of the glideinWMS is to provide a simple way
-to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
-Based WMS (Workload Management System) that works on top of
-Condor. For those familiar with the Condor system, it is used
-for scheduling and job control.
-This package is for a standalone vofrontend install
+%description vofrontend-core
+This subpackage includes all the scripts needed to run a
+frontend. Created to separate out the httpd server.
+
+
+%package vofrontend-httpd
+Summary:        The Apache http configuration for GWMS Frontend.
+Requires: httpd
+%description vofrontend-httpd
+This subpackage includes the minimal configuration to start Apache to
+serve the Frontend files to the pilot and the monitoring pages.
 
 
 %package usercollector
@@ -173,7 +189,18 @@ standalone packages.
 %package factory
 Summary:        The Factory for glideinWMS
 Provides:       GlideinWMSFactory = %{version}-%{release}
-Requires: httpd
+Requires: glideinwms-factory-httpd =%{version}-%{release}
+Requires: glideinwms-factory-core =%{version}-%{release}
+%description factory
+The purpose of the glideinWMS is to provide a simple way
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
+Based WMS (Workload Management System) that works on top of
+HTCondor. For those familiar with the Condor system, it is used
+for scheduling and job control.
+
+
+%package factory-core
+Summary:        The scripts for the GlideinWMS Factory
 Requires: glideinwms-factory-condor = %{version}-%{release}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
@@ -192,12 +219,17 @@ Requires: javascriptrrd >= 1.1.0
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
-%description factory
-The purpose of the glideinWMS is to provide a simple way
-to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
-Based WMS (Workload Management System) that works on top of
-HTCondor. For those familiar with the Condor system, it is used
-for scheduling and job control.
+%description factory-core
+This subpackage includes all the scripts needed to run a
+Factory. Created to separate out the httpd server.
+
+
+%package factory-httpd
+Summary:        The Apache httpd configuration for the GWMS Factory
+Requires: httpd
+%description factory-httpd
+This subpackage includes the minimal configuration to start Apache to
+serve the Factory files to the pilot and the monitoring pages.
 
 
 %package factory-condor
@@ -759,7 +791,6 @@ rm -rf $RPM_BUILD_ROOT
 %else
 %{_initrddir}/gwms-factory
 %endif
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/plugin.d
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.pre
@@ -767,7 +798,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-factory/glideinWMS.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-factory
 
-%files vofrontend-standalone
+%files vofrontend-core
 %defattr(-,frontend,frontend,-)
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
@@ -819,7 +850,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_initrddir}/gwms-renew-proxies
 %attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, root, root) %config(noreplace) %{_sysconfdir}/sudoers.d/99_frontend_sudoers
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
@@ -830,6 +860,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 
+%files factory-httpd
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
+
+%files vofrontend-httpd
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 
 %files factory-condor
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
@@ -1354,4 +1389,3 @@ rm -rf $RPM_BUILD_ROOT
   configuration variables.
 - Removed the rm's to delete the frontend-temp and log directories at uninstall,
   they removed files when updating, not wanted.  Let RPM handle those.
-
