@@ -861,6 +861,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 
+%files factory-core
+
 %files factory-httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 
@@ -907,10 +909,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
-* Thu Dec 24 2020 Bruno Coimbra <coimbra@fnal.gov> - 3.9.1-1
+* Tue Jan 5 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.1-3
 - GlideinWMS v3.9.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9/history.html
-- Release candidates: 3.9-0.1.rc1 to 3.9.1-0.1.rc1
+- Release candidates: 3.9-0.1.rc1 to 3.9.1-0.1.rc3
 
 * Mon Dec 21  2020 Dennis Box <dbox@fnal.gov> - 3.7.2-1
 - GlideinWMS v3.7.2
