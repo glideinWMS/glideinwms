@@ -671,6 +671,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend-standalone
 
+%files factory-core
+
 %files common-tools
 %defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/glidein_cat
