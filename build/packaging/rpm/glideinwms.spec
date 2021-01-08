@@ -638,6 +638,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend
 
+%files vofrontend-standalone
+
 %files common-tools
 %defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/glidein_cat
@@ -838,7 +840,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend-httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
-
 
 %files factory-condor
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
