@@ -865,8 +865,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 
-%files factory-core
-
 %files factory-httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 
