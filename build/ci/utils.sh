@@ -319,7 +319,7 @@ setup_python2_venv() {
         JSONPICKLE="jsonpickle"
         PYCODESTYLE="pycodestyle"
         MOCK="mock==3.0.3"
-        M2CRYPTO="M2Crypto==0.20.2"
+        M2CRYPTO="M2Crypto"
     fi
 
     # pip install of M2Crypto is failing, use RPM:
