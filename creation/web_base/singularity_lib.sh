@@ -1143,8 +1143,13 @@ singularity_test_bin() {
     fi    
     local bread_crumbs=" $step($sin_path):"
     sin_version=$("$sin_path" version 2>/dev/null)
+    if [[ $? -ne 0 ]]; then
+        # singularity 2.6.1 does not have the version command
+        sin_version=$("$sin_path" --version 2>/dev/null)
+    fi
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
-    # more recent singularity versions add a "singularity version " prefix to the version number
+    # More recent singularity versions add a "singularity version " prefix to the version number 
+    # in "singularity --version" this is not the case with "singularity version"
     sin_version=${sin_version#singularity version }
     if [[ -z "$sin_image" ]]; then
         sin_type=unknown
