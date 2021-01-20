@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_1_rc4
+# GLIDEINWMS_VERSION v3_9_1_rc5
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -104,7 +104,7 @@ bebbfe0cd55b81aa87f21b84a3730df2  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 294a195e021598dccfd2b6f73644f355  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-5206c5570c82e24c21d22cd97bf087f8  ./creation/web_base/singularity_lib.sh
+360e3fc0274ea41f722791f89eefdb3b  ./creation/web_base/singularity_lib.sh
 2a8cd574697abd8476baa102df86299d  ./creation/web_base/singularity_wrapper.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f1251ffc63a6889c5791617c08e23475  ./creation/web_base/update_proxy.py
@@ -118,7 +118,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 f1a09d880f0656bffe6da946b69b174e  ./frontend/glideinFrontend.py
 d6f504e532123a1dac671d9b895bac09  ./frontend/glideinFrontendConfig.py
 43fae45cd5f9328417ed2c74e294a1d2  ./frontend/glideinFrontendDowntimeLib.py
-2af492489a7f57cb2bd8d0c0844604e2  ./frontend/glideinFrontendElement.py
+7c4ef9369be76a167b8b4e2930d227cf  ./frontend/glideinFrontendElement.py
 8f926e4bd94607354285fa4d62ad698d  ./frontend/glideinFrontendInterface.py
 01714e6ddc595947787efb128ec52cbf  ./frontend/glideinFrontendLib.py
 2a4bc838782591718b9364ddcc0648ae  ./frontend/glideinFrontendMonitorAggregator.py

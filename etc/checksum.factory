@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_1_rc4
+# GLIDEINWMS_VERSION v3_9_1_rc5
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -100,7 +100,7 @@ ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 294a195e021598dccfd2b6f73644f355  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 e00b646103dc240c56d7901cad824eee  ./creation/web_base/setup_x509.sh
-5206c5570c82e24c21d22cd97bf087f8  ./creation/web_base/singularity_lib.sh
+360e3fc0274ea41f722791f89eefdb3b  ./creation/web_base/singularity_lib.sh
 fa08f58039af2c8650b772abf4080641  ./creation/web_base/singularity_setup.sh
 2a8cd574697abd8476baa102df86299d  ./creation/web_base/singularity_wrapper.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
@@ -112,7 +112,7 @@ cdab79175974b46109466abab717e3d6  ./factory/glideFactory.py
 b0dfd8dbfeb19b7e634d7eed0d837b1a  ./factory/glideFactoryConfig.py
 c6ec2f2f94fdba31b30fef7adef112fa  ./factory/glideFactoryCredentials.py
 38dda0405d0e6c79536ef6e0bd345141  ./factory/glideFactoryDowntimeLib.py
-7cab698a5b631c4cdf595b0c1e8abbd4  ./factory/glideFactoryEntry.py
+64fdc613089e222c10db01fc2a0ec47a  ./factory/glideFactoryEntry.py
 65a45e001a8efb811aeb27de5512ed43  ./factory/glideFactoryEntryGroup.py
 115ce1725ac97fb3680e4efa43d7db04  ./factory/glideFactoryInterface.py
 4a6def784fe4134ae909ff4ccedaf547  ./factory/glideFactoryLib.py
