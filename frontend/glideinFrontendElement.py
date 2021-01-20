@@ -929,7 +929,7 @@ class glideinFrontendElement:
                     (fd, tmpnm) = tempfile.mkstemp()
                     cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                     tkn_str = subprocessSupport.iexe_cmd(cmd)
-                    os.write(fd, tkn_str)
+                    os.write(fd, tkn_str.encode('utf-8'))
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
                     os.chmod(tkn_file, 0o600)
@@ -940,7 +940,8 @@ class glideinFrontendElement:
                             tkn_str += line
             except Exception as err:
                 logSupport.log.warning('failed to create %s' % tkn_file)
-                logSupport.log.warning('%s' % err)
+                for i in sys.exc_info():
+                    logSupport.log.warning('%s' % i)
             finally:
                 if os.path.exists(tmpnm):
                     os.remove(tmpnm)

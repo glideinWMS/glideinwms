@@ -1221,12 +1221,14 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         try:
             entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
             os.chmod(tmpnm,0o600)
-            os.write(fd, condortoken_data)
+            os.write(fd, condortoken_data.encode('utf-8'))
             os.close(fd)
             util.file_tmp2final(condortoken_file, tmpnm)
                 
         except Exception as err:
             entry.log.exception('failed to create token: %s' % err)
+            for i in sys.exec_info():
+                entry.log.exception('%s' % i)
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
@@ -1244,7 +1246,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         try:
             entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
             os.chmod(tmpnm,0o600)
-            os.write(fd, scitoken_data)
+            os.write(fd, scitoken_data.encode('utf-8'))
             os.close(fd)
             util.file_tmp2final(scitoken_file, tmpnm)
         except Exception as err:
