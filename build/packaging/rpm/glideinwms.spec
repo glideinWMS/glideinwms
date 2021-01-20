@@ -667,6 +667,8 @@ fi
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%files factory
+
 %files vofrontend
 
 %files vofrontend-standalone
@@ -705,7 +707,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/__init__.pyc
 %{python_sitelib}/glideinwms/creation/lib/__init__.pyo
 
-%files factory
+%files factory-core
 %defattr(-,gfactory,gfactory,-)
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
