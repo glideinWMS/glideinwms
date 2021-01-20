@@ -591,7 +591,7 @@ systemctl daemon-reload
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
-%pre vofrontend-standalone
+%pre vofrontend-core
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
@@ -668,6 +668,8 @@ fi
 rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend
+
+%files vofrontend-standalone
 
 %files common-tools
 %defattr(-,root,root,-)
