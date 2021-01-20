@@ -598,7 +598,7 @@ systemctl daemon-reload
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
-%pre vofrontend-standalone
+%pre vofrontend-core
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
@@ -674,11 +674,11 @@ fi
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%files factory
+
 %files vofrontend
 
 %files vofrontend-standalone
-
-%files factory-core
 
 %files common-tools
 %defattr(-,root,root,-)
@@ -709,7 +709,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/xslt.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/__init__.*
 
-%files factory
+%files factory-core
 %defattr(-,gfactory,gfactory,-)
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
