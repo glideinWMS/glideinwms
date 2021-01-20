@@ -560,7 +560,7 @@ systemctl daemon-reload
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
-%pre vofrontend-standalone
+%pre vofrontend-core
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
@@ -637,6 +637,8 @@ fi
 rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend
+
+%files vofrontend-standalone
 
 %files common-tools
 %defattr(-,root,root,-)
@@ -838,7 +840,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend-httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
-
 
 %files factory-condor
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
