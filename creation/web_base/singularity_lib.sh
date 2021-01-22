@@ -1787,7 +1787,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
 
-    # Always disabling outside LD_LIBRARY_PATH, PATH and PYTHONPATH to avoid problems w/ different OS
+    # Always disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
     # Singularity is supposed to handle this, but different versions behave differently
     # Restore them only if continuing after the exec of singularity failed (end of this function)
     local old_ld_library_path=
@@ -1807,6 +1807,11 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         old_pythonpath=$PYTHONPATH
         info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset PYTHONPATH
+    fi
+    if [[ -n "$LD_PRELOAD" ]]; then
+        old_ld_preload=$LD_PRELOAD
+        info "GWMS Singularity wrapper: LD_PRELOAD is set to $LD_PRELOAD outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset LD_PRELOAD
     fi
 
     # Add --clearenv if requested
@@ -1837,6 +1842,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     [[ -n "$old_path" ]] && PATH=$old_path
     [[ -n "$old_ld_library_path" ]] && PATH=$old_ld_library_path
     [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
+    [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
     # Exit or return to run w/o Singularity
     singularity_exit_or_fallback "exec of singularity failed" $?
 }
