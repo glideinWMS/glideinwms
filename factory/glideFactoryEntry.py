@@ -1227,7 +1227,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 
         except Exception as err:
             entry.log.exception('failed to create token: %s' % err)
-            for i in sys.exec_info():
+            for i in sys.exc_info():
                 entry.log.exception('%s' % i)
         finally:
             if os.path.exists(tmpnm):
