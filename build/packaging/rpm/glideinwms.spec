@@ -607,7 +607,7 @@ getent passwd frontend >/dev/null || \
 # If the frontend user already exists make sure it is part of frontend group
 usermod --append --groups frontend frontend >/dev/null
 
-%pre factory
+%pre factory-core
 # Add the "gfactory" user and group if they do not exist
 getent group gfactory >/dev/null || groupadd -r gfactory
 getent passwd gfactory >/dev/null || \
