@@ -13,7 +13,7 @@ TMPLOG=/tmp/pilot_launcher.log.$UID
 CONFIG_FNAME=/etc/gwms-factory/glideinWMS.xml
 
 
-function help_msg {
+help_msg() {
   cat << EOF
 $0 [options] LOG_TYPE LOGFILE
 $0 [options] LOG_TYPE ENTRY [JOB_ID]
@@ -21,7 +21,9 @@ $0 -f URL [options] LOG_TYPE
 $0 -r [options] LOG_TYPE JOB_ID
 $0 -l
   LOG_TYPE HTCondor log to extract from the job logfile: 
-           all (all logs), master, startd, starter, startdhistory, xml
+           all (all logs, only the main starter), master, startd, starter, startdhistory, xml
+           starter.SLOT (to get the starter log of a slot), id_FILE_NAME (to select a log by its name), 
+           none (no log, to get the list of log names with -v)
   LOGFILE  Job log file (stderr from a glidein)
   ENTRY    Entry name
   JOB_ID   HTCondor job (glidein) id. By default picks the last job with a valid log file
@@ -37,7 +39,7 @@ $0 -l
 EOF
 }
 
-function find_dirs {
+find_dirs() {
   if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
     TOOLDIR="$(dirname "$(readlink -f $0)")"
     # The following should not be needed (import should catch all system paths), but kept here to be fool proof
@@ -69,12 +71,12 @@ function find_dirs {
   fi
 }
 
-function get_last_log {
+get_last_log() {
   # return last error log file
   echo "`find $1 -size +1 -name 'job*err' -printf '%T@ %p\n' | sort -nk1 | sed 's/^[^ ]* //' | tail -1`"
 }
 
-function list_all_entries {
+list_all_entries() {
   # list or forward entries depending on FORWARD_URL being defined
   ulist=`ls "$JOBLOGROOTPREFIX/"`
   if [ "$ulist" = "user_frontend" ]; then
@@ -90,7 +92,7 @@ function list_all_entries {
   done
 }
 
-function list_entries {
+list_entries() {
   local elist=`ls -d $JOBLOGPREFIX*`
   for i in $elist; do
     entry_count="`ls $i/job*err 2>/dev/null | wc -l`"
@@ -101,7 +103,7 @@ function list_entries {
   done
 }
 
-function get_unique_name {
+get_unique_name() {
   # $1 file name 
   # $2 log type
   dir_name="`dirname $1`"
@@ -113,7 +115,7 @@ function get_unique_name {
   echo "job_log-`hostname`-${entry_part#entry_}-${file_name%.err}-$log_type"
 }
 
-function forward_file {
+forward_file() {
   # 1. file name (logid) 
   # 2. log type (logoption)
   # Using: LOGNAME was set using log type
@@ -139,7 +141,7 @@ function forward_file {
 }
 
 FORWARD_STATS_FNAME=forwarding_stats_last_
-function forward_entry {
+forward_entry() {
   # 1. entry directory
   # 2. log option 
   local stats_fname="$1/$FORWARD_STATS_FNAME$2" 
@@ -157,7 +159,7 @@ function forward_entry {
   mv "${stats_fname}.new" "${stats_fname}"
 }
 
-function forward_entries {
+forward_entries() {
   # Forwarding all the entries from a user
   # 1. entry name
   # Using: $logoption - log option
@@ -213,24 +215,27 @@ if [ -z "$logid" ]; then
 fi
 
 case $logoption in
-  all) LOGNAME=cat_logs.py;;
+  all) LOGNAME=ALL;;
   master) LOGNAME=cat_MasterLog.py;;
   startd) LOGNAME=cat_StartdLog.py;;
   starter) LOGNAME=cat_StarterLog.py;;
+  starter*) LOGNAME=STARTER_$logoption;;
   xml) LOGNAME=cat_XMLResults.py;;
   startdhistory) LOGNAME=cat_StartdHistoryLog.py;;
+  id_*) LOGNAME=NAME_${logoption#id_};;
+  none) LOGNAME=NONE;;
   *) echo "Unknown LOG_TYPE: $logoption"; help_msg; exit 1;;
 esac
 
 
-if [ -n "$FORWARD_URL" ]; then
+if [[ -n "$FORWARD_URL" ]]; then
   # forward info using list_all_entries (after LOGNAME evaluation)
   list_all_entries
   exit 0
 fi
 
 
-if [ -n "$REMOTE" ]; then
+if [[ -n "$REMOTE" ]]; then
   # Copying file locally
   echo "Copying remote pilot_launcher.log to $TMPLOG"
   hostid="`condor_q -af EC2RemoteVirtualMachineName - $logid`"
@@ -248,14 +253,14 @@ if [ -n "$REMOTE" ]; then
   logid=$TMPLOG
 fi
 
-if [ ! -e "$logid" ]; then
+if [[ ! -e "$logid" ]]; then
   # find the log file of this job ID
   entryname=$logid 
   jobid=$3 
-  if [ -z "$jobid" ]; then
+  if [[ -z "$jobid" ]]; then
     # select the last log file 
     logid="`get_last_log ${JOBLOGPREFIX}${entryname}`"
-    [ -z "$logid" ] && echo "Entry $entryname has no valid log file"
+    [[ -z "$logid" ]] && echo "Entry $entryname has no valid log file"
   else
     [[ ! "$jobid" =~ .*\..* ]] && jobid="${jobid}.0" 
     logid="${JOBLOGPREFIX}${entryname}/job.$jobid.err"
@@ -263,13 +268,25 @@ if [ ! -e "$logid" ]; then
 fi
 
 # logid contains the file name
-if [ ! -s "$logid" ]; then
+if [[ ! -s "$logid" ]]; then
   echo "Check Entry and Job IDs. File not found or zero length: $logid"
   exit 1
 fi
-[ -n "$VERBOSE" ] && echo -e "Available logs:\n`grep "======== gzip | uuencode =============" -B 1  "$logid" | grep -v "======== gzip | uuencode =============" | grep -v "\-\-"`"
-[ -n "$VERBOSE" ] && echo "Log $logoption from $logid:"
+[[ -n "$VERBOSE" ]] && echo -e "Available logs:\n`grep "======== gzip | uuencode =============" -B 1  "$logid" | grep -v "======== gzip | uuencode =============" | grep -v "\-\-"`"
+[[ -n "$VERBOSE" ]] && echo "Log $logoption from $logid:"
 
-# TODO: I'd like to verify the output but am aftraid it may be too big (and being cut)
-exec ${TOOLDIR}/${LOGNAME} $logid
-
+# TODO: I'd like to verify the output but am afraid it may be too big (and being cut)
+if [[ ${LOGNAME} = ALL ]]; then
+    for i in cat_MasterLog.py cat_StartdLog.py cat_StarterLog.py cat_XMLResults.py cat_StartdHistoryLog.py; do
+        ${TOOLDIR}/${i} $logid
+    done
+elif [[ ${LOGNAME} = STARTER* ]]; then
+    slotid=${LOGNAME#STARTER_starter.}
+    exec ${TOOLDIR}/cat_StarterLog.py -slot $slotid $logid
+elif [[ ${LOGNAME} = NAME_* ]]; then
+    exec ${TOOLDIR}/cat_named_log.py ${LOGNAME#NAME_} $logid
+elif [[ ${LOGNAME} = NONE ]]; then
+    exit
+else
+    exec ${TOOLDIR}/${LOGNAME} $logid
+fi
