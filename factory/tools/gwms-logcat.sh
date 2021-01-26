@@ -220,7 +220,7 @@ case $logoption in
   startd) LOGNAME=cat_StartdLog.py;;
   starter) LOGNAME=cat_StarterLog.py;;
   starter*) LOGNAME=STARTER_$logoption;;
-  xml) LOGNAME=cat_XMLResults.py;;
+  xml) LOGNAME=cat_XMLResult.py;;
   startdhistory) LOGNAME=cat_StartdHistoryLog.py;;
   id_*) LOGNAME=NAME_${logoption#id_};;
   none) LOGNAME=NONE;;
@@ -277,7 +277,7 @@ fi
 
 # TODO: I'd like to verify the output but am afraid it may be too big (and being cut)
 if [[ ${LOGNAME} = ALL ]]; then
-    for i in cat_MasterLog.py cat_StartdLog.py cat_StarterLog.py cat_XMLResults.py cat_StartdHistoryLog.py; do
+    for i in cat_MasterLog.py cat_StartdLog.py cat_StarterLog.py cat_XMLResult.py cat_StartdHistoryLog.py; do
         ${TOOLDIR}/${i} $logid
     done
 elif [[ ${LOGNAME} = STARTER* ]]; then
