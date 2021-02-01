@@ -113,7 +113,7 @@
     <a n="GLIDEIN_ToDie"><i>1409382092</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Claimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
@@ -249,7 +249,7 @@
     <a n="GLIDEIN_ToDie"><i>1409425819</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Claimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
@@ -385,7 +385,7 @@
     <a n="GLIDEIN_ToDie"><i>1409425813</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Claimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
@@ -510,7 +510,7 @@
     <a n="GLIDEIN_ToDie"><i>1409417893</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Unclaimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
@@ -634,7 +634,7 @@
     <a n="GLIDEIN_ToDie"><i>1409417893</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Claimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
@@ -770,7 +770,7 @@
     <a n="GLIDEIN_ToDie"><i>1409425819</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Claimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
@@ -906,7 +906,7 @@
     <a n="GLIDEIN_ToDie"><i>1409425819</i></a>
     <a n="SlotWeight"><e>Cpus</e></a>
     <a n="State"><s>Claimed</s></a>
-    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel8" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel8" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
     <a n="MachineMaxVacateTime"><i>600</i></a>
     <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
     <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
