@@ -447,7 +447,7 @@ setup_python2_venv() {
 get_source_directories() {
     # Return to stdout a comma separated list of source directories
     # 1 - glideinwms directory, root of the source tree
-    local src_dir="${1:-.}"
+    local src_dir="${1:-..}"
     sources="${src_dir},${src_dir}/factory/"
     sources="${sources},${src_dir}/factory/tools,${src_dir}/frontend"
     sources="${sources},${src_dir}/frontend/tools,${src_dir}/install"
