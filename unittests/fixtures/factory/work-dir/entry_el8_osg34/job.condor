@@ -1,7 +1,7 @@
 # File: job.condor
 #
 Universe = grid
-Grid_Resource = condor fermicloud127.fnal.gov fermicloud127.fnal.gov:9619
+Grid_Resource = condor fermicloud105.fnal.gov fermicloud105.fnal.gov:9619
 Executable = glidein_startup.sh
 copy_to_spool = True
 Arguments = $ENV(GLIDEIN_ARGUMENTS)
@@ -27,7 +27,7 @@ x509userproxy = $ENV(X509_USER_PROXY)
 periodic_remove = JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME)
 Notification = Never
 +Owner = undefined
-Log = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el7_osg33/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log
-Output = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el7_osg33/job.$(Cluster).$(Process).out
-Error = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el7_osg33/job.$(Cluster).$(Process).err
+Log = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el8_osg34/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log
+Output = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el8_osg34/job.$(Cluster).$(Process).out
+Error = /var/log/gwms-factory/client/user_$ENV(GLIDEIN_USER)/glidein_gfactory_instance/entry_el8_osg34/job.$(Cluster).$(Process).err
 Queue $ENV(GLIDEIN_COUNT)
