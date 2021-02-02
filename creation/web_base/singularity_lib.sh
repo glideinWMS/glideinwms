@@ -1682,26 +1682,12 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs`"
     fi
 
-    # GPUs - bind outside GPU library directory to inside /host-libs
+    # GPUs - bind outside OpenCL directory if available, and add --nv flag
     if [[ "$OSG_MACHINE_GPUS" -gt 0  ||  "x$GPU_USE" = "x1" ]]; then
-        if [[ "x$OSG_SINGULARITY_BIND_GPU_LIBS" = "x1" ]]; then
-            HOST_LIBS=""
-            if [[ -e "/usr/lib64/nvidia" ]]; then
-                HOST_LIBS=/usr/lib64/nvidia
-            elif create_host_lib_dir; then
-                HOST_LIBS="$PWD/.host-libs"
-            fi
-            if [[ "x$HOST_LIBS" != "x" ]]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "$HOST_LIBS" /host-libs`"
-            fi
-            if [[ -e /etc/OpenCL/vendors ]]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
-            fi
+        if [[ -e /etc/OpenCL/vendors ]]; then
+            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
         fi
         GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --nv"
-    #else
-        # if not using gpus, we can limit the image more
-        # Already in default: GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --contain"
     fi
     info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
