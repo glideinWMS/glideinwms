@@ -177,6 +177,13 @@ else
     [[ -d /srv ]] && cd /srv
     export HOME=/srv
 
+    # Removing proxy location and condor variables. For the setup scripts HTCondor, if there, 
+    # is the original batch system, not the one started by the Glidein  
+    unset X509_USER_PROXY CONDOR_CONFIG
+    for i in $(compgen -v | grep ^"_CONDOR") ; do
+        unset $i
+    done    
+
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     singularity_setup_inside
     info_dbg "GWMS singularity wrapper, running inside singularity env = $(printenv)"
