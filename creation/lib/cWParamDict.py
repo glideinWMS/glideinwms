@@ -64,7 +64,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         raise RuntimeError("Found a file element with an empty relfname: %s" % user_file)
 
     is_const = is_true(user_file.const)
-    is_executable = is_true(user_file.executable)
+    is_executable = is_true(user_file.executable) or (user_file.type and user_file.type.startswith("run"))
     is_wrapper = is_true(user_file.wrapper)
     do_untar = is_true(user_file.untar)
     try:
@@ -106,7 +106,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
             if user_file.type == "run:s" or user_file.type == "run:singularity":
                 if file_list_idx.endswith("preentry_file_list"):
                     raise RuntimeError("An executable cannot use singularity before the entry setup: %s" % user_file)
-                file_type="exec:s"
+                file_type = "exec:s"
             else:
                 if not user_file.type.startswith("run"):
                     raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
@@ -146,6 +146,11 @@ def add_file_unparsed(user_file, dicts, is_factory):
         dicts['untar_cfg'].add(relfname, wnsubdir)
 
     else:  # not executable nor tarball => simple file
+        if user_file.type:
+            if user_file.type.startswith("run"):
+                # should check also wrapper and tarball but enough to check simple files for now
+                raise RuntimeError("An file type starting with with 'run' must be executable: $s" % user_file)
+
         if is_const:
             val = 'regular'
             dicts[file_list_idx].add_from_file(relfname,
