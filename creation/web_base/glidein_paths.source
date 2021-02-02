@@ -31,21 +31,22 @@ robust_realpath() {
 #
 
 gwms_from_config() {
-    # 1. - parameter to parse from glidein_config
+    # 1. - key, parameter to parse from glidein_config
     # 2. - default
     # 3. - function to validate or process (get_prop_bool or same interface)
+    # Output
+    #   The parameter corresponding to the key, optionally processed by validating function
+    #   The default if the key is empty or not found (optionally processed)
     if [[ -n "$glidein_config" ]]; then
         ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
     fi
-    if [[ -n "$ret" ]]; then
-        if [[ -n "$3" ]]; then
-            "$3" VALUE_PROVIDED "$ret" "$2"
-        else
-            [[ -z "$ret" ]] && ret=$2
-            echo "$ret"
-        fi
+    if [[ -n "$3" ]]; then
+        # validating function is handling eventual default and echoing the result
+        "$3" VALUE_PROVIDED "$ret" "$2"
+    else
+        [[ -z "$ret" ]] && ret=$2
+        echo "$ret"
     fi
-
 }
 
 

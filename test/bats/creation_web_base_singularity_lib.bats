@@ -20,7 +20,7 @@ robust_realpath_mock() {
 
 setup () {
     source compat.bash
-    # glidein_config=fixtures/glidein_config
+    glidein_config=fixtures/glidein_config
     # export GLIDEIN_QUIET=true
     source "$GWMS_SOURCEDIR"/creation/web_base/singularity_lib.sh 2>&3
     load 'mock_gwms_logs'
@@ -268,6 +268,20 @@ preset_env () {
     [ $count_env_sing -eq 10 ]  # 10 variables in GWMS set, 1 already_protected, still 10
     [ "$(env | grep ^SINGULARITYENV_STASHCACHE= | cut -d'=' -f2 )" = val_notfromfile ]  # val_notfromfile preserved
     # Add a test also with a Job classad w/ a SINGULARITYENV_ in the environment to get a warning
+}
+
+
+aa_appender() {  [[ -n "${2}" ]] && echo "${2}_aa" || echo "${3}_aa";  }
+
+@test "Verify gwms_from_config" {
+    [ $(gwms_from_config VAR1) = "val1" ]
+    [ $(gwms_from_config VAR1 resdef) = "val1" ]
+    [ $(gwms_from_config VAR2) = "" ]
+    [ $(gwms_from_config VAR2 resdef) = "resdef" ]
+    [ $(gwms_from_config VARNO resdef) = "resdef" ]
+    [ $(gwms_from_config VAR1 "" aa_appender) = "val1_aa" ]
+    [ $(gwms_from_config VAR1 resdef aa_appender) = "val11_aa" ]
+    [ $(gwms_from_config VARNO resdef aa_appender) = "resdef_aa" ]
 }
 
 

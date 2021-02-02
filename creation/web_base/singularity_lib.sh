@@ -329,21 +329,22 @@ list_get_intersection() {
 #
 
 gwms_from_config() {
-    # 1. - parameter to parse from glidein_cinfig
+    # 1. - key, parameter to parse from glidein_config
     # 2. - default
     # 3. - function to validate or process (get_prop_bool or same interface)
+    # Output
+    #   The parameter corresponding to the key, optionally processed by validating function
+    #   The default if the key is empty or not found (optionally processed)
     if [[ -n "$glidein_config" ]]; then
         ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
     fi
-    if [[ -n "$ret" ]]; then
-        if [[ -n "$3" ]]; then
-            "$3" VALUE_PROVIDED "$ret" "$2"
-        else
-            [[ -z "$ret" ]] && ret=$2
-            echo "$ret"
-        fi
+    if [[ -n "$3" ]]; then
+        # validating function is handling eventual default and echoing the result
+        "$3" VALUE_PROVIDED "$ret" "$2"
+    else
+        [[ -z "$ret" ]] && ret=$2
+        echo "$ret"
     fi
-
 }
 
 
@@ -384,7 +385,7 @@ gwms_process_scripts() {
 get_prop_bool() {
     # In:
     #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD) special keywords: NONE, VALUE_PROVIDED
-    #  $2 the key
+    #  $2 the key (or value if $1=VALUE_PROVIDED or ignored and considered empty if $1=NONE)
     #  $3 default value (optional, must be 1->true or 0->false, 0 if unset)
     # For HTCondor consider True: true (case insensitive), any integer != 0
     #                       Anything else is False (0, false, undefined, ...)
@@ -450,12 +451,12 @@ is_condor_true() {
 
 get_prop_str() {
     # In:
-    #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD)
-    #  $2 the key
+    #  $1 the file (for example, $_CONDOR_JOB_AD or $_CONDOR_MACHINE_AD) special keywords: NONE, VALUE_PROVIDED
+    #  $2 the key (or value if $1=VALUE_PROVIDED or ignored and considered empty if $1=NONE)
     #  $3 default value (optional)
     # Out:
     #  echo the value (or the default if UNDEFINED) and return 0
-    #  For no ClassAd file, echo the default and return 1
+    #  For no ClassAd file or $1=NONE, echo the default and return 1
     #  For bad invocation, return 1
     if [[ $# -lt 2  ||  $# -gt 3 ]]; then
         return 1
@@ -724,6 +725,8 @@ env_preserve() {
     LoadModules \
     GWMS_AUX_SUBDIR \
     GWMS_BASE_SUBDIR \
+    GWMS_SINGULARITY_OUTSIDE_PWD \
+    GWMS_SINGULARITY_OUTSIDE_PWD_LIST \
     GWMS_SUBDIR \
     GWMS_DIR"
 
@@ -1904,7 +1907,7 @@ setup_from_environment() {
             export HAS_SINGULARITY=0
         fi
     fi
-    # TODO: Remove to allow this for toubleshooting purposes?
+    # TODO: Remove to allow this for troubleshooting purposes?
     if [[ "x$GWMS_SINGULARITY_AUTOLOAD" != "x$HAS_SINGULARITY" ]]; then
         warn "Using +SingularityAutoLoad is no longer allowed to change Singularity use. Ignoring."
         export GWMS_SINGULARITY_AUTOLOAD=${HAS_SINGULARITY}
