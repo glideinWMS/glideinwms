@@ -536,7 +536,7 @@ install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_RO
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
-%post vofrontend-standalone
+%post vofrontend-core
 # $1 = 1 - Installation
 # $1 = 2 - Upgrade
 # Source: http://www.ibm.com/developerworks/library/l-rpm2/
@@ -563,11 +563,12 @@ if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
 
+%post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
 
-%post factory
+%post factory-core
 
 fqdn_hostname=`hostname -f`
 sed -i "s/FACTORY_HOSTNAME/$fqdn_hostname/g" %{_sysconfdir}/gwms-factory/glideinWMS.xml
@@ -587,9 +588,11 @@ systemctl daemon-reload
 %endif
 
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
+%post factory-httpd
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
 
 %pre vofrontend-core
 # Add the "frontend" user and group if they do not exist
@@ -600,7 +603,7 @@ getent passwd frontend >/dev/null || \
 # If the frontend user already exists make sure it is part of frontend group
 usermod --append --groups frontend frontend >/dev/null
 
-%pre factory
+%pre factory-core
 # Add the "gfactory" user and group if they do not exist
 getent group gfactory >/dev/null || groupadd -r gfactory
 getent passwd gfactory >/dev/null || \
@@ -617,7 +620,7 @@ getent passwd frontend >/dev/null || \
 # If the frontend user already exists make sure it is part of frontend group
 usermod --append --groups frontend frontend >/dev/null
 
-%preun vofrontend-standalone
+%preun vofrontend-core
 # $1 = 0 - Action is uninstall
 # $1 = 1 - Action is upgrade
 
@@ -640,7 +643,7 @@ if [ "$1" = "0" ]; then
 #    rm -rf %{_localstatedir}/log/gwms-frontend/*
 fi
 
-%preun factory
+%preun factory-core
 if [ "$1" = "0" ] ; then
     %if 0%{?rhel} >= 7
     systemctl daemon-reload
@@ -654,13 +657,16 @@ if [ "$1" = "0" ]; then
 fi
 
 
-%postun vofrontend-standalone
+%postun vofrontend-httpd
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
-%postun factory
+%postun factory-httpd
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
+
+%postun factory-core
+# Protecting from failure in case it is not running/installed
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
