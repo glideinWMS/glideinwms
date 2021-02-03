@@ -1774,7 +1774,8 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Env Frontend Factory</td>
-        <td><P>Path singularity binary. If providedn, this is the first path searched by the Glidein.
+        <td><P>Path singularity binary (full path). If provided, this is the first path searched by the Glidein.
+          If set as attribute make sure that <i>job_publish</i> is set to True.
             </P>
         </td>
     </TR>
@@ -1792,7 +1793,8 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific path of the singularity binary that will be tested (and used) before the other options, but this use is onnly for debug purposes, not recommended in production.
+        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific folder for the singularity binary that will be tested (and used) before the other options, 
+          but this use is only for debug purposes, not recommended in production, not to overload Factory Ops with tracking site changes.
             </P>
         </td>
     </TR>
