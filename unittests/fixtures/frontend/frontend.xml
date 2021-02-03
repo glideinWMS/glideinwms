@@ -43,7 +43,7 @@
    <attrs>
       <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>
       <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"/>
-      <attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"/>
+      <attr name="GLIDEIN_Singularity_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"/>
       <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>
    </attrs>
    <groups>
@@ -91,5 +91,6 @@
       <collector DN="/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=fermicloud312.fnal.gov" group="default" node="fermicloud312.fnal.gov:9620-9630" secondary="True"/>
    </collectors>
    <files>
+    <file absfname="fixtures/frontend/web-base/frontend/default_singularity_wrapper.sh" wrapper="True"/>
    </files>
 </frontend>
