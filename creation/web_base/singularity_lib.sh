@@ -1260,9 +1260,19 @@ singularity_test_bin() {
 
 
 singularity_locate_bin() {
-    # Find Singularity path, check the version and validate w/ the image (if an image is passed)
+    # Find Singularity in search path, check the version and validate w/ the image (if an image is passed)
+    # This will search in order:
+    # 1. Optional: Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
+    # 2. Look in the path suggested via $1 (SINGULARITY_BIN) 
+    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH; 
+    #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
+    # 3. Look in $PATH
+    # 4. Invoke module singularitypro
+    # 5. Invoke module singularity
+    # 6. Look in the default OSG location
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
+    #            krywords OSG (default, same as '') and PATH (no suggestion start checking form PATH) are possible
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
     #   OSG_SINGULARITY_BINARY, OSG_SINGULARITY_BINARY_DEFAULT, LMOD_CMD, optional if in the environment
     # Out (E - exported):
@@ -1275,7 +1285,7 @@ singularity_locate_bin() {
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
-    local s_location="$1"
+    local s_location="${1:-OSG}"
     local s_image="$2"
     # bread_crumbs populated also in singularity_test_bin
     local bread_crumbs=""
@@ -1296,11 +1306,10 @@ singularity_locate_bin() {
             bread_crumbs+="${test_out##*@}"
         fi        
     fi
-    if [[ "$HAS_SINGULARITY" != True && -n "$s_location" ]]; then
+    if [[ "$HAS_SINGULARITY" != True && -n "$s_location" && "$s_location" != PASS ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
         s_step=s_bin
-        # TODO: OSG is looked first in the sequence below. Does this make sense?
         [[ "$s_location" == OSG ]] && { s_location="${osg_singularity_binary%/singularity}"; s_step=s_bin_OSG; }
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
@@ -1315,12 +1324,12 @@ singularity_locate_bin() {
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
-        # 3. Look in the default OSG location
-        # 4. Look in $PATH
-        # 5. Invoke module singularitypro
-        # 6. Invoke module singularity
+        # 3. Look in $PATH
+        # 4. Invoke module singularitypro
+        # 5. Invoke module singularity
         #    some sites requires us to do a module load first - not sure if we always want to do that
-        for attempt in "OSG,${osg_singularity_binary}" "PATH,singularity" "module,singularitypro" "module,singularity"; do
+        # 6. Look in the default OSG location
+        for attempt in "PATH,singularity" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
