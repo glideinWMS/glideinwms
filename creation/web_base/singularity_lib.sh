@@ -1536,7 +1536,7 @@ singularity_exit_or_fallback () {
     #  3: sleep time (default: $EXITSLEEP used in exit_wrapper, not here)
     #  $GWMS_SINGULARITY_STATUS
     #  exit_wrapper() - function handling cleanup and exit
-    if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]]; then
+    if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" && "x$GWMS_SINGULARITY_STATUS_EFFECTIVE" != "xREQUIRED"* ]]; then
         # Fall back to no Singularity
         export HAS_SINGULARITY=0
         export GWMS_SINGULARITY_PATH=
@@ -1544,6 +1544,7 @@ singularity_exit_or_fallback () {
         [[ -n "$1" ]] && warn "$1"
         warn "An error in Singularity occurred, but can fall-back to no Singularity ($GWMS_SINGULARITY_STATUS). Continuing"
     else
+        [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]] && info_dbg "Singularity PREFERRED overridden to REQUIRED (${GWMS_SINGULARITY_STATUS_EFFECTIVE#*_})"
         if [[ "$(type -t exit_wrapper)" == 'function' ]]; then
             exit_wrapper "${@}"
         else
@@ -1953,6 +1954,8 @@ setup_classad_variables() {
     # from Job ClassAd
     export REQUIRED_OS=$(get_prop_str ${_CONDOR_JOB_AD} REQUIRED_OS)
     export GWMS_SINGULARITY_IMAGE=$(get_prop_str ${_CONDOR_JOB_AD} SingularityImage)
+    # Jobs with SingularityImage make Singularity REQUIRED
+    [[ -n "$GWMS_SINGULARITY_IMAGE" ]] && export GWMS_SINGULARITY_STATUS_EFFECTIVE="REQUIRED_Singularity_image_in_job"
     # If not provided default to whatever is Singularity availability
     export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad ${HAS_SINGULARITY})
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)
