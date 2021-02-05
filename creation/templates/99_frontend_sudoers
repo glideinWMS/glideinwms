@@ -1,2 +1,0 @@
-frontend ALL=(ALL) NOPASSWD:SETENV: /usr/sbin/condor_store_cred
-frontend ALL=(ALL) NOPASSWD:SETENV: /usr/bin/condor_token_create

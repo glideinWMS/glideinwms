@@ -1,0 +1,16 @@
+#!/bin/bash
+# file: frontend_condortoken
+
+REQ_DIR=~frontend/passwords.d/requests
+PWD_DIR=/etc/condor/passwords.d
+for REQ in $(ls "$REQ_DIR") ; do
+    KEY=$(basename $REQ)
+    if [ ! -e "$PWD_DIR/$KEY" ]; then
+        openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u "frontend@${HOSTNAME}" -f "/etc/condor/passwords.d/${KEY}" add > /dev/null 2>&1
+    fi
+    if [ ! "$KEY" = "POOL" ]; then
+        /bin/cp /etc/condor/passwords.d/$KEY ~frontend/passwords.d
+        chown frontend ~frontend/passwords.d/$KEY
+    fi
+done
+
