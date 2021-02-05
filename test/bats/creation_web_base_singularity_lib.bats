@@ -455,7 +455,11 @@ mock_singularity_test_bin() {
     mock_singularity_test_bin_control=false  # all fail
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 8: $output" >&3
-    [ "$output" = "SLB: 1, False, , , 4" ]
+    if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
+        [ "$output" = "SLB: 1, False, , , 5" ]
+    else
+        [ "$output" = "SLB: 1, False, , , 4" ]
+    fi
     mock_singularity_test_bin_control=PATH  # only PATH successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 9: $output" >&3
