@@ -280,7 +280,7 @@ aa_appender() {  [[ -n "${2}" ]] && echo "${2}_aa" || echo "${3}_aa";  }
     [ "$(gwms_from_config VAR2 resdef)" = "resdef" ]
     [ "$(gwms_from_config VARNO resdef)" = "resdef" ]
     [ "$(gwms_from_config VAR1 "" aa_appender)" = "val1_aa" ]
-    [ "$(gwms_from_config VAR1 resdef aa_appender)" = "val11_aa" ]
+    [ "$(gwms_from_config VAR1 resdef aa_appender)" = "val1_aa" ]
     [ "$(gwms_from_config VARNO resdef aa_appender)" = "resdef_aa" ]
 }
 
