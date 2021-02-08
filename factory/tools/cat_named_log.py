@@ -32,12 +32,6 @@ def main():
         condor_log_id = sys.argv[1]
         fname = sys.argv[2]
 
-    # matches = gWftLogParser.get_StarterSlotNames(fname)
-    # if len(matches):
-    #    logs = ', '.join(matches)
-    #    print("StarterLogs available for slots: %s" % logs.replace('StarterLog.', ''))
-    # print(gWftLogParser.get_CondorLog(fname, condor_log_id))
-
     try:
         print(gWftLogParser.get_CondorLog(fname, condor_log_id))
     except:
