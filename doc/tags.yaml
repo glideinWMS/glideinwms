@@ -208,10 +208,11 @@ v3_7_2:
     - Factory does not remove glideins when idle limit is hi
 
 v3_9_1:
-  Date: January 20, 2021
+  Date: February 9, 2021
   Series: Development
   Tarball: false
   Feature:
     - Includes all features and fixes of 3.7.2
+    - Separates httpd packages from Factory and Frontend RPMs
   Bug fix:
     - Frontend no longer reports duplicate glideclient daemons to the Factory

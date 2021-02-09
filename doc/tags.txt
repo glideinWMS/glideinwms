@@ -1,5 +1,6 @@
 v3_9_1
 	Includes all features and fixes of 3.7.2
+	Separates httpd packages from Factory and Frontend RPMs
 	Bug fix: Frontend no longer reports duplicate glideclient daemons to the Factory
 
 v3_9

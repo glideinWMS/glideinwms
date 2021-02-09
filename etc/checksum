@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_1_rc5
+# GLIDEINWMS_VERSION v3_9_1_rc6
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -32,7 +32,7 @@ f9009344ba1fe0e12646ea7c84312e0e  ./creation/lib/cgWParamDict.py
 431602a0ab8ffe513a4905f91abc6634  ./creation/lib/cvWConsts.py
 0a7cec967799d342681fc9aa054328d6  ./creation/lib/cvWCreate.py
 acaee66c9028003324d49fa198def392  ./creation/lib/cvWDictFile.py
-b48f17a56bbb9446f82437761cfbed54  ./creation/lib/cvWParamDict.py
+9794e40862c5fa3ffe7c80d2076bf883  ./creation/lib/cvWParamDict.py
 73ebbe762eda1ea4466dd788ef1ea330  ./creation/lib/cvWParams.py
 cf4a9bb20d898cf188ae293dac024160  ./creation/lib/factoryXmlConfig.py
 6953064313d5c37b463554eb3e1200ca  ./creation/lib/factory_defaults.xml
@@ -93,7 +93,7 @@ a50fb539cc43b072ba1d3b3ed40cb00d  ./creation/web_base/factoryRRDBrowse.html
 9afa4ba6647ed891d05b949179135d70  ./creation/web_base/factoryStatus.html
 fba5456039a0e32388ff39bb6a314417  ./creation/web_base/factoryStatusNow.html
 38c8974215e418a04e55c3e06da8fa23  ./creation/web_base/factory_support.js
-ad699fe8fe84fae03955f4e3c9ef7992  ./creation/web_base/frontend/default_singularity_wrapper.sh
+63ede73ad80d3420cca55605d0abd108  ./creation/web_base/frontend/default_singularity_wrapper.sh
 50e6c4228266aa6ad14e3601e2f0a42f  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
@@ -128,7 +128,7 @@ ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 294a195e021598dccfd2b6f73644f355  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 e00b646103dc240c56d7901cad824eee  ./creation/web_base/setup_x509.sh
-360e3fc0274ea41f722791f89eefdb3b  ./creation/web_base/singularity_lib.sh
+c4b8b509211904cf868171b592d8d3d5  ./creation/web_base/singularity_lib.sh
 fa08f58039af2c8650b772abf4080641  ./creation/web_base/singularity_setup.sh
 2a8cd574697abd8476baa102df86299d  ./creation/web_base/singularity_wrapper.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
@@ -140,7 +140,7 @@ cdab79175974b46109466abab717e3d6  ./factory/glideFactory.py
 b0dfd8dbfeb19b7e634d7eed0d837b1a  ./factory/glideFactoryConfig.py
 c6ec2f2f94fdba31b30fef7adef112fa  ./factory/glideFactoryCredentials.py
 38dda0405d0e6c79536ef6e0bd345141  ./factory/glideFactoryDowntimeLib.py
-64fdc613089e222c10db01fc2a0ec47a  ./factory/glideFactoryEntry.py
+3369c116c0db841134857f0990fb0e8b  ./factory/glideFactoryEntry.py
 65a45e001a8efb811aeb27de5512ed43  ./factory/glideFactoryEntryGroup.py
 115ce1725ac97fb3680e4efa43d7db04  ./factory/glideFactoryInterface.py
 4a6def784fe4134ae909ff4ccedaf547  ./factory/glideFactoryLib.py
@@ -162,6 +162,7 @@ cc0f093e7147ab01fa01126b6e63bd55  ./factory/tools/cat_StartdLog.py
 1e442b47d78feffcfc26a2c9f2dffed0  ./factory/tools/cat_StarterLog.py
 ade91e70c863b7a932fabbd49fae3c7c  ./factory/tools/cat_XMLResult.py
 b49c4e2c45bc235409e5ab9d099133be  ./factory/tools/cat_logs.py
+2dbcec3dbaea375a96d3ae624de1ea26  ./factory/tools/cat_named_log.py
 0b3359370df82ea66b4e8c9cbb2cb776  ./factory/tools/entry_ls
 7e9663956309101e607693b3e63c8eb7  ./factory/tools/entry_q
 09393107e5ddef9dd2fe0daa90d88f8f  ./factory/tools/entry_rm
@@ -171,7 +172,7 @@ fe3f4f0e4492801383a847ac6947dba0  ./factory/tools/fact_chown_check
 111263e94aed8d11039c95abb3c7faf8  ./factory/tools/find_StartdLogs.py
 3118eaa4bd110deafcd30d1ed98c8a0d  ./factory/tools/find_logs.py
 0698414b49f4f1c06f2b8169eba14076  ./factory/tools/gfdiff.py
-2fc4adff82aa6850e6ac7da0c9bdd33e  ./factory/tools/gwms-logcat.sh
+43d5373af677e1ffe7db9f85635f45bb  ./factory/tools/gwms-logcat.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 33c7b10ed07a470cca22b9abb55a8c4a  ./factory/tools/lib/analyze.py
 154408c1d79eba1fd6c37a2dbca176b2  ./factory/tools/lib/gWftArgsHelper.py
@@ -241,7 +242,7 @@ ea8d319407e6cbdcaa3a03f5b25d4452  ./lib/x509Support.py
 4412ede71fd2ace8a2c3c625d710f5c0  ./lib/xmlFormat.py
 8e3773f08f6affa1e2b099997f320a79  ./lib/xmlParse.py
 ef8fe62ce57594d3446163cf4a083e5d  ./requirements.txt
-a081a33337efb62855c3142eb550574b  ./test/bats/README.md
+52485ff4890d7142b39e915bb5add2d8  ./test/bats/README.md
 d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
 9eae19e8e4dceb4be80d79a05a459831  ./test/bats/creation_web_base_collector_setup.bats
 fa866769bccc721d498b993b9c6bdb19  ./test/bats/creation_web_base_singularity_lib.bats
