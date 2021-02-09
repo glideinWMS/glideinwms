@@ -1643,8 +1643,21 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
     NEVER (do not use Singularity),
     PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found),
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
+            GWMS_SINGULARITY_STATUS_EFFECTIVE, if set, will override GWMS_SINGULARITY_STATUS, e.g. for a specific job.<br>
             See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
             a table of how Singularity is calculated using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>GWMS_SINGULARITY_STATUS_EFFECTIVE</b></td>
+        <td> String (Enum,String) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is used to override GWMS_SINGULARITY_STATUS in special cases, e.g. 
+          Set to "REQUIRED_Singularity_image_in_job" to disable fall-back when SingularityImage is in the Job.<br>
+          See also GWMS_SINGULARITY_STATUS.<br>
+          It is composed by the status, followed by underscore and a string explaining the override.
             </P>
         </td>
     </TR>
@@ -1774,7 +1787,8 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Env Frontend Factory</td>
-        <td><P>Path singularity binary. If providedn, this is the first path searched by the Glidein.
+        <td><P>Path singularity binary (full path). If provided, this is the first path searched by the Glidein.
+          If set as attribute make sure that <i>job_publish</i> is set to True.
             </P>
         </td>
     </TR>
@@ -1792,7 +1806,8 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific path of the singularity binary that will be tested (and used) before the other options, but this use is onnly for debug purposes, not recommended in production.
+        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific folder for the singularity binary that will be tested (and used) before the other options, 
+          but this use is only for debug purposes, not recommended in production, not to overload Factory Ops with tracking site changes.
             </P>
         </td>
     </TR>

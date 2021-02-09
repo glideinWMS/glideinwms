@@ -1331,9 +1331,11 @@ Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if 
     NEVER (do not use Singularity),
     PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found) or
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
+    The specification of a Singularity image in a job (+SingularityImage) removes the possibility to fall-back to no Singularity 
+    if something goes wrong.
     <b>The table below combines GLIDEIN_SINGULARITY_REQUIRE</b> values (first row, in bold) <b>and GLIDEIN_Singularity_Use</b> values (first column, in bold)
     and the results are in the intersection. REQUIRED_GWMS is in the same column as REQUIRED and the only difference is with DISABLE_GWMS,
-    where is causes FAIL instead of DISABLE.
+    where it causes FAIL instead of DISABLE.
         <table class="requirements">
         <TR>
             <TD> <P><B></B></P> </TD>
