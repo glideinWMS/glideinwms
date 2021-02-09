@@ -729,6 +729,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/cat_StarterLog
 %attr(755,root,root) %{_bindir}/cat_XMLResult
 %attr(755,root,root) %{_bindir}/cat_logs
+%attr(755,root,root) %{_bindir}/cat_named_log
 %attr(755,root,root) %{_bindir}/create_condor_tarball
 %attr(755,root,root) %{_bindir}/entry_ls
 %attr(755,root,root) %{_bindir}/entry_q
