@@ -1583,11 +1583,11 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     looking in order in:
   <ol>
     <li>If defined (in environment, Frontend or Factory): Try first the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)</li>
-    <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN (keyword OSG -> OSG_SINGULARITY_BINARY)</li>
-    <li>Try the default OSG location (OSG_SINGULARITY_BINARY)</li>
+    <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN: (keyword OSG (default)-> OSG_SINGULARITY_BINARY, keyword PATH -> go to the next step and check the system PATH)</li>
     <li>Try the singularity binary in PATH</li>
     <li>Try the singularity binary in PATH after invoking module singularitypro</li>
     <li>Try the singularity binary in PATH after invoking module singularity</li>
+    <li>Try the default OSG location (OSG_SINGULARITY_BINARY)</li>
   </ol>
   </p>
 
@@ -1806,8 +1806,11 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific folder for the singularity binary that will be tested (and used) before the other options, 
+        <td><P>If set to "OSG" or not set (default), the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module.
+          If set to "PATH", the Glidein will try first to use the singularity binary in the system PATH. 
+          SINGULARITY_BIN can be used also to suggest an arbitrary specific folder for the singularity binary that will be tested (and used) before the other options, 
           but this use is only for debug purposes, not recommended in production, not to overload Factory Ops with tracking site changes.
+          NOTE: in pre-v3.4 versions SINGULARITY_BIN was used also to enable the use of Singularity for a Factory entry. This is no more, use GLIDEIN_SINGULARITY_REQUIRE instead.  
             </P>
         </td>
     </TR>

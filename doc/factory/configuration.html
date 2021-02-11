@@ -1305,10 +1305,10 @@ An entry requiring Singularity (REQUIRED, REQUIRED_GWMS) will not allow to run w
 fails (e.g. the singularity binary or the image are not found).
     <LI><P STYLE="margin-bottom: 0in">If Singularity is allowed or required (all values of GLIDEIN_SINGULARITY_REQUIRE except NEVER), singularity is expected on all worker nodes of the entry. The Glidein will search a singularity binary
 in the PATH and then invoking Modules (if available).
-        SINGULARITY_BIN is now <b>deprecated</b>. It should not be used and will be ignored in future versions of GWMS.
-Currently, for compatibility with previous versions, any value of SINGULARITY_BIN different from 'NONE' sets
-GLIDEIN_SINGULARITY_REQUIRE to OPTIONAL (if not already set) and if the content is a valid path, is considered in the search for singularity.
-Setting SINGULARITY_BIN to 'NONE' sets GLIDEIN_SINGULARITY_REQUIRE to NEVER (if not already set).
+        SINGULARITY_BIN can not be used any more to control the use of Singularity in the Factory. Use GLIDEIN_SINGULARITY_REQUIRE instead.
+SINGULARITY_BIN is only considered in the search for singularity: the keyword OSG (default) starts the search form the OSG provided binary,
+  the keyword PATH starts the search form the system path. 
+  See <a htef="/factory/custom_vars.html#singularity_vars">the SINGULARITY_BIN description</a> for more.
     </P>
     <LI><P STYLE="margin-bottom: 0in">NOTE: For compatibility with previous versions and to ease the migration to the use of GWMS scripts,
     GLIDEIN_SINGULARITY_REQUIRE=REQUIRED works only if Singularity is managed via GWMS.
