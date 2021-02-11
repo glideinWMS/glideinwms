@@ -794,9 +794,15 @@ class glideinFrontendElement:
                     logSupport.log.info("found condor token: %s" % entry_token_name)
                     gp_encrypt[entry_token_name] = ctkn
                 # now see if theres a scitoken for this site
-                entry_scitoken_name = "%s.scitoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                spath = "/var/lib/gwms-frontend/tokens.d"
-                scitoken_fullpath = os.path.join(spath, entry_scitoken_name)
+                scitoken_fullpath = ''
+                # hate using eval here, json.loads doesnt seem to work
+                cred_type_map  = eval(self.elementDescript.frontend_data['ProxyTypes'])
+                trust_domain_map  = eval(self.elementDescript.frontend_data['ProxyTrustDomains'])
+                for cfname in cred_type_map:
+                    if cred_type_map[cfname] == 'scitoken':
+                        if trust_domain_map[cfname] == trust_domain:
+                            scitoken_fullpath = cfname
+                    
                 if os.path.exists(scitoken_fullpath):
                     try:
                         logSupport.log.info('found scitoken %s' % scitoken_fullpath)
@@ -804,7 +810,7 @@ class glideinFrontendElement:
                             for line in fbuf:
                                 stkn += line
                         if stkn:
-                            gp_encrypt[entry_scitoken_name] =  stkn
+                            gp_encrypt['frontend_scitoken'] =  stkn
                     except Exception as err:
                         logSupport.log.exception("failed to read scitoken: %s" % err)
 
