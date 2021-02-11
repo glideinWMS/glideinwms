@@ -1285,12 +1285,22 @@ singularity_locate_bin() {
     local singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE}"
 
     if [[ -n "$singularity_binary_override" ]]; then
+        # 1. Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
         bread_crumbs+=" s_override_defined"
         if [[ ! -x "$singularity_binary_override" ]]; then
-            info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary."
-            info "Will proceed with suggersted path and auto-discover"
+            # Try considering it a PATH
+            local singularity_binary_override_bin
+            if ! singularity_binary_override_bin=$(PATH="$singularity_binary_override" command -v singularity); then
+                info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary or a PATH containing singularity."
+                info "Will proceed with suggested path and auto-discover"
+            else
+            bread_crumbs+="_path"
+            test_out=$(singularity_test_bin "s_override,${singularity_binary_override_bin}" "$s_image") &&
+                HAS_SINGULARITY=True
+            bread_crumbs+="${test_out##*@}"                
+            fi
         else
-            # 1. Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
+            bread_crumbs+="_bin"
             test_out=$(singularity_test_bin "s_override,${singularity_binary_override}" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
