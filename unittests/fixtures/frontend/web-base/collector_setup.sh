@@ -1,0 +1,1 @@
+../../../../creation/web_base/collector_setup.sh
