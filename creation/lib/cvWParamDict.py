@@ -920,9 +920,12 @@ def populate_group_security(client_security, params, sub_params, group_name):
     client_security['schedd_DNs']=schedd_dns
 
     pilot_dns=[]
+    exclude_from_pilot_dns = ['SCITOKEN', 'IDTOKEN']
     for credentials in (params.security.credentials, sub_params.security.credentials):
       if is_true(params.groups[group_name].enabled):
         for pel in credentials:
+            if pel['type'].upper()  in exclude_from_pilot_dns:
+                continue
             if pel['pilotabsfname'] is None:
                 proxy_fname=pel['absfname']
             else:
