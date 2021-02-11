@@ -1272,7 +1272,7 @@ singularity_locate_bin() {
     # 6. Look in the default OSG location
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
-    #            krywords OSG (default, same as '') and PATH (no suggestion start checking form PATH) are possible
+    #            keywords OSG (default, same as '') and PATH (no suggestion start checking form PATH) are possible
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
     #   OSG_SINGULARITY_BINARY, OSG_SINGULARITY_BINARY_DEFAULT, LMOD_CMD, optional if in the environment
     # Out (E - exported):

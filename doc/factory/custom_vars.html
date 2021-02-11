@@ -1582,14 +1582,6 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
   <p>The singularity binary (see singularity_lib.sh/singularity_locate_bin) is the first binary passing the test, 
     looking in order in:
   <ol>
-    # 2. Look in the path suggested via $1 (SINGULARITY_BIN) 
-    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH; 
-    #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
-    # 3. Look in $PATH
-    # 4. Invoke module singularitypro
-    # 5. Invoke module singularity
-    # 6. Look in the default OSG location
-
     <li>If defined (in environment, Frontend or Factory): Try first the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)</li>
     <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN: (keyword OSG (default)-> OSG_SINGULARITY_BINARY, keyword PATH -> go to the next step and check the system PATH)</li>
     <li>Try the singularity binary in PATH</li>
