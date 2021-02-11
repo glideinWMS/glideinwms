@@ -208,7 +208,7 @@ v3_7_2:
     - Factory does not remove glideins when idle limit is hi
 
 v3_9_1:
-  Date: February 9, 2021
+  Date: February 11, 2021
   Series: Development
   Tarball: false
   Feature:
