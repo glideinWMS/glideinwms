@@ -455,19 +455,24 @@ mock_singularity_test_bin() {
     mock_singularity_test_bin_control=false  # all fail
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 8: $output" >&3
-    [ "$output" = "SLB: 1, False, , , 4" ]
+    if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
+        [ "$output" = "SLB: 1, False, , , 5" ]
+    else
+        [ "$output" = "SLB: 1, False, , , 4" ]
+    fi
+    OSG_SINGULARITY_BINARY=$tmp_singularity_bin # To avoid having 2 versions for when /cvmfs is available and when not
     mock_singularity_test_bin_control=PATH  # only PATH successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 9: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 2" ]
     mock_singularity_test_bin_control=module  # only module successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 10: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 2" ]
+    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 3" ]
     mock_singularity_test_bin_control=OSG  # only OSG successful
     run  singularity_locate_bin_wrapped "" "/path/to/image"
     echo "part 11: $output" >&3
-    [ "$output" = "SLB: 0, True, mock_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 4" ]
+    [ "$output" = "SLB: 0, True, mock_OSG, $tmp_singularity_bin, 5" ]
 
     [[ -n "${tmp_singularity_dir}" ]] && rm -rf "${tmp_singularity_dir}"
 }
