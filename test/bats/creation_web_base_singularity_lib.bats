@@ -417,6 +417,10 @@ mock_singularity_test_bin() {
     echo "Singularity binary mocked: $tmp_singularity_bin" >&3
 
     mock_singularity_test_bin_control=true  # all tests successful
+    GLIDEIN_SINGULARITY_BINARY_OVERRIDE="${tmp_singularity_dir}:/tmp/bin"
+    run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
+    echo "part 0: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_override, $tmp_singularity_bin, 1" ]
     GLIDEIN_SINGULARITY_BINARY_OVERRIDE=$tmp_singularity_bin
     run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
     echo "part 1: $output" >&3
