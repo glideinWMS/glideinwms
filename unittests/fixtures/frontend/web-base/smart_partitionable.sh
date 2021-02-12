@@ -1,0 +1,1 @@
+../../../../creation/web_base/smart_partitionable.sh
