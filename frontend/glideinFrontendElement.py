@@ -29,6 +29,7 @@ import logging
 import re
 import tempfile
 import shutil
+import socket
 
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -44,6 +45,7 @@ from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
+from glideinwms.lib import token_util
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -889,6 +891,7 @@ class glideinFrontendElement:
         tkn_str = ''
         tmpnm = ''
         # does condor version of entry point support condor token auth
+        # TODO  replace following conditional for #25450 
         condor_version = glidein_el['params'].get('CONDOR_VERSION')
         if condor_version \
             and condor_version != 'default' \
@@ -896,19 +899,38 @@ class glideinFrontendElement:
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
-                if not os.path.exists(tkn_dir):
-                    os.mkdir(tkn_dir,0o700)
-                tkn_file = tkn_dir + '/' +  glidein_site + ".idtoken"
+                home_dir  = os.path.expanduser("~" + os.getlogin())
+                tkn_dir = os.path.join(home_dir,"tokens.d")
+                pwd_dir = os.path.join(home_dir,"passwords.d")
+                req_dir = os.path.join(home_dir,"password-requests.d")
+                tkn_file = os.path.join(tkn_dir, glidein_site, ".idtoken")
+                pwd_file = os.path.join(pwd_dir, glidein_site)
+                req_file = os.path.join(req_dir, glidein_site)
                 one_hr = 3600
                 tkn_age = sys.maxsize
+                if not os.path.exists(pwd_file):
+                    with open(req_file,'w') as fd:
+                        logSupport.log.info("requesting file creation %s" % pwd_file)
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
                     # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
-                if tkn_age > one_hr:    
+                if tkn_age > one_hr and os.path.exists(pwd_file):    
                     (fd, tmpnm) = tempfile.mkstemp()
-                    cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                    tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    scope = "condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD condor:/ADVERTISE_SCHEDD condor:/ADVERTISE_MASTER"
+                    duration = 2 * one_hr
+                    identity = "vofrontend_service@%s" % socket.gethostname()
+                    logSupport.log.debug("creating  token %s" % tkn_file)
+                    logSupport.log.debug("pwd_flie= %s" % pwd_file)
+                    logSupport.log.debug("scope= %s" % scope)
+                    logSupport.log.debug("duration= %s" % duration)
+                    logSupport.log.debug("identity= %s" % identity)
+                    tkn_str = token_util.create_and_sign_token(pwd_file,
+                                                               scope=scope,
+                                                               duration=duration,
+                                                               identity=identity)
+                    #cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    #tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    logSupport.log.debug("tkn_str= %s" % tkn_str)
                     os.write(fd, tkn_str)
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
