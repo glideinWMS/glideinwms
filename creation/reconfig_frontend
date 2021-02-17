@@ -38,6 +38,7 @@ from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
 from glideinwms.creation.lib import xslt
 from glideinwms.creation.lib import check_config_frontend
+from glideinwms.creation.lib import check_python3_expr
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendLib
 from glideinwms.lib.util import handle_hooks, HOOK_PRE_RECONFIG_DIRNAME, HOOK_POST_RECONFIG_DIRNAME
@@ -190,7 +191,19 @@ if __name__ == '__main__':
         sys.exit(1)
     if msg:
         print2(msg)
- 
+    
+    # Check config file compatibility with Python 3
+    p3_compatible, report = check_python3_expr.main(xml, False, True)
+    if p3_compatible:
+        print2("The configuration is compatible with Python 3")
+    else:
+        print2("The configuration is not compatible with Python 3")
+        for element in report:
+            if not element["valid"]:
+                print2(f"...{element['type']} at {element['location']}:")
+                print2(f"\t{element['error']}")
+        sys.exit(1)
+
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
         transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,

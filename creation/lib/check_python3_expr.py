@@ -42,7 +42,7 @@ def check_syntax(code):
     error = None
     try:
         ast.parse(code)
-    except Exception as e:
+    except SyntaxError as e:
         error = f"{e.msg} at \"{e.text.strip()}\" ({e.lineno},{e.offset})"
 
     return error
@@ -127,17 +127,19 @@ def _log(text, silent=False):
     sys.stdout.write(text)
 
 def main(config_file, enforce_2to3=False, silent=False):
-    """Parse the Frontend configuration in config_file and validate Python expressions.
+    """Parse the Frontend configuration in config_file and validate Python code.
 
     Args:
         config_file (str): Path to the frontend configuration file.
         enforce_2to3 (bool, optional): Treats 2to3 suggestions as errors. Defaults to False.
 
     Returns:
-        bool: Returns True if the file is valid and False otherwise.
+        bool: True if the file is valid and False otherwise.
+        list: List of results for every element evaluated
     """
 
     passed = True
+    report = []
 
     try:
         tree = ET.parse(config_file)
@@ -151,48 +153,81 @@ def main(config_file, enforce_2to3=False, silent=False):
         # Validates match expressions attributes
         if "match_expr" in element.data.attrib:
             expr = element.data.attrib["match_expr"]
+            location = f"{element.parent.data.tag} {element_name(element.parent.data)}"
             _log(f"\n\nEvaluating expression \"{expr}\"\n", silent)
-            _log(f"at {element.parent.data.tag} {element_name(element.parent.data)}\n", silent)
+            _log(f"at {location}\n", silent)
+            result = {}
+            result["type"] = "match_expr"
+            result["value"] = expr
+            result["location"] = location
             error = check_syntax(expr)
             _log("\nSyntax check: ", silent)
             if not error:
                 _log("passed\n", silent)
+                result["valid"] = True
+                result["error"] = None
             else:
                 _log(f"{error}\n", silent)
+                result["valid"] = False
+                result["error"] = error
                 passed = False
             if rt:
                 _log("2to3 suggestion:", silent)
                 suggestion = check_2to3(expr)
                 if suggestion and suggestion != expr:
                     _log(f"\n{suggestion}\n", silent)
+                    result["2to3"] = suggestion
                     if enforce_2to3:
                         passed = False
                 else:
                     _log(f" none\n", silent)
+                    result["2to3"] = None
+            report.append(result)
         #validates policy files
         if "policy_file" in element.data.attrib:
             path = element.data.attrib["policy_file"]
+            location = f"{element.parent.data.tag} {element_name(element.parent.data)}"
             _log(f"\n\nEvaluating policy file \"{path}\"\n", silent)
-            _log(f"at {element.parent.data.tag} {element_name(element.parent.data)}\n", silent)
-            text = open(path).read()
+            _log(f"at {location}\n", silent)
+            try:
+                text = open(path).read()
+            except FileNotFoundError as e:
+                error = f"{e.strerror}: {e.filename}"
+                _log(f"\n{error}\n", silent)
+                result["valid"] = False
+                result["error"] = error
+                passed = False
+                continue
+            result = {}
+            result["type"] = "policy_file"
+            result["value"] = path
+            result["location"] = location
+            result["code"] = text
             error = check_syntax(text)
             _log("\nSyntax check: ", silent)
             if not error:
                 _log("passed\n", silent)
+                result["valid"] = True
+                result["error"] = None
             else:
                 _log(f"{error}\n", silent)
+                result["valid"] = False
+                result["error"] = error
                 passed = False
             if rt:
                 _log("2to3 suggestion:", silent)
                 suggestion = check_2to3(text, patch=True)
                 if suggestion and suggestion != text:
                     _log(f"\n{suggestion}\n", silent)
+                    result["2to3"] = suggestion
                     if enforce_2to3:
                         passed = False
                 else:
                     _log(f" none\n", silent)
+                    result["2to3"] = None
+            report.append(result)
 
-    return passed
+    return passed, report
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Validate expressions in frontend.xml for compatibility with Python 3.')
@@ -205,7 +240,9 @@ if __name__ == '__main__':
         config_file = args.file
     else:
         config_file = CONFIG_FILE
-    if main(config_file, args.enforce_2to3, args.silent):
+    
+    passed, _ = main(config_file, args.enforce_2to3, args.silent)
+    if passed:
         _log("\n\nTest succeeded!\n")
         exit(0)
     else:
