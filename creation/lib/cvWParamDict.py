@@ -45,7 +45,7 @@ def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
     translations = {'string': 'a', 'int': 1, 'bool': True, 'real': 1.0}
     translated_attrs = {}
 
-    for attr_name in match_attrs:
+    for attr_name in match_attrs.keys():
         attr_type = match_attrs[attr_name]['type']
         try:
             translated_attrs[attr_name] = translations[attr_type]
@@ -85,7 +85,7 @@ def validate_match(loc_str, match_str, factory_attrs,
     env['job'] = translate_match_attrs(loc_str, 'job', job_attrs)
 
     # Validate attr
-    for attr_name in attr_dict:
+    for attr_name in attr_dict.keys():
         attr_type = attr_dict[attr_name]['type']
         if attr_type == 'string':
             attr_val = 'a'
