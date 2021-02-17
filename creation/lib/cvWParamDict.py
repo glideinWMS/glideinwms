@@ -552,19 +552,19 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # first, let's merge the attributes
         summed_attrs = {}
         for d in (main_dicts['attrs'], self.dicts['attrs']):
-            for k in d:
+            for k in d.keys:
                 # if the same key is in both global and group (i.e. local), group wins
                 summed_attrs[k] = d[k] 
 
         for dname in ('attrs', 'consts', 'group_descript'):
-            for attr_name in self.dicts[dname]:
+            for attr_name in self.dicts[dname].keys:
                 if ((type(self.dicts[dname][attr_name]) in (type('a'), type(u'a'))) and
                     (self.dicts[dname][attr_name].find('$') != -1)):
                     self.dicts[dname].add(attr_name,
                                           cWExpand.expand_DLR(self.dicts[dname][attr_name], summed_attrs),
                                           allow_overwrite=True)
         for dname in ('params',):
-            for attr_name in self.dicts[dname]:
+            for attr_name in self.dicts[dname].keys:
                 if ((type(self.dicts[dname][attr_name][1]) in (type('a'), type(u'a'))) and
                     (self.dicts[dname][attr_name][1].find('$') != -1)):
                     self.dicts[dname].add(attr_name,

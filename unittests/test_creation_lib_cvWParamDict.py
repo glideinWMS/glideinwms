@@ -125,13 +125,13 @@ class TestFrontendGroupDicts(unittest.TestCase):
             self.fe_params, 'fixtures/frontend/work-dir')
         self.fed = frontendGroupDicts(
             self.fe_params, "main", self.femd.get_summary_signature(), 'fixtures/frontend/work-dir')
-        self.promote_dicts = {}
 
     def test__init__(self):
         self.assertTrue(isinstance(self.fed, frontendGroupDicts))
 
     def test_populate(self):
-        self.fed.populate(self.promote_dicts, self.femd, self.fe_params)
+        promote_dicts = self.femd.populate(self.fe_params)
+        self.fed.populate(promote_dicts, self.femd, self.fe_params)
 
     def test_reuse(self):
         self.fed.reuse(self.fed)
@@ -140,6 +140,7 @@ class TestFrontendGroupDicts(unittest.TestCase):
         populate_common_attrs(self.fed)
 
     def test_derive_and_validate_match(self):
+        # this test should run after test_populate(), in order to have the fed and femd dictionaries populated
         try:
             derive_and_validate_match("main",
                                       (self.femd['frontend_descript']['MatchExpr'],

@@ -1074,7 +1074,7 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
     job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
     # finally, expand as needed
-    for attr_name in job_descript_dict:
+    for attr_name in job_descript_dict.keys:
         job_descript_dict.add(attr_name,
                               cWExpand.expand_DLR(job_descript_dict[attr_name], attrs_dict),
                               allow_overwrite=True)
