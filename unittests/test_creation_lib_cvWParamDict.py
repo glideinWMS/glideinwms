@@ -25,6 +25,7 @@ try:
 except ImportError as err:
     raise TestImportError(str(err))
 
+from glideinwms.creation.lib.cvWParamDict import derive_and_validate_match
 from glideinwms.creation.lib.cvWParamDict import apply_group_glexec_policy
 from glideinwms.creation.lib.cvWParamDict import apply_group_singularity_policy
 from glideinwms.creation.lib.cvWParamDict import apply_multicore_policy
@@ -36,6 +37,7 @@ from glideinwms.creation.lib.cvWParamDict import populate_main_security
 from glideinwms.creation.lib.cvWParamDict import populate_group_security
 from glideinwms.creation.lib.cvWParamDict import populate_common_attrs
 from glideinwms.creation.lib.cvWParamDict import frontendMainDicts
+from glideinwms.creation.lib.cvWParamDict import frontendGroupDicts
 from glideinwms.creation.lib.cvWParamDict import frontendDicts
 from glideinwms.creation.lib.cvWParams import VOFrontendSubParams
 from glideinwms.creation.lib.cvWParams import VOFrontendParams
@@ -82,6 +84,73 @@ class TestFrontendMainDicts(unittest.TestCase):
 
     def test_save_monitor(self):
         self.fed.save_monitor()
+
+    @unittest.skip('hmm')
+    def test_apply_group_glexec_policy(self):
+        apply_group_glexec_policy(
+            self.fed.dicts['group_descript'],
+            self.sub_params,
+            self.params)
+
+    @unittest.skip('hmm')
+    def test_apply_group_singularity_policy(self):
+        apply_group_singularity_policy(
+            self.fed.dicts['group_descript'],
+            self.sub_params,
+            self.params)
+
+    @unittest.skip('hmm')
+    def test_apply_multicore_policy(self):
+        apply_multicore_policy(self.fed.dicts['frontend_descript'])
+
+    @unittest.skip('hmm')
+    def test_save(self):
+        self.fed.save()
+
+
+class TestFrontendGroupDicts(unittest.TestCase):
+
+    def setUp(self):
+        transformed_xmlfile = tempfile.NamedTemporaryFile()
+        xml = "fixtures/frontend/frontend.xml"
+        transformed_xmlfile.write(
+            xslt.xslt_xml(
+                old_xmlfile=xml,
+                xslt_plugin_dir=None))
+        transformed_xmlfile.flush()
+        args = ['/usr/sbin/reconfig_frontend', transformed_xmlfile.name]
+        self.fe_params = VOFrontendParams(USAGE_PREFIX, STARTUP_DIR, args)
+        self.sub_params = VOFrontendSubParams(self.fe_params.data)
+        self.femd = frontendMainDicts(
+            self.fe_params, 'fixtures/frontend/work-dir')
+        self.fed = frontendGroupDicts(
+            self.fe_params, "main", self.femd.get_summary_signature(), 'fixtures/frontend/work-dir')
+        self.promote_dicts = {}
+
+    def test__init__(self):
+        self.assertTrue(isinstance(self.fed, frontendGroupDicts))
+
+    def test_populate(self):
+        self.fed.populate(self.promote_dicts, self.femd, self.fe_params)
+
+    def test_reuse(self):
+        self.fed.reuse(self.fed)
+
+    def test_populate_common_attrs(self):
+        populate_common_attrs(self.fed)
+
+    def test_derive_and_validate_match(self):
+        try:
+            derive_and_validate_match("main",
+                                      (self.femd['frontend_descript']['MatchExpr'],
+                                       self.fed.dicts['group_descript']['MatchExpr']),
+                                      (self.fe_params.match.factory.match_attrs,
+                                       self.sub_params.match.factory.match_attrs),
+                                      (self.fe_params.match.job.match_attrs, self.sub_params.match.job.match_attrs),
+                                      (self.femd['attrs'], self.fed.dicts['attrs']),
+                                      (self.fe_params.match.policy_file, self.sub_params.match.policy_file))
+        except RuntimeError as err:
+            self.fail(err)
 
     @unittest.skip('hmm')
     def test_apply_group_glexec_policy(self):

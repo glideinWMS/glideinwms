@@ -59,6 +59,10 @@ class DictFile:
     def __getitem__(self, key):
         return self.vals[key]
 
+    # MM .get() added 5345, check no trouble
+    def get(self, key):
+        return self.vals.get(key)
+
     def get_fname(self):
         return self.fname
 
