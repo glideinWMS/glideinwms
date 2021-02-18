@@ -30,6 +30,8 @@ import re
 import tempfile
 import shutil
 import socket
+import M2Crypto
+import base64
 
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -899,43 +901,62 @@ class glideinFrontendElement:
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
-                home_dir  = os.path.expanduser("~" + os.getlogin())
+                #home_dir  = os.path.expanduser("~" + os.getlogin())
+		home_dir = '/var/lib/gwms-frontend'
                 tkn_dir = os.path.join(home_dir,"tokens.d")
                 pwd_dir = os.path.join(home_dir,"passwords.d")
                 req_dir = os.path.join(home_dir,"password-requests.d")
-                tkn_file = os.path.join(tkn_dir, glidein_site, ".idtoken")
+                tkn_file = os.path.join(tkn_dir, "%s.idtoken" % (glidein_site))
                 pwd_file = os.path.join(pwd_dir, glidein_site)
                 req_file = os.path.join(req_dir, glidein_site)
                 one_hr = 3600
-                tkn_age = sys.maxsize
-                if not os.path.exists(pwd_file):
-                    with open(req_file,'w') as fd:
-                        logSupport.log.info("requesting file creation %s" % pwd_file)
-                if os.path.exists(tkn_file):
-                    tkn_age = time.time() - os.stat(tkn_file).st_mtime
-                    # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
-                if tkn_age > one_hr and os.path.exists(pwd_file):    
+                #tkn_age = token_util.age_of(tkn_file)
+                #pwd_age = token_util.age_of(pwd_file)
+                #req_age = token_util.age_of(req_file)
+                #logSupport.log.debug("tkn_file to check: %s age:%s" % (tkn_file,tkn_age))
+                #logSupport.log.debug("pwd_file to check: %s age:%s" % (pwd_file,pwd_age))
+                #logSupport.log.debug("req_file to check: %s age:%s" % (req_file,req_age))
+
+
+                req_age = token_util.age_of(req_file)
+                if req_age == token_util.NO_FILE:
+                    with open(req_file,'wb') as fd:
+                        logSupport.log.info("creating %s" % req_file)
+                        fd.write(base64.b64encode(M2Crypto.Rand.rand_bytes(64)))
+
+                req_age = token_util.age_of(req_file)
+                pwd_age = token_util.age_of(pwd_file)
+                if pwd_age >= req_age or pwd_age == token_util.NO_FILE:
+                    logSupport.log.info("creating %s" % pwd_file)
+                    with open(req_file, 'rb') as fd:
+                        unscr = fd.read() 
+	            unscr=base64.b64decode(unscr)		
+		    if unscr[-1] == '\n':
+			unscr = unscr[0:-1]
+                    with open(pwd_file, 'wb') as fd:
+                        fd.write(token_util.simple_scramble(unscr))
+
+                pwd_age = token_util.age_of(pwd_file)
+                tkn_age = token_util.age_of(tkn_file)
+                if tkn_age >= pwd_age or tkn_age > one_hr or tkn_age == token_util.NO_FILE:
+                    logSupport.log.info("creating token %s" % tkn_file)
                     (fd, tmpnm) = tempfile.mkstemp()
                     scope = "condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD condor:/ADVERTISE_SCHEDD condor:/ADVERTISE_MASTER"
+                    #TODO read duration/identity from frontend.xml
                     duration = 2 * one_hr
                     identity = "vofrontend_service@%s" % socket.gethostname()
-                    logSupport.log.debug("creating  token %s" % tkn_file)
-                    logSupport.log.debug("pwd_flie= %s" % pwd_file)
-                    logSupport.log.debug("scope= %s" % scope)
-                    logSupport.log.debug("duration= %s" % duration)
-                    logSupport.log.debug("identity= %s" % identity)
+                    logSupport.log.info("creating  token %s" % tkn_file)
                     tkn_str = token_util.create_and_sign_token(pwd_file,
                                                                scope=scope,
                                                                duration=duration,
                                                                identity=identity)
                     #cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                     #tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                    logSupport.log.debug("tkn_str= %s" % tkn_str)
+                    #logSupport.log.debug("tkn_str= %s" % tkn_str)
                     os.write(fd, tkn_str)
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
                     os.chmod(tkn_file, 0600)
-                    logSupport.log.info("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):
                     with open(tkn_file, 'r') as fbuf:
                         for line in fbuf:
