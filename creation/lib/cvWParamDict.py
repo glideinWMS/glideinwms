@@ -919,10 +919,13 @@ def populate_group_security(client_security, params, sub_params, group_name):
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns
 
-    pilot_dns=[]
+    pilot_dns = []
     for credentials in (params.security.credentials, sub_params.security.credentials):
       if is_true(params.groups[group_name].enabled):
         for pel in credentials:
+            # dont try to extract dn if type is token
+	    if 'token' in pel['type'].lower():
+		continue
             if pel['pilotabsfname'] is None:
                 proxy_fname=pel['absfname']
             else:
