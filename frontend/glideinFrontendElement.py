@@ -795,13 +795,19 @@ class glideinFrontendElement:
                     gp_encrypt[entry_token_name] = ctkn
                 # now see if theres a scitoken for this site
                 scitoken_fullpath = ''
-                # hate using eval here, json.loads doesnt seem to work
-                cred_type_map  = eval(self.elementDescript.frontend_data['ProxyTypes'])
-                trust_domain_map  = eval(self.elementDescript.frontend_data['ProxyTrustDomains'])
-                for cfname in cred_type_map:
-                    if cred_type_map[cfname] == 'scitoken':
-                        if trust_domain_map[cfname] == trust_domain:
-                            scitoken_fullpath = cfname
+		cred_type_data = self.elementDescript.element_data.get('ProxyTypes')
+                trust_domain_data = self.elementDescript.element_data.get('ProxyTrustDomains')
+		if not cred_type_data:
+                    cred_type_data = self.elementDescript.frontend_data.get('ProxyTypes')
+                if not trust_domain_data:
+                    trust_domain_data = self.elementDescript.frontend_data.get('ProxyTrustDomains')
+                if trust_domain_data and cred_type_data:
+                    cred_type_map = eval(cred_type_data)
+                    trust_domain_map = eval(trust_domain_data)
+                    for cfname in cred_type_map:
+                        if cred_type_map[cfname] == 'scitoken':
+                            if trust_domain_map[cfname] == trust_domain:
+                                scitoken_fullpath = cfname
                     
                 if os.path.exists(scitoken_fullpath):
                     try:
