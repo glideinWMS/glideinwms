@@ -62,6 +62,7 @@ def create_condor_tar_fd(condor_base_dir):
             'libexec/data_plugin',
             'libexec/condor_chirp',
             'libexec/condor_gpu_discovery',
+            'libexec/condor_gpu_utilization',
         ]
 
         # for RPM installations, add libexec/condor as libexec into the
