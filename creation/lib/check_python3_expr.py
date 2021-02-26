@@ -60,7 +60,7 @@ def check_2to3(code, patch=False, refactoring_tool=rt):
     """
 
     suggestion = None
-    if rt:
+    if refactoring_tool:
         try:
             suggested_code = str(refactoring_tool.refactor_string(f"{code}\n", None))[:-1]
             diff = '\n'.join(difflib.unified_diff(code.split("\n"), suggested_code.split("\n"), lineterm=''))
@@ -126,7 +126,7 @@ def _log(text, silent=False):
         return
     sys.stdout.write(text)
 
-def main(config_file, enforce_2to3=False, silent=False):
+def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
     """Parse the Frontend configuration in config_file and validate Python code.
 
     Args:
@@ -137,6 +137,9 @@ def main(config_file, enforce_2to3=False, silent=False):
         bool: True if the file is valid and False otherwise.
         list: List of results for every element evaluated
     """
+
+    if enforce_2to3 and not refactoring_tool:
+        _log("2to3 not found and will not be enforced")
 
     passed = True
     report = []
@@ -171,7 +174,7 @@ def main(config_file, enforce_2to3=False, silent=False):
                 result["valid"] = False
                 result["error"] = error
                 passed = False
-            if rt:
+            if refactoring_tool:
                 _log("2to3 suggestion:", silent)
                 suggestion = check_2to3(expr)
                 if suggestion and suggestion != expr:
@@ -214,7 +217,7 @@ def main(config_file, enforce_2to3=False, silent=False):
                 result["valid"] = False
                 result["error"] = error
                 passed = False
-            if rt:
+            if refactoring_tool:
                 _log("2to3 suggestion:", silent)
                 suggestion = check_2to3(text, patch=True)
                 if suggestion and suggestion != text:
@@ -243,8 +246,8 @@ if __name__ == '__main__':
     
     passed, _ = main(config_file, args.enforce_2to3, args.silent)
     if passed:
-        _log("\n\nTest succeeded!\n")
+        _log("\n\nPassed (configuration compatible with python3)\n", args.silent)
         exit(0)
     else:
-        _log("\n\nTest failed!\n")
+        _log("\n\nFailed (invalid python3 in configuration)\n", args.silent)
         exit(1)
