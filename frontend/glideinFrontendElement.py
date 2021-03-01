@@ -795,9 +795,9 @@ class glideinFrontendElement:
                     gp_encrypt[entry_token_name] = ctkn
                 # now see if theres a scitoken for this site
                 scitoken_fullpath = ''
-		cred_type_data = self.elementDescript.element_data.get('ProxyTypes')
+                cred_type_data = self.elementDescript.element_data.get('ProxyTypes')
                 trust_domain_data = self.elementDescript.element_data.get('ProxyTrustDomains')
-		if not cred_type_data:
+                if not cred_type_data:
                     cred_type_data = self.elementDescript.frontend_data.get('ProxyTypes')
                 if not trust_domain_data:
                     trust_domain_data = self.elementDescript.frontend_data.get('ProxyTrustDomains')
