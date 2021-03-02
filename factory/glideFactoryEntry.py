@@ -1255,7 +1255,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
             entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
-    entry.log.debug("dbox debug submit_credentials=%s" % (submit_credentials))
     if 'scitoken' in auth_method:
     	if os.path.exists(scitoken_file):
             pass
