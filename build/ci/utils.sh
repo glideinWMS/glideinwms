@@ -130,7 +130,7 @@ setup_python3_venv() {
     [[ "${py_detected}" == 3* ]] || logexit "Python 3 required, detected ${py_detected}. Aborting"
     [[ "${py_detected}" == "${PY_VER}"* ]] || logwarn "Reference version is Python 3.6. Detected ${py_detected}."
     VIRTUALENV_VER=virtualenv
-    PYLINT='pylint'
+    PYLINT='pylint==2.7.1' # TODO: Remove this lock when https://github.com/PyCQA/pylint/issues/3624 is solved
     ASTROID='astroid'
     HYPOTHESIS="hypothesis"
     AUTOPEP8="autopep8"
