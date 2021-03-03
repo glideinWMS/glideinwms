@@ -904,7 +904,7 @@ class glideinFrontendElement:
         condor_version = glidein_el['params'].get('CONDOR_VERSION')
         if condor_version \
             and condor_version != 'default' \
-            and condor_version >= '8.9.2':
+            and condor_version >= '8.9':
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
