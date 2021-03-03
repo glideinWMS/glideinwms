@@ -661,7 +661,7 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot; auth_method=&quot;<I>grid_proxy</I>&quot;&gt;
         </div>
     <b>Required:</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for
-    submission.  Valid values: grid_proxy, voms_proxy, key_pair, cert_pair, username_password, vm_type, vm_id, project_id<br/>
+    submission.  Valid values: grid_proxy, voms_proxy, key_pair, cert_pair, username_password, vm_type, vm_id, project_id, scitoken<br/>
     Multiple authentication methods may be needed and there may be reqirements on the authentication method depending on the type of entry.
     E.g. ec2 requires a credential pair (key_pair, cert_pair, username_password) and the VM id and type. BOSCO requires a key_pair and a grid_proxy.
     The authentication method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;. <br/>
