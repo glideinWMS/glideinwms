@@ -64,7 +64,7 @@ def expand_DLR(qstr,attr_dict):
         t_attr_dict=attr_dict.copy() # simple copy is enough, since we only modify the keys
         del t_attr_dict[attr_name] # remove myself, so there cannot be loops
         # recursevely expand any $ and $$ contained in the referenced attribute
-        attr_str=expand_DLR(attr_dict[attr_name],t_attr_dict)
+        attr_str=expand_DLR(str(attr_dict[attr_name]),t_attr_dict)
         del t_attr_dict
         
         qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])

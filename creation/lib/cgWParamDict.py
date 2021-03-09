@@ -282,7 +282,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # put user attributes into config files
         for attr in self.conf.get_child_list(u'attrs'):
             # ignore attributes that need expansion in the global section
-            if attr.get_val().find('$') == -1:  # does not need to be expanded
+            if str(attr.get_val()).find('$') == -1:  # does not need to be expanded
                 add_attr_unparsed(attr, self.dicts, "main")
 
         # add additional system scripts
@@ -529,7 +529,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # Insert the global values that need to be expanded and had been skipped in the global section
         # will be in the entry section now
         for attr in self.conf.get_child_list(u'attrs'):
-            if attr.get_val().find('$') != -1:
+            if str(attr.get_val()).find('$') != -1:
                 if not (attr[u'name'] in [i[u'name'] for i in entry_attrs]):
                     add_attr_unparsed(attr, self.dicts, self.sub_name)
                 # else the entry value will override it later on (here below)
@@ -1079,14 +1079,15 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
                               cWExpand.expand_DLR(job_descript_dict[attr_name], attrs_dict),
                               allow_overwrite=True)
 
-    # Submit attributes are a bit special, since they need to be serialized, so we will deal with them explicitly
-    submit_attrs = {}
-    for attr in submit.get_child_list(u'submit_attrs'):
-        expkey = cWExpand.expand_DLR(attr[u'name'], attrs_dict)
-        expel = cWExpand.expand_DLR(attr.get_val(), attrs_dict)  # attr[u'value'] instead?
-        submit_attrs[expkey] = expel
-
-    job_descript_dict.add('SubmitAttrs', repr(submit_attrs))
+#    # Submit attributes are a bit special, since they need to be serialized, so we will deal with them explicitly
+#    submit_attrs = {}
+#    for attr in submit.get_child_list(u'submit_attrs'):
+#        expkey = cWExpand.expand_DLR(attr[u'name'], attrs_dict)
+##        expel = cWExpand.expand_DLR(attr.get_val(), attrs_dict)  # attr[u'value'] instead?
+#        expel = cWExpand.expand_DLR(attr[u'value'], attrs_dict)  # attr[u'value'] instead?
+#        submit_attrs[expkey] = expel
+#
+#    job_descript_dict.add('SubmitAttrs', repr(submit_attrs))
 
 
 ###################################
