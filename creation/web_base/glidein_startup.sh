@@ -1013,6 +1013,17 @@ set_proxy_fullpath() {
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
 
+for tk in $(pwd)/*idtoken; do
+  export GLIDEIN_CONDOR_TOKEN="${tk}"
+  if fullpath="$(readlink -f $tk)"; then
+     echo "Setting GLIDEIN_CONDOR_TOKEN $tk to canonical path ${fullpath}" 1>&2
+     export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+  else
+     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN $tk" 1>&2
+  fi
+done
+
+
 
 ########################################
 # prepare and move to the work directory
@@ -1143,6 +1154,12 @@ fi
 # Move the token files from condor to glidein workspace
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
+if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+    mkdir -p ticket
+    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
+    cp "${GLIDEIN_CONDOR_TOKEN}" "ticket/${tname}"
+    export GLIDEIN_CONDOR_TOKEN="$(pwd)/ticket/${tname}"
+fi
 
 # Extract and source all the data contained at the end of this script as tarball
 extract_all_data
@@ -1207,6 +1224,7 @@ if ! {
     echo "GLIDEIN_INITIALIZED 0"
     # ...but be optimist, and leave advertise_only for the actual error handling script
     echo "GLIDEIN_ADVERTISE_ONLY 0"
+    echo "GLIDEIN_CONDOR_TOKEN ${GLIDEIN_CONDOR_TOKEN}"
     echo "# --- User Parameters ---"
 } >> "${glidein_config}"; then
     early_glidein_failure "Failed in updating '${glidein_config}'"

@@ -17,7 +17,17 @@ add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$config_file" | cut -d
 source "$add_config_line_source"
 
 error_gen="`grep '^ERROR_GEN_PATH ' "$config_file" | cut -d ' ' -f 2-`"
+GLIDEIN_CONDOR_TOKEN="`grep '^GLIDEIN_CONDOR_TOKEN ' "$config_file" | cut -d ' ' -f 2-`"
 
+
+
+#if an IDTOKEN is available, continue.  Else exit
+exit_if_no_token(){
+    if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        exit $1
+    fi
+    "$error_gen" -error "create_mapfile.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
+}
 
 function get_proxy_fname {
     cert_fname="$1"
@@ -53,7 +63,7 @@ function create_gridmapfile {
                 STR+="Tried all grid-proxy-info, voms-proxy-info and openssl x509."
 	        STR1=`echo -e "$STR"`
                 "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "$proxy_cmd"
-                exit 1
+                exit_if_no_token 1
             fi
             # can I use bash variables? id="${id_subject%%/CN=proxy*}"
             # proxy part removed below anyway
@@ -68,7 +78,7 @@ function create_gridmapfile {
 	STR="Cannot remove proxy part from user identity."
 	# probably could be classified better... but short on ideas
 	"$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "$proxy_cmd"
-	exit 1
+	exit_if_no_token 1
     fi
 
     touch "$X509_GRIDMAP"
@@ -97,7 +107,7 @@ function create_gridmapfile {
         #echo "Cannot add user identity to $X509_GRIDMAP!" 1>&2
         STR="Cannot add user identity to $X509_GRIDMAP!"
         "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "file" "$X509_GRIDMAP"
-        exit 1
+        exit_if_no_token 1
     fi
 
     return 0

@@ -22,6 +22,16 @@ X509_CERT_DIR="`grep '^X509_CERT_DIR ' $glidein_config | cut -d ' ' -f 2-`"
 export X509_CERT_DIR
 X509_USER_PROXY="`grep '^X509_USER_PROXY ' $glidein_config | cut -d ' ' -f 2-`"
 export X509_USER_PROXY
+GLIDEIN_CONDOR_TOKEN="`grep '^GLIDEIN_CONDOR_TOKEN ' $glidein_config | cut -d ' ' -f 2-`"
+export GLIDEIN_CONDOR_TOKEN
+
+#if an IDTOKEN is available, continue.  Else exit
+exit_if_no_token(){
+    if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        exit $1
+    fi
+    "$error_gen" -error "check_proxy.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
+}
 
 
 function openssl_get_x509_timeleft {
@@ -88,14 +98,14 @@ function get_x509_expiration {
             STR+="Proxy shorter than 12 hours are not allowed."
             STR1=`echo -e "$STR"`
             "$error_gen" -error "check_proxy.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
-            exit 1
+            exit_if_no_token 1
         fi
         RETVAL="$(/usr/bin/expr $now + $l)"
     else
         #echo "Could not obtain -timeleft" 1>&2
         STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl"
         "$error_gen" -error "check_proxy.sh" "WN_Resource" "$STR" "command" "$CMD"
-        exit 1
+        exit_if_no_token 1
     fi
 
     return 0
