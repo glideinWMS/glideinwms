@@ -24,6 +24,7 @@ from glideinwms.frontend.glideinFrontendElement import write_stats
 from glideinwms.frontend.glideinFrontendElement import log_and_sum_factory_line
 from glideinwms.frontend.glideinFrontendElement import init_factory_stats_arr
 from glideinwms.frontend.glideinFrontendElement import log_factory_header
+from glideinwms.frontend.glideinFrontendElement import check_parent
 from glideinwms.unittests.unittest_utils import FakeLogger
 
 
@@ -151,6 +152,13 @@ class TestGlideinFrontendElement(unittest.TestCase):
     def test_set_glidein_config_limits(self):
         self.gfe.set_glidein_config_limits()
 
+    def test_check_removal_config(self):
+        glideid = None
+        self.gfe.removal_type = 'DISABLE'
+        self.assertEqual('DISABLE', self.gfe.check_removal_type_config(glideid))
+        self.gfe.removal_type = None 
+        self.assertEqual('NO', self.gfe.check_removal_type_config(glideid))
+
     def test_init_factory_stats_arr(self):
         arr = init_factory_stats_arr()
         for ind in range(16):
@@ -169,11 +177,6 @@ class TestGlideinFrontendElement(unittest.TestCase):
         # self.assertEqual(expected, glidein_frontend_element.build_resource_classad(this_stats_arr, request_name, glidein_el, glidein_in_downtime, factory_pool_node, my_identity, limits_triggered))
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
-    def test_check_removal_type(self):
-        # glidein_frontend_element = glideinFrontendElement(parent_pid, work_dir, group_name, action)
-        # self.assertEqual(expected, glidein_frontend_element.check_removal_type(glideid, remove_excess_str))
-        assert False  # TODO: implement your test here
 
     @unittest.skip('for now')
     def test_choose_remove_excess_type(self):
@@ -203,9 +206,6 @@ class TestGlideinFrontendElement(unittest.TestCase):
         self.gfe.configure()
         self.gfe.deadvertiseAllClassads()
 
-    @unittest.skip('hhmmm')
-    def test_do_match(self):
-        self.gfe.do_match()
 
     @unittest.skip('for now')
     def test_identify_bad_schedds(self):
@@ -256,13 +256,26 @@ class TestGlideinFrontendElement(unittest.TestCase):
         self.gfe.blacklist_schedds = []
         self.gfe.populate_condorq_dict_types()
 
-    @unittest.skip('grr')
     def test_populate_pubkey(self):
+        globals_el = {'attrs': {'PubKeyValue':None, 'PubKeyObj': None}}
+        self.gfe.globals_dict = {'my_global_id': globals_el}
         self.gfe.populate_pubkey()
+        key_obj = self.gfe.globals_dict['my_global_id']['attrs']['PubKeyObj']
+        self.assertTrue(isinstance(key_obj, glideinwms.lib.pubCrypto.PubRSAKey))
 
-    @unittest.skip('for now')
     def test_populate_status_dict_types(self):
+        self.gfe.status_dict = {}
         self.gfe.populate_status_dict_types()
+        expected = {'RunningCores': {'abs': 0, 'dict': {}},
+                    'TotalCores': {'abs': 0, 'dict': {}},
+                    'Running': {'abs': 0, 'dict': {}},
+                    'IdleCores': {'abs': 0, 'dict': {}},
+                    'Failed': {'abs': 0, 'dict': {}},
+                    'Idle': {'abs': 0, 'dict': {}},
+                    'Total': {'abs': 0, 'dict': {}}
+                    }
+        for key in expected:
+            self.assertTrue(key in self.gfe.status_dict_types, self.gfe.status_dict_types)
 
     @unittest.skip('for now')
     def test_query_entries(self):
@@ -304,25 +317,12 @@ class TestGlideinFrontendElement(unittest.TestCase):
         # write_stats(stats)
         assert False
 
-    @unittest.skip('for now')
-    def test_log_and_sum_factory_line(self):
-        # log_and_sum_factory_line(
-        #     factory,
-        #     is_down,
-        #     factory_stat_arr,
-        #     old_factory_stat_arr)
-        assert False
 
     @unittest.skip('for now')
     def test_expand__d_d(self):
         # expand_DD(qstr, attr_dict)
         assert False
 
-    @unittest.skip('grr')
-    def test_check_removal_type_config(self):
-        # glidein_frontend_element = glideinFrontendElement(parent_pid, work_dir, group_name, action)
-        # self.assertEqual(expected, glidein_frontend_element.check_removal_type_config(glideid))
-        assert False  # TODO: implement your test here
 
     @unittest.skip('grr')
     def test_decide_removal_type(self):
@@ -344,38 +344,39 @@ class TestGlideinFrontendElement(unittest.TestCase):
 
 
 class TestCheckParent(unittest.TestCase):
-    @unittest.skip('grr')
     def test_check_parent(self):
-        # self.assertEqual(expected, check_parent(parent_pid))
-        assert False  # TODO: implement your test here
+        mockery = mock.MagicMock()
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
+        mockery.info.side_effect = log_side_effect
+        parent_pid = os.getppid()
+        self.assertEqual(None, check_parent(parent_pid))
+        assert True
+        parent_pid = 'force exception'
+        try:
+            check_parent(parent_pid)
+        except KeyboardInterrupt:
+            assert True
+            return
+        assert False
 
 
 class TestLogAndSumFactoryLine(unittest.TestCase):
-    @unittest.skip('grr')
     def test_log_and_sum_factory_line(self):
-        # self.assertEqual(expected, log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr))
-        assert False  # TODO: implement your test here
+        mockery = mock.MagicMock()
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
+        mockery.info.side_effect = log_side_effect
+        expected = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        factory = 'OSG'
+        is_down = False
+        factory_stat_arr = [ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 ]
+        old_factory_stat_arr = factory_stat_arr
+        self.assertEqual(expected, log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr))
 
 
-class TestInitFactoryStatsArr(unittest.TestCase):
-    @unittest.skip('grr')
-    def test_init_factory_stats_arr(self):
-        # self.assertEqual(expected, init_factory_stats_arr())
-        assert False  # TODO: implement your test here
 
 
-class TestLogFactoryHeader(unittest.TestCase):
-    @unittest.skip('grr')
-    def test_log_factory_header(self):
-        # self.assertEqual(expected, log_factory_header())
-        assert False  # TODO: implement your test here
 
 
-class TestExpandDD(unittest.TestCase):
-    @unittest.skip('grr')
-    def test_expand__d_d(self):
-        # self.assertEqual(expected, expand_DD(qstr, attr_dict))
-        assert False  # TODO: implement your test here
 
 
 if __name__ == '__main__':

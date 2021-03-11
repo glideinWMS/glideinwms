@@ -29,8 +29,8 @@ SUPPORTED_AUTH_METHODS = ['grid_proxy',
                           'key_pair',
                           'auth_file',
                           'username_password',
-                          'condor_token',
-                          'sci_token' ]
+                          'idtoken',
+                          'scitoken' ]
 
 # defining new exception so that we can catch only the credential errors here
 # and let the "real" errors propagate up
@@ -278,7 +278,10 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
                          'PublicCert', 'PrivateCert', 'PublicKey', 'PrivateKey',
                          'VMId', 'VMType', 'AuthFile'])
 
-    if 'grid_proxy' in auth_method_list:
+    if 'scitoken' in auth_method_list:
+        #TODO check validity
+        return
+    elif 'grid_proxy' in auth_method_list:
         if 'SubmitProxy' in params:
             # v3+ protocol
             valid_keys = set(['SubmitProxy'])

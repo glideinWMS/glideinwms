@@ -1260,9 +1260,19 @@ singularity_test_bin() {
 
 
 singularity_locate_bin() {
-    # Find Singularity path, check the version and validate w/ the image (if an image is passed)
+    # Find Singularity in search path, check the version and validate w/ the image (if an image is passed)
+    # This will search in order:
+    # 1. Optional: Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
+    # 2. Look in the path suggested via $1 (SINGULARITY_BIN) 
+    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH; 
+    #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
+    # 3. Look in $PATH
+    # 4. Invoke module singularitypro
+    # 5. Invoke module singularity
+    # 6. Look in the default OSG location
     # In:
     #   1 - s_location, suggested Singularity directory, will be added first in PATH before searching for Singularity
+    #            keywords OSG (default, same as '') and PATH (no suggestion start checking form PATH) are possible
     #   2 - s_image, if provided will be used to test Singularity (as additional test)
     #   OSG_SINGULARITY_BINARY, OSG_SINGULARITY_BINARY_DEFAULT, LMOD_CMD, optional if in the environment
     # Out (E - exported):
@@ -1275,7 +1285,7 @@ singularity_locate_bin() {
     info "Checking for singularity..."
     #GWMS Entry must use SINGULARITY_BIN to specify the pathname of the singularity binary
     #GWMS, we quote $singularity_bin to deal with white spaces in the path
-    local s_location="$1"
+    local s_location="${1:-OSG}"
     local s_image="$2"
     # bread_crumbs populated also in singularity_test_bin
     local bread_crumbs=""
@@ -1285,22 +1295,31 @@ singularity_locate_bin() {
     local singularity_binary_override="${GLIDEIN_SINGULARITY_BINARY_OVERRIDE}"
 
     if [[ -n "$singularity_binary_override" ]]; then
+        # 1. Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
         bread_crumbs+=" s_override_defined"
         if [[ ! -x "$singularity_binary_override" ]]; then
-            info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary."
-            info "Will proceed with suggersted path and auto-discover"
+            # Try considering it a PATH
+            local singularity_binary_override_bin
+            if ! singularity_binary_override_bin=$(PATH="$singularity_binary_override" command -v singularity); then
+                info "Override path '$singularity_binary_override' (GLIDEIN_SINGULARITY_BINARY_OVERRIDE) is not a valid binary or a PATH containing singularity."
+                info "Will proceed with suggested path and auto-discover"
+            else
+            bread_crumbs+="_path"
+            test_out=$(singularity_test_bin "s_override,${singularity_binary_override_bin}" "$s_image") &&
+                HAS_SINGULARITY=True
+            bread_crumbs+="${test_out##*@}"                
+            fi
         else
-            # 1. Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
+            bread_crumbs+="_bin"
             test_out=$(singularity_test_bin "s_override,${singularity_binary_override}" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
         fi        
     fi
-    if [[ "$HAS_SINGULARITY" != True && -n "$s_location" ]]; then
+    if [[ "$HAS_SINGULARITY" != True && -n "$s_location" && "$s_location" != PASS ]]; then
         s_location_msg=" at $s_location,"
         bread_crumbs+=" s_bin_defined"
         s_step=s_bin
-        # TODO: OSG is looked first in the sequence below. Does this make sense?
         [[ "$s_location" == OSG ]] && { s_location="${osg_singularity_binary%/singularity}"; s_step=s_bin_OSG; }
         if [[ ! -d "$s_location"  ||  ! -x "${s_location}/singularity" ]]; then
             [[ "x$s_location" = xNONE ]] &&
@@ -1315,12 +1334,12 @@ singularity_locate_bin() {
         fi
     fi
     if [[ "$HAS_SINGULARITY" != True ]]; then
-        # 3. Look in the default OSG location
-        # 4. Look in $PATH
-        # 5. Invoke module singularitypro
-        # 6. Invoke module singularity
+        # 3. Look in $PATH
+        # 4. Invoke module singularitypro
+        # 5. Invoke module singularity
         #    some sites requires us to do a module load first - not sure if we always want to do that
-        for attempt in "OSG,${osg_singularity_binary}" "PATH,singularity" "module,singularitypro" "module,singularity"; do
+        # 6. Look in the default OSG location
+        for attempt in "PATH,singularity" "module,singularitypro" "module,singularity" "OSG,${osg_singularity_binary}"; do
             if test_out=$(singularity_test_bin "$attempt" "$s_image"); then
                 HAS_SINGULARITY=True
                 break
@@ -1536,7 +1555,7 @@ singularity_exit_or_fallback () {
     #  3: sleep time (default: $EXITSLEEP used in exit_wrapper, not here)
     #  $GWMS_SINGULARITY_STATUS
     #  exit_wrapper() - function handling cleanup and exit
-    if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]]; then
+    if [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" && "x$GWMS_SINGULARITY_STATUS_EFFECTIVE" != "xREQUIRED"* ]]; then
         # Fall back to no Singularity
         export HAS_SINGULARITY=0
         export GWMS_SINGULARITY_PATH=
@@ -1544,6 +1563,7 @@ singularity_exit_or_fallback () {
         [[ -n "$1" ]] && warn "$1"
         warn "An error in Singularity occurred, but can fall-back to no Singularity ($GWMS_SINGULARITY_STATUS). Continuing"
     else
+        [[ "x$GWMS_SINGULARITY_STATUS" = "xPREFERRED" ]] && info_dbg "Singularity PREFERRED overridden to REQUIRED (${GWMS_SINGULARITY_STATUS_EFFECTIVE#*_})"
         if [[ "$(type -t exit_wrapper)" == 'function' ]]; then
             exit_wrapper "${@}"
         else
@@ -1682,26 +1702,12 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /cvmfs`"
     fi
 
-    # GPUs - bind outside GPU library directory to inside /host-libs
+    # GPUs - bind outside OpenCL directory if available, and add --nv flag
     if [[ "$OSG_MACHINE_GPUS" -gt 0  ||  "x$GPU_USE" = "x1" ]]; then
-        if [[ "x$OSG_SINGULARITY_BIND_GPU_LIBS" = "x1" ]]; then
-            HOST_LIBS=""
-            if [[ -e "/usr/lib64/nvidia" ]]; then
-                HOST_LIBS=/usr/lib64/nvidia
-            elif create_host_lib_dir; then
-                HOST_LIBS="$PWD/.host-libs"
-            fi
-            if [[ "x$HOST_LIBS" != "x" ]]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS "$HOST_LIBS" /host-libs`"
-            fi
-            if [[ -e /etc/OpenCL/vendors ]]; then
-                GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
-            fi
+        if [[ -e /etc/OpenCL/vendors ]]; then
+            GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS="`dict_set_val GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS /etc/OpenCL/vendors /etc/OpenCL/vendors`"
         fi
         GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --nv"
-    #else
-        # if not using gpus, we can limit the image more
-        # Already in default: GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --contain"
     fi
     info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
@@ -1787,7 +1793,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     info_dbg "about to invoke singularity, pwd is $PWD"
     export GWMS_SINGULARITY_REEXEC=1
 
-    # Always disabling outside LD_LIBRARY_PATH, PATH and PYTHONPATH to avoid problems w/ different OS
+    # Always disabling outside LD_LIBRARY_PATH, PATH, PYTHONPATH and LD_PRELOAD to avoid problems w/ different OS
     # Singularity is supposed to handle this, but different versions behave differently
     # Restore them only if continuing after the exec of singularity failed (end of this function)
     local old_ld_library_path=
@@ -1807,6 +1813,11 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         old_pythonpath=$PYTHONPATH
         info "GWMS Singularity wrapper: PYTHONPATH is set to $PYTHONPATH outside Singularity. This will not be propagated to inside the container instance." 1>&2
         unset PYTHONPATH
+    fi
+    if [[ -n "$LD_PRELOAD" ]]; then
+        old_ld_preload=$LD_PRELOAD
+        info "GWMS Singularity wrapper: LD_PRELOAD is set to $LD_PRELOAD outside Singularity. This will not be propagated to inside the container instance." 1>&2
+        unset LD_PRELOAD
     fi
 
     # Add --clearenv if requested
@@ -1837,6 +1848,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     [[ -n "$old_path" ]] && PATH=$old_path
     [[ -n "$old_ld_library_path" ]] && PATH=$old_ld_library_path
     [[ -n "$old_pythonpath" ]] && PYTHONPATH=$old_pythonpath
+    [[ -n "$old_ld_preload" ]] && LD_PRELOAD=$old_ld_preload
     # Exit or return to run w/o Singularity
     singularity_exit_or_fallback "exec of singularity failed" $?
 }
@@ -1961,6 +1973,8 @@ setup_classad_variables() {
     # from Job ClassAd
     export REQUIRED_OS=$(get_prop_str ${_CONDOR_JOB_AD} REQUIRED_OS)
     export GWMS_SINGULARITY_IMAGE=$(get_prop_str ${_CONDOR_JOB_AD} SingularityImage)
+    # Jobs with SingularityImage make Singularity REQUIRED
+    [[ -n "$GWMS_SINGULARITY_IMAGE" ]] && export GWMS_SINGULARITY_STATUS_EFFECTIVE="REQUIRED_Singularity_image_in_job"
     # If not provided default to whatever is Singularity availability
     export GWMS_SINGULARITY_AUTOLOAD=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityAutoLoad ${HAS_SINGULARITY})
     export GWMS_SINGULARITY_BIND_CVMFS=$(get_prop_bool ${_CONDOR_JOB_AD} SingularityBindCVMFS 1)

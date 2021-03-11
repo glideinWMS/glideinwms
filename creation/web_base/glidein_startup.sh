@@ -885,7 +885,7 @@ dir_id() {
 if command -v uuidgen >/dev/null 2>&1; then
     glidein_uuid="$(uuidgen)"
 else
-    glidein_uuid="$(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
+    glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
 
 startup_time="$(date +%s)"

@@ -1733,7 +1733,8 @@ email_logs = False
                 log.exception(msg)
                 raise
         else:
-            exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
+            proxy = submit_credentials.security_credentials.get("SubmitProxy", '')
+            exe_env.append('X509_USER_PROXY=%s' % proxy)
 
             # TODO: we might review this part as we added this here because the macros were been expanded when used in the gt2 submission
             # we don't add the macros to the arguments for the EC2 submission since condor will never
