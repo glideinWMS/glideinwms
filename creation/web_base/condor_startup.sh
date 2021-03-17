@@ -41,6 +41,14 @@ ignore_signal() {
     echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
+#if an IDTOKEN is available, continue.  Else exit
+exit_if_no_token(){
+    if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        exit $1
+    fi
+    "$error_gen" -error "condor_startup.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "continuing"
+}
+
 metrics=""
 
 # put in place a reasonable default
@@ -171,7 +179,7 @@ set_var() {
         # empty line
         return 0
     fi
-
+    GLIDEIN_CONDOR_TOKEN=`grep "^GLIDEIN_CONDOR_TOKEN " $config_file | cut -d ' ' -f 2-`
     var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
     if [ -z "$var_val" ]; then
         if [ "$var_req" == "Y" ]; then
@@ -179,7 +187,7 @@ set_var() {
             #echo "Cannot extract $var_name from '$config_file'" 1>&2
             STR="Cannot extract $var_name from '$config_file'"
             "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
-            exit 1
+            exit_if_no_token 1
         elif [ "$var_def" == "-" ]; then
             # no default, do not set
             return 0
@@ -421,6 +429,8 @@ chmod a+x "$condor_job_wrapper"
 now=`date +%s`
 # If not an integer reset to 0 (a string could cause errors [#7899])
 [ "$X509_EXPIRE" -eq "$X509_EXPIRE" ] 2>/dev/null || X509_EXPIRE=0
+
+[ "$X509_EXPIRE" -eq 0 ] && [ -e "$GLIDEIN_CONDOR_TOKEN" ] && let "X509_EXPIRE=$now + 86400" 
 
 #add some safety margin
 let "x509_duration=$X509_EXPIRE - $now - 300"
