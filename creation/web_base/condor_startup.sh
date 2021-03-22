@@ -46,7 +46,7 @@ exit_if_no_token(){
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
         exit $1
     fi
-    "$error_gen" -error "condor_startup.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "continuing"
+    echo "condor_startup.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "continuing"
 }
 
 metrics=""

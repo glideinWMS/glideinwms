@@ -30,7 +30,7 @@ exit_if_no_token(){
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
         exit $1
     fi
-    "$error_gen" -error "check_proxy.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
+    echo "check_proxy.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
 }
 
 

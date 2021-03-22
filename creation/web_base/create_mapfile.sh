@@ -26,7 +26,7 @@ exit_if_no_token(){
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
         exit $1
     fi
-    "$error_gen" -error "create_mapfile.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
+    echo  "create_mapfile.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "..so..continuing"
 }
 
 function get_proxy_fname {
