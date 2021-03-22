@@ -738,6 +738,7 @@ case "${operation_mode}" in
         set_debug=1;;
     check)
         sleep_time=150
+        set -x
         set_debug=2;;
     *)
         sleep_time=1199
@@ -1154,12 +1155,12 @@ fi
 # Move the token files from condor to glidein workspace
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
-if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
-    mkdir -p ticket
-    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
-    cp "${GLIDEIN_CONDOR_TOKEN}" "ticket/${tname}"
-    export GLIDEIN_CONDOR_TOKEN="$(pwd)/ticket/${tname}"
-fi
+#if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+#    mkdir -p ticket
+#    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
+#    cp "${GLIDEIN_CONDOR_TOKEN}" "ticket/${tname}"
+#    export GLIDEIN_CONDOR_TOKEN="$(pwd)/ticket/${tname}"
+#fi
 
 # Extract and source all the data contained at the end of this script as tarball
 extract_all_data

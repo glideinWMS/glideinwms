@@ -30,7 +30,7 @@ exit_if_no_token(){
     if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
         exit $1
     fi
-    "$error_gen" -error "setup_x509.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "so...continuing"
+    echo  "setup_x509.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "so...continuing"
 }
 
 # check that x509 certificates exist and set the env variable if needed
@@ -55,8 +55,8 @@ check_x509_certs() {
         STR+="	\$X509_CADIR ($X509_CADIR)\n"
 	STR1=`echo -e "$STR"`
         echo "WARNING - $STR1" >&2
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
-        exit_if_no_token 1
+        #"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
+        #exit_if_no_token 1
     fi
     return 0
 }
@@ -78,12 +78,12 @@ get_x509_proxy() {
         X509_USER_PROXY="$cert_fname"
     fi
     if [ ! -e "$cert_fname" ]; then
-        "$error_gen" -error "Proxy certificate '$cert_fname' does not exist."
-        exit_if_no_token 1
+        echo "Proxy certificate '$cert_fname' does not exist."
+        #exit_if_no_token 1
     fi
     if [ ! -r "$cert_fname" ]; then
-        "$error_gen" -error "Unable to read '$cert_fname' (user: `id -u`/$USER)."
-        exit_if_no_token 1
+        echo "Unable to read '$cert_fname' (user: `id -u`/$USER)."
+        #exit_if_no_token 1
     fi
     echo "$cert_fname"
 
@@ -141,7 +141,7 @@ copy_x509_proxy() {
         STR="Could not find user proxy!"
         STR+="Looked in X509_USER_PROXY='$X509_USER_PROXY'\n"
         STR+=`ls -la "$X509_USER_PROXY"`
-	    STR1=`echo -e "$STR"`
+        STR1=`echo -e "$STR"`
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR1" "proxy" "$X509_USER_PROXY"
         exit_if_no_token 1
     fi
@@ -198,6 +198,16 @@ copy_x509_proxy() {
 config_idtoken() {
     #
     if [ -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        export GLIDEIN_CONDOR_TOKEN_ORIG="$GLIDEIN_CONDOR_TOKEN"
+        idtoken=$(basename $GLIDEIN_CONDOR_TOKEN)
+        local_proxy_dir=$(pwd)/ticket
+        mkdir -p $local_proxy_dir
+        cp $GLIDEIN_CONDOR_TOKEN_ORIG $local_proxy_dir/$idtoken
+        export GLIDEIN_CONDOR_TOKEN=$local_proxy_dir/$idtoken
+        echo "glidein IDTOKEN set to $GLIDEIN_CONDOR_TOKEN"
+        if [ ! -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+            "$error_gen" -error "setup_x509.sh" "Corruption" "IDTOKEN" "$GLIDEIN_CONDOR_TOKEN" "not_copied"
+        fi
         head_node="$(grep '^GLIDEIN_Collector ' "$glidein_config" | cut -d ' ' -f 2- )"
         if [ -z "$head_node" ]; then
             head_node="$(grep '^CCB_ADDRESS ' "$glidein_config" | cut -d ' ' -f 2- )"
@@ -272,14 +282,14 @@ get_x509_expiration() {
 	    STR+="Not enough time to do anything with it."
 	    STR1=`echo -e "$STR"`
 	    "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
-	    exit 1
+	    exit_if_no_token 1
         fi
         RETVAL="$(/usr/bin/expr $now + $l)"
     else
         #echo "Could not obtain -timeleft" 1>&2
         STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl"
         "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "$CMD"
-        exit 1
+        exit_if_no_token 1
     fi
 
     return 0
@@ -288,7 +298,7 @@ get_x509_expiration() {
 
 refresh_proxy() {
     X509_USER_PROXY_ORIG="`grep '^X509_USER_PROXY_ORIG ' "$glidein_config" | cut -d ' ' -f 2-`"
-    GLIDEIN_CONDOR_TOKEN="`grep '^GLIDEIN_CONDOR_TOKEN ' "$glidein_config" | cut -d ' ' -f 2-`"
+    GLIDEIN_CONDOR_TOKEN_ORIG="`grep '^GLIDEIN_CONDOR_TOKEN_ORIG ' "$glidein_config" | cut -d ' ' -f 2-`"
 
     # If X509_USER_PROXY_ORIG is set it means the script has run at least once
     if [ -n "${X509_USER_PROXY_ORIG}" ]; then
@@ -298,13 +308,20 @@ refresh_proxy() {
         cp $X509_USER_PROXY_ORIG $X509_USER_PROXY
         chmod 400 $X509_USER_PROXY
 
-        return 0
+        REFRESHED="True"
     fi
+
     #TODO all the token updating stuff
-    if [ -n "${GLIDEIN_CONDOR_TOKEN}" ]; then
-       return 0
+    # assuming condor will eventually copy in updated tokens like it does proxies now
+    #
+    if [ -n "${GLIDEIN_CONDOR_TOKEN_ORIG}" ]; then
+       cp ${GLIDEIN_CONDOR_TOKEN_ORIG} ${GLIDEIN_CONDOR_TOKEN}
+       REFRESHED="True"
     fi
-    return 1
+    if [ -z "$REFRESHED" ]; then
+       return 1
+    fi
+    return 0
 }
 
 
@@ -324,7 +341,10 @@ refresh_proxy && exit 0
 #       usable token exists
 #
 config_idtoken
-test -n "$TRUST_DOMAIN" && add_config_line TRUST_DOMAIN "$TRUST_DOMAIN"
+
+add_config_line TRUST_DOMAIN "$TRUST_DOMAIN"
+add_config_line GLIDEIN_CONDOR_TOKEN "$GLIDEIN_CONDOR_TOKEN"
+add_config_line GLIDEIN_CONDOR_TOKEN_ORIG "$GLIDEIN_CONDOR_TOKEN_ORIG"
 
 # Assume following functions exit on error
 check_x509_certs
@@ -334,6 +354,7 @@ copy_x509_proxy
 
 
 # no sub-shell, to allow to exit (all script) on error
+# hacked now to keep going if token present
 get_x509_expiration
 X509_EXPIRE="$RETVAL"
 
@@ -341,6 +362,7 @@ add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
 add_config_line X509_USER_PROXY_ORIG "$X509_USER_PROXY_ORIG"
 add_config_line X509_EXPIRE  "$X509_EXPIRE"
+
 
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
