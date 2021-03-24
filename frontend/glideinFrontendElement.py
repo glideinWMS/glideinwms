@@ -921,12 +921,13 @@ class glideinFrontendElement:
                     os.mkdir(req_dir,0o700)
                 tkn_file = tkn_dir + '/' + glidein_site + ".idtoken"
                 pwd_file = pwd_dir + '/' + glidein_site
+                pwd_default = pwd_dir + '/' + 'FRONTEND'
                 req_file = req_dir + '/' + glidein_site
                 one_hr = 3600
                 tkn_age = sys.maxsize
                 if not os.path.exists(pwd_file):
-                    with open(req_file,'w') as fd:
-                        pass
+                    if os.path.exists(pwd_default):
+                        pwd_file = pwd_default
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
                     # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
