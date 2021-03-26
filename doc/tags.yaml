@@ -204,6 +204,7 @@ v3_7_3:
     - Fail without fall-back when user provided singularity image missing
     - Improved GPU implementation in glidenins
   Bug Fix:
+    - Missing GSI configuration does not stop schedd query when IDTOKENS configured.
     - Factory should not check condor tarball version prior to SciToken authentication to CE
     - tmpfile needs to be on correct file system when factory writes tokens from frontend
     - IDTOKENS auth does not fail on improper condor_version comparison
