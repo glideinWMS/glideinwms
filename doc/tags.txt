@@ -1,3 +1,18 @@
+v3_7_3
+	More efficient generation of IDTOKENS by frontend
+	SciToken credentials configured and treated same as other credentials for glidein submission
+	Glideins configured without GSI but with SciToken and IDTOKENS successfully run jobs.
+	Order of places glidein checks for singularity changed
+	PATH with multiple directories can be configured to override singularity binary
+	Remove LD_PRELOAD from glidein environment by default
+	Fail without fall-back when user provided singularity image missing
+	Improved GPU implementation in glidenins
+	Bug Fix: Missing GSI configuration does not stop schedd query when IDTOKENS configured.
+	Bug Fix: Factory should not check condor tarball version prior to SciToken authentication to CE
+	Bug Fix: tmpfile needs to be on correct file system when factory writes tokens from frontend
+	Bug Fix: IDTOKENS auth does not fail on improper condor_version comparison
+	Bug Fix: rpm sub package (http) building issues fixed
+
 v3_7_2
 	Includes all features and fixes of 3.6.6
 	Drop GLExec support
