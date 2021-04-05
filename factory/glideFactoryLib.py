@@ -33,6 +33,7 @@ from glideinwms.lib import subprocessSupport
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
+from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -1293,6 +1294,8 @@ def schedd_name2str(schedd_name):
 extractJobId_recmp = re.compile(rb"^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
 def extractJobId(submit_out):
     for line in submit_out:
+        if type(line) is str:
+            line = line.encode(BINARY_ENCODING)
         found = extractJobId_recmp.search(line.strip())
         if found:
             return (int(found.group("cluster")), int(found.group("count")))
@@ -1712,7 +1715,7 @@ email_logs = False
                                       vm_max_lifetime, grid_type.upper(),
                                       vm_disable_shutdown)
                 log.debug("Userdata ini file:\n%s" % ini)
-                ini = base64.b64encode(ini)
+                ini = base64.b64encode(ini.encode(BINARY_ENCODING))
                 log.debug("Userdata ini file has been base64 encoded")
                 exe_env.append('USER_DATA=%s' % ini)
 
