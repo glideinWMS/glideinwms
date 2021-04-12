@@ -13,7 +13,7 @@ import yaml
 BEST_FIT_TAG = "BEST_FIT"
 
 # pylint: disable=line-too-long
-ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="grid_proxy" comment="Entry automatically generated" enabled="%(enabled)s" gatekeeper="%(gatekeeper)s" gridtype="%(gridtype)s"%(rsl)s proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="%(work_dir)s">
+ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="%(auth_method)s" comment="Entry automatically generated" enabled="%(enabled)s" gatekeeper="%(gatekeeper)s" gridtype="%(gridtype)s"%(rsl)s proxy_url="%(proxy_url)s" trust_domain="%(trust_domain)s" verbosity="%(verbosity)s" work_dir="%(work_dir)s">
          <config>
             <max_jobs>%(limits)s
                <per_frontends>
