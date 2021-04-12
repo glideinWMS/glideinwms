@@ -68,6 +68,7 @@ def create_condor_tar_fd(condor_base_dir):
             'libexec/data_plugin',
             'libexec/condor_chirp',
             'libexec/condor_gpu_discovery',
+            'libexec/condor_gpu_utilization',
         ]
 
         # for RPM installations, add libexec/condor as libexec into the
@@ -168,18 +169,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
         enc_input_files = []
 
-        # if entry condor version supports tokens, add them to 
-        # the transfer/encrypt input file list
-        param_c = cWDictFile.ReprDictFile(self.get_dir(), 'params.cfg')
-        param_c.load()
-        version = 'default'
-        if 'CONDOR_VERSION' in param_c: 
-            version = param_c['CONDOR_VERSION']
+        enc_input_files.append('$ENV(IDTOKENS_FILE)')
 
-        if version > '8.9.1' and version != 'default': 
-            enc_input_files.append('$ENV(IDTOKENS_FILE)')
-            enc_input_files.append('$ENV(SCITOKENS_FILE)')
-            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+        self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now

@@ -67,7 +67,7 @@ class TestcgWDictFile(unittest.TestCase):
         self.main_dicts = get_main_dicts(self.submit_dir, self.stage_dir)
         self.common_dicts = get_common_dicts(self.submit_dir, self.stage_dir)
         self.entry_dicts = get_entry_dicts(
-            self.submit_dir, self.stage_dir, 'entry_el6_osg34')
+            self.submit_dir, self.stage_dir, 'entry_el8_osg34')
         # self.main_dicts.populate()
         # self.entry_dicts.populate()
 
@@ -88,7 +88,7 @@ class TestcgWDictFile(unittest.TestCase):
             accepts_non_tuples = False
         self.assertFalse(accepts_non_tuples)
 
-        val = ['entry_el6_osg34']
+        val = ['entry_el8_osg34']
         monitor_group_dict_file.add(key, val, allow_overwrite)
         self.assertTrue('foo' in monitor_group_dict_file)
         val = ['something_different']
@@ -105,7 +105,7 @@ class TestcgWDictFile(unittest.TestCase):
     def test_add_extended_MonitorGroupDictFile(self):
         monitor_group_dict_file = self.entry_dicts['mongroup']
         allow_overwrite = False
-        group_name = 'entry_el6_osg34'
+        group_name = 'entry_el8_osg34'
         monitor_group_dict_file.add_extended(group_name, allow_overwrite)
         try:
             # should fail
@@ -143,12 +143,12 @@ class TestcgWDictFile(unittest.TestCase):
 
     def test_format_val_MonitorGroupDictFile(self):
         monitor_group_dict_file = self.entry_dicts['mongroup']
-        val = ['entry_el6_osg34']
+        val = ['entry_el8_osg34']
         key = 'foo'
         monitor_group_dict_file.add(key, val)
         no_c = monitor_group_dict_file.format_val(key, False)
         has_c = monitor_group_dict_file.format_val(key, True)
-        expected = '  <monitorgroup group_name="entry_el6_osg34">'
+        expected = '  <monitorgroup group_name="entry_el8_osg34">'
         self.assertEqual(expected, no_c)
         self.assertEqual(expected, has_c)
 
@@ -216,14 +216,14 @@ class TestcgWDictFile(unittest.TestCase):
     def test_load_entry_dicts(self):
         load_entry_dicts(
             self.entry_dicts,
-            'el6_osg34',
+            'el8_osg34',
             self.entry_dicts['signature'])
 
 
 class TestCondorJDLDictFile(unittest.TestCase):
 
     def setUp(self):
-        self.dir = 'fixtures/factory/work-dir/entry_el6_osg34'
+        self.dir = 'fixtures/factory/work-dir/entry_el8_osg34'
         self.fname = 'job.condor'
         self.jdict = CondorJDLDictFile(self.dir, self.fname)
         self.jdict.load()

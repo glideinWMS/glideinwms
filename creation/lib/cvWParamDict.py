@@ -307,7 +307,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # populate security data
         populate_main_security(self.client_security, params)
-        populate_group_security(self.client_security, params, sub_params)
+        populate_group_security(self.client_security, params, sub_params, self.sub_name)
 
     def reuse(self, other):
         """
@@ -898,7 +898,7 @@ def populate_main_security(client_security, params):
     client_security['collector_DNs']=collector_dns
 
 
-def populate_group_security(client_security, params, sub_params):
+def populate_group_security(client_security, params, sub_params, group_name):
     factory_dns=[]
     for collectors in (params.match.factory.collectors, sub_params.match.factory.collectors):
       for el in collectors:
@@ -920,8 +920,12 @@ def populate_group_security(client_security, params, sub_params):
     client_security['schedd_DNs']=schedd_dns
 
     pilot_dns=[]
+    exclude_from_pilot_dns = ['SCITOKEN', 'IDTOKEN']
     for credentials in (params.security.credentials, sub_params.security.credentials):
+      if is_true(params.groups[group_name].enabled):
         for pel in credentials:
+            if pel['type'].upper()  in exclude_from_pilot_dns:
+                continue
             if pel['pilotabsfname'] is None:
                 proxy_fname=pel['absfname']
             else:

@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_2
+# GLIDEINWMS_VERSION v3_7_3_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -40,7 +40,7 @@ daf8699ff7a31ea6d69522e41c7a3d5f  ./creation/web_base/cat_consts.sh
 d21df4d1e3e170fcd7f7ae66b752d7ac  ./creation/web_base/check_blacklist.sh
 8801da02d237a168b907f85e30a61287  ./creation/web_base/check_proxy.sh
 f5461e2880a7193fef8ec2f4ee0d6628  ./creation/web_base/check_wn_drainstate.sh
-ebb4fc040330f2636ed25be3c5afc83d  ./creation/web_base/collector_setup.sh
+84d18c374766a53eee2eba92deca9b70  ./creation/web_base/collector_setup.sh
 dcc8d8111389ffc32201854adce0490d  ./creation/web_base/condor_chirp
 17d43f51d40bf91e58876f3d38535084  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
@@ -93,7 +93,7 @@ ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
 294a195e021598dccfd2b6f73644f355  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 e00b646103dc240c56d7901cad824eee  ./creation/web_base/setup_x509.sh
-5206c5570c82e24c21d22cd97bf087f8  ./creation/web_base/singularity_lib.sh
+360e3fc0274ea41f722791f89eefdb3b  ./creation/web_base/singularity_lib.sh
 fa08f58039af2c8650b772abf4080641  ./creation/web_base/singularity_setup.sh
 2a8cd574697abd8476baa102df86299d  ./creation/web_base/singularity_wrapper.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
@@ -174,6 +174,7 @@ c9e2ccea06d53a053becbacc1f5ebe95  ./lib/rrdSupport.py
 1d40f3069895417bcd2f6acab01b7817  ./lib/symCrypto.py
 79a73c1fa885043de7a15aa0191d1a0d  ./lib/tarSupport.py
 411936aadbc8909170ec980b35d205a3  ./lib/timeConversion.py
+1a785acf6a584ce9e04e3a7c487205c1  ./lib/token_util.py
 416d3859cf5cc1508849834881e35298  ./lib/util.py
 5319b0045ea9c48d8cf5a3b0535165d1  ./lib/x509Support.py
 5da97f6407504d71999f93d2cb1f6c2a  ./lib/xmlFormat.py
@@ -184,11 +185,13 @@ f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 0bfae2b4e45856ba9e34130adc59f4ae  ./README.md
 ed315f07a89523a5a539508ea539fd47  ./requirements.txt
 d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
+9eae19e8e4dceb4be80d79a05a459831  ./test/bats/creation_web_base_collector_setup.bats
 ed0c50f4717e57fa21903552c9004a4c  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
+3d011ed7b144a76e21c0cf3ef775c586  ./test/bats/fixtures/condor_vars_file.source
 13059fe60b63b6911848ac4d2144653a  ./test/bats/fixtures/environment_singularity
-f3478630b393e10984a3a2a0be257757  ./test/bats/fixtures/glidein_config
+197a26c2c9cd1352132589f5f674937d  ./test/bats/fixtures/glidein_config
 61374cf1efa5ff699a67fe8c832d0f4d  ./test/bats/helper.bash
 abe6c47c1feaada5bd01ae28c7921dc5  ./test/bats/mock_gwms_logs.bash
 96a589b82a7373e21e1e3bde95221330  ./test/bats/README.md

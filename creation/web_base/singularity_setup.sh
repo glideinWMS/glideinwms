@@ -202,7 +202,7 @@ info_stdout "`date` Factory's desire to use Singularity: $require_singularity"
 info_stdout "`date` VO's desire to use Singularity:      $use_singularity"
 info_stdout "`date` Entry configured with Singularity:   $singularity_bin"
 
-gwms_singularity="`combine_requirements $use_singularity $require_singularity`"
+gwms_singularity=$(combine_requirements $use_singularity $require_singularity)
 gwms_singularity_ec=$?
 gwms_singularity_status="${gwms_singularity%%,*}"
 gwms_singularity_str="${gwms_singularity#*,}"
