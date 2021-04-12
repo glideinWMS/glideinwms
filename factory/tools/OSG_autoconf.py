@@ -257,6 +257,19 @@ def backward_fix(out):
                     del out[site][ce_hostname][qelem]
 
 
+def is_true(param):
+    """Determine if the parameter passed as argument is true or false
+
+    Args:
+        param: the parameter we need to determine if it is True or False. Can be any type.
+
+    Returns:
+        bool: True if the the string representation of param is "true"
+    """
+
+    return str(param).lower() == 'true'
+
+
 def merge_yaml(config, white_list):
     """Merges different yaml file and return the corresponding resource dictionary
 
@@ -315,7 +328,7 @@ def merge_yaml(config, white_list):
                         if "submit_attrs" in entry_information:
                             if "+WantWholeNode" in entry_information["submit_attrs"]:
                                 want_whole_node = entry_information["submit_attrs"]["+WantWholeNode"]
-                                if want_whole_node is True or want_whole_node == "True":
+                                if is_true(want_whole_node):
                                     entry_information = set_whole_node_entry(entry_information)
                             if "Request_GPUs" in entry_information["submit_attrs"]:
                                 entry_information = set_gpu_entry(entry_information)
