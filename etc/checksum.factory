@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_3_rc1
+# GLIDEINWMS_VERSION v3_7_3_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -98,7 +98,6 @@ bce425b8451fbfe745e12c14fe6ce76c  ./creation/web_base/singularity_setup.sh
 2a8cd574697abd8476baa102df86299d  ./creation/web_base/singularity_wrapper.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py
-aaf852dc2a9b38b67504b5d2d0d1d46f  ./creation/web_base/update_proxy.pyo
 eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 8dec516d7c68949aea913e288a4c9574  ./factory/checkFactory.py
@@ -143,7 +142,7 @@ dca88f2b927c71bd1724945f11fec3ce  ./factory/tools/lib/analyze.py
 aab96c1f39e4bddeac51e6297f4a9677  ./factory/tools/lib/gWftLogParser.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 7c8f84982c50a7a865f6115478426676  ./factory/tools/manual_glidein_submit.py
-475941700a8c573d19f30b07392c9f05  ./factory/tools/OSG_autoconf.py
+b25e7611af61c2debe075a4f9c514151  ./factory/tools/OSG_autoconf.py
 f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
 d7dea2188826d8f2818ea62f736beb94  ./install/glidecondor_addDN
 0c8dd20d4214ba64c842ed376f3803da  ./install/glidecondor_createSecCol
@@ -156,7 +155,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./install/__init__.py
 d566fde5358c46ea2a3d833c624a659e  ./lib/condorManager.py
 47a5fcf23afbb4a60475685f138f30a6  ./lib/condorMonitor.py
 f83c1dcd219463287b1a17bb7a58aab5  ./lib/condorSecurity.py
-9f6152188b6c45526a0eacfc0b87cbf7  ./lib/config_util.py
+3cd3847eed6e9092c62f49df26a3b3be  ./lib/config_util.py
 a8cccdecf7b460b1b37c02da0190e99d  ./lib/disk_cache.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 fb537b1b763a733eda24e21658043f6d  ./lib/exprParser.py

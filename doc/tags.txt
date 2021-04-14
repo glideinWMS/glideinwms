@@ -7,6 +7,7 @@ v3_7_3
 	Remove LD_PRELOAD from glidein environment by default
 	Fail without fall-back when user provided singularity image missing
 	Improved GPU implementation in glidenins
+	OSG_autoconf more configurable, auth_method and pilot_entries can be set
 	Bug Fix: Missing GSI configuration does not stop schedd query when IDTOKENS configured.
 	Bug Fix: Factory should not check condor tarball version prior to SciToken authentication to CE
 	Bug Fix: tmpfile needs to be on correct file system when factory writes tokens from frontend
