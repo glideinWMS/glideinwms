@@ -21,6 +21,7 @@
 %define web_base %{_localstatedir}/lib/gwms-frontend/web-base
 %define frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
 %define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
+%define frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
 %define factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -370,6 +371,7 @@ install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sys
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
 install -d $RPM_BUILD_ROOT%{frontend_token_dir}
+install -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
@@ -396,6 +398,7 @@ install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/lock
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/total
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/nodes.blacklist
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/group_main/nodes.blacklist
+
 
 # Install the logs
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-frontend/frontend
@@ -560,6 +563,14 @@ systemctl daemon-reload
 if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
+
+if [ ! -e %{frontend_passwd_dir} ]; then
+    mkdir -p %{frontend_passwd_dir}
+    chown frontend.frontend %{frontend_passwd_dir}
+fi
+openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
+/bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
+chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
 
 %post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
@@ -837,6 +848,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %{web_base}
 %attr(-, frontend, frontend) %{frontend_dir}
 %attr(700, frontend, frontend) %{frontend_token_dir}
+%attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %{python_sitelib}/glideinwms/frontend
 %{python_sitelib}/glideinwms/creation/lib/cvWConsts.py
@@ -928,6 +940,11 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Fri Mar 26  2021 2020 Dennis Box <dbox@fnal.gov> - 3.7.3-1
+- GlideinWMS v3.7.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_3/history.html
+- Release candidates: 3.7.3-01.rc1 .rc1 to 
+
 * Mon Dec 21  2020 Dennis Box <dbox@fnal.gov> - 3.7.2-1
 - GlideinWMS v3.7.2
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_2/history.html
