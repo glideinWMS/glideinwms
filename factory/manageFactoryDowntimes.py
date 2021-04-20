@@ -16,7 +16,6 @@ import time, string
 import sys
 import re
 
-from glideinwms.lib import ldapMonitor
 from glideinwms.lib import condorMonitor
 from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts
@@ -32,15 +31,13 @@ def usage():
     print("  down          - Put the factory down now(+delay)") 
     print("  up            - Get the factory back up now(+delay)")
     print("  ress          - Set the up/down based on RESS status")
-    print("  bdii          - Set the up/down based on bdii status")
-    print("  ress+bdii     - Set the up/down based both on RESS and bdii status")
     print("  check         - Report if the factory is in downtime now(+delay)")
     print("  vacuum        - Remove all expired downtime info")
     print("Other options:")
     print("  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)")
     print("  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)")
     print("  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)")
-    print("  -ISinfo 'CEStatus'        (attribute used in ress/bdii for creating downtimes)")
+    print("  -ISinfo 'CEStatus'        (attribute used in ress for creating downtimes)")
     print("  -security SECURITY_CLASS  (restricts a downtime to users of that security class)")
     print("                            (If not specified, the downtime is for all users.)")
     print("  -frontend SECURITY_NAME   (Limits a downtime to one frontend)")
@@ -265,23 +262,6 @@ def get_production_ress_entries(server, ref_dict_list):
     
     return production_entries
 
-def get_production_bdii_entries(server, ref_dict_list):
-
-    production_entries=[]
-
-    bdii_obj=ldapMonitor.BDIICEQuery(server)
-    bdii_obj.load()
-    bdii_obj.filterStatus(usable=True)
-    bdii_refs=list(bdii_obj.fetchStored().keys())
-    #del bdii_obj
-
-    for el in ref_dict_list:
-        ref=el['ref']
-        if ref in bdii_refs:
-            production_entries.append(el['entry_name'])    
-    
-    return production_entries
-
 def infosys_based(entry_name, opt_dict, infosys_types):
     # find out which entries I need to look at
     # gather downtime fds for them
@@ -349,8 +329,6 @@ def infosys_based(entry_name, opt_dict, infosys_types):
                 infosys_data_server=infosys_data_type[server]
                 if infosys_type=="RESS":
                     production_entries+=get_production_ress_entries(server, infosys_data_server)
-                elif infosys_type=="BDII":
-                    production_entries+=get_production_bdii_entries(server, infosys_data_server)
                 else:
                     raise RuntimeError("Unknown infosys type '%s'"%infosys_type) # should never get here
 
@@ -477,10 +455,6 @@ def main(argv):
         return printtimes(entry_name, opt_dict)
     elif cmd=='ress':
         return infosys_based(entry_name, opt_dict, ['RESS'])
-    elif cmd=='bdii':
-        return infosys_based(entry_name, opt_dict, ['BDII'])
-    elif cmd=='ress+bdii':
-        return infosys_based(entry_name, opt_dict, ['RESS', 'BDII'])
     elif cmd=='vacuum':
         return vacuum(entry_name, opt_dict)
     else:
@@ -490,4 +464,3 @@ def main(argv):
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-
