@@ -148,7 +148,6 @@ Requires: python3 >= 3.6
 Requires: python3-condor
 # was condor-python for python2
 Requires: python-rrdtool
-Requires: python36-ldap3
 Requires: python36-jwt
 Requires: python36-m2crypto
 Requires: PyYAML
@@ -211,7 +210,6 @@ Requires: python3 >= 3.6
 Requires: python-rrdtool
 # This is in py3 std library - Requires: python-argparse
 # Is this the same? Requires: python36-configargparse
-Requires: python36-ldap3
 Requires: python36-m2crypto
 Requires: python36-requests
 Requires: python36-jwt
