@@ -301,6 +301,7 @@ class Credential:
         proxy_vmtype_fname = elementDescript.merged_data['ProxyVMTypeFname']
         proxy_remote_username = elementDescript.merged_data['ProxyRemoteUsernames']
         proxy_project_id = elementDescript.merged_data['ProxyProjectIds']
+        proxy_allocation_id = elementDescript.merged_data['ProxyAllocationIds']
         self.proxy_id = proxy_id
         # self.filename (absfname) always contains component of credential
         # used to submit glidein and based on the type contains following:
@@ -324,6 +325,7 @@ class Credential:
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
         self.remote_username = proxy_remote_username.get(proxy_fname)
         self.project_id = proxy_project_id.get(proxy_fname)
+        self.allocation_id = proxy_allocation_id.get(proxy_fname)
 
         # Will be initialized when getId() is called
         self._id = None
@@ -1158,6 +1160,8 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['RemoteUsername'] = str(credential_el.remote_username)
                     if credential_el.project_id:
                         glidein_params_to_encrypt['ProjectId'] = str(credential_el.project_id)
+                    if credential_el.allocation_id:
+                        glidein_params_to_encrypt['AllocationId'] = str(credential_el.allocation_id)
 
                     (req_idle, req_max_run) = credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s" %

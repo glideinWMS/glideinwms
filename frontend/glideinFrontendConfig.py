@@ -316,7 +316,7 @@ class ElementMergedDescript:
                                 'ProxyTypes', 'ProxyKeyFiles', 'ProxyPilotFiles', 'ProxyVMIds',
                                 'ProxyVMTypes', 'ProxyCreationScripts', 'ProxyUpdateFrequency',
                                 'ProxyVMIdFname', 'ProxyVMTypeFname',
-                                'ProxyRemoteUsernames', 'ProxyProjectIds']
+                                'ProxyRemoteUsernames', 'ProxyProjectIds', 'ProxyAllocationIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data = {}

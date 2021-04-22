@@ -19,6 +19,7 @@ import random
 import math
 import collections
 from glideinwms.lib import logSupport
+from glideinwms.lib import topology
 from glideinwms.lib import util
 from . import glideinFrontendLib
 from . import glideinFrontendInterface
@@ -232,6 +233,92 @@ class ProxyProjectName:
             else:
                 cred_copy = copy.deepcopy(base_cred)
                 cred_copy.project_id = project
+                creds.append(cred_copy)
+
+            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
+            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
+            creds[-1].add_usage_details(cred_max, cred_idle)
+        return creds
+
+
+from typing import *  # XXX (remove once I'm done)
+
+
+class ProxyResourceAllocation:
+    """
+    Returns the local resource allocation IDs based on information fetched from OSG Topology.
+    """
+    def __init__(self, config_dir, proxy_list):
+        self.cred_list = proxy_list  # type: List[glideinFrontendInterface.Credential]
+        self.total_jobs = 0
+        self.allocation_count_by_rg = {}  # type: Dict[str, Dict[str, int]]
+        self.topology_data = topology.TopologyData()
+
+    # This plugin depends on the ProjectName in the job
+    def get_required_job_attributes(self):
+        return (('ProjectName', 's'), )
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self):
+        return []
+
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
+        """Update the allocation_count_by_rg map based on condor_q information and topology information.
+        Note that this may end up fetching data from topology.
+        """
+        project_allocations = self.topology_data.get_project_allocations()
+        self.allocation_count_by_rg = {}
+        self.total_jobs = 0
+        # Get both set of users and number of jobs for each user
+        for schedd_name in condorq_dict.keys():
+            condorq_data = condorq_dict[schedd_name].fetchStored()
+            for job in condorq_data.values():
+                if job['JobStatus'] != 1:
+                    continue
+                self.total_jobs += 1
+                if job.get('ProjectName', '') != '':
+                    project_name = job['ProjectName']  # type: str
+                    for resource_group, allocation_id in project_allocations.get(project_name, []):
+                        if resource_group not in self.allocation_count_by_rg:
+                            self.allocation_count_by_rg[resource_group] = {}
+                        if allocation_id not in self.allocation_count_by_rg[resource_group]:
+                            self.allocation_count_by_rg[resource_group][allocation_id] = 0
+                        self.allocation_count_by_rg[resource_group][allocation_id] += 1
+        return
+
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):  # type: (glideinFrontendInterface.AdvertizeParams, str, str) -> List[glideinFrontendInterface.Credential]
+        # credential_type is a one or more auth methods separated by '+', e.g. "grid_proxy+project_id"
+        # return only the credentials that support (at least) _all_ of the auth methods in `credential_type`
+        if not params_obj:
+            logSupport.log.debug("params_obj is None returning the credentials without the allocation_id Information")
+            return self.cred_list
+        # Pick the first credential that's in the right trust domain and supports all requested auth methods.
+        # We'll copy it later and modify it to add the local allocation IDs.
+        for cred in self.cred_list:
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain != trust_domain):
+                continue
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
+                continue
+            base_cred = cred
+            break
+        else:
+            return []
+
+        glidein_name = params_obj.glidein_name  # type:str  # Name of the entry point
+        resource_group = XXX  # type:str
+        # ^^ How do I get from glidein_name to resource_group?
+
+        allocation_count = self.allocation_count_by_rg[resource_group]
+        # Duplicate the base credential; one per local allocation in use.
+        # Assign load proportional to the number of jobs.
+        creds = []
+        for allocation_id, job_count in allocation_count.items():
+            if not allocation_id:
+                creds.append(base_cred)
+            else:
+                cred_copy = copy.deepcopy(base_cred)
+                # XXX do I need to add an auth method for requiring this?
+                cred_copy.allocation_id = allocation_id
                 creds.append(cred_copy)
 
             cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
@@ -612,4 +699,5 @@ proxy_plugins = {'ProxyAll':ProxyAll,
                'ProxyFirst':ProxyFirst,
                'ProxyUserCardinality':ProxyUserCardinality,
                'ProxyUserMapWRecycling':ProxyUserMapWRecycling,
-               'ProxyProjectName':ProxyProjectName}
+               'ProxyProjectName':ProxyProjectName,
+               'ProxyResourceAllocation':ProxyResourceAllocation}
