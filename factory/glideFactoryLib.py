@@ -1290,8 +1290,20 @@ def schedd_name2str(schedd_name):
         return "-name %s" % schedd_name
 
 
-extractJobId_recmp = re.compile(rb"^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
+extractJobId_recmp = re.compile(r"^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
 def extractJobId(submit_out):
+    """Extracts the number of jobs and cluster id from a condor output.
+
+    Args:
+        submit_out (list): Condor output. Expects a list of str.
+
+    Raises:
+        condorExe.ExeError: When it failts to apply a regular expression to a line of the output.
+
+    Returns:
+        tuple: Number of jobs and cluster id.
+    """
+    
     for line in submit_out:
         found = extractJobId_recmp.search(line.strip())
         if found:
@@ -1712,7 +1724,7 @@ email_logs = False
                                       vm_max_lifetime, grid_type.upper(),
                                       vm_disable_shutdown)
                 log.debug("Userdata ini file:\n%s" % ini)
-                ini = base64.b64encode(ini)
+                ini = base64.b64encode(ini.encode())
                 log.debug("Userdata ini file has been base64 encoded")
                 exe_env.append('USER_DATA=%s' % ini)
 

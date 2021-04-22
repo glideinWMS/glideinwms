@@ -57,6 +57,8 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
     #   could this be replaced directly by subprocess run throughout the program?
 
     stdoutdata = stderrdata = ""
+    if not text:
+        stdoutdata = stderrdata = b""
     exitStatus = 0
 
     try:
