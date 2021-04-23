@@ -930,11 +930,11 @@ class glideinFrontendElement:
                         pwd_file = pwd_default
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
-                    # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
                 if tkn_age > one_hr and os.path.exists(pwd_file):    
+                    #TODO: scope, duration, identity  should be configurable from frontend.xml
                     (fd, tmpnm) = tempfile.mkstemp()
-                    scope = "condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD condor:/ADVERTISE_SCHEDD condor:/ADVERTISE_MASTER"
-                    duration = 2 * one_hr
+                    scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
+                    duration = 24 * one_hr
                     identity = "vofrontend_service@%s" % socket.gethostname()
                     logSupport.log.debug("creating  token %s" % tkn_file)
                     logSupport.log.debug("pwd_flie= %s" % pwd_file)
