@@ -1827,6 +1827,8 @@ class glideinFrontendElement:
                 ('GLIDEIN_CredentialIdentifier', 's'),
                 ('TotalSlots', 'i'),
                 ('Cpus', 'i'),
+                ('TotalGpus', 'i'),
+                ('Gpus', 'i'),
                 ('Memory', 'i'),
                 ('PartitionableSlot', 's'),
                 ('SlotType', 's'),
@@ -1858,6 +1860,7 @@ class glideinFrontendElement:
             status_format_list = [
                 ('State', 's'), ('Activity', 's'), ('PartitionableSlot', 's'),
                 ('TotalSlots', 'i'), ('Cpus', 'i'), ('Memory', 'i'),
+                ('TotalGpus', 'i'), ('Gpus', 'i'),
             ]
 
             try:
