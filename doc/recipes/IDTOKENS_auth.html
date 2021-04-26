@@ -240,22 +240,15 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
           <p>Starting with version 3.7.3, when the VOFrontend requests glideins from a Factory Entry, it 
           sends a self-generated IDTOKEN to be included in the glidein payload. 
           The newly generated IDTOKEN is encrypted and passed to the Factory, then  on to the CE.
-          When the glidein starts, if  IDTOKENS
-          authentication fails for some reason, GSI is used to authenticate back to the VOFrontend.
+          When the glidein starts, it attempts to use the payload IDTOKEN to authenticate back to
+          the VOFrontend collector.  If  IDTOKENS authentication fails for some reason, GSI authentication
+          to the VOFrontend is attempted.
+
         <div class="subsection">
           <h3 id="adminCE" class="western">Required Steps</h3>
           <p>
           <ul>
-            <li>This authentication chain requires some  manual steps and coordination by admins: 
-              <ul>
-                <li>The VOFrontend admin must upgrade to  GWMs version 3.7.3 or later.
-                <li>The Factory  admin must upgrade to  GWMs version 3.7.3 or later.
-                <li>The Factory admin must configure the Factory Entry to  use an HTCondor tarball version 
-                  that robustly supports IDTOKENS.   8.9.11 or later is recommended.
-              
-                </li>
-                </ul>
-          </ul>
+            <li>This authentication chain requires that the factory and frontend are both upgraded to 3.7.3 or greater.
 
         </div>
         <div class="subsection">
@@ -284,15 +277,32 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
         <div class="subsection">
           <h3 id="Revoke" class="western">Revoking Tokens for Entry Points</h3>
           <ul>
-            <li>Each Glidein_Site that a VOFrontend submits to is sent an IDTOKEN generated from a password in /var/lib/gwms-frontend/passwords.d.  HTCondor authenticates these IDTOKENS with its copy of the password in /etc/condor/passwords.d. One way to immediately invalidate a compromised token is to change the passwords so they dont match, these commands will do this:  
-            <pre>
+            <li>Each Glidein_Site that a VOFrontend submits to is sent an IDTOKEN generated from a password in /var/lib/gwms-frontend/passwords.d.  
+              HTCondor authenticates these IDTOKENS with its copy of the password in /etc/condor/passwords.d. When the 3.7.3 rpm is installed, 
+              a default frontend password is stored in /etc/condor/passwords.d/FRONTEND, which is copied to and MUST MATCH the password 
+              file ~frontend/passwords.d/FRONTEND for authentication to succeed.
+              To invalidate all tokens genereated from the default password, change it on the condor side
+              <pre>
+# openssl rand -base64 64 | /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/FRONTEND  add
+              </pre>
+              To set the VOFrontend generating and distributing tokens with this password, copy it to where the frontend expects it:
+              <pre>
+# /bin/cp /etc/condor/passwords.d/FRONTEND ~frontend/passwords.d/FRONTEND
+# chown frontend:frontend ~frontend/passwords.d/FRONTEND
+            </pre>
+              To give each glidein site its own individually revokable password:
+              <pre>
+###################################################
+# #configure uniqe per-site password 
+# #for glidein site 'HCC_US_Omaha_crane_gpu'            
+###################################################
 # export GLIDEIN_SITE='HCC_US_Omaha_crane_gpu'
-# openssl rand -base64 64 | sudo /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${GLIDEIN_SITE} add
+# openssl rand -base64 64 | /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${GLIDEIN_SITE} add
 # /bin/cp /etc/condor/passwords.d/${GLIDEIN_SITE} ~frontend/passwords.d/${GLIDEIN_SITE}
 # chown frontend:frontend ~frontend/passwords.d/${GLIDEIN_SITE}
             </pre>
 
-            </li>
+            </li>The frontend processes will notice the new password and generate a new IDTOKEN to be sent to that glidein site, invalidating  old IDTOKENS held by the site.  The new valid IDTOKEN will eventually be passed to the site unless steps are taken to prevent it.
 
           </ul>
         </div>
