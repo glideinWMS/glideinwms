@@ -28,60 +28,18 @@ except ImportError:
 
 TOPOLOGY = "https://topology.opensciencegrid.org"
 PROJECTS_CACHE_LIFETIME = 300.0
+RETRY_DELAY = 60.0
 
 
 class TopologyData(object):
-    def __init__(self, topology_host=TOPOLOGY, cache_lifetime=PROJECTS_CACHE_LIFETIME):
+    def __init__(self, topology_host=TOPOLOGY, projects_cache_lifetime=PROJECTS_CACHE_LIFETIME,
+                 retry_delay=RETRY_DELAY):
         self.topology_host = topology_host
-        self.projects_cache = _CachedData(cache_lifetime=cache_lifetime, retry_delay=30.0)
+        self.retry_delay = retry_delay
+        self.projects_cache = _CachedData(cache_lifetime=projects_cache_lifetime, retry_delay=retry_delay)
 
     def get_projects(self):  # type: () -> Optional[ET.Element]
-        if not self.projects_cache.should_update():
-            _log.debug("Cache lifetime / retry delay not expired, returning cached data (if any)")
-            return self.projects_cache.data
-
-        try:
-            # Python 2 does not have a context manager for urlopen
-            response = urlopen(self.topology_host + "/miscproject/xml")
-            try:
-                xml_text = response.read()  # type: Union[bytes, str]
-            finally:
-                response.close()
-        except EnvironmentError as err:
-            _log.warning("Topology projects query failed: %s", err)
-            self.projects_cache.try_again()
-            if self.projects_cache.data:
-                _log.debug("Returning cached data")
-                return self.projects_cache.data
-            else:
-                _log.error("Failed to update and no cached data")
-                return None
-
-        if not xml_text:
-            _log.warning("Topology projects query returned no data")
-            self.projects_cache.try_again()
-            if self.projects_cache.data:
-                _log.debug("Returning cached data")
-                return self.projects_cache.data
-            else:
-                _log.error("Failed to update and no cached data")
-                return None
-
-        try:
-            element = ET.fromstring(xml_text)  # fromstring accepts both bytes and str
-        except (ET.ParseError, UnicodeDecodeError) as err:
-            _log.warning("Topology projects query couldn't be parsed: %s", err)
-            self.projects_cache.try_again()
-            if self.projects_cache.data:
-                _log.debug("Returning cached data")
-                return self.projects_cache.data
-            else:
-                _log.error("Failed to update and no cached data")
-                return None
-
-        _log.debug("Caching and returning new data")
-        self.projects_cache.update(element)
-        return self.projects_cache.data
+        return self._get_data(self.projects_cache, "/miscproject/xml", "projects")
 
     def get_project_allocations(self):  # type: () -> Dict[str, List[Tuple[str, str]]]
         """Returns a dict keyed by ProjectName of lists of (ResourceGroup, LocalAllocationID)"""
@@ -115,6 +73,67 @@ class TopologyData(object):
             return None
 
         return project_element
+
+    #
+    # Internal
+    #
+
+    def _get_data(self, cache, endpoint, name):  # type: (_CachedData, str, str) -> Optional[ET.Element]
+        """Get parsed topology XML data from `cache`.  If necessary download from `endpoint`
+        (a path under the topology host, e.g. "/miscproject/xml").
+        Log messages will be labeled with `name`.
+
+        Returns the data if available; return None if we can't download/parse
+        _and_ there is no cached data.
+
+        """
+        if not cache.should_update():
+            _log.debug("%s cache lifetime / retry delay not expired, returning cached data (if any)", name)
+            return cache.data
+
+        try:
+            # Python 2 does not have a context manager for urlopen
+            response = urlopen(self.topology_host + endpoint)
+            try:
+                xml_text = response.read()  # type: Union[bytes, str]
+            finally:
+                response.close()
+        except EnvironmentError as err:
+            _log.warning("Topology %s query failed, will retry in %f: %s", name, self.retry_delay, err)
+            cache.try_again()
+            if cache.data:
+                _log.debug("Returning cached data")
+                return cache.data
+            else:
+                _log.error("Failed to update and no cached data")
+                return None
+
+        if not xml_text:
+            _log.warning("Topology %s query returned no data, will retry in %f", name, self.retry_delay)
+            cache.try_again()
+            if cache.data:
+                _log.debug("Returning cached data")
+                return cache.data
+            else:
+                _log.error("Failed to update and no cached data")
+                return None
+
+        try:
+            element = ET.fromstring(xml_text)  # fromstring accepts both bytes and str
+        except (ET.ParseError, UnicodeDecodeError) as err:
+            _log.warning("Topology %s query couldn't be parsed, will retry in %f: %s", name, self.retry_delay, err)
+            cache.try_again()
+            if cache.data:
+                _log.debug("Returning cached data")
+                return cache.data
+            else:
+                _log.error("Failed to update and no cached data")
+                return None
+
+        _log.debug("Caching and returning new %s data, will update again in %f", name, cache.cache_lifetime)
+        cache.update(element)
+        return cache.data
+
 #
 #
 # Internal
