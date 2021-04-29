@@ -260,7 +260,7 @@ class ProxyResourceAllocation:
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
-        return []
+        return (('GLIDEIN_Site', 's'), )
 
     def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         """Update the allocation_count_by_rg map based on condor_q information and topology information.
@@ -269,6 +269,7 @@ class ProxyResourceAllocation:
         project_allocations = self.topology_data.get_project_allocations()
         self.allocation_count_by_rg = {}
         self.total_jobs = 0
+        slot_resource_groups = set(filter(None, [slot.get("GLIDEIN_Site", None) for slot in status_dict]))
         # Get both set of users and number of jobs for each user
         for schedd_name in condorq_dict.keys():
             condorq_data = condorq_dict[schedd_name].fetchStored()
@@ -279,6 +280,8 @@ class ProxyResourceAllocation:
                 if job.get('ProjectName', '') != '':
                     project_name = job['ProjectName']  # type: str
                     for resource_group, allocation_id in project_allocations.get(project_name, []):
+                        if resource_group not in slot_resource_groups:
+                            continue
                         if resource_group not in self.allocation_count_by_rg:
                             self.allocation_count_by_rg[resource_group] = {}
                         if allocation_id not in self.allocation_count_by_rg[resource_group]:
