@@ -307,9 +307,12 @@ class ProxyResourceAllocation:
         else:
             return []
 
-        glidein_name = params_obj.glidein_name  # type:str  # Name of the entry point
-        resource_group = XXX  # type:str
-        # ^^ How do I get from glidein_name to resource_group?
+        ### TODO Not sure this works... what's in glidein_params?
+        resource_group = params_obj.glidein_params.get("GLIDEIN_Site", "")  # type:str
+        if not resource_group:
+            logSupport.log.debug("GLIDEIN_Site not found in params")
+        if resource_group not in self.allocation_count_by_rg:
+            return []
 
         allocation_count = self.allocation_count_by_rg[resource_group]
         # Duplicate the base credential; one per local allocation in use.
