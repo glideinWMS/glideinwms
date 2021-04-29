@@ -242,6 +242,7 @@ class ProxyProjectName:
 
 
 from typing import *  # XXX (remove once I'm done)
+from glideinwms.lib import condorMonitor  # XXX (remove once I'm done)
 
 
 class ProxyResourceAllocation:
@@ -262,14 +263,18 @@ class ProxyResourceAllocation:
     def get_required_classad_attributes(self):
         return (('GLIDEIN_Site', 's'), )
 
-    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
+    def update_usermap(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):  # type: (Dict[str, condorMonitor.CondorQ], Any, Dict[str, condorMonitor.CondorStatus], Any) -> None
         """Update the allocation_count_by_rg map based on condor_q information and topology information.
         Note that this may end up fetching data from topology.
         """
         project_allocations = self.topology_data.get_project_allocations()
         self.allocation_count_by_rg = {}
         self.total_jobs = 0
-        slot_resource_groups = set(filter(None, [slot.get("GLIDEIN_Site", None) for slot in status_dict]))
+        slot_resource_groups = set()
+        for collector_name in status_dict:
+            slot_ads_by_slot_name = status_dict[collector_name].fetchStored()
+            slot_ads = slot_ads_by_slot_name.values()  # type: List[Dict]
+            slot_resource_groups.update(filter(None, [ad.get("GLIDEIN_Site", None) for ad in slot_ads]))
         # Get both set of users and number of jobs for each user
         for schedd_name in condorq_dict.keys():
             condorq_data = condorq_dict[schedd_name].fetchStored()
