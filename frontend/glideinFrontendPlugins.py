@@ -312,29 +312,23 @@ class ProxyResourceAllocation:
         else:
             return []
 
-        ### TODO Not sure this works... what's in glidein_params?
-        resource_group = params_obj.glidein_params.get("GLIDEIN_Site", "")  # type:str
-        if not resource_group:
-            logSupport.log.debug("GLIDEIN_Site not found in params")
-        if resource_group not in self.allocation_count_by_rg:
-            return []
-
-        allocation_count = self.allocation_count_by_rg[resource_group]
-        # Duplicate the base credential; one per local allocation in use.
-        # Assign load proportional to the number of jobs.
         creds = []
-        for allocation_id, job_count in allocation_count.items():
-            if not allocation_id:
-                creds.append(base_cred)
-            else:
-                cred_copy = copy.deepcopy(base_cred)
-                # XXX do I need to add an auth method for requiring this?
-                cred_copy.allocation_id = allocation_id
-                creds.append(cred_copy)
+        # Go through all resource groups with allocations
+        for resource_group, allocation_count in self.allocation_count_by_rg.items():
+            # Duplicate the base credential; one per local allocation in use.
+            # Assign load proportional to the number of jobs.
+            for allocation_id, job_count in allocation_count.items():
+                if not allocation_id:
+                    creds.append(base_cred)
+                else:
+                    cred_copy = copy.deepcopy(base_cred)
+                    # XXX do I need to add an auth method for requiring this?
+                    cred_copy.allocation_id = allocation_id
+                    creds.append(cred_copy)
 
-            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
-            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
-            creds[-1].add_usage_details(cred_max, cred_idle)
+                cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
+                cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
+                creds[-1].add_usage_details(cred_max, cred_idle)
         return creds
 
 
