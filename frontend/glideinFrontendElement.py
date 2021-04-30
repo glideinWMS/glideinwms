@@ -802,20 +802,9 @@ class glideinFrontendElement:
                     logSupport.log.info("found condor token: %s" % entry_token_name)
                     gp_encrypt[entry_token_name] = ctkn
                 # now see if theres a scitoken for this site
-                entry_scitoken_name = "%s.scitoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                spath = "/var/lib/gwms-frontend/tokens.d"
-                scitoken_fullpath = os.path.join(spath, entry_scitoken_name)
-                if os.path.exists(scitoken_fullpath):
-                    try:
-                        logSupport.log.info('found scitoken %s' % scitoken_fullpath)
-                        with open(scitoken_fullpath,'r') as fbuf:
-                            for line in fbuf:
-                                stkn += line
-                        if stkn:
-                            gp_encrypt[entry_scitoken_name] =  stkn
-                    except Exception as err:
-                        logSupport.log.exception("failed to read scitoken: %s" % err)
-
+                stkn = self.refresh_entry_scitoken(glidein_el)
+                if stkn:
+                    gp_encrypt['frontend_scitoken'] =  stkn
 
                 # now advertise
                 logSupport.log.info('advertising tokens %s' % gp_encrypt.keys())
@@ -885,6 +874,55 @@ class glideinFrontendElement:
         servicePerformance.endPerfMetricEvent(self.group_name, 'advertize_classads')
 
         return
+
+    def refresh_entry_scitoken(self, glidein_el):
+        """
+            create or update a scitoken for an entry point
+            params:  glidein_el: a glidein element data structure
+            returns:  jwt encoded token on success
+                      None on failure
+        """
+        tkn_file = ''
+        tkn_str = ''
+        tmpnm = ''
+        logSupport.log.info("Checking for scitoken refresh of %s." % glidein_el['attrs'].get('EntryName', '(unknown)'))
+        try:
+            # create a condor token named for entry point site name
+            glidein_site = glidein_el['attrs']['GLIDEIN_Site']; entry_name = glidein_el['attrs']['EntryName']
+            gatekeeper = glidein_el['attrs'].get('GLIDEIN_Gatekeeper')
+            audience = None
+            if gatekeeper:
+                audience = gatekeeper.split()[-1]
+            tkn_dir = "/var/lib/gwms-frontend/tokens.d"
+            if not os.path.exists(tkn_dir):
+                os.mkdir(tkn_dir,0o700)
+            tkn_file = tkn_dir + '/' +  entry_name + ".scitoken"
+            one_hr = 3600
+            tkn_age = sys.maxsize
+            if os.path.exists(tkn_file):
+                tkn_age = time.time() - os.stat(tkn_file).st_mtime
+            if tkn_age > one_hr:
+                (fd, tmpnm) = tempfile.mkstemp()
+                cmd = "/usr/sbin/frontend_scitoken %s %s" % (audience, glidein_site)
+                tkn_str = subprocessSupport.iexe_cmd(cmd)
+                os.write(fd, tkn_str.encode('utf-8'))
+                os.close(fd)
+                shutil.move(tmpnm, tkn_file)
+                os.chmod(tkn_file, 0o600)
+                logSupport.log.info("created token %s" % tkn_file)
+            elif os.path.exists(tkn_file):
+                with open(tkn_file, 'r') as fbuf:
+                    for line in fbuf:
+                        tkn_str += line
+        except Exception as err:
+                logSupport.log.warning('failed to create %s' % tkn_file)
+                for i in sys.exc_info():
+                    logSupport.log.warning('%s' % i)
+        finally:
+                if os.path.exists(tmpnm):
+                    os.remove(tmpnm)
+        return tkn_str
+
 
     def refresh_entry_token(self, glidein_el):
         """
