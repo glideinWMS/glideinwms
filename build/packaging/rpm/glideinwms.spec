@@ -21,6 +21,7 @@
 %define web_base %{_localstatedir}/lib/gwms-frontend/web-base
 %define frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
 %define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
+%define frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
 %define factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -289,9 +290,6 @@ install -m 0500 frontend/stopFrontend.py $RPM_BUILD_ROOT%{_sbindir}/stopFrontend
 install -m 0500 frontend/glideinFrontend.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontend
 install -m 0500 creation/reconfig_frontend $RPM_BUILD_ROOT%{_sbindir}/reconfig_frontend
 install -m 0500 frontend/gwms_renew_proxies.py $RPM_BUILD_ROOT%{_libexecdir}/gwms_renew_proxies
-install -m 0500 creation/frontend_condortoken $RPM_BUILD_ROOT%{_sbindir}/frontend_condortoken
-# TODO: /usr/libexec/frontend_condortoken not packaged, duplicate?
-# install -m 0500 creation/frontend_condortoken $RPM_BUILD_ROOT%{_libexecdir}/frontend_condortoken
 
 #install the factory executables
 install -m 0500 factory/checkFactory.py $RPM_BUILD_ROOT%{_sbindir}/
@@ -378,6 +376,7 @@ install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sys
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
 install -d $RPM_BUILD_ROOT%{frontend_token_dir}
+install -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
@@ -404,6 +403,7 @@ install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/lock
 install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/total
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/nodes.blacklist
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/group_main/nodes.blacklist
+
 
 # Install the logs
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-frontend/frontend
@@ -441,8 +441,6 @@ install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/hooks.reconfig.post
 install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
 install -m 0644 creation/templates/proxies.ini $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/proxies.ini
 install -m 0644 %{SOURCE8} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/sudoers.d
-install -m 0440 creation/templates/99_frontend_sudoers $RPM_BUILD_ROOT/%{_sysconfdir}/sudoers.d/99_frontend_sudoers
 
 # Install the factory config dir
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory
@@ -461,6 +459,7 @@ rm -rf $RPM_BUILD_ROOT%{web_base}/CVS
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/ganglia.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/certs
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts
 touch install/templates/90_gwms_dns.config
 install -m 0644 install/templates/00_gwms_factory_general.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d/
 install -m 0644 install/templates/00_gwms_general.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d/
@@ -508,6 +507,8 @@ cp frontend/tools/enter_frontend_env $RPM_BUILD_ROOT%{_bindir}/enter_frontend_en
 cp frontend/tools/fetch_glidein_log $RPM_BUILD_ROOT%{_bindir}/fetch_glidein_log
 cp frontend/tools/glidein_off $RPM_BUILD_ROOT%{_bindir}/glidein_off
 cp frontend/tools/remove_requested_glideins $RPM_BUILD_ROOT%{_bindir}/remove_requested_glideins
+cp install/templates/frontend_condortoken $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts/
+cp install/templates/04_gwms_frontend_scripts.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
 
 # Install glidecondor
 install -m 0755 install/glidecondor_addDN $RPM_BUILD_ROOT%{_sbindir}/glidecondor_addDN
@@ -567,6 +568,14 @@ systemctl daemon-reload
 if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
+
+if [ ! -e %{frontend_passwd_dir} ]; then
+    mkdir -p %{frontend_passwd_dir}
+    chown frontend.frontend %{frontend_passwd_dir}
+fi
+openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
+/bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
+chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
 
 %post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
@@ -681,6 +690,7 @@ rm -rf $RPM_BUILD_ROOT
 %files factory
 
 %files vofrontend
+#%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %files vofrontend-standalone
 
@@ -813,6 +823,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
 %doc doc
+%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
+%attr(644,root,root) %{_sysconfdir}/condor/config.d/04_gwms_frontend_scripts.config
 %attr(755,root,root) %{_bindir}/glidein_off
 %attr(755,root,root) %{_bindir}/remove_requested_glideins
 %attr(755,root,root) %{_bindir}/fetch_glidein_log
@@ -821,7 +833,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/glideinFrontend
 %attr(755,root,root) %{_sbindir}/glideinFrontendElement.py*
 %attr(755,root,root) %{_sbindir}/reconfig_frontend
-%attr(755,root,root) %{_sbindir}/frontend_condortoken
 %attr(755,root,root) %{_sbindir}/manageFrontendDowntimes.py
 %attr(755,root,root) %{_sbindir}/stopFrontend
 %attr(755,root,root) %{_libexecdir}/gwms_renew_proxies
@@ -830,6 +841,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %{web_base}
 %attr(-, frontend, frontend) %{frontend_dir}
 %attr(700, frontend, frontend) %{frontend_token_dir}
+%attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %{python3_sitelib}/glideinwms/frontend
 %{python3_sitelib}/glideinwms/creation/lib/cvWConsts.py
@@ -860,7 +872,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_initrddir}/gwms-renew-proxies
 %attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
-%attr(-, root, root) %config(noreplace) %{_sysconfdir}/sudoers.d/99_frontend_sudoers
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
@@ -914,14 +925,20 @@ rm -rf $RPM_BUILD_ROOT
 %files condor-common-config
 %config(noreplace) %{_sysconfdir}/condor/config.d/03_gwms_local.config
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
+#%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Fri Mar 26 2021 Dennis Box <dbox@fnal.gov> - 3.7.3-1
+- GlideinWMS v3.7.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_3/history.html
+- Release candidates: 3.7.3-01.rc1 .rc1 to 
+
 * Thu Feb 11 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.1-1
 - GlideinWMS v3.9.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9_1/history.html
 - Release candidates: 3.9-0.1.rc1 to 3.9.1-0.5.rc6
 
-* Mon Dec 21  2020 Dennis Box <dbox@fnal.gov> - 3.7.2-1
+* Mon Dec 21 2020 Dennis Box <dbox@fnal.gov> - 3.7.2-1
 - GlideinWMS v3.7.2
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_2/history.html
 - Release candidates: 3.7.0.1.rc1 to 3.7.2-0.3.rc3

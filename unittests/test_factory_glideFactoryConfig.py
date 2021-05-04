@@ -40,7 +40,7 @@ class TestFactoryConfig(unittest.TestCase):
         os.system('git checkout -q %s' % self.confdir)
         os.chdir(self.confdir)
         self.factory_config = FactoryConfig()
-        self.entry_config = EntryConfigFile('el6_osg34', 'attributes.cfg')
+        self.entry_config = EntryConfigFile('el8_osg34', 'attributes.cfg')
         self.job_descript = JobDescript(self.entry_config.entry_name)
         self.job_attrs = JobAttributes(self.entry_config.entry_name)
         self.job_params = JobParams(self.entry_config.entry_name)

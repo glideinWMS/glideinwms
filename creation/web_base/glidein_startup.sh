@@ -738,6 +738,7 @@ case "${operation_mode}" in
         set_debug=1;;
     check)
         sleep_time=150
+        set -x
         set_debug=2;;
     *)
         sleep_time=1199
@@ -885,7 +886,7 @@ dir_id() {
 if command -v uuidgen >/dev/null 2>&1; then
     glidein_uuid="$(uuidgen)"
 else
-    glidein_uuid="$(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
+    glidein_uuid="$(od -x -w32 -N32 /dev/urandom | awk 'NR==1{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')"
 fi
 
 startup_time="$(date +%s)"
@@ -1012,6 +1013,17 @@ set_proxy_fullpath() {
 
 
 [ -n "${X509_USER_PROXY}" ] && set_proxy_fullpath
+
+for tk in $(pwd)/*idtoken; do
+  export GLIDEIN_CONDOR_TOKEN="${tk}"
+  if fullpath="$(readlink -f $tk)"; then
+     echo "Setting GLIDEIN_CONDOR_TOKEN $tk to canonical path ${fullpath}" 1>&2
+     export GLIDEIN_CONDOR_TOKEN="${fullpath}"
+  else
+     echo "Unable to get canonical path for GLIDEIN_CONDOR_TOKEN $tk" 1>&2
+  fi
+done
+
 
 
 ########################################
@@ -1143,6 +1155,12 @@ fi
 # Move the token files from condor to glidein workspace
 mv "${start_dir}/tokens.tgz" .
 mv "${start_dir}/url_dirs.desc" .
+#if [ -e "${GLIDEIN_CONDOR_TOKEN}" ]; then
+#    mkdir -p ticket
+#    tname="$(basename ${GLIDEIN_CONDOR_TOKEN})"
+#    cp "${GLIDEIN_CONDOR_TOKEN}" "ticket/${tname}"
+#    export GLIDEIN_CONDOR_TOKEN="$(pwd)/ticket/${tname}"
+#fi
 
 # Extract and source all the data contained at the end of this script as tarball
 extract_all_data
@@ -1207,6 +1225,7 @@ if ! {
     echo "GLIDEIN_INITIALIZED 0"
     # ...but be optimist, and leave advertise_only for the actual error handling script
     echo "GLIDEIN_ADVERTISE_ONLY 0"
+    echo "GLIDEIN_CONDOR_TOKEN ${GLIDEIN_CONDOR_TOKEN}"
     echo "# --- User Parameters ---"
 } >> "${glidein_config}"; then
     early_glidein_failure "Failed in updating '${glidein_config}'"

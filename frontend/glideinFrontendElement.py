@@ -27,6 +27,7 @@ import logging
 import re
 import tempfile
 import shutil
+import socket
 
 # this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
@@ -42,6 +43,7 @@ from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
+from glideinwms.lib import token_util
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -802,9 +804,21 @@ class glideinFrontendElement:
                     logSupport.log.info("found condor token: %s" % entry_token_name)
                     gp_encrypt[entry_token_name] = ctkn
                 # now see if theres a scitoken for this site
-                entry_scitoken_name = "%s.scitoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                spath = "/var/lib/gwms-frontend/tokens.d"
-                scitoken_fullpath = os.path.join(spath, entry_scitoken_name)
+                scitoken_fullpath = ''
+                cred_type_data = self.elementDescript.element_data.get('ProxyTypes')
+                trust_domain_data = self.elementDescript.element_data.get('ProxyTrustDomains')
+                if not cred_type_data:
+                    cred_type_data = self.elementDescript.frontend_data.get('ProxyTypes')
+                if not trust_domain_data:
+                    trust_domain_data = self.elementDescript.frontend_data.get('ProxyTrustDomains')
+                if trust_domain_data and cred_type_data:
+                    cred_type_map = eval(cred_type_data)
+                    trust_domain_map = eval(trust_domain_data)
+                    for cfname in cred_type_map:
+                        if cred_type_map[cfname] == 'scitoken':
+                            if trust_domain_map[cfname] == trust_domain:
+                                scitoken_fullpath = cfname
+                    
                 if os.path.exists(scitoken_fullpath):
                     try:
                         logSupport.log.info('found scitoken %s' % scitoken_fullpath)
@@ -812,7 +826,7 @@ class glideinFrontendElement:
                             for line in fbuf:
                                 stkn += line
                         if stkn:
-                            gp_encrypt[entry_scitoken_name] =  stkn
+                            gp_encrypt['frontend_scitoken'] =  stkn
                     except Exception as err:
                         logSupport.log.exception("failed to read scitoken: %s" % err)
 
@@ -900,7 +914,7 @@ class glideinFrontendElement:
         condor_version = glidein_el['params'].get('CONDOR_VERSION')
         if condor_version \
             and condor_version != 'default' \
-            and condor_version >= '8.9.2':
+            and condor_version >= '8.9':
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
@@ -917,19 +931,44 @@ class glideinFrontendElement:
                 #os.chmod(tkn_file, 0o600)
                 #logSupport.log.debug("created token %s" % tkn_file)
                 tkn_dir = "/var/lib/gwms-frontend/tokens.d"
+                pwd_dir = "/var/lib/gwms-frontend/passwords.d"
+                req_dir = "/var/lib/gwms-frontend/passwords.d/requests"
                 if not os.path.exists(tkn_dir):
                     os.mkdir(tkn_dir,0o700)
-                tkn_file = tkn_dir + '/' +  glidein_site + ".idtoken"
+                if not os.path.exists(pwd_dir):
+                    os.mkdir(pwd_dir,0o700)
+                if not os.path.exists(req_dir):
+                    os.mkdir(req_dir,0o700)
+                tkn_file = tkn_dir + '/' + glidein_site + ".idtoken"
+                pwd_file = pwd_dir + '/' + glidein_site
+                pwd_default = pwd_dir + '/' + 'FRONTEND'
+                req_file = req_dir + '/' + glidein_site
                 one_hr = 3600
                 tkn_age = sys.maxsize
+                if not os.path.exists(pwd_file):
+                    if os.path.exists(pwd_default):
+                        pwd_file = pwd_default
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
-                    # logSupport.log.debug("token %s age is %s" % (tkn_file, tkn_age))
-                if tkn_age > one_hr:    
+                if tkn_age > one_hr and os.path.exists(pwd_file):    
+                    #TODO: scope, duration, identity  should be configurable from frontend.xml
                     (fd, tmpnm) = tempfile.mkstemp()
-                    cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
-                    tkn_str = subprocessSupport.iexe_cmd(cmd)
-                    os.write(fd, tkn_str.encode('utf-8'))
+                    scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
+                    duration = 24 * one_hr
+                    identity = "vofrontend_service@%s" % socket.gethostname()
+                    logSupport.log.debug("creating  token %s" % tkn_file)
+                    logSupport.log.debug("pwd_flie= %s" % pwd_file)
+                    logSupport.log.debug("scope= %s" % scope)
+                    logSupport.log.debug("duration= %s" % duration)
+                    logSupport.log.debug("identity= %s" % identity)
+                    tkn_str = token_util.create_and_sign_token(pwd_file,
+                                                               scope=scope,
+                                                               duration=duration,
+                                                               identity=identity)
+                    #cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    #tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    logSupport.log.debug("tkn_str= %s" % tkn_str)
+                    os.write(fd, tkn_str)
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
                     os.chmod(tkn_file, 0o600)

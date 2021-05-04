@@ -50,10 +50,10 @@ e92d8f37da9fdde26c1c889d0b993f54  ./creation/templates/proxies.ini
 2ecf386b21b0668ab76b31cef5596cf1  ./creation/web_base/b64uuencode.source
 daf8699ff7a31ea6d69522e41c7a3d5f  ./creation/web_base/cat_consts.sh
 d21df4d1e3e170fcd7f7ae66b752d7ac  ./creation/web_base/check_blacklist.sh
-8801da02d237a168b907f85e30a61287  ./creation/web_base/check_proxy.sh
+f6d9d2ec0acea12546d1652b3322f2f3  ./creation/web_base/check_proxy.sh
 f5461e2880a7193fef8ec2f4ee0d6628  ./creation/web_base/check_wn_drainstate.sh
 dcc8d8111389ffc32201854adce0490d  ./creation/web_base/condor_chirp
-17d43f51d40bf91e58876f3d38535084  ./creation/web_base/condor_config
+14be707b4ea551d592739c744f1b3b5e  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
 f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include

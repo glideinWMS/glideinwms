@@ -1217,7 +1217,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     condortoken_file = os.path.join(submit_credentials.cred_dir, condortoken)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
-        (fd, tmpnm) = tempfile.mkstemp()
+        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
             entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
             os.chmod(tmpnm,0o600)
@@ -1232,17 +1232,15 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         finally:
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
-    if not os.path.exists(condortoken_file):
-        with open(condortoken_file, 'a'):
-            pass
-    if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
-        entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
+    if os.path.exists(condortoken_file):
+        if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
+            entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
 
-    scitoken = "%s.scitoken" % entry.name
+    scitoken = "credential_%s.scitoken" % client_int_name
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
-    scitoken_data = decrypted_params.get(scitoken)
+    scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
-        (fd, tmpnm) = tempfile.mkstemp()
+        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
             entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
             os.chmod(tmpnm,0o600)
@@ -1255,14 +1253,19 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             if os.path.exists(tmpnm):
                 os.remove(tmpnm)
 
-    if not os.path.exists(scitoken_file):
-        with open(scitoken_file, 'a'):
+    if os.path.exists(scitoken_file):
+        if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
+            entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
+
+    if 'scitoken' in auth_method:
+    	if os.path.exists(scitoken_file):
             pass
-    if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
-        entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
+        else:
+            entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
+            return return_dict
 
 
-    if 'grid_proxy' in auth_method:
+    elif 'grid_proxy' in auth_method:
         ########################
         # ENTRY TYPE: Grid Sites
         ########################

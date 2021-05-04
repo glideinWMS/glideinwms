@@ -67,6 +67,7 @@ def create_condor_tar_fd(condor_base_dir):
             'libexec/data_plugin',
             'libexec/condor_chirp',
             'libexec/condor_gpu_discovery',
+            'libexec/condor_gpu_utilization',
         ]
 
         # for RPM installations, add libexec/condor as libexec into the
@@ -168,30 +169,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         submit_attrs = entry.get_child('config').get_child('submit').get_child_list('submit_attrs')
         enc_input_files = []
 
-        # if entry condor version supports tokens, add them to 
-        # the transfer/encrypt input file list
+        enc_input_files.append('$ENV(IDTOKENS_FILE)')
 
-        # OLD token version
-        # base_client_proxies_dir = conf.get_child('submit')['base_client_proxies_dir']
-        # token_file_name = "%s_token" % entry_name
-        # for root, dirs, files  in os.walk(base_client_proxies_dir):
-        #     for fname in files:
-        #         if fname == token_file_name:
-        #             pth = os.path.join(root, fname)
-        #             enc_input_files.append(pth)
-        #             self.append('environment', '"AUTH_TOKEN=%s"' % fname)
-        #             self.add('+AUTH_TOKEN', fname)
-        #             break
-        param_c = cWDictFile.ReprDictFile(self.get_dir(), 'params.cfg')
-        param_c.load()
-        version = 'default'
-        if 'CONDOR_VERSION' in param_c: 
-            version = param_c['CONDOR_VERSION']
-
-        if version > '8.9.1' and version != 'default': 
-            enc_input_files.append('$ENV(IDTOKENS_FILE)')
-            enc_input_files.append('$ENV(SCITOKENS_FILE)')
-            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+        self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
