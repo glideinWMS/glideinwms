@@ -1,3 +1,9 @@
+v3_9_2
+	Includes all features and fixes of 3.7.3
+	Drops support for BDII along with its LDAP requirements
+	Adds check_python3_expr.py to validate python3 in match expressions
+	Bug fix: Fixes string encoding issues on glideFactoryLib
+
 v3_9_1
 	Includes all features and fixes of 3.7.2
 	Separates httpd packages from Factory and Frontend RPMs

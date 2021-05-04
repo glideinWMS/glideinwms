@@ -237,3 +237,14 @@ v3_7_3:
     - tmpfile needs to be on correct file system when factory writes tokens from frontend
     - IDTOKENS auth does not fail on improper condor_version comparison
     - rpm sub package (http) building issues fixed
+
+v3_9_2:
+  Date: May 4, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.3
+    - Drops support for BDII along with its LDAP requirements
+    - Adds check_python3_expr.py to validate python3 in match expressions
+  Bug fix:
+    - Fixes string encoding issues on glideFactoryLib
