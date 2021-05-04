@@ -859,10 +859,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWParams.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/matchPolicy.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_config_frontend.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_python3_expr.*
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
-%{python3_sitelib}/glideinwms/creation/templates/99_frontend_sudoers
 %{python3_sitelib}/glideinwms/creation/reconfig_frontend
-%{python3_sitelib}/glideinwms/creation/frontend_condortoken
 %if 0%{?rhel} >= 7
 %{_sbindir}/gwms-frontend
 %attr(0644, root, root) %{systemddir}/gwms-frontend.service

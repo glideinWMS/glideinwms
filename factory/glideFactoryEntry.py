@@ -1258,7 +1258,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
     if 'scitoken' in auth_method:
-    	if os.path.exists(scitoken_file):
+        if os.path.exists(scitoken_file):
             pass
         else:
             entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
