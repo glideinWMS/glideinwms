@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_3
+# GLIDEINWMS_VERSION v3_7_4_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -133,7 +133,7 @@ eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
 fc84bb656bff9c0069a13b7971ec938f  ./factory/glideFactoryEntryGroup.py
 2519e99d8b2e5b19e115db153e50376e  ./factory/glideFactoryEntry.py
 d36f0595ebc093447ed5b9ae658e8216  ./factory/glideFactoryInterface.py
-1769b2e04844a04506e1af0fad368c67  ./factory/glideFactoryLib.py
+ea0fbd31ccf0cd42e6f65436527b5d11  ./factory/glideFactoryLib.py
 b1bd36643222a41a90d978ef27c53305  ./factory/glideFactoryLogParser.py
 4262810501628913cef0a5a2689ff4a0  ./factory/glideFactoryMonitorAggregator.py
 e50fb775d1147ee4eaafbd8c2fe95451  ./factory/glideFactoryMonitoring.py
@@ -173,9 +173,9 @@ b25e7611af61c2debe075a4f9c514151  ./factory/tools/OSG_autoconf.py
 194a647100540d5a636dfb31975c0869  ./frontend/checkFrontend.py
 19313063656cfe9a178ea07116497bd4  ./frontend/glideinFrontendConfig.py
 2bc4d50f3f03afe26d4af82c0b98d011  ./frontend/glideinFrontendDowntimeLib.py
-1b3eba038fa611e08cb6efa572cae02d  ./frontend/glideinFrontendElement.py
+8939852b1fb3716587bbc23eb868e9bf  ./frontend/glideinFrontendElement.py
 af97a3c1808be18c5d67681a51523ced  ./frontend/glideinFrontendInterface.py
-507351afc84a658c9ef716b1d9b366c7  ./frontend/glideinFrontendLib.py
+7037db53ae1b31e68070f97d8821ffd5  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
 6ea47a282a53fd49ca001cccedbb82c4  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py

@@ -210,3 +210,12 @@ v3_7_3:
     - tmpfile needs to be on correct file system when factory writes tokens from frontend
     - IDTOKENS auth does not fail on improper condor_version comparison
     - rpm sub package (http) building issues fixed
+
+v3_7_4:
+  Date: May 10, 2021
+  Series: Development
+  Tarball: False
+  Feature:
+    - Consider not available (not Idle) partitionable slots where all GPUs are used
+  Bug Fix:
+    - Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold

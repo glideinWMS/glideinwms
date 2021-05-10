@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_7_3
+# GLIDEINWMS_VERSION v3_7_4_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
@@ -108,9 +108,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 194a647100540d5a636dfb31975c0869  ./frontend/checkFrontend.py
 19313063656cfe9a178ea07116497bd4  ./frontend/glideinFrontendConfig.py
 2bc4d50f3f03afe26d4af82c0b98d011  ./frontend/glideinFrontendDowntimeLib.py
-1b3eba038fa611e08cb6efa572cae02d  ./frontend/glideinFrontendElement.py
+8939852b1fb3716587bbc23eb868e9bf  ./frontend/glideinFrontendElement.py
 af97a3c1808be18c5d67681a51523ced  ./frontend/glideinFrontendInterface.py
-507351afc84a658c9ef716b1d9b366c7  ./frontend/glideinFrontendLib.py
+7037db53ae1b31e68070f97d8821ffd5  ./frontend/glideinFrontendLib.py
 ecfbabc361b7d2ed1f851f0bdad65185  ./frontend/glideinFrontendMonitorAggregator.py
 6ea47a282a53fd49ca001cccedbb82c4  ./frontend/glideinFrontendMonitoring.py
 3a34cae4f79ed538bb96fe1f184fba70  ./frontend/glideinFrontendPidLib.py
