@@ -1,3 +1,6 @@
+v3_7_4
+    Consider not available (not Idle) partitionable slots where all GPUs are used
+    Bug fix: Submissions from some 3.6.5 frontends to 3.7.5 factories go held
 v3_7_3
 	More efficient generation of IDTOKENS by frontend
 	SciToken credentials configured and treated same as other credentials for glidein submission
