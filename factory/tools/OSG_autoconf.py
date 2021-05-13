@@ -61,8 +61,8 @@ def get_bestfit_pilot(celem, resource):
             dict: A dictionary to be used to generate the xml for this CE
     """
     vos = set()
-    memory = sys.maxint
-    walltime = sys.maxint
+    memory = sys.maxsize
+    walltime = sys.maxsize
     cpus = ""
     for osg_catalog in celem["OSG_ResourceCatalog"]:
         if "AllowedVOs" in osg_catalog:
@@ -135,11 +135,11 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     if cpus != "":
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
         edict["submit_attrs"]["+xcount"] = cpus
-    if walltime != sys.maxint:
+    if walltime != sys.maxsize:
         glide_walltime = walltime * 60 - 1800
         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
         edict["submit_attrs"]["+maxWallTime"] = walltime
-    if memory != sys.maxint:
+    if memory != sys.maxsize:
         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
         edict["submit_attrs"]["+maxMemory"] = memory
     return edict

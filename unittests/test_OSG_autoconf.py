@@ -107,16 +107,16 @@ class TestOSGAutoconf(unittest.TestCase):
             'OSG_Resource': 'OSG_US_LSU_QB2',
             'OSG_ResourceGroup': 'LSU',
             'OSG_ResourceCatalog': [
-                {'WholeNode': False, 'MaxPilots': 1000L, 'IsPilotEntry': True, 'RequireSingularity': True,
-                 'SendTests': True, 'CPUs': 1L, 'AllowedVOs': ['icecube'], 'MaxWallTime': 2880L,
-                 'Memory': 8192L, 'GPUs': 2L, 'Name': 'GPU'},
-                {'CPUs': 20L, 'AllowedVOs': ['ligo'], 'MaxWallTime': 1440L, 'Memory': 65536L}, # No IsPilotEntry, ignored
-                {'WholeNode': True, 'Name': 'WholeNode', 'IsPilotEntry': True, 'MaxPilots': 1000L,
+                {'WholeNode': False, 'MaxPilots': 1000, 'IsPilotEntry': True, 'RequireSingularity': True,
+                 'SendTests': True, 'CPUs': 1, 'AllowedVOs': ['icecube'], 'MaxWallTime': 2880,
+                 'Memory': 8192, 'GPUs': 2, 'Name': 'GPU'},
+                {'CPUs': 20, 'AllowedVOs': ['ligo'], 'MaxWallTime': 1440, 'Memory': 65536}, # No IsPilotEntry, ignored
+                {'WholeNode': True, 'Name': 'WholeNode', 'IsPilotEntry': True, 'MaxPilots': 1000,
                  'SendTests': True, 'RequireSingularity': True, 'AllowedVOs': ['atlas'],
-                 'MaxWallTime': 1440L},
-                {'WholeNode': False, 'MaxPilots': 1000L, 'IsPilotEntry': True, 'RequireSingularity': False,
-                 'SendTests': True, 'CPUs': 8L, 'AllowedVOs': ['osg', 'cms'], 'MaxWallTime': 1440L,
-                 'Memory': 32768L, 'OS': 'rhel6', 'Name': 'default'}
+                 'MaxWallTime': 1440},
+                {'WholeNode': False, 'MaxPilots': 1000, 'IsPilotEntry': True, 'RequireSingularity': False,
+                 'SendTests': True, 'CPUs': 8, 'AllowedVOs': ['osg', 'cms'], 'MaxWallTime': 1440,
+                 'Memory': 32768, 'OS': 'rhel6', 'Name': 'default'}
             ]
         })
         expected_out['LSU'] = {}
@@ -127,13 +127,13 @@ class TestOSGAutoconf(unittest.TestCase):
             'attrs' : {
                 'GLIDEIN_ResourceName': {'value': 'LSU'},
                 'GLIDEIN_Site': {'value': 'LSU'},
-                'GLIDEIN_MaxMemMBs' : {'value': 8192L},
-                'GLIDEIN_Max_Walltime' : {'value': 171000L},
-                'GLIDEIN_CPUS' : {'value': 1L},
+                'GLIDEIN_MaxMemMBs' : {'value': 8192},
+                'GLIDEIN_Max_Walltime' : {'value': 171000},
+                'GLIDEIN_CPUS' : {'value': 1},
                 'GLIDEIN_Supported_VOs' : {'value': 'icecube'},
              },
-            'submit_attrs' : {'+maxWallTime': 2880L, '+xcount': 1L, '+maxMemory': 8192L, 'Request_GPUs': 2L},
-            'limits' : { 'entry' : { 'glideins' : 1000L}},
+            'submit_attrs' : {'+maxWallTime': 2880, '+xcount': 1, '+maxMemory': 8192, 'Request_GPUs': 2},
+            'limits' : { 'entry' : { 'glideins' : 1000}},
         }
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['WholeNode'] = {}
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['WholeNode']['DEFAULT_ENTRY'] = {
@@ -141,11 +141,11 @@ class TestOSGAutoconf(unittest.TestCase):
             'attrs' : {
                 'GLIDEIN_ResourceName': {'value': 'LSU'},
                 'GLIDEIN_Site': {'value': 'LSU'},
-                'GLIDEIN_Max_Walltime' : {'value': 84600L},
+                'GLIDEIN_Max_Walltime' : {'value': 84600},
                 'GLIDEIN_Supported_VOs' : {'value': 'atlas'},
              },
             'submit_attrs' : {'+WantWholeNode' : True},
-            'limits' : { 'entry' : { 'glideins' : 1000L}},
+            'limits' : { 'entry' : { 'glideins' : 1000}},
         }
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['default'] = {}
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['default']['DEFAULT_ENTRY'] = {
@@ -153,14 +153,14 @@ class TestOSGAutoconf(unittest.TestCase):
             'attrs' : {
                 'GLIDEIN_ResourceName': {'value': 'LSU'},
                 'GLIDEIN_Site': {'value': 'LSU'},
-                'GLIDEIN_MaxMemMBs' : {'value': 32768L},
-                'GLIDEIN_Max_Walltime' : {'value': 84600L},
-                'GLIDEIN_CPUS' : {'value': 8L},
+                'GLIDEIN_MaxMemMBs' : {'value': 32768},
+                'GLIDEIN_Max_Walltime' : {'value': 84600},
+                'GLIDEIN_CPUS' : {'value': 8},
                 'GLIDEIN_Supported_VOs' : {'value': 'osg,cms'},
                 'GLIDEIN_REQUIRED_OS': {'value': 'rhel6'}
              },
-            'submit_attrs' : {'+maxWallTime': 1440L, '+xcount': 8L, '+maxMemory': 32768L},
-            'limits' : { 'entry' : { 'glideins' : 1000L}},
+            'submit_attrs' : {'+maxWallTime': 1440, '+xcount': 8, '+maxMemory': 32768},
+            'limits' : { 'entry' : { 'glideins' : 1000}},
         }
         self.maxDiff=None
         self.assertEqual(get_information_internal(info), expected_out)
