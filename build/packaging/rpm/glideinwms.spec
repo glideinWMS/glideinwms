@@ -150,6 +150,7 @@ Requires: python3-condor
 # was condor-python for python2
 Requires: python-rrdtool
 Requires: python36-jwt
+Requires: python36-cryptography
 Requires: python36-m2crypto
 Requires: PyYAML
 %description libs
