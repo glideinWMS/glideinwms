@@ -142,6 +142,7 @@ setup_python3_venv() {
     PYCODESTYLE="pycodestyle"
     MOCK="mock"
     M2CRYPTO="m2crypto" # M2CRYPTO="M2Crypto==0.20.2"
+    CRYPTOGRAPHY="cryptography"
 
     # pip install of M2Crypto is failing, use RPM: python36-m2crypto.x86_64 : Support for using OpenSSL in Python 3 scripts
     
@@ -202,7 +203,7 @@ setup_python3_venv() {
         pip_packages="toml ${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="$pip_packages pyyaml ${MOCK} xmlrunner PyJWT requests"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO} ${CRYPTOGRAPHY}"
 
         # TODO: load the list from requirements.txt
 
