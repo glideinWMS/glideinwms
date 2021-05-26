@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_2_rc1
+# GLIDEINWMS_VERSION v3_9_2_rc2
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -117,9 +117,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 f1a09d880f0656bffe6da946b69b174e  ./frontend/glideinFrontend.py
 d6f504e532123a1dac671d9b895bac09  ./frontend/glideinFrontendConfig.py
 43fae45cd5f9328417ed2c74e294a1d2  ./frontend/glideinFrontendDowntimeLib.py
-e7ec0bac8a754df56e3df2eaf1f72e9c  ./frontend/glideinFrontendElement.py
+896ebfb63b0c3caeb64d20e72c60d668  ./frontend/glideinFrontendElement.py
 8f926e4bd94607354285fa4d62ad698d  ./frontend/glideinFrontendInterface.py
-01714e6ddc595947787efb128ec52cbf  ./frontend/glideinFrontendLib.py
+8f65869a7c9a9ab87b0c9e56dee08837  ./frontend/glideinFrontendLib.py
 2a4bc838782591718b9364ddcc0648ae  ./frontend/glideinFrontendMonitorAggregator.py
 078146df33ccd872fec69309dd9a17b3  ./frontend/glideinFrontendMonitoring.py
 4397bbe7818b6ca7285d64f46b26387e  ./frontend/glideinFrontendPidLib.py

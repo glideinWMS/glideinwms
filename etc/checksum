@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_2_rc1
+# GLIDEINWMS_VERSION v3_9_2_rc2
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -139,10 +139,10 @@ cdab79175974b46109466abab717e3d6  ./factory/glideFactory.py
 b0dfd8dbfeb19b7e634d7eed0d837b1a  ./factory/glideFactoryConfig.py
 736dcce91fa2276ee858ec572659f6cc  ./factory/glideFactoryCredentials.py
 38dda0405d0e6c79536ef6e0bd345141  ./factory/glideFactoryDowntimeLib.py
-9217f0c5fac0ec9b8cd0d0412600f8a6  ./factory/glideFactoryEntry.py
+98f46e9272697c20d2da004358b45831  ./factory/glideFactoryEntry.py
 65a45e001a8efb811aeb27de5512ed43  ./factory/glideFactoryEntryGroup.py
 115ce1725ac97fb3680e4efa43d7db04  ./factory/glideFactoryInterface.py
-4f65a1780f6a5d7cb4cb187b3a34e1fc  ./factory/glideFactoryLib.py
+88462159cc6aa370e6db67af8c7afd4c  ./factory/glideFactoryLib.py
 b9e23c335cf1ad9a0e8e95efb2d261f9  ./factory/glideFactoryLogParser.py
 a4f8b8819236efc2cc0071b49708ba6f  ./factory/glideFactoryMonitorAggregator.py
 a2fe3988240301a99481d3730aa8b030  ./factory/glideFactoryMonitoring.py
@@ -150,7 +150,7 @@ a2fe3988240301a99481d3730aa8b030  ./factory/glideFactoryMonitoring.py
 117d9847a9cb364cdca51017fb49aff4  ./factory/glideFactorySelectionAlgorithms.py
 3b2ecd2762e26ee18c62f6cb58149c40  ./factory/manageFactoryDowntimes.py
 e12e405f5ce29594e08c136df12a2664  ./factory/stopFactory.py
-546ed9ee359f8a335681846672e59774  ./factory/tools/OSG_autoconf.py
+c2d2f3fd0f976083eaf3fa8cb886950f  ./factory/tools/OSG_autoconf.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/__init__.py
 1832862aa3074d9fde291f2ca5ca05d4  ./factory/tools/analyze_entries
 d4f4d3bca4703079974c48fb38680def  ./factory/tools/analyze_frontends
@@ -182,9 +182,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 f1a09d880f0656bffe6da946b69b174e  ./frontend/glideinFrontend.py
 d6f504e532123a1dac671d9b895bac09  ./frontend/glideinFrontendConfig.py
 43fae45cd5f9328417ed2c74e294a1d2  ./frontend/glideinFrontendDowntimeLib.py
-e7ec0bac8a754df56e3df2eaf1f72e9c  ./frontend/glideinFrontendElement.py
+896ebfb63b0c3caeb64d20e72c60d668  ./frontend/glideinFrontendElement.py
 8f926e4bd94607354285fa4d62ad698d  ./frontend/glideinFrontendInterface.py
-01714e6ddc595947787efb128ec52cbf  ./frontend/glideinFrontendLib.py
+8f65869a7c9a9ab87b0c9e56dee08837  ./frontend/glideinFrontendLib.py
 2a4bc838782591718b9364ddcc0648ae  ./frontend/glideinFrontendMonitorAggregator.py
 078146df33ccd872fec69309dd9a17b3  ./frontend/glideinFrontendMonitoring.py
 4397bbe7818b6ca7285d64f46b26387e  ./frontend/glideinFrontendPidLib.py
