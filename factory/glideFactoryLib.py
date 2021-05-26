@@ -1566,6 +1566,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             exe_env.append('SCITOKENS_FILE=%s' % submit_credentials.identity_credentials['frontend_scitoken'])
         if 'frontend_condortoken' in submit_credentials.identity_credentials:
             exe_env.append('IDTOKENS_FILE=%s' % submit_credentials.identity_credentials['frontend_condortoken'])
+        else:
+            exe_env.append('IDTOKENS_FILE=/dev/null')
+
 
         # The parameter list to be added to the arguments for glidein_startup.sh
         params_str = ""

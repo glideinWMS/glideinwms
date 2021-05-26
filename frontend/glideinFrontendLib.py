@@ -757,6 +757,7 @@ def getIdleCondorStatus(status_dict):
 
         # Exclude partitionable slots with no free memory/cpus
         # Minimum memory required by CMS is 2500 MB
+        # If the node had GPUs, there should be at least one available (requested by CMS)
         #
         # 1. (el.get('PartitionableSlot') != True)
         # Includes static slots irrespective of the free cpu/mem
@@ -764,7 +765,9 @@ def getIdleCondorStatus(status_dict):
         # 2. (el.get('TotalSlots') == 1)
         # p-slots not yet partitioned
         #
-        # 3. (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
+        # 3. (el.get('Cpus', 0) > 0 and 
+        #     el.get('Memory', 2501) > 2500) and 
+        #     (el.get('TotalGpus', 0) == 0 or el.get('Gpus', 0) > 0))
         # p-slots that have enough idle resources.
 
         sq = condorMonitor.SubQuery(
@@ -775,7 +778,9 @@ def getIdleCondorStatus(status_dict):
                 (
                     (el.get('PartitionableSlot') != True) or
                     (el.get('TotalSlots') == 1) or
-                    (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
+                    (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500 and 
+                        (el.get('TotalGpus', 0) == 0 or el.get('Gpus', 0) > 0)
+                    )
                 )
             )
         )
