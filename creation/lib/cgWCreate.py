@@ -186,7 +186,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if os.path.exists(url_dirs_desc_file):
             enc_input_files.append(url_dirs_desc_file)
         if token_list:
-            self.append('environment', "JOB_TOKENS='"+','.join(token_list)+"'")
+            self.append('environment', '"JOB_TOKENS='+','.join(token_list)+'"')
 
 
         # Get the list of log recipients specified from the Factory for this entry
@@ -241,7 +241,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_condorc_grid()
         elif gridtype.startswith('batch '):
             # BOSCO, aka batch *
-            self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
+            # self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
             enc_input_files.append('$ENV(X509_USER_PROXY)')
             self.populate_standard_grid(
                 rsl,
