@@ -248,7 +248,7 @@ v3_7_4:
     - Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold
 
 v3_9_2:
-  Date: May 26, 2021
+  Date: Jun 1, 2021
   Series: Development
   Tarball: false
   Feature:
@@ -257,3 +257,4 @@ v3_9_2:
     - Adds check_python3_expr.py to validate python3 in match expressions
   Bug fix:
     - Fixes string encoding issues on glideFactoryLib
+    - Fixes an issue that would cause some factory configurations to generate malformed Condor files

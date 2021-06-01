@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_2_rc4
+# GLIDEINWMS_VERSION v3_9_2_rc5
 ###################################################################
 5366f648ebc44b00792d204b27a71779  ./.editorconfig
 b10f06b5c352cf3e0c8050b7c367370d  ./.mailmap
@@ -23,7 +23,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 8ddd933efbac1422520bdefc7a56f32e  ./creation/lib/cWParamDict.py
 2df3281990c66518fcbe5bf3328f3e7b  ./creation/lib/cWParams.py
 a3b5736fa82f7f5acc17f40213fcc82e  ./creation/lib/cgWConsts.py
-04b8a59488fb949deacc0e02698e1c70  ./creation/lib/cgWCreate.py
+0d61810789eba6f9ff2f7ad9e77cd4e8  ./creation/lib/cgWCreate.py
 882f172ef51c714351af0a316f52c030  ./creation/lib/cgWDictFile.py
 f9009344ba1fe0e12646ea7c84312e0e  ./creation/lib/cgWParamDict.py
 4bd04282ce92f6c4fdea72372ac5ea4e  ./creation/lib/cgWParams.py
@@ -185,7 +185,7 @@ d6f504e532123a1dac671d9b895bac09  ./frontend/glideinFrontendConfig.py
 896ebfb63b0c3caeb64d20e72c60d668  ./frontend/glideinFrontendElement.py
 8f926e4bd94607354285fa4d62ad698d  ./frontend/glideinFrontendInterface.py
 8f65869a7c9a9ab87b0c9e56dee08837  ./frontend/glideinFrontendLib.py
-2a4bc838782591718b9364ddcc0648ae  ./frontend/glideinFrontendMonitorAggregator.py
+e5ce4b692b8211d73b292d9fb3a62c9f  ./frontend/glideinFrontendMonitorAggregator.py
 078146df33ccd872fec69309dd9a17b3  ./frontend/glideinFrontendMonitoring.py
 4397bbe7818b6ca7285d64f46b26387e  ./frontend/glideinFrontendPidLib.py
 574c678450edf7ad44582ae645c13a2b  ./frontend/glideinFrontendPlugins.py
