@@ -350,8 +350,8 @@ def aggregateStatus():
                     # new one, just copy over
                     global_total[w] = {}
                     tel = global_total[w]
-                    for a in list(el.keys()):
-                        tel[a] = int(el[a])  # coming from XML, everything is a string
+                    for a in list(el.keys()):  # coming from XML, everything is a string
+                        tel[a] = int(el[a])  # pylint: disable=unsupported-assignment-operation
                 else:
                     # successive, sum 
                     for a in list(el.keys()):
