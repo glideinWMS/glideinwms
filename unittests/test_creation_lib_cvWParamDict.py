@@ -18,6 +18,7 @@ import xmlrunner
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
 from glideinwms.unittests.unittest_utils import runTest
+from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
 from glideinwms.unittests.unittest_utils import TestImportError
 try:
@@ -140,15 +141,15 @@ class TestFrontendGroupDicts(unittest.TestCase):
         populate_common_attrs(self.fed)
 
     def test_derive_and_validate_match(self):
-        # this test should run after test_populate(), in order to have the fed and femd dictionaries populated
+        self.test_populate()
         try:
             derive_and_validate_match("main",
                                       (self.femd['frontend_descript']['MatchExpr'],
                                        self.fed.dicts['group_descript']['MatchExpr']),
                                       (self.fe_params.match.factory.match_attrs,
-                                       self.sub_params.match.factory.match_attrs),
-                                      (self.fe_params.match.job.match_attrs, self.sub_params.match.job.match_attrs),
-                                      (self.femd['attrs'], self.fed.dicts['attrs']),
+                                       self.sub_params.groups.main.match.factory.match_attrs),
+                                      (self.fe_params.match.job.match_attrs, self.sub_params.groups.main.match.job.match_attrs),
+                                      (self.fe_params.attrs, self.fe_params.groups["main"]['attrs']),
                                       (self.fe_params.match.policy_file, self.sub_params.match.policy_file))
         except RuntimeError as err:
             self.fail(err)

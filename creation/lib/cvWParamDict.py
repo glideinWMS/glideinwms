@@ -4,9 +4,9 @@ from __future__ import print_function
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
-# Description: 
+# Description:
 #   Frontend creation module
 #   Classes and functions needed to handle dictionary files
 #   created out of the parameter object
@@ -21,6 +21,8 @@ from .cWParamDict import is_true, add_file_unparsed, has_file_wrapper, has_file_
 import shutil
 # import re - not used
 from glideinwms.lib import x509Support
+from glideinwms.lib.util import str2bool
+from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 #from .cvWParams import MatchPolicy
 from .matchPolicy import MatchPolicy
 
@@ -32,11 +34,11 @@ from .matchPolicy import MatchPolicy
 def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
     """Translate the passed factory/job match_attrs to a format useful
     for match validation step
-    
+
     Args:
-        loc_str: 
-        match_attrs_name: 
-        match_attrs: 
+        loc_str:
+        match_attrs_name:
+        match_attrs:
 
     Returns:
 
@@ -58,16 +60,16 @@ def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
 def validate_match(loc_str, match_str, factory_attrs,
                    job_attrs, attr_dict, policy_modules):
     """Validate match_expr, factory_match_attrs, job_match_attrs,
-    <attrs> and their equivalents in policy_modules, by actually evaluating 
-    the match_expr string. 
+    <attrs> and their equivalents in policy_modules, by actually evaluating
+    the match_expr string.
     Since it will likely use the external dictionaries,
       create a mock version of them, just making sure the types are correct
 
     Args:
-        loc_str (str): Section to be validated. i.e. 'frontend' or 'group x' 
-        match_str (str): match_expr to be applied to this section 
-        factory_attrs (dict): factory_match_attrs for this section 
-        job_attrs (dict): job_match_attrs for this section 
+        loc_str (str): Section to be validated. i.e. 'frontend' or 'group x'
+        match_str (str): match_expr to be applied to this section
+        factory_attrs (dict): factory_match_attrs for this section
+        job_attrs (dict): job_match_attrs for this section
         attr_dict (dict): attrs for this section
         policy_modules (list): policy modules
 
@@ -75,8 +77,7 @@ def validate_match(loc_str, match_str, factory_attrs,
 
     # Globals/Locals that will be passed to the eval so that we
     # can validate the match_expr as well
-
-    env = {'glidein': {'attrs': {}}, 'job': {}, 'attr_dict': {}}
+    env = {'glidein': {'attrs': {}}, 'job': {}, 'attr_dict': {}, 'getGlideinCpusNum': getGlideinCpusNum}
 
     # Validate factory's match_attrs
     env['glidein']['attrs'] = translate_match_attrs(loc_str, 'factory', factory_attrs)
@@ -100,6 +101,8 @@ def validate_match(loc_str, match_str, factory_attrs,
     # Now that we have validated the match_attrs, compile match_obj
     try:
         match_obj = compile(match_str, "<string>", "exec")
+#        if 'GLIDEIN_Site' not in env['glidein']['attrs']:
+#            import pdb;pdb.set_trace()
         eval(match_obj, env)
     except KeyError as e:
         raise RuntimeError("Invalid %s match_expr '%s': Missing attribute %s" % (loc_str, match_str, e))
@@ -133,7 +136,7 @@ def derive_and_validate_match(group_name,
     Since the eval will likely use the external dictionaries,
       create a mock version of them, just making sure the types are correct
     The complete list of attributes is created by merging main and group dictionaries
-    
+
     Args:
         group_name (str): name of the group (frontend for the global attributes only)
         match_expr_pair  (tuple): Pair of (main,group) match strings to validate
@@ -151,11 +154,11 @@ def derive_and_validate_match(group_name,
     policy_modules = []
     if policy_files_pair[0]:
         policy_modules.append(MatchPolicy(policy_files_pair[0]))
-    validate_match('frontend', 
-                   match_expr_pair[0],
-                   factory_attr_list_pair[0],
-                   job_attr_list_pair[0], attr_dict_pair[0],
-                   policy_modules)
+#    validate_match('frontend',
+#                   match_expr_pair[0],
+#                   factory_attr_list_pair[0],
+#                   job_attr_list_pair[0], attr_dict_pair[0],
+#                   policy_modules)
 
     # Merge group match info and attrs from
     # global section with those specific to group
@@ -175,7 +178,6 @@ def derive_and_validate_match(group_name,
             # they are all strings
             # just make group override main
             attrs_dict[attr_name] = d[attr_name]  # "string"
-
     # Construct group specific dict of factory_attrs in <match_attrs>
     # and those from the policy_modules
     factory_attrs = {}
@@ -187,7 +189,7 @@ def derive_and_validate_match(group_name,
                     attr_name, factory_attrs[attr_name], d[attr_name]['type'])
                 )
             else:
-                factory_attrs[attr_name] = d[attr_name]['type']
+                factory_attrs[attr_name] = d[attr_name]
     for pmodule in pmodules:
         if pmodule.factoryMatchAttrs:
             for attr_name in pmodule.factoryMatchAttrs.keys():
@@ -199,18 +201,18 @@ def derive_and_validate_match(group_name,
     for d in job_attr_list_pair:
         for attr_name in d.keys():
             if ((attr_name in job_attrs) and
-                (job_attrs[attr_name] != d[attr_name]['type'])):
+                (job_attrs[attr_name]['type'] != d[attr_name]['type'])):
                 raise RuntimeError("Conflicting job attribute type %s (%s,%s)" % (
-                    attr_name, job_attrs[attr_name], d[attr_name]['type'])
+                   attr_name, job_attrs[attr_name], d[attr_name]['type'])
                 )
             else:
-                job_attrs[attr_name] = d[attr_name]['type']
+                job_attrs[attr_name] = d[attr_name]
     for pmodule in pmodules:
         if pmodule.jobMatchAttrs:
             for attr_name in pmodule.jobMatchAttrs.keys():
                 job_attrs[attr_name] = pmodule.jobMatchAttrs[attr_name]
 
-    # AND global and group specific match_expr 
+    # AND global and group specific match_expr
     # and those from the policy_modules
     match_expr = "(%s) and (%s)" % (match_expr_pair)
 
@@ -228,21 +230,22 @@ def derive_and_validate_match(group_name,
 class frontendMainDicts(cvWDictFile.frontendMainDicts):
     def __init__(self, params, workdir_name):
         cvWDictFile.frontendMainDicts.__init__(self, params.work_dir, params.stage_dir, workdir_name, simple_work_dir=False, assume_groups=True, log_dir=params.log_dir)
-        self.monitor_dir=params.monitor_dir
+        self.monitor_dir = params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
-        self.monitor_jslibs_dir=os.path.join(self.monitor_dir, 'jslibs')
+        self.monitor_jslibs_dir = os.path.join(self.monitor_dir, 'jslibs')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
-        self.params=params
-        self.active_sub_list=[]
-        self.monitor_jslibs=[]
-        self.monitor_htmls=[]
-        self.client_security={}
+        self.params = params
+        self.enable_expansion = str2bool(self.params.data.get('enable_attribute_expansion', 'False'))
+        self.active_sub_list = []
+        self.monitor_jslibs = []
+        self.monitor_htmls = []
+        self.client_security = {}
 
     def populate(self, params=None):
         """Populate the main dictionary. Return a dictionary of attributes that must go into the group section
-        
+
         Args:
-            params: 
+            params:
 
         Returns:
             dict: dictionary of attributes that must go into the group section
@@ -258,7 +261,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True) # this one must be loaded before any tarball
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE, allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
-        
+
         # follow by the blacklist file
         file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
@@ -289,7 +292,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     start_expr="(%s)&&(%s)"%(start_expr, params.attrs[attr_name].value)
                 # delete from the internal structure... that's legacy only
                 del params.data['attrs'][attr_name]
-            elif params.attrs[attr_name].value.find('$') == -1:  # does not need to be expanded
+            elif params.attrs[attr_name].value.find('$') == -1 or not self.enable_expansion:  # does not need to be expanded
                 add_attr_unparsed(attr_name, params, self.dicts, "main")
             # ignore attributes in the global section that need expansion
 
@@ -302,14 +305,14 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             # since I removed the attributes, roll back into the match.start_expr
             params.data['match']['start_expr'] = real_start_expr
 
-        if real_start_expr.find('$') == -1:
+        if real_start_expr.find('$') == -1 or not self.enable_expansion:
             self.dicts['consts'].add('GLIDECLIENT_Start', real_start_expr)
         else:
             # the start expression must be expanded, so will deal with it in the group section
             # use a simple placeholder, since the glideins expect it
             self.dicts['consts'].add('GLIDECLIENT_Start', 'True')
 
-        # create GLIDEIN_Collector attribute 
+        # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
         # create GLIDEIN_CCB attribute only if CCBs list is in config file
         tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
@@ -333,7 +336,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # some of the descript attributes may need expansion... push them into group
         for attr_name in ('JobQueryExpr', 'FactoryQueryExpr', 'MatchExpr'):
             if ((type(self.dicts['frontend_descript'][attr_name]) in (type('a'), type(u'a'))) and
-                (self.dicts['frontend_descript'][attr_name].find('$') != -1)):
+                (self.dicts['frontend_descript'][attr_name].find('$') != -1) and self.enable_expansion):
                 # needs to be expanded, put in group
                 outdict['descript'][attr_name] = self.dicts['frontend_descript'][attr_name]
                 # set it to the default True value here
@@ -402,7 +405,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         """
         if self.monitor_dir!=other.monitor_dir:
             print("WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
-        
+
         return cvWDictFile.frontendMainDicts.reuse(self, other)
 
     def save(self, set_readonly=True):
@@ -417,7 +420,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
             fobj.save(dir=self.monitor_jslibs_dir, save_only_if_changed=False)
@@ -451,6 +454,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         self.monitor_dir = cvWConsts.get_group_monitor_dir(params.monitor_dir, sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
         self.params = params
+        self.enable_expansion = str2bool(self.params.data.get('enable_attribute_expansion', 'False'))
         self.client_security = {}
 
     def populate(self, promote_dicts, main_dicts, params=None):
@@ -485,7 +489,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # insert the global values that need to be expanded
         # will be in the group section now
         for attr_name in params.attrs.keys():
-            if params.attrs[attr_name].value.find('$') != -1:
+            if params.attrs[attr_name].value.find('$') != -1 and self.enable_expansion:
                 if not (attr_name in sub_params.attrs.keys()):
                     add_attr_unparsed(attr_name, params, self.dicts, self.sub_name)
                 # else the group value will override it later on
@@ -514,7 +518,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             # since I removed the attributes, roll back into the match.start_expr
             sub_params.data['match']['start_expr'] = real_start_expr
 
-        if params.match.start_expr.find('$') != -1:
+        if params.match.start_expr.find('$') != -1 and self.enable_expansion:
             # the global one must be expanded, so deal with it at the group level
             real_start_expr = "(%s)&&(%s)" % (params.match.start_expr, real_start_expr)
 
@@ -554,30 +558,31 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for d in (main_dicts['attrs'], self.dicts['attrs']):
             for k in d.keys:
                 # if the same key is in both global and group (i.e. local), group wins
-                summed_attrs[k] = d[k] 
+                summed_attrs[k] = d[k]
 
         for dname in ('attrs', 'consts', 'group_descript'):
             for attr_name in self.dicts[dname].keys:
                 if ((type(self.dicts[dname][attr_name]) in (type('a'), type(u'a'))) and
-                    (self.dicts[dname][attr_name].find('$') != -1)):
+                    (self.dicts[dname][attr_name].find('$') != -1) and self.enable_expansion):
                     self.dicts[dname].add(attr_name,
                                           cWExpand.expand_DLR(self.dicts[dname][attr_name], summed_attrs),
                                           allow_overwrite=True)
         for dname in ('params',):
             for attr_name in self.dicts[dname].keys:
                 if ((type(self.dicts[dname][attr_name][1]) in (type('a'), type(u'a'))) and
-                    (self.dicts[dname][attr_name][1].find('$') != -1)):
+                    (self.dicts[dname][attr_name][1].find('$') != -1) and self.enable_expansion):
                     self.dicts[dname].add(attr_name,
                                           (self.dicts[dname][attr_name][0],cWExpand.expand_DLR(self.dicts[dname][attr_name][1], summed_attrs)),
                                           allow_overwrite=True)
 
         # now that all is expanded, validate match_expression
 
-        derive_and_validate_match(self.sub_name, 
+        derive_and_validate_match(self.sub_name,
                                   (main_dicts['frontend_descript']['MatchExpr'], self.dicts['group_descript']['MatchExpr']),
                                   (params.match.factory.match_attrs, sub_params.match.factory.match_attrs),
                                   (params.match.job.match_attrs, sub_params.match.job.match_attrs),
-                                  (main_dicts['attrs'], self.dicts['attrs']),
+#                                  (main_dicts['attrs'], self.dicts['attrs']),
+                                  (self.params.attrs, self.params.groups[self.sub_name]['attrs']),
                                   (params.match.policy_file, sub_params.match.policy_file))
 
     def reuse(self, other):
@@ -605,7 +610,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_client_security(self):
         # create the real mapfiles
         cvWCreate.create_client_mapfile(os.path.join(self.work_dir, cvWConsts.GROUP_MAP_FILE),
@@ -621,7 +626,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                         self.client_security['pilot_DNs'])
         return
 
-        
+
 ################################################
 #
 # This Class contains both the main and
@@ -641,10 +646,10 @@ class frontendDicts(cvWDictFile.frontendDicts):
         self.active_sub_list = []
         return
 
-    def populate(self,params=None):  # will update params (or self.params)
+    def populate(self, params=None):  # will update params (or self.params)
         if params is None:
             params = self.params
-        
+
         promote_dicts = self.main_dicts.populate(params)
         self.active_sub_list = self.main_dicts.active_sub_list
 
@@ -657,7 +662,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
         if self.monitor_dir != other.monitor_dir:
             print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'" %
                   (self.monitor_dir, other.monitor_dir))
-        
+
         return cvWDictFile.frontendDicts.reuse(self, other)
 
     ###########
@@ -679,7 +684,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 ############################################################
 #
 # P R I V A T E - Do not use
-# 
+#
 ############################################################
 
 #######################
@@ -706,7 +711,7 @@ def validate_attribute(attr_name, attr_val):
 
 def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj = params.attrs[attr_name]
-    
+
     if attr_obj.value is None:
         raise RuntimeError("Attribute '%s' does not have a value: %s" % (attr_name, attr_obj))
 
@@ -766,7 +771,7 @@ def populate_frontend_descript(work_dir,
         if not os.path.isfile(params.security.classad_proxy):
             raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
         frontend_dict.add('ClassAdProxy', params.security.classad_proxy)
-        
+
         frontend_dict.add('SymKeyType', params.security.sym_key)
 
         active_sub_list[:]  # erase all
@@ -996,9 +1001,9 @@ def match_attrs_to_array(match_attrs):
 def populate_common_descript(descript_dict, params):
     """Populate info common for both frontend (global) and group in the descript dict.
     descript_dict will be modified in this function
-    
+
     Args:
-        descript_dict (dict):  description dictionary, modified in this function (side effect) 
+        descript_dict (dict):  description dictionary, modified in this function (side effect)
         params: params or sub_params from the config file
     """
 
@@ -1193,9 +1198,9 @@ def populate_gridmap(params, gridmap_dict):
 # Populate security values
 def populate_main_security(client_security, params):
     if params.security.proxy_DN is None:
-        raise RuntimeError("DN not defined for classad_proxy")    
+        raise RuntimeError("DN not defined for classad_proxy")
     client_security['proxy_DN']=params.security.proxy_DN
-    
+
     collector_dns=[]
     collector_nodes=[]
     for el in params.collectors:
@@ -1223,7 +1228,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         factory_dns.append(dn)
     client_security['factory_DNs']=factory_dns
-    
+
     schedd_dns=[]
     for schedds in (params.match.job.schedds, sub_params.match.job.schedds):
       for el in schedds:
@@ -1256,7 +1261,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
                     dn=x509Support.extract_DN(real_proxy_fname)
                     # don't worry about conflict... there is nothing wrong if the DN is listed twice
                     pilot_dns.append(dn)
-                
+
     client_security['pilot_DNs']=pilot_dns
 
 
@@ -1269,5 +1274,4 @@ def populate_common_attrs(dicts):
     for k in dicts['params'].keys:
         dicts['attrs'].add(k, dicts['params'].get_true_val(k))
     for k in dicts['consts'].keys:
-        # Cnange in 5345 WAS: dicts['attrs'].add(k, dicts['consts'].get_typed_val(k))
-        dicts['attrs'].add(k, dicts['consts'][k])
+        dicts['attrs'].add(k, dicts['consts'].get_typed_val(k))
