@@ -1234,7 +1234,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
             entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
 
-    scitoken = "credential_%s.scitoken" % client_int_name
+    scitoken = "credential_%s.scitoken" % entry.name
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
