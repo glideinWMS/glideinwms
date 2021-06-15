@@ -792,8 +792,8 @@ class glideinFrontendElement:
                 ctkn = self.refresh_entry_token(glidein_el)
                 if ctkn:
                     # mark token for encrypted advertisement
-                    entry_token_name = "%s.idtoken" % glidein_el['attrs'].get('GLIDEIN_Site', 'condor')
-                    logSupport.log.info("found condor token: %s" % entry_token_name)
+                    entry_token_name = "%s.idtoken" % glidein_el['attrs'].get('EntryName', 'condor')
+                    logSupport.log.debug("found condor token: %s" % entry_token_name)
                     gp_encrypt[entry_token_name] = ctkn
                 # now see if theres a scitoken for this site
                 scitoken_fullpath = ''
@@ -904,9 +904,7 @@ class glideinFrontendElement:
         tmpnm = ''
         # does condor version of entry point support condor token auth
         condor_version = glidein_el['params'].get('CONDOR_VERSION')
-        if condor_version \
-            and condor_version != 'default' \
-            and condor_version >= '8.9':
+        if condor_version:
             try:
                 # create a condor token named for entry point site name
                 glidein_site = glidein_el['attrs']['GLIDEIN_Site']
@@ -1827,8 +1825,6 @@ class glideinFrontendElement:
                 ('GLIDEIN_CredentialIdentifier', 's'),
                 ('TotalSlots', 'i'),
                 ('Cpus', 'i'),
-                ('TotalGpus', 'i'),
-                ('Gpus', 'i'),
                 ('Memory', 'i'),
                 ('PartitionableSlot', 's'),
                 ('SlotType', 's'),
@@ -1860,7 +1856,6 @@ class glideinFrontendElement:
             status_format_list = [
                 ('State', 's'), ('Activity', 's'), ('PartitionableSlot', 's'),
                 ('TotalSlots', 'i'), ('Cpus', 'i'), ('Memory', 'i'),
-                ('TotalGpus', 'i'), ('Gpus', 'i'),
             ]
 
             try:
