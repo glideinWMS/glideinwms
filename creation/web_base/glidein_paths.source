@@ -72,8 +72,9 @@ gwms_process_scripts() {
     for i in * ; do
         [[ "$i" = *.ignore ]] && continue
         if [[ -x "$i" ]]; then
+            cfg_file=`readlink -f ${my_pwd}/../../../glidein_config`
             # run w/ some protection?
-            "./$i"
+            "./$i" "$cfg_file"
             [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
             . "$i"
