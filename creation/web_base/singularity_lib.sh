@@ -87,12 +87,6 @@ OSG_SINGULARITY_BINARY_DEFAULT="/cvmfs/oasis.opensciencegrid.org/mis/singularity
 # By default Module and Spack are enabled (1=true), MODULE_USE can override this
 GWMS_MODULE_USE_DEFAULT=1
 
-# Directory structure inside .gwms_aux (or main glidein directory)
-# bin, lib [python, python3, python2], exec [prejob, postjob]
-GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
-GWMS_SUBDIR_EXEC_POSTJOB="exec/postjob"
-GWMS_SUBDIR_EXEC_CLEANUP="exec/cleanup"
-
 # Output log levels:
 # WARN used also for error, always to stderr
 # INFO if GLIDEIN_QUIET is not set (default)
@@ -138,22 +132,6 @@ warn_raw() {
     echo "$@"  1>&2
     [[ -n "$SCRIPT_LOG" ]] && echo "$@"  >> "$GWMS_SCRIPT_LOG"
     true  # Needed not to return false if the test if the test above is false
-}
-
-
-robust_realpath() {
-    # Echo to stdout the real path even if realpath is not installed
-    # 1. file path to find the real path of
-    if ! realpath "$1" 2>/dev/null; then
-        local first="$1"
-        local last=
-        if [[ ! -d "$1" ]]; then
-            first="$(dirname "$first")"
-            last="/$(basename "$1")"
-        fi
-        [[ -d "$first" ]] && first="$(cd "$first"; pwd -P)"
-        echo "${first}${last}"
-    fi
 }
 
 
@@ -325,37 +303,46 @@ list_get_intersection() {
 
 #######################################
 #
-# GWMS aux functions
+# GWMS path functions
 #
+# TODO: to remove from here. These 3 variables and 3 functions are also in glidein_paths.source, 
+#  because used in glidien_startup.sh
+#  This file should import from there
+#  Make sure that are in sync in the mean time. Consider glidein_paths.source authoritative
 
-gwms_from_config() {
-    # 1. - parameter to parse from glidein_cinfig
-    # 2. - default
-    # 3. - function to validate or process (get_prop_bool or same interface)
-    if [[ -n "$glidein_config" ]]; then
-        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
-    fi
-    if [[ -n "$ret" ]]; then
-        if [[ -n "$3" ]]; then
-            "$3" VALUE_PROVIDED "$ret" "$2"
-        else
-            [[ -z "$ret" ]] && ret=$2
-            echo "$ret"
+# Directory structure inside .gwms_aux (or main glidein directory)
+# bin, lib [python, python3, python2], exec [prejob, postjob, ...]
+GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
+GWMS_SUBDIR_EXEC_POSTJOB="exec/postjob"
+GWMS_SUBDIR_EXEC_CLEANUP="exec/cleanup"
+
+robust_realpath() {
+    # Echo to stdout the real path even if realpath is not installed
+    # 1. file path to find the real path of
+    if ! realpath "$1" 2>/dev/null; then
+        local first="$1"
+        local last=
+        if [[ ! -d "$1" ]]; then
+            first="$(dirname "$first")"
+            last="/$(basename "$1")"
         fi
+        [[ -d "$first" ]] && first="$(cd "$first"; pwd -P)"
+        echo "${first}${last}"
     fi
-
 }
-
 
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
     #  ignore the files named .ignore files
-    #  run the executable files, source the remaining files if extentsion is .sh .source
+    #  run all the executable files passing glidein_config ($3) as argument, 
+    #  source the remaining files if extension is .sh or .source
     # 1- directory scripts to process
     # 2- a modifier to search only in subdirectories (prejob)
+    # 3- glidein_config (path of the file containing shared variables)
     local old_pwd my_pwd
     old_pwd=$(robust_realpath "$PWD")
     my_pwd=$(robust_realpath "$1")
+    cfg_file=$(robust_realpath "$3")
     if [[ -n "$2" ]]; then
         case "$2" in
             prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
@@ -371,15 +358,40 @@ gwms_process_scripts() {
         [[ "$i" = *.ignore ]] && continue
         if [[ -x "$i" ]]; then
             # run w/ some protection?
-            "./$i"
+            "./$i" "$cfg_file"
             [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
             . "$i"
+            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
         fi
     done
     cd "$old_pwd"
 }
 
+gwms_from_config() {
+    # Retrieve a parameter from glidien_config ($glidien_config)
+    #  If the $glidein_config variable is not defined assume the parameter is not defined
+    # 1. - parameter to parse from glidein_config
+    # 2. - default
+    # 3. - function to validate or process (get_prop_bool or same interface)
+    if [[ -n "$glidein_config" ]]; then
+        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
+    fi
+    if [[ -n "$ret" ]]; then
+        if [[ -n "$3" ]]; then
+            "$3" VALUE_PROVIDED "$ret" "$2"
+        else
+            [[ -z "$ret" ]] && ret=$2
+            echo "$ret"
+        fi
+    fi
+}
+
+
+#######################################
+#
+# GWMS aux functions
+#
 
 get_prop_bool() {
     # In:

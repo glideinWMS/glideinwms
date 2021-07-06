@@ -448,7 +448,7 @@ early_glidein_failure() {
 glidein_exit() {
   # Removed lines about $lock_file (lock file for whole machine) not present elsewhere
 
-  gwms_process_scripts "$GWMS_DIR" cleanup
+  gwms_process_scripts "$GWMS_DIR" cleanup "${glidein_config}"
 
   global_result=""
   if [ -f otr_outlist.list ]; then

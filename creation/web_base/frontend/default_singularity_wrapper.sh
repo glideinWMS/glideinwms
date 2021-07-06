@@ -489,10 +489,10 @@ fi
 info_dbg "GWMS singularity wrapper, final setup."
 
 
-# TODO: CodeRM1 to remove once gwms_process_scripts from singularity_lib.sh and the new setup_prejob.sh 
+# TODO: CodeRM1 else part to remove once gwms_process_scripts from singularity_lib.sh and the new setup_prejob.sh 
 #  are in all the factories and frontends
 if [[ "$(type -t gwms_process_scripts)" == 'function' ]]; then
-    gwms_process_scripts "$GWMS_DIR" prejob
+    gwms_process_scripts "$GWMS_DIR" prejob "$glidein_config"
 else
     #############################
     #
