@@ -694,8 +694,6 @@ _main() {
                 logexit "failed to clone $REPO" 1 SETUP
             fi
         fi
-        # Adding do_git_init_command also here in case -i is used
-        [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
     fi
     
     # After this line the script is in the working directory and the source tree is in ./glideinwms
@@ -726,6 +724,8 @@ _main() {
     
     if [[ -n "$INPLACE" ]]; then
         loginfo "Running on local files in glideinwms subdirectory"
+        # Adding do_git_init_command also here for when -i is used
+        do_git_init_command
         process_branch LOCAL
         fail_global=$?
         loginfo "Complete with local files (ec:${fail_global})"
