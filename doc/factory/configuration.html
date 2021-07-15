@@ -1856,7 +1856,13 @@ daemons are started up.</P>
         </TR>
         <TR>
             <TD> <P><b>absfname</b></P></TD>
-            <TD> <P>Path of the file on the server (Factory or Frontend)</P></TD>
+            <TD> <P>Path of the file on the server (Factory or Frontend). 
+              The file name (basename of absfname) can be used also to control the conditional download of the file.
+              If the file name starts with "gconditional_" (e.g. gconditional_FEATURE_myfile), then the name between
+              the prefix and the following underscore is taken and GWMS will look for an attribute (in the attrs list)
+              called GLIDEIN_USE_ followed by the name, and download and process the file 
+              only if the attribute is defined and not empty (e.g. GLIDEIN_USE_FEATURE=1).
+            </P></TD>
         </TR>
         <TR>
             <TD> <P><b>executable</b></P></TD>
@@ -2001,27 +2007,17 @@ daemons are started up.</P>
     untarred in a separate directory and advertised to the other
     scripts.</p>
     <UL>
-        <LI><B>absfname</B>:
-        Path to the custom tar-ball.
-        (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
-        <LI><B>conf_sw</B>:
-        Name of a configuration switch.
-        (like &quot;ENABLE_KRB5&quot;)<BR/>
-        The tarball will be unpacked only if that
-        parameter will be set to 1.
-        Use the&nbsp;<B>&lt;attr /&gt;</B> switch to define the default
-        value.  A special name <B>TRUE</B> can be used to always
-        untar it. </li>
-
-        <LI><B>dir</B>:
-        Name of the subdirectory to untar it in.
-        (like &quot;krb5&quot;) </li>
-        <LI><B>absdir_outattr</B>: Name of a
-        variable name. (like &quot;KRB5_SUBSYS_DIR&quot;)<BR/>The
-        variable will be set to the absolute path of the directory where
-        the tarball was unpacked, if and only if the unpacking actually
-        happened (else it will not be defined.) <b>ENTRY_</b> will be prepended
-	if if the <b>&lt;file&gt;</b> directive occurs in an entry.</li>
+        <LI><B>absfname</B>: Path to the custom tar-ball. (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
+        <LI><B>conf_sw</B>: Name of a configuration switch. (like &quot;ENABLE_KRB5&quot;)<BR/>
+          The tarball will be downloaded and unpacked only if that parameter will be set to 1.
+          Use the&nbsp;<B>&lt;attr /&gt;</B> switch to define the default value.
+          A special name <B>TRUE</B> can be used to always untar it. </li>
+        <LI><B>dir</B>: Name of the subdirectory to untar it in. (like &quot;krb5&quot;) </li>
+        <LI><B>absdir_outattr</B>: Name of a variable name. (like &quot;KRB5_SUBSYS_DIR&quot;)<BR/>
+          The variable will be set to the absolute path of the directory where
+          the tarball was unpacked, if and only if the unpacking actually
+          happened (else it will not be defined.) <b>ENTRY_</b> will be prepended
+          if if the <b>&lt;file&gt;</b> directive occurs in an entry.</li>
     </UL>
 </UL>
 </div>
