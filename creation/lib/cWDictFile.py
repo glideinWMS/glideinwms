@@ -763,15 +763,34 @@ class FileDictFile(SimpleFileDictFile):
         else:
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
-    def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
-                                                          self.vals[key][3], self.vals[key][4], self.vals[key][5],
-                                                          self.vals[key][6])
+    def tabulated_template(self, min_width=10):
+        def max_width(list):
+            return max([len(str(item)) for item in list])
+        widths = [min_width] * self.DATA_LENGTH
+        widths[0] = (max(widths[0], max_width(self.keys)))
+        for i in range(self.DATA_LENGTH - 1):
+            col = [self.vals[key][i] for key in self.keys]
+            widths[i + 1] = (max(widths[i + 1], max_width(col)))
+        
+        return "\t".join(["{:<%s}" % w for w in widths])
 
-    def file_header(self, want_comments):
+    def format_val(self, key, want_comments, tabulate = True):
+        if tabulate:
+            template = self.tabulated_template()
+        else:
+            template = "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}"
+        return template.format(key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
+                               self.vals[key][3], self.vals[key][4], self.vals[key][5], self.vals[key][6])
+
+    def file_header(self, want_comments, tabulate = True):
+        if tabulate:
+            template = self.tabulated_template()
+        else:
+            template = "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}"
         if want_comments:
-            header = "# %s \t%s \t%s \t%s \t%s \t%s \t%s \t%s\n" \
-                   % ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut', 'ExecTime')
+            header = template.format(
+                '# Outfile', 'InFile', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut', 'ExecTime'
+            ).strip() + "\n"
             return DictFile.file_header(self, want_comments) + "\n" + header + "#" * (len(header.expandtabs()) - 1)
         else:
             return None
