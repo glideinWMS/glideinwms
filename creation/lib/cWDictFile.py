@@ -676,8 +676,8 @@ class FileDictFile(SimpleFileDictFile):
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
     """
-    DATA_LENGTH = 7  # Length of value (attributes + data)
-    PLACEHOLDER_VALUE = ("", "", 0, "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
+    DATA_LENGTH = 8  # Length of value (attributes + data)
+    PLACEHOLDER_VALUE = ("", "", 0, "", "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
 
     def add_placeholder(self, key, allow_overwrite=True):
         # using DictFile, no file content (FileDictFile or SimpleFileDictFile)
@@ -687,7 +687,7 @@ class FileDictFile(SimpleFileDictFile):
         return self[key][0] == ""  # empty real_fname can only be a placeholder
 
     @staticmethod
-    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE'):
+    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE', exec_time='prejob'):
         """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
 
         :param file_name: name of the file (aka real_fname)
@@ -696,11 +696,12 @@ class FileDictFile(SimpleFileDictFile):
         :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
         :param cond_download: conditional download (default: 'TRUE')
         :param config_out: config out (default: 'FALSE')
+        :param exec_time: execution time of the file (default: 'prejob')
         :return: tuple with the DATA_LENGTH-1 attributes
         See class definition for more information about the attributes
         """
         # TODO: should it do some value checking? valid constant, int, ...
-        return file_name, file_type, period, prefix, cond_download, config_out  # python constructs the tuple
+        return file_name, file_type, period, prefix, cond_download, config_out, exec_time  # python constructs the tuple
 
     @staticmethod
     def val_to_file_name(val):
@@ -763,15 +764,15 @@ class FileDictFile(SimpleFileDictFile):
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
-                                                     self.vals[key][3], self.vals[key][4], self.vals[key][5])
+        return "%s \t%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
+                                                          self.vals[key][3], self.vals[key][4], self.vals[key][5],
+                                                          self.vals[key][6])
 
     def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self, want_comments) + "\n" +
-                    ("# %s \t%s \t%s \t%s \t%s \t%s \t%s\n" %
-                     ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut')) +
-                    ("#"*89))
+            header = "# %s \t%s \t%s \t%s \t%s \t%s \t%s \t%s\n" \
+                   % ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut', 'ExecTime')
+            return DictFile.file_header(self, want_comments) + "\n" + header + "#" * (len(header.expandtabs()) - 1)
         else:
             return None
 
@@ -796,11 +797,14 @@ class FileDictFile(SimpleFileDictFile):
             # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
             # TODO: remove in 3.3 or after a few version (will break upgrade)
             if len(arr) == self.DATA_LENGTH-1:
+                # For upgrade from 3.7.5 to 3.2.13
+                return self.add(arr[0], arr[1:] + ["prejob"])
+            if len(arr) == self.DATA_LENGTH-2:
                 # For upgrade from 3.2.13 to 3.2.11
-                return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
-            elif len(arr) == self.DATA_LENGTH-2:
+                return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5], "prejob"])
+            elif len(arr) == self.DATA_LENGTH-3:
                 # For upgrade from 3.2.10 or earlier
-                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
+                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4], "prejob"])
             raise RuntimeError("Not a valid file line (expected %i, found %i elements): '%s'" %
                                (self.DATA_LENGTH, len(arr), line))
 
