@@ -734,6 +734,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
     prefix = user_file['prefix']
 
     period_value = int(user_file['period'])
+    time = user_file['time']
 
     file_list_idx='file_list'
     if 'after_entry' in user_file:
@@ -742,7 +743,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
 
     if is_executable:  # a script
         dicts[file_list_idx].add_from_file(relfname,
-                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'exec', period_value, prefix),
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'exec', period_value, prefix, time=time),
                                            absfname)
     elif is_wrapper:  # a source-able script for the wrapper
         dicts[file_list_idx].add_from_file(relfname,

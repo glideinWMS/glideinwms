@@ -663,7 +663,7 @@ class FileDictFile(SimpleFileDictFile):
     It is using a dictionary (key, value) from DictFile, serialized to file.
     The key is the file ID
     The value (line) on file has DATA_LENGTH (7) components: the key and the first DATA_LENGTH-1 attributes below.
-    The value in memory has DATA_LENGTH components (real_fname,cache/exec,period,prefix,cond_download,config_out, data),
+    The value in memory has DATA_LENGTH components (real_fname,cache/exec,period,prefix,cond_download,config_out,time,data),
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
     1. real_fname, i.e file name
@@ -672,7 +672,8 @@ class FileDictFile(SimpleFileDictFile):
     4. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
     5. cond_download has a special value of TRUE
     6. config_out has a special value of FALSE
-    7. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
+    7. time - execution time of the file
+    8. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
     For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
     serialized (saved into file). Empty strings would cause error when parsed back.
     """
@@ -687,7 +688,7 @@ class FileDictFile(SimpleFileDictFile):
         return self[key][0] == ""  # empty real_fname can only be a placeholder
 
     @staticmethod
-    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE', exec_time='prejob'):
+    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE', time='prejob'):
         """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
 
         :param file_name: name of the file (aka real_fname)
@@ -696,12 +697,12 @@ class FileDictFile(SimpleFileDictFile):
         :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
         :param cond_download: conditional download (default: 'TRUE')
         :param config_out: config out (default: 'FALSE')
-        :param exec_time: execution time of the file (default: 'prejob')
+        :param time: execution time of the file (default: 'prejob')
         :return: tuple with the DATA_LENGTH-1 attributes
         See class definition for more information about the attributes
         """
         # TODO: should it do some value checking? valid constant, int, ...
-        return file_name, file_type, period, prefix, cond_download, config_out, exec_time  # python constructs the tuple
+        return file_name, file_type, period, prefix, cond_download, config_out, time  # python constructs the tuple
 
     @staticmethod
     def val_to_file_name(val):
@@ -749,7 +750,7 @@ class FileDictFile(SimpleFileDictFile):
         try:
             int(val[2])  # to check if is integer. Period must be int or convertible to int
         except (ValueError, IndexError):
-            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out,time)" % val)
 
         if len(val) == self.DATA_LENGTH:
             # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
@@ -758,10 +759,10 @@ class FileDictFile(SimpleFileDictFile):
             # Added a safety check that the last element is an attribute and not the value
             # Maybe check also string length or possible values?
             if '\n' in val[-1]:
-                raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+                raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out,time)" % val)
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
-            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out,time)" % val)
 
     def tabulated_template(self, min_width=10):
         def max_width(list):
@@ -789,9 +790,9 @@ class FileDictFile(SimpleFileDictFile):
             template = "{} \t{} \t{} \t{} \t{} \t{} \t{} \t{}"
         if want_comments:
             header = template.format(
-                '# Outfile', 'InFile', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut', 'ExecTime'
+                '# Outfile', 'InFile', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut', 'Time'
             ).strip() + "\n"
-            return DictFile.file_header(self, want_comments) + "\n" + header + "#" * (len(header.expandtabs()) - 1)
+            return DictFile.file_header(self, want_comments) + "\n" + header + "#" * (len(header.expandtabs()) - 2)
         else:
             return None
 
