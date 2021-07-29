@@ -235,7 +235,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'script_wrapper.sh',
                                    'smart_partitionable.sh',
                                    'cvmfs_setup.sh',
-                                   'cvmfs_unmount.sh']
+                                   'cvmfs_umount.sh']
         # Only execute scripts once
         duplicate_scripts = list(set(file_list_scripts).intersection(after_file_list_scripts))
         duplicate_scripts += list(set(file_list_scripts).intersection(at_file_list_scripts))
@@ -277,9 +277,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # Add cvmfsexec
         cvmfsexec_tarball = "cvmfs_utils.tar.gz"
         self.dicts['file_list'].add_from_file(cvmfsexec_tarball,
-                                             cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(cvmfsexec_tarball),
-                                                                                    'untar', cond_download="GLIDEIN_USE_CVMFSEXEC"),
-                                             os.path.join(cgWConsts.WEB_BASE_DIR, cvmfsexec_tarball))
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(cvmfsexec_tarball),
+                                                                                     'untar', cond_download="GLIDEIN_USE_CVMFSEXEC"),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, cvmfsexec_tarball))
         self.dicts['untar_cfg'].add(cvmfsexec_tarball, "cvmfs_utils")
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
