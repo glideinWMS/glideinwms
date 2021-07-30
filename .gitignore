@@ -10,3 +10,7 @@ __pycache__/
 doc/api/code
 doc/api/html
 .tox
+
+# Big files workaround
+bigfiles/*
+!bigfiles/README.txt
