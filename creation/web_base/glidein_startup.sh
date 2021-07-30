@@ -1702,7 +1702,8 @@ fetch_file_base() {
         fi
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
-        elif [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
+        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
+            # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
             echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
             chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
