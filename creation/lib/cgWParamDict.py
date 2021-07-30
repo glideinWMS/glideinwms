@@ -261,7 +261,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60, 'NOPREFIX'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, drain_script))
 
-        #Add the MJF script
+        # Add the MJF script
         mjf_script = "mjf_setparams.sh"
         self.dicts['file_list'].add_from_file(mjf_script,
                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 1800, 'MJF_'),
@@ -616,12 +616,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 ################################################
 
 class glideinDicts(cgWDictFile.glideinDicts):
-    def __init__(self,conf,
-                 sub_list=None): # if None, get it from params
+    def __init__(self, conf,
+                 sub_list=None):  # if None, get it from params
         if sub_list is None:
             sub_list = [e.getName() for e in conf.get_entries()]
 
-        self.conf=conf
+        self.conf = conf
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()
         monitor_dir = conf.get_monitor_dir()
@@ -630,13 +630,13 @@ class glideinDicts(cgWDictFile.glideinDicts):
         client_proxy_dirs = conf.get_client_proxy_dirs()
         cgWDictFile.glideinDicts.__init__(self, submit_dir, stage_dir, log_dir, client_log_dirs, client_proxy_dirs, sub_list)
 
-        self.monitor_dir=monitor_dir
-        self.active_sub_list=[]
+        self.monitor_dir = monitor_dir
+        self.active_sub_list = []
         return
 
-    def populate(self,other=None): # will update params (or self.params)
+    def populate(self, other=None):  # will update params (or self.params)
         self.main_dicts.populate(other)
-        self.active_sub_list=self.main_dicts.active_sub_list
+        self.active_sub_list = self.main_dicts.active_sub_list
 
         schedds = self.conf[u'schedd_name'].split(u',')
         schedd_counts = {}
@@ -729,26 +729,26 @@ class glideinDicts(cgWDictFile.glideinDicts):
 #
 # is_factory is just a dummy placeholder to make the transition easier later
 def add_file_unparsed(user_file, dicts, is_factory):
-    absfname=user_file['absfname']
+    absfname = user_file['absfname']
 
     if 'relfname' not in user_file:
-        relfname=os.path.basename(absfname) # defualt is the final part of absfname
+        relfname = os.path.basename(absfname)  # defualt is the final part of absfname
     else:
-        relfname=user_file['relfname']
+        relfname = user_file['relfname']
 
-    is_const=eval(user_file['const'])
-    is_executable=eval(user_file['executable'])
-    is_wrapper=eval(user_file['wrapper'])
-    do_untar=eval(user_file['untar'])
+    is_const = eval(user_file['const'])
+    is_executable = eval(user_file['executable'])
+    is_wrapper = eval(user_file['wrapper'])
+    do_untar = eval(user_file['untar'])
 
     prefix = user_file['prefix']
 
     period_value = int(user_file['period'])
 
-    file_list_idx='file_list'
+    file_list_idx = 'file_list'
     if 'after_entry' in user_file:
         if eval(user_file['after_entry']):
-            file_list_idx='after_file_list'
+            file_list_idx = 'after_file_list'
 
     if is_executable:  # a script
         dicts[file_list_idx].add_from_file(relfname,
@@ -906,7 +906,7 @@ def populate_factory_descript(work_dir, glidein_dict,
             else:
                 disabled_sub_list.append(entry.getName())
 
-        glidein_dict.add('Entries', string.join(active_sub_list,','))
+        glidein_dict.add('Entries', string.join(active_sub_list, ','))
         glidein_dict.add('AdvertiseWithTCP', conf[u'advertise_with_tcp'])
         glidein_dict.add('AdvertiseWithMultiple', conf[u'advertise_with_multiple'])
         glidein_dict.add('LoopDelay', conf[u'loop_delay'])
@@ -925,16 +925,16 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('MonitorDisplayText', mon_foot_el[u'display_txt'])
         glidein_dict.add('MonitorLink', mon_foot_el[u'href_link'])
 
-        monitoring_collectors=calc_primary_monitoring_collectors(conf.get_child_list(u'monitoring_collectors'))
+        monitoring_collectors = calc_primary_monitoring_collectors(conf.get_child_list(u'monitoring_collectors'))
         if monitoring_collectors is not None:
             glidein_dict.add('PrimaryMonitoringCollectors', str(monitoring_collectors))
 
         log_retention = conf.get_child(u'log_retention')
         for lel in (("job_logs", 'JobLog'), ("summary_logs", 'SummaryLog'), ("condor_logs", 'CondorLog')):
-            param_lname, str_lname=lel
+            param_lname, str_lname = lel
             for tel in (("max_days", 'MaxDays'), ("min_days", 'MinDays'), ("max_mbytes", 'MaxMBs')):
-                param_tname, str_tname=tel
-                glidein_dict.add('%sRetention%s'%(str_lname, str_tname), log_retention.get_child(param_lname)[param_tname])
+                param_tname, str_tname = tel
+                glidein_dict.add('%sRetention%s' % (str_lname, str_tname), log_retention.get_child(param_lname)[param_tname])
 
         # convert to list of dicts so that str() below gives expected results
         proc_logs = []
@@ -1050,25 +1050,25 @@ def populate_frontend_descript(frontend_dict,     # will be modified
     for fe_el in conf.get_child(u'security').get_child_list(u'frontends'):
         fe_name = fe_el[u'name']
 
-        ident=fe_el['identity']
-        maps={}
+        ident = fe_el['identity']
+        maps = {}
         for sc_el in fe_el.get_child_list(u'security_classes'):
             sc_name = sc_el[u'name']
-            username=sc_el['username']
-            maps[sc_name]=username
+            username = sc_el['username']
+            maps[sc_name] = username
 
-        frontend_dict.add(fe_name, {'ident':ident, 'usermap':maps})
+        frontend_dict.add(fe_name, {'ident': ident, 'usermap': maps})
 
 
 #####################################################
 # Populate gridmap to be used by the glideins
 def populate_gridmap(conf, gridmap_dict):
-    collector_dns=[]
+    collector_dns = []
     for el in conf.get_child_list(u'monitoring_collectors'):
-        dn=el[u'DN']
-        if not (dn in collector_dns): #skip duplicates
+        dn = el[u'DN']
+        if not (dn in collector_dns):  # skip duplicates
             collector_dns.append(dn)
-            gridmap_dict.add(dn, 'fcollector%i'%len(collector_dns))
+            gridmap_dict.add(dn, 'fcollector%i' % len(collector_dns))
 
     # TODO: We should also have a Factory DN, for ease of debugging
     #       None available now, but we should add it
@@ -1253,8 +1253,8 @@ def calc_primary_monitoring_collectors(collectors):
             cWDictFile.validate_node(el[u'node'])
             # we only expect one per group
             if el[u'group'] in collector_nodes:
-                raise RuntimeError("Duplicate primary monitoring collector found for group %s"%el[u'group'])
-            collector_nodes[el[u'group']]=el[u'node']
+                raise RuntimeError("Duplicate primary monitoring collector found for group %s" % el[u'group'])
+            collector_nodes[el[u'group']] = el[u'node']
 
     if len(collector_nodes) == 0:
         return None
