@@ -14,4 +14,5 @@ doc/api/html
 # Big files workaround
 bigfiles/*
 !bigfiles/README.txt
-!bigfiles/update-bigfiles.sh
+!bigfiles/pull-bigfiles.sh
+!bigfiles/push-bigfiles.sh

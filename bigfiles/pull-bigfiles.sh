@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Starting the big files download"
-rm ./glideinwms-bigfiles-latest.tgz
+[ -f ./glideinwms-bigfiles-latest.tgz ] && rm ./glideinwms-bigfiles-latest.tgz
 
 # Download the latest big files
 if ! wget -q https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tgz 2> /dev/null; then
