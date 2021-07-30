@@ -10,8 +10,9 @@ The archive is available on the Web:
 https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tgz
 
 Whenever releasing the software or doing other operations involving one or more of the referred files
-you will have to download the big files archive, e.g using wget or curl.
+you will have to download the big files archive.
 
+Use ./update-bigfiles.sh or perform it manually:
 wget https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tgz
 tar xvzf glideinwms-bigfiles-latest.tgz
 
