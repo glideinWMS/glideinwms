@@ -1416,6 +1416,14 @@ fetch_file() {
 }
 
 fetch_file_try() {
+    # Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
+    # There are 2 mechanisms to control the download
+    # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
+    #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
+    #    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
+    # 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
+    #    exists in glidein_config and the value is not empty
+    # Both conditions are checked. If either one fails the file is not downloaded
     fft_id="$1"
     fft_target_fname="$2"
     fft_real_fname="$3"
@@ -1425,20 +1433,27 @@ fetch_file_try() {
     fft_config_check="$7"
     fft_config_out="$8"
 
-    if [ "${fft_config_check}" = "TRUE" ]; then
-        # TRUE is a special case
-        fft_get_ss=1
-    else
+    if [[ "${fft_config_check}" != "TRUE" ]]; then
+        # TRUE is a special case, always downloaded and processed
+        local fft_get_ss
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
+        # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
+        [[ "${fft_get_ss}" != "1" ]] && return 0
+        # TODO: what if fft_get_ss is not 1? nothing, still skip the file? 
     fi
 
-    # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
-    if [ "${fft_get_ss}" = "1" ]; then
-       fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
-       fft_rc=$?
+    local fft_base_name=$(basename "${fft_real_fname}")
+    if [[ "${fft_base_name}" = gconditional_* ]]; then
+        local fft_condition_attr_val
+        local fft_condition_attr="${fft_base_name#gconditional_}"
+        fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
+        fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
+        # if the variable fft_condition_attr is not defined or empty, do not download
+        [[ -z "${fft_condition_attr_val}" ]] && return 0
     fi
 
-    return ${fft_rc}
+    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
+    # returning the exit code of fetch_file_base
 }
 
 perform_wget() {
@@ -1583,6 +1598,7 @@ perform_curl() {
 }
 
 fetch_file_base() {
+    # Perform the file download and corresponding action (untar, execute, ...)
     ffb_id="$1"
     ffb_target_fname="$2"
     ffb_real_fname="$3"
@@ -1619,7 +1635,7 @@ fetch_file_base() {
     <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
   </result>
   <detail>
-     An unknown error occured.
+     An unknown error occurred.
   </detail>
 </OSGTestResult>" > otrx_output.xml
     user_agent="glidein/${glidein_entry}/${condorg_schedd}/${condorg_cluster}.${condorg_subcluster}/${client_name}"
