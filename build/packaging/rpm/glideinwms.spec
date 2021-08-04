@@ -303,6 +303,7 @@ install -d $RPM_BUILD_ROOT%{python_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python_sitelib}
 
 # Some of the files are not needed by RPM
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/bigfiles
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/etc
