@@ -33,12 +33,26 @@ try:
 except ImportError as err:
     raise TestImportError(str(err))
 
-LOG_DATA = []
+LOG_INFO_DATA = []
+LOG_EXCEPTION_DATA = []
+
 def log_info_side_effect(*args, **kwargs):
     """
     keep logSupport.log.info data in an array so we can search it later
     """
-    LOG_DATA.append(args[0])
+    LOG_INFO_DATA.append(args[0])
+
+def log_exception_side_effect(*args, **kwargs):
+    """
+    keep logSupport.log.exception  data in an array so we can search it later
+    """
+    LOG_EXCEPTION_DATA.append(args[0])
+
+def refresh_entry_token_side_effect(*args, **kwargs):
+    """
+    place holder, needs more token testing stuff here
+    """
+    return """eyJhbGciOiJIUzI1NiIsImtpZCI6ImVsN19vc2czNSJ9.eyJleHAiOjE2MDAyODQ4MzAsImlhdCI6MTYwMDE5ODQzMCwiaXNzIjoiZmVybWljbG91ZDMyMi5mbmFsLmdvdjo5NjE4IiwianRpIjoiMDYxY2VmMzY4ZThjYTM5MmZhYzk3MDkxOTZhODQyN2MiLCJzY29wZSI6ImNvbmRvcjpcL1JFQUQgY29uZG9yOlwvV1JJVEUgY29uZG9yOlwvQURWRVJUSVNFX1NUQVJURCBjb25kb3I6XC9BRFZFUlRJU0VfU0NIRUREIGNvbmRvcjpcL0FEVkVSVElTRV9NQVNURVIiLCJzdWIiOiJmcm9udGVuZEBmZXJtaWNsb3VkMzIyLmZuYWwuZ292In0.8vukKGjZhGL2t_bFoAc5yqu8CfGEURTVD3WLTaXJuoM"""
 
 
 def uni_to_str_JSON(obj):
@@ -70,8 +84,8 @@ def uni_to_str_JSON(obj):
 
 
 def fork_and_collect_side_effect():
-    """ 
-    populate data structures in 
+    """
+    populate data structures in
     glideinFrontendElement::iterate_one from
     json artifact in fixtures
     """
@@ -88,7 +102,7 @@ def fork_and_collect_side_effect():
 
 
 def bounded_fork_and_collect_side_effect():
-    """ 
+    """
     populate data structures in glideinFrontendElement::do_match
     from json artifact in fixtures
     """
@@ -148,7 +162,6 @@ class FEElementTestCase(unittest.TestCase):
                 '1')}
 
         self.attrDescript.data = {
-            'GLIDEIN_Glexec_Use': 'OPTIONAL',
             'GLIDECLIENT_Rank': '1',
             'GLIDEIN_Expose_Grid_Env': 'True',
             'GLIDECLIENT_Start': 'True',
@@ -157,7 +170,6 @@ class FEElementTestCase(unittest.TestCase):
             'GLIDEIN_Collector': 'frontend:9620-9640'}
 
         elementDescriptBase.data = {
-            'GLIDEIN_Glexec_Use': 'OPTIONAL',
             'MapFile': '/var/lib/gwms-frontend/vofrontend/group_main/group.mapfile',
             'MaxRunningTotal': '100000',
             'JobMatchAttrs': '[]',
@@ -250,8 +262,6 @@ class FEElementTestCase(unittest.TestCase):
         Mock our way into glideinFrontendElement:iterate_one() to test if
              glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_REQUIRE_VOMS']
                 and
-             glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_REQUIRE_GLEXEC_USE']
-                and
              glideinFrontendElement.glidein_dict['entry_point']['attrs']['GLIDEIN_In_Downtime']
 
              are being evaluated correctly
@@ -266,6 +276,7 @@ class FEElementTestCase(unittest.TestCase):
         # evaluate success
         glideinwms.frontend.glideinFrontendLib.logSupport.log = mockery
         mockery.info = log_info_side_effect
+        mockery.exception = log_exception_side_effect
 
         # ForkManager mocked inside iterate_one, return data loaded from
         # fork_and_collect_side_effect
@@ -282,8 +293,10 @@ class FEElementTestCase(unittest.TestCase):
                     with mock.patch('glideinFrontendInterface.ResourceClassadAdvertiser.advertiseAllClassads',
                                     return_value=None):
                         with mock.patch.object(glideinFrontendInterface, 'ResourceClassadAdvertiser'):
-                            # finally run iterate_one and collect the log data
-                            self.gfe.iterate_one()
+                                with mock.patch.object(self.gfe, 'refresh_entry_token',
+                                    return_value=refresh_entry_token_side_effect()):
+                                    # finally run iterate_one and collect the log data
+                                    self.gfe.iterate_one()
 
         # go through glideinFrontendElement data structures
         # collecting data to match against log output
@@ -292,7 +305,6 @@ class FEElementTestCase(unittest.TestCase):
         glideids = []
         in_downtime = {}
         req_voms = {}
-        req_glexec = {}
         for elm in glideid_list:
             if elm and elm[0]:
                 glideid_str = "%s@%s" % (str(elm[1]), str(elm[0]))
@@ -302,31 +314,38 @@ class FEElementTestCase(unittest.TestCase):
                     gdata.get('GLIDEIN_In_Downtime'), True)
                 req_voms[glideid_str] = safe_boolcomp(
                     gdata.get('GLIDEIN_REQUIRE_VOMS'), True)
-                req_glexec[glideid_str] = safe_boolcomp(
-                    gdata.get('GLIDEIN_REQUIRE_GLEXEC_USE'), True)
+
+        if self.debug_output:
+            print ("info log %s " % LOG_INFO_DATA)
+            print ("exception log %s " % LOG_EXCEPTION_DATA)
+
+        # examine the exception log, only test_site_3 should have tried to create a condor_token
+        # all sites except test_site_3 and test_fact_7 are in down time
+        # test_fact_7 is advertising a condor version that doesn't support tokens
+        for lgln in LOG_EXCEPTION_DATA:
+            self.assertTrue('test_fact_3' in lgln)
+            self.assertTrue('test_fact_7' not in lgln)
+            self.assertTrue('test_fact_4' not in lgln)
+
 
         # run through the info log
         # if GLIDEIN_REQUIRE_VOMS was set to True, 'True', 'tRUE' etc for an entry:
-        #    'Voms Proxy Required,' will appear in previous line of log
-        # elif GLIDEIN_REQUIRE_GLEXEC_USE was set:
-        #     'Proxy required (GLEXEC)' will appear in log
+        #    'Voms Proxy Required,' will appear in previous line of log (if GlExec is used)
         idx = 0
-        for lgln in LOG_DATA:
+        for lgln in LOG_INFO_DATA:
             parts = lgln.split()
             gid = parts[-1]
             if gid in glideids:
                 upordown = parts[-2]
                 fmt_str = "glideid:%s in_downtime:%s req_voms:%s "
-                fmt_str += "req_glexec:%s\nlog_data:%s"
+                fmt_str += "\nlog_data:%s"
                 state = fmt_str % (gid,
                                    in_downtime[gid],
                                    req_voms[gid],
-                                   req_glexec[gid],
-                                   LOG_DATA[idx - 1])
+                                   LOG_INFO_DATA[idx - 1])
                 if self.debug_output:
                     print('%s' % state)
                 use_voms = req_voms[gid]
-                use_glexec = req_glexec[gid]
 
                 if in_downtime[gid]:
                     self.assertTrue(
@@ -337,20 +356,16 @@ class FEElementTestCase(unittest.TestCase):
                         upordown == 'Up', "%s logs this as %s" %
                         (gid, upordown))
 
-                if use_voms:
-                    self.assertTrue(
-                        'Voms proxy required,' in LOG_DATA[idx - 1], state)
-                else:
-                    self.assertFalse(
-                        'Voms proxy required,' in LOG_DATA[idx - 1], state)
-                    if use_glexec:
-                        self.assertTrue(
-                            'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
-                    else:
-                        self.assertFalse(
-                            'Proxy required (GLEXEC)' in LOG_DATA[idx - 1], state)
+                # GLIDEIN_REQUIRE_VOMS checks were done only when GlExec was enabled
+                # if use_voms:
+                #     self.assertTrue(
+                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
+                # else:
+                #     self.assertFalse(
+                #         'Voms proxy required,' in LOG_INFO_DATA[idx - 1], state)
 
             idx += 1
+
 
     def test_populate_pubkey(self):
         """ test that good public keys get populated

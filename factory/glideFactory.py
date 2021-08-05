@@ -29,6 +29,10 @@ import copy
 import logging
 import math
 # from datetime import datetime
+import glob
+import jwt
+import urllib
+import tarfile
 
 from M2Crypto.RSA import RSAError
 
@@ -36,6 +40,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import util
+from glideinwms.lib.pubCrypto import RSAKey
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
@@ -151,6 +156,124 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
         logSupport.log.exception("Unable to write the descript.xml file: ")
 
 ############################################################
+
+def generate_log_tokens(startup_dir, glideinDescript):
+    """
+    Generate the JSON Web Tokens used to authenticate with the remote HTTP log server.
+    Note: tokens are generated for disabled entries too
+
+    Args:
+        startup_dir: Path to the glideinsubmit directory
+        glideinDescript: Factory config's glidein description object
+
+    Returns:
+        None
+
+    Raises:
+        IOError: If can't open/read/write a file (key/token)
+    """
+
+    logSupport.log.info("Generating JSON Web Tokens for authentication with log server")
+
+    # Get a list of all entries, enabled and disabled
+    # TODO: there are more reliable ways to do so, i.e. reading the xml config
+    entries = [ed[len('entry_'):] for ed in glob.glob('entry_*') if os.path.isdir(ed)]
+
+    # Retrieve the factory secret key (manually delivered) for token generation
+    credentials_dir = os.path.realpath(os.path.join(startup_dir, '..', 'server-credentials'))
+    jwt_key = os.path.join(credentials_dir, 'jwt_secret.key')
+    if not os.path.exists(jwt_key):
+        # create one and log if it doesnt exist, otherwise needs a
+        # manual undocumented step to start factory
+        logSupport.log.info("creating %s -manually install  this key for "
+                             % (jwt_key) + "authenticating to external web sites")
+        rsa = RSAKey()
+        rsa.new(2048)
+        rsa.save(jwt_key)
+
+    try:
+        with open(os.path.join(credentials_dir, 'jwt_secret.key'), "r") as keyfile:
+            secret = keyfile.readline().strip()
+    except IOError:
+        logSupport.log.exception("Cannot find the key for JWT generation (must be manually deposited).")
+        raise
+
+    factory_name = glideinDescript.data['FactoryName']
+
+    # Issue a token for each entry-recipient pair
+    for entry in entries:
+
+        # Get the list of recipients
+        if 'LOG_RECIPIENTS_FACTORY' in glideFactoryConfig.JobParams(entry).data:
+            log_recipients = glideFactoryConfig.JobParams(entry).data['LOG_RECIPIENTS_FACTORY'].split()
+        else:
+            log_recipients = []
+
+        curtime = int(time.time())
+
+        # Directory where to put tokens.tgz and url_dirs.desc
+        entry_dir = os.path.join(credentials_dir, 'entry_' + entry)
+        # Directory where tokens are initially generated, before flushing them to tokens.tgz
+        tokens_dir = os.path.join(entry_dir, "tokens")
+
+        # Create the entry + tokens directories if they do not already exist
+        if not os.path.exists(tokens_dir):
+            try:
+                os.makedirs(tokens_dir)
+            except OSError as oe:
+                logSupport.log.exception("Unable to create JWT entry dir (%s): %s" % (os.path.join(tokens_dir, entry), oe.strerror))
+                raise
+
+        # Create the url_dirs.desc file
+        open(os.path.join(entry_dir, "url_dirs.desc"), 'w').close()
+
+        for recipient_url in log_recipients:
+            # Obtain a legal filename from the url, escaping "/" and other tricky symbols
+            recipient_safe_url = urllib.quote(recipient_url, '')
+
+            # Generate the token
+            # TODO: in the future must include Frontend tokens as well
+            factory_token = "default.jwt"
+            token_name = factory_token
+            if not os.path.exists(os.path.join(tokens_dir, recipient_safe_url)):
+                try:
+                    os.makedirs(os.path.join(tokens_dir, recipient_safe_url))
+                except OSError as oe:
+                    logSupport.log.exception("Unable to create JWT recipient dir (%s): %s" % (os.path.join(tokens_dir, recipient_safe_url), oe.strerror))
+                    raise
+            token_filepath = os.path.join(tokens_dir, recipient_safe_url, token_name)
+            # Payload fields:
+            # iss->issuer,      sub->subject,       aud->audience
+            # iat->issued_at,   exp->expiration,    nbf->not_before
+            token_payload = {'iss': factory_name,
+                             'sub': entry,
+                             'aud': recipient_safe_url,
+                             'iat': curtime,
+                             'exp': curtime + 604800,
+                             'nbf': curtime - 300
+                            }
+            token = jwt.encode(token_payload, secret, algorithm='HS256')
+            try:
+                # Write the factory token
+                with open(token_filepath, "w") as tkfile:
+                    tkfile.write(token)
+                # Write to url_dirs.desc
+                with open(os.path.join(entry_dir, "url_dirs.desc"), "a") as url_dirs_desc:
+                    url_dirs_desc.write("%s %s\n" % (recipient_url, recipient_safe_url))
+            except IOError:
+                logSupport.log.exception("Unable to create JWT file: ")
+                raise
+
+        # Create and write tokens.tgz
+        try:
+            tokens_tgz = tarfile.open(os.path.join(entry_dir, "tokens.tgz"), "w:gz", dereference=True)
+            tokens_tgz.add(tokens_dir, arcname=os.path.basename(tokens_dir))
+        except tarfile.TarError as te:
+            logSupport.log.exception("TarError: %s" % str(te))
+            raise
+        tokens_tgz.close()
+
+###########################################################
 
 def entry_grouper(size, entries):
     """
@@ -349,8 +472,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     def _set_rlimit(soft_l=None, hard_l=None):
         #set new hard and soft open file limits
         #if setting limits fails or no input parameters use inherited limits
-        #from parent process 
-        #nb 1.  it is possible to raise limits 
+        #from parent process
+        #nb 1.  it is possible to raise limits
         #up to [hard_l,hard_l] but once lowered they cannot be raised
         #nb 2. it may be better just to omit calling this function at
         #all from subprocess - in which case it inherits limits from
@@ -362,7 +485,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 hard_l = soft_l
             if not soft_l:
                 soft_l=hard_l
-            try:    
+            try:
                 new_lim = [soft_l, hard_l]
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
             except:
@@ -397,6 +520,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             childs_uptime[group].insert(0, time.time())
 
         logSupport.log.info("EntryGroup startup times: %s" % childs_uptime)
+
+        generate_log_tokens(startup_dir, glideinDescript)
 
         for group in childs:
             # set it in non blocking mode
@@ -559,7 +684,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                                          stdout=subprocess.PIPE,
                                                          stderr=subprocess.PIPE,
                                                          close_fds=True,
-                                                         preexec_fn=_set_rlimit)                                                         
+                                                         preexec_fn=_set_rlimit)
 
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
@@ -800,13 +925,13 @@ def main(startup_dir):
         except KeyboardInterrupt as e:
             raise e
         except HUPException as e:
-            # inside spawn(), outermost try will catch HUPException, 
+            # inside spawn(), outermost try will catch HUPException,
             # then the code within the finally will run
             # which will terminate glideFactoryEntryGroup children processes
             # and then the following 3 lines will be executed.
             logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid())
-            # must empty the lock file so that when the thread returns from reconfig_glidein and 
-            # begins from the beginning, it will not error out which will happen 
+            # must empty the lock file so that when the thread returns from reconfig_glidein and
+            # begins from the beginning, it will not error out which will happen
             # if the lock file is not empty
             pid_obj.relinquish()
             os.execv(os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"),

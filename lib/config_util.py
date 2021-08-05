@@ -10,8 +10,10 @@ import os
 import yaml
 
 
+BEST_FIT_TAG = "BEST_FIT"
+
 # pylint: disable=line-too-long
-ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="grid_proxy" comment="Entry automatically generated" enabled="%(enabled)s" gatekeeper="%(gatekeeper)s" gridtype="%(gridtype)s"%(rsl)s proxy_url="OSG" trust_domain="grid" verbosity="std" work_dir="%(work_dir)s">
+ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="%(auth_method)s" comment="Entry automatically generated" enabled="%(enabled)s" gatekeeper="%(gatekeeper)s" gridtype="%(gridtype)s"%(rsl)s proxy_url="%(proxy_url)s" trust_domain="%(trust_domain)s" verbosity="%(verbosity)s" work_dir="%(work_dir)s">
          <config>
             <max_jobs>%(limits)s
                <per_frontends>
@@ -19,7 +21,7 @@ ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="grid_proxy" comm
             </max_jobs>
             <release max_per_cycle="20" sleep="0.2"/>
             <remove max_per_cycle="5" sleep="0.2"/>
-            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>%(submission_speed)s
+            <restrictions require_voms_proxy="False"/>%(submission_speed)s
                <submit_attrs>%(submit_attrs)s
                </submit_attrs>
             </submit>
@@ -37,7 +39,6 @@ ENTRY_STUB = """      <entry name="%(entry_name)s" auth_method="grid_proxy" comm
          </monitorgroups>
       </entry>
 """
-
 
 # Default values of parameters attributes
 DEFAULT_ATTRS = {
@@ -227,9 +228,12 @@ def get_limits_str(limits):
         string: the string representing the xml pilots limits section for a single entry
     """
     out = ""
-    if limits:
+    if limits is not None:
         for name, value in reversed(sorted(limits.items())):
-            if value and value.get('glideins') and value.get('held') and value.get('idle'):
+            if (value is not None and
+                value.get('glideins') is not None and
+                value.get('held') is not None and
+                value.get('idle') is not None):
                 glideins = value['glideins']
                 held = min(max(int(glideins * value['held'] / 100), 5), glideins)
                 idle = min(max(int(glideins * value['idle'] / 100), 10), glideins)

@@ -45,7 +45,7 @@ class TestEntry(unittest.TestCase):
         self.datadir = 'fixtures/factory/work-dir'
         os.system('git checkout %s' % self.datadir)
         self.startup_dir = os.path.join(self.testdir, self.datadir)
-        self.entry_name = 'el6_osg34'
+        self.entry_name = 'el8_osg34'
         os.chdir(self.datadir)
         self.monitorDir = os.path.join(
             self.startup_dir,

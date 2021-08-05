@@ -667,7 +667,7 @@ class FileDictFile(SimpleFileDictFile):
     the key is used as key for the dictionary and the data (file content) is added reading the file.
     Here the attributes stored as tuple in the dictionary value:
     1. real_fname, i.e file name
-    2. cache/exec/... keyword identifying the file type: regular, nocache, exec, untar
+    2. cache/exec/... keyword identifying the file type: regular, nocache, exec (:s modifier to run in singularity), untar, wrapper
     3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
     4. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
     5. cond_download has a special value of TRUE
@@ -691,7 +691,7 @@ class FileDictFile(SimpleFileDictFile):
         """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
 
         :param file_name: name of the file (aka real_fname)
-        :param file_type: type of the file (regular, nocache, exec, untar)
+        :param file_type: type of the file (regular, nocache, exec, untar, wrapper). 'exec allows modifiers like ':s'
         :param period: period for periodic executables (ignored otherwise, default: 0)
         :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
         :param cond_download: conditional download (default: 'TRUE')

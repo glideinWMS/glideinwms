@@ -4,9 +4,9 @@ from __future__ import print_function
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
-# Description: 
+# Description:
 #   Frontend creation module
 #   Classes and functions needed to handle dictionary files
 #   created out of the parameter object
@@ -51,7 +51,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True) # this one must be loaded before any tarball
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE, allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
-        
+
         # follow by the blacklist file
         file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
@@ -64,6 +64,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for script_name in ('cat_consts.sh', 'check_blacklist.sh'):
             self.dicts['preentry_file_list'].add_from_file(script_name,
                                                            cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                           os.path.join(params.src_dir, script_name))
+        # TODO: gwms25073 change the following lines, this file will have to be fixed w/ special type/time 
+        #  to be picked as file to source pre-job
+        for script_name in ('setup_prejob.sh',):
+            self.dicts['preentry_file_list'].add_from_file(script_name,
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'regular'),
                                                            os.path.join(params.src_dir, script_name))
 
         # put user files in stage
@@ -93,10 +99,10 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                 real_start_expr = start_expr
             # since I removed the attributes, roll back into the match.start_expr
             params.data['match']['start_expr'] = real_start_expr
-        
+
         self.dicts['consts'].add('GLIDECLIENT_Start', real_start_expr)
-        
-        # create GLIDEIN_Collector attribute 
+
+        # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
         # create GLIDEIN_CCB attribute only if CCBs list is in config file
         tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
@@ -178,7 +184,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         """
         if self.monitor_dir!=other.monitor_dir:
             print("WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
-        
+
         return cvWDictFile.frontendMainDicts.reuse(self, other)
 
     def save(self, set_readonly=True):
@@ -193,7 +199,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
             fobj.save(dir=self.monitor_jslibs_dir, save_only_if_changed=False)
@@ -247,6 +253,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                                                                               config_out='BLACKLIST_FILE'),
                                                        os.path.join(params.src_dir, file_name))
 
+        # TODO: should these 2 scripts be removed? files above and blacklist may be different between global and group
+        #  but the scripts should be the same and could be used from the other client directory 
+        #  or should all be duplicate?
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh', "check_blacklist.sh"):
@@ -281,7 +290,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                 real_start_expr=start_expr
             # since I removed the attributes, roll back into the match.start_expr
             sub_params.data['match']['start_expr'] = real_start_expr
-        
+
         self.dicts['consts'].add('GLIDECLIENT_Group_Start', real_start_expr)
 
         # derive attributes
@@ -292,16 +301,13 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                 self.sub_name, sub_params)
         populate_common_descript(self.dicts['group_descript'], sub_params)
 
-        # Apply group specific glexec policy
-        apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
-
         # Apply group specific singularity policy
         validate_singularity(self.dicts, sub_params, params, self.sub_name)
         apply_group_singularity_policy(self.dicts['group_descript'], sub_params, params)
 
         # populate security data
         populate_main_security(self.client_security, params)
-        populate_group_security(self.client_security, params, sub_params)
+        populate_group_security(self.client_security, params, sub_params, self.sub_name)
 
     def reuse(self, other):
         """
@@ -328,7 +334,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     ########################################
     # INTERNAL
     ########################################
-    
+
     def save_client_security(self):
         # create the real mapfiles
         cvWCreate.create_client_mapfile(os.path.join(self.work_dir, cvWConsts.GROUP_MAP_FILE),
@@ -344,7 +350,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                         self.client_security['pilot_DNs'])
         return
 
-        
+
 ################################################
 #
 # This Class contains both the main and
@@ -367,7 +373,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
     def populate(self,params=None):  # will update params (or self.params)
         if params is None:
             params = self.params
-        
+
         self.main_dicts.populate(params)
         self.active_sub_list = self.main_dicts.active_sub_list
 
@@ -380,7 +386,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
         if self.monitor_dir != other.monitor_dir:
             print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'" %
                   (self.monitor_dir, other.monitor_dir))
-        
+
         return cvWDictFile.frontendDicts.reuse(self, other)
 
     ###########
@@ -402,7 +408,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 ############################################################
 #
 # P R I V A T E - Do not use
-# 
+#
 ############################################################
 
 #######################
@@ -429,7 +435,7 @@ def validate_attribute(attr_name, attr_val):
 
 def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj = params.attrs[attr_name]
-    
+
     if attr_obj.value is None:
         raise RuntimeError("Attribute '%s' does not have a value: %s" % (attr_name, attr_obj))
 
@@ -489,7 +495,7 @@ def populate_frontend_descript(work_dir,
         if not os.path.isfile(params.security.classad_proxy):
             raise RuntimeError("security.classad_proxy(%s) is not a file" % params.security.classad_proxy)
         frontend_dict.add('ClassAdProxy', params.security.classad_proxy)
-        
+
         frontend_dict.add('SymKeyType', params.security.sym_key)
 
         active_sub_list[:]  # erase all
@@ -554,51 +560,11 @@ def populate_group_descript(work_dir, group_descript_dict,        # will be modi
     group_descript_dict.add('RemovalWait', sub_params.config.glideins_removal.wait)
     group_descript_dict.add('RemovalRequestsTracking', sub_params.config.glideins_removal.requests_tracking)
     group_descript_dict.add('RemovalMargin', sub_params.config.glideins_removal.margin)
-    if ('GLIDEIN_Glexec_Use' in sub_params.attrs):
-        group_descript_dict.add('GLIDEIN_Glexec_Use', sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
 # Populate values common to frontend and group dicts
 MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
-
-
-def apply_group_glexec_policy(descript_dict, sub_params, params):
-
-    glidein_glexec_use = None
-    query_expr = descript_dict['FactoryQueryExpr']
-    match_expr = descript_dict['MatchExpr']
-    ma_arr = []
-    match_attrs = None
-
-    # Consider GLIDEIN_Glexec_Use from Group level, else global
-    if 'GLIDEIN_Glexec_Use' in sub_params.attrs:
-        glidein_glexec_use = sub_params.attrs['GLIDEIN_Glexec_Use']['value']
-    elif 'GLIDEIN_Glexec_Use' in params.attrs:
-        glidein_glexec_use = params.attrs['GLIDEIN_Glexec_Use']['value']
-
-    if (glidein_glexec_use):
-        descript_dict.add('GLIDEIN_Glexec_Use', glidein_glexec_use)
-
-        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
-        # REQUIRED: Entries with GLEXEC_BIN set
-        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
-        # NEVER   : Consider entries that do not want glidein to use GLEXEC
-        if (glidein_glexec_use == 'REQUIRED'):
-            query_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % query_expr
-            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
-            ma_arr.append(('GLEXEC_BIN', 's'))
-        elif (glidein_glexec_use == 'NEVER'):
-            # Not using glideinwms.lib.util.safe_boolcomp since this goes inside the match expression
-            match_expr = '(%s) and (str(glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", False)).lower() == "false")' % match_expr
-
-        if ma_arr:
-            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
-            descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
-                              allow_overwrite=True)
-
-        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
-        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
 
 def apply_group_singularity_policy(descript_dict, sub_params, params):
@@ -827,8 +793,10 @@ def validate_credential_type(cred_type):
     types_set = set(cred_type.split('+'))
     common_types = mutually_exclusive.intersection(types_set)
 
-    if len(common_types) > 1:
-        raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
+    # turn this off temporarily while we figure out how to include tokens
+    # in auth_file with grid_proxy
+    #if len(common_types) > 1:
+    #    raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
 
 
 #####################################################
@@ -910,9 +878,9 @@ def populate_gridmap(params, gridmap_dict):
 # Populate security values
 def populate_main_security(client_security, params):
     if params.security.proxy_DN is None:
-        raise RuntimeError("DN not defined for classad_proxy")    
+        raise RuntimeError("DN not defined for classad_proxy")
     client_security['proxy_DN']=params.security.proxy_DN
-    
+
     collector_dns=[]
     collector_nodes=[]
     for el in params.collectors:
@@ -930,7 +898,7 @@ def populate_main_security(client_security, params):
     client_security['collector_DNs']=collector_dns
 
 
-def populate_group_security(client_security, params, sub_params):
+def populate_group_security(client_security, params, sub_params, group_name):
     factory_dns=[]
     for collectors in (params.match.factory.collectors, sub_params.match.factory.collectors):
       for el in collectors:
@@ -940,7 +908,7 @@ def populate_group_security(client_security, params, sub_params):
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         factory_dns.append(dn)
     client_security['factory_DNs']=factory_dns
-    
+
     schedd_dns=[]
     for schedds in (params.match.job.schedds, sub_params.match.job.schedds):
       for el in schedds:
@@ -952,8 +920,12 @@ def populate_group_security(client_security, params, sub_params):
     client_security['schedd_DNs']=schedd_dns
 
     pilot_dns=[]
+    exclude_from_pilot_dns = ['SCITOKEN', 'IDTOKEN']
     for credentials in (params.security.credentials, sub_params.security.credentials):
+      if is_true(params.groups[group_name].enabled):
         for pel in credentials:
+            if pel['type'].upper()  in exclude_from_pilot_dns:
+                continue
             if pel['pilotabsfname'] is None:
                 proxy_fname=pel['absfname']
             else:
@@ -972,7 +944,7 @@ def populate_group_security(client_security, params, sub_params):
                     dn=x509Support.extract_DN(real_proxy_fname)
                     # don't worry about conflict... there is nothing wrong if the DN is listed twice
                     pilot_dns.append(dn)
-                
+
     client_security['pilot_DNs']=pilot_dns
 
 

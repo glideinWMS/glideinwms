@@ -1,0 +1,72 @@
+---
+  - name: gwms factory migration playbook
+    hosts: all
+    remote_user: root
+    vars:
+        repo: osg-development
+        dir: upgrade
+
+    tasks:
+
+    - name: stop condor
+      service:
+          name: condor
+          enabled: yes
+          state: stopped
+
+    - name: stop factory
+      service:
+          name:  gwms-factory
+          enabled: yes
+          state: stopped
+
+    
+    - name: archive condor logs
+      shell: | 
+          cp -r /var/log/condor /var/log/condor_attic.$(date +%s) &&  rm -rf /var/log/condor/*
+      args:
+          warn: yes 
+
+    - name: archive factory logs
+      shell: | 
+          cp -r /var/log/gwms-factory /var/log/gwms-factory_attic.$(date +%s) &&  find /var/log/gwms-factory -type f -exec rm {} \;
+      args:
+          warn: yes
+
+    - name: yum {{ dir }}  condor
+      shell: | 
+          yum -y --enablerepo {{ repo }}  {{ dir }}  blahp python2-condor python3-condor condor-classads condor-procd libcondor_utils condor 
+      args:
+          warn: no
+
+    - name: yum {{ dir }}  glideinwms-factory
+      shell: | 
+          yum -y --enablerepo {{ repo }}  {{ dir }}  glideinwms-common-tools glideinwms-libs glideinwms-glidecondor-tools glideinwms-factory-condor glideinwms-condor-common-config glideinwms-factory
+      args:
+          warn: no
+
+    - name: start condor
+      service:
+          name: condor
+          enabled: yes
+          state: started
+
+    - name: gwms-factory upgrade
+      shell: |
+          /usr/sbin/gwms-factory upgrade
+
+
+    - name: start factory
+      service:
+          name: gwms-factory
+          enabled: yes
+          state: started
+
+    - name: bounce condor
+      shell: |
+          /usr/bin/systemctl restart condor &&  /usr/bin/sleep 20
+
+    - name: bounce factory
+      shell: |
+          /usr/bin/systemctl restart gwms-factory  && /usr/bin/sleep 10
+...

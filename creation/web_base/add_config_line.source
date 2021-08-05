@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+
+warn() {
+ echo "$(date)" "$@" 1>&2
+}
+
+###################################
+# Add a line to the config file
+# Arg: line to add, first element is the id
+# Uses global variable glidein_config
+add_config_line() {
+    if ! grep -q "^${*}$" ${glidein_config}; then
+        rm -f ${glidein_config}.old #just in case one was there
+        if ! mv ${glidein_config} ${glidein_config}.old; then
+            warn "Error renaming ${glidein_config} into ${glidein_config}.old"
+            exit 1
+        fi
+        grep -v "^$1 " ${glidein_config}.old > ${glidein_config}
+        # NOTE that parameters are flattened if not quoted, if there are blanks they are separated by single space
+        echo "$@" >> ${glidein_config}
+        rm -f ${glidein_config}.old
+    fi
+}
+
+##################################################
+# Add a line to the config file using a lock file
+# Replace add_config_line in script_wrapper where multiple instances run in parallel
+# Uses FD 200, fails after a timeout of 300 sec
+add_config_line_safe() {
+    if ! grep -q "^${*}$" ${glidein_config}; then
+        # when fd is closed the lock is released, no need to trap and remove the file
+        (
+        flock -w 300 -e 200 || (warn "Error acquiring lock for glidein_config"; exit 1)
+        add_config_line "$@"
+        ) 200>${glidein_config}.lock
+    fi
+}
+
+
+
+####################################
+# Add a line to the condor_vars file
+# Arg: line to add, first element is the id
+# Uses global variable condor_vars_file
+add_condor_vars_line() {
+    id=$1
+
+    rm -f ${condor_vars_file}.old   #just in case one was there
+    if ! mv ${condor_vars_file} ${condor_vars_file}.old; then
+        warn "Error renaming ${condor_vars_file} into ${condor_vars_file}.old"
+        exit 1
+    fi
+    grep -v "^$id\b" ${condor_vars_file}.old > ${condor_vars_file}
+    echo "$@" >> ${condor_vars_file}
+    rm -f ${condor_vars_file}.old
+}
+

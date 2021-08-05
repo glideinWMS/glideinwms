@@ -92,6 +92,16 @@ v3_6_2:
     - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
     - Total of frontend info is 0 in Factory monitring
 
+v3_7:
+  Date: March 31, 2020
+  Series: Development
+  Tarball: true
+  Feature:
+    - Includes all features and fixes of 3.6.2
+    - Use of HTCondor token-auth for Glideins authentication
+    - Added secure logging channel
+    - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+
 v3_6_3:
   Date: July 16, 2020
   Series: Stable
@@ -132,6 +142,16 @@ v3_6_4:
     - Fix for condor_chirp not finding htchirp in the PYTHONPATH
     - Fixed unquoted SINGULARITY_PATH causing HTCondor not to start
 
+v3_7:
+  Date: March 31, 2020
+  Series: Development
+  Tarball: true
+  Feature:
+    - Includes all features and fixes of 3.6.2
+    - Use of HTCondor token-auth for Glideins authentication
+    - Added secure logging channel
+    - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
+
 v3_6_5:
   Date: October 5, 2020
   Series: Stable
@@ -143,3 +163,59 @@ v3_6_5:
     - Fixed shared_port_port to adapt to HTCondor 8.8.10 changes
     - Fixed overrides in OSG_autoconf using depcopy, use https for gfdiff
     - Fixed credential dir in manual_glidein_submit removing hardcoding
+
+v3_7_1:
+  Date: November 3, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.5
+    - Configuration changes to make more compatible with HTCondor 8.9  on initial install
+    - SciTokens authentication between Factory and CE
+    - IDTokens authentication between Factory and Frontend
+  Bug fix: 
+    - Factory reconfigs and startups do not require manual creation of directories
+    - Factory builds Condor Tarballs to send with glideins correctly
+
+v3_7_2:
+  Date: December 21, 2020
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.6.6
+    - Drop GLExec support
+    - Mechanism for running custom scripts at the end of glidein execution
+    - OSG_autoconf protection added to prevent failures when CE dissapears from OSG Collector
+  Bug fix:
+    - Frontend no longer over-generates tokens for entries
+    - Factory does not remove glideins when idle limit is hit
+
+v3_7_3:
+  Date: March 25, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - More efficient generation of IDTOKENS by frontend
+    - SciToken credentials configured and treated same as other credentials for glidein submission
+    - Glideins configured without GSI but with SciToken and IDTOKENS successfully run jobs.
+    - Order of places glidein checks for singularity changed
+    - PATH with multiple directories can be configured to override singularity binary
+    - Remove LD_PRELOAD from glidein environment by default
+    - Fail without fall-back when user provided singularity image missing
+    - Improved GPU implementation in glidenins
+    - OSG_autoconf more configurable, auth_method and pilot_entries can be set
+  Bug Fix:
+    - Missing GSI configuration does not stop schedd query when IDTOKENS configured.
+    - Factory should not check condor tarball version prior to SciToken authentication to CE
+    - tmpfile needs to be on correct file system when factory writes tokens from frontend
+    - IDTOKENS auth does not fail on improper condor_version comparison
+    - rpm sub package (http) building issues fixed
+
+v3_7_4:
+  Date: May 10, 2021
+  Series: Development
+  Tarball: False
+  Feature:
+    - Consider not available (not Idle) partitionable slots where all GPUs are used
+  Bug Fix:
+    - Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold

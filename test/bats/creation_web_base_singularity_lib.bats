@@ -90,7 +90,7 @@ setup_nameprint() {
     [ "$status" -eq 1 ]
 }
 
-dit () { echo "TEST:<$1><$2><$3>"; }
+dit() { echo "TEST:<$1><$2><$3>"; }
 
 @test "Test dictionary iterator" {
     my_dict=" key 1:val1:opt1,key2:val2,key3:val3:opt3,key4,key5:,key6 :val6"
@@ -375,4 +375,108 @@ preset_env () {
     [ "$_CONDOR_CHIRP_CONFIG" = /srv/execute/dir_9182/.chirp.config ]
     [ "$_CONDOR_JOB_IWD" = /srv/execute/dir_9182 ]
     [ "$OSG_WN_TMP" = /osg/tmp ]
+}
+
+mock_singularity_test_bin() {
+    # control Failure w/ mock_singularity_test_bin_control (true or =step to be successful)
+    local step="${1%%,*}"
+    local sin_path="${1#*,}"
+    local sin_version=3.6.4
+    local sin_type=mock_$step
+    if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
+        sin_path=/path/to/singularity
+    fi
+    if [[ "$mock_singularity_test_bin_control" = "true" || "$mock_singularity_test_bin_control" = "$step" ]]; then
+        echo -e "_$step\n_$sin_type\n_$sin_version\n_$sin_path\n_@ $step($sin_path):TT"
+    else
+        echo -e " $step($sin_path):"
+        false
+    fi
+}
+
+@test "Verify singularity_locate_bin" {
+    # Cannot pass back an incremented call counter because singularity_test_bin is called in a subshell
+    # using file $tmp_singularity_dir/calls
+    singularity_test_bin() {
+        echo "Called singularity_test_bin: $*" >> "$tmp_singularity_dir/calls"
+        mock_singularity_test_bin "$@"
+    }
+    singularity_locate_bin_wrapped() {
+        local slb_ec
+        echo > "$tmp_singularity_dir/calls"
+        singularity_locate_bin "$@"
+        slb_ec=$?
+        stb_attempts=$(grep -ch "Called singularity_test_bin" "$tmp_singularity_dir/calls")
+        echo "SLB: $slb_ec, $HAS_SINGULARITY, $GWMS_SINGULARITY_MODE, $GWMS_SINGULARITY_PATH, $stb_attempts"
+    }
+    # Prepare a fake singularity binary
+    tmp_singularity_dir=$(mktemp -d -t gwms_bats-XXXXXXXXXX)
+    tmp_singularity_bin="$tmp_singularity_dir/singularity"
+    echo -e '#!/bin/bash\necho "mock singularity v1.0"' > "$tmp_singularity_bin"
+    chmod +x "$tmp_singularity_bin"
+    echo "Singularity binary mocked: $tmp_singularity_bin" >&3
+
+    mock_singularity_test_bin_control=true  # all tests successful
+    GLIDEIN_SINGULARITY_BINARY_OVERRIDE="${tmp_singularity_dir}:/tmp/bin"
+    run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
+    echo "part 0: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_override, $tmp_singularity_bin, 1" ]
+    GLIDEIN_SINGULARITY_BINARY_OVERRIDE=$tmp_singularity_bin
+    run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
+    echo "part 1: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_override, $tmp_singularity_bin, 1" ]
+    GLIDEIN_SINGULARITY_BINARY_OVERRIDE=
+    run  singularity_locate_bin_wrapped "$tmp_singularity_dir" "/path/to/image"
+    echo "part 2: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_bin, $tmp_singularity_bin, 1" ]
+    run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
+    echo "part 3: $output" >&3
+    #[ "$output" = "SLB: 0, True, mock_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
+    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    OSG_SINGULARITY_BINARY=$tmp_singularity_bin
+    # default
+    run  singularity_locate_bin_wrapped "" "/path/to/image"
+    echo "part 4: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $tmp_singularity_bin, 1" ]
+    # keyword PATH
+    run  singularity_locate_bin_wrapped "PATH" "/path/to/image"
+    echo "part 5: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    # keyword OSG
+    run  singularity_locate_bin_wrapped "OSG" "/path/to/image"
+    echo "part 6: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $tmp_singularity_bin, 1" ]
+    # keyword OSG w/ default OSG_SINGULARITY_BINARY
+    OSG_SINGULARITY_BINARY=
+    run  singularity_locate_bin_wrapped "OSG" "/path/to/image"
+    echo "part 7: $output" >&3
+    # The result may change depending on whether CVMFS is installed or not
+    if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
+        [ "$output" = "SLB: 0, True, mock_s_bin_OSG, $OSG_SINGULARITY_BINARY_DEFAULT, 1" ]
+    else
+        [ "$output" = "SLB: 0, True, mock_PATH, singularity, 1" ]
+    fi
+    mock_singularity_test_bin_control=false  # all fail
+    run  singularity_locate_bin_wrapped "" "/path/to/image"
+    echo "part 8: $output" >&3
+    if [ -e "$OSG_SINGULARITY_BINARY_DEFAULT" ]; then
+        [ "$output" = "SLB: 1, False, , , 5" ]
+    else
+        [ "$output" = "SLB: 1, False, , , 4" ]
+    fi
+    OSG_SINGULARITY_BINARY=$tmp_singularity_bin # To avoid having 2 versions for when /cvmfs is available and when not
+    mock_singularity_test_bin_control=PATH  # only PATH successful
+    run  singularity_locate_bin_wrapped "" "/path/to/image"
+    echo "part 9: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_PATH, singularity, 2" ]
+    mock_singularity_test_bin_control=module  # only module successful
+    run  singularity_locate_bin_wrapped "" "/path/to/image"
+    echo "part 10: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_module, singularitypro, 3" ]
+    mock_singularity_test_bin_control=OSG  # only OSG successful
+    run  singularity_locate_bin_wrapped "" "/path/to/image"
+    echo "part 11: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_OSG, $tmp_singularity_bin, 5" ]
+
+    [[ -n "${tmp_singularity_dir}" ]] && rm -rf "${tmp_singularity_dir}"
 }

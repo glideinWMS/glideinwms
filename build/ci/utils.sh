@@ -539,6 +539,9 @@ annotated_to_td() {
     fi
     local value_only=${value%=}
     value_only=${value_only%=*}
+    # TODO: 25222 - add link <a> around the value_only
+    #       use the index received and values/env values for line0/line1 and the base URL
+    #       maybe have a function that builds the URL if the string calculation is not trivial
     note_only=${value#"$value_only"}
     if [[ "$html_format" == html ]]; then
         case "$note_only" in
@@ -579,6 +582,9 @@ filter_annotated_values() {
         line_values= 
         IFS=, read -ra values <<< "$line"    
         for i in "${values[@]}"; do
+            # TODO: 25222 - pass to annotated_to_td line_start and values from line0 and line1
+            #       create 2 arrays (maybe env var in table_to_html) and iterate or pass index
+            #       empty values in line0 should maintain previous
             line_values="${line_values}$(annotated_to_td "$i" $2)"
         done
         echo "$line_values"
@@ -609,6 +615,7 @@ table_to_html() {
         fi
         line_start="${line%%,*}"
         line_end="${line#*,}"
+        # TODO: 25222 - pass to filter_annotated_values line_start and line0 and line1 (values or env variables)
         echo "<tr><th>${line_start//,/</th><th>}</th>$(filter_annotated_values "${line_end}" ${format})</tr>"
     done < "$1" ;
     echo -e "    </tbody>\n</table>"    

@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Glidein Recipes - Token Authorization</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li>Token Authorization</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <script>
+            (function() {
+                var cx = '013439253731257915088:h-xvmglqvrq';
+                var gcse = document.createElement('script');
+                gcse.type = 'text/javascript';
+                gcse.async = true;
+                gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(gcse, s);
+            })();
+            </script>
+            <gcse:search enableAutoComplete=true></gcse:search>
+        </div>
+    </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+            </map>
+
+            <h2>Token Authorization</h2>
+            <ul class="subcomponents">
+                <li><a href="./index.html">Overview</a></li>
+                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
+                <li><a href="./cloud.html">Cloud Recipes</a></li>
+                <li><a href="./token_auth.html">Token Auth</a></li>
+                <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
+            </ul>
+        <div class="space">
+          <p>&nbsp</p>
+          <p>&nbsp</p>
+        </div>
+        </div>
+        <div class="jump">
+           <u>Jump to:</u>
+            <ol>
+                <li><a href="#Description">Description</a> </li>
+                <li><a href="#Requirements">Requirements</a> </li>
+                <li><a href="#Useful">Useful Links</a> </li>
+            </ol>
+        </div>
+        <div class="section">
+          <h2 id="Description" class="western">Description</h2
+            <p>
+             This page links to recipes for using JWT-derived token authentication.
+            </p>
+            <ul>
+              <li><a href="IDTOKENS_auth.html">HTCondor IDTOKENS  authentication </a> between Factories, VOFrontends and glideins running on CEs</li>
+              <li><a href="SciToken_auth.html">SCITOKENS authentication </a> between Factory Schedds and HTCondor CE daemons </li>
+        </div>
+        <div class="section">
+            <h2 id="Requirements" class="western">Requirements for Token Authorization</h2>
+            <p>
+
+            </p>
+            <table summary="Requirements for  Token Authorization" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Requirement</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>GWMS Factory Version&nbsp&gt=&nbsp3.7.3 </td>
+                        <td>
+                            The Factory can be either a fresh install from yum/RPM or a yum  upgrade, as long as it  meets the version requirements.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>GWMS  Frontend Version&nbsp&gt=&nbsp3.7.3 </td>
+                        <td>
+                            The Frontend, like the Factory, can be made to meet version requirements via either a fresh install or upgrade.
+                        </td>
+                    </tr>
+                    <tr>
+                      <td>HTCondor Version&nbsp&gt=&nbsp8.9.11 </td>
+                        <td>
+                          HTCondor that the Frontend uses must be a token supporting release.  The HTCondor tarballs delivered by Factory entry points
+                          also need to be a token supporting release.  It is not necessary to upgrade the main Factory HTCondor as long as the
+                          GlideinWMS version of the factory complies with the &gt= 3.7.3 requirement.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+          <h2 id="Useful" class="western">Useful Links </h2>
+          <ul>
+            <li> <a href="https://tools.ietf.org/html/rfc7519">JWT Specification</a></li> What exactly is a token anyway?
+          </ul>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+            GlideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>

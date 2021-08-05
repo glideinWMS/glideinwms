@@ -18,26 +18,34 @@
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
 #
 
-import signal
+#import signal
 import sys
 import os
 import copy
 import traceback
 import time
-import string
+#import string
 import logging
 import re
+import tempfile
+import shutil
+import socket
 
-from glideinwms.lib import symCrypto, pubCrypto
+sys.path.append(os.path.join(sys.path[0], "../.."))
+
+from glideinwms.lib import pubCrypto
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib.util import safe_boolcomp
-from glideinwms.lib import condorMonitor
+from glideinwms.lib.util import file_tmp2final
 from glideinwms.lib import servicePerformance
+from glideinwms.lib import subprocessSupport
+from glideinwms.lib import condorMonitor
 from glideinwms.lib.disk_cache import DiskCache
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
+from glideinwms.lib import token_util
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -449,13 +457,12 @@ class glideinFrontendElement:
              'Idle_3600':condorq_dict_types['Idle_3600']['abs'],
              'Running':condorq_dict_types['Running']['abs']})
 
-        logSupport.log.info("Jobs found total %i idle %i (good %i, old(10min %i, 60min %i),  grid %i, voms %i) running %i" %\
+        logSupport.log.info("Jobs found total %i idle %i (good %i, old(10min %i, 60min %i), voms %i) running %i" %\
                    (condorq_dict_abs,
                    condorq_dict_types['IdleAll']['abs'],
                    condorq_dict_types['Idle']['abs'],
                    condorq_dict_types['OldIdle']['abs'],
                    condorq_dict_types['Idle_3600']['abs'],
-                   condorq_dict_types['ProxyIdle']['abs'],
                    condorq_dict_types['VomsIdle']['abs'],
                    condorq_dict_types['Running']['abs']))
         self.populate_status_dict_types()
@@ -608,13 +615,13 @@ class glideinFrontendElement:
             # If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
-            if (self.glexec != 'NEVER'):
-                if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
-                        prop_jobs['Idle']=prop_jobs['VomsIdle']
-                        logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-                elif safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE'), True):
-                        prop_jobs['Idle']=prop_jobs['ProxyIdle']
-                        logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
+            # TODO: GlExec is gone (assuming same as NEVER), what is the meaning of GLIDEIN_REQUIRE_VOMS, 
+            #  VomsIdle, are they still needed?
+            #  The following lines should go and maybe all GLIDEIN_REQUIRE_VOMS 
+            #if (self.glexec != 'NEVER'):
+            #    if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
+            #            prop_jobs['Idle']=prop_jobs['VomsIdle']
+            #            logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
 
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
@@ -777,19 +784,63 @@ class glideinFrontendElement:
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
+                # determine whether to encrypt a condor token or scitoken into the classad
+                ctkn = ''
+                stkn = ''
+                gp_encrypt = {}
+                # see if site supports condor token
+                ctkn = self.refresh_entry_token(glidein_el)
+                if ctkn:
+                    # mark token for encrypted advertisement
+                    entry_token_name = "%s.idtoken" % glidein_el['attrs'].get('EntryName', 'condor')
+                    logSupport.log.debug("found condor token: %s" % entry_token_name)
+                    gp_encrypt[entry_token_name] = ctkn
+                # now see if theres a scitoken for this site
+                scitoken_fullpath = ''
+                cred_type_data = self.elementDescript.element_data.get('ProxyTypes')
+                trust_domain_data = self.elementDescript.element_data.get('ProxyTrustDomains')
+                if not cred_type_data:
+                    cred_type_data = self.elementDescript.frontend_data.get('ProxyTypes')
+                if not trust_domain_data:
+                    trust_domain_data = self.elementDescript.frontend_data.get('ProxyTrustDomains')
+                if trust_domain_data and cred_type_data:
+                    cred_type_map = eval(cred_type_data)
+                    trust_domain_map = eval(trust_domain_data)
+                    for cfname in cred_type_map:
+                        if cred_type_map[cfname] == 'scitoken':
+                            if trust_domain_map[cfname] == trust_domain:
+                                scitoken_fullpath = cfname
+                    
+                if os.path.exists(scitoken_fullpath):
+                    try:
+                        logSupport.log.info('found scitoken %s' % scitoken_fullpath)
+                        with open(scitoken_fullpath,'r') as fbuf:
+                            for line in fbuf:
+                                stkn += line
+                        if stkn:
+                            gp_encrypt['frontend_scitoken'] =  stkn
+                    except Exception as err:
+                        logSupport.log.exception("failed to read scitoken: %s" % err)
+
+
+                # now advertise
+                logSupport.log.info('advertising tokens %s' % gp_encrypt.keys())
                 advertizer.add(factory_pool_node,
-                               request_name, request_name,
-                               glidein_min_idle, glidein_max_run,
-                               self.idle_lifetime,
-                               glidein_params=glidein_params,
-                               glidein_monitors=glidein_monitors,
-                               glidein_monitors_per_cred=glidein_monitors_per_cred,
-                               remove_excess_str=remove_excess_str,
-                               remove_excess_margin=remove_excess_margin,
-                               key_obj=key_obj, glidein_params_to_encrypt=None,
-                               security_name=self.security_name,
-                               trust_domain=trust_domain,
-                               auth_method=auth_method, ha_mode=self.ha_mode)
+                           request_name, request_name,
+                           glidein_min_idle,
+                           glidein_max_run,
+                           self.idle_lifetime,
+                           glidein_params=glidein_params,
+                           glidein_monitors=glidein_monitors,
+                           glidein_monitors_per_cred=glidein_monitors_per_cred,
+                           remove_excess_str=remove_excess_str,
+                           remove_excess_margin=remove_excess_margin,
+                           key_obj=key_obj,
+                           glidein_params_to_encrypt=gp_encrypt,
+                           security_name=self.security_name,
+                           trust_domain=trust_domain,
+                           auth_method=auth_method,
+                           ha_mode=self.ha_mode)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" %
                                        (request_name, factory_pool_node))
@@ -839,6 +890,78 @@ class glideinFrontendElement:
         servicePerformance.endPerfMetricEvent(self.group_name, 'advertize_classads')
 
         return
+
+
+    def refresh_entry_token(self, glidein_el):
+        """
+            create or update a condor token for an entry point
+            params:  glidein_el: a glidein element data structure
+            returns:  jwt encoded condor token on success
+                      None on failure
+        """
+        tkn_file = ''
+        tkn_str = ''
+        tmpnm = ''
+        # does condor version of entry point support condor token auth
+        condor_version = glidein_el['params'].get('CONDOR_VERSION')
+        if condor_version:
+            try:
+                # create a condor token named for entry point site name
+                glidein_site = glidein_el['attrs']['GLIDEIN_Site']
+                tkn_dir = "/var/lib/gwms-frontend/tokens.d"
+                pwd_dir = "/var/lib/gwms-frontend/passwords.d"
+                req_dir = "/var/lib/gwms-frontend/passwords.d/requests"
+                if not os.path.exists(tkn_dir):
+                    os.mkdir(tkn_dir,0o700)
+                if not os.path.exists(pwd_dir):
+                    os.mkdir(pwd_dir,0o700)
+                if not os.path.exists(req_dir):
+                    os.mkdir(req_dir,0o700)
+                tkn_file = tkn_dir + '/' + glidein_site + ".idtoken"
+                pwd_file = pwd_dir + '/' + glidein_site
+                pwd_default = pwd_dir + '/' + 'FRONTEND'
+                req_file = req_dir + '/' + glidein_site
+                one_hr = 3600
+                tkn_age = sys.maxsize
+                if not os.path.exists(pwd_file):
+                    if os.path.exists(pwd_default):
+                        pwd_file = pwd_default
+                if os.path.exists(tkn_file):
+                    tkn_age = time.time() - os.stat(tkn_file).st_mtime
+                if tkn_age > one_hr and os.path.exists(pwd_file):    
+                    #TODO: scope, duration, identity  should be configurable from frontend.xml
+                    (fd, tmpnm) = tempfile.mkstemp()
+                    scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
+                    duration = 24 * one_hr
+                    identity = "vofrontend_service@%s" % socket.gethostname()
+                    logSupport.log.debug("creating  token %s" % tkn_file)
+                    logSupport.log.debug("pwd_flie= %s" % pwd_file)
+                    logSupport.log.debug("scope= %s" % scope)
+                    logSupport.log.debug("duration= %s" % duration)
+                    logSupport.log.debug("identity= %s" % identity)
+                    tkn_str = token_util.create_and_sign_token(pwd_file,
+                                                               scope=scope,
+                                                               duration=duration,
+                                                               identity=identity)
+                    #cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
+                    #tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
+                    logSupport.log.debug("tkn_str= %s" % tkn_str)
+                    os.write(fd, tkn_str)
+                    os.close(fd)
+                    shutil.move(tmpnm, tkn_file)
+                    os.chmod(tkn_file, 0600)
+                    logSupport.log.info("created token %s" % tkn_file)
+                elif os.path.exists(tkn_file):
+                    with open(tkn_file, 'r') as fbuf:
+                        for line in fbuf:
+                            tkn_str += line
+            except Exception as err:
+                logSupport.log.warning('failed to create %s' % tkn_file)
+                logSupport.log.warning('%s' % err)
+            finally:
+                if os.path.exists(tmpnm):
+                    os.remove(tmpnm)
+        return tkn_str
 
     def populate_pubkey(self):
         bad_id_list = []
@@ -926,7 +1049,6 @@ class glideinFrontendElement:
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_idle_600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
         condorq_dict_idle_3600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 3600)
-        condorq_dict_proxy = glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
         condorq_dict_voms = glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
 
         # then report how many we really had
@@ -955,10 +1077,7 @@ class glideinFrontendElement:
             },
             'VomsIdle': {
                 'dict':condorq_dict_voms,
-                'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-            'ProxyIdle': {
-                'dict':condorq_dict_proxy,
-                'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)
             },
             'Running': {
                 'dict':self.condorq_dict_running,
@@ -1289,16 +1408,22 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr)
 
     def decide_removal_type(self, count_jobs, count_status, glideid):
-        """Picks the max removal type (unless disable is requested)
+        """Pick the max removal type (unless disable is requested)
         - if it was requested explicitly, send that one
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
-        If configured removal is selected, take into account also the margin
+        If configured removal is selected, take into account also the margin and the tracking
+        This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms 
+        in the Factory, like Glidein timeouts
 
-        :param count_jobs:
-        :param count_status:
-        :param glideid:
-        :return:
+        Args:
+            count_jobs (dict): dict with job stats
+            count_status (dict): dict with glidein stats
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string to send to the Factory, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+
         """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins via command line tool, and we have the explicit code to use
@@ -1330,10 +1455,17 @@ class glideinFrontendElement:
 
     def check_removal_type_config(self, glideid):
         """Decides what kind of excess glideins to remove depending on the configuration requests (glideins_remove)
-            "ALL", "IDLE", "WAIT", "NO" or "DISABLE" (disable also automatic removal)
+        "ALL", "IDLE", "WAIT", "NO" (default) or "DISABLE" (disable also automatic removal)
 
-        @param glideid: ID of the glidein
-        @return: remove excess string, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+        If removal_requests_tracking or active removal are enabled, this may result in Glidein removals
+        depending on the parameters in the configuration and the current number of Glideins and requests
+
+        Args:
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string from configuration, one of: "DISABLE", "ALL", "IDLE", "WAIT", or "NO"
+
         """
         # self.removal_type is RemovalType from the FE group configuration
         if self.removal_type is None or self.removal_type == 'NO':
@@ -1353,13 +1485,20 @@ class glideinFrontendElement:
         return 'NO'
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
-        """ Decides what kind of excess glideins to remove: control for request and automatic trigger:
+        """Decides what kind of excess glideins to remove: control for request and automatic trigger:
             "ALL", "IDLE", "WAIT", or "NO"
 
-        @param count_jobs: dict with job stats
-        @param count_status: dict with glidein stats
-        @param glideid: ID of the glidein
-        @return: remove excess string, one of: "ALL", "IDLE", "WAIT", or "NO"
+        If it is a request from the client (command line) then execute that
+        Otherwise calculate the result of the automatic removal mechanism: increasingly remove WAIT, IDLE and ALL
+        depending on how long (measured in Frontend cycles) there have been no requests.
+
+        Args:
+            count_jobs (dict): dict with job stats
+            count_status (dict): dict with glidein stats
+            glideid (str): ID of the glidein request
+
+        Returns:
+            str: remove excess string from automatic mechanism, one of: "ALL", "IDLE", "WAIT", or "NO"
 
         """
         if self.request_removal_wtype is not None:
@@ -1862,12 +2001,6 @@ class glideinFrontendElement:
             self.count_status_multi.update(tmp_count_status_multi)
             tmp_count_status_multi_per_cred = pipe_out[('Glidein', i)][1]
             self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
-
-        self.glexec='UNDEFINED'
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
-            self.glexec=self.elementDescript.frontend_data['GLIDEIN_Glexec_Use']
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.merged_data:
-            self.glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
 
     def subprocess_count_dt(self, dt):

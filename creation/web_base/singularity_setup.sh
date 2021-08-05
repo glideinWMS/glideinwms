@@ -173,6 +173,8 @@ singularity_bin="$(echo $temp_singularity_bin)"
 # OSG_SINGULARITY_BINARY in glidein_config (if present and not empty) takes precedence to the environment one
 temp_singularity_bin="$(grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-)"
 [[ -n "$temp_singularity_bin" ]] && export OSG_SINGULARITY_BINARY="$temp_singularity_bin"
+# GLIDEIN_SINGULARITY_BINARY_OVERRIDE is not controlled, expected to be done at the site level. 
+# If Factory or Frontend set it in the configuration, they must make sure that goes into the Glidein environment 
 
 # Does frontend want to use singularity?
 use_singularity=$(grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-)
@@ -200,7 +202,7 @@ info_stdout "`date` Factory's desire to use Singularity: $require_singularity"
 info_stdout "`date` VO's desire to use Singularity:      $use_singularity"
 info_stdout "`date` Entry configured with Singularity:   $singularity_bin"
 
-gwms_singularity="`combine_requirements $use_singularity $require_singularity`"
+gwms_singularity=$(combine_requirements $use_singularity $require_singularity)
 gwms_singularity_ec=$?
 gwms_singularity_status="${gwms_singularity%%,*}"
 gwms_singularity_str="${gwms_singularity#*,}"
@@ -220,7 +222,7 @@ case "${gwms_singularity_status}" in
         exit 0
         ;;
     NEVER)
-        # If Group use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use and GLIDEIN_SINGULARITY_REQUIRE
+        # If Group use default_singularity_wrapper.sh with GLIDEIN_SINGULARITY_REQUIRE
         # resulting in NEVER, we need to set    advertise HAS_SINGULARITY "False" "C"
         no_use_singularity_config
         ;;
@@ -269,8 +271,6 @@ export GWMS_SINGULARITY_IMAGE
 
 info_stdout "`date` Searching and testing the singularity binary"
 
-# Look for binary and adapt if missing
-OSG_SINGULARITY_BINARY="`grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-`"
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
 singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 

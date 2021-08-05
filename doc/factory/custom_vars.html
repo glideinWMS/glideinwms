@@ -466,39 +466,6 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
  	</TD>
     </TR>
     <TR>
-
-        <td> <b>GLEXEC_BIN</b> </td>
-        <td> String </TD>
-        <td> None </TD>
-        <td>
-            <P>If set, HTCondor will launch all user jobs via glexec,
-            thus <A HREF="configuration.html#glexec">running the job under the
-            appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">GlideinWMS
-            security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
-            purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
-            automatically find the locally installed gLExec on OSG worker
-            nodes.</P>
-
-            <P>This variable is renamed to <B>GLEXEC</B> in the condor
-            config.</P>
-        </td>
-    </TR>
-    <TR>
-        <td><b> GLEXEC_JOB</b> </td>
-
-        <TD> Expr (Bool) </TD>
-        <TD> False </TD>
-        <TD>
-            <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
-            UID as the user job</A>. This has security implications.</P>
-            <P>NOTE: It is recommended to turn
-            this on and have the condor_starter be protected from the user
-            jobs.
-            </P>
-
-        </td>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Use_PGroups</b> </td>
         <TD> Expr (Bool) </TD>
         <TD> False </TD>
@@ -742,6 +709,21 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
         </TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_DISK</b> </td>
+        <TD> Str </td>
+
+        <TD> EMPTY </TD>
+        <TD>
+            <P>Disk amout that the jobs running in the Glidein should use. This is used to configure the HTCondor SLOT_TYPE_ definitions that affect the value of Disk/TotalSlotDisk. 
+	    Valid values are the ones accepted by HTCondor for the "disk=" keyword in the SLOT_TYPE_ definition. The default is an empty string (undefined) which is equivalent to "auto". 
+	    It seems that for disk, valid values are the "auto" string (that lets HTCondor discover and handle the space), fractions or percentages, not absolute values.
+	    See the <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/policy-configuration.html#dividing-system-resources-in-multi-core-machines">HTCondor manual</a>. 
+	    </P>
+	    <p>NOTE: this setting does not assure that a certain amount of disk space will be available. To do so you'll have to use request_disk in the submit_attr section
+	    </p>
+        </TD>
+    </TR>
+     <TR>
         <td> <b>GLIDEIN_Factory_Report_Failed</b> </td>
         <td> String </TD>
         <td> ALIVEONLY </TD>
@@ -928,8 +910,10 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
         <TD> Str </TD>
         <TD>
 		<P>Comma separated list of keywords affecting Glidein debug. Possible options are:<br>
-		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
-		nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes
+		  userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
+		  nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes<br>
+      nocleanup - disable the cleanup (removal of working directories on the worker node). The batch manager may have its own cleanup. 
+        Adds also an extension to the Glidein directory name. 
                 </P>
         </TD>
     </TR>
@@ -945,7 +929,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
-
         <TD> Int </TD>
         <TD>
             <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
@@ -956,7 +939,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
@@ -968,11 +950,21 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
                 followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLEANUP_SCRIPT</b> </td>
+        <TD> String </TD>
+        <TD>
+            <P>Used to run a custom file at cleanup time (right before quitting the Glidein) 
+              instead of the default setup time. The custom file must be specified in the file list as usual.
+              The value is the file name, as specified in the file list. 
                 NOTE: parameter and job_publish should be both True for this attribute.
             <b>Must be a parameter.</b></P>
         </TD>
@@ -1573,7 +1565,8 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
 <div class="section">
 <H3><A NAME="singularity_vars"></A>Singularity Variables (dynamic)</H3>
 
-<P>These variables can be set in the Factory attributes, set in the Frontend attributes, set in the Job (submit file), or cannot be set and is dynamically generated by the
+<P>These variables can be set in the Factory attributes, set in the Frontend attributes, set in the Job (submit file), 
+    set in the Worker Node environment (Env), or cannot be set and is dynamically generated by the
     startup scripts (Dynamic). A value can be also be a combination of the above: the Factory value can be overridden by the Frontend one
     (unless set as constant), and the startup scripts can modify it and have the ultimate saying.
 </P>
@@ -1587,6 +1580,17 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
     "$singularity_image" "${@}"
 </pre>
+  <p>The singularity binary (see singularity_lib.sh/singularity_locate_bin) is the first binary passing the test, 
+    looking in order in:
+  <ol>
+    <li>If defined (in environment, Frontend or Factory): Try first the override binary or path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)</li>
+    <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN: (keyword OSG (default)-> OSG_SINGULARITY_BINARY, keyword PATH -> go to the next step and check the system PATH)</li>
+    <li>Try the singularity binary in PATH</li>
+    <li>Try the singularity binary in PATH after invoking module singularitypro</li>
+    <li>Try the singularity binary in PATH after invoking module singularity</li>
+    <li>Try the default OSG location (OSG_SINGULARITY_BINARY)</li>
+  </ol>
+  </p>
 
 <TABLE class="attributes">
     <TR class="head">
@@ -1640,8 +1644,36 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
     NEVER (do not use Singularity),
     PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found),
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
+            GWMS_SINGULARITY_STATUS_EFFECTIVE, if set, will override GWMS_SINGULARITY_STATUS, e.g. for a specific job.<br>
             See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
             a table of how Singularity is calculated using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>GWMS_SINGULARITY_STATUS_EFFECTIVE</b></td>
+        <td> String (Enum,String) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is used to override GWMS_SINGULARITY_STATUS in special cases, e.g. 
+          Set to "REQUIRED_Singularity_image_in_job" to disable fall-back when SingularityImage is in the Job.<br>
+          See also GWMS_SINGULARITY_STATUS.<br>
+          It is composed by the status, followed by underscore and a string explaining the override.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>[GWMS_]SINGULARITY_MODE</b></td>
+        <td> String (Enum) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is calculated if a valid singularity binary is found.
+            Possible values are (see the Singularity documentation for the meaning of privileged/unprivileged):
+    privileged,
+    unprivileged,
+    fakeroot (unprivileged mode with user mapped internally to uid 0).
+          A string &quot;singularity/GWMS_SINGULARITY_MODE&quot; is also added to GLIDEIN_PROVIDES.
+          There are other dynamic variables set when Singularity is found: [GWMS_]SINGULARITY_PATH, [GWMS_]SINGULARITY_VERSION.
             </P>
         </td>
     </TR>
@@ -1752,6 +1784,16 @@ or by running a pre_singularity setup script.
         </td>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_SINGULARITY_BINARY_OVERRIDE</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Env Frontend Factory</td>
+        <td><P>Path singularity binary (full path of the executable OR one or more directories separated by colons, &colon; ). If provided, this is the first path searched by the Glidein.
+          If set as attribute make sure that <i>job_publish</i> is set to True.
+            </P>
+        </td>
+    </TR>
+    <TR>
         <td> <b>OSG_SINGULARITY_BINARY</b></td>
         <td> String </td>
         <td></td>
@@ -1765,7 +1807,11 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific path of the singularity binary that will be tested (and used) before the other options, but this use is onnly for debug purposes, not recommended in production.
+        <td><P>If set to "OSG" or not set (default), the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module.
+          If set to "PATH", the Glidein will try first to use the singularity binary in the system PATH. 
+          SINGULARITY_BIN can be used also to suggest an arbitrary specific folder for the singularity binary that will be tested (and used) before the other options, 
+          but this use is only for debug purposes, not recommended in production, not to overload Factory Ops with tracking site changes.
+          NOTE: in pre-v3.4 versions SINGULARITY_BIN was used also to enable the use of Singularity for a Factory entry. This is no more, use GLIDEIN_SINGULARITY_REQUIRE instead.  
             </P>
         </td>
     </TR>
@@ -1774,8 +1820,10 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>Controls which environment variables will be cleared or restored in Singularity. Can have the following values: clearall - clear all from the environment (at your own risk);  osgset - set of OSG variables (get it from OSG wrapper);
-            gwmsset - set of GWMS utilities variables; clear - same as: clearall,gwmsset,osgset; clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default);
+	<td><P>Controls which environment variables will be cleared or restored in Singularity. Can have a comma separated list (no spaces) of the following values: <br/>
+		clearall - clear all from the environment unless other sets are listed (clearing evrything may cause problems also w/ some Glidein functionalities);<br/> 
+		osgset - preserve the set of OSG variables (originally from OSG wrapper);<br/>
+		gwmsset - preserve the set of GWMS utilities variables;<br/> clear - same as: clearall,gwmsset,osgset;<br/> clearpaths - clear only PATH,LD_LIBRARY_PATH,PYTHONPATH (default);<br/>
             keepall - clear no variable, incompatible w/ any clear... option
             </P>
         </td>
@@ -1809,34 +1857,6 @@ startup scripts.</P>
         <TD>
 
             <P>When is the proxy expected to expire.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_STARTER</b> </td>
-        <TD> Expr (Bool) </TD>
-
-        <TD>
-            <P>If gLExec is used and this is set to True, the condor_starter
-            will be run sharing the <A HREF="configuration.html#glexec">same UID as
-            the user job</A>.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>ALTERNATIVE_SHELL</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to a trusted copy of a
-            shell.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_USER_DIR</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to the working
-            directory under which all user jobs will be started.</P>
         </TD>
     </TR>
     <TR>
@@ -1916,6 +1936,7 @@ is used.
 <p>For more information, see the descriptions of GLIDEIN_CPUS, GLIDEIN_ESTIMATED_CPUS, and GLIDEIN_Resource_Slots above. And
  <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=NUM_CPUS#condor-starter-configuration-file-entries">NUM_CPUS</a> in the HTCondor manual.
 </p>
+  <p>Other variables related to resource definition are GLIDEIN_DISK, GLIDEIN_MaxMemMBs, and GLIDEIN_MaxMemMBs_Estimate. See above.</p>
 </div>
 
 <div class="section">
@@ -2009,7 +2030,7 @@ N.B.: 12 hours after the walltime, a glidein is removed from the factory queue n
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
 GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

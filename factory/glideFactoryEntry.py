@@ -14,14 +14,11 @@ import signal
 import os
 import os.path
 import sys
-import fcntl
 import traceback
-import time
 import string
-import math
 import copy
-import random
 import logging
+import tempfile
 
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
@@ -1057,7 +1054,8 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         try:
             entry.log.debug("Checking security credentials for client %s " % client_int_name)
             glideFactoryCredentials.check_security_credentials(
-                auth_method, decrypted_params, client_int_name, entry.name)
+                auth_method, decrypted_params, client_int_name,
+                entry.name)
         except glideFactoryCredentials.CredentialError:
             entry.log.exception("Error checking credentials, skipping request: ")
             continue
@@ -1215,7 +1213,57 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                              credential_username, credential_security_class)
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
-    if 'grid_proxy' in auth_method:
+    condortoken = "%s.idtoken" % entry.name
+    condortoken_file = os.path.join(submit_credentials.cred_dir, condortoken)
+    condortoken_data = decrypted_params.get(condortoken)
+    if condortoken_data:
+        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+        try:
+            entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
+            os.chmod(tmpnm,0600)
+            os.write(fd, condortoken_data)
+            os.close(fd)
+            util.file_tmp2final(condortoken_file, tmpnm)
+                
+        except Exception as err:
+            entry.log.exception('failed to create token: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
+    if os.path.exists(condortoken_file):
+        if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
+            entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
+
+    scitoken = "credential_%s.scitoken" % entry.name
+    scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
+    scitoken_data = decrypted_params.get('frontend_scitoken')
+    if scitoken_data:
+        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+        try:
+            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+            os.chmod(tmpnm,0600)
+            os.write(fd, scitoken_data)
+            os.close(fd)
+            util.file_tmp2final(scitoken_file, tmpnm)
+        except Exception as err:
+            entry.log.exception('failed to create scitoken: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
+
+    if os.path.exists(scitoken_file):
+        if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
+            entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
+
+    if 'scitoken' in auth_method:
+    	if os.path.exists(scitoken_file):
+            pass
+        else:
+            entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
+            return return_dict
+
+
+    elif 'grid_proxy' in auth_method:
         ########################
         # ENTRY TYPE: Grid Sites
         ########################
@@ -1426,7 +1474,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
     #
 
-    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0))
+    remove_excess = (work['requests'].get('RemoveExcess', 'NO'), work['requests'].get('RemoveExcessMargin', 0), work['requests'].get('IdleGlideins', 0))
     idle_lifetime = work['requests'].get('IdleLifetime', 0)
 
     if 'IdleGlideins' not in work['requests']:
