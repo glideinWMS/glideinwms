@@ -138,6 +138,10 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
         list: List of results for every element evaluated
     """
 
+    _log("NOTE: This tool can't determine variable types a priori. "
+         "Python 3 has stricter type restrictions which may cause match expressions to fail in execution time. "
+         "Please, make sure match_attr types are appropriately defined.\n")
+
     if enforce_2to3 and not refactoring_tool:
         _log("2to3 not found and will not be enforced")
 
