@@ -34,7 +34,14 @@ ${filename} [options]
               and write a list of replaced files to BF_LIST. Big files are downloaded if not in the bigfiles directory
   -R          copy the big files (from BF_LIST) to the bigfiles directory and replace the big files with the 
               symbolic links to the bigfiles directory
-  -b BF_LIST  big files list (default: REPO_DIR/$BIGFILES_LIST)  
+  -b BF_LIST  big files list (default: REPO_DIR/$BIGFILES_LIST)
+ Examples:
+  ./bifiles.sh -p           Use this before running unit tests or packaging the software, to pull the big files
+  ./bifiles.sh -pr          Use this if you plan to edit a big file in place. Will pull and replace the symbolic links 
+                            w/ the actual file
+  ./bifiles.sh -PR          Use this before committing if you used ./bifiles.sh -pr. Will make sure that the big file
+                            is replaced with the proper link. Remember to send the archive wit the new 
+                            big files ($TARNAME) to a GlideinWMS librarian
 EOF
 }
 
@@ -100,23 +107,25 @@ parse_options() {
 }
 
 pull() {
+    # This function is executed in "$REPO_DIR/bigfiles"
     local cmd_out
     logverbose "Starting the big files download"
-    [ -f ./glideinwms-bigfiles-latest.tgz ] && rm ./glideinwms-bigfiles-latest.tgz
+    [ -f "./$TARNAME" ] && rm "./$TARNAME"
     # Download the latest big files
-    if ! wget -q https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tgz 2> /dev/null; then
-      curl -s -o ./glideinwms-bigfiles-latest.tgz  https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tg 2> /dev/null
+    if ! wget -q "https://glideinwms.fnal.gov/downloads/${TARNAME}" 2> /dev/null; then
+      curl -s -o "./$TARNAME"  "https://glideinwms.fnal.gov/downloads/${TARNAME}" 2> /dev/null
     fi    
-    if [ ! -e ./glideinwms-bigfiles-latest.tgz ]; then
+    if [ ! -e "./$TARNAME" ]; then
       logerror "Download with wget and curl failed. Could not update big files."
       exit 1
     fi
     logverbose "Files retrieved:"
-    cmd_out=$(tar xvzf glideinwms-bigfiles-latest.tgz 2>&1)
+    cmd_out=$(tar xvzf "${TARNAME}" 2>&1)
     logverbose "$cmd_out"
 }
 
 push() {
+    # This function is executed in "$REPO_DIR/bigfiles"
     # 1. scp PATH: host:directory
     # ./[pull|push]-bigfiles.sh kept for compatibility
     local cmd_out
@@ -131,7 +140,7 @@ push() {
         if ! scp -q "$TARNAME" "$1/glideinwms-bigfiles-${tar_time}.tgz"; then
             logerror "Upload failed"
         else
-            ssh "${1%:*}" "cd ${1#*:} && rm -f glideinwms-bigfiles-latest.tgz && ln -s glideinwms-bigfiles-${tar_time} glideinwms-bigfiles-latest.tgz"
+            ssh "${1%:*}" "cd ${1#*:} && rm -f ${TARNAME} && ln -s glideinwms-bigfiles-${tar_time}.tgz ${TARNAME}"
             logverbose "Upload completed"
         fi
     fi
