@@ -126,6 +126,7 @@ pull() {
         exit 1
     else
         logverbose "$cmd_out"
+    fi
 }
 
 push() {
