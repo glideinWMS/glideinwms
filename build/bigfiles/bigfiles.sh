@@ -34,7 +34,14 @@ ${filename} [options]
               and write a list of replaced files to BF_LIST. Big files are downloaded if not in the bigfiles directory
   -R          copy the big files (from BF_LIST) to the bigfiles directory and replace the big files with the 
               symbolic links to the bigfiles directory
-  -b BF_LIST  big files list (default: REPO_DIR/$BIGFILES_LIST)  
+  -b BF_LIST  big files list (default: REPO_DIR/$BIGFILES_LIST)
+ Examples:
+  ./bifiles.sh -p           Use this before running unit tests or packaging the software, to pull the big files
+  ./bifiles.sh -pr          Use this if you plan to edit a big file in place. Will pull and replace the symbolic links 
+                            w/ the actual file
+  ./bifiles.sh -PR          Use this before committing if you used ./bifiles.sh -pr. Will make sure that the big file
+                            is replaced with the proper link. Remember to send the archive wit the new 
+                            big files ($TARNAME) to a GlideinWMS librarian
 EOF
 }
 
