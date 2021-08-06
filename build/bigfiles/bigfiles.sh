@@ -100,23 +100,25 @@ parse_options() {
 }
 
 pull() {
+    # This function is executed in "$REPO_DIR/bigfiles"
     local cmd_out
     logverbose "Starting the big files download"
-    [ -f ./glideinwms-bigfiles-latest.tgz ] && rm ./glideinwms-bigfiles-latest.tgz
+    [ -f "./$TARNAME" ] && rm "./$TARNAME"
     # Download the latest big files
-    if ! wget -q https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tgz 2> /dev/null; then
-      curl -s -o ./glideinwms-bigfiles-latest.tgz  https://glideinwms.fnal.gov/downloads/glideinwms-bigfiles-latest.tg 2> /dev/null
+    if ! wget -q "https://glideinwms.fnal.gov/downloads/${TARNAME}" 2> /dev/null; then
+      curl -s -o "./$TARNAME"  "https://glideinwms.fnal.gov/downloads/${TARNAME}" 2> /dev/null
     fi    
-    if [ ! -e ./glideinwms-bigfiles-latest.tgz ]; then
+    if [ ! -e "./$TARNAME" ]; then
       logerror "Download with wget and curl failed. Could not update big files."
       exit 1
     fi
     logverbose "Files retrieved:"
-    cmd_out=$(tar xvzf glideinwms-bigfiles-latest.tgz 2>&1)
+    cmd_out=$(tar xvzf "${TARNAME}" 2>&1)
     logverbose "$cmd_out"
 }
 
 push() {
+    # This function is executed in "$REPO_DIR/bigfiles"
     # 1. scp PATH: host:directory
     # ./[pull|push]-bigfiles.sh kept for compatibility
     local cmd_out
@@ -131,7 +133,7 @@ push() {
         if ! scp -q "$TARNAME" "$1/glideinwms-bigfiles-${tar_time}.tgz"; then
             logerror "Upload failed"
         else
-            ssh "${1%:*}" "cd ${1#*:} && rm -f glideinwms-bigfiles-latest.tgz && ln -s glideinwms-bigfiles-${tar_time} glideinwms-bigfiles-latest.tgz"
+            ssh "${1%:*}" "cd ${1#*:} && rm -f ${TARNAME} && ln -s glideinwms-bigfiles-${tar_time}.tgz ${TARNAME}"
             logverbose "Upload completed"
         fi
     fi
