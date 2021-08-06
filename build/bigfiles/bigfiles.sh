@@ -120,8 +120,12 @@ pull() {
       exit 1
     fi
     logverbose "Files retrieved:"
-    cmd_out=$(tar xvzf "${TARNAME}" 2>&1)
-    logverbose "$cmd_out"
+    if ! cmd_out=$(tar xvzf "${TARNAME}" 2>&1); then
+        logerror "Failed to unpack the big files. Could not update big files. There may be a problem with the archive on the server."
+        logerror "$cmd_out"
+        exit 1
+    else
+        logverbose "$cmd_out"
 }
 
 push() {
