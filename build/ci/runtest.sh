@@ -579,7 +579,15 @@ do_git_init_command() { true; }
 bigfiles_pre() {
     # Prepare bigfiles. In the root dir of the repo
     [[ ! -e build/bigfiles/bigfiles.sh ]] && return
-    ./build/bigfiles/bigfiles.sh -p
+    local cmd_out
+    logstep bigfiles
+    if ! cmd_out=$(./build/bigfiles/bigfiles.sh -pv); then
+        logdebug "$cmd_out"
+        logwarn "Failed to setup big files. Continuing"
+    else
+        logdebug "$cmd_out"
+        logreportok "BIGFILES"
+    fi
 }
 # Cleanup bigfiles. In the root dir of the repo. Nothing to do if bigfiles_pre did not replace the links
 bigfiles_post() { true; }
