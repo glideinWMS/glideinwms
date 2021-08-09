@@ -575,6 +575,23 @@ do_check_requirements() { true; }
 # Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
 # do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
 do_git_init_command() { true; }
+# Functions expanding bigfiles. Replace if special handling is needed (e.g. link substitution)
+bigfiles_pre() {
+    # Prepare bigfiles. In the root dir of the repo
+    [[ ! -e build/bigfiles/bigfiles.sh ]] && return
+    local cmd_out
+    logstep bigfiles
+    if ! cmd_out=$(./build/bigfiles/bigfiles.sh -pv); then
+        logdebug "$cmd_out"
+        logwarn "Failed to setup big files. Continuing"
+    else
+        logdebug "$cmd_out"
+        logreportok "BIGFILES"
+    fi
+}
+# Cleanup bigfiles. In the root dir of the repo. Nothing to do if bigfiles_pre did not replace the links
+bigfiles_post() { true; }
+
 # Empty logging commands
 do_log_init() { false; }
 do_log_branch() { true; }
@@ -762,9 +779,13 @@ _main() {
                 [[ ! "$git_branch" = "$curr_branch" ]] && logwarn "Current branch ${curr_branch} different from expected ${git_branch}, continuing anyway"
                 logreportok "GIT_CHECKOUT"
             fi
+            # Handle bigfiles: bigfiles_pre
+            bigfiles_pre
             # Starting the test
             process_branch "$git_branch" "$@"
             fail=$?
+            # Handle bigfiles: bigfiles_post
+            bigfiles_post
             loginfo "Complete with branch ${git_branch} (ec:${fail})"
             [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
             ## CI is using a different mechanism now, commenting these lines
