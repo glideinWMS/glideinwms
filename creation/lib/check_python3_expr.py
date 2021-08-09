@@ -59,7 +59,7 @@ def check_types(expression, factory_attrs, job_attrs):
         str: None if code is valid. Error message if the code is invalid.
     """
 
-    # Mock job dictionary and
+    # Mock job and glidein["attrs"] dictionaries
     default_value = {
         "string": "",
         "int": 0,
