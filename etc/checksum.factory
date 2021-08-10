@@ -1,12 +1,10 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_7_5_rc1
+# GLIDEINWMS_VERSION 3_7_5_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
-25486e8a84791e19827ece822c8dd9b7  ./bigfiles/glideinwms-bigfiles-latest.tgz
-72c040c109aa54581966d5df97fb012f  ./bigfiles/pull-bigfiles.sh
-5b7612f6cd237a6d0ad34ea1f16aa2ae  ./bigfiles/push-bigfiles.sh
-f32e42ea32401097ca3a9bb14ef46ee6  ./bigfiles/README.txt
+fdc52889d8d4a76c7cdc04b22d9a9cb4  ./bigfiles/glideinwms-bigfiles-latest.tgz
+2abce34f55d02f482210d96e7dafeba8  ./bigfiles/README.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 231264d2191650a0137c6ea2df57b31b  ./creation/clone_glidein
 4ed70dbf89a7243a7977bd07903255d6  ./creation/create_condor_tarball
