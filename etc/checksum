@@ -1,9 +1,7 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3.7.5_rc0
+# GLIDEINWMS_VERSION 3_7_5_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
-68b329da9893e34099c7d8ad5cb9c940  ./bigfiles/cvmfs_utils.tar.gz
-fdc52889d8d4a76c7cdc04b22d9a9cb4  ./bigfiles/glideinwms-bigfiles-latest.tgz
 2abce34f55d02f482210d96e7dafeba8  ./bigfiles/README.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 231264d2191650a0137c6ea2df57b31b  ./creation/clone_glidein
