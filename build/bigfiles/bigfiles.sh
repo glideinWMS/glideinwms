@@ -183,7 +183,7 @@ _main() {
             rm -f ${BIGFILES_LIST}
             local links_list
             #find . | while read file; do dosomething "$file"; done
-            links_list=$(find . \( -path "./doc/api*" -o -path "./unittests*" \) -prune -false -o -type l -print)
+            links_list=$(find . \( -path "./doc/api*" -o -path "./unittests*" -o -path "./build/bigfiles*" \) -prune -false -o -type l -print)
             for file in $links_list; do
                 to_file=$(readlink "$file")
                 if [[ "$file" = *","* || "$to_file" = *","* ]]; then
