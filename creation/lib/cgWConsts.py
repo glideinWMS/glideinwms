@@ -3,7 +3,7 @@ from __future__ import absolute_import
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Keep all the constants used to create glidein entries in this module
@@ -23,7 +23,7 @@ CONDOR_FILE = "condor_bin_%s.tgz"
 CONDOR_DIR = "condor"
 CONDOR_ATTR = "CONDOR_DIR"
 
-CONDOR_STARTUP_FILE="condor_startup.sh"
+CONDOR_STARTUP_FILE = "condor_startup.sh"
 
 # constants for cvmfsexec
 CVMFSEXEC_DISTRO_FILE = "cvmfsexec_dist_%s.tgz"

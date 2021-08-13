@@ -31,7 +31,7 @@ def create_condor_tar_fd(condor_base_dir):
     """Extract only components from a full condor distribution needed to run a
     glidein on a CE.  This code is only run when a factory reconfig or upgrade
     is triggered.
- 
+
     Args:
         condor_base_dir (str):  an untarred tarball of an HTCondor Distribution
 
@@ -188,7 +188,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if token_list:
             self.append('environment', "JOB_TOKENS='"+','.join(token_list)+"'")
 
-
         # Get the list of log recipients specified from the Factory for this entry
         factory_recipients = get_factory_log_recipients(entry)
         frontend_recipients = []    # TODO: change when adding support for LOG_RECIPIENTS_CLIENT
@@ -270,7 +269,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 "LeaveJobInQueue",
                 "((time() - EnteredCurrentStatus) < 12*60*60)")
 
-        # GLIDEIN_IDLE_LIFETIME comes from idle_glideins_lifetime in the config section of the Frontend configuration (glidein limits) 
+        # GLIDEIN_IDLE_LIFETIME comes from idle_glideins_lifetime in the config section of the Frontend configuration (glidein limits)
         # GlideinSkipIdleRemoval is set instead in the submit_attr section of the Factory
         remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
         max_walltime = next(iter([x for x in entry.get_child_list(

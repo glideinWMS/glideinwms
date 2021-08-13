@@ -23,7 +23,7 @@ from glideinwms.lib import condorSecurity
 def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
-    """            
+    """ 
     template = get_template("frontend_initd_startup_template", glideinWMS_dir)
     template = template % {"frontend_dir": frontend_dir,
                            "glideinWMS_dir": glideinWMS_dir,
@@ -32,7 +32,7 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
     with open(startup_fname, "w") as fd:
         fd.write(template)
 
-    os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+    os.chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH | stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
 
     return
 
@@ -65,8 +65,8 @@ def create_client_mapfile(mapfile_fname, my_DN, factory_DNs, schedd_DNs, collect
         # Add FS and other mappings just for completeness
         # Condor should never get here because these mappings are not accepted
         for t in ('FS', 'SSL', 'KERBEROS', 'PASSWORD', 'FS_REMOTE', 'NTSSPI', 'CLAIMTOBE', 'ANONYMOUS'):
-            fd.write("%s (.*) anonymous\n"%t)
-        
+            fd.write("%s (.*) anonymous\n" % t)
+
     return
 
 
@@ -103,7 +103,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
-        fd.write("COLLECTOR_HOST = %s\n"%string.join(collector_nodes, ","))
+        fd.write("COLLECTOR_HOST = %s\n" % string.join(collector_nodes, ","))
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")
@@ -118,16 +118,16 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("# (also disable any GRIDMAP)\n")
         fd.write("#################################\n")
         fd.write("# This is a fake file, redefine at runtime\n")
-        fd.write("CERTIFICATE_MAPFILE=%s\n"%mapfile_fname)
+        fd.write("CERTIFICATE_MAPFILE=%s\n" % mapfile_fname)
 
         fd.write("\n# Specify that we trust anyone but not anonymous\n")
         fd.write("# I.e. we only talk to servers that have \n")
         fd.write("#  a DN mapped in our mapfile\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
-            fd.write("DENY_%s = anonymous@*\n"%context)
+            fd.write("DENY_%s = anonymous@*\n" % context)
         fd.write("\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
-            fd.write("ALLOW_%s = *@*\n"%context)
+            fd.write("ALLOW_%s = *@*\n" % context)
         fd.write("\n")
         fd.write("\n# Unset all the tool specifics\n")
 
@@ -141,13 +141,12 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("DAEMON_LIST=MASTER\n")
         fd.write("DAEMON_SHUTDOWN=True\n")
 
-
         fd.write("\n######################################################\n")
         fd.write("## If condor is allowed to use VOMS attributes, it will\n")
         fd.write("## map COLLECTOR DN to anonymous. Just disable it.\n")
         fd.write("######################################################\n")
         fd.write("USE_VOMS_ATTRIBUTES = False\n")
-        
+ 
         fd.write("\n######################################################\n")
         fd.write("## Newer versions of Condor will try to enforce hostname\n")
         fd.write("## mapping in the server DN. This does not work for\n")
@@ -155,7 +154,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("## we explicitly whitelist all DNs.\n")
         fd.write("######################################################\n")
         fd.write("GSI_SKIP_HOST_CHECK = True\n")
-        
+
         fd.write("\n######################################################\n")
         fd.write("## Add GSI DAEMON PROXY based on the frontend config and \n")
         fd.write("## not what is in the condor configs from install \n")
@@ -163,6 +162,7 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("GSI_DAEMON_PROXY = %s\n" % classad_proxy)
 
     return
+
 
 def filter_unwanted_config_attrs(attrs):
     unwanted_attrs = []
@@ -183,7 +183,6 @@ def filter_unwanted_config_attrs(attrs):
     unwanted_attrs.append('GSI_DAEMON_NAME')
     unwanted_attrs.append('GSI_DAEMON_PROXY')
 
-
     for context in condorSecurity.CONDOR_CONTEXT_LIST:
         unwanted_attrs.append('TOOL.DENY_%s' % context)
         unwanted_attrs.append('TOOL.ALLOW_%s' % context)
@@ -192,7 +191,7 @@ def filter_unwanted_config_attrs(attrs):
         unwanted_attrs.append('TOOL.SEC_%s_INTEGRITY' % context)
 
         # Keep default setting for following
-        if context!="DEFAULT":
+        if context != "DEFAULT":
             unwanted_attrs.append('SEC_%s_AUTHENTICATION' % context)
             unwanted_attrs.append('SEC_%s_AUTHENTICATION_METHODS' % context)
             unwanted_attrs.append('SEC_%s_INTEGRITY' % context)
@@ -205,6 +204,7 @@ def filter_unwanted_config_attrs(attrs):
             if attr == uattr:
                 attrs[i] = '#%s' % attrs[i]
     return attrs
+
 
 def get_template(template_name, glideinWMS_dir):
     with open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r") as template_fd:

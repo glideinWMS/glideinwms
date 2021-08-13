@@ -66,18 +66,18 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         cgWDictFile.glideinMainDicts.__init__(self, submit_dir, stage_dir, workdir_name,
                                               log_dir,
                                               client_log_dirs, client_proxy_dirs)
-        self.monitor_dir=monitor_dir
+        self.monitor_dir = monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
-        self.monitor_jslibs_dir=os.path.join(self.monitor_dir, 'jslibs')
+        self.monitor_jslibs_dir = os.path.join(self.monitor_dir, 'jslibs')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
-        self.monitor_images_dir=os.path.join(self.monitor_dir, 'images')
+        self.monitor_images_dir = os.path.join(self.monitor_dir, 'images')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir, "monitor"))
-        self.conf=conf
-        self.active_sub_list=[]
-        self.disabled_sub_list=[]
-        self.monitor_jslibs=[]
-        self.monitor_images=[]
-        self.monitor_htmls=[]
+        self.conf = conf
+        self.active_sub_list = []
+        self.disabled_sub_list = []
+        self.monitor_jslibs = []
+        self.monitor_images = []
+        self.monitor_htmls = []
 
     def populate(self, other=None):
         # put default files in place first
@@ -127,7 +127,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
-        #load condor tarballs
+        # load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
         condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
 
@@ -138,7 +138,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         tar_dir_map = {}
 
         for condor_idx in range(len(condor_tarballs)):
-            condor_el=condor_tarballs[condor_idx]
+            condor_el = condor_tarballs[condor_idx]
 
             # condor_el now is a combination of csv version+os+arch
             # Get list of valid tarballs for this condor_el
@@ -210,7 +210,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add the factory monitoring collector parameter, if any collectors are defined
         # this is purely a factory thing
-        factory_monitoring_collector=calc_monitoring_collectors_string(self.conf.get_child_list(u'monitoring_collectors'))
+        factory_monitoring_collector = calc_monitoring_collectors_string(self.conf.get_child_list(u'monitoring_collectors'))
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector', str(factory_monitoring_collector))
         populate_gridmap(self.conf, self.dicts['gridmap'])
@@ -286,7 +286,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['untar_cfg'].add(cvmfsexec_utils, "cvmfs_utils")
 
         # adding cvmfsexec distribution tarballs to the default list of uploads
-        # NOTE: the distribution tarballs are created during factory reconfig or upgrade
+        # distribution tarballs are created during factory reconfig or upgrade
         dist_select_script = 'cvmfsexec_platform_select.sh'
         self.dicts['file_list'].add_from_file(
             dist_select_script,
@@ -297,12 +297,15 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # get the location of the tarballs created during reconfig/upgrade
         distros_loc = os.path.abspath("/tmp/cvmfsexec_pkg/tarballs")
+        # os.scandir() is more efficient with python 3.x
         distros = os.listdir(distros_loc)
-        for cvmfsexec_idx in range(len(distros)):   # TODO: os.scandir() is more efficient with python 3.x
+        for cvmfsexec_idx in range(len(distros)):
             distro_info = distros[cvmfsexec_idx].split("_")
             distro_arch = (distro_info[3] + "_" + distro_info[4]).split(".")[0]
             # register the tarball, but make download conditional to cond_name
-            cvmfsexec_fname = cWConsts.insert_timestr(cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx)
+            cvmfsexec_fname = cWConsts.insert_timestr(
+                cgWConsts.CVMFSEXEC_DISTRO_FILE % cvmfsexec_idx
+            )
 
             platform = "%s-%s-%s" % (distro_info[1], distro_info[2], distro_arch)
             cvmfsexec_cond_name = "CVMFSEXEC_PLATFORM_%s" % platform
@@ -310,9 +313,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
             self.dicts['file_list'].add_from_file(
                 cvmfsexec_platform_fname,
-                cWDictFile.FileDictFile.make_val_tuple(cvmfsexec_fname, 'untar',
-                                                       cond_download=cvmfsexec_cond_name,
-                                                       config_out=cgWConsts.CVMFSEXEC_ATTR),
+                cWDictFile.FileDictFile.make_val_tuple(
+                    cvmfsexec_fname, 'untar',
+                    cond_download=cvmfsexec_cond_name,
+                    config_out=cgWConsts.CVMFSEXEC_ATTR),
                 os.path.join(distros_loc, distros[cvmfsexec_idx])
             )
 
@@ -360,9 +364,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         javascriptrrd_dir = self.conf.get_child(u'monitor')[u'javascriptRRD_dir']
         for mfarr in ((cgWConsts.WEB_BASE_DIR, 'factory_support.js'),
                       (javascriptrrd_dir, 'javascriptrrd.wlibs.js')):
-            mfdir, mfname=mfarr
+            mfdir, mfname = mfarr
             parent_dir = self.find_parent_dir(mfdir, mfname)
-            mfobj=cWDictFile.SimpleFile(parent_dir, mfname)
+            mfobj = cWDictFile.SimpleFile(parent_dir, mfname)
             mfobj.load()
             self.monitor_jslibs.append(mfobj)
 
@@ -373,13 +377,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                       (cgWConsts.WEB_BASE_DIR, 'factoryCompletedStats.html'),
                       (cgWConsts.WEB_BASE_DIR, 'factoryStatusNow.html'),
                       (cgWConsts.WEB_BASE_DIR, 'factoryEntryStatusNow.html')):
-            mfdir, mfname=mfarr
-            mfobj=cWDictFile.SimpleFile(mfdir, mfname)
+            mfdir, mfname = mfarr
+            mfobj = cWDictFile.SimpleFile(mfdir, mfname)
             mfobj.load()
             self.monitor_htmls.append(mfobj)
 
         # add the index page and its images
-        mfobj=cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/', 'index.html')
+        mfobj = cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/', 'index.html')
         mfobj.load()
         self.monitor_htmls.append(mfobj)
         for imgfile in ('factoryCompletedStats.png',
@@ -389,7 +393,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                         'factoryRRDEntryMatrix.png',
                         'factoryStatus.png',
                         'factoryStatusNow.png'):
-            mfobj=cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/images/', imgfile)
+            mfobj = cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/images/', imgfile)
             mfobj.load()
             self.monitor_images.append(mfobj)
 
@@ -427,23 +431,23 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def save_pub_key(self):
         sec_el = self.conf.get_child(u'security')
         if u'pub_key' not in sec_el:
-            pass # nothing to do
-        elif sec_el[u'pub_key']=='RSA':
-            rsa_key_fname=os.path.join(self.work_dir, cgWConsts.RSA_KEY)
+            pass   # nothing to do
+        elif sec_el[u'pub_key'] == 'RSA':
+            rsa_key_fname = os.path.join(self.work_dir, cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
                 # create the key only once
 
                 # touch the file with correct flags first
                 # I have no way to do it in  RSAKey class
-                fd=os.open(rsa_key_fname, os.O_CREAT, 0o600)
+                fd = os.open(rsa_key_fname, os.O_CREAT, 0o600)
                 os.close(fd)
 
-                key_obj=pubCrypto.RSAKey()
+                key_obj = pubCrypto.RSAKey()
                 key_obj.new(int(sec_el[u'key_length']))
                 key_obj.save(rsa_key_fname)
         else:
-            raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key'])
+            raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA" % sec_el[u'pub_key'])
 
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
@@ -482,7 +486,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 for line in monitor_config_line:
                     monitor_config_fd.write(line + "\n")
             except IOError as e:
-                raise RuntimeError("Error writing into file %s"%monitor_config_file)
+                raise RuntimeError("Error writing into file %s" % monitor_config_file)
         finally:
             monitor_config_fd.close()
 
@@ -496,8 +500,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self, conf, sub_name,
                  summary_signature, workdir_name):
-        self.conf=conf
-        self.entry_name=sub_name
+        self.conf = conf
+        self.entry_name = sub_name
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()
         monitor_dir = conf.get_monitor_dir()
@@ -507,13 +511,13 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         cgWDictFile.glideinEntryDicts.__init__(self, submit_dir, stage_dir, sub_name, summary_signature, workdir_name,
                                                log_dir, client_log_dirs, client_proxy_dirs)
 
-        self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir, sub_name)
+        self.monitor_dir = cgWConsts.get_entry_monitor_dir(monitor_dir, sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir, self.work_dir))
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
         for entry in self.conf.get_entries():
-            if entry.getName()==self.entry_name:
+            if entry.getName() == self.entry_name:
                 break
         else:
             # This happens when old_dictionary contains something (e.g.: entries are removed from the conf)
@@ -531,7 +535,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for cj in self.dicts['condor_jdl']:
             cj.load()
 
-    def save_final(self,set_readonly=True):
+    def save_final(self, set_readonly=True):
         sub_stage_dir = cgWConsts.get_entry_stage_dir("", self.sub_name)
 
         # Let's remove the job.condor single entry file (in case the entry_set has the same name of an old entry)
@@ -542,17 +546,17 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         for cj in self.dicts['condor_jdl']:
             cj.finalize(self.summary_signature['main'][0], self.summary_signature[sub_stage_dir][0],
-                        self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
-            cj.save(set_readonly=set_readonly)
+                        self.summary_signature['main'][1], self.summary_signature[sub_stage_dir][1])
+            cj.save(set_readonly = set_readonly)
 
     def populate(self, entry, schedd):
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
-        self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
 
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
+        file_name = cWConsts.BLACKLIST_FILE
         self.dicts['file_list'].add_from_file(file_name,
                                               cWDictFile.FileDictFile.make_val_tuple(file_name, 'nocache', config_out='BLACKLIST_FILE'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
@@ -564,7 +568,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
-        #load system files
+        # load system files
         self.dicts['vars'].load(cgWConsts.WEB_BASE_DIR, 'condor_vars.lst.entry', change_self=False, set_not_changed=False)
 
         # put user files in stage
@@ -623,7 +627,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 # Find subentry
                 for cj in self.dicts[u'condor_jdl']:
                     cj_entryname = cj.fname.split('.')[1]
-                    if cj_entryname==subentry.getName():
+                    if cj_entryname == subentry.getName():
                         cj.populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
                         break
                 entry.select(None)
@@ -1302,4 +1306,5 @@ def calc_primary_monitoring_collectors(collectors):
         return None
     else:
         return string.join(collector_nodes.values(), ",")
+
 
