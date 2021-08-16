@@ -33,7 +33,15 @@ archive_gwms() {
     cd $gwms_location
     git checkout $gwms_tag
     [ $? -ne 0 ] && { echo "ERROR: Failed to checkout $gwms_tag, aborting. Did you push your commit?"; exit 1; }
-    git archive $gwms_tag --prefix='glideinwms/' | gzip > $gwms_tar
+    if [ -x ./build/bigfiles/bigfiles.sh ]; then
+        local stashName
+        ./build/bigfiles/bigfiles.sh -pr
+        stashName=$(git stash create)
+        git archive $stashName --prefix='glideinwms/' | gzip > "$gwms_tar"
+        gwms_tag="$gwms_tag+BIGFILES"
+    else
+        git archive $gwms_tag --prefix='glideinwms/' | gzip > "$gwms_tar"
+    fi
 }
 
 
