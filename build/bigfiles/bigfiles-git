@@ -1,0 +1,24 @@
+#!/bin/sh
+
+mydir=$(dirname $0)
+
+if [ "$1" = bigfiles ]; then
+    if [ "$2" = pull ]; then
+        shift; shift
+        "$mydir"/bigfiles.sh -pu "$@"
+        exit $?
+    elif [ "$2" = push ]; then
+        shift; shift
+        "$mydir"/bigfiles.sh -P "$@"
+        exit $?
+    else
+        echo "Unknown bigfiles option" >2
+        echo "$0 pull [pull options: -v]" >2
+        echo "$0 push [push options: -v, -s SERVER]" >2
+        exit 1
+    fi
+fi
+
+"$mydir"/bigfiles.sh -R
+git "$@"
+"$mydir"/bigfiles.sh -pr
