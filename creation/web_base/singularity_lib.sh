@@ -124,6 +124,14 @@ info_dbg() {
     fi
 }
 
+warn_muted() {
+    # These are warning messages (conditions that could cause errors) but are muted
+    # because most of the times the Glideins work and the messages are confising for users (OSG request)
+    if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
+        warn_raw "WARNING " "$@"
+    fi
+}
+
 warn() {
     warn_raw "WARNING " "$@"
 }
@@ -509,7 +517,7 @@ if [[ -e "$glidein_config" ]]; then    # was: [ -n "$glidein_config" ] && [ "$gl
     fi
 else
     # glidein_config not available
-    warn "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited." || true
+    warn_muted "glidein_config not defined ($glidein_config) in singularity_lib.sh. Some functions like advertise and error_gen will be limited." || true
     [[ -z "$error_gen" ]] && error_gen=warn
     glidein_config=NONE
 fi
@@ -1019,7 +1027,7 @@ singularity_update_path() {
         done
         IFS="$old_ifs"
         # Warn about possible error conditions
-        [[ "${arg}" == */execute/dir_* ]] && warn "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
+        [[ "${arg}" == */execute/dir_* ]] && warn_muted "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
     done
 }
