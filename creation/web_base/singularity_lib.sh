@@ -1730,7 +1730,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         mkdir -p condor/libexec
         cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
         mkdir -p condor/lib
-        cp -r ../../main/condor/lib condor/
+        cp -r ../../main/condor/lib/* condor/lib/
         info_dbg "copied HTCondor condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
     fi
 
