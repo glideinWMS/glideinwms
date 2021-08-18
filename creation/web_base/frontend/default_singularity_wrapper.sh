@@ -55,9 +55,9 @@ exit_wrapper () {
     else
         publish_fail="HTCondor error file"
     fi
-    # also chirp
-    if [[ -e ../../main/condor/libexec/condor_chirp ]]; then
-        ../../main/condor/libexec/condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1"
+    # If chirp (pychirp) is available set a job attribute
+    if command -v condor_chirp > /dev/null 2>&1; then
+        condor_chirp set_job_attr JobWrapperFailure "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1"
     else
         [[ -n "$publish_fail" ]] && publish_fail="${publish_fail} and "
         publish_fail="${publish_fail}condor_chirp"
@@ -256,17 +256,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         fi
     else
         warn "Unable to find GlideinWMS utilities (../../gwms from $(pwd))"
-    fi
-
-    # TODO: this is no more needed once 'pychirp' in gwms is tried and tested
-    # If condor_chirp is present, then copy it inside the container.
-    # This is used in singularity_lib.sh/singularity_setup_inside()
-    if [ -e ../../main/condor/libexec/condor_chirp ]; then
-        mkdir -p condor/libexec
-        cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
-        mkdir -p condor/lib
-        cp -r ../../main/condor/lib condor/
-        info_dbg "copied HTCondor condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
     fi
 
     # set up the env to make sure Singularity uses the glidein dir for exported /tmp, /var/tmp
@@ -498,21 +487,6 @@ else
     #
     #  modules and env
     #
-    
-    # TODO: to remove for sure once 'pychirp' is tried and tested
-    # TODO: not needed here? It is in singularity_setup_inside for when Singularity is invoked, and should be already in the PATH when it is not
-    # Checked - glidin_startup seems not to add condor to the path
-    # Add Glidein provided HTCondor back to the environment (so that we can call chirp) - same is in
-    # TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
-    if ! command -v condor_chirp > /dev/null 2>&1; then
-        # condor_chirp not found, setting up form the condor library
-        if [[ -e ../../main/condor/libexec ]]; then
-            DER=$( (cd ../../main/condor; pwd) )
-            export PATH="$DER/libexec:$PATH"
-            # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
-            # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
-        fi
-    fi
     
     # fix discrepancy for Squid proxy URLs
     if [[ "x$GLIDEIN_Proxy_URL" = "x"  ||  "$GLIDEIN_Proxy_URL" = "None" ]]; then
