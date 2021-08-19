@@ -15,7 +15,7 @@ logerror() {
 }
 
 logverbose() {
-    [ -n "$VERBOSE" ] && echo "$1" 
+    [ -n "$VERBOSE" ] && echo "$1" || true
 }
 
 help_msg() {

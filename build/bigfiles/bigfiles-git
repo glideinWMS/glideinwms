@@ -12,9 +12,9 @@ if [ "$1" = bigfiles ]; then
         "$mydir"/bigfiles.sh -P "$@"
         exit $?
     else
-        echo "Unknown bigfiles option" >2
-        echo "$0 pull [pull options: -v]" >2
-        echo "$0 push [push options: -v, -s SERVER]" >2
+        echo "Unknown bigfiles option" >&2
+        echo "$0 pull [pull options: -v]" >&2
+        echo "$0 push [push options: -v, -s SERVER]" >&2
         exit 1
     fi
 fi
