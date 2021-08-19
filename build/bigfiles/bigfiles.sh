@@ -134,7 +134,7 @@ push() {
     # 1. scp PATH: host:directory
     # ./[pull|push]-bigfiles.sh kept for compatibility
     local cmd_out
-    cmd_out=$(tar --exclude='./README.txt' --exclude='./pull-bigfiles.sh' --exclude='./push-bigfiles.sh' --exclude="./$TARNAME" -cvzf "./$TARNAME" ./* 2>&1)
+    cmd_out=$(tar --exclude='./README.txt' --exclude='./pull-bigfiles.sh' --exclude='./push-bigfiles.sh' --exclude='./bigfiles_list.txt' --exclude="./$TARNAME" -cvzf "./$TARNAME" ./* 2>&1)
     logverbose "New files saved to ${TARNAME}:"
     logverbose "$cmd_out"
     # upload to the server

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# The current directory is the top level of the working tree.
+# The following environment variables are set: GIT_DIR is set to ‘.git’
+# 3 parameters:
+# 1. The ref of the previous HEAD
+# 2. The ref of the new HEAD
+# 3. A flag telling you if it was a branch checkout or a file checkout. The flag will be 1 and 0, respectively.
+
+# -u could be added to force the download all the times
+# Git -pr is not idempotent. Assuming that all big files are links after the checkout
+# All are replaced w/ actual files
+if [ -x ./build/bigfiles/bigfiles.sh ]; then
+    ./build/bigfiles/bigfiles.sh -pr || exit $?
+fi
