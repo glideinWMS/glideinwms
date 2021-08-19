@@ -40,8 +40,12 @@ archive_gwms() {
         # From: https://stackoverflow.com/questions/2766600/git-archive-of-repository-with-uncommitted-changes
         # better than "--add-file" solution: no git version requirement, files are already tracked
         stashName=$(git stash create)
-        git archive $stashName --prefix='glideinwms/' | gzip > "$gwms_tar"
-        gwms_tag="$gwms_tag+BIGFILES"
+        if [ -z "$stashName" ]; then
+            echo "WARNING: No changes from ${gwms_tag}. bigfiles may have failed." }
+            stashName=$gwms_tag
+        else
+            gwms_tag="$gwms_tag+BIGFILES"
+        git archive ${stashName} --prefix='glideinwms/' | gzip > "$gwms_tar"
     else
         git archive $gwms_tag --prefix='glideinwms/' | gzip > "$gwms_tar"
     fi
