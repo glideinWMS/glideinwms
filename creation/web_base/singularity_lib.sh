@@ -125,8 +125,8 @@ info_dbg() {
 }
 
 warn_muted() {
-    # These are warning messages (conditions that could cause errors) but are muted
-    # because most of the times the Glideins work and the messages are confising for users (OSG request)
+    # These are warning messages (conditions that could cause errors) but are muted unless GLIDEIN_DEBUG_OUTPUT is set
+    # because most of the times the Glideins work and the messages are confusing for users (OSG request)
     if [[ -n "$GLIDEIN_DEBUG_OUTPUT" ]]; then
         warn_raw "WARNING " "$@"
     fi
