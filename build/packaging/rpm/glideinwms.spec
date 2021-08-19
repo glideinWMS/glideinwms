@@ -479,7 +479,9 @@ for schedd in "schedd_glideins2" "schedd_glideins3" "schedd_glideins4" "schedd_g
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/lock
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/procd_pipe
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/spool
+    chmod 'g+w' $RPM_BUILD_ROOT/var/lib/condor/$schedd
 done
+
 
 
 # Install tools

@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_7_5_rc3
+# GLIDEINWMS_VERSION 3_7_5_rc4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 2abce34f55d02f482210d96e7dafeba8  ./bigfiles/README.md
@@ -67,7 +67,6 @@ baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
 2f1e5a8a5ee533974672596d7f367e57  ./creation/web_base/cvmfs_setup.sh
 e563f82bdd684df9fc1e12ca5789d8c4  ./creation/web_base/cvmfs_umount.sh
-ba748ed3bc5995aee49b1067feaf7999  ./creation/web_base/cvmfs_utils.tar.gz
 ac5ead5d73c2eaf8975518c8d3a94ed5  ./creation/web_base/error_augment.sh
 5611ae83393c245ccbed9676604b2a02  ./creation/web_base/error_gen.sh
 59bd170e75245568d6ee048924d14ecd  ./creation/web_base/factoryCompletedStats.html
@@ -88,7 +87,7 @@ a50fb539cc43b072ba1d3b3ed40cb00d  ./creation/web_base/factoryRRDBrowse.html
 9afa4ba6647ed891d05b949179135d70  ./creation/web_base/factoryStatus.html
 fba5456039a0e32388ff39bb6a314417  ./creation/web_base/factoryStatusNow.html
 38c8974215e418a04e55c3e06da8fa23  ./creation/web_base/factory_support.js
-988533642f0eaf4829b407351752d08d  ./creation/web_base/frontend/default_singularity_wrapper.sh
+d4a83d159757effcc3eafd75f4579a45  ./creation/web_base/frontend/default_singularity_wrapper.sh
 50e6c4228266aa6ad14e3601e2f0a42f  ./creation/web_base/frontend/generic_pre_singularity_setup.sh
 902fc8acb24ffa72bca323a568367a01  ./creation/web_base/frontendGroupGraphStatusNow.html
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
@@ -120,10 +119,10 @@ ab6465250e201c27f167d09b382f7e0a  ./creation/web_base/glidein_sitewms_setup.sh
 a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 bebbfe0cd55b81aa87f21b84a3730df2  ./creation/web_base/script_wrapper.sh
 ac0d3bbd998e9d9fe3b76c06387965f5  ./creation/web_base/setup_network.sh
-294a195e021598dccfd2b6f73644f355  ./creation/web_base/setup_prejob.sh
+86c04b12a49c3d3a437bede1201ebe1c  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 420677f3ea2c883049b0aa447da2eb28  ./creation/web_base/setup_x509.sh
-be7cb709bda92b87588ad473dd675d63  ./creation/web_base/singularity_lib.sh
+bd1ef1c34d606cca5e2a67676061682b  ./creation/web_base/singularity_lib.sh
 bce425b8451fbfe745e12c14fe6ce76c  ./creation/web_base/singularity_setup.sh
 2a8cd574697abd8476baa102df86299d  ./creation/web_base/singularity_wrapper.sh
 67e72d2ff964284e1e5d1a071cb765c6  ./creation/web_base/smart_partitionable.sh
@@ -245,7 +244,7 @@ f5fb582d3eff51a8665fcd89fe30a356  ./.pep8speaks.yml
 ed315f07a89523a5a539508ea539fd47  ./requirements.txt
 d8eca2e59a57a6c59f6a357461d4539a  ./test/bats/compat.bash
 9eae19e8e4dceb4be80d79a05a459831  ./test/bats/creation_web_base_collector_setup.bats
-15b85609d3c70878d9734d069d52a644  ./test/bats/creation_web_base_singularity_lib.bats
+184e3fe6af098fb0e7437b65ea222e07  ./test/bats/creation_web_base_singularity_lib.bats
 5e83118cf3153a89966ee561ae48aab8  ./test/bats/example_test.bats
 472621549180ff6c044bab82eb739731  ./test/bats/fixtures/condor_job_ad
 3d011ed7b144a76e21c0cf3ef775c586  ./test/bats/fixtures/condor_vars_file.source
