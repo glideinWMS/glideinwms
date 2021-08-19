@@ -7,21 +7,6 @@
 #  modules and env
 #
 
-# TODO: to remove for sure once 'pychirp' is tried and tested
-# TODO: not needed here? It is in singularity_setup_inside for when Singularity is invoked, and should be already in the PATH when it is not
-# Checked - glidin_startup seems not to add condor to the path
-# Add Glidein provided HTCondor back to the environment (so that we can call chirp) - same is in
-# TODO: what if original and Singularity OS are incompatible? Should check and avoid adding condor back?
-if ! command -v condor_chirp > /dev/null 2>&1; then
-    # condor_chirp not found, setting up form the condor library
-    if [[ -e ../../main/condor/libexec ]]; then
-        DER="`(cd ../../main/condor; pwd)`"
-        export PATH="$DER/libexec:$PATH"
-        # TODO: Check if LD_LIBRARY_PATH is needed or OK because of RUNPATH
-        # export LD_LIBRARY_PATH="$DER/lib:$LD_LIBRARY_PATH"
-    fi
-fi
-
 # fix discrepancy for Squid proxy URLs
 if [[ "x$GLIDEIN_Proxy_URL" = "x"  ||  "$GLIDEIN_Proxy_URL" = "None" ]]; then
     if [[ "x$OSG_SQUID_LOCATION" != "x"  &&  "$OSG_SQUID_LOCATION" != "None" ]]; then

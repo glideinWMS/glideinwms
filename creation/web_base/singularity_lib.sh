@@ -1731,17 +1731,6 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
     fi
     info_dbg "bind-path default (cvmfs:$GWMS_SINGULARITY_BIND_CVMFS, hostlib:`[ -n "$HOST_LIBS" ] && echo 1`, ocl:`[ -e /etc/OpenCL/vendors ] && echo 1`): $GWMS_SINGULARITY_WRAPPER_BINDPATHS_DEFAULTS"
 
-    # TODO: this is no more needed once 'pychirp' in gwms is tried and tested
-    # If condor_chirp is present, then copy it inside the container.
-    # This is used in singularity_lib.sh/singularity_setup_inside()
-    if [ -e ../../main/condor/libexec/condor_chirp ]; then
-        mkdir -p condor/libexec
-        cp ../../main/condor/libexec/condor_chirp condor/libexec/condor_chirp
-        mkdir -p condor/lib
-        cp -r ../../main/condor/lib condor/
-        info_dbg "copied HTCondor condor_chirp (binary and libs) inside the container ($(pwd)/condor)"
-    fi
-
     # We want to bind $PWD to /srv within the container - however, in order
     # to do that, we have to make sure everything we need is in $PWD, most
     # notably $GWMS_DIR (bin, lib, ...), the user-job-wrapper.sh (this script!) 
@@ -2047,6 +2036,7 @@ singularity_setup_inside_env() {
     # 1. GWMS_SINGULARITY_OUTSIDE_PWD, $GWMS_SINGULARITY_OUTSIDE_PWD_LIST, outside run directory pre-Singularity
     local outside_pwd_list="$1"
     local key val old_val old_ifs
+    # TODO: htcondor-provided condor_chirp has been replaced by "pychirp", should _CONDOR_CHIRP_CONFIG be removed?
     for key in X509_USER_PROXY X509_USER_CERT X509_USER_KEY \
                _CONDOR_CREDS _CONDOR_MACHINE_AD _CONDOR_EXECUTE _CONDOR_JOB_AD \
                _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
@@ -2137,17 +2127,6 @@ singularity_setup_inside() {
         # This includes the portable Python only condor_chirp
         export PATH="$PWD/$GWMS_SUBDIR/bin:$PATH"
         # export LD_LIBRARY_PATH="$PWD/$GWMS_SUBDIR/lib/lib:$LD_LIBRARY_PATH"
-    fi
-
-    if ! command -v condor_chirp > /dev/null 2>&1; then
-        # condor_chirp should have been provided by GWMS. Leaving this as alternative
-        # NOTE: this binary version may have problems if the original and image OSes are incompatible
-        # From CMS
-        # Add Glidein provided HTCondor back to the environment (so that we can call chirp)
-        if [[ -e "$PWD/condor/libexec/condor_chirp" ]]; then
-            export PATH="$PWD/condor/libexec:$PATH"
-            export LD_LIBRARY_PATH="$PWD/condor/lib:$LD_LIBRARY_PATH"
-        fi
     fi
 
     # Some java programs have seen problems with the timezone in our containers.
