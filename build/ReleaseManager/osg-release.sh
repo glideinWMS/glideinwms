@@ -33,22 +33,25 @@ archive_gwms() {
     cd $gwms_location
     git checkout $gwms_tag
     [ $? -ne 0 ] && { echo "ERROR: Failed to checkout $gwms_tag, aborting. Did you push your commit?"; exit 1; }
+    local archive_tag
+    archive_tag="$gwms_tag"
     if [ -x ./build/bigfiles/bigfiles.sh ]; then
         # Add also uncommitted big files instead of links
-        local stashName
-        ./build/bigfiles/bigfiles.sh -pr
+        if ! ./build/bigfiles/bigfiles.sh -pr ; then
+            echo "WARNING bigfiles.sh returned an error."
+        fi
         # From: https://stackoverflow.com/questions/2766600/git-archive-of-repository-with-uncommitted-changes
         # better than "--add-file" solution: no git version requirement, files are already tracked
-        stashName=$(git stash create)
-        if [ -z "$stashName" ]; then
-            echo "WARNING: No changes from ${gwms_tag}. bigfiles may have failed." }
-            stashName=$gwms_tag
+        archive_tag=$(git stash create)
+        if [ -z "$archive_tag" ]; then
+            # echo "WARNING: No changes adding big files to ${gwms_tag}. bigfiles.sh may have failed." }
+            archive_tag="$gwms_tag"
         else
+            echo "Big files changes applied"
             gwms_tag="$gwms_tag+BIGFILES"
-        git archive ${stashName} --prefix='glideinwms/' | gzip > "$gwms_tar"
-    else
-        git archive $gwms_tag --prefix='glideinwms/' | gzip > "$gwms_tar"
+        fi
     fi
+    git archive ${archive_tag} --prefix='glideinwms/' | gzip > "$gwms_tar"
 }
 
 
