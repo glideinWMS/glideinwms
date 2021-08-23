@@ -130,9 +130,12 @@ class TestFrontendGroupDicts(unittest.TestCase):
     def test__init__(self):
         self.assertTrue(isinstance(self.fed, frontendGroupDicts))
 
-    def test_populate(self):
+    def populate_wrapper(self):
         promote_dicts = self.femd.populate(self.fe_params)
         self.fed.populate(promote_dicts, self.femd, self.fe_params)
+
+    def test_populate(self):
+        self.populate_wrapper()
 
     def test_reuse(self):
         self.fed.reuse(self.fed)
@@ -141,7 +144,7 @@ class TestFrontendGroupDicts(unittest.TestCase):
         populate_common_attrs(self.fed)
 
     def test_derive_and_validate_match(self):
-        self.test_populate()
+        self.populate_wrapper()
         try:
             derive_and_validate_match("main",
                                       (self.femd['frontend_descript']['MatchExpr'],

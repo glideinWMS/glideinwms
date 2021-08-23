@@ -164,7 +164,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
-        self.group_defaults["enabled"]=("True", "Bool", "Is this group enabled?", None)
+        self.group_defaults["enabled"]=("False", "Bool", "Is this group enabled?", None)
         self.group_defaults["config"]=group_config_defaults
         self.group_defaults["attrs"]=sub_defaults['attrs']
         self.group_defaults["files"]=sub_defaults['files']
