@@ -31,6 +31,11 @@ def manager_version():
 def usage():
 
     help = ["%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0]),
+            "NOTE that this script works on the files in your current directory tree",
+            "- no git operations like clone/checkout are performed",
+            "- files you changed are kept so",
+            "- if using big files you should run 'bigfiles.sh -pr' before invoking this script",
+            "  and 'bigfiles -R' after, to ripristinate the symlinks before a commit"
             "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
             "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz",
             "         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm",
