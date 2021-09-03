@@ -45,7 +45,7 @@ fi
 if [ "$1" = -h ] || [ "$1" = --help ]; then
     help_msg
     echo "Follows git help"
-    git "$@"
+    command git "$@"
     exit 0
 elif [ "$1" = bigfiles ]; then
     if [ "$2" = pull ]; then
@@ -79,7 +79,7 @@ if $INGIT; then
         popd > /dev/null
     fi
 fi
-git "$@"
+command git "$@"
 if $INGIT; then
     pushd "$gitdir" > /dev/null
     "$mydir"/bigfiles.sh -pr
