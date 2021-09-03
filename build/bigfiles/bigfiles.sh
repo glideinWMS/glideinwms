@@ -28,7 +28,7 @@ ${filename} [options]
   -d REPO_DIR GlideinWMS repository root directory (default: trying to guess, otherwise '.')
   -p          pull: download and unpack the big files to the bigfiles directory if not already there
   -P          push: compress the big files
-  -s SERVER   upload to SERVER via scp the bundled big files (ignored it -P is not specified)         
+  -s SERVER   upload to SERVER via scp the bundled big files (ignored if -P is not specified)         
   -u          update (download and unpack even if files are already there). Used with -r and -p
   -r          replace the symbolic links with the linked linked to files in the bigfiles directory
               and write a list of replaced files to BF_LIST. Big files are downloaded if not in the bigfiles directory
