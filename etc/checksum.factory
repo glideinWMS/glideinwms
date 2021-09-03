@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_7_5_rc4
+# GLIDEINWMS_VERSION 3_7_5
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 2abce34f55d02f482210d96e7dafeba8  ./bigfiles/README.md
@@ -49,7 +49,7 @@ f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_st
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 9b449fb499efa6676ab5ddfd3dffb275  ./creation/web_base/condor_platform_select.sh
-3b5b45fa064befc8a01802ebc25da834  ./creation/web_base/condor_startup.sh
+d61e0ca51c2af675066c8aa1e717c788  ./creation/web_base/condor_startup.sh
 e721f185d6a197e9eb88068b98b3b9a8  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 0444c292477ee885dd2cefd4728d0f4e  ./creation/web_base/create_mapfile.sh
