@@ -161,7 +161,8 @@ combine_requirements () {
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 
-export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | cut -d ' ' -f 2-`"
+GLIDEIN_DEBUG_OUTPUT=$(grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | cut -d ' ' -f 2-)
+export GLIDEIN_DEBUG_OUTPUT
 
 # SINGULARITY_BIN is now different (from 3.4 or earlier). It allows to suggest a path (both in Factory and Frontend)
 # but no more controls whether Singularity should be used or not
@@ -243,10 +244,10 @@ esac
 # So, if a VO wants to have their own _new_pre_singularity_setup.sh, they must copy and modify
 # generic_pre_singularity_setup.sh and also must put their default singularity images
 # under /cvmfs/singularity.opensciencegrid.org
-SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' "$glidein_config" | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' "$glidein_config" | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' "$glidein_config" | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config" | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGES_DICT=$(grep '^SINGULARITY_IMAGES_DICT ' "$glidein_config" | cut -d ' ' -f 2-)
+SINGULARITY_IMAGE_DEFAULT6=$(grep '^SINGULARITY_IMAGE_DEFAULT6 ' "$glidein_config" | cut -d ' ' -f 2-)
+SINGULARITY_IMAGE_DEFAULT7=$(grep '^SINGULARITY_IMAGE_DEFAULT7 ' "$glidein_config" | cut -d ' ' -f 2-)
+SINGULARITY_IMAGE_DEFAULT=$(grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config" | cut -d ' ' -f 2-)
 
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
@@ -274,7 +275,7 @@ info_stdout "`date` Searching and testing the singularity binary"
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
 singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 
-if [[ "x$HAS_SINGULARITY" = "xTrue" ]]; then
+if [[ "$HAS_SINGULARITY" = "True" ]]; then
     info "Singularity binary appears present, claims to be version $GWMS_SINGULARITY_VERSION and tested with $GWMS_SINGULARITY_IMAGE"
 else
     # Adapt to missing binary

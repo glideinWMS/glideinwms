@@ -53,13 +53,13 @@ gwms_process_scripts() {
         if [[ -x "$i" ]]; then
             # run w/ some protection?
             "./$i" "$cfg_file"
-            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+            [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
             . "$i"
-            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+            [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         fi
     done
-    cd "$old_pwd"
+    cd "$old_pwd" || warn "Unable to return old directory after scripts ($old_pwd)."
 }
 
 gwms_from_config() {

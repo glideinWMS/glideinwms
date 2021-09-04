@@ -9,7 +9,7 @@ robust_realpath() {
 mydir=$(robust_realpath "$(dirname $0)")
 
 help_msg() {
-    local myname
+    # local myname - not in sh, only bash, ksh, ...
     myname=$(basename $0)
     cat << EOF
 $myname bigfiles [pull|push|stop] [Bigfiles options]
@@ -72,18 +72,24 @@ elif [ "$1" = bigfiles ]; then
     fi
 fi
 
+# pushd/popd are not in sh, only bash
+old_dir="$PWD"
 if $INGIT; then
-    if [ -f $gitdir/bigfiles/bigfiles_list.txt ]; then    
-        pushd "$gitdir" > /dev/null
+    if [ -f "$gitdir"/bigfiles/bigfiles_list.txt ]; then    
+        #pushd "$gitdir" > /dev/null
+        cd "$gitdir"
         "$mydir"/bigfiles.sh -R
-        popd > /dev/null
+        #popd > /dev/null
+        cd "$old_dir"
     fi
 fi
 command git "$@"
 if $INGIT; then
-    pushd "$gitdir" > /dev/null
+    #pushd "$gitdir" > /dev/null
+    cd "$gitdir"
     "$mydir"/bigfiles.sh -pr
-    popd > /dev/null
+    #popd > /dev/null
+    cd "$old_dir"
 else
     echo "Use a git command inside the repository to enable big files support." >&2
 fi

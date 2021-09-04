@@ -41,7 +41,8 @@ get_data() {
 source_data() {
     # Source the specified data, which is appended as tarball, without saving it
     # 1: selected file
-    local data="$(get_data "$1")"
+    local data
+    data=$(get_data "$1")
     [[ -n "$data" ]] && eval "$data"
 }
 
@@ -140,12 +141,12 @@ do_start_all() {
             g_dir="glidein_dir${i}"
             copy_all glidein_dir "${g_dir}"
             echo "Starting glidein ${i} in ${g_dir} ${multiglidein_launcher:+"with launcher ${GLIDEIN_MULTIGLIDEIN_LAUNCHER}"}"
-            pushd "${g_dir}"
+            pushd "${g_dir}" || echo "Unable to cd in start directory"
             chmod +x "${startup_script}"
             # shellcheck disable=SC2086
             ${multiglidein_launcher} "${startup_script}" -multirestart "${i}" ${global_args} &
             GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
-            popd
+            popd || true
         done
         echo "Started multiple glideins: ${GWMS_MULTIGLIDEIN_CHILDS}"
     fi
@@ -373,7 +374,7 @@ print_tail() {
   final_result_simple="$2"
   final_result_long="$3"
 
-  glidein_end_time="$(date +%s)"
+  glidein_end_time=$(date +%s)
   let total_time=${glidein_end_time}-${startup_time}
   echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
   echo ""
@@ -1718,7 +1719,7 @@ fetch_file_base() {
         fi
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
-        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
+        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
             # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
             echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
@@ -1808,7 +1809,7 @@ fetch_file_base() {
 }
 
 # Adds $1 to GWMS_PATH and update PATH
-function add_to_path {
+add_to_path() {
     local old_path=":${PATH%:}:"
     old_path="${old_path//:$GWMS_PATH:/}"
     local old_gwms_path=":${GWMS_PATH%:}:"
@@ -1853,7 +1854,7 @@ do
       warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
       glidein_exit 1
   fi
-  signature_file="$(echo "${signature_file_line}" | cut -s -f 2-)"
+  signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
 
   # Fetch signature file
   gs_id_signature="$(get_signature ${gs_id})"

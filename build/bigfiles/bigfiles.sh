@@ -91,8 +91,8 @@ parse_options() {
         b) BIGFILES_LIST="$OPTARG";;
         d) REPO_DIR="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
-        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
+        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         esac
     done
     # Validate options

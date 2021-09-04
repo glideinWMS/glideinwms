@@ -367,13 +367,13 @@ gwms_process_scripts() {
         if [[ -x "$i" ]]; then
             # run w/ some protection?
             "./$i" "$cfg_file"
-            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+            [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
             . "$i"
-            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+            [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         fi
     done
-    cd "$old_pwd"
+    cd "$old_pwd" || warn "Unable to return old directory after scripts ($old_pwd)."
 }
 
 gwms_from_config() {
@@ -1061,7 +1061,7 @@ singularity_exec() {
     if [[ "X$singularity_global_opts" = Xexec ]]; then
         warn "default_singularity_wrapper.sh pre 3.4.6 running with 3.4.6 Factory scripts. Continuing in compatibility mode."
         singularity_global_opts=
-        execution_opt=exec
+        execution_opt="exec"
         shift 5
     else
         shift 6
@@ -1116,7 +1116,8 @@ singularity_exec_simple() {
 
     # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, add default /cvmfs,
     # and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
-    local singularity_binds="`singularity_get_binds e "/cvmfs,/etc/hosts,/etc/localtime"`"
+    local singularity_binds
+    singularity_binds=$(singularity_get_binds e "/cvmfs,/etc/hosts,/etc/localtime")
     local singularity_bin="$1"
     local singularity_image="$2"
     shift 2
