@@ -1086,7 +1086,7 @@ gwms_exec_dir="${GWMS_DIR}/exec"
 if ! mkdir -p "$gwms_exec_dir" ; then
     early_glidein_failure "Cannot create '$gwms_exec_dir'"
 else
-    for i in setup prejob postjob cleanup setup_singularity ; do
+    for i in setup prejob postjob cleanup setup_singularity ; do #EXEC DIR Creation
         mkdir -p "$gwms_exec_dir"/$i
     done
 fi
@@ -1370,7 +1370,7 @@ fetch_file_regular() {
     fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
 }
 
-fetch_file() {
+fetch_file() { # Changes will start here!!!
     # custom_scripts parameters format is set in the GWMS configuration (creation/lib)
     # 1. ID
     # 2. target fname
@@ -1380,17 +1380,24 @@ fetch_file() {
     # 6. periodic scripts prefix
     # 7. config check TRUE,FALSE
     # 8. config out TRUE,FALSE
+    # 9. time (prejob, [LIST OF POSSIBLE EXECUTION TIMES])
     # The above is the most recent list, below some adaptations for different versions 
-    if [ $# -gt 8 ]; then
+    if [ $# -gt 9 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
-        echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
-    elif [ $# -ne 8 ]; then
+        echo "More then 9 arguments, considering the first 9 ($#/${ifs_str}): $*" 1>&2
+    elif [ $# -ne 9 ]; then
+        if [ $# -eq 8 ]; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "prejob"; then
+                glidein_exit 1
+            fi
+            return 0
+        fi
         if [ $# -eq 7 ]; then
             #TODO: remove in version 3.3
             # For compatibility with past versions (old file list formats)
             # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
             # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
-            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7" "prejob"; then
                 glidein_exit 1
             fi
             return 0
@@ -1398,7 +1405,7 @@ fetch_file() {
         if [ $# -eq 6 ]; then
             # added to maintain compatibility with older (3.2.10) file list format
             #TODO: remove in version 3.3
-            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"; then
+            if ! fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6" "prejob"; then
                 glidein_exit 1
             fi
             return 0
@@ -1409,7 +1416,7 @@ fetch_file() {
         glidein_exit 1
     fi
 
-    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"; then
+    if ! fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"; then
         glidein_exit 1
     fi
     return 0
@@ -1424,6 +1431,7 @@ fetch_file_try() {
     fft_cc_prefix="$6"
     fft_config_check="$7"
     fft_config_out="$8"
+    fft_time="$9"
 
     if [ "${fft_config_check}" = "TRUE" ]; then
         # TRUE is a special case
@@ -1434,7 +1442,7 @@ fetch_file_try() {
 
     # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
     if [ "${fft_get_ss}" = "1" ]; then
-       fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
+       fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_configout}" "${fft_period}" "${fft_cc_prefix}" "${fft_time}"
        fft_rc=$?
     fi
 
@@ -1591,6 +1599,7 @@ fetch_file_base() {
     ffb_period=$6
     # condor cron prefix, used only for periodic executables
     ffb_cc_prefix="$7"
+    ffb_time="$8"
 
     ffb_work_dir="$(get_work_dir "${ffb_id}")"
 
@@ -1703,6 +1712,7 @@ fetch_file_base() {
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
         elif [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
+            #CLEANUP
             echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
             chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
@@ -1895,6 +1905,7 @@ cleanup_script=$(grep "^GLIDEIN_CLEANUP_SCRIPT " "${glidein_config}" | cut -d ' 
 
 ##############################
 # Fetch all the other files
+### FETCH FILE LISTS
 for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "main at_file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
     gs_id="$(echo "${gs_file_id}" |awk '{print $1}')"
