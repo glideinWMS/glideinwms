@@ -134,14 +134,11 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     edict["submit_attrs"] = {}
     if cpus != "":
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
-        edict["submit_attrs"]["+xcount"] = cpus
     if walltime != sys.maxint:
         glide_walltime = walltime * 60 - 1800
         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
-        edict["submit_attrs"]["+maxWallTime"] = walltime
     if memory != sys.maxint:
         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
-        edict["submit_attrs"]["+maxMemory"] = memory
     return edict
 
 
@@ -403,18 +400,12 @@ def update_submit_attrs(entry_information, attr, submit_attr):
         dict: a dictionary of entry information from white list file with possible updated submit attribute
     """
     if attr in entry_information["attrs"] and entry_information["attrs"][attr]:
-        if "submit_attrs" in entry_information:
-            if submit_attr not in entry_information["submit_attrs"]:
-                if attr == "GLIDEIN_Max_Walltime":
-                    entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
-                else:
-                    entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
-        else:
+        if "submit_attrs" not in entry_information:
             entry_information["submit_attrs"] = {}
-            if attr == "GLIDEIN_Max_Walltime":
-                entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
-            else:
-                entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
+        if attr == "GLIDEIN_Max_Walltime":
+            entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
+        else:
+            entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
 
     return entry_information
 
