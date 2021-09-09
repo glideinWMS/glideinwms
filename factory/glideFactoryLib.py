@@ -34,6 +34,8 @@ from glideinwms.lib import subprocessSupport
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
 
+from glideinwms.lib.defaults import BINARY_ENCODING
+
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
@@ -1729,7 +1731,7 @@ email_logs = False
                 log.debug("Userdata ini file:\n%s" % ini)
                 ini = base64.b64encode(ini.encode())
                 log.debug("Userdata ini file has been base64 encoded")
-                exe_env.append('USER_DATA=%s' % ini)
+                exe_env.append('USER_DATA=%s' % ini.decode(BINARY_ENCODING))
 
                 # get the proxy
                 full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]
