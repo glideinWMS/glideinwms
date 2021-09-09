@@ -21,6 +21,7 @@ import jwt
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
+from glideinwms.lib.subprocessSupport import iexe_cmd
 from . import logSupport
 
 """
@@ -127,7 +128,7 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
     if not kid:
         kid = os.path.basename(pwd_file)
     if not issuer:
-        issuer = "%s:9618" % socket.gethostname()
+        issuer = iexe_cmd("condor_config_val COLLECTOR_HOST").strip()
     if not identity:
         identity = "%s@%s" % (os.getlogin(), socket.gethostname())
 
@@ -140,6 +141,7 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
 
 # to test: need htcondor password file (for example el7_osg34)
 # python token_util.py el7_osg34 $HOSTNAME:9618 vofrontend_service@$HOSTNAME
+
 # will output condor IDTOKEN to stdout - use condor_ping to verify/validate
 if __name__ == '__main__':
     kid = sys.argv[1]

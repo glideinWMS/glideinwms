@@ -3,7 +3,7 @@
 # TODO: use this file for both singularity and the startup script
 
 # Directory structure inside .gwms_aux (or main glidein directory)
-# bin, lib [python, python3, python2], exec [prejob, postjob]
+# bin, lib [python, python3, python2], exec [prejob, postjob, cleanup, ...]
 GWMS_SUBDIR_EXEC_PREJOB="exec/prejob"
 GWMS_SUBDIR_EXEC_POSTJOB="exec/postjob"
 GWMS_SUBDIR_EXEC_CLEANUP="exec/cleanup"
@@ -25,39 +25,18 @@ robust_realpath() {
 }
 
 
-#######################################
-#
-# GWMS aux functions
-#
-
-gwms_from_config() {
-    # 1. - parameter to parse from glidein_config
-    # 2. - default
-    # 3. - function to validate or process (get_prop_bool or same interface)
-    if [[ -n "$glidein_config" ]]; then
-        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
-    fi
-    if [[ -n "$ret" ]]; then
-        if [[ -n "$3" ]]; then
-            "$3" VALUE_PROVIDED "$ret" "$2"
-        else
-            [[ -z "$ret" ]] && ret=$2
-            echo "$ret"
-        fi
-    fi
-
-}
-
-
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
     #  ignore the files named .ignore files
-    #  run the executable files, source the remaining files if extentsion is .sh .source
+    #  run all the executable files passing glidein_config ($3) as argument, 
+    #  source the remaining files if extension is .sh or .source
     # 1- directory scripts to process
     # 2- a modifier to search only in subdirectories (prejob)
+    # 3- glidein_config (path of the file containing shared variables)
     local old_pwd my_pwd
     old_pwd=$(robust_realpath "$PWD")
     my_pwd=$(robust_realpath "$1")
+    cfg_file=$(robust_realpath "$3")
     if [[ -n "$2" ]]; then
         case "$2" in
             prejob) my_pwd="${my_pwd}/$GWMS_SUBDIR_EXEC_PREJOB";;
@@ -73,11 +52,31 @@ gwms_process_scripts() {
         [[ "$i" = *.ignore ]] && continue
         if [[ -x "$i" ]]; then
             # run w/ some protection?
-            "./$i"
-            [[ $(pwd -P) != "$my_pwd" ]] && cd "$my_pwd"
+            "./$i" "$cfg_file"
+            [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         elif [[ "$i" = *.sh || "$i" = *.source ]]; then
             . "$i"
+            [[ $(pwd -P) != "$my_pwd" ]] && { cd "$my_pwd" || warn "Unable to return to scripts directory ($my_pwd)."; }
         fi
     done
-    cd "$old_pwd"
+    cd "$old_pwd" || warn "Unable to return old directory after scripts ($old_pwd)."
+}
+
+gwms_from_config() {
+    # Retrieve a parameter from glidien_config ($glidien_config)
+    #  If the $glidein_config variable is not defined assume the parameter is not defined
+    # 1. - parameter to parse from glidein_config
+    # 2. - default
+    # 3. - function to validate or process (get_prop_bool or same interface)
+    if [[ -n "$glidein_config" ]]; then
+        ret=$(grep "^$1 " "$glidein_config" | cut -d ' ' -f 2-)
+    fi
+    if [[ -n "$ret" ]]; then
+        if [[ -n "$3" ]]; then
+            "$3" VALUE_PROVIDED "$ret" "$2"
+        else
+            [[ -z "$ret" ]] && ret=$2
+            echo "$ret"
+        fi
+    fi
 }

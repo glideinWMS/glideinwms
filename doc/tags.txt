@@ -22,6 +22,14 @@ v3_9
 	Bug fix: Fixed Mapping import
 	Bug fix: Fixed str vs bytes confusion in cryptography functions and classes
 
+v3_7_5
+	Support for big files in the glideinwms repository
+	Additional download mechanism for files
+	Bug Fix: Have SciToken credential be per-entry
+	Bug Fix: Fix IDTOKEN generation in the Frontend
+	Bug Fix: Cleanup script not executing correctly at glidein termination
+	Bug Fix: Automount of CVMFS integrated into glidein script
+
 v3_7_4
 	Consider not available (not Idle) partitionable slots where all GPUs are used
 	Bug Fix: Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold

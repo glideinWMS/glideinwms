@@ -1,1 +1,0 @@
-../../../../creation/web_base/glexec_setup.sh
