@@ -157,7 +157,7 @@ specific meaning:</P>
     </UL>
     </li>
 </OL>
-<P>Here below, you can see a short extract; the semantics of the
+<P>Here below, you can see a short extract of an example; the semantics of the
 variables is defined <A HREF="#vars">below</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
 #                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
@@ -179,6 +179,10 @@ SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               
 MAX_MASTER_LOG          I       1000000         +                               N       N       -
 MAX_STARTD_LOG          I       10000000        +                               N       N       -</PRE>
 
+<b>NOTE The value in the sample are just an example.</b> The default values will depend on the GlideinWMS version, see 
+<a href="https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_7/creation/web_base/condor_vars.lst">creation/web_base/condor_vars.lst</a>
+and keep in mind that the values in the Factory and Frontend configuration and the changes done by the setup scripts will affect the final 
+value used for your jobs.
 </div>
 
 
@@ -1092,7 +1096,7 @@ described below are the most often used.</P>
         <TD>
             <P>If False, the user job environment will contain only glidein
             Factory provided variables.</P>
-            <P>If True, the user job environment will also contain the
+            <P>If True (default), the user job environment will also contain the
             environment variables defined at glidein startup.
             </P>
             <P>See <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=JOB_INHERITS_STARTER_ENVIRONMENT#htcondor-wide-configuration-file-entries">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
