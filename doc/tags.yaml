@@ -272,3 +272,13 @@ v3_7_5:
         - Cleanup script not executing correctly at glidein termination
         - Automount of CVMFS integrated into glidein script
 
+v3_9_3:
+  Date: Sep 10, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.5
+    - Adds type validation to the check_python3_expr.py script
+    - Removes unused encodingSupport.py and its unit tests
+  Bug fix:
+    - Fixes an encoding issue affecting cloud submissions

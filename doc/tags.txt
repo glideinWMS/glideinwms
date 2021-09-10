@@ -1,3 +1,9 @@
+v3_9_3
+	Includes all features and fixes of 3.7.5
+	Adds type validation to the check_python3_expr.py script
+	Removes unused encodingSupport.py and its unit tests
+	Bug fix: Fixes an encoding issue affecting cloud submissions
+
 v3_9_2
 	Includes all features and fixes of 3.7.3 and 3.7.4
 	Drops support for BDII along with its LDAP requirements
