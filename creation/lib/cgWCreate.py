@@ -113,6 +113,7 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
+    # MM5345 passing job_descript instead of entry (was sub_params in common root), used only in first section to eval variables
     def populate(self, exe_fname, entry_name, conf, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the

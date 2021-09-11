@@ -73,6 +73,7 @@
         <li><a href="#management">Frontend Configuration</a> </li>
         <li><a href="#attr_singularity">Singularity attributes</a> </li>
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
+        <li><a href="#attr_substitution">Attribute substitution</a> </li>
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
         <li><a href="#usercollector">Using multiple user pool collectors/HTCondor High Availability (HA) support</a> </li>
@@ -97,7 +98,7 @@ Below is an example Frontend configuration xml file.
 Click on any piece for a more detailed description.
 
 <div class="config">
-    <a href="#frontend">&lt;frontend downtimes_file="frontenddowntime" advertise_delay="5" frontend_name="vofrontend-v2_4" loop_delay="60"&gt;</a><br/>
+    <a href="#frontend">&lt;frontend downtimes_file="frontenddowntime" advertise_delay="5" frontend_name="vofrontend-v2_4" loop_delay="60" enable_attribute_expansion="False"&gt;</a><br/>
     <blockquote>
     <a href="#">&lt;log_retention &gt;</a><br/>
     <blockquote>
@@ -109,19 +110,19 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-        <a href="#group_match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
+        <a href="#match">&lt;match match_expr="True" start_expr="$(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL)" policy_file="/path/to/python-policy-file"&gt;</a><br/>
         <blockquote>
-            <a href="#group_match">&lt;factory query_expr="True"&gt;</a><br/>
+            <a href="#match">&lt;factory query_expr="True"&gt;</a><br/>
             <blockquote>
-                <a href="#group_match_attr">&lt;match_attrs /&gt;</a><br/>
+                <a href="#match_attr">&lt;match_attrs /&gt;</a><br/>
                 <a href="#wmscollector">&lt;collectors&gt;</a><br/>
                 <blockquote>
                     <a href="#wmscollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=factory-server.fnal.gov" comment="" factory_identity="factoryuser@factory-server.fnal.gov" my_identity="frontenduser@frontend-server.fnal.gov" node="factory-server.fnal.gov:8618" /&gt;</a><br/>
                 </blockquote>
                 <a href="#wmscollector">&lt;/collectors&gt;</a><br/>
             </blockquote>
-            <a href="#group_match">&lt;/factory&gt;</a><br/>
-            <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)"&gt;</a><br/>
+            <a href="#match">&lt;/factory&gt;</a><br/>
+            <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;($(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL))" &gt;</a><br/>
             <blockquote>
                 <a href="#group_match">&lt;match_attrs /&gt;</a><br/>
                 <a href="#schedd">&lt;schedds&gt;</a><br/>
@@ -156,6 +157,7 @@ Click on any piece for a more detailed description.
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_match">&lt;attr name="JOBSTR_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="NumJobStarts"/&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#group">&lt;groups&gt;</a><br/>
@@ -193,7 +195,11 @@ Click on any piece for a more detailed description.
                     <a href="#group_security_proxies">&lt;credentials /&gt;</a><br/>
                 </blockquote>
             <a href="#">&lt;/security&gt;</a><br/>
-            <a href="#group_attrs">&lt;attrs /&gt;</a><br/>
+            <a href="#group_attrs">&lt;attrs &gt;</a><br/>
+                <blockquote>
+                     <a href="#group_attrs">&lt;attr name="JOBSTR_VAL" glidein_publish="False" job_publish="False" parameter="True" type="int" value="5"/&gt;</a><br/>
+                </blockquote>
+            <a href="#group_attrs">&lt;/attrs&gt;</a><br/>
             <a href="#files">&lt;files /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt;/group&gt;</a><br/>
@@ -267,6 +273,7 @@ be defined:</P>
         downtimes_file=&quot;<I>a file name</I>&quot;
         advertise_delay=&quot;<I>seconds</I>&quot;
         loop_delay=&quot;<I>nr</I>&quot; &gt;
+        enable_attribute_expansion=&quot;<I>False</I>&quot;
 	advertise_with_tcp=&quot;<I>True|False</I>&quot;
 	advertise_with_multiple=&quot;<I>True|False</I>&quot;&gt;
         </div>
@@ -274,7 +281,7 @@ be defined:</P>
     and instance names specified during installation. It is used to
     create Glidein Frontend instance directory and files.  The downtimes_file is a name of the internal file used by downtime feature,
     any legitimate file name that indicates the purpose will be sufficient. The delay
-    parameters define how active the Glidein Frontend should be.
+    parameters define how active the Glidein Frontend should be. enable_attribute_expansion determines if attributes that contains a dollar will be expanded See the Attribute substitution section in this page.
 Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the Factory, and advertise_with_multiple can enable the condor_advertise -multiple option present in HTCondor 7.5.4 and up.
     </P></li>
     <LI>
@@ -1143,7 +1150,7 @@ i   any action requested (execute, untar, just keep it, ...).
     <li><b>(job["NumJobStarts"]>5)</b>: Returns true if the job ClassAd attribute "NumJobStarts" is greater than 5.</li>
     <li><b>(glidein["attrs"].has_key("GLIDEIN_Retire_Time"))</b>: Returns true if the Factory entry ClassAd has the attribute "GLIDEIN_Retire_Time".</li>
     <li><b>(glidein["attrs"]["GLIDEIN_Retire_Time"]>21600)</b>: Returns true if the Factory entry ClassAd's "GLIDEIN_Retire_Time" is greater than 21600.</li>
-    <li><b>(attr_dict["NUM_USERS_ALLOWED"]&gt;0)</b>: Returns true if there is a attribute in the frontend.xml with NUM_USERS_ALLOWED that is greater than zero.</li>
+    <li><b>(int(attr_dict["NUM_USERS_ALLOWED"])&gt;0)</b>: Returns true if there is a attribute in the frontend.xml with NUM_USERS_ALLOWED that is greater than zero.</li>
     <li><b>(job["Owner"] in attr_dict["ITB_Users"].split(","))</b>: Returns true if the job ClassAd attribute "Owner" is in the comma-delimited string attribute ITB_USERS (which would be defined in frontend.xml)</li>
     </ul>
 </p>
@@ -1244,6 +1251,63 @@ job_match_attrs = {
         </pre>
 </p>
 </div>
+<div class="section">
+<a name="attr_substitution" />
+<h2>Attribute substitution</h2>
+
+<p>
+Atribute substitution can be used to parametrized the Frontend configuration.
+</p>
+<p>
+Anytime one of the following two bits are found inside the configuration file
+<ul>
+<li><b>$$(<i>attr_name</i>)</b>
+<li><b>$(<i>attr_name</i>)</b>
+</ul>
+</p>
+<p>
+the value of the <i>named attribute</i> is inserted in that place.
+</p>
+<p>
+The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
+while the <b>$</b> requires a <i>string</i> type and will use it as-is.<br>
+They can appear in any string of the configuration file.
+</p>
+<p>
+If an attribute is defined both in the main and the group section, the section one will prevail.<br>
+This can be used to e.g. define a generic expression in the global section, and customize it on a group by group basis
+by only re-defining the relevant bits. 
+</p>
+<p>
+The attribute expansion also works recursively, as long as there are no loops.<br>
+<b>$(DOLLAR)</b> can be used to represent the <b>$</b> sign.
+</p>
+<p>
+For example, with
+<div class="xml">
+<blockquote>
+     &lt;attr name="JOBSTR_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="NumJobStarts"/&gt;<br>
+     &lt;attr name="JOBSTR_VAL" glidein_publish="False" job_publish="False" parameter="True" type="int" value="5"/&gt;<br>
+     &lt;attr name="PREFIX_VAL" glidein_publish="False" job_publish="False" parameter="True" type="string" value="DESIRED"/&gt;<br>
+     &lt;attr name="SITE_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="$(PREFIX_VAL)_Site"/&gt;<br>
+     &lt;attr name="SITE_VAL" glidein_publish="False" job_publish="False" parameter="True" type="string" value="FNAL"/&gt;<br>
+     ... start_expr="($(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL))&amp;&amp;($(SITE_ATTR)=?=$$(SITE_VAL))" ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+will be expanded into
+<div class="xml">
+<blockquote>
+     ... start_expr='(NumJobStarts&lt;5)&amp;&amp;(DESIRED_Site=?="FNAL")' ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+Please notice that the Frontend will throw an error on reconfig if a referenced attribute is not defined.
+</p>
+</div>
+  
 <div class="section">
 <a name="multiple_proxy" />
 <h2>Using Multiple Proxies</h2>
