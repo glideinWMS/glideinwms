@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # The current directory is the top level of the working tree.
-# The following environment variables are set: GIT_DIR is set to ‘.git’, GIT_INDEX_FILE is set to ‘.git/index’
+# The following environment variables are set: GIT_DIR is set to ".git", GIT_INDEX_FILE is set to ".git/index"
 
 # Make sure that there are no big files w/ link replaced
 # Git -R is idempotent. If there are no links nothing is done

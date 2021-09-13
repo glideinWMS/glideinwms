@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # The current directory is the top level of the working tree.
-# The following environment variables are set: GIT_DIR is set to ‘.git’
+# The following environment variables are set: GIT_DIR is set to ".git"
 # 3 parameters:
 # 1. The ref of the previous HEAD
 # 2. The ref of the new HEAD
