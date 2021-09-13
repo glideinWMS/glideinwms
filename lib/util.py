@@ -383,6 +383,18 @@ def safe_boolcomp(value, expected):
     return str(value).lower() == str(expected).lower()
 
 
+def str2bool(val):
+    """ Convert u"True" or u"False" to boolean or raise ValueError
+    """
+    if val not in [u"True", u"False"]:
+        # Not using ValueError intentionally: all config errors are RuntimeError
+        raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
+    elif val == u"True":
+        return True
+    else:
+        return False
+
+
 def handle_hooks(basedir, script_dir):
     """The function itaretes over the script_dir directory and executes any script found there
     """

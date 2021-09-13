@@ -1725,7 +1725,8 @@ class glideinFrontendElement:
         # Query glidefactory ClassAd
         try:
             glidein_dict = {}
-            factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'], self.attr_dict)
+            factory_constraint=self.elementDescript.merged_data['FactoryQueryExpr']
+            # factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'], self.attr_dict)
 
             factory_pool_node = factory_pool[0]
             factory_identity = factory_pool[1]
@@ -1791,7 +1792,8 @@ class glideinFrontendElement:
             condorq_format_list = list(condorq_format_list)+list((('x509userproxy', 's'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
-                               expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),
+                               self.elementDescript.merged_data['JobQueryExpr'],
+                               #expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),
                                condorq_format_list)
         except Exception:
             logSupport.log.exception("In query schedd child, exception:")
@@ -2178,23 +2180,32 @@ def log_factory_header():
     logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun | State Factory")
 
 
-######################
-# expand $$(attribute)
+# TODO: 5345 to remove once verified, because global expansion is supported during configuration
 def expand_DD(qstr, attr_dict):
+    """expand $$(attribute)
+    
+    Args:
+        qstr (str): string to be expanded
+        attr_dict (dict): attributes to use in the expansion 
+
+    Returns:
+        str: expanded string
+
+    """
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
     while True:
-        m=robj.search(qstr)
+        m = robj.search(qstr)
         if m is None:
-            break # no more substitutions to do
-        attr_name=m.group('attrname')
+            break  # no more substitutions to do
+        attr_name = m.group('attrname')
         if attr_name not in attr_dict:
-            raise KeyError("Missing attribute %s"%attr_name)
-        attr_val=attr_dict[attr_name]
+            raise KeyError("Missing attribute %s" % attr_name)
+        attr_val = attr_dict[attr_name]
         if isinstance(attr_val, int):
-            attr_str=str(attr_val)
-        else: # assume it is a string for all other purposes... quote and escape existing quotes
-            attr_str='"%s"'%attr_val.replace('"', '\\"')
-        qstr="%s%s%s"%(qstr[:m.start()], attr_str, qstr[m.end():])
+            attr_str = str(attr_val)
+        else:  # assume it is a string for all other purposes... quote and escape existing quotes
+            attr_str = '"%s"' % attr_val.replace('"', '\\"')
+        qstr = "%s%s%s" % (qstr[:m.start()], attr_str, qstr[m.end():])
     return qstr
 
 

@@ -142,6 +142,7 @@ def get_factory_log_recipients(entry):
 # NOTE: the 'environment' attribute should be in the new syntax format, to allow characters like ';' in the values
 #  value all double quoted, var=var_val space separated, var_val can be single quoted
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
+    # MM5345 passing job_descript instead of entry (was sub_params in common root), used only in first section to eval variables
     def populate(self, exe_fname, entry_name, conf, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
