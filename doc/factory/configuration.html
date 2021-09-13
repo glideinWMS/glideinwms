@@ -71,6 +71,7 @@
 <ol>
         <LI><A HREF="#example_configuration">Example Configuration</A>
         <LI><A HREF="#args">Configuration File</A>
+        <li><a href="#attr_substitution">Attribute substitution</a> </li>
         <LI><A HREF="#metasites">Grouping entries into metasites</A>
         <li><a href="#single_user">Single user (upgrade to 3.5)</a> </li>
         <li><a href="#singularity">Singularity</a> </li>
@@ -141,11 +142,13 @@ for a more detailed description.
         <a href="#attrs">&lt;attr name="GCB_ORDER" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="NONE" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="False" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_MATCH_AUTH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="2500"  /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="PBS_RSL" const="True" glidein_publish="False" job_publish="False" parameter="False" publish="False" type="string" value="(queue=default)(jobtype=single)(maxWalltime=$$(GLIDEIN_Max_Walltime))(memory=$$(GLIDEIN_MaxMemMBs))" /&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port" gridtype="condor" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov gatewayname.fnal.gov:port" gridtype="condor" rsl="$(PBS_RSL)"  verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
@@ -180,6 +183,7 @@ for a more detailed description.
                 <a href="#entry_attrs">&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="FNAL_EXAMPLE_SITE"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="1"/&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr name="GLIDEIN_Max_Walltime" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="171000"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr /&gt;</a><br/>
             </blockquote>
             <a href="#entry_attrs">&lt;/attrs&gt;</a><br/>
@@ -1045,6 +1049,60 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
 </div>
 
 <div class="section">
+<a name="attr_substitution" /><h2>Attribute substitution</h2>
+
+<p>
+Attribute substitution can be used to parametrize the Factory configuration.
+</p>
+<p>
+Anytime one of the following two bits are found inside the configuration file
+<ul>
+<li><b>$$(<i>attr_name</i>)</b>
+<li><b>$(<i>attr_name</i>)</b>
+</ul>
+</p>
+<p>
+the value of the <i>named attribute</i> is inserted in that place.
+</p>
+<p>
+The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
+while the <b>$</b> requires a <i>string</i> type and will use it as-is.<br>
+They can appear in any string of the configuration file.
+</p>
+<p>
+If an attribute is defined both in the main and the entry section, the section one will prevail.<br>
+This can be used to e.g. define a generic expression in the global section, and customize it on a entry by entry basis
+by only re-defining the relevant bits. 
+</p>
+<p>
+The attribute expansion also works recursively, as long as there are no loops.<br>
+<b>$(DOLLAR)</b> can be used to represent the <b>$</b> sign.
+</p>
+<p>
+For example, with
+<div class="xml">
+<blockquote>
+     &lt;attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="2500" /&gt;<br>
+     &lt;attr name="GLIDEIN_Max_Walltime" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="171000"/&gt;<br>
+     &lt;attr name="PBS_RSL" const="True" glidein_publish="False" job_publish="False" parameter="False" publish="False" type="string" value="(jobtype=single)(maxWalltime=$$(GLIDEIN_Max_Walltime))(memory=$$(GLIDEIN_MaxMemMBs))" /&gt;<br>
+     ... rsl="(queue=default)$(PBS_RSL)" ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+will be expanded into
+<div class="xml">
+<blockquote>
+     ... rsl="(queue=default)(jobtype=single)(maxWalltime=171000)(memory=2500)" ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+Please notice that the Factory will throw an error on reconfig if a referenced attribute is not defined.
+</p>
+</div>
+  
+<div class="section">
 <a name="metasites"></a><h2>Grouping entries into metasites</h2>
 <p>
 Starting in v3.2.20, entries with similar configuration can be grouped in &lt;entry_sets&gt; to form what we call a metasite. &lt;entry_sets&gt; starts right after the &lt;entries&gt; tag is closed. A metasite is defined by starting an &lt;entry_set&gt;, which then contains the common configuration for the different entries, and then an &lt;entries&gt; tag containing the different entries for the metasite.
@@ -1856,7 +1914,13 @@ daemons are started up.</P>
         </TR>
         <TR>
             <TD> <P><b>absfname</b></P></TD>
-            <TD> <P>Path of the file on the server (Factory or Frontend)</P></TD>
+            <TD> <P>Path of the file on the server (Factory or Frontend). 
+              The file name (basename of absfname) can be used also to control the conditional download of the file.
+              If the file name starts with "gconditional_" (e.g. gconditional_FEATURE_myfile), then the name between
+              the prefix and the following underscore is taken and GWMS will look for an attribute (in the attrs list)
+              called GLIDEIN_USE_ followed by the name, and download and process the file 
+              only if the attribute is defined and not empty (e.g. GLIDEIN_USE_FEATURE=1).
+            </P></TD>
         </TR>
         <TR>
             <TD> <P><b>executable</b></P></TD>
@@ -2001,27 +2065,17 @@ daemons are started up.</P>
     untarred in a separate directory and advertised to the other
     scripts.</p>
     <UL>
-        <LI><B>absfname</B>:
-        Path to the custom tar-ball.
-        (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
-        <LI><B>conf_sw</B>:
-        Name of a configuration switch.
-        (like &quot;ENABLE_KRB5&quot;)<BR/>
-        The tarball will be unpacked only if that
-        parameter will be set to 1.
-        Use the&nbsp;<B>&lt;attr /&gt;</B> switch to define the default
-        value.  A special name <B>TRUE</B> can be used to always
-        untar it. </li>
-
-        <LI><B>dir</B>:
-        Name of the subdirectory to untar it in.
-        (like &quot;krb5&quot;) </li>
-        <LI><B>absdir_outattr</B>: Name of a
-        variable name. (like &quot;KRB5_SUBSYS_DIR&quot;)<BR/>The
-        variable will be set to the absolute path of the directory where
-        the tarball was unpacked, if and only if the unpacking actually
-        happened (else it will not be defined.) <b>ENTRY_</b> will be prepended
-	if if the <b>&lt;file&gt;</b> directive occurs in an entry.</li>
+        <LI><B>absfname</B>: Path to the custom tar-ball. (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
+        <LI><B>conf_sw</B>: Name of a configuration switch. (like &quot;ENABLE_KRB5&quot;)<BR/>
+          The tarball will be downloaded and unpacked only if that parameter will be set to 1.
+          Use the&nbsp;<B>&lt;attr /&gt;</B> switch to define the default value.
+          A special name <B>TRUE</B> can be used to always untar it. </li>
+        <LI><B>dir</B>: Name of the subdirectory to untar it in. (like &quot;krb5&quot;) </li>
+        <LI><B>absdir_outattr</B>: Name of a variable name. (like &quot;KRB5_SUBSYS_DIR&quot;)<BR/>
+          The variable will be set to the absolute path of the directory where
+          the tarball was unpacked, if and only if the unpacking actually
+          happened (else it will not be defined.) <b>ENTRY_</b> will be prepended
+          if if the <b>&lt;file&gt;</b> directive occurs in an entry.</li>
     </UL>
 </UL>
 </div>

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Utility functions for the GlideinWMS CI tests
 
 
@@ -33,7 +33,7 @@ logstep_elapsed() {
     if [[ -z "$TEST_STEP_LAST_TIME" ]]; then
         echo 0
     else
-        echo $(($(date +"%s") - $TEST_STEP_LAST_TIME))
+        echo $(($(date +"%s") - TEST_STEP_LAST_TIME))
     fi
 }
 
@@ -43,8 +43,10 @@ logstep() {
     #    START is resetting the start time for elapsed timer
     # 2. value associated w/ the step (optional)
     # Not working on Mac: local step=${1^^}
-    local step=$(echo $1| tr a-z A-Z)
-    export TEST_STEP_LAST_TIME=$(date +"%s")
+    local step
+    step=$(echo $1| tr a-z A-Z)
+    TEST_STEP_LAST_TIME=$(date +"%s")
+    export TEST_STEP_LAST_TIME
     [[ "$step" = START ]] && export TEST_STEP_START_TIME=$TEST_STEP_LAST_TIME
     loglog "STEP_LAST=${step}"
     [[ -n "$2" ]] && loglog "STEP_VALUE_${step}=$2"
@@ -229,7 +231,8 @@ setup_python3_venv() {
         #try again if anything failed to install, sometimes its order
         #NOT_FATAL="htcondor ${M2CRYPTO}"
         NOT_FATAL="htcondor"
-        local installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
+        local installed_packages
+        installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
             if ! python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
@@ -572,7 +575,8 @@ filter_annotated_values() {
     # 1. line
     # 2. output format html,htnl4,html4f,htmlplain or empty for text (see annotated_to_td and filter_annotated_values )
     local line="$1"
-    local line_values="$(echo "$line" | sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' )"
+    local line_values
+    line_values="$(echo "$line" | sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' )"
     if [[ -z "$2" || "$2" = text ]]; then 
         echo "$line_values"
         return

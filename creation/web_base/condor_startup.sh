@@ -158,11 +158,6 @@ echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> "$CONDOR_CONFIG"
 # glidein_variables = list of additional variables startd is to publish
 glidein_variables=""
 
-# job_env = environment to pass to the job
-# Make sure we do not leak LD_LIBRARY_PATH to the job incorrectly
-job_env="LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-
-
 #
 # Set a variable read from a file
 #
@@ -1000,9 +995,6 @@ if [ "$print_debug" -ne "0" ]; then
   echo 1>&2
   #env 1>&2
 fi
-
-#Set the LD_LIBRARY_PATH so condor uses dynamically linked libraries correctly
-export LD_LIBRARY_PATH=$CONDOR_DIR/lib:$CONDOR_DIR/lib/condor:$LD_LIBRARY_PATH
 
 #
 # The config is complete at this point

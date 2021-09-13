@@ -150,8 +150,11 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         os.remove("tar_utils.tar.gz")
         print2('...Updated the glidein_startup.sh and local_start.sh scripts')
 
-        # copy glidein_startup.sh to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR, True)
+        # copy glidein_startup.sh from work dir (the version w/ the utility files) to the stage area for cloud entries
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE,
+                           glidein_dicts_obj.main_dicts.stage_dir,
+                           glidein_dicts_obj.main_dicts.work_dir,
+                           True)
         print2("...Updated the glidein_startup.sh file in the staging area")
 
         # copy helper executables

@@ -219,3 +219,17 @@ v3_7_4:
     - Consider not available (not Idle) partitionable slots where all GPUs are used
   Bug Fix:
     - Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold
+
+v3_7_5:
+    Date: Sep 2 2021
+    Series: Development
+    Tarball: False
+    Feature:
+        - Support for big files in the glideinwms repository
+        - Additional download mechanism for files
+    Bug Fix:
+        - Have SciToken credential be per-entry
+        - Fix IDTOKEN generation in the Frontend
+        - Cleanup script not executing correctly at glidein termination
+        - Automount of CVMFS integrated into glidein script
+

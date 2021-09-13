@@ -15,7 +15,7 @@ logerror() {
 }
 
 logverbose() {
-    [ -n "$VERBOSE" ] && echo "$1" 
+    [ -n "$VERBOSE" ] && echo "$1" || true
 }
 
 help_msg() {
@@ -28,7 +28,7 @@ ${filename} [options]
   -d REPO_DIR GlideinWMS repository root directory (default: trying to guess, otherwise '.')
   -p          pull: download and unpack the big files to the bigfiles directory if not already there
   -P          push: compress the big files
-  -s SERVER   upload to SERVER via scp the bundled big files (ignored it -P is not specified)         
+  -s SERVER   upload to SERVER via scp the bundled big files (ignored if -P is not specified)         
   -u          update (download and unpack even if files are already there). Used with -r and -p
   -r          replace the symbolic links with the linked linked to files in the bigfiles directory
               and write a list of replaced files to BF_LIST. Big files are downloaded if not in the bigfiles directory
@@ -91,8 +91,8 @@ parse_options() {
         b) BIGFILES_LIST="$OPTARG";;
         d) REPO_DIR="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
-        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
+        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         esac
     done
     # Validate options
@@ -134,7 +134,7 @@ push() {
     # 1. scp PATH: host:directory
     # ./[pull|push]-bigfiles.sh kept for compatibility
     local cmd_out
-    cmd_out=$(tar --exclude='./README.txt' --exclude='./pull-bigfiles.sh' --exclude='./push-bigfiles.sh' --exclude="./$TARNAME" -cvzf "./$TARNAME" ./* 2>&1)
+    cmd_out=$(tar --exclude='./README.txt' --exclude='./pull-bigfiles.sh' --exclude='./push-bigfiles.sh' --exclude='./bigfiles_list.txt' --exclude="./$TARNAME" -cvzf "./$TARNAME" ./* 2>&1)
     logverbose "New files saved to ${TARNAME}:"
     logverbose "$cmd_out"
     # upload to the server
@@ -183,7 +183,7 @@ _main() {
             rm -f ${BIGFILES_LIST}
             local links_list
             #find . | while read file; do dosomething "$file"; done
-            links_list=$(find . \( -path "./doc/api*" -o -path "./unittests*" \) -prune -false -o -type l -print)
+            links_list=$(find . \( -path "./doc/api*" -o -path "./unittests*" -o -path "./build/bigfiles*" \) -prune -false -o -type l -print)
             for file in $links_list; do
                 to_file=$(readlink "$file")
                 if [[ "$file" = *","* || "$to_file" = *","* ]]; then

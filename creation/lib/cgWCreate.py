@@ -142,6 +142,7 @@ def get_factory_log_recipients(entry):
 # NOTE: the 'environment' attribute should be in the new syntax format, to allow characters like ';' in the values
 #  value all double quoted, var=var_val space separated, var_val can be single quoted
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
+    # MM5345 passing job_descript instead of entry (was sub_params in common root), used only in first section to eval variables
     def populate(self, exe_fname, entry_name, conf, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
@@ -458,6 +459,20 @@ def create_initd_startup(startup_fname, factory_dir,
 
 
 def copy_file(infile, outfile):
+    """Copy a file from infile to outfile preserving permission mode and all file metadata
+
+    It follows symlinks and overwrites the destination if existing
+
+    Args:
+        infile: source file path
+        outfile: destination file path or directory
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: if the copy failed raising IOError
+    """
     try:
         shutil.copy2(infile, outfile)
     except IOError as e:
@@ -468,8 +483,20 @@ def copy_file(infile, outfile):
 
 
 def copy_exe(filename, work_dir, org_dir, overwrite=False):
-    """
-    Copies a file from one dir to another and changes the permissions to 0555.  Can overwrite an existing file.
+    """Copy a file from one dir to another and changes the permissions to 0555.  Can overwrite an existing file.
+
+    Args:
+        filename: base name of the file
+        work_dir: destination directory
+        org_dir: source directory
+        overwrite: if True, delete the destination file before making a copy of the source. If false shutil.copy2 
+            (the command used underneath) will overwrite the destination
+
+    Returns:
+        None
+
+    Raises:
+        RuntimeError: if the copy failed raising IOError
     """
     if overwrite and os.path.exists(os.path.join(work_dir, filename)):
         # Remove file if already exists

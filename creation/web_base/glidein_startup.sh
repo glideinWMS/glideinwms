@@ -41,7 +41,8 @@ get_data() {
 source_data() {
     # Source the specified data, which is appended as tarball, without saving it
     # 1: selected file
-    local data="$(get_data "$1")"
+    local data
+    data=$(get_data "$1")
     [[ -n "$data" ]] && eval "$data"
 }
 
@@ -140,12 +141,12 @@ do_start_all() {
             g_dir="glidein_dir${i}"
             copy_all glidein_dir "${g_dir}"
             echo "Starting glidein ${i} in ${g_dir} ${multiglidein_launcher:+"with launcher ${GLIDEIN_MULTIGLIDEIN_LAUNCHER}"}"
-            pushd "${g_dir}"
+            pushd "${g_dir}" || echo "Unable to cd in start directory"
             chmod +x "${startup_script}"
             # shellcheck disable=SC2086
             ${multiglidein_launcher} "${startup_script}" -multirestart "${i}" ${global_args} &
             GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
-            popd
+            popd || true
         done
         echo "Started multiple glideins: ${GWMS_MULTIGLIDEIN_CHILDS}"
     fi
@@ -373,7 +374,7 @@ print_tail() {
   final_result_simple="$2"
   final_result_long="$3"
 
-  glidein_end_time="$(date +%s)"
+  glidein_end_time=$(date +%s)
   let total_time=${glidein_end_time}-${startup_time}
   echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
   echo ""
@@ -1416,6 +1417,14 @@ fetch_file() {
 }
 
 fetch_file_try() {
+    # Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
+    # There are 2 mechanisms to control the download
+    # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
+    #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
+    #    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
+    # 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
+    #    exists in glidein_config and the value is not empty
+    # Both conditions are checked. If either one fails the file is not downloaded
     fft_id="$1"
     fft_target_fname="$2"
     fft_real_fname="$3"
@@ -1425,20 +1434,27 @@ fetch_file_try() {
     fft_config_check="$7"
     fft_config_out="$8"
 
-    if [ "${fft_config_check}" = "TRUE" ]; then
-        # TRUE is a special case
-        fft_get_ss=1
-    else
+    if [[ "${fft_config_check}" != "TRUE" ]]; then
+        # TRUE is a special case, always downloaded and processed
+        local fft_get_ss
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
+        # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
+        [[ "${fft_get_ss}" != "1" ]] && return 0
+        # TODO: what if fft_get_ss is not 1? nothing, still skip the file? 
     fi
 
-    # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
-    if [ "${fft_get_ss}" = "1" ]; then
-       fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
-       fft_rc=$?
+    local fft_base_name=$(basename "${fft_real_fname}")
+    if [[ "${fft_base_name}" = gconditional_* ]]; then
+        local fft_condition_attr_val
+        local fft_condition_attr="${fft_base_name#gconditional_}"
+        fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
+        fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
+        # if the variable fft_condition_attr is not defined or empty, do not download
+        [[ -z "${fft_condition_attr_val}" ]] && return 0
     fi
 
-    return ${fft_rc}
+    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}"
+    # returning the exit code of fetch_file_base
 }
 
 perform_wget() {
@@ -1583,6 +1599,7 @@ perform_curl() {
 }
 
 fetch_file_base() {
+    # Perform the file download and corresponding action (untar, execute, ...)
     ffb_id="$1"
     ffb_target_fname="$2"
     ffb_real_fname="$3"
@@ -1619,7 +1636,7 @@ fetch_file_base() {
     <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
   </result>
   <detail>
-     An unknown error occured.
+     An unknown error occurred.
   </detail>
 </OSGTestResult>" > otrx_output.xml
     user_agent="glidein/${glidein_entry}/${condorg_schedd}/${condorg_cluster}.${condorg_subcluster}/${client_name}"
@@ -1702,7 +1719,7 @@ fetch_file_base() {
         fi
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
-        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
+        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
             # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073]
             echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
@@ -1792,7 +1809,7 @@ fetch_file_base() {
 }
 
 # Adds $1 to GWMS_PATH and update PATH
-function add_to_path {
+add_to_path() {
     local old_path=":${PATH%:}:"
     old_path="${old_path//:$GWMS_PATH:/}"
     local old_gwms_path=":${GWMS_PATH%:}:"
@@ -1837,7 +1854,7 @@ do
       warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
       glidein_exit 1
   fi
-  signature_file="$(echo "${signature_file_line}" | cut -s -f 2-)"
+  signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
 
   # Fetch signature file
   gs_id_signature="$(get_signature ${gs_id})"

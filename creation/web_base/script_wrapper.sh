@@ -41,7 +41,7 @@ robust_realpath() {
     fi
 }
 
-# input parameters sanityzed
+# input parameters sanitized
 glidein_config=$(robust_realpath "$1")
 s_ffb_id="$2"
 # the name is used in the included functions
@@ -106,7 +106,8 @@ list_manage() {
     # invoked locally, trust 3 parameters
     # $1 command (add|del), $2 value_to_add_to_list, $3 list_name (in glidein_config, case insensitive)
     # Uses $glidein_config
-    local tmp_list=",`grep -i "^$3 " "$glidein_config" | cut -d ' ' -f 2-`,"
+    local tmp_list
+    tmp_list=",$(grep -i "^$3 " "$glidein_config" | cut -d ' ' -f 2-),"
     #  Trim commas (greedy, ^$ not needed) - bash <= 3.1 needs quoted regex, >=3.2 unquoted, variables are OK with both
     local re=",*([^,]|[^,].*[^,]),*"
     if [[ "$1" == "del" && "$tmp_list" == *,$2,* ]]; then
@@ -132,8 +133,8 @@ list_manage() {
 # failed "message" [error_type [ec]]
 #    error_type is one of: WN_Resource, Network, Config, VO_Config, Corruption, VO_Proxy
 failed() {
-    [ -n "$verbose" ] || echo "Script wrapper failure: $1" 1>&2
-    if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+    [[ -n "$verbose" ]] || echo "Script wrapper failure: $1" 1>&2
+    if [[ -n "$tmp_dir" && -d "$tmp_dir" ]]; then
         rm -r "$tmp_dir"
     fi
     publish FAILED_LAST "\"$s_name:$s_fname\""
@@ -146,14 +147,14 @@ failed() {
     publish LAST_END "$END"
     echo "-"
     exit_code=1
-    [ -n "$3" ] && exit_code=$3
-    if [ "x$2" == "xwrapper" ]; then
+    [[ -n "$3" ]] && exit_code=$3
+    if [[ "$2" == "wrapper" ]]; then
         "$error_gen" -error "script_wrapper.sh" Corruption "$1" GLIDEIN_PS_LAST "$s_fname" GLIDEIN_PS_LAST_END "$END"
-        ${main_dir}/error_augment.sh  -process $exit_code "${s_ffb_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
-        ${main_dir}/error_augment.sh -concat
+        "${main_dir}"/error_augment.sh  -process $exit_code "${s_ffb_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
+        "${main_dir}"/error_augment.sh -concat
     fi
     # cleanup
-    cd "$start_dir"
+    cd "$start_dir" || true
     [ -d "$tmp_dir" ] && rm -r "$tmp_dir"
     # exit
     [ -n "$3" ] && exit $3
@@ -166,7 +167,8 @@ failed() {
 vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id" 
 
 # start_dir should be the same as work_dir in glidein_startup.sh and GLIDEIN_WORK_DIR
-export start_dir="`pwd`"
+start_dir=$(pwd)
+export start_dir
 main_dir="$start_dir/main"
 
 # Check that the start directory is correct and files are there
@@ -182,22 +184,20 @@ source ./add_config_line.source
 
 ### Setup: move to personal temp dir not to step over other programs
 temp_base_dir="$start_dir"
-tmp_dir=$(mktemp -d --tmpdir="$temp_base_dir")
-if [ $? -ne 0 ]; then
+if ! tmp_dir=$(mktemp -d --tmpdir="$temp_base_dir"); then
     failed "Failed to create temporary directory" wrapper
 fi
-
-cd "$tmp_dir"
+cd "$tmp_dir" || failed "Failed to cd in temporary directory" wrapper
 
 
 ### Run the program (user script)
 
 ${main_dir}/error_augment.sh -init
-START=`date +%s`
+START=$(date +%s)
 "$s_fname" "$glidein_config" "$s_ffb_id"
 ret=$?
-END=`date +%s`
-${main_dir}/error_augment.sh  -process $ret "$s_ffb_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
+END=$(date +%s)
+${main_dir}/error_augment.sh  -process $ret "$s_ffb_id/$(basename "$s_fname")" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
 ${main_dir}/error_augment.sh -locked-concat
 if [ $? -ne 0 ]; then 
     vmessage "=== Error: unable to save the log file for $s_name ($s_fname): check for orphaned lock file ==="
@@ -221,5 +221,5 @@ echo "-"
 
 
 ### End cleanup
-cd "$start_dir"
+cd "$start_dir" || true
 rm -r "$tmp_dir"

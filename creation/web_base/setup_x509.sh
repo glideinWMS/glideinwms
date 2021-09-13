@@ -1,4 +1,5 @@
-#
+#!/bin/bash
+# (shebang added only for shellcheck purposes)
 # Project:
 #   glideinWMS
 #
@@ -212,7 +213,8 @@ config_idtoken() {
         if [ -z "$head_node" ]; then
             head_node="$(grep '^CCB_ADDRESS ' "$glidein_config" | cut -d ' ' -f 2- )"
         fi
-        export TRUST_DOMAIN="$(echo "$head_node" | sed -e 's/?.*//' -e 's/-.*//' )"
+        TRUST_DOMAIN="$(echo "$head_node" | sed -e 's/?.*//' -e 's/-.*//' )"
+        export TRUST_DOMAIN
     fi
     return 0
 }
@@ -367,4 +369,3 @@ add_config_line X509_EXPIRE  "$X509_EXPIRE"
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
 exit 0
-

@@ -137,7 +137,7 @@ get_shell_files() {
     # Return to stdout a space separated list of Shell files with .sh/.source extension
     # All Shell files
     local src_dir="${1:-.}"
-    echo $(find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -print -o -name '*.source' -print)
+    find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -print -o -name '*.source' -print
 }
 
 
@@ -145,7 +145,7 @@ get_python_files() {
     # Return to stdout a space separated list of Python files with .py extension
     # All Python files
     local src_dir="${1:-.}"
-    echo $(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py' -print)
+    find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py' -print
 }
 
 
@@ -226,8 +226,8 @@ parse_options() {
         z) TEST_CLEAN="$OPTARG";;
         w) SUMMARY_TABLE_FORMAT="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
-        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
+        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         esac
     done
     # Validate git and branching options
@@ -314,7 +314,7 @@ log_join() {
     # use the cell style to grep for lines
     # 1. output file w/ joint HTML
     # 2..N HTML files to join
-    [[ $# -lt 2 ]] && { logerror "Wrong arguments for log_join: $@"; return; }
+    [[ $# -lt 2 ]] && { logerror "Wrong arguments for log_join: $*"; return; }
     [[ $# -eq 2 ]] && { cp "$2" "$1"; return; }
     mail_init "$1"
     mail_add "$(sed ';</tr>;Q' "$2"| tail -n +2)"
@@ -402,7 +402,8 @@ write_summary_table() {
         loginfo "Writing new summary table: $summary_table_file"
         echo "$first_line" > "$summary_table_file"
     fi
-    local table_tmp="$(do_table_headers)"
+    local table_tmp
+    table_tmp="$(do_table_headers)"
     if [[ -n "$table_tmp" ]]; then
         # protect against methods not implemented in COMMAND
         for i in ${branches_list_noslash//,/ }; do
@@ -426,7 +427,8 @@ process_branch() {
     # 1. git_branch, branch name or LOCAL (for in place processing)
     # 2... command line parameters
     local git_branch="$1"
-    local branch_no_slash=$(echo "${git_branch}" | sed -e 's/\//_/g')
+    local branch_no_slash
+    branch_no_slash=$(echo "${git_branch}" | sed -e 's/\//_/g')
     local outfile="${OUT_DIR}"/gwms.${branch_no_slash}.${COMMAND}
     local exit_code
     shift
@@ -628,7 +630,8 @@ _main() {
     # Setup the build environment
     filename="$(basename $0)"
     full_command_line="$*"
-    export MYDIR=$(dirname $0)
+    MYDIR=$(dirname $0)
+    export MYDIR
 
     OUT_DIR=
     TEST_CLEAN=onsuccess
@@ -711,8 +714,6 @@ _main() {
                 logexit "failed to clone $REPO" 1 SETUP
             fi
         fi
-        # Adding do_git_init_command also here in case -i is used
-        [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
     fi
     
     # After this line the script is in the working directory and the source tree is in ./glideinwms
@@ -736,13 +737,15 @@ _main() {
     # Iterate throughout the git_branches array
     fail_global=0
     
-    cd "${GLIDEINWMS_SRC}"
+    cd "${GLIDEINWMS_SRC}" || logexit "Could not cd to the repository (${GLIDEINWMS_SRC})" 1 SETUP
     
     # Initialize and save the email to a file
     log_init "$OUT_DIR/email.txt"
     
     if [[ -n "$INPLACE" ]]; then
         loginfo "Running on local files in glideinwms subdirectory"
+        # Adding do_git_init_command also here for when -i is used
+        do_git_init_command
         process_branch LOCAL
         fail_global=$?
         loginfo "Complete with local files (ec:${fail_global})"
@@ -754,7 +757,7 @@ _main() {
             echo "Start : ${git_branch//\//_}"
             logstep checkout ${git_branch}
             # Back in the source directory in case processing changed the directory
-            cd "${GLIDEINWMS_SRC}"
+            cd "${GLIDEINWMS_SRC}" || logexit "Could not cd to the repository (${GLIDEINWMS_SRC})" 1 SETUP
             loginfo "Now checking out branch $git_branch"
             loglog "GIT_BRANCH=\"$git_branch\""
             if ! git checkout ${GITFLAG} "$git_branch"; then

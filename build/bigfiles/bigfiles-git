@@ -1,0 +1,95 @@
+#!/bin/sh
+
+robust_realpath() {
+    if ! realpath "$1" 2>/dev/null; then
+        echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
+    fi
+}
+
+mydir=$(robust_realpath "$(dirname $0)")
+
+help_msg() {
+    # local myname - not in sh, only bash, ksh, ...
+    myname=$(basename $0)
+    cat << EOF
+$myname bigfiles [pull|push|stop] [Bigfiles options]
+$myname [Git commands and options]
+Wrap git commands with bigfiles commands to help mannage big files.
+For git commands the symbolic link are in place
+When you operate the big files are copied over
+Use "stop
+
+See git help (-h and man pages) for git commands and options
+Bigfiles commands:
+$myname bigfiles pull - retrieve the big files (and leave links in place)
+$myname bigfiles push - update the big files in the remote server
+$myname bigfiles stop - put back the symbolic link in place of the big files
+                        to use regular git commands (instead of bigfiles-git)
+Bigfiles options:
+  -v          verbose
+  -d REPO_DIR GlideinWMS repository root directory (default: trying to guess, otherwise '.')
+  -r          (only pull) replace the symbolic links with the linked linked to files in the bigfiles directory
+              and write a list of replaced files to BF_LIST. Big files are downloaded if not in the bigfiles directory
+  -s SERVER   (only push, ignored otherwise) upload to SERVER via scp the bundled big files
+  -b BF_LIST  big files list (default: REPO_DIR/bigfiles/bigfiles_list.txt)
+EOF
+}
+
+INGIT=false
+if gitdir=$(git rev-parse --show-toplevel) ; then
+    INGIT=true
+else
+    gitdir=
+fi
+
+if [ "$1" = -h ] || [ "$1" = --help ]; then
+    help_msg
+    echo "Follows git help"
+    command git "$@"
+    exit 0
+elif [ "$1" = bigfiles ]; then
+    if [ "$2" = pull ]; then
+        shift; shift
+        cd "$gitdir"
+        "$mydir"/bigfiles.sh -pu "$@"
+        exit $?
+    elif [ "$2" = push ]; then
+        shift; shift
+        cd "$gitdir"
+        "$mydir"/bigfiles.sh -P "$@"
+        exit $?
+    elif [ "$2" = stop ]; then
+        shift; shift
+        cd "$gitdir"
+        "$mydir"/bigfiles.sh -R "$@"
+        exit $?
+    else
+        echo "Unknown bigfiles command" >&2
+        echo "$0 pull [pull options: -v]" >&2
+        echo "$0 push [push options: -v, -s SERVER]" >&2
+        help_msg >&2
+        exit 1
+    fi
+fi
+
+# pushd/popd are not in sh, only bash
+old_dir="$PWD"
+if $INGIT; then
+    if [ -f "$gitdir"/bigfiles/bigfiles_list.txt ]; then    
+        #pushd "$gitdir" > /dev/null
+        cd "$gitdir"
+        "$mydir"/bigfiles.sh -R
+        #popd > /dev/null
+        cd "$old_dir"
+    fi
+fi
+command git "$@"
+if $INGIT; then
+    #pushd "$gitdir" > /dev/null
+    cd "$gitdir"
+    "$mydir"/bigfiles.sh -pr
+    #popd > /dev/null
+    cd "$old_dir"
+else
+    echo "Use a git command inside the repository to enable big files support." >&2
+fi

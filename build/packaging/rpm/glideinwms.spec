@@ -303,6 +303,7 @@ install -d $RPM_BUILD_ROOT%{python_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python_sitelib}
 
 # Some of the files are not needed by RPM
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/bigfiles
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/etc
@@ -478,7 +479,9 @@ for schedd in "schedd_glideins2" "schedd_glideins3" "schedd_glideins4" "schedd_g
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/lock
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/procd_pipe
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/spool
+    chmod 'g+w' $RPM_BUILD_ROOT/var/lib/condor/$schedd
 done
+
 
 
 # Install tools
@@ -940,6 +943,11 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Thu Sep  2 2021 Dennis Box <dbox@fnal.gov> - 3.7.5
+- Glideinwms v3.7.5
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_5/history.html
+- Release candidates 3.7.5-01.rc1 to  3.7.5-06.rc6
+
 * Fri Mar 26  2021 2020 Dennis Box <dbox@fnal.gov> - 3.7.3-1
 - GlideinWMS v3.7.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_3/history.html
