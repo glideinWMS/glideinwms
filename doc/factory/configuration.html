@@ -139,7 +139,6 @@ for a more detailed description.
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
-        <a href="#attrs">&lt;attr name="GCB_ORDER" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="NONE" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="False" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_MATCH_AUTH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="2500"  /&gt;</a><br/>
@@ -1465,7 +1464,7 @@ that have worker nodes in private networks or implement a restrictive
 firewall.
 </P>
 <P>HTCondor provides the CCB mechanism to address this. It was providing also a second mechanism, GCB,
-but it is no more supported in recent versions, so remove it if you still have it in your configuration.
+but it is no more supported after HTCondor 7.8, so remove it if you still have it in your configuration.
 </P>
 
 <H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
