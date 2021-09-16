@@ -6,6 +6,11 @@ glidein_config=$1
 # fetch the error reporting helper script
 error_gen=$(grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}')
 
+# import add_config_line function
+add_config_line_source=$(grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}')
+# shellcheck source=./add_config_line.source
+. $add_config_line_source
+
 # get the cvmfsexec attribute switch value from the config file
 use_cvmfsexec=$(grep '^GLIDEIN_USE_CVMFSEXEC ' $glidein_config | awk '{print $2}')
 # TODO: int or string?? if string, make the attribute value case insensitive
@@ -20,11 +25,12 @@ fi
 # if GLIDEIN_USE_CVMFSEXEC is set to 1 - check if CVMFS is locally available in the node
 # validate CVMFS by examining the directories within CVMFS... checking just one directory should be sufficient?
 # get the glidein work directory location from glidein_config file
-work_dir=`grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}'`
+work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
 # store the directory location, to where the tarball is unpacked by the glidein, to a variable
 cvmfs_utils_dir=$work_dir/cvmfs_utils
 # $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 # source the helper script
+# TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs.sh
 . $cvmfs_utils_dir/utils/cvmfs_helper_funcs.sh
 
 variables_reset
@@ -54,13 +60,21 @@ dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}
 
 tar -xvzf $cvmfs_utils_dir/utils/cvmfs_distros.tar.gz -C $cvmfs_utils_dir distros/$dist_file
 
+# TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_mount.sh
 . $cvmfs_utils_dir/utils/cvmfs_mount.sh	
 
 if [[ $GWMS_IS_CVMFS -ne 0 ]]; then
-    # Error occured during mount of CVMFS repositories"
+    # Error occurred during mount of CVMFS repositories"
     logerror "Error occured during mount of CVMFS repositories."
     "$error_gen" -error "$(basename $0)" "WN_Resource" "Mount unsuccessful... CVMFS is still unavailable on the node."
     exit 1
+fi
+
+# TODO: if the mount dir is not /cvmfs ...
+if false ; then
+    CVMFS_MOUNT_DIR=new_mount_dir
+    export CVMFS_MOUNT_DIR
+    add_config_line CVMFS_MOUNT_DIR new_mount_dir
 fi
 
 # CVMFS is now available on the worker node"

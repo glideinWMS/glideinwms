@@ -51,7 +51,7 @@ exit_wrapper () {
     # Publish the error so that HTCondor understands that is a wrapper error and retries the job
     if [[ -n "$_CONDOR_WRAPPER_ERROR_FILE" ]]; then
         warn "Wrapper script failed, creating condor log file: $_CONDOR_WRAPPER_ERROR_FILE"
-        echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >> $_CONDOR_WRAPPER_ERROR_FILE
+        echo "Wrapper script $GWMS_THIS_SCRIPT failed ($exit_code): $1" >> "$_CONDOR_WRAPPER_ERROR_FILE"
     else
         publish_fail="HTCondor error file"
     fi
@@ -72,8 +72,8 @@ exit_wrapper () {
     # Eventually the periodic validation of singularity will make the pilot
     # to stop matching new payloads
     # Prevent a black hole by sleeping EXITSLEEP (10) minutes before exiting. Sleep time can be changed on top of this file
-    sleep $sleep_time
-    exit $exit_code
+    sleep "$sleep_time"
+    exit "$exit_code"
 }
 
 # In case singularity_lib cannot be imported
@@ -173,7 +173,7 @@ prepare_and_invoke_singularity() {
             exit_or_fallback "$msg" 1
             return
         fi
-        if [[ "x$DESIRED_OS" = xany ]]; then
+        if [[ "$DESIRED_OS" = any ]]; then
             # Prefer the platforms default,rhel7,rhel6,rhel8, otherwise pick the first one available
             GWMS_SINGULARITY_IMAGE="$(singularity_get_image default,rhel7,rhel6,rhel8 ${GWMS_SINGULARITY_IMAGE_RESTRICTIONS:+$GWMS_SINGULARITY_IMAGE_RESTRICTIONS,}any)"
         else
@@ -218,7 +218,7 @@ ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
         EXITSLEEP=10m
         msg="\
 ERROR   Unable to access the Singularity image: $GWMS_SINGULARITY_IMAGE
-        Site and node: $OSG_SITE_NAME `hostname -f`"
+        Site and node: $OSG_SITE_NAME $(hostname -f)"
         # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
         exit_or_fallback "$msg" 1
         return
@@ -422,7 +422,7 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
     # This script could run when singularity is optional and not wanted
     # So should not fail but exec w/o running Singularity
 
-    if [[ "x$HAS_SINGULARITY" = "x1"  &&  "x$GWMS_SINGULARITY_PATH" != "x" ]]; then
+    if [[ "$HAS_SINGULARITY" = "1"  &&  -n "$GWMS_SINGULARITY_PATH" ]]; then
         #############################################################################
         #
         # Will run w/ Singularity - prepare for it
@@ -457,7 +457,7 @@ else
     # Need to start in /srv (Singularity's --pwd is not reliable)
     # /srv should always be there in Singularity, we set the option '--home \"$PWD\":/srv'
     # TODO: double check robustness, we allow users to override --home
-    [[ -d /srv ]] && cd /srv
+    [[ -d /srv ]] && cd /srv || warn "GWMS singularity wrapper, unable to cd in /srv"
     export HOME=/srv
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS

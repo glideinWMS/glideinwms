@@ -608,7 +608,10 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
 	    <blockquote>
           +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/PATH_NAME_TO_THE_IMAGE&quot;.
         </blockquote>
-	    If users use this feature and if the Singularity image is not in the path indicated in the /cvmfs repository, the user job will error out.
+	    If CVMFS is mounted in a different place CVMFS_MOUNT_DIR will be set in the environment and the Glidein will replace
+      /cvms with the correct mount point.
+      If users use this feature and if the Singularity image is not in the path indicated in the CVMFS repository, 
+      the user job will error out.
           </li>
 	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
         SINGULARITY_IMAGES_DICT will be searched for 'default', 'rhel7' and 'rhel6' images.
@@ -1412,7 +1415,11 @@ Then you can use REQUIRED_OS to select one of the images.
 </blockquote>
     </li>
 </ul>
-    </li>
+  NOTE: For all the image path specified with the methods above, if CVMFS is mounted in a different place 
+  CVMFS_MOUNT_DIR will be set in the environment and the Glidein will replace /cvms/ at the beginning of the path
+  with the correct mount point. I.e. operators and users do not have to worry about CVMFS bein mounted on 
+  an unusual mount point.
+</li>
 </ol>
     </p>
 
