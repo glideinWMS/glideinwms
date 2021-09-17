@@ -200,7 +200,8 @@ locked_concat_file() {
 
     # Wait for lock...
     local lock_ctr=0 lock="${fpath}.lock"
-    trap "[ -f "$lock" ] && rm $lock; exit 1" SIGKILL SIGINT SIGQUIT
+    # removed SIGKILL from the list since it cannot be trapped
+    trap "[ -f \"$lock\" ] && rm \"$lock\"; exit 1" SIGINT SIGQUIT
     
     until ln "${fpath}" "${lock}" 2>/dev/null
     do sleep 1
