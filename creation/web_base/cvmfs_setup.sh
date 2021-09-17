@@ -70,12 +70,16 @@ if [[ $GWMS_IS_CVMFS -ne 0 ]]; then
     exit 1
 fi
 
-# TODO: if the mount dir is not /cvmfs ...
-if false ; then
-    CVMFS_MOUNT_DIR=new_mount_dir
-    export CVMFS_MOUNT_DIR
-    add_config_line CVMFS_MOUNT_DIR new_mount_dir
-fi
+# TODO: Verify the findmnt ... will always find the correct CVMFS mount
+mount_point=$(findmnt -t fuse -S cvmfs2 | tail -n 1 | cut -d ' ' -f 1 )
+if [[ -n "$mount_point" && "$mount_point" != TARGET* ]]; then
+    mount_point=$(basename "$mount_point")
+    if [[ -n "$mount_point" && "$mount_point" != /cvmfs ]]; then
+        CVMFS_MOUNT_DIR="$mount_point"
+        export CVMFS_MOUNT_DIR
+        add_config_line CVMFS_MOUNT_DIR "$mount_point"
+    fi
+fi   
 
 # CVMFS is now available on the worker node"
 loginfo "Proceeding to execute user job..."
