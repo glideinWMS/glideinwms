@@ -406,9 +406,12 @@ glidien_cleanup() {
             warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
         else
             if [ "${work_dir_created}" -eq "1" ]; then
+                # rm -fR does not remove directories read only for the user
+                find "${work_dir}" -type d -exec chmod u+w {} \;
                 rm -fR "${work_dir}"
             fi
             if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
+                find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
                 rm -fR "${glide_local_tmp_dir}"
             fi
         fi
