@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_3_rc1
+# GLIDEINWMS_VERSION v3_9_3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cd59fc1720cd5485e50342613827f824  ./LICENSE
@@ -152,6 +152,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 154408c1d79eba1fd6c37a2dbca176b2  ./factory/tools/lib/gWftArgsHelper.py
 3c15148db2a41bf3297c396b29aff173  ./factory/tools/lib/gWftLogParser.py
 8477f2c5f548f9d62aeb156efa6637e4  ./factory/tools/manual_glidein_submit.py
+302296b2852c87509d18b78cb1a5ba63  ./files_ownership.md
 d41d8cd98f00b204e9800998ecf8427e  ./install/__init__.py
 d31e698b9c2c0c9879051a5d18ff9e6d  ./install/glidecondor_addDN
 4b6cad9e94628cf0d672f1c4652cc4d9  ./install/glidecondor_createSecCol

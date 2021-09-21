@@ -273,7 +273,7 @@ v3_7_5:
         - Automount of CVMFS integrated into glidein script
 
 v3_9_3:
-  Date: Sep 10, 2021
+  Date: Sep 21, 2021
   Series: Development
   Tarball: false
   Feature:
