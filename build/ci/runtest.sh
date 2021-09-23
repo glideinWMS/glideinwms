@@ -52,12 +52,13 @@ find_aux() {
     else
         [[ -e "$GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/$1" ]] && aux_file="$GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/$1"
     fi
-    if [[ "x$2" = xsource ]]; then
+    if [[ "$2" = source ]]; then
         if [[ ! -e  "${aux_file}" ]]; then
-            [[ "x$3" = xnoexit ]] && { false; return; }
+            [[ "$3" = noexit ]] && { false; return; }
             logerror "${1} not found!"
             logexit "script running in $(pwd), expects a ${1} file there or in the glideinwms src tree"
         fi
+        # shellcheck source=./utils.sh
         if ! . "${aux_file}" ; then
             logexit "${aux_file} contains errors!"
         fi

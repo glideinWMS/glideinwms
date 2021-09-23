@@ -1,7 +1,7 @@
 #!/bin/bash
 
 show_help(){
-    PROG=$(basename $0)
+    PROG=$(basename "$0")
     echo "generate a python coverage report for `pwd`/glideinwms"
     echo "usage:"
     echo "    $PROG -h: display this message"
@@ -9,7 +9,7 @@ show_help(){
     echo "    $PROG -c: run a coverage report on the current branch"
     exit 0
 }
-[ "x$1" = "x" ]  && show_help
+[ -z "$1" ]  && show_help
 
 
 find_aux () {
@@ -33,9 +33,9 @@ do
 done
 
 
-WORKSPACE=`pwd`
+WORKSPACE=$(pwd)
 export GLIDEINWMS_SRC=${WORKSPACE}/glideinwms
-export MYDIR=$(dirname $0)
+export MYDIR=$(dirname "$0")
 
 if [ ! -d  "$GLIDEINWMS_SRC" ]; then
     echo "ERROR: $GLIDEINWMS_SRC not found!"
@@ -53,6 +53,7 @@ if [ ! -e  "$ultil_file" ]; then
     exit 1
 fi
 
+# shellcheck source=./utils.sh
 if ! . "$ultil_file" ; then
     echo "ERROR: $ultil_file contains errors!"
     echo "exiting"
@@ -60,16 +61,16 @@ if ! . "$ultil_file" ; then
 fi
 
 
-if [ "x$VIRTUAL_ENV" = "x" ]; then
-     setup_python2_venv $WORKSPACE
+if [ -z "$VIRTUAL_ENV" ]; then
+     setup_python2_venv "$WORKSPACE"
 fi
 
-cd ${GLIDEINWMS_SRC}/unittests
+cd "${GLIDEINWMS_SRC}/unittests" || exit 1
 CURR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "x$BRANCH" = "xcurrent" ]; then
+if [ "$BRANCH" = "current" ]; then
     BRANCH=${CURR_BRANCH}
 else
-    git checkout ${BRANCH}
+    git checkout "${BRANCH}"
 fi
 
 SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/"
@@ -80,11 +81,11 @@ SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 BR_NO_SLASH=$(echo ${BRANCH} | sed -e 's/\//-/g')
 
 coverage erase
-for TST in $(ls test*.py); do
-    echo '========>' $TST
+for TST in test*.py; do
+    echo '========>' "$TST"
     coverage run  --source="${SOURCES}" --omit="test_*.py"  -a $TST
 done
 coverage report > ${WORKSPACE}/coverage.report.${BR_NO_SLASH}
 coverage html
-mv htmlcov ${WORKSPACE}/htmlcov.${BR_NO_SLASH}
-git checkout ${CURR_BRANCH}
+mv htmlcov "${WORKSPACE}/htmlcov.${BR_NO_SLASH}"
+git checkout "${CURR_BRANCH}"

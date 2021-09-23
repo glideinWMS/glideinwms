@@ -4,7 +4,8 @@ glidein_config=$1
 
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
+# shellcheck source=./add_config_line.source
+. $add_config_line_source
 # find error reporting helper script
 error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
@@ -51,5 +52,4 @@ else
 fi
 /bin/echo "Ending"
 
-"$error_gen" -ok short_singularity_test.sh  pwd $PWD proc1 "ps -p1 -ocomm=`" pid "`/bin/cat /proc/$PPID/comm`" reexec $GWMS_SINGULARITY_REEXEC opwd $GWMS_SINGULARITY_OUTSIDE_PWD opwd_list $GWMS_SINGULARITY_OUTSIDE_PWD_LIST
-
+"$error_gen" -ok short_singularity_test.sh  pwd "$PWD" proc1 "$(ps -p1 -ocomm=)" pid "$(/bin/cat /proc/$PPID/comm)" reexec "$GWMS_SINGULARITY_REEXEC" opwd "$GWMS_SINGULARITY_OUTSIDE_PWD" opwd_list "$GWMS_SINGULARITY_OUTSIDE_PWD_LIST"
