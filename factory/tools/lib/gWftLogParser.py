@@ -19,6 +19,8 @@ import gzip
 from glideinwms.lib import condorLogParser
 from glideinwms.factory import glideFactoryLogParser
 
+from glideinwms.lib.defaults import force_bytes, BINARY_ENCODING
+
 # get the list of jobs that were active at a certain time
 def get_glideins(log_dir_name, date_arr, time_arr):
     glidein_list=[]
@@ -67,7 +69,7 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 
 # extract the blob from a glidein log file starting from position 
 def get_Compressed_raw(log_fname,start_str, start_pos=0):
-    SL_START_RE=re.compile("%s\nbegin-base64 644 -\n"%start_str, re.M|re.DOTALL)
+    SL_START_RE=re.compile(b"%s\nbegin-base64 644 -\n"%force_bytes(start_str, BINARY_ENCODING), re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
     if size==0:
         return "" # mmap would fail... and I know I will not find anything anyhow
@@ -81,11 +83,11 @@ def get_Compressed_raw(log_fname,start_str, start_pos=0):
             log_start_idx=start_re.end()
 
             # find where it ends
-            log_end_idx=buf.find("\n====", log_start_idx)
+            log_end_idx=buf.find(b"\n====", log_start_idx)
             if log_end_idx<0: # up to the end of the file
-                return buf[log_start_idx:]
+                return buf[log_start_idx:].decode(BINARY_ENCODING)
             else:
-                return buf[log_start_idx:log_end_idx]
+                return buf[log_start_idx:log_end_idx].decode(BINARY_ENCODING)
         finally:
             buf.close()
 
@@ -95,15 +97,15 @@ def get_Compressed(log_fname, start_str):
     if raw_data!="":
         gzip_data=binascii.a2b_base64(raw_data)
         del raw_data
-        data_fd=gzip.GzipFile(fileobj=io.StringIO(gzip_data))
-        data=data_fd.read()
+        data_fd=gzip.GzipFile(fileobj=io.BytesIO(gzip_data))
+        data=data_fd.read().decode(BINARY_ENCODING)
     else:
         data=raw_data
     return data
 
 # extract the blob from a glidein log file
 def get_Simple(log_fname, start_str, end_str):
-    SL_START_RE=re.compile(start_str+"\n", re.M|re.DOTALL)
+    SL_START_RE=re.compile(force_bytes(start_str, BINARY_ENCODING)+b"\n", re.M|re.DOTALL)
     SL_END_RE=re.compile(end_str, re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
     if size==0:
@@ -120,9 +122,9 @@ def get_Simple(log_fname, start_str, end_str):
             # find where it ends
             log_end_idx=SL_END_RE.search(buf, log_start_idx)
             if log_end_idx is None: # up to the end of the file
-                return buf[log_start_idx:]
+                return buf[log_start_idx:].decode(BINARY_ENCODING)
             else:
-                return buf[log_start_idx:log_end_idx.start()]
+                return buf[log_start_idx:log_end_idx.start()].decode(BINARY_ENCODING)
         finally:
             buf.close()
 
@@ -147,14 +149,14 @@ def get_XMLResult(log_fname):
 # extract slot names
 def get_StarterSlotNames(log_fname, condor_log_id='(StarterLog.slot[0-9]*[_]*[0-9]*)'):
     start_str="^%s\n======== gzip . uuencode ============="%condor_log_id
-    SL_START_RE=re.compile("%s\nbegin-base64 644 -\n"%start_str, re.M|re.DOTALL)
+    SL_START_RE=re.compile(b"%s\nbegin-base64 644 -\n"%force_bytes(start_str, BINARY_ENCODING), re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
     if size==0:
         return "" # mmap would fail... and I know I will not find anything anyhow
     with open(log_fname) as fd:
         buf=mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
         try:
-            strings = SL_START_RE.findall(buf, 0)
+            strings = [s.decode(BINARY_ENCODING) for s in SL_START_RE.findall(buf, 0)]
             return strings
         finally:
             buf.close()

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Cat log GWMS files using tools
 
-TOOLDIR="$(python -c 'import glideinwms; print glideinwms.__path__[0]')/factory/tools"
+TOOLDIR="$(python3 -c 'import glideinwms; print(glideinwms.__path__[0])')/factory/tools"
 JOBLOGROOTPREFIX=/var/log/gwms-factory/client
 FEUSER=user_frontend
 INSTANCE_NAME=glidein_gfactory_instance
