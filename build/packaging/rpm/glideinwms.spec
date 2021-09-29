@@ -713,6 +713,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/cWDictFile.py
 %{python_sitelib}/glideinwms/creation/lib/cWDictFile.pyc
 %{python_sitelib}/glideinwms/creation/lib/cWDictFile.pyo
+%{python_sitelib}/glideinwms/creation/lib/cWExpand.py
+%{python_sitelib}/glideinwms/creation/lib/cWExpand.pyc
+%{python_sitelib}/glideinwms/creation/lib/cWExpand.pyo
 %{python_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python_sitelib}/glideinwms/creation/lib/cWParams.pyc
 %{python_sitelib}/glideinwms/creation/lib/cWParams.pyo
