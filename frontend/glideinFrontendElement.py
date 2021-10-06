@@ -933,7 +933,7 @@ class glideinFrontendElement:
                     (fd, tmpnm) = tempfile.mkstemp()
                     scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
                     duration = 24 * one_hr
-                    identity = "vofrontend_service@%s" % socket.gethostname()
+                    identity = "%s@%s" % (glidein_site, socket.gethostname())
                     logSupport.log.debug("creating  token %s" % tkn_file)
                     logSupport.log.debug("pwd_flie= %s" % pwd_file)
                     logSupport.log.debug("scope= %s" % scope)

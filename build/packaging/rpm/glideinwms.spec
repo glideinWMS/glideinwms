@@ -505,8 +505,8 @@ cp frontend/tools/enter_frontend_env $RPM_BUILD_ROOT%{_bindir}/enter_frontend_en
 cp frontend/tools/fetch_glidein_log $RPM_BUILD_ROOT%{_bindir}/fetch_glidein_log
 cp frontend/tools/glidein_off $RPM_BUILD_ROOT%{_bindir}/glidein_off
 cp frontend/tools/remove_requested_glideins $RPM_BUILD_ROOT%{_bindir}/remove_requested_glideins
-cp install/templates/frontend_condortoken $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts/
-cp install/templates/04_gwms_frontend_scripts.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
+#cp install/templates/frontend_condortoken $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts/
+cp install/templates/04_gwms_frontend_idtokens.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
 
 # Install glidecondor
 install -m 0755 install/glidecondor_addDN $RPM_BUILD_ROOT%{_sbindir}/glidecondor_addDN
@@ -836,8 +836,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
 %doc doc
-%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
-%attr(644,root,root) %{_sysconfdir}/condor/config.d/04_gwms_frontend_scripts.config
+#%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
+%attr(644,root,root) %{_sysconfdir}/condor/config.d/04_gwms_frontend_idtokens.config
 %attr(755,root,root) %{_bindir}/glidein_off
 %attr(755,root,root) %{_bindir}/remove_requested_glideins
 %attr(755,root,root) %{_bindir}/fetch_glidein_log
