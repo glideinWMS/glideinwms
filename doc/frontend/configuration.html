@@ -77,7 +77,7 @@
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
         <li><a href="#usercollector">Using multiple user pool collectors/HTCondor High Availability (HA) support</a> </li>
-        <li><a href="#singularity">Using Singularity</a> </li>
+        <li><a href="#singularity">Run jobs underSingularity</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
         <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
         <li><a href="#reconfigure_hooks">Running pre/post reconfigure hooks</a> </li>
@@ -255,8 +255,7 @@ Click on any piece for a more detailed description.
 </div>
 <div class="section">
 
-<H2 CLASS="western"><A NAME="management"></A>The Glidein Frontend
-Configuration</H2>
+<H2 CLASS="western"><A NAME="management"></A>Frontend Configuration</H2>
 <P>The Glidein Frontend configuration involves creating the configuration
 directory and files and then creating the daemons. As in the Glidein
 Factory set up, an XML file is converted into a configuration tree by
@@ -1302,7 +1301,7 @@ Please notice that the Frontend will throw an error on reconfig if a referenced 
   
 <div class="section">
 <a name="multiple_proxy" />
-<h2>Using Multiple Proxies</h2>
+  <h2><font color="red">[GSI proxies are deprecated]</font>  Using Multiple Proxies</h2>
 
 <p>
 <b>
@@ -1447,10 +1446,10 @@ The <a href="../factory/custom_vars.html#singularity_vars">custom variables file
 <div class="section">
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend
 Daemon</H2>
-<P>Once you have the desired configuration file, move to the VO
-Frontend directory&nbsp; and launch the command:</P>
+<P>Once you have the desired configuration file, reconfigure the frontend 
+and start it with the commands:</P>
 
-    <blockquote>./frontend_startup start</blockquote>
+    <blockquote>gwms-frontend reconfig; systemctl start gwms-frontend</blockquote>
 <P>
 With the configutation above, all the activity messages will go into
 </P>
