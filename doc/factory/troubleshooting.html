@@ -192,7 +192,7 @@ For a visual representation of the JWT configuration that must match, see the be
     </blockquote>
 
     <b> An IDTOKEN with the identity "frontend_identity@myfactory.example.org" can be created via a 3 step process:</b>
-    <ol> <li>The frontend admin at myfrontend.fnal.gov requests an IDTOKEN from the factory with condor_token_request
+    <ol> <li>The frontend admin at myfrontend.example.org requests an IDTOKEN from the factory with condor_token_request
         <blockquote>
 [root@myfrontend ~]#condor_token_request -id frontend_identity@myfactory.example.org -pool myfactory.example.org
         </blockquote>
@@ -200,9 +200,9 @@ For a visual representation of the JWT configuration that must match, see the be
         <blockquote>
           [root@myfactory ~]# condor_token_request_list</br>
     AuthenticatedIdentity = "ssl@unmapped"</br>
-ClientId = "myfrontend.fnal.gov-235"</br>
+ClientId = "myfrontend.example.org-235"</br>
 PeerLocation = "131.225.152.143"</br>
-    RequestedIdentity = "frontend_identity@myfrontend.fnal.gov"</br>
+    RequestedIdentity = "frontend_identity@myfrontend.example.org"</br>
     RequestId = "9299245"</br>
     </br>
     [root@fermicloud588 ~]# condor_token_request_approve -req 9299245</br>
@@ -210,7 +210,7 @@ Request contents:</br>
     RequestedIdentity = "frontend_identity@myfactory.example.org"</br>
     AuthenticatedIdentity = "ssl@unmapped"</br>
     PeerLocation = "131.225.152.143"</br>
-ClientId = "myfrontend.fnal.gov-235"</br>
+ClientId = "myfrontend.example.org-235"</br>
 RequestId = "9299245"</br>
         </br>
         To approve, please type 'yes'</br>

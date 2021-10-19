@@ -72,14 +72,26 @@
 <h2>1. Quick Reference Guide to JWT Authentication Setup</h2>
 
 <p>
-JWT, or Json Web Tokens, are replacing GSI as the main authentication method for OSG services such as   
-Condor and GlideinWMS. Two types of JWTs are discussed here:
-<ol>
-  <li><a href="https://scitokens.org/technical_docs/Claims">SciTokens</a>
-  <li><a href="https://htcondor.readthedocs.io/en/latest/admin-manual/security.html?highlight=IDTOKEN#introducing-idtokens">IDTokens</a>
-</ol>
 
-</p>  
+<br> JWT configuration is conceptually similar to GSI configuration.
+<br>
+  <br>With GSI configuration:
+    <ul>
+      <li> the auth files are either cert/host pairs or proxies
+      <li> HTCondor identities are mapped via condor_mapfiles.
+        <li> the locations are either specified in <font color="green">XML configurations</font> or live in a <font color="orange">well known default</font>
+    </ul>
+    <br>With JWT configuration: 
+      <ul>
+        <li> the auth files are either 
+          <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/security.html?highlight=IDTOKEN#introducing-idtokens">IDTOKENS</a> 
+          or <a href="https://scitokens.org/technical_docs/Claims"> SCITOKENS</a>
+        <li> HTCondor identities are mapped via condor_mapfile for SCITOKENS.
+          <ul><li> This is usually only done on an HTCondor CE in GWMS </ul>
+        <li> HTCondor identities are taken from the subject: claim for IDTOKENS 
+          <ul><li>IDTOKENS can have identities mapped with a condor_mapfile but this is typically not done in GWMS</ul>
+          <li> the locations are either either specified in <font color="green">XML configurations</font> or live in a <font color="orange">well known default</font>
+       </ul>
 <table class="requirements">
   <tbody><tr class="head">
     <td>Service</td>
@@ -97,7 +109,7 @@ Condor and GlideinWMS. Two types of JWTs are discussed here:
              each  provide IDTOKENS to each other. Admins for the various nodes must coordinate condor_token_request and condor_token_request_approve operations to
              distribute  IDTOKENS as needed.
            </li>
-           <li> The recieved tokens are placed in /etc/condor/tokens.d with root ownership
+           <li> The recieved tokens are placed in <font color="orange">/etc/condor/tokens.d</font> with root ownership
            <li> IDTOKENS can be mapped to users via condor_mapfiles but are usually not in a GWMS installation
          </ul>
        </td>
@@ -106,10 +118,9 @@ Condor and GlideinWMS. Two types of JWTs are discussed here:
   <tr>
     <td>WMS Pool (Collector)</td>
        <td>
-https://opensciencegrid.org/docs/other/install-gwms-frontend/         <ul>
-           <li>See the User Pool token requirements.  Be aware that if there are multiple collecters for load balancing or HA, such as mycollector.fnal.gov and mycollector.cern.ch, the processes should be supplied with two IDTOKENS issued from both mycollector.fnal.gov and mycollector.cern.ch
-           </li>
-           </li>
+         <ul>
+           <li>See the User Pool token requirements.  
+           <li>Be aware that if there are multiple collecters for load balancing or HA, such as mycollector.fnal.gov and mycollector.cern.ch, the processes should be supplied with two IDTOKENS issued from both mycollector.fnal.gov and mycollector.cern.ch
          </ul>
        </td>
      </tr>
@@ -125,15 +136,27 @@ https://opensciencegrid.org/docs/other/install-gwms-frontend/         <ul>
      </tr>
      <tr>
        <td>Glidein Frontend</td>
-
        <td>
          <ul>
-           <li>A SciToken must be generated and placed in the &lt;credentials&gt; section of the frontend.xml to authorize submission to CEs
-           <li> The CE admin must map the SciToken to a uid on the CE, which obviously  requires coordination between CE and Frontend admins 
-           <li> The frontend admin needs to generate IDTOKENS for the frontend uid and place them in ~frontend/.condor/tokens.d.  See the <a href="../factory/troubleshooting.html#colorcoded">JWT Quick Color-coded Guide</a> for a description of the subject these tokens need.
+           <li> If the frontend is running HTCondor daemons, they have the same requirements as Collectors above
+           <li> The frontend admin needs IDTOKENS for the frontend uid in <font color="orange"> ~frontend/.condor/tokens.d</font>.  
+             See the <a href="../factory/troubleshooting.html#colorcoded">JWT Quick Color-coded Guide</a> for a description of the subject these tokens need.
+             <li>A SCITOKEN must be generated and placed in the &lt;credentials&gt; section of <font color="green">/etc/gwms-frontend/frontend.xml</font>
+               to authorize submission to CEs
+           <li> The CE admin must edit /etc/condor-ce/mapfiles.d/10-scitokens.conf to map the SCITOKEN to a uid. 
+           <li> The Factory admin needs to ensure that an  &lt;entry&gt; with auth_method="scitoken" exists in <font color="green">/etc/gwms-factory/glideinWMS.xml</font>
          </ul>
        </td>
 
+     </tr>
+     <tr>
+       <td>Glidein Factory</td>
+       <td>
+         <ul>
+           <li>Same requirements as Collectors above for HTCondor daemons
+           <li>As CE's switch from GSI to JWT authentication they need corresponding  &lt;entry&gt; lines with auth_method="scitoken" in <font color="green">/etc/gwms-factory/glideinWMS.xml</font>
+         </ul>
+       </td>
      </tr>
      <tr>
        <td>User Schedd</td>
@@ -178,6 +201,24 @@ https://opensciencegrid.org/docs/other/install-gwms-frontend/         <ul>
 </div>
 <div class="section">
 <h2><a name="configure">4. Configuration </a></h2>
+<br> JWT configuration is conceptually similar to GSI configuration
+<br>
+  <br>With GSI configuration
+    <ul>
+      <li> the auth files are either cert/host pairs or proxies
+      <li> the locations are either specified in XML configurations or live in a well known default
+      <li> HTCondor identities are mapped via condor_mapfiles.
+    </ul>
+    <br>With JWT configuration 
+      <ul>
+        <li> the auth files are either IDTOKENS or SCITOKENS
+        <li> the locations are either either specified in XML configurations or live in a well known default
+        <li> HTCondor identities are taken from the subject: claim for IDTOKENS (set when the token is generated)
+        <li> HTCondor identities are mapped via condor_mapfile for SCITOKENS. This usually only occurs on a CE
+       </ul>
+  <ol>
+    <li>
+  <ol>
 </div>
 <div class="footer">
 Banner image by
