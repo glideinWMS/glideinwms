@@ -1,3 +1,8 @@
+#
+# add SSL mappings here to bootstrap  condor_token_request condor_token_request_approve 
+# between this.full.hostname and remote.full.hostname
+# SSL (.*this.full.hostname.*) condor
+# SSL (.*remote.full.hostname.*) condor
 SSL(.*) anonymous
 GSI (.*) anonymous
 FS (.*) \1
