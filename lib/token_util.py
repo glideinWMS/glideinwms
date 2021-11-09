@@ -128,7 +128,14 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
     if not kid:
         kid = os.path.basename(pwd_file)
     if not issuer:
-        issuer = iexe_cmd("condor_config_val COLLECTOR_HOST").strip()
+        # split() has been added because condor is only considering the first part. Here is Brian B. comment:
+        # "any comma, space, or tab character in the trust domain is treated as a separator.  Hence, for purpose of finding the token,
+        # TRUST_DOMAIN=vocms0803.cern.ch:9618,cmssrv623.fnal.gov:9618
+        # TRUST_DOMAIN=vocms0803.cern.ch:9618
+        # TRUST_DOMAIN=vocms0803.cern.ch:9618,Some Random Text
+        # are all considered the same - vocms0803.cern.ch:9618."
+
+        issuer = iexe_cmd("condor_config_val TRUST_DOMAIN").strip().split(',')[0]
     if not identity:
         identity = "%s@%s" % (os.getlogin(), socket.gethostname())
 
