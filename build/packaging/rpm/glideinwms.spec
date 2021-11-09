@@ -106,12 +106,33 @@ Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
+Requires: vofrontend-libs
+Requires: vofrontend-glidein
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
 %description vofrontend-core
 This subpackage includes all the scripts needed to run a
 frontend. Created to separate out the httpd server.
+
+
+%package vofrontend-libs
+Summary:        The Python creation library for GWMS Frontend.
+Requires: python3 >= 3.6
+Requires: javascriptrrd >= 1.1.0
+Requires: glideinwms-libs = %{version}-%{release}
+Requires: glideinwms-common-tools = %{version}-%{release}
+%description vofrontend-libs
+This subpackage includes the Python creation library for the Frontend.
+
+
+%package vofrontend-glidein
+Summary:        The Glidein components for GWMS Frontend.
+Requires: python3 >= 3.6
+Requires: glideinwms-libs = %{version}-%{release}
+Requires: glideinwms-common-tools = %{version}-%{release}
+%description vofrontend-glidein
+This subpackage includes the Glidein components for the Frontend.
 
 
 %package vofrontend-httpd
@@ -619,7 +640,10 @@ getent passwd frontend >/dev/null || \
        useradd -r -g frontend -d /var/lib/gwms-frontend \
 	-c "VO Frontend user" -s /sbin/nologin frontend
 # If the frontend user already exists make sure it is part of frontend group
-usermod --append --groups frontend frontend >/dev/null
+usermod --append --groups frontend,glidein frontend >/dev/null
+
+%pre vofrontend-glidein
+getent group glidein >/dev/null || groupadd -r glidein
 
 %pre factory-core
 # Add the "gfactory" user and group if they do not exist
@@ -841,27 +865,33 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/stopFrontend
 %attr(755,root,root) %{_libexecdir}/gwms_renew_proxies
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
-%attr(-, frontend, frontend) %{web_dir}
-%attr(-, frontend, frontend) %{web_base}
-%attr(-, frontend, frontend) %{frontend_dir}
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
-%{python3_sitelib}/glideinwms/frontend
-%{python3_sitelib}/glideinwms/creation/lib/cvWConsts.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWCreate.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWDictFile.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWParamDict.py
-%{python3_sitelib}/glideinwms/creation/lib/cvWParams.py
-%{python3_sitelib}/glideinwms/creation/lib/matchPolicy.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendDowntimeLib.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendMonitorAggregator.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendMonitoring.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendPidLib.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontend.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendElement.py
+%{python3_sitelib}/glideinwms/frontend/checkFrontend.py
+%{python3_sitelib}/glideinwms/frontend/stopFrontend.py
+%{python3_sitelib}/glideinwms/frontend/manageFrontendDowntimes.py
+%{python3_sitelib}/glideinwms/frontend/gwms_renew_proxies.py
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendDowntimeLib.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendMonitorAggregator.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendMonitoring.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendPidLib.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontend.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendElement.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/checkFrontend.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/stopFrontend.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/manageFrontendDowntimes.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/gwms_renew_proxies.*
+%{python3_sitelib}/glideinwms/frontend/tools
+%{python3_sitelib}/glideinwms/frontend/config_examples
 %{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.py
 %{python3_sitelib}/glideinwms/creation/lib/check_python3_expr.py
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWConsts.*
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWCreate.*
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWDictFile.*
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWParamDict.*
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWParams.*
-%{python3_sitelib}/glideinwms/creation/lib/__pycache__/matchPolicy.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_config_frontend.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_python3_expr.*
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
@@ -884,6 +914,48 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/proxies.ini
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
+
+%files vofrontend-libs
+%defattr(-,root,root,-)
+%doc LICENSE
+%doc ACKNOWLEDGMENTS.txt
+%doc doc
+%{python3_sitelib}/glideinwms/frontend/__init__.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendConfig.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendInterface.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendPlugins.py
+%{python3_sitelib}/glideinwms/frontend/glideinFrontendLib.py
+%{python3_sitelib}/glideinwms/frontend/__pycache__/__init__.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendConfig.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendInterface.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendPlugins.*
+%{python3_sitelib}/glideinwms/frontend/__pycache__/glideinFrontendLib.*
+
+%files vofrontend-glidein
+%defattr(-,root,root,-)
+%doc LICENSE
+%doc ACKNOWLEDGMENTS.txt
+%doc doc
+%{python3_sitelib}/glideinwms/creation/lib/cvWConsts.py
+%{python3_sitelib}/glideinwms/creation/lib/cvWCreate.py
+%{python3_sitelib}/glideinwms/creation/lib/cvWDictFile.py
+%{python3_sitelib}/glideinwms/creation/lib/cvWParamDict.py
+%{python3_sitelib}/glideinwms/creation/lib/cvWParams.py
+%{python3_sitelib}/glideinwms/creation/lib/matchPolicy.py
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWConsts.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWCreate.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWDictFile.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWParamDict.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cvWParams.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/matchPolicy.*
+%defattr(-,root,glidein,775)
+%{web_dir}
+%{web_base}
+%{frontend_dir}
+%defattr(664,root,glidein,775)
+%{web_dir}/monitor
+%{web_dir}/stage
+%{web_base}/factoryRRDBrowse.html
 
 %files factory-httpd
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
