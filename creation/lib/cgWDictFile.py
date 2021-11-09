@@ -16,6 +16,7 @@ from . import cWDictFile
 import pwd
 import shutil
 import glideinwms.lib.subprocessSupport
+from glideinwms.lib.util import chmod
 
 
 # values are (group_name)
@@ -503,7 +504,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         try:
             os.mkdir(self.dir)
             # with condor 7.9.4 a permissions change is required
-            os.chmod(self.dir, 0o755)
+            chmod(self.dir, 0o755)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
             raise RuntimeError("Failed to create %s dir (user %s): %s " % (self.dir_name, self.user, e))
         return True
@@ -538,7 +539,7 @@ class chmodClientDirSupport(clientDirSupport):
         try:
             os.mkdir(self.dir)
             # with condor 7.9.4 a permissions change is required
-            os.chmod(self.dir, self.chmod)
+            chmod(self.dir, self.chmod)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
             raise RuntimeError("Failed to create %s dir (user %s): %s " % (self.dir_name, self.user, e))
         return True

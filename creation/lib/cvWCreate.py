@@ -16,6 +16,7 @@ import string
 import re
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorSecurity
+from glideinwms.lib.util import chmod
 
 
 #########################################
@@ -32,7 +33,7 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, 
     with open(startup_fname, "w") as fd:
         fd.write(template)
 
-    os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+    chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
     return
 

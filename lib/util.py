@@ -420,3 +420,17 @@ def hash_nc(data, len=None):
         out = out[:len]
 
     return out
+
+
+def chmod(*args, **kwargs):
+    """Wrapper for os.chmod that only executes if running as root.
+
+    Args:
+        *args: Positional arguments to pass to os.chmod
+        **kwargs: Keyword arguments to pass to os.chmod
+
+    Returns:
+        None
+    """
+    if os.getuid() == 0:
+        os.chmod(*args, **kwargs)

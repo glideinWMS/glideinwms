@@ -44,6 +44,7 @@ from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib import token_util
+from glideinwms.lib.util import chmod
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -921,12 +922,12 @@ class glideinFrontendElement:
                 #tkn_file += ".token"
                 #cmd = "/usr/sbin/frontend_condortoken %s" % glidein_site
                 #tkn_str = subprocessSupport.iexe_cmd(cmd, useShell=True)
-                #os.chmod(tmpnm, 0o600)
+                #chmod(tmpnm, 0o600)
                 #os.write(fd, tkn_str)
                 #os.close(fd)
                 #shutil.move(tmpnm, tkn_file)
                 #file_tmp2final(tkn_file, tmpnm)
-                #os.chmod(tkn_file, 0o600)
+                #chmod(tkn_file, 0o600)
                 #logSupport.log.debug("created token %s" % tkn_file)
                 tkn_dir = "/var/lib/gwms-frontend/tokens.d"
                 pwd_dir = "/var/lib/gwms-frontend/passwords.d"
@@ -969,7 +970,7 @@ class glideinFrontendElement:
                     os.write(fd, tkn_str)
                     os.close(fd)
                     shutil.move(tmpnm, tkn_file)
-                    os.chmod(tkn_file, 0o600)
+                    chmod(tkn_file, 0o600)
                     logSupport.log.info("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):
                     with open(tkn_file, 'r') as fbuf:

@@ -33,6 +33,7 @@ from glideinwms.lib import util
 from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib.util import chmod
 
 
 ############################################################
@@ -1220,7 +1221,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
             entry.log.info("frontend_token supplied, writing to %s" % condortoken_file)
-            os.chmod(tmpnm,0o600)
+            chmod(tmpnm,0o600)
             os.write(fd, condortoken_data.encode('utf-8'))
             os.close(fd)
             util.file_tmp2final(condortoken_file, tmpnm)
@@ -1243,7 +1244,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
         try:
             entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
-            os.chmod(tmpnm,0o600)
+            chmod(tmpnm,0o600)
             os.write(fd, scitoken_data.encode('utf-8'))
             os.close(fd)
             util.file_tmp2final(scitoken_file, tmpnm)
