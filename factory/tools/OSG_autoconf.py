@@ -333,6 +333,10 @@ def merge_yaml(config, white_list):
     manage_common_entry_fields(out)
     manage_append_values(out, osg_info)
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
+    additional_yaml_files = config.get("ADDITIONAL_YAML_FILES", [])
+    additional_information = []
+    for additional_yaml_file in additional_yaml_files:
+        additional_information.append(get_yaml_file_info(additional_yaml_file))
     #TODO remove this if once factory ops trims the default file
     if 'DEFAULT_ENTRY' not in default_information: # fixup default file, I'd like to trim it down
         default_information = default_information['DEFAULT_SITE']['DEFAULT_GETEKEEPER']
@@ -385,6 +389,11 @@ def merge_yaml(config, white_list):
                         default_information["DEFAULT_ENTRY"],
                         overwrite=False
                     )
+                    for additional_info in additional_information:
+                        update(entry_information,
+                               additional_info.setdefault(site, {}).setdefault(ce_hostname, {}).setdefault(qelem, {}).setdefault(entry, {}),
+                               overwrite=False)
+
     return out
 
 
