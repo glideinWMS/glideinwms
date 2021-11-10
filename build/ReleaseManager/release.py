@@ -130,7 +130,7 @@ def main(argv):
     relDir = options.relDir
     rc = options.rc
     rpmRel = options.rpmRel
-    use_mock = not options.use_mock
+    use_mock = options.use_mock
 
     print("___________________________________________________________________")
     print("Creating following glideinwms release")
