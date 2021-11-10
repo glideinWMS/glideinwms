@@ -11,7 +11,7 @@ glideinwms/build/ReleaseManager/release.py --no-mock --release-version=$SW_VER -
 status=$?
 mkdir gwms_rpms
 #mkdir rpm_logs
-mv "$HERE"/rel/3_7_5/rpmbuild/RPMS/*rpm gwms_rpms/
+mv "$HERE/rel/$SW_VER"/rpmbuild/RPMS/noarch/*rpm gwms_rpms/
 tar cvfj $GITHUB_WORKSPACE/rpms.tar.bz2 gwms_rpms/*
 #cat #some logs
 exit $status
