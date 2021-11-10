@@ -1,0 +1,5 @@
+name: 'RPM Build'
+description: 'Build RPMs in preconfigured SL7 docker image'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
