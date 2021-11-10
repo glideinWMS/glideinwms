@@ -44,8 +44,6 @@ def get_vos(allowed_vos):
     for vorg in allowed_vos:
         if vorg in GLIDEIN_SUPPORTED_VO_MAP:
             vos.add(GLIDEIN_SUPPORTED_VO_MAP[vorg])
-#        else:
-#            print(vorg + " VO is not in GLIDEIN_Supported_VOs_map")
 
     return vos
 
@@ -129,8 +127,6 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
         edict["attrs"]["GLIDEIN_ResourceName"] = {"value": resource}
     if len(vos) > 0:
         edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
-#     else:
-#         print(gatekeeper + " CE does not have VOs")
     edict["submit_attrs"] = {}
     if cpus != "":
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
@@ -241,21 +237,21 @@ def get_entries_configuration(data):
     return entries_configuration
 
 
-def backward_fix(out):
-    """ special backward compatibility case. Would like to remove this once configs are fixed.
-    """
-    for site, site_information in out.items():
-        if site_information is None: continue
-        for ce_hostname, ce_information in site_information.items():
-            if ce_information is None: continue
-            for qelem, q_information in ce_information.items():
-                if (q_information is None or
-                        set(['limits', 'attrs', 'submit_attrs']) & set(q_information.keys())):
-                    print("\033[91mMissing 'queue' level for site %s and CE %s. Fixing it up for you, but please add a '%s' layer!!\033[0m" %
-                          (site, ce_hostname, BEST_FIT_TAG))
-                    out[site][ce_hostname].setdefault(BEST_FIT_TAG, {})[qelem] = q_information
-                    del out[site][ce_hostname][qelem]
-
+#def backward_fix(out):
+#    """ special backward compatibility case. Would like to remove this once configs are fixed.
+#    """
+#    for site, site_information in out.items():
+#        if site_information is None: continue
+#        for ce_hostname, ce_information in site_information.items():
+#            if ce_information is None: continue
+#            for qelem, q_information in ce_information.items():
+#                if (q_information is None or
+#                        set(['limits', 'attrs', 'submit_attrs']) & set(q_information.keys())):
+#                    print("\033[91mMissing 'queue' level for site %s and CE %s. Fixing it up for you, but please add a '%s' layer!!\033[0m" %
+#                          (site, ce_hostname, BEST_FIT_TAG))
+#                    out[site][ce_hostname].setdefault(BEST_FIT_TAG, {})[qelem] = q_information
+#                    del out[site][ce_hostname][qelem]
+#
 
 def is_true(param):
     """Determine if the parameter passed as argument is true or false
@@ -268,6 +264,36 @@ def is_true(param):
     """
 
     return str(param).lower() == 'true'
+
+
+def sanitize(whitelist_info):
+    """ Sanitize the yaml file edited by factory operators. In particular, make sure that
+        entry information is a dictionary and not None (the function will be expanded in the future)
+    """
+    for site, site_information in whitelist_info.items():
+        for ce_hostname, ce_information in site_information.items():
+            if ce_hostname == 'common_entry_fields':
+                continue
+            for qelem, q_information in ce_information.items():
+                for entry, entry_information in q_information.items():
+                    if entry_information is None:
+                        q_information[entry] = {}
+
+
+def manage_common_entry_fields(whitelist_info):
+    """ Iterates over the yaml file that factory operators manually edit, and
+        expand the common entry fields found at the site level. Those fields are
+        copied to all the entries of the site
+    """
+    for site, site_information in whitelist_info.items():
+        if 'common_entry_fields' in site_information:
+            cef = site_information['common_entry_fields']
+            del site_information['common_entry_fields']
+            for ce_hostname, ce_information in site_information.items():
+                for qelem, q_information in ce_information.items():
+                    for entry, entry_information in q_information.items():
+                        q_information[entry] = update(cef, entry_information)
+            cef = None
 
 
 def merge_yaml(config, white_list):
@@ -285,10 +311,12 @@ def merge_yaml(config, white_list):
             and the operators overrides in place (only whitelisted entries are returned).
     """
     out = get_yaml_file_info(white_list)
-    backward_fix(out)
+    sanitize(out)
+#    backward_fix(out)
     osg_info = get_yaml_file_info(config["OSG_YAML"])
     missing_info = get_yaml_file_info(config["MISSING_YAML"])
     update(osg_info, missing_info)
+    manage_common_entry_fields(out)
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
     #TODO remove this if once factory ops trims the default file
     if 'DEFAULT_ENTRY' not in default_information: # fixup default file, I'd like to trim it down
@@ -313,25 +341,25 @@ def merge_yaml(config, white_list):
                       % (site, ce_hostname, config["OSG_YAML"], config["MISSING_YAML"]))
                 raise ProgramError(3)
             for qelem, q_information in ce_information.items():
+                if qelem not in osg_info[site][ce_hostname]:
+                    print("Working on whitelisted site %s and CE %s: cant find queue %s in the generated %s or the missing %s files "
+                          % (site, ce_hostname, qelem, config["OSG_YAML"], config["MISSING_YAML"]))
+                    if qelem == BEST_FIT_TAG:
+                        print("It seems like you are using the best fit algorithm for this CE (%s), but the site admin specified one (or more) queue(s) in their CE config (called %s). Please, replace %s with one of the queue, and adjust the parameters in the whitelist file" % (BEST_FIT_TAG, osg_info[site][ce_hostname].keys(), BEST_FIT_TAG))
+                    raise ProgramError(4)
                 for entry, entry_information in q_information.items():
-                    if entry_information is None:
-                        out[site][ce_hostname][qelem][entry] = osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"]
-                        entry_information = out[site][ce_hostname][qelem][entry]
-                    else:
-                        update(entry_information, osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"],
-                               overwrite=False)
+                    update(entry_information, osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"],
+                           overwrite=False)
                     if osg_info[site][ce_hostname][qelem]["DEFAULT_ENTRY"]["gridtype"] == "condor":
-                        if "attrs" in entry_information and entry_information["attrs"]:
-                            entry_information = update_submit_attrs(entry_information, "GLIDEIN_CPUS", "+xcount")
-                            entry_information = update_submit_attrs(entry_information, "GLIDEIN_MaxMemMBs", "+maxMemory")
-                            entry_information = update_submit_attrs(entry_information, "GLIDEIN_Max_Walltime", "+maxWallTime")
                         if "submit_attrs" in entry_information:
+                            whole_node = False
                             if "+WantWholeNode" in entry_information["submit_attrs"]:
                                 want_whole_node = entry_information["submit_attrs"]["+WantWholeNode"]
                                 if is_true(want_whole_node):
+                                    whole_node = True
                                     entry_information = set_whole_node_entry(entry_information)
                             if "Request_GPUs" in entry_information["submit_attrs"]:
-                                entry_information = set_gpu_entry(entry_information)
+                                entry_information = set_gpu_entry(entry_information, whole_node)
                     if "limits" in entry_information:
                         if "entry" in entry_information["limits"] and "frontend" not in entry_information["limits"]:
                             entry_information["limits"]["frontend"] = entry_information["limits"]["entry"]
@@ -345,7 +373,7 @@ def merge_yaml(config, white_list):
     return out
 
 
-def set_gpu_entry(entry_information):
+def set_gpu_entry(entry_information, want_whole_node):
     """Set gpu entry
 
     Args:
@@ -357,7 +385,11 @@ def set_gpu_entry(entry_information):
     if "attrs" not in entry_information:
         entry_information["attrs"] = {}
     if "GLIDEIN_Resource_Slots" not in entry_information["attrs"]:
-        entry_information["attrs"]["GLIDEIN_Resource_Slots"] = {"value": "GPUs," + str(entry_information["submit_attrs"]["Request_GPUs"]) + ",type=main"}
+        if want_whole_node:
+            value = "GPUs,type=main"
+        else:
+            value = "GPUs," + str(entry_information["submit_attrs"]["Request_GPUs"]) + ",type=main"
+        entry_information["attrs"]["GLIDEIN_Resource_Slots"] = {"value": value}
 
     return entry_information
 
@@ -387,34 +419,6 @@ def set_whole_node_entry(entry_information):
         entry_information["attrs"]["GLIDEIN_MaxMemMBs"] = {"type": "string", "value": ""}
     if "GLIDEIN_MaxMemMBs_Estimate" not in entry_information["attrs"]:
         entry_information["attrs"]["GLIDEIN_MaxMemMBs_Estimate"] = {"value": "True"}
-
-    return entry_information
-
-
-def update_submit_attrs(entry_information, attr, submit_attr):
-    """Update submit attribute according to produced attribute if submit attribute is not defined
-
-    Args:
-        entry_information (dict): a dictionary of entry information from white list file
-        attr (str): attribute name
-        submit_attr (str): submit attribute name
-
-    Returns:
-        dict: a dictionary of entry information from white list file with possible updated submit attribute
-    """
-    if attr in entry_information["attrs"] and entry_information["attrs"][attr]:
-        if "submit_attrs" in entry_information:
-            if submit_attr not in entry_information["submit_attrs"]:
-                if attr == "GLIDEIN_Max_Walltime":
-                    entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
-                else:
-                    entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
-        else:
-            entry_information["submit_attrs"] = {}
-            if attr == "GLIDEIN_Max_Walltime":
-                entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
-            else:
-                entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
 
     return entry_information
 
