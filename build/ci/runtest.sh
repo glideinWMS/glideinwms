@@ -205,7 +205,7 @@ parse_options() {
     INPLACE_BIGFILES=
     TEST_PYENV_DIR=
     TEST_PYENV_REUSE=
-    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
+    while getopts ":hnlvu:iIfb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
