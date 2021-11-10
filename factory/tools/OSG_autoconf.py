@@ -267,14 +267,15 @@ def is_true(param):
 
 
 def sanitize(whitelist_info):
-    """ Sanitize the yaml file edited by factory operators. In particular, make sure that
-        entry information is a dictionary and not None (the function will be expanded in the future)
+    """
     """
     for site, site_information in whitelist_info.items():
         for ce_hostname, ce_information in site_information.items():
             if ce_hostname == 'common_entry_fields':
                 continue
             for qelem, q_information in ce_information.items():
+                if type(q_information)==type("aaa"):
+                    import pdb;pdb.set_trace()
                 for entry, entry_information in q_information.items():
                     if entry_information is None:
                         q_information[entry] = {}
@@ -294,6 +295,19 @@ def manage_common_entry_fields(whitelist_info):
                     for entry, entry_information in q_information.items():
                         q_information[entry] = update(cef, entry_information)
             cef = None
+
+
+def manage_append_values(whitelist_info, osg_info):
+    """
+    """
+    for site, site_information in whitelist_info.items():
+        for ce_hostname, ce_information in site_information.items():
+            for qelem, q_information in ce_information.items():
+                for entry, entry_information in q_information.items():
+                    for attribute, attribute_information in entry_information.get("attrs", {}).items():
+                        if attribute_information is not None and "append_value" in attribute_information:
+                            attribute_information.setdefault('value', attribute_information['append_value'])
+                            attribute_information['value'] += ',' + osg_info[site][ce_hostname][qelem]['DEFAULT_ENTRY']['attrs'][attribute]['value']
 
 
 def merge_yaml(config, white_list):
@@ -317,6 +331,7 @@ def merge_yaml(config, white_list):
     missing_info = get_yaml_file_info(config["MISSING_YAML"])
     update(osg_info, missing_info)
     manage_common_entry_fields(out)
+    manage_append_values(out, osg_info)
     default_information = get_yaml_file_info(config["OSG_DEFAULT"])
     #TODO remove this if once factory ops trims the default file
     if 'DEFAULT_ENTRY' not in default_information: # fixup default file, I'd like to trim it down
