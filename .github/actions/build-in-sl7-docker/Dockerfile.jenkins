@@ -1,6 +1,7 @@
 FROM glideinwms/gwms-ci-sl7
+RUN yum install -y rpm-build mock
 COPY entrypoint.sh /entrypoint.sh
 RUN groupadd -g 500 glideinwms-ci
-RUN useradd -u 500 -g 500 glideinwms-ci
+RUN useradd -u 500 -g 500 -G mock glideinwms-ci
 USER glideinwms-ci
 ENTRYPOINT ["/entrypoint.sh"]

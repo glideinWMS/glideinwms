@@ -92,6 +92,7 @@ ${filename} [options] COMMAND [command options]
   -v          verbose
   -u LOGFILE  Log file path (default: OUT_DIR/gwms.DATE.log)
   -i          run in place without checking out a branch (default)
+  -I          like -i but make sure that big files are taken care of
   -f          force git checkout of branch when processing multiple branches
   -b BNAMES   comma separated list of branches that needs to be inspected
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
@@ -201,9 +202,10 @@ parse_options() {
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
     TESTLOG_FILE=
+    INPLACE_BIGFILES=
     TEST_PYENV_DIR=
     TEST_PYENV_REUSE=
-    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
+    while getopts ":hnlvu:iIfb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
@@ -213,6 +215,7 @@ parse_options() {
         v) VERBOSE=yes;;
         u) TESTLOG_FILE="$OPTARG";;
         i) INPLACE=yes;;
+        I) INPLACE=yes; INPLACE_BIGFILES=yes;;
         f) GITFLAG='-f';;
         b) BRANCH_LIST="$OPTARG";;
         B) BRANCHES_FILE="$OPTARG";;
@@ -747,8 +750,10 @@ _main() {
         loginfo "Running on local files in glideinwms subdirectory"
         # Adding do_git_init_command also here for when -i is used
         do_git_init_command
+        [[ -n "$INPLACE_BIGFILES" ]] && bigfiles_pre
         process_branch LOCAL
         fail_global=$?
+        [[ -n "$INPLACE_BIGFILES" ]] && bigfiles_post
         loginfo "Complete with local files (ec:${fail_global})"
     else
         do_git_init_command

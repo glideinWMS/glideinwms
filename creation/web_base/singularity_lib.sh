@@ -2189,6 +2189,7 @@ singularity_setup_inside() {
     #   Changing env variables (especially TMP and X509 related) to work w/ chrooted FS
     unset TMP
     unset TMPDIR
+    unset TEMPDIR
     unset TEMP
     unset X509_CERT_DIR
     # Adapt for changes in filesystem space
