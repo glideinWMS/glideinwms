@@ -24,7 +24,7 @@ def main():
         # read these from config file
         section = "test_size_rotate"
         config_file = "../test_configurations/test_logSupport.yaml"
-        config = yaml.load(open(config_file, 'r'))
+        config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
 
         log_name = str(config[section]["log_name"])
         extension = str(config[section]["extension"])
