@@ -8,7 +8,6 @@ import collections
 
 import os
 import yaml
-from yaml import loader
 
 
 BEST_FIT_TAG = "BEST_FIT"
