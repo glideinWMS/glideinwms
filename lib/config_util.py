@@ -154,7 +154,7 @@ def get_yaml_file_info(file_name):
         print("Cannot find file %s" % file_name)
         raise ProgramError(1)
     with open(file_name) as fdesc:
-        out = yaml.load(fdesc, loader=yaml.FullLoader)
+        out = yaml.load(fdesc, Loader=yaml.FullLoader)
 
     return out
 
