@@ -487,15 +487,6 @@ class FETestCaseCondorQ(FETestCaseBase):
 
         self.assertEqual(condor_ids, [(12345, 2)])
 
-    def test_getIdleProxyCondorQ(self):
-        condor_ids = \
-            glideinFrontendLib.getIdleProxyCondorQ(
-                self.condorq_dict)['sched1'].fetchStored().keys()
-
-        self.assertItemsEqual(
-            condor_ids, [
-                (12345, 1), (12345, 2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
-
     def test_getOldCondorQ(self):
         min_age = 100
         condor_ids = \

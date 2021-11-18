@@ -157,7 +157,7 @@ specific meaning:</P>
     </UL>
     </li>
 </OL>
-<P>Here below, you can see a short extract; the semantics of the
+<P>Here below, you can see a short extract of an example; the semantics of the
 variables is defined <A HREF="#vars">below</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
 #                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
@@ -179,6 +179,10 @@ SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               
 MAX_MASTER_LOG          I       1000000         +                               N       N       -
 MAX_STARTD_LOG          I       10000000        +                               N       N       -</PRE>
 
+<b>NOTE The value in the sample are just an example.</b> The default values will depend on the GlideinWMS version, see 
+<a href="https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_7/creation/web_base/condor_vars.lst">creation/web_base/condor_vars.lst</a>
+and keep in mind that the values in the Factory and Frontend configuration and the changes done by the setup scripts will affect the final 
+value used for your jobs.
 </div>
 
 
@@ -464,39 +468,6 @@ by the VO clients (e.g. Frontends). See the sections below.</P>
             different from what HTCondor detects, there may be problems if you are using the HTCondor provided GPU description and monitoring.
         </p>
  	</TD>
-    </TR>
-    <TR>
-
-        <td> <b>GLEXEC_BIN</b> </td>
-        <td> String </TD>
-        <td> None </TD>
-        <td>
-            <P>If set, HTCondor will launch all user jobs via glexec,
-            thus <A HREF="configuration.html#glexec">running the job under the
-            appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">GlideinWMS
-            security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
-            purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
-            automatically find the locally installed gLExec on OSG worker
-            nodes.</P>
-
-            <P>This variable is renamed to <B>GLEXEC</B> in the condor
-            config.</P>
-        </td>
-    </TR>
-    <TR>
-        <td><b> GLEXEC_JOB</b> </td>
-
-        <TD> Expr (Bool) </TD>
-        <TD> False </TD>
-        <TD>
-            <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
-            UID as the user job</A>. This has security implications.</P>
-            <P>NOTE: It is recommended to turn
-            this on and have the condor_starter be protected from the user
-            jobs.
-            </P>
-
-        </td>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Use_PGroups</b> </td>
@@ -943,8 +914,10 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
         <TD> Str </TD>
         <TD>
 		<P>Comma separated list of keywords affecting Glidein debug. Possible options are:<br>
-		userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
-		nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes
+		  userjob - prints debug informations on the user job stderr (at the beginning, when invoked with the Singularity wrapper)<br>
+		  nowait - removes the Glidein wait time when it ends with errors. Useful when debugging. The wait time protects against black holes<br>
+      nocleanup - disable the cleanup (removal of working directories on the worker node). The batch manager may have its own cleanup. 
+        Adds also an extension to the Glidein directory name. 
                 </P>
         </TD>
     </TR>
@@ -960,7 +933,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN</b> </td>
-
         <TD> Int </TD>
         <TD>
             <P>Forks multiple glideins, each in its own subdirectory, all w/ the same parameters
@@ -971,7 +943,6 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHER</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1, and GLIDEIN_MULTIGLIDEIN_LAUNCHALL is not set.
@@ -983,11 +954,21 @@ NOTE that as of 3.4.6, in the Factory, also publish=True and const=False should 
     </TR>
     <TR>
         <td> <b>GLIDEIN_MULTIGLIDEIN_LAUNCHALL</b> </td>
-
         <TD> String </TD>
         <TD>
             <P>Used only if GLIDEIN_MULTIGLIDEIN is set and > 1. When this is set, a command line with this string
                 followed by the glidein invocation is used to start all Glideins.
+                NOTE: parameter and job_publish should be both True for this attribute.
+            <b>Must be a parameter.</b></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLEANUP_SCRIPT</b> </td>
+        <TD> String </TD>
+        <TD>
+            <P>Used to run a custom file at cleanup time (right before quitting the Glidein) 
+              instead of the default setup time. The custom file must be specified in the file list as usual.
+              The value is the file name, as specified in the file list. 
                 NOTE: parameter and job_publish should be both True for this attribute.
             <b>Must be a parameter.</b></P>
         </TD>
@@ -1115,7 +1096,7 @@ described below are the most often used.</P>
         <TD>
             <P>If False, the user job environment will contain only glidein
             Factory provided variables.</P>
-            <P>If True, the user job environment will also contain the
+            <P>If True (default), the user job environment will also contain the
             environment variables defined at glidein startup.
             </P>
             <P>See <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=JOB_INHERITS_STARTER_ENVIRONMENT#htcondor-wide-configuration-file-entries">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
@@ -1588,7 +1569,8 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
 <div class="section">
 <H3><A NAME="singularity_vars"></A>Singularity Variables (dynamic)</H3>
 
-<P>These variables can be set in the Factory attributes, set in the Frontend attributes, set in the Job (submit file), or cannot be set and is dynamically generated by the
+<P>These variables can be set in the Factory attributes, set in the Frontend attributes, set in the Job (submit file), 
+    set in the Worker Node environment (Env), or cannot be set and is dynamically generated by the
     startup scripts (Dynamic). A value can be also be a combination of the above: the Factory value can be overridden by the Frontend one
     (unless set as constant), and the startup scripts can modify it and have the ultimate saying.
 </P>
@@ -1602,6 +1584,17 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
     $GLIDEIN_SINGULARITY_OPTS --bind "$singularity_binds"} \
     "$singularity_image" "${@}"
 </pre>
+  <p>The singularity binary (see singularity_lib.sh/singularity_locate_bin) is the first binary passing the test, 
+    looking in order in:
+  <ol>
+    <li>If defined (in environment, Frontend or Factory): Try first the override binary or path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)</li>
+    <li>If defined (in environment, Frontend or Factory): Try a singularity binary in the directory suggested via SINGULARITY_BIN: (keyword OSG (default)-> OSG_SINGULARITY_BINARY, keyword PATH -> go to the next step and check the system PATH)</li>
+    <li>Try the singularity binary in PATH</li>
+    <li>Try the singularity binary in PATH after invoking module singularitypro</li>
+    <li>Try the singularity binary in PATH after invoking module singularity</li>
+    <li>Try the default OSG location (OSG_SINGULARITY_BINARY)</li>
+  </ol>
+  </p>
 
 <TABLE class="attributes">
     <TR class="head">
@@ -1611,6 +1604,21 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
         <td> <P><b>Where</b></P></td>
         <td> <P><b>Description</b></P></td>
 
+    </TR>
+    <TR>
+        <td> <b>CVMFS_MOUNT_DIR</b></td>
+        <td> String (path) </td>
+        <td></td>
+        <td>Frontend Factory Dynamic</td>
+        <td><P>Not set by default. When set it indicates the path different from /cvmfs where CVMFS is mounted.
+          Normally set by Glidein scripts when they mount CVMFS but cannot mount it on /cvmfs.
+          A site administrator could set it in the environment or ask to set it in a Factory entry.
+          It is not set inside Singularity because the external path can be mount internally to /cvmfs.
+          To allow for more flexibility and uniformity across sites, 
+          paths like SINGULARITY_IMAGES_DICT, GLIDEIN_SINGULARITY_BINDPATH, ...
+          can all use /cvmfs as prefix for their paths and it will be translated by the Glidein.  
+            </P>
+        </td>
     </TR>
     <TR>
         <td> <b>GLIDEIN_SINGULARITY_REQUIRE</b></td>
@@ -1655,8 +1663,36 @@ in the &lt;files&gt; section of the general or group parts of the Frontend confi
     NEVER (do not use Singularity),
     PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found),
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
+            GWMS_SINGULARITY_STATUS_EFFECTIVE, if set, will override GWMS_SINGULARITY_STATUS, e.g. for a specific job.<br>
             See the <a href="../factory/configuration.html#singularity">Factory configuration document</a> for
             a table of how Singularity is calculated using GLIDEIN_Singularity_Use and GLIDEIN_SINGULARITY_REQUIRE.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>GWMS_SINGULARITY_STATUS_EFFECTIVE</b></td>
+        <td> String (Enum,String) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is used to override GWMS_SINGULARITY_STATUS in special cases, e.g. 
+          Set to "REQUIRED_Singularity_image_in_job" to disable fall-back when SingularityImage is in the Job.<br>
+          See also GWMS_SINGULARITY_STATUS.<br>
+          It is composed by the status, followed by underscore and a string explaining the override.
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>[GWMS_]SINGULARITY_MODE</b></td>
+        <td> String (Enum) </td>
+        <td></td>
+        <td>Dynamic</td>
+        <td><P>Is calculated if a valid singularity binary is found.
+            Possible values are (see the Singularity documentation for the meaning of privileged/unprivileged):
+    privileged,
+    unprivileged,
+    fakeroot (unprivileged mode with user mapped internally to uid 0).
+          A string &quot;singularity/GWMS_SINGULARITY_MODE&quot; is also added to GLIDEIN_PROVIDES.
+          There are other dynamic variables set when Singularity is found: [GWMS_]SINGULARITY_PATH, [GWMS_]SINGULARITY_VERSION.
             </P>
         </td>
     </TR>
@@ -1739,7 +1775,10 @@ or by running a pre_singularity setup script.
             Commas are not allowed in both the paths, and colons are not allowed in the 'src' path.
             GWMS combines in order GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, and a default list.
             The default list includes "/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs", and "/cvmfs" (if GWMS_SINGULARITY_BIND_CVMFS is true) and some
-            GPUs libraries (if GPUs are detected).
+            GPUs libraries (if GPUs are detected). If CVMFS is mounted in a different place, CVMFS_MOUNT_DIR will be 
+            set in the environment and the Glidein will replace /cvms with the correct mount point ($CVMFS_MOUNT_DIR:/cvmfs),
+            so that inside Singularity CVMFS will always be available in /cvmfs, even if outside that is not possible.
+
             The combined list is validated removing paths not existing (outside Singularity) and is passed as --bind option to singularity.
             Singularity prepends to the mounts list also the environment variable $SINGULARITY_BINDPATH (this could be set by the Site or by setup scripts on the worker nodes).
             Singularity will skip mounts where the destination path does not exist in the Singularity image selected.
@@ -1753,7 +1792,7 @@ or by running a pre_singularity setup script.
         <td> Expr (Bool) </td>
         <td> 1 </td>
         <td>Frontend Factory</td>
-        <td><P>/cvmfs is mounted in Singularity if this is 1 (true)
+        <td><P>CVMFS (/cvmfs) is mounted in Singularity if this is 1 (true)
             </P>
         </td>
     </TR>
@@ -1763,6 +1802,16 @@ or by running a pre_singularity setup script.
         <td></td>
         <td>Frontend Factory</td>
         <td><P>Extra options that will be added to the singularity invocation
+            </P>
+        </td>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_SINGULARITY_BINARY_OVERRIDE</b></td>
+        <td> String </td>
+        <td></td>
+        <td>Env Frontend Factory</td>
+        <td><P>Path singularity binary (full path of the executable OR one or more directories separated by colons, &colon; ). If provided, this is the first path searched by the Glidein.
+          If set as attribute make sure that <i>job_publish</i> is set to True.
             </P>
         </td>
     </TR>
@@ -1780,7 +1829,11 @@ or by running a pre_singularity setup script.
         <td> String </td>
         <td></td>
         <td>Frontend Factory</td>
-        <td><P>If set to "OSG", the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module. SINGULARITY_BIN can be used also to suggest an arbitrary specific path of the singularity binary that will be tested (and used) before the other options, but this use is onnly for debug purposes, not recommended in production.
+        <td><P>If set to "OSG" or not set (default), the Glidein will try first to use the singularity binary provided by OSG in CVMFS before looking in the system PATH and trying module.
+          If set to "PATH", the Glidein will try first to use the singularity binary in the system PATH. 
+          SINGULARITY_BIN can be used also to suggest an arbitrary specific folder for the singularity binary that will be tested (and used) before the other options, 
+          but this use is only for debug purposes, not recommended in production, not to overload Factory Ops with tracking site changes.
+          NOTE: in pre-v3.4 versions SINGULARITY_BIN was used also to enable the use of Singularity for a Factory entry. This is no more, use GLIDEIN_SINGULARITY_REQUIRE instead.  
             </P>
         </td>
     </TR>
@@ -1826,34 +1879,6 @@ startup scripts.</P>
         <TD>
 
             <P>When is the proxy expected to expire.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_STARTER</b> </td>
-        <TD> Expr (Bool) </TD>
-
-        <TD>
-            <P>If gLExec is used and this is set to True, the condor_starter
-            will be run sharing the <A HREF="configuration.html#glexec">same UID as
-            the user job</A>.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>ALTERNATIVE_SHELL</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to a trusted copy of a
-            shell.</P>
-        </TD>
-    </TR>
-    <TR>
-        <td> <b>GLEXEC_USER_DIR</b> </td>
-        <TD> String </TD>
-
-        <TD>
-            <P>If gLExec is used, this variable points to the working
-            directory under which all user jobs will be started.</P>
         </TD>
     </TR>
     <TR>
@@ -2027,7 +2052,7 @@ N.B.: 12 hours after the walltime, a glidein is removed from the factory queue n
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
+Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
 GlideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

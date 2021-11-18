@@ -8,8 +8,11 @@ git submodule add https://github.com/ztombol/bats-support test/bats/lib/bats-sup
 git submodule add https://github.com/ztombol/bats-assert test/bats/lib/bats-assert
 git submodule add https://github.com/jasonkarns/bats-mock test/bats/lib/bats-mock
 ```
+If you want to use bats directly without running first at least once via the scripts in `build/ci`, then you must 
+initialize (populate) the subpackages using:
+```git submodule update --init --recursive```
 
-To run a test, execute the test files (and add the options for bats), e.g.:
+Then, to run a test, execute the test files (and add the options for bats), e.g.:
 ```./example_test.bats -t```
 
 For instructions on using bats and the helpers see:

@@ -31,6 +31,11 @@ def manager_version():
 def usage():
 
     help = ["%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0]),
+            "NOTE that this script works on the files in your current directory tree",
+            "- no git operations like clone/checkout are performed",
+            "- files you changed are kept so",
+            "- if using big files you should run 'bigfiles.sh -pr' before invoking this script",
+            "  and 'bigfiles -R' after, to ripristinate the symlinks before a commit"
             "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)",
             "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz",
             "         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm",
@@ -82,6 +87,10 @@ def parse_opts(argv):
                       action='store',
                       metavar='<Product Version in RPM filename>',
                       help='Product Version in RPM filename')
+    parser.add_option('--no-mock',
+                      dest='use_mock',
+                      action='store_false',
+                      help='Set to use rpmbuild instead of mock to build the RPM')
 
     if len(argv) == 2 and argv[1] in ['-v', '--version']:
         parser.print_version()
@@ -121,6 +130,7 @@ def main(argv):
     relDir = options.relDir
     rc = options.rc
     rpmRel = options.rpmRel
+    use_mock = options.use_mock
 
     print("___________________________________________________________________")
     print("Creating following glideinwms release")
@@ -135,7 +145,7 @@ def main(argv):
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
     rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, use_mock))
 
     rel.executeTasks()
     rel.printReport()

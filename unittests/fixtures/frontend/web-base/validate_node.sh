@@ -1,0 +1,1 @@
+../../../../creation/web_base/validate_node.sh

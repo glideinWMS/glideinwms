@@ -6,10 +6,10 @@
 # File Version:
 #
 # Description:
-# This script starts the condor daemons expects a config file as a parameter
+#   This script starts the condor daemons expects a config file as a parameter
 #
 
-function trap_with_arg {
+trap_with_arg() {
     func="$1" ; shift
     for sig ; do
         trap "$func $sig" "$sig"
@@ -25,7 +25,7 @@ function trap_with_arg {
 # In either case, when the master receives the signal, it will immediately write a message to the log, then signal
 # all of its children. When each child exits, the master will send a SIGKILL to any remaining descendants.
 # Once all of the children exit, the master then exits.
-function on_die {
+on_die() {
     condor_signal=$1
     # Can receive SIGTERM SIGINT SIGQUIT, condor understands SIGTERM SIGQUIT. Send SIGQUIT for SIGQUIT, SIGTERM otherwise
     [[ "$condor_signal" != SIGQUIT ]] && condor_signal=SIGTERM
@@ -37,8 +37,16 @@ function on_die {
     ON_DIE=1
 }
 
-function ignore_signal {
+ignore_signal() {
     echo "Condor startup received SIGHUP signal, ignoring..."
+}
+
+#if an IDTOKEN is available, continue.  Else exit
+exit_if_no_token(){
+    if [ !  -e "$GLIDEIN_CONDOR_TOKEN" ]; then
+        exit $1
+    fi
+    echo "condor_startup.sh" "found" "$GLIDEIN_CONDOR_TOKEN" "continuing"
 }
 
 metrics=""
@@ -150,15 +158,10 @@ echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> "$CONDOR_CONFIG"
 # glidein_variables = list of additional variables startd is to publish
 glidein_variables=""
 
-# job_env = environment to pass to the job
-# Make sure we do not leak LD_LIBRARY_PATH to the job incorrectly
-job_env="LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-
-
 #
 # Set a variable read from a file
 #
-function set_var {
+set_var() {
     var_name=$1
     var_type=$2
     var_def=$3
@@ -171,7 +174,7 @@ function set_var {
         # empty line
         return 0
     fi
-
+    GLIDEIN_CONDOR_TOKEN=`grep "^GLIDEIN_CONDOR_TOKEN " $config_file | cut -d ' ' -f 2-`
     var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) ind=length($1)+1; v=substr($0, ind); print substr(v, index(v, $2))}'`
     if [ -z "$var_val" ]; then
         if [ "$var_req" == "Y" ]; then
@@ -179,7 +182,7 @@ function set_var {
             #echo "Cannot extract $var_name from '$config_file'" 1>&2
             STR="Cannot extract $var_name from '$config_file'"
             "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
-            exit 1
+            exit_if_no_token 1
         elif [ "$var_def" == "-" ]; then
             # no default, do not set
             return 0
@@ -232,7 +235,7 @@ function set_var {
     return 0
 }
 
-function python_b64uuencode {
+python_b64uuencode() {
     echo "begin-base64 644 -"
     python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
 while size>57:
@@ -243,14 +246,14 @@ print binascii.b2a_base64(buf[idx:]),'
     echo "===="
 }
 
-function base64_b64uuencode {
+base64_b64uuencode() {
     echo "begin-base64 644 -"
     base64 -
     echo "===="
 }
 
 # not all WNs have all the tools installed
-function b64uuencode {
+b64uuencode() {
     which uuencode >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         uuencode -m -
@@ -264,7 +267,7 @@ function b64uuencode {
     fi
 }
 
-function cond_print_log {
+cond_print_log() {
     # $1 = fname
     # $2 = fpath
 
@@ -282,7 +285,7 @@ function cond_print_log {
 }
 
 
-function fix_param () {
+fix_param() {
     # Fix a parameter list with positional and dictionary parameters
     # 1. parameters, comma separated, parameter or name=value, positional parameters must come before all dictionary ones
     # 2. parameter names (all), comma separated, in the correct order (no extra comma at beginning or end)
@@ -341,7 +344,7 @@ function fix_param () {
 }
 
 
-function unit_division {
+unit_division() {
     # Divide the number and preserve the unit (integer division)
     # 1 dividend (integer w/ unit), 2 divisor (integer)
     # Dividend can be a fraction w/o units: .N (N is divided by the divisor), N/M (M is multiplied by the divisor)
@@ -368,20 +371,20 @@ function unit_division {
 }
 
 
-function find_gpus_num {
+find_gpus_num() {
     # use condor tools to find the available GPUs
-    if [ ! -f "$CONDOR_DIR/libexec/condor_gpu_discovery" ]; then
+    if [[ ! -f "$CONDOR_DIR/libexec/condor_gpu_discovery" ]]; then
         echo "WARNING: condor_gpu_discovery not found" 1>&2
         return 1
     fi
     local tmp1
-    tmp1="`"$CONDOR_DIR"/libexec/condor_gpu_discovery`"
+    tmp1=$( "$CONDOR_DIR"/libexec/condor_gpu_discovery )
     local ec=$?
-    if [ $ec -ne 0 ]; then
+    if [[ $ec -ne 0 ]]; then
         echo "WARNING: condor_gpu_discovery failed (exit code: $ec)" 1>&2
         return $ec
     fi 
-    local tmp="`echo "$tmp1" | grep "^DetectedGPUs="`"
+    local tmp=$( echo "$tmp1" | grep "^DetectedGPUs=" )
     if [ "${tmp:13}" = 0 ]; then
         echo "No GPUs found with condor_gpu_discovery, setting them to 0" 1>&2
         echo 0
@@ -422,6 +425,8 @@ now=`date +%s`
 # If not an integer reset to 0 (a string could cause errors [#7899])
 [ "$X509_EXPIRE" -eq "$X509_EXPIRE" ] 2>/dev/null || X509_EXPIRE=0
 
+[ "$X509_EXPIRE" -eq 0 ] && [ -e "$GLIDEIN_CONDOR_TOKEN" ] && let "X509_EXPIRE=$now + 86400" 
+
 #add some safety margin
 let "x509_duration=$X509_EXPIRE - $now - 300"
 
@@ -456,6 +461,11 @@ if [ -z "$job_maxtime" ]; then
         job_maxtime=192600
     fi
 fi
+
+# import logging utility functions
+logging_utils_source="$(grep '^LOGGING_UTILS_SOURCE ' "${config_file}" | cut -d ' ' -f 2-)"
+source "${logging_utils_source}"
+log_setup "${config_file}"
 
 # At this point, we need to define two times:
 #  die_time = time that glidein will enter graceful shutdown
@@ -986,9 +996,6 @@ if [ "$print_debug" -ne "0" ]; then
   #env 1>&2
 fi
 
-#Set the LD_LIBRARY_PATH so condor uses dynamically linked libraries correctly
-export LD_LIBRARY_PATH=$CONDOR_DIR/lib:$CONDOR_DIR/lib/condor:$LD_LIBRARY_PATH
-
 #
 # The config is complete at this point
 #
@@ -1201,6 +1208,13 @@ else
     cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
 cond_print_log StartdHistoryLog log/StartdHistoryLog
+
+
+append_glidein_log=true   # TODO: this should be a configurable option
+logfile_path=$(get_logfile_path_relative)
+if [ $append_glidein_log = true ]; then
+    cond_print_log "GlideinLog" "${logfile_path}"
+fi
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then

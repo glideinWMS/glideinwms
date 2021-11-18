@@ -22,7 +22,7 @@
 glidein_config="$1"
 
 GWMS_THIS_SCRIPT="$0"
-GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
+GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
 
 echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
 
@@ -31,7 +31,8 @@ echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
 
 # Source utility files, outside and inside Singularity
 if [[ -e "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh ]]; then
-    source "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh
+    # shellcheck source=./singularity_lib.sh
+    . "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh
 else
     echo "ERROR: singularity_setup.sh: Unable to source '$GWMS_THIS_SCRIPT_DIR/singularity_lib.sh'! File not found. Quitting" 1>&2
     [[ -n "$error_gen" ]] && "$error_gen" -error "singularity_setup.sh"
@@ -85,13 +86,13 @@ combine_requirements () {
     local valid_list="NEVER,OPTIONAL,PREFERRED,REQUIRED,"
     if [[ ! ",$valid_list,REQUIRED_GWMS," = *",$req_factory,"* ]]; then
         STR="GLIDEIN_SINGULARITY_REQUIRE in Factory configured to be $req_factory.\nAccepted values are $valid_list,REQUIRED_GWMS."
-        res_str=`echo -e "$STR"`
+        res_str=$(echo -e "$STR")
         echo "FAIL,$res_str"
         return 1
     fi
     if [[ ! ",$valid_list,DISABLE_GWMS," = *",$req_frontend,"* ]]; then
         STR="GLIDEIN_Singularity_Use in VO Frontend configured to be $req_frontend.\nAccepted values are $valid_list,DISABLE_GWMS."
-        res_str=`echo -e "$STR"`
+        res_str=$(echo -e "$STR")
         echo "FAIL,$res_str"
         return 1
     fi
@@ -161,7 +162,8 @@ combine_requirements () {
 ###########################################################
 # check attributes from Frontend Group and Factory Entry set by admins
 
-export GLIDEIN_DEBUG_OUTPUT="`grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | cut -d ' ' -f 2-`"
+GLIDEIN_DEBUG_OUTPUT=$(grep '^GLIDEIN_DEBUG_OUTPUT ' "$glidein_config" | cut -d ' ' -f 2-)
+export GLIDEIN_DEBUG_OUTPUT
 
 # SINGULARITY_BIN is now different (from 3.4 or earlier). It allows to suggest a path (both in Factory and Frontend)
 # but no more controls whether Singularity should be used or not
@@ -173,6 +175,8 @@ singularity_bin="$(echo $temp_singularity_bin)"
 # OSG_SINGULARITY_BINARY in glidein_config (if present and not empty) takes precedence to the environment one
 temp_singularity_bin="$(grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-)"
 [[ -n "$temp_singularity_bin" ]] && export OSG_SINGULARITY_BINARY="$temp_singularity_bin"
+# GLIDEIN_SINGULARITY_BINARY_OVERRIDE is not controlled, expected to be done at the site level. 
+# If Factory or Frontend set it in the configuration, they must make sure that goes into the Glidein environment 
 
 # Does frontend want to use singularity?
 use_singularity=$(grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-)
@@ -200,7 +204,7 @@ info_stdout "`date` Factory's desire to use Singularity: $require_singularity"
 info_stdout "`date` VO's desire to use Singularity:      $use_singularity"
 info_stdout "`date` Entry configured with Singularity:   $singularity_bin"
 
-gwms_singularity="`combine_requirements $use_singularity $require_singularity`"
+gwms_singularity=$(combine_requirements $use_singularity $require_singularity)
 gwms_singularity_ec=$?
 gwms_singularity_status="${gwms_singularity%%,*}"
 gwms_singularity_str="${gwms_singularity#*,}"
@@ -220,7 +224,7 @@ case "${gwms_singularity_status}" in
         exit 0
         ;;
     NEVER)
-        # If Group use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use and GLIDEIN_SINGULARITY_REQUIRE
+        # If Group use default_singularity_wrapper.sh with GLIDEIN_SINGULARITY_REQUIRE
         # resulting in NEVER, we need to set    advertise HAS_SINGULARITY "False" "C"
         no_use_singularity_config
         ;;
@@ -241,10 +245,10 @@ esac
 # So, if a VO wants to have their own _new_pre_singularity_setup.sh, they must copy and modify
 # generic_pre_singularity_setup.sh and also must put their default singularity images
 # under /cvmfs/singularity.opensciencegrid.org
-SINGULARITY_IMAGES_DICT="`grep '^SINGULARITY_IMAGES_DICT ' "$glidein_config" | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT6="`grep '^SINGULARITY_IMAGE_DEFAULT6 ' "$glidein_config" | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT7="`grep '^SINGULARITY_IMAGE_DEFAULT7 ' "$glidein_config" | cut -d ' ' -f 2-`"
-SINGULARITY_IMAGE_DEFAULT="`grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config" | cut -d ' ' -f 2-`"
+SINGULARITY_IMAGES_DICT=$(grep '^SINGULARITY_IMAGES_DICT ' "$glidein_config" | cut -d ' ' -f 2-)
+SINGULARITY_IMAGE_DEFAULT6=$(grep '^SINGULARITY_IMAGE_DEFAULT6 ' "$glidein_config" | cut -d ' ' -f 2-)
+SINGULARITY_IMAGE_DEFAULT7=$(grep '^SINGULARITY_IMAGE_DEFAULT7 ' "$glidein_config" | cut -d ' ' -f 2-)
+SINGULARITY_IMAGE_DEFAULT=$(grep '^SINGULARITY_IMAGE_DEFAULT ' "$glidein_config" | cut -d ' ' -f 2-)
 
 # Select the singularity image:  singularity_get_image platforms restrictions
 # Uses SINGULARITY_IMAGES_DICT and legacy SINGULARITY_IMAGE_DEFAULT, SINGULARITY_IMAGE_DEFAULT6, SINGULARITY_IMAGE_DEFAULT7
@@ -269,12 +273,10 @@ export GWMS_SINGULARITY_IMAGE
 
 info_stdout "`date` Searching and testing the singularity binary"
 
-# Look for binary and adapt if missing
-OSG_SINGULARITY_BINARY="`grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-`"
 # Changes PATH (Singularity path may be added), GWMS_SINGULARITY_VERSION, GWMS_SINGULARITY_PATH, HAS_SINGULARITY, singularity_in
 singularity_locate_bin "$singularity_bin" "$GWMS_SINGULARITY_IMAGE"
 
-if [[ "x$HAS_SINGULARITY" = "xTrue" ]]; then
+if [[ "$HAS_SINGULARITY" = "True" ]]; then
     info "Singularity binary appears present, claims to be version $GWMS_SINGULARITY_VERSION and tested with $GWMS_SINGULARITY_IMAGE"
 else
     # Adapt to missing binary

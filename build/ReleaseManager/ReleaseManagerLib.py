@@ -21,7 +21,6 @@ class ExeError(RuntimeError):
 class Release:
 
     def __init__(self, ver, srcDir, relDir, rc, rpmRel):
-
         self.version = self.createTarballVersionString(ver, rc)
         self.sourceDir = srcDir
         self.releaseDir = os.path.join(relDir, self.version)
@@ -43,13 +42,11 @@ class Release:
         except:
             print('RPMs will not be build for this platform')
 
-
     def createTarballVersionString(self, ver, rc):
         ver_str = '%s' % ver
         if rc:
             ver_str = '%s_rc%s' % (ver, rc)
         return ver_str
-
 
     def versionToRPMVersion(self, ver):
         if ver.startswith('v'):
@@ -57,18 +54,15 @@ class Release:
         ver = ver.replace('_', '.')
         return ver
 
-
     def createRPMReleaseNVR(self, rpmRel, rc):
         nvr = '%s' % rpmRel
         if rc:
             nvr = '0.%s.rc%s' % (rpmRel, rc)
         return nvr
 
-
     def getElVersion(self):
         if platform.system() != 'Linux':
             raise Exception('Unsupported OS: %s' % platform.system())
-
         el_string = 'el'
         distname, version, id = platform.linux_distribution()
         distmap = {
@@ -86,17 +80,14 @@ class Release:
         else:
             el_string = dist
         major_version = version.split('.')[0]
-
         return (el_string, major_version)
-
 
     def addTask(self, task):
         self.tasks.append(task)
+
     #def printReport(self):
     #   for task in self.releaseTasks.keys():
     #        print print "TASK: %-30s STATUS: %s" % (task, (tasklist[]).status)
-    # printReport
-
 
     def executeTasks(self):
         for i in range(0, len(self.tasks)):
@@ -120,37 +111,31 @@ class TaskRelease:
         self.name = name
         self.release = rel
         self.status = 'INCOMPLETE'
-    #   __init__
 
     def execute(self):
         raise ExeError('Action execute not implemented for task %s' % self.name)
-    #   execute
 
 
 class TaskClean(TaskRelease):
 
     def __init__(self, rel):
         TaskRelease.__init__(self, 'Clean', rel)
-    #   __init__
 
     def execute(self):
         cmd = 'rm -rf %s' % self.release.releaseDir
         execute_cmd(cmd)
         self.status = 'COMPLETE'
-    #   execute
 
 
 class TaskSetupReleaseDir(TaskRelease):
 
     def __init__(self, rel):
         TaskRelease.__init__(self, 'SetupReleaseDir', rel)
-    #   __init__
 
     def execute(self):
         create_dir(self.release.releaseDir)
         create_dir(self.release.releaseWebDir)
         self.status = 'COMPLETE'
-    #   execute
 
 
 class TaskPylint(TaskRelease):
@@ -160,11 +145,10 @@ class TaskPylint(TaskRelease):
         self.rcFile = os.path.join(sys.path[0], '../etc/pylint.rc')
         self.fileList = []
         self.pylintArgs = ['-e', '--rcfile=%s'%self.rcFile]
-    #   __init__
 
     def callback(self, dir, files):
         for file in files:
-            if (file.endswith('.py')):
+            if file.endswith('.py'):
                 self.fileList.append(os.path.join(dir, file))
 
     def index(self):
@@ -194,12 +178,10 @@ class TaskPylint(TaskRelease):
             print(self.pylintArgs + [file])
             lint.Run(self.pylintArgs + [file])
 
-
     def execute(self):
         self.index()
         self.pylint()
         self.status = 'COMPLETE'
-    #   execute
 
 
 class TaskTar(TaskRelease):
@@ -210,7 +192,6 @@ class TaskTar(TaskRelease):
         self.releaseFilename = 'glideinWMS_%s.tgz' % self.release.version
         self.excludePattern = self.excludes.commonPattern
         self.tarExe = which('tar')
-    #   __init__
 
     def execute(self):
         exclude = ""
@@ -225,7 +206,6 @@ class TaskTar(TaskRelease):
         print("%s" % cmd)
         execute_cmd(cmd)
         self.status = 'COMPLETE'
-    #   execute
 
 
 class TaskVersionFile(TaskRelease):
@@ -246,7 +226,6 @@ class TaskVersionFile(TaskRelease):
         self.chksumBin = os.path.normpath(os.path.join(sys.path[0],
                                                        'chksum.sh'))
 
-
     def execute(self):
         self.checksumRelease(self.releaseChksumFile,
                              self.excludes.commonPattern)
@@ -255,7 +234,6 @@ class TaskVersionFile(TaskRelease):
         self.checksumRelease(self.factoryChksumFile,
                              self.excludes.factoryPattern)
         self.status = 'COMPLETE'
-
 
     def checksumRelease(self, chksumFile, exclude):
         excludePattern = self.checksumFilePattern + " install/templates CVS config_examples " 
@@ -271,9 +249,10 @@ class TaskVersionFile(TaskRelease):
 
 class TaskRPM(TaskTar):
 
-    def __init__(self, rel):
+    def __init__(self, rel, use_mock=True):
         TaskTar.__init__(self, rel)
         self.name = 'GlideinwmsRPM'
+        self.use_mock = use_mock
         self.releaseFile = os.path.join(self.release.releaseDir,
                                         self.releaseFilename)
         self.rpmPkgDir = os.path.join(self.release.sourceDir,
@@ -290,7 +269,6 @@ class TaskRPM(TaskTar):
             'gwms-factory.sysconfig', 'gwms-frontend.conf.httpd',
             'gwms-frontend.sysconfig'
         ]
-
         self.rpmMacros = {
             '_topdir': self.release.rpmbuildDir,
             '_tmppath': '/tmp',
@@ -302,13 +280,11 @@ class TaskRPM(TaskTar):
         }
     #   __init__
 
-
     def createRPMBuildDirs(self):
         # Create directories required by rpmbuild
         rpm_dirs = ['BUILD', 'RPMS', 'SOURCES', 'SPECS', 'SRPMS']
-        for dir in rpm_dirs:
-            create_dir(os.path.join(self.release.rpmbuildDir, dir))
-
+        for dirname in rpm_dirs:
+            create_dir(os.path.join(self.release.rpmbuildDir, dirname))
 
     def createSpecFile(self):
         # No error checking because we want to fail in case of errors
@@ -332,12 +308,10 @@ class TaskRPM(TaskTar):
         for f in self.sourceFilenames:
             shutil.copy(os.path.join(self.rpmPkgDir, f), dest_dir)
 
-
     def createRPMMacros(self):
         with open(self.rpmmacrosFile, 'w') as fd:
             for m in self.rpmMacros:
                 fd.write('%%%s %s\n' % (m,  self.rpmMacros[m]))
-
 
     def buildSRPM(self):
         cmd = 'rpmbuild -bs %s' % self.specFile
@@ -345,20 +319,17 @@ class TaskRPM(TaskTar):
             cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
         execute_cmd(cmd)
 
-
     def buildRPM(self):
         cmd = 'mock -r epel-%s-x86_64 --macro-file=%s -i python' % (self.release.rpmOSVersion[1], self.rpmmacrosFile)
         execute_cmd(cmd)
         cmd = 'mock --no-clean -r epel-%s-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.release.rpmOSVersion[1], self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
         execute_cmd(cmd)
 
-
     def buildRPMWithRPMBuild(self):
         cmd = 'rpmbuild -bb %s' % self.specFile
         for m in self.rpmMacros:
             cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
         execute_cmd(cmd)
-
 
     def execute(self):
         if self.release.buildRPMs == False:
@@ -378,7 +349,10 @@ class TaskRPM(TaskTar):
             # Create the srpm
             self.buildSRPM()
             # Create the rpm
-            self.buildRPM()
+            if self.use_mock: 
+                self.buildRPM()
+            else:
+                self.buildRPMWithRPMBuild()
             self.status = 'COMPLETE'
 
 
@@ -388,26 +362,30 @@ class PackageExcludes:
 
         self.commonPattern = [
             'CVS',
+            '.DS_Store',
+            '.editorconfig',
             '.git',
             '.gitattributes',
+            '.github',
+            '.gitignore',
+            '.gitmodules',
+            '.mailmap',
+            '.pep8speaks.yml',
+            '.travis.yml',
             '.DS_Store',
-            'unittests',
             'build',
+            'test',
+            'unittests',
+            'tox.ini',
             #'install/glideinWMS.ini',
             #'install/manage-glideins',
             #'install/services',
         ]
 
         # Patterns that need to be excluded from the factory tarball
-        self.factoryPattern = [
-            'CVS',
-            '.git',
-            '.gitattributes',
-            '.DS_Store',
+        self.factoryPattern = self.commonPattern + [
             'poolwatcher',
             'frontend',
-            'unittests',
-            'build',
             #'install/glideinWMS.ini',
             #'install/manage-glideins',
             #'install/services',
@@ -421,14 +399,8 @@ class PackageExcludes:
 
         # Patterns that need to be excluded from the frontend tarball
         # For frontend we still need 2 factory libs for frontend tools
-        self.frontendPattern = [
-            'CVS',
-            '.git',
-            '.gitattributes',
-            '.DS_Store',
+        self.frontendPattern = self.commonPattern + [
             'poolwatcher',
-            'unittests',
-            'build',
             #'install/glideinWMS.ini',
             #'install/manage-glideins',
             #'install/services',
@@ -452,9 +424,7 @@ class PackageExcludes:
             'creation/web_base/condor_platform_select.sh',
             'creation/web_base/condor_startup.sh',
             'creation/web_base/create_mapfile.sh',
-            'creation/web_base/gcb_setup.sh',
             'creation/web_base/singularity_setup.sh',
-            'creation/web_base/glexec_setup.sh',
             'creation/web_base/glidein_startup.sh',
             'creation/web_base/job_submit.sh',
             'creation/web_base/local_start.sh',
@@ -462,22 +432,24 @@ class PackageExcludes:
             'creation/web_base/validate_node.sh',
         ]
 
+
 ############################################################
 #
 # P R I V A T E, do not use
 #
 ############################################################
 
-def create_dir(dir, mode=0o755, errorIfExists=False):
+def create_dir(dirname, mode=0o755, error_if_exists=False):
     try:
-        os.makedirs(dir, mode=0o755)
+        os.makedirs(dirname, mode=mode)
     except OSError as e:
-        if (e.errno == 17) and (errorIfExists == False):
+        if (e.errno == 17) and (error_if_exists is False):
             print('Dir already exists reusing %s' % dir)
         else:
             raise
     except Exception:
             raise
+
 
 # can throw ExeError
 def execute_cmd(cmd, stdin_data=None):

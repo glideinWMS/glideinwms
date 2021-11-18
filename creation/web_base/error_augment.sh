@@ -13,38 +13,37 @@
 # header ()                                                 #
 # generate and append header tag                            #
 # --------------------------------------------------------- #
-function header() {
-    DATEFMT="+%Y-%m-%dT%H:%M:%S%:z"
-    echo '<?xml version="1.0"?>' > otrx_output.xml #NOTE: wipe previous output file
-    echo "<OSGTestResult id=\"$1\" version=\"4.3.1\">" >>otrx_output.xml
-    echo "  <operatingenvironment>" >> otrx_output.xml
-    echo "    <env name=\"cwd\">$2</env>" >> otrx_output.xml
-    echo "  </operatingenvironment>" >> otrx_output.xml
-    echo "  <test>" >> otrx_output.xml
-    echo "    <cmd>$3</cmd>" >> otrx_output.xml
-    echo "    <tStart>`date --date=@$4 $DATEFMT`</tStart>" >> otrx_output.xml
-    echo "    <tEnd>`date --date=@$5 $DATEFMT`</tEnd>" >> otrx_output.xml
-    echo "  </test>" >> otrx_output.xml
-    return
+header() {
+    local DATEFMT="+%Y-%m-%dT%H:%M:%S%:z"
+    cat > otrx_output.xml << EOF  #NOTE: wipe previous output file
+<?xml version="1.0"?>
+<OSGTestResult id="$1" version="4.3.1">
+  <operatingenvironment>
+    <env name="cwd">$2</env>
+  </operatingenvironment>
+  <test>
+      <cmd>$3</cmd>
+      <tStart>$(date --date=@$4 $DATEFMT)</tStart>
+      <tEnd>$(date --date=@$5 $DATEFMT)</tEnd>
+  </test>
+EOF
 }
 
 # --------------------------------------------------------- #
 # close ()                                                  #
 # generate and append header close tags.                    #
 # --------------------------------------------------------- #
-function close(){
+close() {
     echo "</OSGTestResult>" >> otrx_output.xml
-    return
 }
 
 # --------------------------------------------------------- #
 # propagate_content ()                                      #
 # propagate content from test output to augmented output    #
 # --------------------------------------------------------- #
-function propagate_content(){
+propagate_content() {
     #copy over only the part between <result> ... </result>
     cat otrb_output.xml | awk 'BEGIN{fr=0;}/<[/]OSGTestResult>/{fr=0;}{if (fr==1) print $0}/<OSGTestResult/{fr=1;}' >> otrx_output.xml
-    return
 }
 
 # ------------------------------------------------------------- #
@@ -52,34 +51,34 @@ function propagate_content(){
 # process the test output file and create an augmented version  #
 # assume the file is valid
 # ------------------------------------------------------------- #
-function process_valid_file() {
+process_valid_file() {
     shift
     header "$@"
     propagate_content
     close
-    return
 }
 
 # --------------------------------------------------------- #
 # create_empty ()                                           #
 # create a augmented file with minimal info                 #
 # --------------------------------------------------------- #
-function create_empty() {
-    res=$1
+create_empty() {
+    local res=$1
     shift
     header "$@"
     echo "  <result>" >> otrx_output.xml
     if [ "$res" -eq 0 ]; then
-	echo "    <status>OK</status>" >> otrx_output.xml
+	    echo "    <status>OK</status>" >> otrx_output.xml
     else
-	echo "    <status>ERROR</status>" >> otrx_output.xml
+	    echo "    <status>ERROR</status>" >> otrx_output.xml
     fi
-    echo "  </result>" >> otrx_output.xml
-    echo "  <detail>" >> otrx_output.xml
-    echo "     The test script did not produce an XML file. No further information available." >> otrx_output.xml
-    echo "  </detail>" >> otrx_output.xml
+    {
+        echo "  </result>"
+        echo "  <detail>"
+        echo "     The test script did not produce an XML file. No further information available."
+        echo "  </detail>"
+    } >> otrx_output.xml
     close
-    return
 }
 
 # ------------------------------------ #
@@ -87,7 +86,7 @@ function create_empty() {
 # validate the test output file        #
 # return 0 iff it is considered valid  #
 # ------------------------------------ #
-function validate() {
+validate() {
     # do only basic testing
     # do not want to rely on external xml tools
 
@@ -142,14 +141,14 @@ function validate() {
 # process_file ()                                               #
 # process the test output file and create an augmented version  #
 # ------------------------------------------------------------- #
-function process_file() {
+process_file() {
     validate "$1"
-    rc=$?
+    local rc=$?
 
     if [ $rc -ne 0 ]; then
-	create_empty "$@"
+	    create_empty "$@"
     else
-	process_valid_file "$@" 
+	    process_valid_file "$@" 
     fi
 }
 
@@ -157,7 +156,7 @@ function process_file() {
 # init_file ()                                              #
 # initialize output file                                    #
 # --------------------------------------------------------- #
-function init_file() {
+init_file() {
     echo "" > otrb_output.xml
 }
 
@@ -165,7 +164,7 @@ function init_file() {
 # concat_file ()                                            #
 # concatenate the augmented file to the list                #
 # --------------------------------------------------------- #
-function concat_file() {
+concat_file() {
     fpath="otr_outlist.list"
     if [ -f "$fpath" ]; then
         chmod u+w "$fpath"
@@ -182,7 +181,6 @@ function concat_file() {
     cat otrx_output.xml |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> "$fpath"
     # make sure it is not modified by mistake by any test script
     chmod a-w "$fpath"
-    return
 }
 
 # --------------------------------------------------------- #
@@ -190,7 +188,7 @@ function concat_file() {
 # concatenate the augmented file to the list                #
 # making sure that works whith concurrent invocations       #
 # --------------------------------------------------------- #
-function locked_concat_file() {
+locked_concat_file() {
     fpath="otr_outlist.list"
     if [ ! -f "$fpath" ]; then
         base_dir="$( cd "$(dirname "$0")/.." ; pwd -P )"
@@ -202,7 +200,8 @@ function locked_concat_file() {
 
     # Wait for lock...
     local lock_ctr=0 lock="${fpath}.lock"
-    trap "[ -f "$lock" ] && rm $lock; exit 1" SIGKILL SIGINT SIGQUIT
+    # removed SIGKILL from the list since it cannot be trapped
+    trap "[ -f \"$lock\" ] && rm \"$lock\"; exit 1" SIGINT SIGQUIT
     
     until ln "${fpath}" "${lock}" 2>/dev/null
     do sleep 1
@@ -224,21 +223,20 @@ function locked_concat_file() {
  
     # Remove lock
     rm -f "${lock}"
-
-    return
 }
 
 # --------------------------------------------------------- #
 # usage ()                                                  #
 # print usage                                               #
 # --------------------------------------------------------- #
-function usage(){
-    echo "Usage: -init|-process|-concat|-locked-concat [params]"
-    echo "       -init"
-    echo "       -process errno id cwd cmdline start end"
-    echo "       -concat"
-    echo "       -locked-concat"
-    return
+usage(){
+    cat << EOF
+Usage: -init|-process|-concat|-locked-concat [params]
+       -init
+       -process errno id cwd cmdline start end
+       -concat
+       -locked-concat
+EOF
 }
 
 

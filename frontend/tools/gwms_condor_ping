@@ -1,0 +1,11 @@
+#!/bin/sh
+# a convenience wrapper for condor_ping
+# returns a table of authorizations, useful to see
+# if token_auth has been correctly set up
+#
+if [ "$1" = "" ]; then
+   HOST=$HOSTNAME
+else
+   HOST=$1
+fi
+condor_ping -addr "<$(host $HOST | sed -e 's/.* //'):9618>" -table ALL

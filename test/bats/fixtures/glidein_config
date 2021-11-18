@@ -1,1 +1,3 @@
 VAR1 test
+ERROR_GEN_PATH /bin/echo
+CONDOR_VARS_FILE fixtures/condor_vars_file.source

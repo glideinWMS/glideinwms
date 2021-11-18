@@ -20,6 +20,8 @@
 %define web_dir %{_localstatedir}/lib/gwms-frontend/web-area
 %define web_base %{_localstatedir}/lib/gwms-frontend/web-base
 %define frontend_dir %{_localstatedir}/lib/gwms-frontend/vofrontend
+%define frontend_token_dir %{_localstatedir}/lib/gwms-frontend/tokens.d
+%define frontend_passwd_dir %{_localstatedir}/lib/gwms-frontend/passwords.d
 %define factory_web_dir %{_localstatedir}/lib/gwms-factory/web-area
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
@@ -72,13 +74,26 @@ access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein Based
 WMS (Workload Management System) that works on top of Condor.
 For those familiar with the Condor system, it is used for
 scheduling and job control. This package is for a one-node
-vofrontend install (userschedd, submit, vofrontend).
+vofrontend install (userschedd, usercollector, vofrontend).
 
 
 %package vofrontend-standalone
 Summary:        The VOFrontend for glideinWMS submission host
-Requires: httpd
-Requires: condor >= 8.4.0
+Requires: glideinwms-vofrontend-core = %{version}-%{release}
+Requires: glideinwms-vofrontend-httpd = %{version}-%{release}
+%description vofrontend-standalone
+The purpose of the glideinWMS is to provide a simple way
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
+Based WMS (Workload Management System) that works on top of
+Condor. For those familiar with the Condor system, it is used
+for scheduling and job control.
+This package is for a standalone vofrontend install
+
+
+%package vofrontend-core
+Summary:        The intelligence logic for GWMS Frontend.
+Requires: condor >= 8.9.5
+Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
@@ -92,18 +107,22 @@ Requires: glideinwms-common-tools = %{version}-%{release}
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
-%description vofrontend-standalone
-The purpose of the glideinWMS is to provide a simple way
-to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
-Based WMS (Workload Management System) that works on top of
-Condor. For those familiar with the Condor system, it is used
-for scheduling and job control.
-This package is for a standalone vofrontend install
+%description vofrontend-core
+This subpackage includes all the scripts needed to run a
+frontend. Created to separate out the httpd server.
+
+
+%package vofrontend-httpd
+Summary:        The Apache http configuration for GWMS Frontend.
+Requires: httpd
+%description vofrontend-httpd
+This subpackage includes the minimal configuration to start Apache to
+serve the Frontend files to the pilot and the monitoring pages.
 
 
 %package usercollector
 Summary:        The VOFrontend glideinWMS collector host
-Requires: condor >= 8.4.0
+Requires: condor >= 8.9.5
 Requires: ganglia
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
@@ -114,7 +133,7 @@ It can be installed independently.
 
 %package userschedd
 Summary:        The VOFrontend glideinWMS submission host
-Requires: condor >= 8.4.0
+Requires: condor >= 8.9.5
 Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
@@ -126,8 +145,10 @@ This is a package for a glideinwms submit host.
 Summary:        The glideinWMS common libraries.
 Requires: python >= 2.7
 Requires: condor-python
+Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-ldap
+Requires: python2-jwt
 Requires: PyYAML
 Requires: m2crypto
 %description libs
@@ -167,13 +188,25 @@ standalone packages.
 %package factory
 Summary:        The Factory for glideinWMS
 Provides:       GlideinWMSFactory = %{version}-%{release}
-Requires: httpd
+Requires: glideinwms-factory-httpd = %{version}-%{release}
+Requires: glideinwms-factory-core = %{version}-%{release}
+%description factory
+The purpose of the glideinWMS is to provide a simple way
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
+Based WMS (Workload Management System) that works on top of
+HTCondor. For those familiar with the Condor system, it is used
+for scheduling and job control.
+
+
+%package factory-core
+Summary:        The scripts for the GlideinWMS Factory
 Requires: glideinwms-factory-condor = %{version}-%{release}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= 8.4.0
 Requires: fetch-crl
+Requires: python >= 2.7
 Requires: python-rrdtool
 Requires: python-argparse
 Requires: python-ldap
@@ -184,12 +217,17 @@ Requires: javascriptrrd >= 1.1.0
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
-%description factory
-The purpose of the glideinWMS is to provide a simple way
-to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
-Based WMS (Workload Management System) that works on top of
-HTCondor. For those familiar with the Condor system, it is used
-for scheduling and job control.
+%description factory-core
+This subpackage includes all the scripts needed to run a
+Factory. Created to separate out the httpd server.
+
+
+%package factory-httpd
+Summary:        The Apache httpd configuration for the GWMS Factory
+Requires: httpd
+%description factory-httpd
+This subpackage includes the minimal configuration to start Apache to
+serve the Factory files to the pilot and the monitoring pages.
 
 
 %package factory-condor
@@ -210,8 +248,8 @@ install of wmscollector + wms factory
 %build
 cp %{SOURCE7} .
 chmod 700 chksum.sh
-./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh  creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/singularity_setup.sh  creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/singularity_setup.sh creation/web_base/singularity_wrapper.sh creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/singularity_setup.sh creation/web_base/singularity_wrapper.sh creation/web_base/singularity_lib.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -265,12 +303,12 @@ install -d $RPM_BUILD_ROOT%{python_sitelib}
 cp -r ../glideinwms $RPM_BUILD_ROOT%{python_sitelib}
 
 # Some of the files are not needed by RPM
+rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/bigfiles
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/install
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/etc
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/build
 rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/config
-rm -Rf $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/config_examples
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.editorconfig
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/.gitattributes
@@ -332,6 +370,8 @@ install -m 0644 creation/templates/gwms-renew-proxies.cron $RPM_BUILD_ROOT%{_sys
 
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
+install -d $RPM_BUILD_ROOT%{frontend_token_dir}
+install -d $RPM_BUILD_ROOT%{frontend_passwd_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
 install -d $RPM_BUILD_ROOT%{web_dir}
 install -d $RPM_BUILD_ROOT%{web_dir}/monitor/
@@ -359,6 +399,7 @@ install -d $RPM_BUILD_ROOT%{factory_web_dir}/monitor/group_main/total
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/nodes.blacklist
 install -m 644 creation/web_base/nodes.blacklist $RPM_BUILD_ROOT%{web_dir}/stage/group_main/nodes.blacklist
 
+
 # Install the logs
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-frontend/frontend
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-frontend/group_main
@@ -366,7 +407,11 @@ install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/server/factory
 install -d $RPM_BUILD_ROOT%{_localstatedir}/log/gwms-factory/client
+
+# Create some credential directories
 install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/client-proxies
+install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials
+touch $RPM_BUILD_ROOT%{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
 
 # Install frontend temp dir, for all the frontend.xml.<checksum>
 install -d $RPM_BUILD_ROOT%{frontend_dir}/lock
@@ -409,6 +454,7 @@ rm -rf $RPM_BUILD_ROOT%{web_base}/CVS
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/ganglia.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/certs
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts
 touch install/templates/90_gwms_dns.config
 install -m 0644 install/templates/00_gwms_factory_general.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d/
 install -m 0644 install/templates/00_gwms_general.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d/
@@ -432,7 +478,9 @@ for schedd in "schedd_glideins2" "schedd_glideins3" "schedd_glideins4" "schedd_g
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/lock
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/procd_pipe
     install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/spool
+    chmod 'g+w' $RPM_BUILD_ROOT/var/lib/condor/$schedd
 done
+
 
 
 # Install tools
@@ -456,6 +504,8 @@ cp frontend/tools/enter_frontend_env $RPM_BUILD_ROOT%{_bindir}/enter_frontend_en
 cp frontend/tools/fetch_glidein_log $RPM_BUILD_ROOT%{_bindir}/fetch_glidein_log
 cp frontend/tools/glidein_off $RPM_BUILD_ROOT%{_bindir}/glidein_off
 cp frontend/tools/remove_requested_glideins $RPM_BUILD_ROOT%{_bindir}/remove_requested_glideins
+#cp install/templates/frontend_condortoken $RPM_BUILD_ROOT%{_sysconfdir}/condor/scripts/
+cp install/templates/04_gwms_frontend_idtokens.config $RPM_BUILD_ROOT%{_sysconfdir}/condor/config.d
 
 # Install glidecondor
 install -m 0755 install/glidecondor_addDN $RPM_BUILD_ROOT%{_sbindir}/glidecondor_addDN
@@ -489,7 +539,7 @@ install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_RO
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
-%post vofrontend-standalone
+%post vofrontend-core
 # $1 = 1 - Installation
 # $1 = 2 - Upgrade
 # Source: http://www.ibm.com/developerworks/library/l-rpm2/
@@ -516,11 +566,20 @@ if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
 
+if [ ! -e %{frontend_passwd_dir} ]; then
+    mkdir -p %{frontend_passwd_dir}
+    chown frontend.frontend %{frontend_passwd_dir}
+fi
+openssl rand -base64 64 | /usr/sbin/condor_store_cred -u "frontend@${fqdn_hostname}" -f "/etc/condor/passwords.d/FRONTEND" add > /dev/null 2>&1
+/bin/cp /etc/condor/passwords.d/FRONTEND /var/lib/gwms-frontend/passwords.d/FRONTEND
+chown frontend.frontend /var/lib/gwms-frontend/passwords.d/FRONTEND
+
+%post vofrontend-httpd
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
 
-%post factory
+%post factory-core
 
 fqdn_hostname=`hostname -f`
 sed -i "s/FACTORY_HOSTNAME/$fqdn_hostname/g" %{_sysconfdir}/gwms-factory/glideinWMS.xml
@@ -540,11 +599,13 @@ systemctl daemon-reload
 %endif
 
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || true
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
+%post factory-httpd
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
 
-%pre vofrontend-standalone
+%pre vofrontend-core
 # Add the "frontend" user and group if they do not exist
 getent group frontend >/dev/null || groupadd -r frontend
 getent passwd frontend >/dev/null || \
@@ -553,7 +614,7 @@ getent passwd frontend >/dev/null || \
 # If the frontend user already exists make sure it is part of frontend group
 usermod --append --groups frontend frontend >/dev/null
 
-%pre factory
+%pre factory-core
 # Add the "gfactory" user and group if they do not exist
 getent group gfactory >/dev/null || groupadd -r gfactory
 getent passwd gfactory >/dev/null || \
@@ -570,7 +631,7 @@ getent passwd frontend >/dev/null || \
 # If the frontend user already exists make sure it is part of frontend group
 usermod --append --groups frontend frontend >/dev/null
 
-%preun vofrontend-standalone
+%preun vofrontend-core
 # $1 = 0 - Action is uninstall
 # $1 = 1 - Action is upgrade
 
@@ -593,7 +654,7 @@ if [ "$1" = "0" ]; then
 #    rm -rf %{_localstatedir}/log/gwms-frontend/*
 fi
 
-%preun factory
+%preun factory-core
 if [ "$1" = "0" ] ; then
     %if 0%{?rhel} >= 7
     systemctl daemon-reload
@@ -607,20 +668,28 @@ if [ "$1" = "0" ]; then
 fi
 
 
-%postun vofrontend-standalone
+%postun vofrontend-httpd
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
 
-%postun factory
+%postun factory-httpd
 # Protecting from failure in case it is not running/installed
 /sbin/service httpd reload > /dev/null 2>&1 || true
+
+%postun factory-core
+# Protecting from failure in case it is not running/installed
 /sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%files factory
+
 %files vofrontend
+#%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
+
+%files vofrontend-standalone
 
 %files common-tools
 %defattr(-,root,root,-)
@@ -643,6 +712,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/cWDictFile.py
 %{python_sitelib}/glideinwms/creation/lib/cWDictFile.pyc
 %{python_sitelib}/glideinwms/creation/lib/cWDictFile.pyo
+%{python_sitelib}/glideinwms/creation/lib/cWExpand.py
+%{python_sitelib}/glideinwms/creation/lib/cWExpand.pyc
+%{python_sitelib}/glideinwms/creation/lib/cWExpand.pyo
 %{python_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python_sitelib}/glideinwms/creation/lib/cWParams.pyc
 %{python_sitelib}/glideinwms/creation/lib/cWParams.pyo
@@ -656,7 +728,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/__init__.pyc
 %{python_sitelib}/glideinwms/creation/lib/__init__.pyo
 
-%files factory
+%files factory-core
 %defattr(-,gfactory,gfactory,-)
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
@@ -670,6 +742,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/cat_StarterLog
 %attr(755,root,root) %{_bindir}/cat_XMLResult
 %attr(755,root,root) %{_bindir}/cat_logs
+%attr(755,root,root) %{_bindir}/cat_named_log
 %attr(755,root,root) %{_bindir}/create_condor_tarball
 %attr(755,root,root) %{_bindir}/entry_ls
 %attr(755,root,root) %{_bindir}/entry_q
@@ -709,6 +782,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/clone_glidein
 %attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
 %attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/client-proxies
+%attr(-, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials
+%attr(0600, gfactory, gfactory) %{_localstatedir}/lib/gwms-factory/server-credentials/jwt_secret.key
 %attr(-, gfactory, gfactory) %{factory_web_dir}
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
@@ -748,7 +823,6 @@ rm -rf $RPM_BUILD_ROOT
 %else
 %{_initrddir}/gwms-factory
 %endif
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/plugin.d
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/hooks.reconfig.pre
@@ -756,11 +830,13 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, gfactory, gfactory) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/gwms-factory/glideinWMS.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-factory
 
-%files vofrontend-standalone
+%files vofrontend-core
 %defattr(-,frontend,frontend,-)
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
 %doc doc
+#%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
+%attr(644,root,root) %{_sysconfdir}/condor/config.d/04_gwms_frontend_idtokens.config
 %attr(755,root,root) %{_bindir}/glidein_off
 %attr(755,root,root) %{_bindir}/remove_requested_glideins
 %attr(755,root,root) %{_bindir}/fetch_glidein_log
@@ -776,6 +852,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, frontend, frontend) %{web_dir}
 %attr(-, frontend, frontend) %{web_base}
 %attr(-, frontend, frontend) %{frontend_dir}
+%attr(700, frontend, frontend) %{frontend_token_dir}
+%attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
 %{python_sitelib}/glideinwms/frontend
 %{python_sitelib}/glideinwms/creation/lib/cvWConsts.py
@@ -811,7 +889,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_initrddir}/gwms-renew-proxies
 %attr(0644, root, root) %{_sysconfdir}/cron.d/gwms-renew-proxies
 %endif
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/hooks.reconfig.pre
@@ -821,6 +898,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 
+%files factory-httpd
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
+
+%files vofrontend-httpd
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 
 %files factory-condor
 %config(noreplace) %{_sysconfdir}/condor/config.d/00_gwms_factory_general.config
@@ -860,8 +942,29 @@ rm -rf $RPM_BUILD_ROOT
 %files condor-common-config
 %config(noreplace) %{_sysconfdir}/condor/config.d/03_gwms_local.config
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
+#%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Thu Sep  2 2021 Dennis Box <dbox@fnal.gov> - 3.7.5
+- Glideinwms v3.7.5
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_5/history.html
+- Release candidates 3.7.5-01.rc1 to  3.7.5-06.rc6
+
+* Fri Mar 26  2021 2020 Dennis Box <dbox@fnal.gov> - 3.7.3-1
+- GlideinWMS v3.7.3
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_3/history.html
+- Release candidates: 3.7.3-01.rc1 .rc1 to 
+
+* Mon Dec 21  2020 Dennis Box <dbox@fnal.gov> - 3.7.2-1
+- GlideinWMS v3.7.2
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_2/history.html
+- Release candidates: 3.7.0.1.rc1 to 3.7.2-0.3.rc3
+
+* Tue Nov 3 2020 Dennis Box <dbox@fnal.gov> - 3.7.1-1
+- GlideinWMS v3.7.1
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7_1/history.html
+- Release candidates: 3.7.1-0.1.rc1 to 3.7.1-0.7.rc9
+
 * Mon Oct 5 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.5-1
 - GlideinWMS v3.6.5
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_5/history.html
@@ -876,6 +979,11 @@ rm -rf $RPM_BUILD_ROOT
 - GlideinWMS v3.6.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_6_3/history.html
 - Release candidates: 3.6.3-0.1.rc1 to 3.6.3-0.3.rc3
+
+* Fri Apr 3 2020 Marco Mambelli <marcom@fnal.gov> - 3.7-1
+- GlideinWMS v3.7
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_7/history.html
+- Release candidates: 3.7-0.1.rc1 to 3.7-0.3.rc3
 
 * Thu Mar 26 2020 Marco Mambelli <marcom@fnal.gov> - 3.6.2-1
 - GlideinWMS v3.6.2
@@ -1320,4 +1428,3 @@ rm -rf $RPM_BUILD_ROOT
   configuration variables.
 - Removed the rm's to delete the frontend-temp and log directories at uninstall,
   they removed files when updating, not wanted.  Let RPM handle those.
-

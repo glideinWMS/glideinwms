@@ -1,4 +1,5 @@
-# Shell source file to be sourced to run Python unit tests and coverage
+#!/bin/bash
+# Shell source file to be sourced to run Python unit tests and coverage (shebang added for linting purposes)
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
 
@@ -49,10 +50,10 @@ do_parse_options () {
 do_use_python() { true; }
 
 do_show_flags() {
-    SOURCES="$(get_source_directories)"
+    SOURCES="$(get_source_directories .. )"
     if [[ -n "$RUN_COVERAGE" ]]; then
         echo "Coverage will run Python unittest as (timeout ${UNITTEST_TIMEOUT}):"
-        echo "coverage run --source="${SOURCES}" --omit="test_*.py"  -a TESTFILE"
+        echo 'coverage run --source="'"${SOURCES}"'" --omit="test_*.py"  -a TESTFILE'
     else
         echo "Python unittest will run as (timeout ${UNITTEST_TIMEOUT}):"
         echo "./TESTFILE"
@@ -132,7 +133,7 @@ do_process_branch() {
     print_files_list "Python will use the following unit test files:" "${files_list}" && return
 
     local test_date=$(date "+%Y-%m-%d %H:%M:%S")
-    SOURCES="$(get_source_directories)"
+    SOURCES="$(get_source_directories .. )"
     local test_outdir="${outfile}.d"
     mkdir -p "${test_outdir}"
 

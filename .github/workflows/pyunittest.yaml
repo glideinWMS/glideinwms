@@ -33,7 +33,8 @@ jobs:
         uses: ./.github/actions/pyunittest-in-sl7-docker
       - name: Archive unittest log
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: reports
           path: logs.tar.bz2
+          retention-days: 14

@@ -1,4 +1,5 @@
-# Shell source file to be sourced to run Python unit tests and coverage
+#!/bin/bash
+# Shell source file to be sourced to run Python unit tests and coverage (shebang added for linting purposes)
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
 

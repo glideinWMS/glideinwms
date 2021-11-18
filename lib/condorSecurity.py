@@ -27,7 +27,7 @@ import copy
 # Condor environment
 #
 # All info is in the state attribute
-class EnvState:
+class EnvState(object):
     def __init__(self, filter):
         # filter is a list of Condor variables to save
         self.filter=filter
@@ -43,7 +43,8 @@ class EnvState:
             if old_val is not None:
                 os.environ[env_key]=old_val
             else:
-                del os.environ[env_key]
+                if os.environ.get(env_key):
+                    del os.environ[env_key]
 
     ##########################################
     # Load the environment state into
@@ -90,7 +91,7 @@ UNSET_VALUE = 'UNSET'
 #############################################
 # This class handle requests for ensuring
 # the security state is in a particular state
-class SecEnvRequest:
+class SecEnvRequest(object):
     def __init__(self, requests=None):
         # requests is a dictionary of requests [context][feature]=VAL
         # TODO: requests can be a self initializinf dictionary of dictionaries in PY3
@@ -234,37 +235,43 @@ class ProtoRequest(SecEnvRequest):
 #
 # GSI specific classes classes
 # Extend ProtoRequest
-# These assume all the communication will be GSI authenticated
+# These assume all the communication will be GSI or IDTOKENS authenticated
 #
 ########################################################################
 
 class GSIRequest(ProtoRequest):
-    def __init__(self, x509_proxy=None, allow_fs=True, proto_requests=None):
-        auth_str="GSI"
+    def __init__(self, x509_proxy=None, allow_fs=True, allow_idtokens=True, proto_requests=None):
+        if allow_idtokens:
+            auth_str = "IDTOKENS,GSI"
+        else:
+            auth_str="GSI"
         if allow_fs:
             auth_str+=",FS"
 
-        # force GSI authentication
+        # force either IDTOKENS or GSI authentication
         if proto_requests is not None:
-            proto_request=copy.deepcopy(proto_requests)
+            proto_requests=copy.deepcopy(proto_requests)
         else:
-            proto_request={}
+            proto_requests={}
         for context in CONDOR_CONTEXT_LIST:
             if context not in proto_requests:
                 proto_requests[context]={}
             if 'AUTHENTICATION' in proto_requests[context]:
-                if not ('GSI' in proto_requests[context]['AUTHENTICATION'].split(',')):
-                    raise ValueError("Must specify GSI as one of the options")
+                auth_list = proto_requests[context]['AUTHENTICATION'].split(',')
+                if not ('GSI' in auth_list):
+                    if not ('IDTOKENS' in auth_list):
+                        raise ValueError("Must specify either IDTOKENS or GSI as one of the options")
             else:
                 proto_requests[context]['AUTHENTICATION']=auth_str
         
         ProtoRequest.__init__(self, proto_requests)
         self.allow_fs=allow_fs
+        self.x509_proxy_saved_state = None
 
         if x509_proxy is None:
-            if 'X509_USER_PROXY' not in os.environ:
-                raise RuntimeError("x509_proxy not provided and env(X509_USER_PROXY) undefined")
-            x509_proxy=os.environ['X509_USER_PROXY']
+            # if 'X509_USER_PROXY' not in os.environ:
+            #    raise RuntimeError("x509_proxy not provided and env(X509_USER_PROXY) undefined")
+            x509_proxy=os.environ.get('X509_USER_PROXY')
 
         # Here I should probably check if the proxy is valid
         # To be implemented in a future release
@@ -300,4 +307,5 @@ class GSIRequest(ProtoRequest):
     ##############################################
     def enforce_requests(self):
         ProtoRequest.enforce_requests(self)
-        os.environ['X509_USER_PROXY']=self.x509_proxy
+        if self.x509_proxy:
+            os.environ['X509_USER_PROXY'] = self.x509_proxy

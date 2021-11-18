@@ -1,4 +1,4 @@
-<frontend advertise_delay="5" frontend_name="FRONTEND_NAME_CHANGEME" loop_delay="60" advertise_with_multiple="True" advertise_with_tcp="True" frontend_monitor_index_page="False" frontend_versioning="False">
+<frontend advertise_delay="5" frontend_name="FRONTEND_NAME_CHANGEME" loop_delay="60" advertise_with_multiple="True" advertise_with_tcp="True" frontend_monitor_index_page="False" frontend_versioning="False" enable_attribute_expansion="False">
    <log_retention>
       <process_logs>
          <process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO"/>
@@ -33,7 +33,6 @@
    <attrs>
       <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>
       <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"/>
-      <attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"/>
       <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>
    </attrs>
    <groups>
@@ -70,7 +69,7 @@
    </groups>
    <collectors>
       <collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=FRONTEND_HOSTNAME" node="FRONTEND_HOSTNAME:9618" secondary="False"/>
-      <collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=FRONTEND_HOSTNAME" node="FRONTEND_HOSTNAME:9620-9660" secondary="True"/>
+      <collector DN="/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=FRONTEND_HOSTNAME" node="FRONTEND_HOSTNAME:9618?sock=collector1-40" secondary="True"/>
    </collectors>
    <files>
    </files>

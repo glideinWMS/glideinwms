@@ -66,18 +66,18 @@ findversion_debian() {
   dist_id_line=$(grep "DISTRIB_ID" /etc/lsb-release)
   dist_rel_line=$(grep "DISTRIB_RELEASE" /etc/lsb-release)
   if [[ ${dist_id_line} == *"Debian"* ]]; then
-    [[ ${dist_rel_line:16:3} = "11\." ]] && condor_os='linux-debian10' && return
-    [[ ${dist_rel_line:16:3} = "10\." ]] && condor_os='linux-debian10' && return
-    [[ ${dist_rel_line:16:2} = "9\." ]] && condor_os='linux-debian9' && return
-    [[ ${dist_rel_line:16:2} = "8\." ]] && condor_os='linux-debian8' && return
-    [[ ${dist_rel_line:16:2} = "7\." ]] && condor_os='linux-debian7' && return
+    [[ ${dist_rel_line:16:3} = "11." ]] && condor_os='linux-debian10' && return
+    [[ ${dist_rel_line:16:3} = "10." ]] && condor_os='linux-debian10' && return
+    [[ ${dist_rel_line:16:2} = "9." ]] && condor_os='linux-debian9' && return
+    [[ ${dist_rel_line:16:2} = "8." ]] && condor_os='linux-debian8' && return
+    [[ ${dist_rel_line:16:2} = "7." ]] && condor_os='linux-debian7' && return
   elif [[ ${dist_id_line} == *"Ubuntu"* ]]; then
-    [[ ${dist_rel_line:16:3} = "22\." ]] && condor_os='linux-ubuntu20' && return
-    [[ ${dist_rel_line:16:3} = "20\." ]] && condor_os='linux-ubuntu20' && return
-    [[ ${dist_rel_line:16:3} = "18\." ]] && condor_os='linux-ubuntu18' && return
-    [[ ${dist_rel_line:16:3} = "16\." ]] && condor_os='linux-ubuntu16' && return
-    [[ ${dist_rel_line:16:3} = "14\." ]] && condor_os='linux-ubuntu14' && return
-    [[ ${dist_rel_line:16:3} = "12\." ]] && condor_os='linux-ubuntu12' && return
+    [[ ${dist_rel_line:16:3} = "22." ]] && condor_os='linux-ubuntu20' && return
+    [[ ${dist_rel_line:16:3} = "20." ]] && condor_os='linux-ubuntu20' && return
+    [[ ${dist_rel_line:16:3} = "18." ]] && condor_os='linux-ubuntu18' && return
+    [[ ${dist_rel_line:16:3} = "16." ]] && condor_os='linux-ubuntu16' && return
+    [[ ${dist_rel_line:16:3} = "14." ]] && condor_os='linux-ubuntu14' && return
+    [[ ${dist_rel_line:16:3} = "12." ]] && condor_os='linux-ubuntu12' && return
   fi
 }
 
@@ -124,15 +124,19 @@ if [ -z "$condor_arch" ]; then
     condor_arch="default"
 fi
 
-if [ "$condor_arch" == "auto" ]; then
+if [[ "$condor_arch" == "auto" ]]; then
     condor_arch=$(uname -m)
-    if [ "$condor_arch" == "x86_64" ]; then
-    condor_arch="x86_64,x86"
+    if [[ "$condor_arch" == "x86_64" ]]; then
+        condor_arch="x86_64,x86"
     elif [[ "$condor_arch" == "i386" || "$condor_arch" == "i486" || "$condor_arch" == "i586" || "$condor_arch" == "i686" ]]; then
-    condor_arch="x86"
+        condor_arch="x86"
+    elif [[ "$condor_arch" == "ppc64le" ]]; then
+        condor_arch="ppc64le"
+    elif [[ "$condor_arch" == "ppc64" ]]; then
+        condor_arch="ppc64"
     else
-        #echo "Not a x86 compatible system. Autodetect not supported"  1>&2
-        STR="Not a x86 compatible system. Autodetect not supported"
+        #echo "Not a x86 or PPC compatible system. Autodetect not supported"  1>&2
+        STR="Not a x86 or PPC compatible system. Autodetect not supported"
         "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "SupportAutodetect" "False" "ArchType" "Unknown"
         exit 1
     fi

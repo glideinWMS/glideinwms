@@ -1,6 +1,6 @@
 [Unit]
 Description=GWMS Frontend Service
-Documentation="http://glideinwms.fnal.gov/doc.prd/frontend/index.html"
+Documentation="https://glideinwms.fnal.gov/doc.prd/frontend/index.html"
 
 [Service]
 Type=forking
