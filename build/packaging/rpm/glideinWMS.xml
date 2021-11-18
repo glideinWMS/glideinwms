@@ -1,4 +1,4 @@
-<glidein advertise_delay="5" advertise_with_multiple="False" advertise_with_tcp="False" factory_name="gfactory_service" glidein_name="gfactory_instance" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="FACTORY_HOSTNAME,schedd_glideins3@FACTORY_HOSTNAME,schedd_glideins5@FACTORY_HOSTNAME,schedd_glideins2@FACTORY_HOSTNAME,schedd_glideins4@FACTORY_HOSTNAME" factory_versioning="False">
+<glidein advertise_delay="5" advertise_with_multiple="False" advertise_with_tcp="False" factory_name="gfactory_service" glidein_name="gfactory_instance" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="FACTORY_HOSTNAME,schedd_glideins3@FACTORY_HOSTNAME,schedd_glideins5@FACTORY_HOSTNAME,schedd_glideins2@FACTORY_HOSTNAME,schedd_glideins4@FACTORY_HOSTNAME" enable_attribute_expansion="False" factory_versioning="False">
    <log_retention>
       <condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0"/>
       <job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0"/>

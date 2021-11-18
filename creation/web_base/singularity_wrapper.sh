@@ -156,7 +156,7 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
     # This script could run when singularity is optional and not wanted
     # So should not fail but exec w/o running Singularity
 
-    if [[ "x$HAS_SINGULARITY" = "x1"  &&  "x$GWMS_SINGULARITY_PATH" != "x" ]]; then
+    if [[ "$HAS_SINGULARITY" = "1"  &&  -n "$GWMS_SINGULARITY_PATH" ]]; then
         # Will run w/ Singularity - prepare for it
         info_dbg "GWMS singularity wrapper, decided to use singularity ($HAS_SINGULARITY, $GWMS_SINGULARITY_PATH). Proceeding w/ tests and setup."
         # If a repo CVMFS_REPOS_LIST is not available exit with 1
@@ -174,7 +174,7 @@ else
 
     # Need to start in /srv (Singularity's --pwd is not reliable)
     # /srv should always be there in Singularity, we set the option '--home \"$PWD\":/srv'
-    [[ -d /srv ]] && cd /srv
+    [[ -d /srv ]] && cd /srv || warn "GWMS singularity wrapper, unable to cd in /srv" 
     export HOME=/srv
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS

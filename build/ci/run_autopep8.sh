@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage () {
-    echo "usage: `basename $0` change|restore|usage"
+    echo "usage: $(basename $0) change|restore|usage"
     echo "     change: run autopep8 -a -i on all python files in $GLIDEINWMS_SRC"
     echo "     restore: check all python files back out from git"
     echo "     usage: this message"
@@ -10,8 +10,8 @@ usage () {
 
 find_aux () {
     # $1 basename of the aux file
-    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return }
-    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return }
+    [ -e "$MYDIR/$1" ] && { echo "$MYDIR/$1"; return; }
+    [ -e "$GLIDEINWMS_SRC/$1" ] && { echo "$GLIDEINWMS_SRC/$1"; return; }
     false
 }
 
@@ -96,6 +96,7 @@ if [ ! -e  "$ultil_file" ]; then
     exit 1
 fi
 
+# shellcheck source=./utils.sh
 if ! . "$ultil_file" ; then
     echo "ERROR: $ultil_file contains errors!"
     echo "exiting"

@@ -22,7 +22,7 @@
 glidein_config="$1"
 
 GWMS_THIS_SCRIPT="$0"
-GWMS_THIS_SCRIPT_DIR="`dirname "$0"`"
+GWMS_THIS_SCRIPT_DIR=$(dirname "$0")
 
 echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
 
@@ -31,7 +31,8 @@ echo "`date` Starting singularity_setup.sh. Importing singularity_util.sh."
 
 # Source utility files, outside and inside Singularity
 if [[ -e "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh ]]; then
-    source "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh
+    # shellcheck source=./singularity_lib.sh
+    . "$GWMS_THIS_SCRIPT_DIR"/singularity_lib.sh
 else
     echo "ERROR: singularity_setup.sh: Unable to source '$GWMS_THIS_SCRIPT_DIR/singularity_lib.sh'! File not found. Quitting" 1>&2
     [[ -n "$error_gen" ]] && "$error_gen" -error "singularity_setup.sh"
@@ -85,13 +86,13 @@ combine_requirements () {
     local valid_list="NEVER,OPTIONAL,PREFERRED,REQUIRED,"
     if [[ ! ",$valid_list,REQUIRED_GWMS," = *",$req_factory,"* ]]; then
         STR="GLIDEIN_SINGULARITY_REQUIRE in Factory configured to be $req_factory.\nAccepted values are $valid_list,REQUIRED_GWMS."
-        res_str=`echo -e "$STR"`
+        res_str=$(echo -e "$STR")
         echo "FAIL,$res_str"
         return 1
     fi
     if [[ ! ",$valid_list,DISABLE_GWMS," = *",$req_frontend,"* ]]; then
         STR="GLIDEIN_Singularity_Use in VO Frontend configured to be $req_frontend.\nAccepted values are $valid_list,DISABLE_GWMS."
-        res_str=`echo -e "$STR"`
+        res_str=$(echo -e "$STR")
         echo "FAIL,$res_str"
         return 1
     fi

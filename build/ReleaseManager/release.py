@@ -93,6 +93,10 @@ def parse_opts(argv):
                       action='store',
                       metavar='<Product Version in RPM filename>',
                       help='Product Version in RPM filename')
+    parser.add_option('--no-mock',
+                      dest='use_mock',
+                      action='store_false',
+                      help='Set to use rpmbuild instead of mock to build the RPM')
 
     if len(argv) == 2 and argv[1] in ['-v', '--version']:
         parser.print_version()
@@ -134,6 +138,7 @@ def main(argv):
     relDir = options.relDir
     rc = options.rc
     rpmRel = options.rpmRel
+    use_mock = options.use_mock
 
     print("___________________________________________________________________")
     print("Creating following glideinwms release")
@@ -144,11 +149,11 @@ def main(argv):
     print()
     rel = Release(ver, srcDir, relDir, rc, rpmRel)
 
-    rel.addTask(TaskClean(rel))
-    rel.addTask(TaskSetupReleaseDir(rel))
-    rel.addTask(TaskVersionFile(rel))
-    rel.addTask(TaskTar(rel))
-    rel.addTask(TaskRPM(rel))
+    rel.addTask(ReleaseManagerLib.TaskClean(rel))
+    rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
+    rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
+    rel.addTask(ReleaseManagerLib.TaskTar(rel))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, use_mock))
 
     rel.executeTasks()
     rel.printReport()

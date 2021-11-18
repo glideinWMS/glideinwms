@@ -87,12 +87,6 @@ class TestVOFrontendParams(unittest.TestCase):
         except RuntimeError as err:
             self.fail(err)
 
-    def test_derive_match_attrs(self):
-        try:
-            self.v_o_frontend_params.derive_match_attrs()
-        except RuntimeError as err:
-            self.fail(err)
-
     def test_extract_attr_val(self):
         p = self.v_o_frontend_params
         self.assertEqual("1", p.extract_attr_val(p.attrs['GLIDECLIENT_Rank']))

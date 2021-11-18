@@ -953,7 +953,7 @@ class glideinFrontendElement:
                     (fd, tmpnm) = tempfile.mkstemp()
                     scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
                     duration = 24 * one_hr
-                    identity = "vofrontend_service@%s" % socket.gethostname()
+                    identity = "%s@%s" % (glidein_site, socket.gethostname())
                     logSupport.log.debug("creating  token %s" % tkn_file)
                     logSupport.log.debug("pwd_flie= %s" % pwd_file)
                     logSupport.log.debug("scope= %s" % scope)
@@ -1768,7 +1768,8 @@ class glideinFrontendElement:
         # Query glidefactory ClassAd
         try:
             glidein_dict = {}
-            factory_constraint = expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'], self.attr_dict)
+            factory_constraint=self.elementDescript.merged_data['FactoryQueryExpr']
+            # factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'], self.attr_dict)
 
             factory_pool_node = factory_pool[0]
             factory_identity = factory_pool[1]
@@ -1835,9 +1836,10 @@ class glideinFrontendElement:
             condorq_format_list = list(condorq_format_list) + list((('x509UserProxyFQAN', 's'),))
             condorq_format_list = list(condorq_format_list) + list((('x509userproxy', 's'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
-                [schedd_name],
-                expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),
-                condorq_format_list)
+                               [schedd_name],
+                               self.elementDescript.merged_data['JobQueryExpr'],
+                               #expand_DD(self.elementDescript.merged_data['JobQueryExpr'], self.attr_dict),
+                               condorq_format_list)
         except Exception:
             logSupport.log.exception("In query schedd child, exception:")
 
@@ -2226,10 +2228,19 @@ def log_factory_header():
         "Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun | State Factory")
 
 
-######################
-# expand $$(attribute)
+# TODO: 5345 to remove once verified, because global expansion is supported during configuration
 def expand_DD(qstr, attr_dict):
-    robj = re.compile("\$\$\((?P<attrname>[^\)]*)\)")
+    """expand $$(attribute)
+    
+    Args:
+        qstr (str): string to be expanded
+        attr_dict (dict): attributes to use in the expansion 
+
+    Returns:
+        str: expanded string
+
+    """
+    robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
     while True:
         m = robj.search(qstr)
         if m is None:

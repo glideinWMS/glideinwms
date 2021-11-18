@@ -20,10 +20,10 @@ fi
 
 [ -n "$error_gen" ] && CONFIG=TRUE  # invoked during the startup/setup
 
-if command -v python3 > /dev/null 2>&1; then
-    PYTHON="python3"
-elif command -v python > /dev/null 2>&1; then
+if command -v python > /dev/null 2>&1; then
     PYTHON="python"
+elif command -v python3 > /dev/null 2>&1; then
+    PYTHON="python3"
 elif command -v python2 > /dev/null 2>&1; then
     PYTHON="python2"
 fi
