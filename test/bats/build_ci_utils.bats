@@ -63,10 +63,10 @@ no_teardown() {
 
 @test "test_get_source_directories" {
     # .,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./install/services,./lib,./tools,./tools/lib
-    result1=".,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./install/services,./lib"
+    result1=".,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./lib"
     result1="${result1},./tools,./tools/lib"
     result2="/p/w,/p/w/factory/,/p/w/factory/tools,/p/w/frontend,/p/w/frontend/tools,/p/w/install"
-    result2="${result2},/p/w/install/services,/p/w/lib,/p/w/tools,/p/w/tools/lib"
+    result2="${result2},/p/w/lib,/p/w/tools,/p/w/tools/lib"
     echo "$sources"
     # by default it uses the current directory as prefix (.), as in result1
     run get_source_directories

@@ -29,7 +29,7 @@ install:
 env:
   - global:
     - GLIDEINWMS_SRC="${TRAVIS_BUILD_DIR}"
-    - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
+    - SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/,${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend,${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install,${GLIDEINWMS_SRC}/lib,${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
     - PYTHONPATH="${GLIDEINWMS_SRC}/doc/api:${GLIDEINWMS_SRC}"
 
 # command to run tests
