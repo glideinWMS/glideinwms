@@ -26,7 +26,7 @@ def expand_DD(qstr,attr_dict):
             break # no more substitutions to do
         attr_name=m.group('attrname')
         if not attr_dict.has_key(attr_name):
-            raise KeyError, "Missing attribute %s"%attr_name
+            raise KeyError("Missing attribute %s"%attr_name)
         attr_val=attr_dict[attr_name]
         if type(attr_val)==type(1):
             attr_str=str(attr_val)
@@ -59,7 +59,7 @@ def expand_DLR(qstr,attr_dict):
             continue
 
         if not attr_dict.has_key(attr_name):
-            raise KeyError, "Missing attribute %s (or loop detected). If you do not intend to use the attribute expansion feature and just want to use a dollar, please use $(DOLLAR) instead of $. You can also turn off attribute expansion by setting 'enable_attribute_expansion=\"False\"'." % attr_name
+            raise KeyError("Missing attribute %s (or loop detected). If you do not intend to use the attribute expansion feature and just want to use a dollar, please use $(DOLLAR) instead of $. You can also turn off attribute expansion by setting 'enable_attribute_expansion=\"False\"'." % attr_name)
 
         t_attr_dict=attr_dict.copy() # simple copy is enough, since we only modify the keys
         del t_attr_dict[attr_name] # remove myself, so there cannot be loops
