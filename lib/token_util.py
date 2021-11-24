@@ -22,7 +22,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from glideinwms.lib.subprocessSupport import iexe_cmd
-from . import logSupport
+from glideinwms.lib  import logSupport
+#from . import logSupport
 
 """
 2/3 compatibility helpers
@@ -42,6 +43,27 @@ def un_byt(data):
         data = data.decode()
     return data.strip()
 
+
+def is_expired(token_file):
+    """
+    if token_file is decodable jwt with exp claim in the future or absent
+                                    and nbf claim in the past or absent:
+        return True
+    else:
+        return False 
+
+    do not verify signature, audience, or other claims
+    """ 
+    expired = True
+    try:
+        with open(token_file, "r") as tf:
+            token_str = tf.read()
+        token_str = token_str.strip()
+        decoded = jwt.decode(token_str , options={"verify_signature": False, "verify_aud": False, "verify_exp": True, "verify_nbf": True})
+        expired = False
+    except Exception as e:
+        print (e)
+    return expired
 
 
 def simple_scramble(data):
