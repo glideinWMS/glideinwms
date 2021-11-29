@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Allows to retrieve information from the OSG collector and generate the factory xml file
+"""Allows to retrieve information from the OSG collector and generate the factory xml file
 """
 
 from __future__ import division
@@ -49,7 +49,7 @@ def get_vos(allowed_vos):
 
 
 def get_bestfit_pilot(celem, resource):
-    """ Site admins did not specify a pilot section. Let's go through the resource catalog sections
+    """Site admins did not specify a pilot section. Let's go through the resource catalog sections
         and find the pilot parameters that best fit the CE.
 
         Args:
@@ -82,7 +82,7 @@ def get_bestfit_pilot(celem, resource):
 
 
 def get_pilot(resource, pilot_entry):
-    """ Site admins specified a pilot entry section in the OSG configure file. Prepare
+    """Site admins specified a pilot entry section in the OSG configure file. Prepare
         the xml pilot dictionary based on the OSG collector information
 
         Returns:
@@ -116,7 +116,7 @@ def get_pilot(resource, pilot_entry):
 
 
 def get_entry_dictionary(resource, vos, cpus, walltime, memory):
-    """ Utility function that converts some variable into an xml pilot dictionary
+    """Utility function that converts some variable into an xml pilot dictionary
     """
     # Assigning this to an entry dict variable to shorten the line
     edict = {} # Entry dict
@@ -173,7 +173,7 @@ def get_information(host):
 
 
 def get_information_internal(ces):
-    """ Query the OSG collector and get information about the known HTCondor-CE (internal function)
+    """Query the OSG collector and get information about the known HTCondor-CE (internal function)
     """
     result = {}
     entry = "DEFAULT_ENTRY"
@@ -186,7 +186,7 @@ def get_information_internal(ces):
                 result.setdefault(resource, {})[gatekeeper] = {}
                 if "OSG_ResourceCatalog" in celem:
                     pilot_entries = [osg_catalog for osg_catalog in celem["OSG_ResourceCatalog"] if osg_catalog.get('IsPilotEntry') is True]
-                    requires_bestfit = pilot_entries == []
+			requires_bestfit = pilot_entries == []
                     if requires_bestfit:
                         result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(celem, resource)
                     else:
@@ -267,7 +267,13 @@ def is_true(param):
 
 
 def sanitize(whitelist_info):
-    """
+    """Sanitize the yaml file edited by factory operators.
+
+    In particular, make sure that entry information is a dictionary and not None.
+    The function will be expanded in the future with more checks.
+
+    Args:
+        whitelist_info (dict): the data coming from the whitelist file edited by ops
     """
     for site, site_information in whitelist_info.items():
         for ce_hostname, ce_information in site_information.items():
@@ -282,9 +288,14 @@ def sanitize(whitelist_info):
 
 
 def manage_common_entry_fields(whitelist_info):
-    """ Iterates over the yaml file that factory operators manually edit, and
-        expand the common entry fields found at the site level. Those fields are
-        copied to all the entries of the site
+    """Manage the common entry fields
+
+    Iterates over the yaml file that factory operators manually edit, and
+    expand the common entry fields found at the site level. Those fields are
+    copied to all the entries of the site
+
+    Args:
+        whitelist_info (dict): the data coming from the whitelist file edited by ops
     """
     for site, site_information in whitelist_info.items():
         if 'common_entry_fields' in site_information:
@@ -293,12 +304,22 @@ def manage_common_entry_fields(whitelist_info):
             for ce_hostname, ce_information in site_information.items():
                 for qelem, q_information in ce_information.items():
                     for entry, entry_information in q_information.items():
-                        q_information[entry] = update(cef, entry_information)
+                        q_information[entry] = update(entry_information, cef)
             cef = None
 
 
 def manage_append_values(whitelist_info, osg_info):
-    """
+    """Manage attributes that have ``append_value`` instead of ``value``
+
+    Iterates over the yaml file that factory operators manually edit, and if an
+    attribute with an ``append_value`` is found then update the corresponding
+    ``value`` attribute by appending the values
+
+    Args:
+        whitelist_info (dict): the data coming from the whitelist file edited by ops
+
+        osg_info (dict): the data coming from the OSG collector as returned by ``get_information``
+
     """
     for site, site_information in whitelist_info.items():
         for ce_hostname, ce_information in site_information.items():
