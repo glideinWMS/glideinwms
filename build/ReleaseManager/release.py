@@ -14,10 +14,10 @@ if __name__ == "__main__" and __package__ is None:
     #sys.modules["ReleaseManager"] = mod
 
 try:
-    from .ReleaseManagerLib import *
+    from . import ReleaseManagerLib
 except (SystemError, ImportError) as e:
     # Try also absolute import. Should not be needed
-    from ReleaseManagerLib import *
+    import ReleaseManagerLib
 
 
 def manager_version():
@@ -31,7 +31,7 @@ def manager_version():
         return "UNKNOWN"
     try:
         return glideinWMSVersion.GlideinWMSDistro(chksum_file).version()
-    except RuntimeError:
+    except (RuntimeError, UnboundLocalError):
         return "UNKNOWN"
 
 
@@ -147,13 +147,13 @@ def main(argv):
         (ver, srcDir, relDir, rc, rpmRel))
     print("___________________________________________________________________")
     print()
-    rel = Release(ver, srcDir, relDir, rc, rpmRel)
+    rel = ReleaseManagerLib.Release(ver, srcDir, relDir, rc, rpmRel)
 
-    rel.addTask(TaskClean(rel))
-    rel.addTask(TaskSetupReleaseDir(rel))
-    rel.addTask(TaskVersionFile(rel))
-    rel.addTask(TaskTar(rel))
-    rel.addTask(TaskRPM(rel, use_mock))
+    rel.addTask(ReleaseManagerLib.TaskClean(rel))
+    rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
+    rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
+    rel.addTask(ReleaseManagerLib.TaskTar(rel))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel, use_mock))
 
     rel.executeTasks()
     rel.printReport()
