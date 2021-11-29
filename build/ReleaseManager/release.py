@@ -149,11 +149,11 @@ def main(argv):
     print()
     rel = Release(ver, srcDir, relDir, rc, rpmRel)
 
-    rel.addTask(ReleaseManagerLib.TaskClean(rel))
-    rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
-    rel.addTask(ReleaseManagerLib.TaskVersionFile(rel))
-    rel.addTask(ReleaseManagerLib.TaskTar(rel))
-    rel.addTask(ReleaseManagerLib.TaskRPM(rel, use_mock))
+    rel.addTask(TaskClean(rel))
+    rel.addTask(TaskSetupReleaseDir(rel))
+    rel.addTask(TaskVersionFile(rel))
+    rel.addTask(TaskTar(rel))
+    rel.addTask(TaskRPM(rel, use_mock))
 
     rel.executeTasks()
     rel.printReport()
