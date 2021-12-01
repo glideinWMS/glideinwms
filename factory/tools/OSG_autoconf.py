@@ -186,7 +186,7 @@ def get_information_internal(ces):
                 result.setdefault(resource, {})[gatekeeper] = {}
                 if "OSG_ResourceCatalog" in celem:
                     pilot_entries = [osg_catalog for osg_catalog in celem["OSG_ResourceCatalog"] if osg_catalog.get('IsPilotEntry') is True]
-			requires_bestfit = pilot_entries == []
+                    requires_bestfit = pilot_entries == []
                     if requires_bestfit:
                         result[resource][gatekeeper].setdefault(BEST_FIT_TAG, {})[entry] = get_bestfit_pilot(celem, resource)
                     else:
