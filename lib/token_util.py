@@ -11,6 +11,7 @@
 #   Dennis Box (credit given in comments where source borrowed)
 #
 import os
+import re
 import socket
 import time
 import uuid
@@ -120,7 +121,7 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
         @pwd_file: file containing an HTCondor password
         @issuer: default is HTCondor Collector, $HOSTNAME:9618
         @identity: owner of IDTOKEN, default is $USERNAME@$HOSTNAME
-        @kid:  Key id, hint of signature used.  Default is file name of passwordi
+        @kid:  Key id, hint of signature used.  Default is file name of password
         @duration: number of seconds IDTOKEN is valid.  Default is infinity
         @scope: permissions IDTOKEN will have.  Default is everything,  
                 other examples would be condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD
@@ -135,7 +136,9 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
         # TRUST_DOMAIN=vocms0803.cern.ch:9618,Some Random Text
         # are all considered the same - vocms0803.cern.ch:9618."
 
-        issuer = iexe_cmd("condor_config_val TRUST_DOMAIN").strip().split(',')[0]
+        full_issuer = iexe_cmd("condor_config_val TRUST_DOMAIN").strip()
+        split_issuers = re.split(" |,|\t", full_issuer)
+        issuer = split_issuers[0] 
     if not identity:
         identity = "%s@%s" % (os.getlogin(), socket.gethostname())
 
