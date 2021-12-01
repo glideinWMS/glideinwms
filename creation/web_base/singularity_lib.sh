@@ -1097,12 +1097,12 @@ singularity_update_path() {
                     esac
             esac
             # Warn about possible error conditions
-            [[ "${arg}" == *"${out_path}"* ]] && warn "Outside path (${outside_pwd}) still in argument ($arg), the path is a partial match or the conversion to run in Singularity may be incorrect"
+            [[ "${arg}" == *"${out_path}"* ]] && info_dbg "Outside path (${outside_pwd}) still in argument ($arg), the path is a partial match or the conversion to run in Singularity may be incorrect"
             $arg_found && break
         done
         IFS="$old_ifs"
         # Warn about possible error conditions
-        [[ "${arg}" == */execute/dir_* ]] && warn_muted "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
+        [[ "${arg}" == */execute/dir_* ]] && info_dbg "String '/execute/dir_' in argument path ($arg), path is a partial match or the conversion to run in Singularity may be incorrect"
         GWMS_RETURN+=("${arg}")
     done
 }
@@ -2163,7 +2163,7 @@ singularity_setup_inside_env() {
             esac
             # Warn about possible error conditions
             [[ "${val}" == *"${out_path}"*  ]] &&
-                warn "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+                info_dbg "Outside path (${out_path}) still in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
                 true
             # update and exit loop if the value changed
             if [[ "$val" != "$old_val" ]]; then
@@ -2175,7 +2175,7 @@ singularity_setup_inside_env() {
         IFS="$old_ifs"
         # Warn about possible error conditions
         [[ "${val}" == */execute/dir_* ]] &&
-            warn "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
+            info_dbg "String '/execute/dir_' in ${key} ($val), the conversion to run in Singularity may be incorrect" ||
             true
     done
 }
