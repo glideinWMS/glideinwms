@@ -26,12 +26,14 @@ def manager_version():
             chksum_file = "checksum.factory"
         elif os.path.exists("/var/lib/gwms-frontend/vofrontend/checksum.frontend"):
             chksum_file = "checksum.frontend"
+        else:
+            return "UNKNOWN"
         from glideinwms.lib import glideinWMSVersion
     except ImportError:
         return "UNKNOWN"
     try:
         return glideinWMSVersion.GlideinWMSDistro(chksum_file).version()
-    except (RuntimeError, UnboundLocalError):
+    except RuntimeError:
         return "UNKNOWN"
 
 
