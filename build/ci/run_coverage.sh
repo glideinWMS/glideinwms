@@ -76,7 +76,7 @@ fi
 SOURCES="${GLIDEINWMS_SRC},${GLIDEINWMS_SRC}/factory/"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/factory/tools,${GLIDEINWMS_SRC}/frontend"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/frontend/tools,${GLIDEINWMS_SRC}/install"
-SOURCES="${SOURCES},${GLIDEINWMS_SRC}/install/services,${GLIDEINWMS_SRC}/lib"
+SOURCES="${SOURCES},${GLIDEINWMS_SRC}/lib"
 SOURCES="${SOURCES},${GLIDEINWMS_SRC}/tools,${GLIDEINWMS_SRC}/tools/lib"
 BR_NO_SLASH=$(echo ${BRANCH} | sed -e 's/\//-/g')
 

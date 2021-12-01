@@ -454,7 +454,7 @@ get_source_directories() {
     sources="${src_dir},${src_dir}/factory/"
     sources="${sources},${src_dir}/factory/tools,${src_dir}/frontend"
     sources="${sources},${src_dir}/frontend/tools,${src_dir}/install"
-    sources="${sources},${src_dir}/install/services,${src_dir}/lib"
+    sources="${sources},${src_dir}/lib"
     sources="${sources},${src_dir}/tools,${src_dir}/tools/lib"
     echo "$sources"
 }
