@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Script to check that /etc/gwms-frontend/frontend.xml is compatible w/ connected Factories
 
 

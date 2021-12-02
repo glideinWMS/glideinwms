@@ -1,4 +1,4 @@
-#!/usr/bin/python -B
+#!/usr/bin/python3
 
 
 
@@ -10,6 +10,10 @@ import subprocess
 import string
 import shutil
 import platform
+try:
+    import distro
+except:
+    distro = None
 
 
 class ExeError(RuntimeError):
@@ -64,11 +68,15 @@ class Release:
         if platform.system() != 'Linux':
             raise Exception('Unsupported OS: %s' % platform.system())
         el_string = 'el'
-        distname, version, id = platform.linux_distribution()
+        if distro:
+            distname, version, id = distro.linux_distribution()
+        else:
+            distname, version, id = platform.linux_distribution()
         distmap = {
             'Fedora': 'fc',
             'Scientific Linux': 'el',
-            'Red Hat': 'el'
+            'Red Hat': 'el',
+            'CentOS Stream': 'el'
         }
         dist = None
         for d in distmap:
@@ -320,7 +328,7 @@ class TaskRPM(TaskTar):
         execute_cmd(cmd)
 
     def buildRPM(self):
-        cmd = 'mock -r epel-%s-x86_64 --macro-file=%s -i python' % (self.release.rpmOSVersion[1], self.rpmmacrosFile)
+        cmd = 'mock -r epel-%s-x86_64 --macro-file=%s -i python36' % (self.release.rpmOSVersion[1], self.rpmmacrosFile)
         execute_cmd(cmd)
         cmd = 'mock --no-clean -r epel-%s-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.release.rpmOSVersion[1], self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
         execute_cmd(cmd)
