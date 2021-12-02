@@ -26,11 +26,7 @@
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
-%if 0%{?rhel} >= 8
-%define systemddir /usr/lib/systemd/system
-%else
-%define systemddir %{_libdir}/systemd/system
-%endif
+%define systemddir %{_prefix}/lib/systemd/system
 
 Name:           glideinwms
 Version:        %{version}
@@ -737,6 +733,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/cWConsts.py
 %{python3_sitelib}/glideinwms/creation/lib/cWDictFile.py
+%{python3_sitelib}/glideinwms/creation/lib/cWExpand.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
@@ -745,6 +742,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{python3_sitelib}/glideinwms/creation/lib/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWConsts.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWDictFile.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWExpand.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWParams.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWParamDict.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/xslt.*
