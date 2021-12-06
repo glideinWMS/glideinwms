@@ -1,9 +1,18 @@
 #!/bin/bash
-# Functiond to process bigfiles
+# Function to process bigfiles
 
-SCRIPTS_SUBDIR=build/ci
+# variables to change depending on the software project
+# The rest of the script should be generic enough
+TARNAME_PREFIX=glideinwms-bigfiles
 TARNAME=glideinwms-bigfiles-latest.tgz
- 
+SEEDNAME="__bigfiles_seed.txt"
+SOFTWARE_NAME=GlideinWMS
+DEFAULT_REPO_ROOT=glideinwms
+DEFAULT_SERVER=fnalu.fnal.gov
+DEFAULT_SERVER_SHORT=fnalu
+DEFAULT_SERVER_PATH="fnalu.fnal.gov:/web/sites/glideinwms.fnal.gov/htdocs/downloads"
+DEFAULT_SERVER_URL="https://glideinwms.fnal.gov/downloads/"
+
 robust_realpath() {
     if ! realpath "$1" 2>/dev/null; then
         echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
@@ -21,11 +30,11 @@ logverbose() {
 help_msg() {
   cat << EOF
 ${filename} [options]
-  Runs the test form COMMAND on the current glideinwms subdirectory, as is or checking out a branch from the repository.
+  Manage the bigfiles in the current repository as requested by the options.
  Options:
   -h          print this message
   -v          verbose
-  -d REPO_DIR GlideinWMS repository root directory (default: trying to guess, otherwise '.')
+  -d REPO_DIR software ($SOFTWARE_NAME) repository root directory (default: trying to guess, otherwise '.')
   -p          pull: download and unpack the big files to the bigfiles directory if not already there
   -P          push: compress the big files
   -s SERVER   upload to SERVER via scp the bundled big files (ignored if -P is not specified)         
@@ -41,22 +50,20 @@ ${filename} [options]
                             w/ the actual file
   ./bifiles.sh -PR          Use this before committing if you used ./bifiles.sh -pr. Will make sure that the big file
                             is replaced with the proper link. Remember to send the archive wit the new 
-                            big files ($TARNAME) to a GlideinWMS librarian
+                            big files ($TARNAME) to a software ($SOFTWARE_NAME) librarian
 EOF
 }
 
 guess_repo_dir() {
-    # Guesses work for glideinwms, ., .. (from bigfiles), ../.. (from build/bigfiles)
-    # Using bigfiles/README.txt as marker. Default is "."
-    if [[ -e glideinwms/bigfiles/README.txt ]]; then
-        echo "glideinwms"
-    elif [[ -e ../bigfiles/README.txt ]]; then
-        echo ".."
-    elif [[ -e ../../bigfiles/README.txt ]]; then
-        echo "../.."
-    else
-        echo "."
-    fi
+    # Guesses work for DEFAULT_REPO_ROOT, ., .. (from bigfiles), ../.. (from build/bigfiles)
+    # Using bigfiles/README.txt as marker (and the absence of bigfiles/bigfiles.sh). Default is "."
+    for i in "$DEFAULT_REPO_ROOT" '..' '../..' ; do
+        if [[ -e "${i}"/bigfiles/README.md && ! -e "${i}"/bigfiles/bigfiles.sh ]]; then
+            echo "$i"
+            return
+        fi
+    done
+    echo "."
 }
 
 parse_options() {
@@ -65,11 +72,11 @@ parse_options() {
     # The man page mentions optional options' arguments for getopts but they are not handled correctly
     # Defaults
     # REPO_DIR="${MYDIR}/../.."
-    # REPO_DIR="glideinwms"
     REPO_DIR=$(guess_repo_dir)
     BIGFILES_LIST=bigfiles/bigfiles_list.txt
     UPDATE_FILES=
-    REPLACE_FILES=
+    REPLACE_LINKS=
+    REPLACE_BIGFILES=
     DO_DOWNLOAD=
     BIGFILES_SERVER=
     BF_PULL=
@@ -102,8 +109,7 @@ parse_options() {
         exit 1
     fi
     [[ -n "$BF_PULL" || -n "$REPLACE_LINKS" ]] && DO_DOWNLOAD=yes
-    [[ "$BIGFILES_SERVER" = "fnalu" ]] && BIGFILES_SERVER="fnalu.fnal.gov:/web/sites/glideinwms.fnal.gov/htdocs/downloads"
-    [[ "$BIGFILES_SERVER" = "fnalu.fnal.gov" ]] && BIGFILES_SERVER="fnalu.fnal.gov:/web/sites/glideinwms.fnal.gov/htdocs/downloads"
+    [[ "$BIGFILES_SERVER" = "$DEFAULT_SERVER_SHORT" || "$BIGFILES_SERVER" = "$DEFAULT_SERVER" ]] && BIGFILES_SERVER="$DEFAULT_SERVER_PATH"
 }
 
 pull() {
@@ -112,8 +118,8 @@ pull() {
     logverbose "Starting the big files download"
     [ -f "./$TARNAME" ] && rm "./$TARNAME"
     # Download the latest big files
-    if ! wget -q "https://glideinwms.fnal.gov/downloads/${TARNAME}" 2> /dev/null; then
-      curl -s -o "./$TARNAME"  "https://glideinwms.fnal.gov/downloads/${TARNAME}" 2> /dev/null
+    if ! wget -q "${DEFAULT_SERVER_URL}${TARNAME}" 2> /dev/null; then
+      curl -s -o "./$TARNAME"  "${DEFAULT_SERVER_URL}${TARNAME}" 2> /dev/null
     fi    
     if [ ! -e "./$TARNAME" ]; then
       logerror "Download with wget and curl failed. Could not update big files."
@@ -142,10 +148,10 @@ push() {
         local tar_time
         tar_time=$(date +"%Y%m%d-%H%M")
         logverbose "Uploading the file to $1..."
-        if ! scp -q "$TARNAME" "$1/glideinwms-bigfiles-${tar_time}.tgz"; then
+        if ! scp -q "$TARNAME" "$1/${TARNAME_PREFIX}-${tar_time}.tgz"; then
             logerror "Upload failed"
         else
-            ssh "${1%:*}" "cd ${1#*:} && rm -f ${TARNAME} && ln -s glideinwms-bigfiles-${tar_time}.tgz ${TARNAME}"
+            ssh "${1%:*}" "cd ${1#*:} && rm -f ${TARNAME} && ln -s ${TARNAME_PREFIX}-${tar_time}.tgz ${TARNAME}"
             logverbose "Upload completed"
         fi
     fi
@@ -155,7 +161,8 @@ _main() {
     # Setup the build environment
     filename="$(basename $0)"
     full_command_line="$*"
-    export MYDIR=$(dirname $0)
+    MYDIR=$(dirname $0)
+    export MYDIR
 
     parse_options "$@"
     
@@ -164,9 +171,10 @@ _main() {
         logverbose "No bigfiles directory. Nothing to do. Exiting"
         exit 0
     fi
-    # Should download and expand the bigfiles? Using "cvmfs_utils.tar.gz" to verify that files have been expanded
+    # Should download and expand the bigfiles? Using $SEEDNAME, "__bigfiles_seed.txt", 
+    # to verify that files have been expanded
     if [[ -n "$DO_DOWNLOAD" ]]; then
-        if [[ -n "$UPDATE_FILES" || ! -e "$REPO_DIR/bigfiles/cvmfs_utils.tar.gz" ]]; then
+        if [[ -n "$UPDATE_FILES" || ! -e "$REPO_DIR/bigfiles/$SEEDNAME" ]]; then
             pushd "$REPO_DIR/bigfiles" > /dev/null
             if ! pull; then
                 logerror "Failed to download the big files. Aborting"
@@ -232,9 +240,3 @@ _main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     _main "$@"
 fi
-
-# ci/bigfiles w/ scripts
-# in ci scripts
-# pre-bigfiles
-# post-bigfiles 
-

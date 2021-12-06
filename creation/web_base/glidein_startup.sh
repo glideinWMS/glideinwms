@@ -13,7 +13,7 @@ global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 GWMS_PATH=""
-# Relative to the work directory (GWMS_DIR will be the absolute path)
+# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
 GWMS_SUBDIR=".gwms.d"
 
@@ -101,6 +101,10 @@ ignore_signal() {
 
 warn() {
     echo "WARN $(date)" "$@" 1>&2
+}
+
+logdebug() {
+    echo "DEBUG $(date)" "$@" 1>&2
 }
 
 # Functions to start multiple glideins
@@ -406,9 +410,12 @@ glidien_cleanup() {
             warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
         else
             if [ "${work_dir_created}" -eq "1" ]; then
+                # rm -fR does not remove directories read only for the user
+                find "${work_dir}" -type d -exec chmod u+w {} \;
                 rm -fR "${work_dir}"
             fi
             if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
+                find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
                 rm -fR "${glide_local_tmp_dir}"
             fi
         fi
@@ -1810,6 +1817,7 @@ fetch_file_base() {
 
 # Adds $1 to GWMS_PATH and update PATH
 add_to_path() {
+    logdebug "Adding to GWMS_PATH: $1"
     local old_path=":${PATH%:}:"
     old_path="${old_path//:$GWMS_PATH:/}"
     local old_gwms_path=":${GWMS_PATH%:}:"
@@ -1965,7 +1973,7 @@ do
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then
         # setup here to make them available for other setup scripts
-        add_to_path "$PWD/$gwms_bin_dir"
+        add_to_path "$gwms_bin_dir"
         # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
         for file in "gwms-python" "condor_chirp"
         do

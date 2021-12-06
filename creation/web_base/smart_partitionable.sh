@@ -14,11 +14,12 @@ glidein_config="$1"
 tmp_fname="${glidein_config}.$$.tmp"
 
 function warn {
- echo `date` "$@" 1>&2
+ echo $(date) "$@" 1>&2
 }
 
 # import add_config_line function
 add_config_line_source="`grep '^ADD_CONFIG_LINE_SOURCE ' "$glidein_config" | cut -d ' ' -f 2-`"
+# shellcheck source=./add_config_line.source
 source "$add_config_line_source"
 
 error_gen="`grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-`"
@@ -64,7 +65,7 @@ if [[ "X$slots_layout" = "Xpartitionable" ]]; then
     if [[ "X$force_part" = "XTrue" ]]; then
       # unless forced to
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ForcedSinglePartitionable"
-    elif [[ "X$RES_SLOT" = "Xmainextra" ]]; then
+    elif [[ "$RES_SLOT" = "mainextra" ]]; then
       # unless resource slot have mainextra type
       "$error_gen" -ok "smart_partitionable.sh" "Action" "ResourceSlotKeptPartitionable"
     else
@@ -76,6 +77,7 @@ if [[ "X$slots_layout" = "Xpartitionable" ]]; then
     "$error_gen" -ok "smart_partitionable.sh" "Action" "None"
   fi
 else
+    # shellcheck disable=SC2071   # mean to compare first non numeric values of num_cpus, numeric comparison follows 
     if [[ "X$RES_SLOT" = "Xmainextra" ]]; then
       # do not want fixed with mainextra resource slots (sure problem)
       add_config_line SLOTS_LAYOUT partitionable

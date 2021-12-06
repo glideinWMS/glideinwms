@@ -24,7 +24,7 @@ DEFAULTS = {'use_voms_server': 'false',
             'lifetime': '24',
             'path_length': '20',
             'rfc': 'true',
-            'bits': '1024',
+            'bits': '2048',
             'owner': 'frontend'}
 
 
@@ -37,7 +37,7 @@ class ConfigError(BaseException):
 class Proxy(object):
     """Class for holding information related to the proxy
     """
-    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength='20', bits='1024'):
+    def __init__(self, cert, key, output, lifetime, uid=0, gid=0, rfc=True, pathlength='20', bits='2048'):
         self.cert = cert
         self.key = key
         self.tmp_output_fd = tempfile.NamedTemporaryFile(dir=os.path.dirname(output), delete=False)

@@ -249,9 +249,10 @@ class TaskVersionFile(TaskRelease):
 
 class TaskRPM(TaskTar):
 
-    def __init__(self, rel):
+    def __init__(self, rel, use_mock=True):
         TaskTar.__init__(self, rel)
         self.name = 'GlideinwmsRPM'
+        self.use_mock = use_mock
         self.releaseFile = os.path.join(self.release.releaseDir,
                                         self.releaseFilename)
         self.rpmPkgDir = os.path.join(self.release.sourceDir,
@@ -348,7 +349,10 @@ class TaskRPM(TaskTar):
             # Create the srpm
             self.buildSRPM()
             # Create the rpm
-            self.buildRPM()
+            if self.use_mock: 
+                self.buildRPM()
+            else:
+                self.buildRPMWithRPMBuild()
             self.status = 'COMPLETE'
 
 
@@ -420,7 +424,6 @@ class PackageExcludes:
             'creation/web_base/condor_platform_select.sh',
             'creation/web_base/condor_startup.sh',
             'creation/web_base/create_mapfile.sh',
-            'creation/web_base/gcb_setup.sh',
             'creation/web_base/singularity_setup.sh',
             'creation/web_base/glidein_startup.sh',
             'creation/web_base/job_submit.sh',

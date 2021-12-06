@@ -1606,6 +1606,21 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
 
     </TR>
     <TR>
+        <td> <b>CVMFS_MOUNT_DIR</b></td>
+        <td> String (path) </td>
+        <td></td>
+        <td>Frontend Factory Dynamic</td>
+        <td><P>Not set by default. When set it indicates the path different from /cvmfs where CVMFS is mounted.
+          Normally set by Glidein scripts when they mount CVMFS but cannot mount it on /cvmfs.
+          A site administrator could set it in the environment or ask to set it in a Factory entry.
+          It is not set inside Singularity because the external path can be mount internally to /cvmfs.
+          To allow for more flexibility and uniformity across sites, 
+          paths like SINGULARITY_IMAGES_DICT, GLIDEIN_SINGULARITY_BINDPATH, ...
+          can all use /cvmfs as prefix for their paths and it will be translated by the Glidein.  
+            </P>
+        </td>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_SINGULARITY_REQUIRE</b></td>
         <td> String (Enum) </td>
         <td></td>
@@ -1760,7 +1775,10 @@ or by running a pre_singularity setup script.
             Commas are not allowed in both the paths, and colons are not allowed in the 'src' path.
             GWMS combines in order GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, and a default list.
             The default list includes "/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs", and "/cvmfs" (if GWMS_SINGULARITY_BIND_CVMFS is true) and some
-            GPUs libraries (if GPUs are detected).
+            GPUs libraries (if GPUs are detected). If CVMFS is mounted in a different place, CVMFS_MOUNT_DIR will be 
+            set in the environment and the Glidein will replace /cvms with the correct mount point ($CVMFS_MOUNT_DIR:/cvmfs),
+            so that inside Singularity CVMFS will always be available in /cvmfs, even if outside that is not possible.
+
             The combined list is validated removing paths not existing (outside Singularity) and is passed as --bind option to singularity.
             Singularity prepends to the mounts list also the environment variable $SINGULARITY_BINDPATH (this could be set by the Site or by setup scripts on the worker nodes).
             Singularity will skip mounts where the destination path does not exist in the Singularity image selected.
@@ -1774,7 +1792,7 @@ or by running a pre_singularity setup script.
         <td> Expr (Bool) </td>
         <td> 1 </td>
         <td>Frontend Factory</td>
-        <td><P>/cvmfs is mounted in Singularity if this is 1 (true)
+        <td><P>CVMFS (/cvmfs) is mounted in Singularity if this is 1 (true)
             </P>
         </td>
     </TR>

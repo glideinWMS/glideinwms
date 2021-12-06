@@ -52,12 +52,13 @@ find_aux() {
     else
         [[ -e "$GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/$1" ]] && aux_file="$GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/$1"
     fi
-    if [[ "x$2" = xsource ]]; then
+    if [[ "$2" = source ]]; then
         if [[ ! -e  "${aux_file}" ]]; then
-            [[ "x$3" = xnoexit ]] && { false; return; }
+            [[ "$3" = noexit ]] && { false; return; }
             logerror "${1} not found!"
             logexit "script running in $(pwd), expects a ${1} file there or in the glideinwms src tree"
         fi
+        # shellcheck source=./utils.sh
         if ! . "${aux_file}" ; then
             logexit "${aux_file} contains errors!"
         fi
@@ -91,6 +92,7 @@ ${filename} [options] COMMAND [command options]
   -v          verbose
   -u LOGFILE  Log file path (default: OUT_DIR/gwms.DATE.log)
   -i          run in place without checking out a branch (default)
+  -I          like -i but make sure that big files are taken care of
   -f          force git checkout of branch when processing multiple branches
   -b BNAMES   comma separated list of branches that needs to be inspected
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
@@ -200,9 +202,10 @@ parse_options() {
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
     TESTLOG_FILE=
+    INPLACE_BIGFILES=
     TEST_PYENV_DIR=
     TEST_PYENV_REUSE=
-    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
+    while getopts ":hnlvu:iIfb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
@@ -212,6 +215,7 @@ parse_options() {
         v) VERBOSE=yes;;
         u) TESTLOG_FILE="$OPTARG";;
         i) INPLACE=yes;;
+        I) INPLACE=yes; INPLACE_BIGFILES=yes;;
         f) GITFLAG='-f';;
         b) BRANCH_LIST="$OPTARG";;
         B) BRANCHES_FILE="$OPTARG";;
@@ -746,8 +750,10 @@ _main() {
         loginfo "Running on local files in glideinwms subdirectory"
         # Adding do_git_init_command also here for when -i is used
         do_git_init_command
+        [[ -n "$INPLACE_BIGFILES" ]] && bigfiles_pre
         process_branch LOCAL
         fail_global=$?
+        [[ -n "$INPLACE_BIGFILES" ]] && bigfiles_post
         loginfo "Complete with local files (ec:${fail_global})"
     else
         do_git_init_command

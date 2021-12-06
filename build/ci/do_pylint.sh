@@ -326,9 +326,9 @@ do_process_branch() {
     is_python3_branch && gwms_python=python3 || gwms_python=python
 
     # Initialize logs
-    > ${out_pylint}
-    > ${out_pycs}
-    > ${outfile}
+    true > "${out_pylint}"
+    true > "${out_pycs}"
+    true > "${outfile}"
 
     loginfo "#####################################################"
     loginfo "Start : ${branch}"
@@ -353,46 +353,55 @@ do_process_branch() {
             if [[ " ${PYLINT_IGNORE_LIST} " == *" ${filename} "* ]]; then
                 loginfo "pylint skipping ${filename}"
             else
-                $gwms_python -m pylint $PYLINT_OPTIONS ${filename}  >> ${out_pylint} || log_nonzero_rc "pylint" $?
+                $gwms_python -m pylint $PYLINT_OPTIONS "${filename}"  >> "${out_pylint}" || log_nonzero_rc "pylint" $?
                 [[ $? -ne 0 ]] && files_errors="${files_errors} ${filename}"
                 files_checked="${files_checked} ${filename}"
             fi
         fi
         if [[ "${DO_TESTS}" == *2* ]]; then
-            $gwms_python -m pycodestyle $PEP8_OPTIONS ${filename} >> ${out_pycs} || log_nonzero_rc "pep8" $?
+            $gwms_python -m pycodestyle $PEP8_OPTIONS "${filename}" >> "${out_pycs}" || log_nonzero_rc "pep8" $?
         fi
     done
 
     #files_checked="$(echo ${files_list})"
 
     local out_pycs_summary="${out_pycs}.summary"
-    echo "# -------------------" > "${out_pycs_summary}"
-    echo "# Error count summary" >> "${out_pycs_summary}"
-    echo "# -------------------" >> "${out_pycs_summary}"
-    awk '{$1=""; print $0}' ${out_pycs} | sort | uniq -c | sort -n >> "${out_pycs_summary}"
+    {
+        echo "# -------------------"
+        echo "# Error count summary"
+        echo "# -------------------"
+    } > "${out_pycs_summary}"
+    awk '{$1=""; print $0}' "${out_pycs}" | sort | uniq -c | sort -n >> "${out_pycs_summary}"
     # cat ${out_pycs}.summary     >> ${out_pycs}
 
-    echo "# Pylint and PyCodeStyle output" > "${outfile}"
-    echo "PYLINT_FILES_CHECKED=\"${files_checked}\"" >> "${outfile}"
-    echo "PYLINT_FILES_CHECKED_COUNT=`echo ${files_checked} | wc -w | tr -d " "`" >> "${outfile}"
-    # Includes error and fatal:
-    echo "PYLINT_ERROR_FILES=\"${files_errors}\"" >> "${outfile}"
-    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " "`" >> "${outfile}"
+    {
+        echo "# Pylint and PyCodeStyle output"
+        echo "PYLINT_FILES_CHECKED=\"${files_checked}\""
+        echo "PYLINT_FILES_CHECKED_COUNT=$(echo ${files_checked} | wc -w | tr -d " ")"
+        # Includes error and fatal:
+        echo "PYLINT_ERROR_FILES=\"${files_errors}\""
+        echo "PYLINT_ERROR_FILES_COUNT=$(grep '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")"
+    } > "${outfile}"
     # Formats differ from pylint version but only errors were requested. The following will include errors and fatal 
     # (all lines except file names)
     # TODO: in the future, different categories could be checked and a msg-format used, e.g. 2.5 default:
     #       --msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})' 
     #       masg_id will start w/ category initial: Fatal Error Warning Refactor Convention
-    local pylint_error_count=$(grep -v '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")
+    local pylint_error_count pep8_error_count
+    pylint_error_count=$(grep -v '^\*\*\*\*\*\*' ${out_pylint} | wc -l | tr -d " ")
     PYLINT_ERROR_COUNT=${pylint_error_count}
-    echo "PYLINT_ERROR_COUNT=${PYLINT_ERROR_COUNT}" >> "${outfile}"
-    echo "PEP8_FILES_CHECKED=\"${files_list}\"" >> "${outfile}"
-    echo "PEP8_FILES_CHECKED_COUNT=`echo ${files_list} | wc -w | tr -d " "`" >> "${outfile}"
-    local pep8_error_count=$(cat ${out_pycs} | wc -l | tr -d " ")
+    {
+        echo "PYLINT_ERROR_COUNT=${PYLINT_ERROR_COUNT}"
+        echo "PEP8_FILES_CHECKED=\"${files_list}\""
+        echo "PEP8_FILES_CHECKED_COUNT=$(echo ${files_list} | wc -w | tr -d " ")"
+    } >> "${outfile}"
+    pep8_error_count=$(cat "${out_pycs}" | wc -l | tr -d " ")
     PEP8_ERROR_COUNT=${pep8_error_count}
-    echo "PEP8_ERROR_COUNT=${PEP8_ERROR_COUNT}" >> "${outfile}"
-    echo "$(get_commom_info "$branch")" >> "${outfile}"
-    echo "PYLINT=$(do_get_status)" >> "${outfile}"
+    {
+        echo "PEP8_ERROR_COUNT=${PEP8_ERROR_COUNT}"
+        get_commom_info "$branch"
+        echo "PYLINT=$(do_get_status)"
+    } >> "${outfile}"
     echo "----------------"
     cat "${outfile}"
     echo "----------------"
@@ -441,7 +450,7 @@ do_get_status() {
 
 do_log_init() {
     # No logging when showing the list of files
-    [ -n "${SHOW_FILES}"} ] && return 1
+    [ -n "${SHOW_FILES}" ] && return 1
     cat << TABLE_START
 <table style="$HTML_TABLE">
   <thead style="$HTML_THEAD">
