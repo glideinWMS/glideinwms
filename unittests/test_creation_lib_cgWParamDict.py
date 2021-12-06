@@ -77,7 +77,7 @@ class TestGlideinDicts(unittest.TestCase):
 
     def test_reuse(self):
         nmd = self.cgpd.new_MainDicts()
-        nmd2 = self.cgpd.main_dicts.reuse(nmd)
+        self.cgpd.main_dicts.reuse(nmd)
 
     def test_has_file_wrapper(self):
         self.assertEqual(False, has_file_wrapper(self.cgpd.main_dicts))

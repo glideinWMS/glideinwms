@@ -133,7 +133,7 @@ setup_python3_venv() {
     [[ "${py_detected}" == "${PY_VER}"* ]] || logwarn "Reference version is Python 3.6. Detected ${py_detected}."
     VIRTUALENV_VER=virtualenv
     PYLINT='pylint==2.7.1' # TODO: Remove this lock when https://github.com/PyCQA/pylint/issues/3624 is solved
-    ASTROID='astroid'
+    ASTROID='astroid==2.5.0' # Required by pylint 2.7.1 TODO: Remove this lock along with the above lock
     HYPOTHESIS="hypothesis"
     AUTOPEP8="autopep8"
     TESTFIXTURES="testfixtures"
@@ -221,7 +221,7 @@ setup_python3_venv() {
         for package in ${pip_packages}; do
             loginfo "Installing $package ..."
             status="DONE"
-            if ! python3 -m pip install -I --use-feature=2020-resolver --quiet "$package" ; then
+            if ! python3 -m pip install -I --quiet "$package" ; then
                 status="FAILED"
                 failed_packages="$failed_packages $package"
             fi
@@ -234,7 +234,7 @@ setup_python3_venv() {
         installed_packages="$(python3 -m pip list --format freeze)"  # includes the ones inherited from system
         for package in $failed_packages; do
             loginfo "REINSTALLING $package"
-            if ! python3 -m pip install -I --use-feature=2020-resolver "$package" ; then
+            if ! python3 -m pip install -I "$package" ; then
                 if echo "$installed_packages" | grep -i "^${package}=" > /dev/null ; then
                     logwarn "$package could not be installed, but is available form the system.  Continuing."
                 else
