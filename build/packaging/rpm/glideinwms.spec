@@ -123,7 +123,7 @@ Requires: javascriptrrd >= 1.1.0
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 %description vofrontend-libs
-This subpackage includes the Python creation library for the Frontend.
+This subpackage includes libraries for Frontend-like programs.
 
 
 %package vofrontend-glidein
@@ -734,6 +734,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/wmsTxtView
 %attr(755,root,root) %{_bindir}/wmsXMLView
 %{python3_sitelib}/glideinwms/tools
+%dir %{python3_sitelib}/glideinwms/creation/
 %{python3_sitelib}/glideinwms/creation/__init__.py
 %{python3_sitelib}/glideinwms/creation/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/cWConsts.py
@@ -868,6 +869,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(700, frontend, frontend) %{frontend_token_dir}
 %attr(700, frontend, frontend) %{frontend_passwd_dir}
 %attr(-, frontend, frontend) %{_localstatedir}/log/gwms-frontend
+%defattr(-,root,root,-)
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendDowntimeLib.py
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendMonitorAggregator.py
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendMonitoring.py
@@ -896,6 +898,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_python3_expr.*
 %{python3_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python3_sitelib}/glideinwms/creation/reconfig_frontend
+%defattr(-,frontend,frontend,-)
 %if 0%{?rhel} >= 7
 %{_sbindir}/gwms-frontend
 %attr(0644, root, root) %{systemddir}/gwms-frontend.service
@@ -920,6 +923,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 %doc ACKNOWLEDGMENTS.txt
 %doc doc
+%dir %{python3_sitelib}/glideinwms/frontend/
 %{python3_sitelib}/glideinwms/frontend/__init__.py
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendConfig.py
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendInterface.py
