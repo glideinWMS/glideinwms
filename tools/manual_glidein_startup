@@ -1,11 +1,10 @@
-#!/usr/bin/python
-#
-# Project:
-#   glideinWMS
-#
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
-#   Generate the glidein_startup.sh command to be run manually for given entry 
-#
+#   Generate the glidein_startup.sh command to be run manually for given entry
 
 from __future__ import print_function
 import sys

@@ -1,5 +1,8 @@
 #!/usr/bin/env bats
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 setup() {
     # executed before each test
     echo "setup" >&3

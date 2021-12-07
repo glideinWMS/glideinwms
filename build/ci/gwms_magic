@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Simplified magic file to find scripts in the GlideinWMS project
 # It will print the command after the #! 
 # Extracted from the system magic file

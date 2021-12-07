@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 """This module contains a list of shared utility function used by the both OSG collector and CRIC
 configuration generation helper tools
 """

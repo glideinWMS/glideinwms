@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Auxiliary singularity wrapper script. Invoked by glidein_startup.sh when the script requires singularity
 # singularity_wrapper VO_SCRIPT [script options and arguments - usually glidein_config, entry_id ]
 # $1 - the script to run in Singularity

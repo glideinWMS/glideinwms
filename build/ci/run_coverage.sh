@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 show_help(){
     PROG=$(basename "$0")
     echo "generate a python coverage report for `pwd`/glideinwms"

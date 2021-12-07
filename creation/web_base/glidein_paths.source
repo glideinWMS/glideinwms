@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # TODO: use this file for both singularity and the startup script
 
 # Directory structure inside .gwms_aux (or main glidein directory)

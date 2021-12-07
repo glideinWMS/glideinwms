@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Run pycodestyle in a SL7 container
 
 This runs pycodestyle using the GlideinWMS CI scripts (runtest.sh).

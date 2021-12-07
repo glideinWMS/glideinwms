@@ -1,22 +1,13 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Execute a top command on a condor job
 #
 # Usage:
 #  glidein_top.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]
-#
-# Author:
-#   Igor Sfiligoi (May 2007)
-#
-# License:
-#  Fermitools
-#
 
 import sys, os.path
 sys.path.append(os.path.join(sys.path[0], "../.."))

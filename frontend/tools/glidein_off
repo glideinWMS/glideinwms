@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Turn off one or more glideins, i.e. shut them down
 #
@@ -39,10 +39,6 @@
 #                         Limit off to the glideins matching the constraint
 #   -x, --all             If specified, kill all glideins belonging to the FE
 #   -p N, --parallel=N    Number of commands to send in parallel (default: 10)
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 import os
 import sys

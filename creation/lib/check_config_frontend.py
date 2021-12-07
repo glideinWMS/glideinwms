@@ -1,4 +1,8 @@
 #!/usr/bin/python
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Script to check that /etc/gwms-frontend/frontend.xml is compatible w/ connected Factories
 
 

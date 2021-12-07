@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # analyze_queues
 # focuses on statuses (less on client stats)
 
-# from __future__ import print_function
 import os
 import sys
 import getopt

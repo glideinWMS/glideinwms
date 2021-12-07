@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Setup the environment so that all condor commands behave
 #   like they would if executed by the frontend
@@ -11,10 +11,6 @@
 #  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
 #  -n, --no-pilots                         Do not include pilot DNs in mapfile
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 import os
 import sys

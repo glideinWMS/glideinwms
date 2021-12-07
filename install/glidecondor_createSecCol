@@ -1,20 +1,11 @@
 #!/usr/bin/env python3
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   This tool creates the configuration file containing
 #   the secondary collectors
-#
-# Author:
-#   Igor Sfiligoi @UCSD (Mar 2013)
-#
-# Part of the glideinWMS package
-#
 
 from __future__ import print_function
 import sys

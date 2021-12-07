@@ -1,22 +1,13 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Execute an arbitrary command on a condor job working directory
 #
 # Usage:
 #  glidein_interactive.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>] command
-#
-# Author:
-#   Igor Sfiligoi (May 2008)
-#
-# License:
-#  Fermitools
-#
 
 import sys, os.path
 sys.path.append(os.path.join(sys.path[0], "../.."))

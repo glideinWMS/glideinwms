@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # entry_rm
 #
 # Similar to condor_rm, but look for a specific entry
 #
 # Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]
-#
+
 
 from __future__ import print_function
 import os

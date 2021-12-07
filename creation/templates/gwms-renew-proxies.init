@@ -3,6 +3,9 @@
 # description: GWMS-RENEW-PROXIES
 # Code and configuration files contributed by Brian Lin, OSG Software
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 . /etc/rc.d/init.d/functions
 
 LOCK=/var/lock/subsys/gwms-renew-proxies

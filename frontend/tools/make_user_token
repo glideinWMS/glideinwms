@@ -1,9 +1,10 @@
 #!/bin/bash -x
-# file: make_user_token
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # usage: make_user_token (user) [lifetime in seconds]
-# project: glideinwms
-# author: Dennis Box, dbox@fnal.gov
-#
+
 ID=$1
 if [ "$ID" = "root" ]; then
 	echo "usage $0 uid [lifetime seconds]"

@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Equivalent to condor_status, but with glidein specific info
-#
-# Author:
-#   Igor Sfiligoi
-#
-
 
 import time
 import sys

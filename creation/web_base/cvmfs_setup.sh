@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # first parameter passed to this script will always be the glidein configuration file (glidein_config)
 glidein_config=$1
 

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # The current directory is the top level of the working tree.
 # The following environment variables are set: GIT_DIR is set to ".git"
 # 3 parameters:

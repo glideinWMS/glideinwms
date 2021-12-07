@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # bash source, adding the shebang only for shellcheck
 # This script is meant to be sourced and not executed
 # Setup script executed by the GlideinWMS job wrapper before all jobs whether they use Singularity or not

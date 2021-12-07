@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
 find_aux () {
     # $1 basename of the aux file

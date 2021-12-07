@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 USAGE_STR="$0 [-h] TAG USER
  TAG       - tag or branch ID in the Git repository (branch pointers change, use a branch name only for scratch builds)
  USER      - username on the OSG build machine

@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-from __future__ import print_function
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import sys
 import os
 import xml.parsers.expat

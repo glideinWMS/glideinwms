@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Runner script for the different tests
 
 GWMS_REPO="https://github.com/glideinWMS/glideinwms.git"

@@ -1,9 +1,10 @@
 #!/bin/bash
-# file: frontend_tokenize.sh
-# project: glideinwms
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # purpose:  changes glideinwms frontend condor configuration to use token_auth
-# author: Dennis Box, dbox@fnal.gov
-#
+
 ID=$(whoami)
 if [ ! "${ID}" = "root" ]; then
     echo must be run by root

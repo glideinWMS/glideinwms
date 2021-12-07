@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Selecting SL7 as the base OS 
 FROM scientificlinux/sl:7 
 MAINTAINER The GlideinWMS team "glideinwms-support@fnal.gov"

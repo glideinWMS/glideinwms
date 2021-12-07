@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 <!-- required: factory_name; optional: factory_collector-->
 <glidein advertise_delay="5" advertise_with_multiple="True" advertise_with_tcp="True" advertise_pilot_accounting="False" entry_parallel_workers="0" factory_versioning="False" glidein_name="gfactory_instance" loop_delay="60" recoverable_exitcodes="" restart_attempts="3" restart_interval="1800" schedd_name="schedd_glideins1@localhost">
    <log_retention>

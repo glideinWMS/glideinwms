@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   Retrieve the log of a running glidein
 #
@@ -14,10 +14,6 @@
 # Options:
 #  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
-#
-# Author:
-#   Igor Sfiligoi
-#
 
 from __future__ import print_function
 import os
