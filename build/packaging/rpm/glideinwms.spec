@@ -26,7 +26,7 @@
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
-%define systemddir %{_libdir}/systemd/system
+%define systemddir %{_prefix}/lib/systemd/system
 
 Name:           glideinwms
 Version:        %{version}
@@ -52,7 +52,6 @@ Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
 
-BuildRequires:  python
 BuildRequires:  python3
 BuildRequires:  python3-devel
 
@@ -96,8 +95,6 @@ This package is for a standalone vofrontend install
 Summary:        The intelligence logic for GWMS Frontend.
 Requires: condor >= 8.9.5
 Requires: python3 >= 3.6
-Requires: python-rrdtool
-Requires: python36-m2crypto
 Requires: javascriptrrd >= 1.1.0
 Requires: osg-wn-client
 Requires: vo-client
@@ -108,6 +105,13 @@ Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: vofrontend-libs
 Requires: vofrontend-glidein
+%if 0%{?rhel} >= 8
+Requires: python3-rrdtool
+Requires: python3-m2crypto
+%else
+Requires: python-rrdtool
+Requires: python36-m2crypto
+%endif
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
@@ -169,11 +173,19 @@ Summary:        The glideinWMS common libraries.
 Requires: python3 >= 3.6
 Requires: python3-condor
 # was condor-python for python2
+%if 0%{?rhel} >= 8
+Requires: python3-pyyaml
+Requires: python3-rrdtool
+Requires: python3-jwt
+Requires: python3-cryptography
+Requires: python3-m2crypto
+%else
+Requires: PyYAML
 Requires: python-rrdtool
 Requires: python36-jwt
 Requires: python36-cryptography
 Requires: python36-m2crypto
-Requires: PyYAML
+%endif
 %description libs
 This package provides common libraries used by glideinwms.
 
@@ -230,13 +242,20 @@ Requires: glideinwms-common-tools = %{version}-%{release}
 Requires: condor >= 8.4.0
 Requires: fetch-crl
 Requires: python3 >= 3.6
-Requires: python-rrdtool
 # This is in py3 std library - Requires: python-argparse
 # Is this the same? Requires: python36-configargparse
+Requires: javascriptrrd >= 1.1.0
+%if 0%{?rhel} >= 8
+Requires: python3-rrdtool
+Requires: python3-m2crypto
+Requires: python3-requests
+Requires: python3-jwt
+%else
+Requires: python-rrdtool
 Requires: python36-m2crypto
 Requires: python36-requests
 Requires: python36-jwt
-Requires: javascriptrrd >= 1.1.0
+%endif
 Requires(post): /sbin/service
 Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
@@ -739,6 +758,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/cWConsts.py
 %{python3_sitelib}/glideinwms/creation/lib/cWDictFile.py
+%{python3_sitelib}/glideinwms/creation/lib/cWExpand.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
@@ -747,6 +767,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{python3_sitelib}/glideinwms/creation/lib/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWConsts.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWDictFile.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWExpand.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWParams.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWParamDict.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/xslt.*
