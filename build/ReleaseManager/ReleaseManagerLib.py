@@ -377,18 +377,12 @@ class PackageExcludes:
             'test',
             'unittests',
             'tox.ini',
-            #'install/glideinWMS.ini',
-            #'install/manage-glideins',
-            #'install/services',
         ]
 
         # Patterns that need to be excluded from the factory tarball
         self.factoryPattern = self.commonPattern + [
             'poolwatcher',
             'frontend',
-            #'install/glideinWMS.ini',
-            #'install/manage-glideins',
-            #'install/services',
             'creation/create_frontend',
             'creation/reconfig_frontend',
             'creation/lib/cvW*',
@@ -401,9 +395,6 @@ class PackageExcludes:
         # For frontend we still need 2 factory libs for frontend tools
         self.frontendPattern = self.commonPattern + [
             'poolwatcher',
-            #'install/glideinWMS.ini',
-            #'install/manage-glideins',
-            #'install/services',
             'factory/check*',
             'factory/glideFactory*Lib*',
             'factory/glideFactoryMon*',

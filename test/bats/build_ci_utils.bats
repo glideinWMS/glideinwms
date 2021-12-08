@@ -62,7 +62,7 @@ no_teardown() {
 
 
 @test "test_get_source_directories" {
-    # .,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./install/services,./lib,./tools,./tools/lib
+    # .,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./lib,./tools,./tools/lib
     result1=".,./factory/,./factory/tools,./frontend,./frontend/tools,./install,./lib"
     result1="${result1},./tools,./tools/lib"
     result2="/p/w,/p/w/factory/,/p/w/factory/tools,/p/w/frontend,/p/w/frontend/tools,/p/w/install"
