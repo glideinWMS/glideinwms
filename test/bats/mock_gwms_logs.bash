@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # BATS wants all messages to &2
 # Messages to stdout or stderr could cause strange output and the test to fail
 

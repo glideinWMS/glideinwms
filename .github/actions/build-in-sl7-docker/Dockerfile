@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 FROM glideinwms/gwms-ci-sl7
 RUN yum install -y rpm-build mock
 COPY entrypoint.sh /entrypoint.sh

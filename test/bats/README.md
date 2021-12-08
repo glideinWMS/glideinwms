@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # BATS tests
 
 bats is expected to be installed and in the path

@@ -1,10 +1,7 @@
 #!/bin/bash
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
 
 python_b64uuencode() {
     echo "begin-base64 644 -"

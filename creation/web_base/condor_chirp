@@ -1,14 +1,11 @@
 #!/bin/sh
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#   1.0.0
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   This is a shell script wrapper for pychirp.py
-#
+
 
 if [ -f "$1" ]; then
     glidein_config="$1"

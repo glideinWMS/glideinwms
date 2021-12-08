@@ -1,4 +1,8 @@
 #!/usr/bin/env bats
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 load 'lib/bats-support/load'
 load 'lib/bats-assert/load'
 

@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # https://github.com/HEP-SF/documents/blob/master/HSF-TN/2016-02/HSF-TN-2016-02.pdf
 
 LIBLOCATION=$(dirname $0)

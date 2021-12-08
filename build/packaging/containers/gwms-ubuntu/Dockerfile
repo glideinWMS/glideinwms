@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Selecting Ubuntu 18:04 as the base OS, current default in GitHub (evaluate switching to 20.04) 
 FROM ubuntu:18.04 
 MAINTAINER The GlideinWMS team "glideinwms-support@fnal.gov"

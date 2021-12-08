@@ -1,4 +1,8 @@
 # How to build tar file
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # git clone http://cdcvs.fnal.gov/projects/glideinwms
 # cd glideinwms
 # git archive v3_0_rc3 --prefix='glideinwms/' | gzip > ../glideinwms.tar.gz
@@ -370,7 +374,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/chksum.sh
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/requirements.txt
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSE
-rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.txt
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
 
 # Following files are Put in other places. Remove them from python3_sitelib
@@ -776,7 +780,7 @@ rm -rf $RPM_BUILD_ROOT
 %files factory-core
 %defattr(-,gfactory,gfactory,-)
 %doc LICENSE
-%doc ACKNOWLEDGMENTS.txt
+%doc ACKNOWLEDGMENTS.md
 %doc doc
 %attr(755,root,root) %{_bindir}/analyze_entries
 %attr(755,root,root) %{_bindir}/analyze_frontends
@@ -871,7 +875,7 @@ rm -rf $RPM_BUILD_ROOT
 %files vofrontend-core
 %defattr(-,frontend,frontend,-)
 %doc LICENSE
-%doc ACKNOWLEDGMENTS.txt
+%doc ACKNOWLEDGMENTS.md
 %doc doc
 #%attr(755,root,root) %{_sysconfdir}/condor/scripts/frontend_condortoken
 %attr(644,root,root) %{_sysconfdir}/condor/config.d/04_gwms_frontend_idtokens.config

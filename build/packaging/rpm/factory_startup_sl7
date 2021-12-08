@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # This is a placeholder file, it should never appear in the final installation
 # This file will be replaced when create_rpm_startup is calles with the template
 

@@ -1,21 +1,14 @@
 #!/usr/bin/env python3
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   This tool displays the status of the glideinWMS pool
 #   in a XML format
 #
 # Arguments:
 #   [-pool collector_node] [-condor-stats 1|0] [-internals 1|0]
-#
-# Author:
-#   Igor Sfiligoi (May 9th 2007)
-#
-
 
 import os.path
 import sys

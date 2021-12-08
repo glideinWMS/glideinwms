@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Testing utilities
 The new tests comprise
 * util.sh - utility functions for all files

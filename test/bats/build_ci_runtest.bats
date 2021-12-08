@@ -1,4 +1,8 @@
 #!/usr/bin/env bats
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # On the Mac, installed w/ Homebrew
 #load '/usr/local/lib/bats-support/load.bash'
 #load '/usr/local/lib/bats-assert/load.bash'

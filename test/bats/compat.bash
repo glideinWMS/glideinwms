@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Replacing Mac's utilities with GNU ones
 # coreutils and findutils must be installed (e.g. brew install coreutils)
 

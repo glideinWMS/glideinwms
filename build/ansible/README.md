@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 Useful ansible playbooks and other scripts go here.
 
 migrate_factory.yml - upgrades or downgrades a gwms-factory

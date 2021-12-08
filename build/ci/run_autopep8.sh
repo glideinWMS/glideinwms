@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 usage () {
     echo "usage: $(basename $0) change|restore|usage"
     echo "     change: run autopep8 -a -i on all python files in $GLIDEINWMS_SRC"

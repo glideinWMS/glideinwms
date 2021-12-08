@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-#
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # entry_q
 #
 # Similar to condor_q, but look for a specific entry
 #
 # Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]
-#
 
 from __future__ import print_function
 import os

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # This is the httpd conf file
 # GlideinWMS Factory web configuration
 Alias /factory /var/lib/gwms-factory/web-area

@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #  This program updates a glidein factory directory structure
 #  based on a configuration file
-#
+
 from __future__ import print_function
 import os
 import sys
@@ -19,13 +16,14 @@ import shutil
 import tarfile
 import tempfile
 import signal
+
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-from glideinwms.creation.lib import cgWParams
-from glideinwms.creation.lib import cgWDictFile
+#from glideinwms.creation.lib import cgWParams
+#from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts
-from glideinwms.creation.lib import cWConsts
+#from glideinwms.creation.lib import cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
 from glideinwms.creation.lib import factoryXmlConfig

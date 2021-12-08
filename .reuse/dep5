@@ -1,0 +1,18 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: GlideinWMS
+Upstream-Contact: The GlideinWMS Team <glideinwms@fnal.gov>
+Source: https://glideinwms.fnal.gov/
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
+
+Files: .codecov.yml .coveragerc .editorconfig .gitattributes .gitignore .gitmodules .mailmap .pep8speaks.yml .pre-commit-config.yaml .travis.yml LICENSE requirements.txt tox.ini
+Copyright: 2009 Fermi Research Alliance, LLC
+License: Apache-2.0
+
+Files: bigfiles/* etc/* config/* creation/templates/*.service creation/templates/*.cron creation/templates/*.timer doc/tags*txt lib/logging.conf test/bats/fixtures/* unittests/*.fixture unittests/fixtures/*
+Copyright: 2009 Fermi Research Alliance, LLC
+License: Apache-2.0

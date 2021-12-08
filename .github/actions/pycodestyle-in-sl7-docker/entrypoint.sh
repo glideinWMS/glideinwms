@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 PYVER=${1:-"3.6"}
 GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-`pwd`}
 env PYVER=$PYVER glideinwms/build/ci/runtest.sh -vi pylint -t2 -a

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 ---
 # GlideinWMS release notes ordered by release version
 # Each release is a list with features (strings), Bug fixes (Bug fix: dictionary containing one string) and NOTES

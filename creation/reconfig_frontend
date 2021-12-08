@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #  This program updates a frontend directory structure
 #  based on a configuration file
-#
+
 from __future__ import print_function
 import os
 # import copy
@@ -18,9 +15,6 @@ import sys
 import tempfile
 import signal
 import os.path
-# import string
-# import shutil
-# import traceback
 
 STARTUP_DIR = sys.path[0]
 

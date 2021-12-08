@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 #
 # This script tests for singularity variables (bin, image, ...) and does a test run of Singularity
 # It is not re-invoking itself (it is running all in the glidein environment, not in Singularity)

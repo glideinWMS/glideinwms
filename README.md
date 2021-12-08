@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # GlideinWMS
 
 [![DOI](https://zenodo.org/badge/1833401.svg)](https://zenodo.org/badge/latestdoi/1833401)

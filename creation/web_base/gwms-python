@@ -1,14 +1,10 @@
 #!/bin/sh
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#   1.0.0
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Description:
 #   This script will determine the Python version and work as a wrapper for it
-#
 
 my_path=$(cd "$(dirname "$0")"; pwd)
 

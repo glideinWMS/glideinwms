@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # Cat log GWMS files using tools
 
 TOOLDIR="$(python3 -c 'import glideinwms; print(glideinwms.__path__[0])')/factory/tools"

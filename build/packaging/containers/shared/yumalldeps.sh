@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 help_msg() {
   cat << EOF
 ${filename} [options] package1 [ package2 [...]]

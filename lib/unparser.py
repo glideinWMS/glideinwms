@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 # unparse.py imported from astunparse: https://github.com/simonpercivall/astunparse
 # Original Python 2/3 file relying on six transformed in pure Python 3
 # Minimal changes applied
