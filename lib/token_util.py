@@ -22,8 +22,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from glideinwms.lib.subprocessSupport import iexe_cmd
-from glideinwms.lib  import logSupport
-#from . import logSupport
+#from glideinwms.lib  import logSupport
+from . import logSupport
 
 """
 2/3 compatibility helpers
