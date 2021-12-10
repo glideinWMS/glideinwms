@@ -1238,13 +1238,11 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     scitoken = "credential_%s.scitoken" % entry.name
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
-    scitoken_expired = False
     if scitoken_data:
         if token_util.token_str_expired(scitoken_data):
-            scitoken_expired = True
-            entry.log.warning("frontend_scitoken supplied by frontend, but expired. Removing  %s" % scitoken_file)
+            entry.log.warning("frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file)
             if os.path.exists(scitoken_file):
-                os.remove(scitoken_file)
+                os.rename(scitoken_file, scitoken_file+".expired")
             if 'frontend_scitoken' in submit_credentials.identity_credentials:
                 del submit_credentials.identity_credentials['frontend_scitoken']
         else:
@@ -1269,6 +1267,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if os.path.exists(scitoken_file):
             if token_util.token_file_expired(scitoken_file):
                 entry.log.warning('frontend_scitoken %s is expired, skipping request' % (scitoken_file))
+                if 'frontend_scitoken' in submit_credentials.identity_credentials:
+                    del submit_credentials.identity_credentials['frontend_scitoken']
                 return return_dict
         else:
             entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
