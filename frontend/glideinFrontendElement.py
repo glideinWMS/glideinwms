@@ -820,7 +820,7 @@ class glideinFrontendElement:
                         stkn = stkn.strip()
 
                         if stkn:
-                            if token_util.is_expired(stkn):
+                            if token_util.token_str_expired(stkn):
                                 logSupport.log.warning('%s is expired, not forwarding' % scitoken_fullpath)
                             else:
                                gp_encrypt['frontend_scitoken'] =  stkn
