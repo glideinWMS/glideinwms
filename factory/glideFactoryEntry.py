@@ -19,7 +19,6 @@ import string
 import copy
 import logging
 import tempfile
-import token_util
 
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
@@ -34,6 +33,7 @@ from glideinwms.lib import util
 from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib import token_util
 
 
 ############################################################
@@ -1240,7 +1240,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     scitoken_data = decrypted_params.get('frontend_scitoken')
     scitoken_expired = False
     if scitoken_data:
-        if token_util.is_expired(scitoken_data):
+        if token_util.token_str_expired(scitoken_data):
             scitoken_expired = True
             entry.log.warning("frontend_scitoken supplied by frontend, but expired. Removing  %s" % scitoken_file)
             if os.path.exists(scitoken_file):
@@ -1248,7 +1248,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             if 'frontend_scitoken' in submit_credentials.identity_credentials:
                 del submit_credentials.identity_credentials['frontend_scitoken']
         else:
-            (fd, OBtmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
             try:
                 entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
                 os.chmod(tmpnm,0600)
@@ -1266,8 +1266,10 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
     if 'scitoken' in auth_method:
-    	if os.path.exists(scitoken_file):
-            pass
+        if os.path.exists(scitoken_file):
+            if token_util.token_file_expired(scitoken_file):
+                entry.log.warning('frontend_scitoken %s is expired, skipping request' % (scitoken_file))
+                return return_dict
         else:
             entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
             return return_dict
