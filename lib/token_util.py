@@ -48,14 +48,14 @@ def un_byt(data):
 
 def token_file_expired(token_file):
     """
-    Check validity of token exp and nbf claim. 
+    Check validity of token exp and nbf claim.
     Do not check signature, audience, or other claims
 
     Arguments:
         token_file: (str) a filename containing a jwt
 
     Returns:
-        bool: True if exp in future or absent and nbf in past or absent, 
+        bool: True if exp in future or absent and nbf in past or absent,
               False otherwise
     """
     expired = True
@@ -71,14 +71,14 @@ def token_file_expired(token_file):
 
 def token_str_expired(token_str):
     """
-    Check validity of token exp and nbf claim. 
+    Check validity of token exp and nbf claim.
     Do not check signature, audience, or other claims
 
     Arguments:
         token_str: (str) a string containing a jwt
 
     Returns:
-        bool: True if exp in future or absent and nbf in past or absent, 
+        bool: True if exp in future or absent and nbf in past or absent,
               False otherwise
     """
 
@@ -105,7 +105,7 @@ def simple_scramble(data):
         data: binary string to be unscrambled
 
     Returns:
-       str: an HTCondor scrambled binary string 
+       str: an HTCondor scrambled binary string
     """
     outb = byt('')
     deadbeef = [0xde, 0xad, 0xbe, 0xef]
@@ -183,12 +183,15 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
 
     Arguments:
         pwd_file: (str) file containing an HTCondor password
-        issuer: (str, optional) default is HTCondor TRUST_DOMAIN 
-        identity: (str, optional) owner of IDTOKEN, default is $USERNAME@$HOSTNAME
-        kid:  (str, optional) Key id, hint of signature used.  Default is file name of password
-        duration: (int, optional) number of seconds IDTOKEN is valid.  Default is infinity
-        scope: (str, optional) permissions IDTOKEN will have.  Default is everything,  
-               other examples would be condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD
+        issuer: (str, optional) default is HTCondor TRUST_DOMAIN
+        identity: (str, optional) identity claim, default is $USERNAME@$HOSTNAME
+        kid:  (str, optional) Key id, hint of signature used.
+                              Default is file name of password
+        duration: (int, optional) number of seconds IDTOKEN is valid.
+                                  Default is infinity
+        scope: (str, optional) permissions IDTOKEN will have.
+                               Default is everything,  
+                    example: condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD
 
     Returns:
         str: a signed HTCondor IDTOKEN
