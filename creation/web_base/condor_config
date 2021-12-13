@@ -68,7 +68,7 @@ MASTER_ATTRS = IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, Daem
 STARTD_ATTRS = GLIDEIN_COLLECTOR_NAME,GLIDEIN_MASTER_NAME, IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, START, DaemonStopTime, GLIDEIN_PARENT_PID, LSB_RELEASE, LSB_DISTRIBUTOR_ID, LSB_DESCRIPTION, $(GLIDEIN_VARIABLES)
 
 # This will create the following new attributes to Machine ClassAd and fetch the values from the corresponding attributes of Job ClassAd
-STARTD_JOB_ATTRS = $(STARTD_JOB_ATTRS),x509userproxysubject,x509UserProxyFQAN,x509UserProxyVOName,x509UserProxyEmail,x509UserProxyExpiration
+STARTD_JOB_ATTRS = $(STARTD_JOB_ATTRS) x509userproxysubject x509UserProxyFQAN x509UserProxyVOName x509UserProxyEmail x509UserProxyExpiration
 
 # This disables /dev/utmp use that is unreliable (gwms #14707)
 STARTD_HAS_BAD_UTMP = True
