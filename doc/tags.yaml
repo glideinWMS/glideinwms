@@ -285,3 +285,15 @@ v3_9_3:
     - Removes unused encodingSupport.py and its unit tests
   Bug fix:
     - Fixes an encoding issue affecting cloud submissions
+
+v3_9_4:
+  Date: Dec 8, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Adds support for CentOS 8
+    - Adds two new packages vofrontend-libs and vofrontend-glidein containing minimum assets for Frontend-like programs
+    - Updates some libraries for compatibility with PyYAML 6.0
+    - Updates license to Apache 2.0
+  Bug fix:
+    - Fixes a string encoding issue causing cat log scripts to fail

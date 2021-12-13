@@ -367,6 +367,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitignore
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitmodules
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.mailmap
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.pep8speaks.yml
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.reuse
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.travis.yml
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/unittests
@@ -374,6 +375,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/chksum.sh
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/requirements.txt
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSE
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSES
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
 
@@ -916,7 +918,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/frontend/__pycache__/manageFrontendDowntimes.*
 %{python3_sitelib}/glideinwms/frontend/__pycache__/gwms_renew_proxies.*
 %{python3_sitelib}/glideinwms/frontend/tools
-%{python3_sitelib}/glideinwms/frontend/config_examples
 %{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.py
 %{python3_sitelib}/glideinwms/creation/lib/check_python3_expr.py
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_config_frontend.*
@@ -946,7 +947,7 @@ rm -rf $RPM_BUILD_ROOT
 %files vofrontend-libs
 %defattr(-,root,root,-)
 %doc LICENSE
-%doc ACKNOWLEDGMENTS.txt
+%doc ACKNOWLEDGMENTS.md
 %doc doc
 %dir %{python3_sitelib}/glideinwms/frontend/
 %{python3_sitelib}/glideinwms/frontend/__init__.py
@@ -963,7 +964,7 @@ rm -rf $RPM_BUILD_ROOT
 %files vofrontend-glidein
 %defattr(-,root,root,-)
 %doc LICENSE
-%doc ACKNOWLEDGMENTS.txt
+%doc ACKNOWLEDGMENTS.md
 %doc doc
 %{python3_sitelib}/glideinwms/creation/lib/cvWConsts.py
 %{python3_sitelib}/glideinwms/creation/lib/cvWCreate.py
@@ -1033,6 +1034,11 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
+* Wed Dec 8 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.4
+- Glideinwms v3.9.4
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_9_4/history.html
+- Release candidates 3.9.4-01.rc1
+
 * Tue Sep 21 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.3
 - Glideinwms v3.9.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9_3/history.html

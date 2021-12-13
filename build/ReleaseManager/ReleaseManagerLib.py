@@ -459,6 +459,9 @@ def execute_cmd(cmd, stdin_data=None):
     if stdin_data!=None:
         child.stdin.write(stdin_data)
 
+    for line in child.stdout:
+        print(line.decode().rstrip())
+
     tempOut = child.stdout.readlines()
     tempErr = child.stderr.readlines()
     child.communicate()
