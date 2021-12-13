@@ -18,7 +18,6 @@
 from __future__ import print_function
 import sys
 from glideinwms.factory import glideFactoryPidLib
-#import pdb; pdb.set_trace()
 try:
     startup_dir=sys.argv[1]
     factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
