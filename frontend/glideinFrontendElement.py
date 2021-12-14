@@ -829,8 +829,13 @@ class glideinFrontendElement:
                         with open(scitoken_fullpath,'r') as fbuf:
                             for line in fbuf:
                                 stkn += line
+                        stkn = stkn.strip()
+
                         if stkn:
-                            gp_encrypt['frontend_scitoken'] =  stkn
+                            if token_util.token_str_expired(stkn):
+                                logSupport.log.warning('%s is expired, not forwarding' % scitoken_fullpath)
+                            else:
+                               gp_encrypt['frontend_scitoken'] =  stkn
                     except Exception as err:
                         logSupport.log.exception("failed to read scitoken: %s" % err)
 

@@ -327,6 +327,7 @@ setup_python2_venv() {
         PYCODESTYLE="pycodestyle"
         MOCK="mock==3.0.3"
         M2CRYPTO="M2Crypto"
+        PYUDEV="pyudev>=0.16.1"
     fi
 
     # pip install of M2Crypto is failing, use RPM:
@@ -381,7 +382,7 @@ setup_python2_venv() {
         pip_packages="${PYCODESTYLE} ${COVERAGE} ${PYLINT} ${ASTROID}"
         pip_packages="${pip_packages} pyyaml ${MOCK}  xmlrunner PyJWT requests future importlib argparse"
         pip_packages="$pip_packages ${HYPOTHESIS} ${AUTOPEP8} ${TESTFIXTURES}"
-        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO}"
+        pip_packages="$pip_packages ${HTCONDOR} ${JSONPICKLE} ${M2CRYPTO} ${PYUDEV}"
 
 	    # Uncomment to troubleshoot setup: loginfo "$(log_python)"	
 

@@ -151,28 +151,22 @@ glideins in the queue.</P>
     (with links to more information):
 </p>
 <ul>
-    <li><a href="install.html#factory_manual">
-        Creating a new configuration directory</a>:
-        <tt>glideinWMS/creation/create_glidein</tt></li>
     <li><a href="install.html#starting">
         Starting and Stopping the Factory</a>:
-        <tt>&lt;glidein directory&gt;/factory_startup
-        start|stop|restart|status</tt></li>
+        <tt>systemctl start gwms-factory; systemctl stop gwms-factory
+        </tt></li>
     <li><a href="configuration.html">Configuration</a> can be found in either
         <tt>factory.xml</tt> or <tt>glideinWMS.xml</tt> in your Factory's
         instance directory (depending on your installation method).</li>
     <li>After modifying the xml, be sure to 
-        <a href="install.html#factory_update">reconfig</a> your Factory:
-        <tt>&lt;glidein directory&gt;/factory_startup
-        reconfig <i>config_copy_fname</i></tt></li>
-    <li><a href="install.html#downtimes">Add a downtime</a>
-        with: <tt>&lt;glidein directory&gt;/factory_startup
-        up|down -entry 'factory'|&lt;entry name&gt; [-delay &lt;delay&gt;]
+        reconfig your Factory:
+        <tt>systemctl stop gwms-factory; gwms-factory reconfig; systemctl start gwms-factory
         </tt></li>
     <li><a href="monitoring.html">Monitoring the Factory</a></li>
 </ul>
 <p>
-    If you installed the RPM distribution, files and commands differ a bit, see the 
+     For more information, see the 
+
     <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">Factory OSG RPM guide</a>.
 </p>
 </div>

@@ -153,22 +153,77 @@ the Factory config's security_class element name attribute. </li>
     <br/> 
     <h2>Security Overview</h2>
     <a name="colorcoded" />
-    For a visual representation of the configuration that must match, see the below:
+    For a visual representation of the GSI configuration that must match, see the below:
     <blockquote>
-        <u>Frontend config</u> <br> 
+        <u>Frontend config</u>         (on host myfrontend.example.org) <br> 
         &lt;frontend frontend_name="frontend_service-v3_4"<br> 
-        &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@cms-xen21.fnal.gov"</font></strong> <br/> 
-        &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong> proxy_DN="<font color="crimson"> <strong>/DC=org/DC=doegrids/OU=Services/CN=glidein/cms-xen22.fnal.gov</strong> </font>"<br> 
-        &lt;proxy <font color="dodgerblue"><strong><font color="dodgerblue">security_class="frontend"</font></strong></font><br><br>
+        &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@myfactory.example.org"</font></strong> <br/> 
+        &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong> proxy_DN="<font color="crimson"> <strong>/DC=org/DC=doegrids/OU=Services/CN=glidein/myfactory.example.org</strong> </font>"<br> 
+        &lt;credential type="grid_proxy"  <font color="dodgerblue">security_class="frontend"</font><br><br>
     
-        <u>Factory config</u> <br> 
-        &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@cms-xen21.fnal.gov"</strong> </font><br> 
+        <u>Factory config</u>          (on myfactory.example.org) <br> 
+        &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font><br> 
         &lt;security_class <strong><font color="cornflowerblue">name="frontend"</font></strong> username="vo_cms"
 <br/><br/>
 
-    <u>CONDOR_LOCATION/certs/condor_mapfile</u><br>  
-    GSI " <strong>^</strong> <font color="crimson"> <strong>\/DC\=org\/DC\=doegrids\/OU\=Services\/CN\=glidein\/cms\-xen22\.fnal\.gov$</strong> </font>" <strong><font color="coral">frontend_identity</font></strong>
+<u>CONDOR_LOCATION/certs/condor_mapfile</u>        (on both myfrontend.example.org  and myfactory.example.org)<br>  
+GSI " <strong>^</strong> <font color="crimson"> <strong>\/DC\=org\/DC\=doegrids\/OU\=Services\/CN\=glidein\/myfactory\.fnal\.gov$</strong> </font>" <strong><font color="coral">frontend_identity</font></strong>
+
     </blockquote>
+
+For a visual representation of the JWT configuration that must match, see the below:
+<blockquote>
+    <u>Frontend config</u>     (on myfrontend.example.org)<br> 
+    &lt;frontend frontend_name="frontend_service-v3_4"<br>
+    &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@myfactory.example.org"</font></strong> <br/> 
+    &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong>  </font><br> 
+    &lt;credential type="scitoken"  <font color="dodgerblue"><strong><font color="dodgerblue">security_class="frontend"</font></strong></font><br><br>
+
+    <u>Factory config</u>     (on myfactory.example.org)<br> 
+    &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font><br> 
+    &lt;security_class <strong><font color="cornflowerblue">name="frontend"</font></strong> </strong></font> username="vo_cms"
+<br/><br/>
+
+
+    <u>~frontend/.condor/tokens.d</u>  (on myfrontend.example.org) <br>
+    # processes owned by the frontend uid need an IDTOKEN to communicate with condor processes on various machines<br>
+    # for example: frontend running on host  myfrontend.example.org communicating with factory on host myfactory.example.org<br>
+    # with an extra HA  condor collector on host mycollector.example org would need three IDTOKENS in ~frontend/.condor/tokens.d <br>
+    # with the following subjects (also known as identities to some condor_token tools)<br>
+    <br>
+    IDTOKEN 1 with subject:  <font color="coral"> <strong>identity="frontend_identity@myfrontend.example.org"</strong> </font> <br>
+    IDTOKEN 2 with subject:  <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font> <br>
+    IDTOKEN 3 with subject:  <font color="coral"> <strong>identity="frontend_identity@mycollector.example.org"</strong> </font> <br>
+    </blockquote>
+
+    <b> An IDTOKEN with the identity "frontend_identity@myfactory.example.org" can be created via a 3 step process:</b>
+    <ol> <li>The frontend admin at myfrontend.example.org requests an IDTOKEN from the factory with condor_token_request
+        <blockquote>
+[root@myfrontend ~]#condor_token_request -id frontend_identity@myfactory.example.org -pool myfactory.example.org
+        </blockquote>
+      <li> The factory admin approves the request
+        <blockquote>
+          [root@myfactory ~]# condor_token_request_list</br>
+    AuthenticatedIdentity = "ssl@unmapped"</br>
+ClientId = "myfrontend.example.org-235"</br>
+PeerLocation = "131.225.152.143"</br>
+    RequestedIdentity = "frontend_identity@myfrontend.example.org"</br>
+    RequestId = "9299245"</br>
+    </br>
+    [root@fermicloud588 ~]# condor_token_request_approve -req 9299245</br>
+Request contents:</br>
+    RequestedIdentity = "frontend_identity@myfactory.example.org"</br>
+    AuthenticatedIdentity = "ssl@unmapped"</br>
+    PeerLocation = "131.225.152.143"</br>
+ClientId = "myfrontend.example.org-235"</br>
+RequestId = "9299245"</br>
+        </br>
+        To approve, please type 'yes'</br>
+        yes</br>
+        Request 9299245 approved successfully.</br>
+        </blockquote>
+    <li> The above action generates an IDTOKEN that is printed to stdout on the frontend admins screen.  The frontend admin places 
+     this output in a file in directory ~frontend/.condor/tokens.d, and changes file ownership so it is owned by the frontend user.
    </div>
 
 

@@ -30,8 +30,8 @@ from glideinwms.lib import classadSupport
 from glideinwms.lib import logSupport
 from glideinwms.lib import x509Support
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib import token_util
 from glideinwms.lib.util import hash_nc
-
 
 ############################################################
 #
@@ -1146,6 +1146,19 @@ class MultiAdvertizeWork:
                
                 req_idle=0
                 req_max_run=0
+                if True: # for historical reasons... to preserve indentation
+                    credential_el=credentials_with_requests[i]
+                    logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
+                    if credential_el.supports_auth_method("scitoken"):
+                        if token_util.token_file_expired(credential_el.filename):
+                            logSupport.log.warning("Credential file %s is expired, skipping" % credential_el.filename) 
+                            continue
+                    if credential_el.advertize==False:
+                        # We already determined it cannot be used
+                        #if hasattr(credential_el,'filename'):
+                        #    filestr=credential_el.filename
+                        #logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
+                        continue
 
                 credential_el=credentials_with_requests[i]
                 logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))

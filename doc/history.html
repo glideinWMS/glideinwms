@@ -987,6 +987,30 @@ COLLECTOR.USE_SHARED_PORT=False
     </ul>
 </li>
 <li>
+  <b>v3_7_6</b> released on Dec 13 2021 (<a href="http://glideinwms.fnal.gov/doc.v3_7_6/index.html">Manual</a>,
+  <a href="http://glideinwms.fnal.gov/doc.v3_7_6/install.html">Installation instructions</a>)<br>  
+    <ul>
+    <li>Flexible mount point for CVMFS in glidein</li>
+    <li>Frontend and factory check expiration of SciTokens</li>
+    <li>Shared port is default for User Collector</li>
+    <li>API to retrieve job information from condor jobID</li>
+    <li>Bug Fix: improved IDTOKEN revocation procedures</li>
+    <li>Bug Fix: SSL added to condor *_AUTHENTICATION_METHODS</li>
+    <li>Bug Fix: Possible to have frontend group with only SCITOKEN authentication</li>
+    <li>Bug Fix: Factory stores frontend group information per-token</li>
+    <li>Bug Fix: Intermittent -check_v35 error fails to  startup factory</li>
+    <li>Bug Fix: Fix glidein_starup.sh in staging area to be one with payload</li>
+    <li>Bug Fix: GCB support removed</li>
+    <li>Bug Fix: glidein_cleanup can cleanup directories chmoded read-only</li>
+    <li>Bug Fix: improved shellcheck testing</li>
+    <li>Bug Fix: corrected paths for some variables in glideins</li>
+    <li>Bug Fix: eliminated spurious log messages in glideins</li>
+    <li>Bug Fix: STARTD_JOB_ATTRS fixed in glideins</li>
+    <li>Bug Fix: GWMS_PATH in glidein_startup.sh corrected</li>
+    <li>Bug Fix: better cleanup of tmpfiles after install</li>
+    </ul>
+</li>
+<li>
   <b>v3_7_5</b> released on Sep 2 2021 (<a href="http://glideinwms.fnal.gov/doc.v3_7_5/index.html">Manual</a>,
   <a href="http://glideinwms.fnal.gov/doc.v3_7_5/install.html">Installation instructions</a>)<br>  
     <ul>

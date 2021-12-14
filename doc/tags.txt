@@ -28,6 +28,26 @@ v3_9
 	Bug fix: Fixed Mapping import
 	Bug fix: Fixed str vs bytes confusion in cryptography functions and classes
 
+v3_7_6
+	Flexible mount point for CVMFS in glidein
+	Frontend and factory check expiration of SciTokens
+	Shared port is default for User Collector
+	API to retrieve job information from condor jobID
+	Bug Fix: improved IDTOKEN revocation procedures
+	Bug Fix: SSL added to condor *_AUTHENTICATION_METHODS
+	Bug Fix: Possible to have frontend group with only SCITOKEN authentication
+	Bug Fix: Factory stores frontend group information per-token
+	Bug Fix: Intermittent -check_v35 error fails to  startup factory
+	Bug Fix: Fix glidein_starup.sh in staging area to be one with payload
+	Bug Fix: GCB support removed
+	Bug Fix: glidein_cleanup can cleanup directories chmoded read-only
+	Bug Fix: improved shellcheck testing
+	Bug Fix: corrected paths for some variables in glideins
+	Bug Fix: eliminated spurious log messages in glideins
+	Bug Fix: STARTD_JOB_ATTRS fixed in glideins
+	Bug Fix: GWMS_PATH in glidein_startup.sh corrected
+	Bug Fix: better cleanup of tmpfiles after install
+
 v3_7_5
 	Support for big files in the glideinwms repository
 	Additional download mechanism for files
