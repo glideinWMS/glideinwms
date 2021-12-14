@@ -295,7 +295,6 @@ v3_7_6:
         - Frontend and factory check expiration of SciTokens
         - Shared port is default for User Collector
         - API to retrieve job information from condor jobID
-
     Bug Fix:
         - improved IDTOKEN revocation procedures
         - SSL added to condor *_AUTHENTICATION_METHODS
@@ -310,4 +309,17 @@ v3_7_6:
         - eliminated spurious log messages in glideins
         - STARTD_JOB_ATTRS fixed in glideins
         - GWMS_PATH in glidein_startup.sh corrected
-        - better cleanup of tmpfiles after install 
+        - better cleanup of tmpfiles after install
+
+v3_9_4:
+  Date: Dec 14, 2021
+  Series: Development
+  Tarball: false
+  Feature:
+    - Includes all features and fixes of 3.7.6
+    - Adds support for CentOS 8
+    - Adds two new RPM packages (vofrontend-libs and vofrontend-glidein) to provide essential libraries for frontend-like applications
+    - Updates license to Apache 2.0
+  Bug fix:
+    - Updates libraries for compatibility with PyYAML 6.0
+    - Fixes a sring encoding issue affecting the cat log scripts
