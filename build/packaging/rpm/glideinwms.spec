@@ -339,7 +339,6 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/doc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/etc
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/build
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/config
-rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/config_examples
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/creation/create_rpm_startup
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.editorconfig
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitattributes
@@ -899,7 +898,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/frontend/__pycache__/manageFrontendDowntimes.*
 %{python3_sitelib}/glideinwms/frontend/__pycache__/gwms_renew_proxies.*
 %{python3_sitelib}/glideinwms/frontend/tools
-%{python3_sitelib}/glideinwms/frontend/config_examples
 %{python3_sitelib}/glideinwms/creation/lib/check_config_frontend.py
 %{python3_sitelib}/glideinwms/creation/lib/check_python3_expr.py
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/check_config_frontend.*
@@ -928,9 +926,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend-libs
 %defattr(-,root,root,-)
-%doc LICENSE
-%doc ACKNOWLEDGMENTS.txt
-%doc doc
 %dir %{python3_sitelib}/glideinwms/frontend/
 %{python3_sitelib}/glideinwms/frontend/__init__.py
 %{python3_sitelib}/glideinwms/frontend/glideinFrontendConfig.py
@@ -945,9 +940,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files vofrontend-glidein
 %defattr(-,root,root,-)
-%doc LICENSE
-%doc ACKNOWLEDGMENTS.txt
-%doc doc
 %{python3_sitelib}/glideinwms/creation/lib/cvWConsts.py
 %{python3_sitelib}/glideinwms/creation/lib/cvWCreate.py
 %{python3_sitelib}/glideinwms/creation/lib/cvWDictFile.py
