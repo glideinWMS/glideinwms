@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# It used to be python3 -B, but that is interpreted as single string as opposed to a list of arguments.
 
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
