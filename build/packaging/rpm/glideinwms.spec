@@ -332,8 +332,10 @@ rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/unittests
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/chksum.sh
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/requirements.txt
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.reuse
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSE
+rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSES
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
 
@@ -718,6 +720,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/glideinwms/creation/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/cWConsts.py
 %{python3_sitelib}/glideinwms/creation/lib/cWDictFile.py
+%{python3_sitelib}/glideinwms/creation/lib/cWExpand.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParams.py
 %{python3_sitelib}/glideinwms/creation/lib/cWParamDict.py
 %{python3_sitelib}/glideinwms/creation/lib/xslt.py
@@ -726,6 +729,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{python3_sitelib}/glideinwms/creation/lib/__pycache__
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWConsts.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWDictFile.*
+%{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWExpand.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWParams.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/cWParamDict.*
 %{python3_sitelib}/glideinwms/creation/lib/__pycache__/xslt.*

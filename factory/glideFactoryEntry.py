@@ -1255,7 +1255,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
             try:
                 entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
-                os.chmod(tmpnm,0600)
+                os.chmod(tmpnm,0o600)
                 os.write(fd, scitoken_data)
                 os.close(fd)
                 util.file_tmp2final(scitoken_file, tmpnm)
