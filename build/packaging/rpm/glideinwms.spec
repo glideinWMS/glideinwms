@@ -107,8 +107,8 @@ Requires: glideinwms-minimal-condor = %{version}-%{release}
 Requires: glideinwms-libs = %{version}-%{release}
 Requires: glideinwms-glidecondor-tools = %{version}-%{release}
 Requires: glideinwms-common-tools = %{version}-%{release}
-Requires: vofrontend-libs
-Requires: vofrontend-glidein
+Requires: glideinwms-vofrontend-libs
+Requires: glideinwms-vofrontend-glidein
 %if 0%{?rhel} >= 8
 Requires: python3-rrdtool
 Requires: python3-m2crypto
@@ -1030,7 +1030,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Dec 14 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.4
 - Glideinwms v3.9.4
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9_4/history.html
-- Release candidates 3.9.4-01.rc1
+- Release candidates 3.9.4-01.rc1 to 3.9.4-01.rc2
 
 * Tue Sep 21 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.3
 - Glideinwms v3.9.3
