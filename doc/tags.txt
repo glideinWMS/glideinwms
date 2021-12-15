@@ -5,7 +5,6 @@ v3_9_4
 	Updates license to Apache 2.0
 	Bug fix: Updates libraries for compatibility with PyYAML 6.0
 	Bug fix: Fixes a sring encoding issue affecting the cat log scripts
-	Bug fix: Libraries will now only try to change file permissions if running as root
 
 v3_9_3
 	Includes all features and fixes of 3.7.5

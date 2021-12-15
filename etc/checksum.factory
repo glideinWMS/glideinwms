@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_9_4_rc3
+# GLIDEINWMS_VERSION v3_9_4_rc4
 ###################################################################
 c8d9eca1ca2a03923eaa214e8fc6d632  ./ACKNOWLEDGMENTS.md
 2abce34f55d02f482210d96e7dafeba8  ./bigfiles/README.md
@@ -186,7 +186,7 @@ b6e3e4a72ccacfc1921219f3bfd34dd3  ./lib/tarSupport.py
 4340f51c78ee23db4fade0f195f39ddb  ./lib/timeConversion.py
 0715f122adfaf106a6c5e17c9424900a  ./lib/token_util.py
 dec360042569b8dbbcb61927ff9837c3  ./lib/unparser.py
-f71bfe64169a92fd33eacbaba2a73940  ./lib/util.py
+227c0ca2f7e519f473a52d9687e84612  ./lib/util.py
 b6d4776c5dc321432eb7e6447012ac39  ./lib/x509Support.py
 f8ecef185da7c63d46b723224c08da7e  ./lib/xmlFormat.py
 288ebd54cf2277035326bee3ee68df29  ./lib/xmlParse.py

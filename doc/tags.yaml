@@ -323,4 +323,3 @@ v3_9_4:
   Bug fix:
     - Updates libraries for compatibility with PyYAML 6.0
     - Fixes a sring encoding issue affecting the cat log scripts
-    - Libraries will now only try to change file permissions if running as root
