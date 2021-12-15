@@ -1027,10 +1027,10 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_sysconfdir}/condor/scripts/frontend_condortoken
 
 %changelog
-* Tue Dec 14 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.4
+* Wed Dec 15 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.4
 - Glideinwms v3.9.4
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_9_4/history.html
-- Release candidates 3.9.4-01.rc1 to 3.9.4-01.rc2
+- Release candidates 3.9.4-01.rc1 to 3.9.4-01.rc3
 
 * Tue Sep 21 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.3
 - Glideinwms v3.9.3

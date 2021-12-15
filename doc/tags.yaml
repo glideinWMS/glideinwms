@@ -312,7 +312,7 @@ v3_7_6:
         - better cleanup of tmpfiles after install
 
 v3_9_4:
-  Date: Dec 14, 2021
+  Date: Dec 15, 2021
   Series: Development
   Tarball: false
   Feature:
@@ -323,3 +323,4 @@ v3_9_4:
   Bug fix:
     - Updates libraries for compatibility with PyYAML 6.0
     - Fixes a sring encoding issue affecting the cat log scripts
+    - Libraries will now only try to change file permissions if running as root
