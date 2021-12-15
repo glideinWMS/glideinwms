@@ -23,6 +23,7 @@ import pickle
 import tempfile
 import time
 import subprocess
+import contextlib
 
 # imports for hash_nc
 from hashlib import md5
@@ -439,7 +440,7 @@ def hash_nc(data, len=None):
 
 
 def chmod(*args, **kwargs):
-    """Wrapper for os.chmod that only executes if running as root.
+    """Wrapper for os.chmod that supresses PermissionError exceptions
 
     Args:
         *args: Positional arguments to pass to os.chmod
@@ -448,5 +449,5 @@ def chmod(*args, **kwargs):
     Returns:
         None
     """
-    if os.getuid() == 0:
+    with contextlib.suppress(PermissionError):
         os.chmod(*args, **kwargs)
