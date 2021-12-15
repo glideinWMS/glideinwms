@@ -22,6 +22,7 @@ import tarfile
 import io
 from . import cgWDictFile
 from . import cWDictFile
+from glideinwms.lib.util import chmod
 
 
 ##############################
@@ -450,7 +451,7 @@ def create_initd_startup(startup_fname, factory_dir,
                                "rpm_install": rpm_install}
         fd.write(template)
 
-    os.chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH |
+    chmod(startup_fname, stat.S_IRWXU | stat.S_IROTH |
              stat.S_IRGRP | stat.S_IXOTH | stat.S_IXGRP)
 
     return
@@ -504,7 +505,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         # Remove file if already exists
         os.remove(os.path.join(work_dir, filename))
     copy_file(os.path.join(org_dir, filename), work_dir)
-    os.chmod(os.path.join(work_dir, filename), 0o755)
+    chmod(os.path.join(work_dir, filename), 0o755)
 
 
 def get_template(template_name, glideinWMS_dir):

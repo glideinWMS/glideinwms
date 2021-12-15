@@ -28,6 +28,7 @@ import xml.parsers.expat
 from glideinwms.lib import xmlParse
 from glideinwms.lib.xmlParse import OrderedDict
 from glideinwms.lib import xmlFormat
+from glideinwms.lib.util import chmod
 
 
 class SubParams(Mapping):
@@ -350,7 +351,7 @@ class Params:
             fd.write(self.get_xml())
             fd.write("\n")
         if set_ro:
-            os.chmod(fname, os.stat(fname)[0]&0o444)
+            chmod(fname, os.stat(fname)[0]&0o444)
         return
 
     def save_into_file_wbackup(self,fname,set_ro=False):
@@ -381,14 +382,14 @@ class Params:
         try:
             os.rename(fname, backup_name)
             # make it user writable
-            os.chmod(backup_name, (os.stat(backup_name)[0]&0o666)|0o200)
+            chmod(backup_name, (os.stat(backup_name)[0]&0o666)|0o200)
         except:
             pass # just protect
 
         # finally rename to the proper name
         os.rename(tmp_name, fname)
         if set_ro:
-            os.chmod(fname, os.stat(fname)[0]&0o444)
+            chmod(fname, os.stat(fname)[0]&0o444)
 
     # used internally to define subtype class
     def get_subparams_class(self):
