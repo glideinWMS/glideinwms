@@ -175,7 +175,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         enc_input_files.append('$ENV(IDTOKENS_FILE)')
 
-        self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+        # should we screen like this?  I dont think it will hurt ec2 CEs to have it
+        # set but Steve thinks it may
+        if gridtype != 'ec2':
+            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
@@ -210,6 +213,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
         if gridtype.startswith('batch '):
+            enc_input_files.append('$ENV(X509_USER_PROXY)')
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
@@ -233,6 +237,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # set up the grid specific attributes
         if gridtype == 'ec2':
             self.populate_ec2_grid()
+            self.populate_standard_grid(
+                rsl,
+                auth_method,
+                gridtype,
+                entry_enabled,
+                entry_name,
+                enc_input_files=None)
         elif gridtype == 'gce':
             self.populate_gce_grid()
         elif gridtype == 'condor':
@@ -249,7 +260,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # next we add the Condor-C additions
             self.populate_condorc_grid()
         else:
-            enc_input_files.append('$ENV(X509_USER_PROXY)')
             self.populate_standard_grid(
                 rsl,
                 auth_method,
