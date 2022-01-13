@@ -54,7 +54,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         log_dir = conf.get_log_dir()
         client_log_dirs = conf.get_client_log_dirs()
         client_proxy_dirs = conf.get_client_proxy_dirs()
-        enable_expansion = conf.get('enable_attribute_expansion', 'False')
         cgWDictFile.glideinMainDicts.__init__(self, submit_dir, stage_dir, workdir_name,
                                               log_dir,
                                               client_log_dirs, client_proxy_dirs)
@@ -64,7 +63,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir, "monitor"))
         self.monitor_images_dir = os.path.join(self.monitor_dir, 'images')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir, "monitor"))
-        self.enable_expansion = str2bool(enable_expansion)
+        self.enable_expansion = str2bool(conf.get('enable_attribute_expansion', 'False'))
         self.conf = conf
         self.active_sub_list = []
         self.disabled_sub_list = []
@@ -1001,7 +1000,7 @@ def populate_job_descript(work_dir, job_descript_dict, num_factories,
         entry:
         schedd:
         attrs_dict (dict): dictionary of attributes
-        enable_expansion: whether or not expand the attribute values with a $ in them
+        enable_expansion (bool): whether or not expand the attribute values with a $ in them
 
     Returns:
 
