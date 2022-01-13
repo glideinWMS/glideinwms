@@ -33,6 +33,7 @@ from glideinwms.lib import util
 from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib import token_util
 
 
 ############################################################
@@ -1238,26 +1239,37 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
-        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
-        try:
-            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
-            os.chmod(tmpnm,0600)
-            os.write(fd, scitoken_data)
-            os.close(fd)
-            util.file_tmp2final(scitoken_file, tmpnm)
-        except Exception as err:
-            entry.log.exception('failed to create scitoken: %s' % err)
-        finally:
-            if os.path.exists(tmpnm):
-                os.remove(tmpnm)
+        if token_util.token_str_expired(scitoken_data):
+            entry.log.warning("frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file)
+            if os.path.exists(scitoken_file):
+                os.rename(scitoken_file, scitoken_file+".expired")
+            if 'frontend_scitoken' in submit_credentials.identity_credentials:
+                del submit_credentials.identity_credentials['frontend_scitoken']
+        else:
+            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+            try:
+                entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+                os.chmod(tmpnm,0600)
+                os.write(fd, scitoken_data)
+                os.close(fd)
+                util.file_tmp2final(scitoken_file, tmpnm)
+            except Exception as err:
+                entry.log.exception('failed to create scitoken: %s' % err)
+            finally:
+                if os.path.exists(tmpnm):
+                     os.remove(tmpnm)
 
     if os.path.exists(scitoken_file):
         if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
             entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
     if 'scitoken' in auth_method:
-    	if os.path.exists(scitoken_file):
-            pass
+        if os.path.exists(scitoken_file):
+            if token_util.token_file_expired(scitoken_file):
+                entry.log.warning('frontend_scitoken %s is expired, skipping request' % (scitoken_file))
+                if 'frontend_scitoken' in submit_credentials.identity_credentials:
+                    del submit_credentials.identity_credentials['frontend_scitoken']
+                return return_dict
         else:
             entry.log.warning("auth method is scitoken, but file %s not found. skipping request" % scitoken_file)
             return return_dict

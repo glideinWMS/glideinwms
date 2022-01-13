@@ -157,7 +157,7 @@ specific meaning:</P>
     </UL>
     </li>
 </OL>
-<P>Here below, you can see a short extract; the semantics of the
+<P>Here below, you can see a short extract of an example; the semantics of the
 variables is defined <A HREF="#vars">below</A>.</P>
 <PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
 #                       S=Quote - = No Default  + = VarName                             HTCondor  - = Do not export
@@ -179,6 +179,10 @@ SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               
 MAX_MASTER_LOG          I       1000000         +                               N       N       -
 MAX_STARTD_LOG          I       10000000        +                               N       N       -</PRE>
 
+<b>NOTE The value in the sample are just an example.</b> The default values will depend on the GlideinWMS version, see 
+<a href="https://raw.githubusercontent.com/glideinWMS/glideinwms/branch_v3_7/creation/web_base/condor_vars.lst">creation/web_base/condor_vars.lst</a>
+and keep in mind that the values in the Factory and Frontend configuration and the changes done by the setup scripts will affect the final 
+value used for your jobs.
 </div>
 
 
@@ -1092,7 +1096,7 @@ described below are the most often used.</P>
         <TD>
             <P>If False, the user job environment will contain only glidein
             Factory provided variables.</P>
-            <P>If True, the user job environment will also contain the
+            <P>If True (default), the user job environment will also contain the
             environment variables defined at glidein startup.
             </P>
             <P>See <A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/configuration-macros.html?highlight=JOB_INHERITS_STARTER_ENVIRONMENT#htcondor-wide-configuration-file-entries">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
@@ -1602,6 +1606,21 @@ space (eg EGI's $TMPDIR policy), then this value refers to that space.</P>
 
     </TR>
     <TR>
+        <td> <b>CVMFS_MOUNT_DIR</b></td>
+        <td> String (path) </td>
+        <td></td>
+        <td>Frontend Factory Dynamic</td>
+        <td><P>Not set by default. When set it indicates the path different from /cvmfs where CVMFS is mounted.
+          Normally set by Glidein scripts when they mount CVMFS but cannot mount it on /cvmfs.
+          A site administrator could set it in the environment or ask to set it in a Factory entry.
+          It is not set inside Singularity because the external path can be mount internally to /cvmfs.
+          To allow for more flexibility and uniformity across sites, 
+          paths like SINGULARITY_IMAGES_DICT, GLIDEIN_SINGULARITY_BINDPATH, ...
+          can all use /cvmfs as prefix for their paths and it will be translated by the Glidein.  
+            </P>
+        </td>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_SINGULARITY_REQUIRE</b></td>
         <td> String (Enum) </td>
         <td></td>
@@ -1756,7 +1775,10 @@ or by running a pre_singularity setup script.
             Commas are not allowed in both the paths, and colons are not allowed in the 'src' path.
             GWMS combines in order GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, and a default list.
             The default list includes "/hadoop,/hdfs,/lizard,/mnt/hadoop,/mnt/hdfs", and "/cvmfs" (if GWMS_SINGULARITY_BIND_CVMFS is true) and some
-            GPUs libraries (if GPUs are detected).
+            GPUs libraries (if GPUs are detected). If CVMFS is mounted in a different place, CVMFS_MOUNT_DIR will be 
+            set in the environment and the Glidein will replace /cvms with the correct mount point ($CVMFS_MOUNT_DIR:/cvmfs),
+            so that inside Singularity CVMFS will always be available in /cvmfs, even if outside that is not possible.
+
             The combined list is validated removing paths not existing (outside Singularity) and is passed as --bind option to singularity.
             Singularity prepends to the mounts list also the environment variable $SINGULARITY_BINDPATH (this could be set by the Site or by setup scripts on the worker nodes).
             Singularity will skip mounts where the destination path does not exist in the Singularity image selected.
@@ -1770,7 +1792,7 @@ or by running a pre_singularity setup script.
         <td> Expr (Bool) </td>
         <td> 1 </td>
         <td>Frontend Factory</td>
-        <td><P>/cvmfs is mounted in Singularity if this is 1 (true)
+        <td><P>CVMFS (/cvmfs) is mounted in Singularity if this is 1 (true)
             </P>
         </td>
     </TR>

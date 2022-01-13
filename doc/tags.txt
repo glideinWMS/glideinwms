@@ -1,3 +1,31 @@
+v3_7_6
+	Flexible mount point for CVMFS in glidein
+	Frontend and factory check expiration of SciTokens
+	Shared port is default for User Collector
+	API to retrieve job information from condor jobID
+	Bug Fix: improved IDTOKEN revocation procedures
+	Bug Fix: SSL added to condor *_AUTHENTICATION_METHODS
+	Bug Fix: Possible to have frontend group with only SCITOKEN authentication
+	Bug Fix: Factory stores frontend group information per-token
+	Bug Fix: Intermittent -check_v35 error fails to  startup factory
+	Bug Fix: Fix glidein_starup.sh in staging area to be one with payload
+	Bug Fix: GCB support removed
+	Bug Fix: glidein_cleanup can cleanup directories chmoded read-only
+	Bug Fix: improved shellcheck testing
+	Bug Fix: corrected paths for some variables in glideins
+	Bug Fix: eliminated spurious log messages in glideins
+	Bug Fix: STARTD_JOB_ATTRS fixed in glideins
+	Bug Fix: GWMS_PATH in glidein_startup.sh corrected
+	Bug Fix: better cleanup of tmpfiles after install
+
+v3_7_5
+	Support for big files in the glideinwms repository
+	Additional download mechanism for files
+	Bug Fix: Have SciToken credential be per-entry
+	Bug Fix: Fix IDTOKEN generation in the Frontend
+	Bug Fix: Cleanup script not executing correctly at glidein termination
+	Bug Fix: Automount of CVMFS integrated into glidein script
+
 v3_7_4
 	Consider not available (not Idle) partitionable slots where all GPUs are used
 	Bug Fix: Submissions from some 3.6.5 frontends to 3.7.3 factories go on hold

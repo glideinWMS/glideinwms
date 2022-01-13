@@ -24,7 +24,7 @@ from glideinwms.lib import xmlParse
 from glideinwms.lib.util import safe_boolcomp
 # from glideinwms.lib import condorExe  # not used
 from . import cWParams
-from .matchPolicy import MatchPolicy
+#from .matchPolicy import MatchPolicy
 import pprint
 
 
@@ -205,6 +205,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['advertise_delay']=('5', 'NR', 'Advertize evert NR loops', None)
         self.defaults['advertise_with_tcp']=('True', 'Bool', 'Should condor_advertise use TCP connections?', None)
         self.defaults['advertise_with_multiple']=('True', 'Bool', 'Should condor_advertise use -multiple?', None)
+        self.defaults['enable_attribute_expansion']=('False', 'Bool', 'Should we expand attributes that contains a dollar?', None)
 
         self.defaults['group_parallel_workers']=('2', 'NR', 'Max number of parallel workers that process the group policies', None)
 
@@ -261,6 +262,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.defaults["groups"]=(xmlParse.OrderedDict(), "Dictionary of groups", "Each group contains", self.group_defaults)
 
+        # TODO: to be removed, used only by an unused method
         # Initialize the external policy modules data structure
         self.match_policy_modules = {
             'frontend': None,
@@ -315,7 +317,7 @@ class VOFrontendParams(cWParams.CommonParams):
         else:
             self.monitoring_web_url=self.web_url.replace("stage", "monitor")
 
-        self.derive_match_attrs()
+        # moved to cvWParamsDict after expansion:  self.derive_match_attrs()
 
         ####################
         has_collector='GLIDEIN_Collector' in self.attrs
@@ -382,77 +384,6 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError('Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.')
 
-    # verify match data and create the attributes if needed
-    def derive_match_attrs(self):
-
-        # Load all the match policy modules upfront since we need them
-        self.load_match_policies()
-
-        # TODO: Do we really need to validate frontend main section?
-        # This gets validated any ways in the groups section
-        policy_modules = []
-        if self.match_policy_modules['frontend']:
-            policy_modules.append(self.match_policy_modules['frontend'])
-        self.validate_match('frontend', self.match.match_expr,
-                            self.match.factory.match_attrs,
-                            self.match.job.match_attrs, self.attrs,
-                            policy_modules)
-
-        for group_name in self.groups.keys():
-            # Merge group match info and attrs from
-            # global section with those sepcific to group
-            # Match and query expressions are ANDed
-            # attrs, job & factory match_attrs are appended with group
-            # specific values overriding the global values
-
-            # Get frontend and group specific policy modules to use
-            pmodules = list(policy_modules)
-            if self.match_policy_modules['groups'].get(group_name):
-                pmodules.append(self.match_policy_modules['groups'][group_name])
-            # if self.match_policy_modules['frontend']:
-            #    policy_modules.append(self.match_policy_modules['frontend'])
-            # if self.match_policy_modules['groups'].get(group_name):
-            #    policy_modules.append(self.match_policy_modules['groups'][group_name])
-            # Construct group specific dict of attrs in <attrs>
-            attrs_dict = {}
-            for attr_name in self.attrs.keys():
-                attrs_dict[attr_name] = self.attrs[attr_name]
-            for attr_name in self.groups[group_name].attrs.keys():
-                attrs_dict[attr_name] = self.groups[group_name].attrs[attr_name]
-
-            # Construct group specific dict of factory_attrs in <match_attrs>
-            # and those from the policy_modules
-            factory_attrs = {}
-            for attr_name in self.match.factory.match_attrs.keys():
-                factory_attrs[attr_name] = self.match.factory.match_attrs[attr_name]
-            for attr_name in self.groups[group_name].match.factory.match_attrs.keys():
-                factory_attrs[attr_name] = self.groups[group_name].match.factory.match_attrs[attr_name]
-            for pmodule in pmodules:
-                if pmodule.factoryMatchAttrs:
-                    for attr_name in pmodule.factoryMatchAttrs.keys():
-                        factory_attrs[attr_name] = pmodule.factoryMatchAttrs[attr_name]
-
-            # Construct group specific dict of job_attrs in <match_attrs>
-            # and those from the policy_modules
-            job_attrs = {}
-            for attr_name in self.match.job.match_attrs.keys():
-                job_attrs[attr_name] = self.match.job.match_attrs[attr_name]
-            for attr_name in self.groups[group_name].match.job.match_attrs.keys():
-                job_attrs[attr_name] = self.groups[group_name].match.job.match_attrs[attr_name]
-            for pmodule in pmodules:
-                if pmodule.jobMatchAttrs:
-                    for attr_name in pmodule.jobMatchAttrs.keys():
-                        job_attrs[attr_name] = pmodule.jobMatchAttrs[attr_name]
-
-            # AND global and group specific match_expr 
-            # and those from the policy_modules
-            match_expr = "(%s) and (%s)" % (self.match.match_expr, self.groups[group_name].match.match_expr)
-
-            self.validate_match('group %s'%group_name, match_expr,
-                                factory_attrs, job_attrs, attrs_dict,
-                                pmodules)
-        return
-
     def get_xml_format(self):
         """
         Return xml formatting for the config
@@ -505,126 +436,14 @@ class VOFrontendParams(cWParams.CommonParams):
                     raise RuntimeError("Invalid group '%s' attribute name '%s'." % (group_name, attr_name))
         return
 
-    def translate_match_attrs(self, loc_str, match_attrs_name, match_attrs):
-        """
-        Translate the passed factory/job match_attrs to format useful
-        for match validation step
-        """
-
-        translations = {'string': 'a', 'int': 1, 'bool': True, 'real': 1.0}
-        translated_attrs = {}
-
-        for attr_name in match_attrs.keys():
-            attr_type = match_attrs[attr_name]['type']
-            try:
-                translated_attrs[attr_name] = translations[attr_type]
-            except KeyError as e:
-                raise RuntimeError("Invalid %s %s attr type '%s'" % (loc_str, match_attrs_name, attr_type))
-
-        return translated_attrs
-
-    def validate_match(self, loc_str, match_str, factory_attrs,
-                       job_attrs, attr_dict, policy_modules):
-        """
-        Validate match_expr, factory_match_attrs, job_match_attrs,
-        <attrs> and their equivalents in policy_modules. This is done
-        during the config load
-
-        @param loc_str: Section to be validated. i.e. 'frontend' or 'group x'
-        @type loc_str: string
-
-        @param match_str: match_expr to be applied to this section
-        @type match_str: string
-
-        @param factory_attrs: factory_match_attrs for this section
-        @type factory_attrs: dict
-
-        @param job_attrs: job_match_attrs for this section
-        @type job_attrs: dict
-
-        @param attr_dict: attrs for this section
-        @type job_attrs: dict
-
-        @param policy_modules: policy modules
-        @type job_attrs: list
-        """
-
-        # Globals/Locals that will be passed to the eval so that we
-        # can validate the match_expr as well
-
-        env = {'glidein': {'attrs': {}}, 'job': {}, 'attr_dict': {}}
-
-        # Validate factory's match_attrs
-        env['glidein']['attrs'] = self.translate_match_attrs(loc_str, 'factory', factory_attrs)
-
-        # Validate job's match_attrs
-        env['job'] = self.translate_match_attrs(loc_str, 'job', job_attrs)
-
-        # Validate attr
-        for attr_name in attr_dict.keys():
-            attr_type=attr_dict[attr_name]['type']
-            if attr_type=='string':
-                attr_val='a'
-            elif attr_type=='int':
-                attr_val=1
-            elif attr_type=='expr':
-                attr_val='a'
-            else:
-                raise RuntimeError("Invalid %s attr type '%s'"%(loc_str, attr_type))
-            env['attr_dict'][attr_name]=attr_val
-
-        # Now that we have validated the match_attrs, compile match_obj
-        try:
-            match_obj = compile(match_str, "<string>", "exec")
-            eval(match_obj, env)
-        except KeyError as e:
-            raise RuntimeError("Invalid %s match_expr '%s': Missing attribute %s" % (loc_str, match_str, e))
-        except Exception as e:
-            raise RuntimeError("Invalid %s match_expr '%s': %s" % (loc_str, match_str, e))
-
-        # Validate the match(job, glidein) from the policy modules
-        try:
-            for pmodule in policy_modules:
-                if 'match' in dir(pmodule.pyObject):
-                    match_result = pmodule.pyObject.match(env['job'],
-                                                          env['glidein'])
-        except KeyError as e:
-            raise RuntimeError("Error in %s policy module's %s.match(job, glidein): Missing attribute %s" % (loc_str, pmodule.name, e))
-        except Exception as e:
-            raise RuntimeError("Error in %s policy module's %s.match(job, glidein): %s" % (loc_str, pmodule.name, e))
-
-        return
-
-
     # return attribute value in the proper python format
     def extract_attr_val(self, attr_obj):
         return extract_attr_val(attr_obj)
 
-
     def get_subparams_class(self):
         return VOFrontendSubParams
 
-
-    def load_match_policies(self):
-        """
-        Load external match policies for frontend and groups
-        """
-
-        # Load global frontend policy module
-        if self.match.policy_file:
-            self.match_policy_modules['frontend'] = MatchPolicy(self.match.policy_file)
-
-        # Load per group policy module
-        self.match_policy_modules['groups'] = {}
-        for group_name in self.groups.keys():
-            # Only load if the group is enabled
-            policy_file = self.groups[group_name].match.policy_file
-            if self.groups[group_name].enabled and policy_file:
-                work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
-                self.match_policy_modules['groups'][group_name] = \
-                    MatchPolicy(policy_file)
-
-
+    # TODO: to be removed, this method seems unused
     def update_match_attrs(self):
         # Load global match_attrs from externally loaded match_policies
         if self.match_policy_modules['frontend']:

@@ -285,6 +285,59 @@ preset_env () {
 }
 
 
+@test "Verify cvmfs_path_in_cvmfs_literal" {
+    cvmfs_path_in_cvmfs_literal /cvmfs
+    cvmfs_path_in_cvmfs_literal /cvmfs/dir/file
+    ! cvmfs_path_in_cvmfs_literal /cvmfs_dir/file
+}
+
+
+@test "Verify cvmfs_path_in_cvmfs" {
+    CVMFS_MOUNT_DIR=
+    cvmfs_path_in_cvmfs /cvmfs
+    cvmfs_path_in_cvmfs /cvmfs/dir/file
+    ! cvmfs_path_in_cvmfs /cvmfs_dir/file
+    ! cvmfs_path_in_cvmfs /altcvmfs/dir/file
+    CVMFS_MOUNT_DIR=/altcvmfs
+    cvmfs_path_in_cvmfs /altcvmfs/dir/file
+    ! cvmfs_path_in_cvmfs /cvmfs_dir/file
+    CVMFS_MOUNT_DIR=/altcvmfs/
+    cvmfs_path_in_cvmfs /altcvmfs
+    cvmfs_path_in_cvmfs /altcvmfs/dir/file
+    ! cvmfs_path_in_cvmfs /cvmfs_dir/file
+}
+
+
+@test "Verify cvmfs_resolve_path" {
+    CVMFS_MOUNT_DIR=
+    [ $(cvmfs_resolve_path /cvmfs_dir/file) = "/cvmfs_dir/file" ]
+    [ $(cvmfs_resolve_path /cvmfs/dir/file) = "/cvmfs/dir/file" ]
+    [ $(cvmfs_resolve_path /cvmfs) = "/cvmfs" ]
+    CVMFS_MOUNT_DIR=/altcvmfs/
+    [ $(cvmfs_resolve_path /cvmfs_dir/file) = "/cvmfs_dir/file" ]
+    [ $(cvmfs_resolve_path /cvmfs/dir/file) = "/altcvmfs/dir/file" ]
+    [ $(cvmfs_resolve_path /cvmfs) = "/altcvmfs" ]
+}
+
+
+@test "Verify singularity_check_paths" {
+    CVMFS_MOUNT_DIR=
+    run singularity_check_paths "c" /src /dst/dir
+    [ "$output" == "" ]
+    [ "$status" -eq 1 ]
+    run singularity_check_paths "c" /altcvmfs
+    [ "$output" == "" ]
+    [ "$status" -eq 1 ]
+    CVMFS_MOUNT_DIR=/altcvmfs/
+    run singularity_check_paths "c" /altcvmfs
+    [ "$output" == "/altcvmfs," ]
+    [ "$status" -eq 0 ]
+    run singularity_check_paths "cv" /src /altcvmfs/dir/file:opt1
+    [ "$output" == "/src:/altcvmfs/dir/file:opt1," ]
+    [ "$status" -eq 0 ]
+}
+
+
 @test "Verify singularity_make_outside_pwd_list" {
     # discard values w/ different realpath
     run singularity_make_outside_pwd_list "/srv/sub1" /tmp
@@ -419,7 +472,11 @@ mock_singularity_test_bin() {
     mock_singularity_test_bin_control=true  # all tests successful
     GLIDEIN_SINGULARITY_BINARY_OVERRIDE="${tmp_singularity_dir}:/tmp/bin"
     run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
-    echo "part 0: $output" >&3
+    echo "part 0a: $output" >&3
+    [ "$output" = "SLB: 0, True, mock_s_override, $tmp_singularity_bin, 1" ]
+    GLIDEIN_SINGULARITY_BINARY_OVERRIDE="/tmp/bin:${tmp_singularity_dir}:/tmp/bin"
+    run  singularity_locate_bin_wrapped "ppp" "/path/to/image"
+    echo "part 0b: $output" >&3
     [ "$output" = "SLB: 0, True, mock_s_override, $tmp_singularity_bin, 1" ]
     GLIDEIN_SINGULARITY_BINARY_OVERRIDE=$tmp_singularity_bin
     run  singularity_locate_bin_wrapped "ppp" "/path/to/image"

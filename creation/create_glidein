@@ -14,7 +14,9 @@
 from __future__ import print_function
 import os
 import sys
+import shutil
 import string
+import tarfile
 import traceback
 
 STARTUP_DIR = sys.path[0]
@@ -50,8 +52,33 @@ def main(conf):
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
 
-        # copy glidein_startup.sh to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR)
+        # augment glidein_startup.sh, appending the utility files/data to glidein_startup_base.sh as tarball:
+        # create tarball of files to be later sourced and shared between scripts
+        tar_file_list = cgWConsts.STARTUP_FILE_PAYLOAD
+        try:
+            with tarfile.open("tar_utils.tar.gz", "w:gz", dereference=True) as tar_utils:
+                for util_file in tar_file_list:
+                    util_file_path = os.path.join(cgWConsts.WEB_BASE_DIR, util_file)
+                    tar_utils.add(util_file_path, arcname=os.path.basename(util_file_path))
+        except tarfile.TarError as te:
+            print("Unable to pack the startup file payload. TarError: %s" % str(te))
+            sys.exit(1)
+        # append the the tarball to glidein_startup.sh
+        try:
+            with open(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.STARTUP_FILE), "a") as st_file:
+                st_file.write("exit 0\n#EOF\n")
+                with open("tar_utils.tar.gz", "rb") as tar_utils:
+                    shutil.copyfileobj(tar_utils, st_file)
+        except IOError as ioe:
+            print("Unable to append the payload to the startup file. IOError [%d]: %s" % (ioe.errno, ioe.strerror))
+            sys.exit(1)
+        os.remove("tar_utils.tar.gz")
+
+        # copy glidein_startup.sh from work dir (the version w/ the utility files) to the stage area for cloud entries
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE,
+                           glidein_dicts_obj.main_dicts.stage_dir,
+                           glidein_dicts_obj.main_dicts.work_dir,
+                           True)
 
         # copy helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)

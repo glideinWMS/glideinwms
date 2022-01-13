@@ -1,4 +1,4 @@
-FROM mambelli/gwms-ci-sl7
+FROM glideinwms/gwms-ci-sl7
 COPY entrypoint.sh /entrypoint.sh
 RUN groupadd -g 500 glideinwms-ci
 RUN useradd -u 500 -g 500 glideinwms-ci

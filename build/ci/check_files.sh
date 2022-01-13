@@ -1,7 +1,7 @@
 #!/bin/bash
 mydir="$(dirname $0)"
 
-pushd "${mydir}/../.." > /dev/null
+pushd "${mydir}/../.." > /dev/null || { echo "Unable to cd to the repository root directory. Aborting"; exit 1; }  
 echo "Checking files starting from: $(pwd)"
 echo "List of non ASCII files - some known directories are skipped:"
 find . -type f -not -path "*/.git/*" -not -path "*.tar.gz" -not -path "*/.tox/*" -not -path "*/test/bats/lib/*" -not -path "*/doc/api/html/*" -not -path "*/images/*" -not -path "*/doc/papers/*" -not -path "*/unittests/fixtures/factory/work-dir/*" -exec file {} \; | grep -v "ASCII text" | grep -v ": empty"

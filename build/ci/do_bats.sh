@@ -1,4 +1,5 @@
-# Shell source file to be sourced to run Python unit tests and coverage
+#!/bin/bash
+# Shell source file to be sourced to run Python unit tests and coverage (shebang added for linting purposes)
 # To be used only inside runtest.sh (runtest.sh and util.sh functions defined, VARIABLES available)
 # All function names start with do_...
 
@@ -90,7 +91,6 @@ do_count_failures_tap() {
     # >1 - execution error (e.g. 126 wrong permission)
     [[ $1 -eq 0 ]] && return  # should not have been called w/ exit code 0
     local fail=0
-    local lline
     fail_files_list="$fail_files_list $file"
     if [[ $1 -eq 1 ]]; then
         fail="$(echo "$tmp_out" | grep -c "^not ok")"
@@ -98,7 +98,7 @@ do_count_failures_tap() {
     fail_files=$((fail_files + 1))
     fail_all=$((fail_all + fail))
     logerror "Test $file failed ($1): $fail failed tests"
-    return $1
+    return "$1"
 }
 
 do_count_failures() {

@@ -13,7 +13,7 @@ global_args="$*"
 # GWMS_STARTUP_SCRIPT=$0
 GWMS_STARTUP_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 GWMS_PATH=""
-# Relative to the work directory (GWMS_DIR will be the absolute path)
+# Relative to the work directory (GWMS_DIR, gwms_lib_dir, gwms_bin_dir and gwms_exec_dir will be the absolute paths)
 # bin (utilities), lib (libraries), exec (aux scripts to be executed/sourced, e.g. pre-job)
 GWMS_SUBDIR=".gwms.d"
 
@@ -41,7 +41,8 @@ get_data() {
 source_data() {
     # Source the specified data, which is appended as tarball, without saving it
     # 1: selected file
-    local data="$(get_data "$1")"
+    local data
+    data=$(get_data "$1")
     [[ -n "$data" ]] && eval "$data"
 }
 
@@ -102,6 +103,10 @@ warn() {
     echo "WARN $(date)" "$@" 1>&2
 }
 
+logdebug() {
+    echo "DEBUG $(date)" "$@" 1>&2
+}
+
 # Functions to start multiple glideins
 copy_all() {
    # 1:prefix (of the files to skip), 2:directory
@@ -140,12 +145,12 @@ do_start_all() {
             g_dir="glidein_dir${i}"
             copy_all glidein_dir "${g_dir}"
             echo "Starting glidein ${i} in ${g_dir} ${multiglidein_launcher:+"with launcher ${GLIDEIN_MULTIGLIDEIN_LAUNCHER}"}"
-            pushd "${g_dir}"
+            pushd "${g_dir}" || echo "Unable to cd in start directory"
             chmod +x "${startup_script}"
             # shellcheck disable=SC2086
             ${multiglidein_launcher} "${startup_script}" -multirestart "${i}" ${global_args} &
             GWMS_MULTIGLIDEIN_CHILDS="${GWMS_MULTIGLIDEIN_CHILDS} $!"
-            popd
+            popd || true
         done
         echo "Started multiple glideins: ${GWMS_MULTIGLIDEIN_CHILDS}"
     fi
@@ -373,7 +378,7 @@ print_tail() {
   final_result_simple="$2"
   final_result_long="$3"
 
-  glidein_end_time="$(date +%s)"
+  glidein_end_time=$(date +%s)
   let total_time=${glidein_end_time}-${startup_time}
   echo "=== Glidein ending $(date) (${glidein_end_time}) with code ${exit_code} after ${total_time} ==="
   echo ""
@@ -405,9 +410,12 @@ glidien_cleanup() {
             warn "Skipping cleanup, disabled via GLIDEIN_DEBUG_OPTIONS"
         else
             if [ "${work_dir_created}" -eq "1" ]; then
+                # rm -fR does not remove directories read only for the user
+                find "${work_dir}" -type d -exec chmod u+w {} \;
                 rm -fR "${work_dir}"
             fi
             if [ "${glide_local_tmp_dir_created}" -eq "1" ]; then
+                find "${glide_local_tmp_dir}" -type d -exec chmod u+w {} \;
                 rm -fR "${glide_local_tmp_dir}"
             fi
         fi
@@ -1423,6 +1431,14 @@ fetch_file() { # Changes will start here!!!
 }
 
 fetch_file_try() {
+    # Verifies if the file should be downloaded and acted upon (extracted, executed, ...) or not
+    # There are 2 mechanisms to control the download
+    # 1. tar files have the attribute "cond_attr" that is a name of a variable in glidein_config.
+    #    if the named variable has value 1, then the file is downloaded. TRUE (default) means always download
+    #    even if the mechanism is generic, there is no way to specify "cond_attr" for regular files in the configuration
+    # 2. if the file name starts with "gconditional_AAA_", the file is downloaded only if a variable GLIDEIN_USE_AAA
+    #    exists in glidein_config and the value is not empty
+    # Both conditions are checked. If either one fails the file is not downloaded
     fft_id="$1"
     fft_target_fname="$2"
     fft_real_fname="$3"
@@ -1433,20 +1449,27 @@ fetch_file_try() {
     fft_config_out="$8"
     fft_time="$9"
 
-    if [ "${fft_config_check}" = "TRUE" ]; then
-        # TRUE is a special case
-        fft_get_ss=1
-    else
+    if [[ "${fft_config_check}" != "TRUE" ]]; then
+        # TRUE is a special case, always downloaded and processed
+        local fft_get_ss
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
+        # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
+        [[ "${fft_get_ss}" != "1" ]] && return 0
+        # TODO: what if fft_get_ss is not 1? nothing, still skip the file? 
     fi
 
-    # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
-    if [ "${fft_get_ss}" = "1" ]; then
-       fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_configout}" "${fft_period}" "${fft_cc_prefix}" "${fft_time}"
-       fft_rc=$?
+    local fft_base_name=$(basename "${fft_real_fname}")
+    if [[ "${fft_base_name}" = gconditional_* ]]; then
+        local fft_condition_attr_val
+        local fft_condition_attr="${fft_base_name#gconditional_}"
+        fft_condition_attr="GLIDEIN_USE_${fft_condition_attr%%_*}"
+        fft_condition_attr_val=$(grep -i "^${fft_condition_attr} " glidein_config | cut -d ' ' -f 2-)
+        # if the variable fft_condition_attr is not defined or empty, do not download
+        [[ -z "${fft_condition_attr_val}" ]] && return 0
     fi
 
-    return ${fft_rc}
+    fetch_file_base "${fft_id}" "${fft_target_fname}" "${fft_real_fname}" "${fft_file_type}" "${fft_config_out}" "${fft_period}" "${fft_cc_prefix}" "${fft_time}"
+    # returning the exit code of fetch_file_base
 }
 
 perform_wget() {
@@ -1591,6 +1614,7 @@ perform_curl() {
 }
 
 fetch_file_base() {
+    # Perform the file download and corresponding action (untar, execute, ...)
     ffb_id="$1"
     ffb_target_fname="$2"
     ffb_real_fname="$3"
@@ -1628,7 +1652,7 @@ fetch_file_base() {
     <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
   </result>
   <detail>
-     An unknown error occured.
+     An unknown error occurred.
   </detail>
 </OSGTestResult>" > otrx_output.xml
     user_agent="glidein/${glidein_entry}/${condorg_schedd}/${condorg_cluster}.${condorg_subcluster}/${client_name}"
@@ -1711,8 +1735,8 @@ fetch_file_base() {
         fi
         if [ "${ffb_id}" = "main" ] && [ "${ffb_target_fname}" = "${last_script}" ]; then  # last_script global for simplicity
             echo "Skipping last script ${last_script}" 1>&2
-        elif [[ -n "${cleanup_script}" && "${ffb_target_fname}" = ${cleanup_script} ]]; then  # cleanup_script global for simplicity
-            #CLEANUP
+        elif [[ "${ffb_target_fname}" = "cvmfs_umount.sh" ]] || [[ -n "${cleanup_script}" && "${ffb_target_fname}" = "${cleanup_script}" ]]; then  # cleanup_script global for simplicity
+            # TODO: temporary OR checking for cvmfs_umount.sh; to be removed after Bruno's ticket on cleanup [#25073] CLEANUP
             echo "Skipping cleanup script ${ffb_outname} (${cleanup_script})" 1>&2
             cp "${ffb_outname}" "$gwms_exec_dir/cleanup/${ffb_target_fname}"
             chmod a+x "${gwms_exec_dir}/cleanup/${ffb_target_fname}"
@@ -1801,7 +1825,8 @@ fetch_file_base() {
 }
 
 # Adds $1 to GWMS_PATH and update PATH
-function add_to_path {
+add_to_path() {
+    logdebug "Adding to GWMS_PATH: $1"
     local old_path=":${PATH%:}:"
     old_path="${old_path//:$GWMS_PATH:/}"
     local old_gwms_path=":${GWMS_PATH%:}:"
@@ -1846,7 +1871,7 @@ do
       warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file} (wc: $(wc < "${gs_id_work_dir}/${gs_id_descript_file}" 2>/dev/null))."
       glidein_exit 1
   fi
-  signature_file="$(echo "${signature_file_line}" | cut -s -f 2-)"
+  signature_file=$(echo "${signature_file_line}" | cut -s -f 2-)
 
   # Fetch signature file
   gs_id_signature="$(get_signature ${gs_id})"
@@ -1958,7 +1983,7 @@ do
     # Files to go into the GWMS_PATH
     if [ "$gs_file_id" = "main at_file_list" ]; then
         # setup here to make them available for other setup scripts
-        add_to_path "$PWD/$gwms_bin_dir"
+        add_to_path "$gwms_bin_dir"
         # all available now: gwms-python was in main,file_list; condor_chirp is in main,at_file_list
         for file in "gwms-python" "condor_chirp"
         do

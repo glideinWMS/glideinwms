@@ -163,6 +163,12 @@ def process_global(classad, glidein_descript, frontend_descript):
             cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
             security_class = sym_key_obj.decrypt_hex(classad[key])
             username = frontend_descript.get_username(frontend_sec_name, security_class)
+            if username == None:
+                logSupport.log.error(("Cannot find a mapping for credential %s of client %s. Skipping it. The security"
+                                     "class field is set to %s in the frontend. Please, verify the glideinWMS.xml and"
+                                     " make sure it is mapped correctly") % (cred_id, classad["ClientName"], security_class))
+                continue
+
 
             msg = "updating credential for %s" % username
             logSupport.log.debug(msg)

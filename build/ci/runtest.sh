@@ -52,12 +52,13 @@ find_aux() {
     else
         [[ -e "$GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/$1" ]] && aux_file="$GLIDEINWMS_SRC/$SCRIPTS_SUBDIR/$1"
     fi
-    if [[ "x$2" = xsource ]]; then
+    if [[ "$2" = source ]]; then
         if [[ ! -e  "${aux_file}" ]]; then
-            [[ "x$3" = xnoexit ]] && { false; return; }
+            [[ "$3" = noexit ]] && { false; return; }
             logerror "${1} not found!"
             logexit "script running in $(pwd), expects a ${1} file there or in the glideinwms src tree"
         fi
+        # shellcheck source=./utils.sh
         if ! . "${aux_file}" ; then
             logexit "${aux_file} contains errors!"
         fi
@@ -91,6 +92,7 @@ ${filename} [options] COMMAND [command options]
   -v          verbose
   -u LOGFILE  Log file path (default: OUT_DIR/gwms.DATE.log)
   -i          run in place without checking out a branch (default)
+  -I          like -i but make sure that big files are taken care of
   -f          force git checkout of branch when processing multiple branches
   -b BNAMES   comma separated list of branches that needs to be inspected
               (branches from glideinwms git repository, quotes are needed if the branch name contains spaces)
@@ -137,7 +139,7 @@ get_shell_files() {
     # Return to stdout a space separated list of Shell files with .sh/.source extension
     # All Shell files
     local src_dir="${1:-.}"
-    echo $(find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -print -o -name '*.source' -print)
+    find "$src_dir" -path "${src_dir}"/.git -prune -o -name '*.sh' -print -o -name '*.source' -print
 }
 
 
@@ -145,7 +147,7 @@ get_python_files() {
     # Return to stdout a space separated list of Python files with .py extension
     # All Python files
     local src_dir="${1:-.}"
-    echo $(find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py' -print)
+    find "${src_dir}" -path "${src_dir}"/.git -prune -o -path "${src_dir}"/.tox -prune -o -name '*.py' -print
 }
 
 
@@ -200,9 +202,10 @@ parse_options() {
     SHOW_FILES=
     SUMMARY_TABLE_FORMAT=
     TESTLOG_FILE=
+    INPLACE_BIGFILES=
     TEST_PYENV_DIR=
     TEST_PYENV_REUSE=
-    while getopts ":hnlvu:ifb:B:so:Cc:Tt:Ee:z:w:" option
+    while getopts ":hnlvu:iIfb:B:so:Cc:Tt:Ee:z:w:" option
     do
         case "${option}"
         in
@@ -212,6 +215,7 @@ parse_options() {
         v) VERBOSE=yes;;
         u) TESTLOG_FILE="$OPTARG";;
         i) INPLACE=yes;;
+        I) INPLACE=yes; INPLACE_BIGFILES=yes;;
         f) GITFLAG='-f';;
         b) BRANCH_LIST="$OPTARG";;
         B) BRANCHES_FILE="$OPTARG";;
@@ -226,8 +230,8 @@ parse_options() {
         z) TEST_CLEAN="$OPTARG";;
         w) SUMMARY_TABLE_FORMAT="$OPTARG";;
         : ) logerror "illegal option: -$OPTARG requires an argument"; help_msg 1>&2; exit 1;;
-        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         \?) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
+        *) logerror "illegal option: -$OPTARG"; help_msg 1>&2; exit 1;;
         esac
     done
     # Validate git and branching options
@@ -314,7 +318,7 @@ log_join() {
     # use the cell style to grep for lines
     # 1. output file w/ joint HTML
     # 2..N HTML files to join
-    [[ $# -lt 2 ]] && { logerror "Wrong arguments for log_join: $@"; return; }
+    [[ $# -lt 2 ]] && { logerror "Wrong arguments for log_join: $*"; return; }
     [[ $# -eq 2 ]] && { cp "$2" "$1"; return; }
     mail_init "$1"
     mail_add "$(sed ';</tr>;Q' "$2"| tail -n +2)"
@@ -402,7 +406,8 @@ write_summary_table() {
         loginfo "Writing new summary table: $summary_table_file"
         echo "$first_line" > "$summary_table_file"
     fi
-    local table_tmp="$(do_table_headers)"
+    local table_tmp
+    table_tmp="$(do_table_headers)"
     if [[ -n "$table_tmp" ]]; then
         # protect against methods not implemented in COMMAND
         for i in ${branches_list_noslash//,/ }; do
@@ -426,7 +431,8 @@ process_branch() {
     # 1. git_branch, branch name or LOCAL (for in place processing)
     # 2... command line parameters
     local git_branch="$1"
-    local branch_no_slash=$(echo "${git_branch}" | sed -e 's/\//_/g')
+    local branch_no_slash
+    branch_no_slash=$(echo "${git_branch}" | sed -e 's/\//_/g')
     local outfile="${OUT_DIR}"/gwms.${branch_no_slash}.${COMMAND}
     local exit_code
     shift
@@ -575,6 +581,23 @@ do_check_requirements() { true; }
 # Alternative to do_git_init_command to run 'git submodule update --init --recursive' when needed:
 # do_get_git_clone_options() { echo "--recurse-submodules"; } AND do_get_git_checkout_options() { ?; }
 do_git_init_command() { true; }
+# Functions expanding bigfiles. Replace if special handling is needed (e.g. link substitution)
+bigfiles_pre() {
+    # Prepare bigfiles. In the root dir of the repo
+    [[ ! -e build/bigfiles/bigfiles.sh ]] && return
+    local cmd_out
+    logstep bigfiles
+    if ! cmd_out=$(./build/bigfiles/bigfiles.sh -pv); then
+        logdebug "$cmd_out"
+        logwarn "Failed to setup big files. Continuing"
+    else
+        logdebug "$cmd_out"
+        logreportok "BIGFILES"
+    fi
+}
+# Cleanup bigfiles. In the root dir of the repo. Nothing to do if bigfiles_pre did not replace the links
+bigfiles_post() { true; }
+
 # Empty logging commands
 do_log_init() { false; }
 do_log_branch() { true; }
@@ -611,7 +634,8 @@ _main() {
     # Setup the build environment
     filename="$(basename $0)"
     full_command_line="$*"
-    export MYDIR=$(dirname $0)
+    MYDIR=$(dirname $0)
+    export MYDIR
 
     OUT_DIR=
     TEST_CLEAN=onsuccess
@@ -694,8 +718,6 @@ _main() {
                 logexit "failed to clone $REPO" 1 SETUP
             fi
         fi
-        # Adding do_git_init_command also here in case -i is used
-        [[ -n "$INPLACE" ]] && ( cd glideinwms && do_git_init_command )
     fi
     
     # After this line the script is in the working directory and the source tree is in ./glideinwms
@@ -719,15 +741,19 @@ _main() {
     # Iterate throughout the git_branches array
     fail_global=0
     
-    cd "${GLIDEINWMS_SRC}"
+    cd "${GLIDEINWMS_SRC}" || logexit "Could not cd to the repository (${GLIDEINWMS_SRC})" 1 SETUP
     
     # Initialize and save the email to a file
     log_init "$OUT_DIR/email.txt"
     
     if [[ -n "$INPLACE" ]]; then
         loginfo "Running on local files in glideinwms subdirectory"
+        # Adding do_git_init_command also here for when -i is used
+        do_git_init_command
+        [[ -n "$INPLACE_BIGFILES" ]] && bigfiles_pre
         process_branch LOCAL
         fail_global=$?
+        [[ -n "$INPLACE_BIGFILES" ]] && bigfiles_post
         loginfo "Complete with local files (ec:${fail_global})"
     else
         do_git_init_command
@@ -737,7 +763,7 @@ _main() {
             echo "Start : ${git_branch//\//_}"
             logstep checkout ${git_branch}
             # Back in the source directory in case processing changed the directory
-            cd "${GLIDEINWMS_SRC}"
+            cd "${GLIDEINWMS_SRC}" || logexit "Could not cd to the repository (${GLIDEINWMS_SRC})" 1 SETUP
             loginfo "Now checking out branch $git_branch"
             loglog "GIT_BRANCH=\"$git_branch\""
             if ! git checkout ${GITFLAG} "$git_branch"; then
@@ -762,9 +788,13 @@ _main() {
                 [[ ! "$git_branch" = "$curr_branch" ]] && logwarn "Current branch ${curr_branch} different from expected ${git_branch}, continuing anyway"
                 logreportok "GIT_CHECKOUT"
             fi
+            # Handle bigfiles: bigfiles_pre
+            bigfiles_pre
             # Starting the test
             process_branch "$git_branch" "$@"
             fail=$?
+            # Handle bigfiles: bigfiles_post
+            bigfiles_post
             loginfo "Complete with branch ${git_branch} (ec:${fail})"
             [[ ${fail} -gt ${fail_global} ]] && fail_global=${fail}
             ## CI is using a different mechanism now, commenting these lines
