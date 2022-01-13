@@ -1215,7 +1215,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
     condortoken = "%s.idtoken" % entry.name
-    condortoken_file = os.path.join(submit_credentials.cred_dir, condortoken)
+    condortokenbase = "credential_%s_%s.idtoken" % (client_int_name, entry.name)
+    condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
         (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
@@ -1233,9 +1234,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 os.remove(tmpnm)
     if os.path.exists(condortoken_file):
         if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
-            entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
+            entry.log.warning('failed to add frontend_condortoken %s to the identity credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
 
-    scitoken = "credential_%s.scitoken" % entry.name
+    scitoken = "credential_%s_%s.scitoken" % (client_int_name, entry.name)
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
@@ -1246,25 +1247,25 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             if 'frontend_scitoken' in submit_credentials.identity_credentials:
                 del submit_credentials.identity_credentials['frontend_scitoken']
         else:
-            (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
-            try:
-                entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
-                os.chmod(tmpnm,0600)
-                os.write(fd, scitoken_data)
-                os.close(fd)
-                util.file_tmp2final(scitoken_file, tmpnm)
-            except Exception as err:
-                entry.log.exception('failed to create scitoken: %s' % err)
-            finally:
-                if os.path.exists(tmpnm):
-                     os.remove(tmpnm)
+        (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
+        try:
+            entry.log.info("frontend_scitoken supplied, writing to %s" % scitoken_file)
+            os.chmod(tmpnm,0600)
+            os.write(fd, scitoken_data)
+            os.close(fd)
+            util.file_tmp2final(scitoken_file, tmpnm)
+        except Exception as err:
+            entry.log.exception('failed to create scitoken: %s' % err)
+        finally:
+            if os.path.exists(tmpnm):
+                os.remove(tmpnm)
 
     if os.path.exists(scitoken_file):
         if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
-            entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
+            entry.log.warning('failed to add frontend_scitoken %s to identity credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
     if 'scitoken' in auth_method:
-        if os.path.exists(scitoken_file):
+    	if os.path.exists(scitoken_file):
             if token_util.token_file_expired(scitoken_file):
                 entry.log.warning('frontend_scitoken %s is expired, skipping request' % (scitoken_file))
                 if 'frontend_scitoken' in submit_credentials.identity_credentials:
