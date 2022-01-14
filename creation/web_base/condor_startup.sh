@@ -33,7 +33,7 @@ on_die() {
     [[ -z "$condor_pid_tokill" ]] && condor_pid_tokill=`cat $PWD/condor_master2.pid 2> /dev/null`
     echo "Condor startup received $1 signal ... shutting down condor processes (forwarding $condor_signal to $condor_pid_tokill)"
     [[ -n "$condor_pid_tokill" ]] && kill -s $condor_signal $condor_pid_tokill
-    # $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
+    # "$CONDOR_DIR"/sbin/condor_master -k $PWD/condor_master2.pid
     ON_DIE=1
 }
 
@@ -60,6 +60,9 @@ for v in $condor_vars; do
     unset $v
 done
 echo "Removed condor variables $condor_vars" 1>&2
+# Clearing LD_LIBRARY_PATH to avoid interferences between a local condor and the Glidein one
+# The Glidein's condor is using RPATH
+unset LD_LIBRARY_PATH
 
 # Condor 7.5.6 and above will use the system's gsi-authz.conf.  We don't want that.
 export GSI_AUTHZ_CONF=/dev/null
@@ -1033,7 +1036,7 @@ if [ "$use_multi_monitor" -ne 1 ]; then
       # set the worst case limit
       # should never hit it, but let's be safe and shutdown automatically at some point
       let "monretmins=( $retire_time + $GLIDEIN_Job_Max_Time ) / 60 - 1"
-      $CONDOR_DIR/sbin/condor_master -f -r $monretmins -pidfile $PWD/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
+      "$CONDOR_DIR"/sbin/condor_master -f -r $monretmins -pidfile "$PWD"/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
       ret=$?
       if [ "$ret" -ne 0 ]; then
       echo 'Failed to start monitoring condor... still going ahead' 1>&2
@@ -1063,9 +1066,9 @@ trap_with_arg on_die SIGTERM SIGINT SIGQUIT
 #### STARTS CONDOR ####
 if [[ "$check_only" == "1" ]]; then
     echo "=== Condor started in test mode ==="
-    $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
+    "$CONDOR_DIR"/sbin/condor_master -pidfile "$PWD"/condor_master.pid
 else
-    $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
+    "$CONDOR_DIR"/sbin/condor_master -f -pidfile "$PWD"/condor_master2.pid &
     condor_pid=$!
     # Wait for a few seconds to make sure the pid file is created,
     sleep 5 & wait $!
@@ -1155,7 +1158,7 @@ if [ "$check_only" -eq 1 ]; then
     fi
 
     ## KILL CONDOR
-    KILL_RES=`$CONDOR_DIR/sbin/condor_master -k $PWD/condor_master.pid`
+    KILL_RES=$("$CONDOR_DIR"/sbin/condor_master -k "$PWD"/condor_master.pid)
 fi
 
 # log dir is always different
@@ -1228,7 +1231,7 @@ if [ "$use_multi_monitor" -ne 1 ]; then
         echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
 
         #### KILL CONDOR ####
-        $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid
+        "$CONDOR_DIR"/sbin/condor_master -k "$PWD"/monitor/condor_master.pid
         ####
 
         ret=$?
