@@ -65,7 +65,8 @@ if [[ -z "$RELEASE_BRANCH" ]]; then
     elif [[ $RELEASE = v3_6* ]]; then
         RELEASE_BRANCH=master
     elif [[ $RELEASE = v3_7* ]]; then
-        RELEASE_BRANCH=branch_v3_7
+        # RELEASE_BRANCH=branch_v3_7
+        RELEASE_BRANCH=master
     elif [[ $RELEASE = v3_8* ]]; then
         RELEASE_BRANCH=branch_v3_8
     elif [[ $RELEASE = v3_9* ]]; then
