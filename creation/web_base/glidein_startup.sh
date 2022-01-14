@@ -604,7 +604,7 @@ automatic_work_dir() {
                         )
     unset TMPDIR
 
-    # kb
+    # 1 kB
     disk_required=1000000
 
     for d in "${targets[@]}"; do
@@ -1056,9 +1056,7 @@ if [ -z "${work_dir}" ]; then
     early_glidein_failure "Unable to identify Startup dir for the glidein."
 fi
 
-if [ -e "${work_dir}" ]; then
-    echo >/dev/null
-else
+if [ ! -e "${work_dir}" ]; then
     early_glidein_failure "Startup dir ${work_dir} does not exist."
 fi
 
