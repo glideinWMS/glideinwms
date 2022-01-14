@@ -301,7 +301,7 @@ def manage_common_entry_fields(whitelist_info):
             for ce_hostname, ce_information in site_information.items():
                 for qelem, q_information in ce_information.items():
                     for entry, entry_information in q_information.items():
-                        q_information[entry] = update(entry_information, cef)
+                        q_information[entry] = update(cef, entry_information)
             cef = None
 
 
