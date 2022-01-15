@@ -172,7 +172,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         enc_input_files.append('$ENV(IDTOKENS_FILE)')
 
-        if gridtype != 'ec2':
+        if gridtype not in ['ec2', 'gce']::
             self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
@@ -183,16 +183,18 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
         if os.path.exists(url_dirs_desc_file):
             file_size = os.stat(url_dirs_desc_file)
-            if file_size.st_size:
+            if file_size.st_size > 0:
                 enc_input_files.append(url_dirs_desc_file)
 
-                token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
-                if os.path.exists(token_tgz_file):
-                    enc_input_files.append(token_tgz_file)
-                    token_list.append(token_tgz_file)
+        token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
+        if os.path.exists(token_tgz_file):
+            file_size = os.stat(token_tgz_file)
+            if file_size.st_size > 0:
+                enc_input_files.append(token_tgz_file)
+                token_list.append(token_tgz_file)
 
-                if token_list:
-                    self.add_environment("JOB_TOKENS='"+','.join(token_list)+"'")
+        if token_list:
+            self.add_environment("JOB_TOKENS='"+','.join(token_list)+"'")
 
 
         # Get the list of log recipients specified from the Factory for this entry
@@ -208,7 +210,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
         if gridtype.startswith('batch '):
-            enc_input_files.append('$ENV(X509_USER_PROXY)')
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
@@ -220,7 +221,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 bosco_dir = ''
             self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
                      (gridtype, bosco_dir, gatekeeper.split('@')[-1]))
-            self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)")
+            enc_input_files.append('$ENV(X509_USER_PROXY":/dev/null)')
+            self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:)")
         elif gridtype == "gce":
             self.add(
                 "Grid_Resource", "%s %s $ENV(GRID_RESOURCE_OPTIONS)" %
@@ -367,7 +369,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
     def populate_condorc_grid(self):
         self.add('+TransferOutput', '""')
-        self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
+        self.add('x509userproxy', '$ENV(X509_USER_PROXY:)')
 
     def populate_gce_grid(self):
         self.add("gce_image", "$ENV(IMAGE_ID)")
