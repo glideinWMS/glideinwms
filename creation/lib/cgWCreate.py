@@ -172,22 +172,29 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         enc_input_files.append('$ENV(IDTOKENS_FILE)')
 
-        self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
+        if gridtype not in ['ec2', 'gce']::
+            self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
         # leos token stuff, left it in for now
         token_list = []
         token_basedir = os.path.realpath(os.path.join(os.getcwd(), '..', 'server-credentials'))
         token_entrydir = os.path.join(token_basedir, 'entry_' + entry_name)
-        token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
-        if os.path.exists(token_tgz_file):
-            enc_input_files.append(token_tgz_file)
-            token_list.append(token_tgz_file)
         url_dirs_desc_file = os.path.join(token_entrydir, 'url_dirs.desc')
         if os.path.exists(url_dirs_desc_file):
-            enc_input_files.append(url_dirs_desc_file)
+            file_size = os.stat(url_dirs_desc_file)
+            if file_size.st_size > 0:
+                enc_input_files.append(url_dirs_desc_file)
+
+        token_tgz_file = os.path.join(token_entrydir, 'tokens.tgz')
+        if os.path.exists(token_tgz_file):
+            file_size = os.stat(token_tgz_file)
+            if file_size.st_size > 0:
+                enc_input_files.append(token_tgz_file)
+                token_list.append(token_tgz_file)
+
         if token_list:
-            self.append('environment', "JOB_TOKENS='"+','.join(token_list)+"'")
+            self.add_environment("JOB_TOKENS='"+','.join(token_list)+"'")
 
 
         # Get the list of log recipients specified from the Factory for this entry
@@ -214,6 +221,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 bosco_dir = ''
             self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
                      (gridtype, bosco_dir, gatekeeper.split('@')[-1]))
+            enc_input_files.append('$ENV(X509_USER_PROXY":/dev/null)')
+            self.add_environment("X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME:)")
         elif gridtype == "gce":
             self.add(
                 "Grid_Resource", "%s %s $ENV(GRID_RESOURCE_OPTIONS)" %
@@ -225,7 +234,14 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # set up the grid specific attributes
         if gridtype == 'ec2':
             self.populate_ec2_grid()
-        if gridtype == 'gce':
+            self.populate_standard_grid(
+                rsl,
+                auth_method,
+                gridtype,
+                entry_enabled,
+                entry_name,
+                enc_input_files=None)
+        elif gridtype == 'gce':
             self.populate_gce_grid()
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
@@ -240,18 +256,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
             # next we add the Condor-C additions
             self.populate_condorc_grid()
-        elif gridtype.startswith('batch '):
-            # BOSCO, aka batch *
-            self.populate_batch_grid(rsl, auth_method, gridtype, entry_enabled)
-            enc_input_files.append('$ENV(X509_USER_PROXY)')
-            self.populate_standard_grid(
-                rsl,
-                auth_method,
-                gridtype,
-                entry_enabled,
-                entry_name,
-                enc_input_files)
-            # leo_token was: self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs, token_files)
         else:
             self.populate_standard_grid(
                 rsl,
@@ -260,7 +264,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 entry_enabled,
                 entry_name,
                 enc_input_files)
-            # leo_token was: self.populate_standard_grid(rsl, auth_method, gridtype, token_files)
 
         self.populate_submit_attrs(submit_attrs, gridtype)
         self.populate_glidein_classad(proxy_url)
@@ -353,8 +356,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-    def populate_batch_grid(self, rsl, auth_method, gridtype, entry_enabled):
-        self.append('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
 
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
         for submit_attr in submit_attrs:
@@ -368,7 +369,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
     def populate_condorc_grid(self):
         self.add('+TransferOutput', '""')
-        self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
+        self.add('x509userproxy', '$ENV(X509_USER_PROXY:)')
 
     def populate_gce_grid(self):
         self.add("gce_image", "$ENV(IMAGE_ID)")

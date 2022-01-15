@@ -141,6 +141,18 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         else:
             raise RuntimeError("CondorJDLDictFile append unsupported for key %s (val: %s)!" % (key, val))
 
+    def add_environment(self, val):
+       curenv = self.get('environment')
+       if curenv:
+           if curenv[0] == '"':
+               curenv=curenv[1:]
+           if curenv[-1] == '"':
+               curenv = curenv[:-1]
+           curenv += " %s" % val
+       else:
+           curenv = val
+       self.add('environment', '"'+curenv+'"', True)
+  
     def file_footer(self, want_comments):
         if self.jobs_in_cluster is None:
             return "Queue"
