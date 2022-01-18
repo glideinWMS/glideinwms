@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_7_6_rc1
+# GLIDEINWMS_VERSION 3_7_6_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 51fc4bbf9c34931f1c82a52ba4a7ae8f  ./bigfiles/bigfiles_list.txt
@@ -16,7 +16,7 @@ fb22804dfbbf6116e1eb140190d84ab4  ./creation/lib/cvWConsts.py
 3e83f15935ffe3274bf5c5446de92141  ./creation/lib/cvWCreate.py
 003648b0c16bb7c6b0c3fb740b1e2168  ./creation/lib/cvWDictFile.py
 07a5b63f78f4c3bbd7d921c9191996cc  ./creation/lib/cvWParamDict.py
-925c38b16a5277a195f3d70858f9732d  ./creation/lib/cvWParams.py
+eb8c4c5df46d27bca77ac9a7ee1f573e  ./creation/lib/cvWParams.py
 8141c7cbbffd97736a1f5cef9eb2de69  ./creation/lib/cWConsts.py
 ae2333ebe07b769737de2dd887459dfa  ./creation/lib/cWDictFile.py
 3244664975a1b750ab28ef37b4103db5  ./creation/lib/cWExpand.py
@@ -102,7 +102,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 8fb8ac94ae90f823e4e440264639b9ec  ./creation/web_base/setup_network.sh
 3f1b5c5826a9eb464abcc8b02b6aa005  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
-f4e4309a3d906b470ebade11339ded0f  ./creation/web_base/singularity_lib.sh
+86b9d452e4b935efc5ec268c68de6109  ./creation/web_base/singularity_lib.sh
 d98232e87e9a93efce5951a6a8b52236  ./creation/web_base/singularity_wrapper.sh
 89f3f47232adf4ba6f9a651846cdca0d  ./creation/web_base/smart_partitionable.sh
 f9407a85d48471beea5870de9d87d912  ./creation/web_base/update_proxy.py

@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_7_6_rc1
+# GLIDEINWMS_VERSION 3_7_6_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 51fc4bbf9c34931f1c82a52ba4a7ae8f  ./bigfiles/bigfiles_list.txt
@@ -13,9 +13,9 @@ a8c267df1e36c1c5e266724bc6b75277  ./creation/create_rpm_startup
 1c4efa608122748c0d534efb4b0aa750  ./creation/info_glidein
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 dc3e8a82401691ea1b6eaf55523367c4  ./creation/lib/cgWConsts.py
-8a948143e7c56021237c0c7c348196fc  ./creation/lib/cgWCreate.py
-376ec6f6ede91a03f0f692d360d11e47  ./creation/lib/cgWDictFile.py
-de8bfd6d8eb9bf3beb69846bcc982adf  ./creation/lib/cgWParamDict.py
+0d739083fb33965dc4ad1e3270b0009c  ./creation/lib/cgWCreate.py
+a29d035253b4f3ba36c659517f4d0e0d  ./creation/lib/cgWDictFile.py
+162cc56ae9aff0a5a4c8841ff23f083d  ./creation/lib/cgWParamDict.py
 14b55acbfceddf8458f6f098ea735b0b  ./creation/lib/cgWParams.py
 8141c7cbbffd97736a1f5cef9eb2de69  ./creation/lib/cWConsts.py
 ae2333ebe07b769737de2dd887459dfa  ./creation/lib/cWDictFile.py
@@ -52,7 +52,7 @@ f42cc0c8e83d75ef5debc3e2aec75e8a  ./creation/web_base/condor_config.dedicated_st
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 9b449fb499efa6676ab5ddfd3dffb275  ./creation/web_base/condor_platform_select.sh
-d61e0ca51c2af675066c8aa1e717c788  ./creation/web_base/condor_startup.sh
+e69d73e8312ed74055206557f63ea2b5  ./creation/web_base/condor_startup.sh
 1a391bff6e89466adb00abed42cfe98f  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 0444c292477ee885dd2cefd4728d0f4e  ./creation/web_base/create_mapfile.sh
@@ -85,7 +85,7 @@ f564843c0324a04e9248b1743cbb2598  ./creation/web_base/glidein_cpus_setup.sh
 f168da17276900b3ecb3f1e5b6ca100f  ./creation/web_base/glidein_memory_setup.sh
 9bfaa7635b1ab32d98fc6091de46dcf3  ./creation/web_base/glidein_paths.source
 ab6465250e201c27f167d09b382f7e0a  ./creation/web_base/glidein_sitewms_setup.sh
-54b399ff1b4a20f0d703c289ef155c08  ./creation/web_base/glidein_startup.sh
+4cff7dfe3bd29495d018e4f66d30db22  ./creation/web_base/glidein_startup.sh
 b4a7655cb96ee0b49e9acce646558c94  ./creation/web_base/gwms-python
 07f4886bbe4a452da2b25be6e54a0d95  ./creation/web_base/htchirp.tar.gz
 7729d6cdf743c3a86906e571d1683323  ./creation/web_base/java_setup.sh
@@ -99,7 +99,7 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 3f1b5c5826a9eb464abcc8b02b6aa005  ./creation/web_base/setup_prejob.sh
 7941e4d0b61cb415f3178d22d67d29fc  ./creation/web_base/setup_script.sh
 4ed58f254a50a6d05ec654528442f255  ./creation/web_base/setup_x509.sh
-f4e4309a3d906b470ebade11339ded0f  ./creation/web_base/singularity_lib.sh
+86b9d452e4b935efc5ec268c68de6109  ./creation/web_base/singularity_lib.sh
 958393a01695150f81ccb6f30d591969  ./creation/web_base/singularity_setup.sh
 d98232e87e9a93efce5951a6a8b52236  ./creation/web_base/singularity_wrapper.sh
 89f3f47232adf4ba6f9a651846cdca0d  ./creation/web_base/smart_partitionable.sh
@@ -110,7 +110,7 @@ eca5d183d8a63fb680dee46562a46794  ./creation/web_base/validate_node.sh
 368a7d46eb4e018860a9b1e0a07b2f16  ./factory/glideFactoryCredentials.py
 8726ae6b79f921d3ba618fb640c7c9e4  ./factory/glideFactoryDowntimeLib.py
 fc84bb656bff9c0069a13b7971ec938f  ./factory/glideFactoryEntryGroup.py
-581db275bff9fab00245b172c9c84977  ./factory/glideFactoryEntry.py
+96ab78de044575600bb1515453a35260  ./factory/glideFactoryEntry.py
 d36f0595ebc093447ed5b9ae658e8216  ./factory/glideFactoryInterface.py
 ea0fbd31ccf0cd42e6f65436527b5d11  ./factory/glideFactoryLib.py
 b1bd36643222a41a90d978ef27c53305  ./factory/glideFactoryLogParser.py
@@ -147,7 +147,7 @@ dca88f2b927c71bd1724945f11fec3ce  ./factory/tools/lib/analyze.py
 aab96c1f39e4bddeac51e6297f4a9677  ./factory/tools/lib/gWftLogParser.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 7c8f84982c50a7a865f6115478426676  ./factory/tools/manual_glidein_submit.py
-47d7aec6c33922133973cd03af625a94  ./factory/tools/OSG_autoconf.py
+29e386151edb5cc542bce049899657f0  ./factory/tools/OSG_autoconf.py
 f81c94e02b5e4907e3833aaeef768db4  ./__init__.py
 d7dea2188826d8f2818ea62f736beb94  ./install/glidecondor_addDN
 0c8dd20d4214ba64c842ed376f3803da  ./install/glidecondor_createSecCol
