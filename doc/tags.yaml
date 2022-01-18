@@ -234,7 +234,7 @@ v3_7_5:
         - Automount of CVMFS integrated into glidein script
 
 v3_7_6:
-    Date: Dec 13 2021
+    Date: Jan 18 2022
     Series: Development
     Tarball: False
     Feature:
@@ -242,8 +242,19 @@ v3_7_6:
         - Frontend and factory check expiration of SciTokens
         - Shared port is default for User Collector
         - API to retrieve job information from condor jobID
+        - OSG_autoconf now allows override yaml configuration files
+        - expiration and other validity of JWT tokens checked before use
 
     Bug Fix:
+        - condor_chirp no longer fail when python2 used in job
+        - IDTOKEN issuer changed from collector host to trust domain 
+        - proxy was failing to renew when both SCITOKEN and grid_proxy auth used
+        - OSG_autoconf automatic assignment of submit attributes fixed
+        - OSG_autoconf common entry fields implemented
+        - OSG_autoconf now possible to append instead of replace values
+        - glidein clears LD_LIBRARY_PATH prior to starting HTCondor
+        - JOB_TOKENS no longer set in glidein environment if not needed
+        - IDTOKEN/SCITOKEN auth to bosco sites fixed 
         - improved IDTOKEN revocation procedures
         - SSL added to condor *_AUTHENTICATION_METHODS
         - Possible to have frontend group with only SCITOKEN authentication
