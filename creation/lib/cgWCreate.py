@@ -172,7 +172,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         enc_input_files.append('$ENV(IDTOKENS_FILE)')
 
-        if gridtype not in ['ec2', 'gce']::
+        if gridtype not in ['ec2', 'gce']:
             self.add('+SciTokensFile', '"$ENV(SCITOKENS_FILE)"')
 
         # Folders and files of tokens for glidein logging authentication
