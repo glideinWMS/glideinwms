@@ -1,9 +1,12 @@
 [submodule "test/bats/lib/bats-support"]
 	path = test/bats/lib/bats-support
 	url = https://github.com/ztombol/bats-support
+	ignore = dirty
 [submodule "test/bats/lib/bats-assert"]
 	path = test/bats/lib/bats-assert
 	url = https://github.com/ztombol/bats-assert
+	ignore = dirty
 [submodule "test/bats/lib/bats-mock"]
 	path = test/bats/lib/bats-mock
 	url = https://github.com/jasonkarns/bats-mock
+	ignore = dirty
