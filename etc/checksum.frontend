@@ -1,9 +1,7 @@
 ###################################################################
-# GLIDEINWMS_VERSION 3_7_6_rc2
+# GLIDEINWMS_VERSION 3_7_6
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
-51fc4bbf9c34931f1c82a52ba4a7ae8f  ./bigfiles/bigfiles_list.txt
-ba748ed3bc5995aee49b1067feaf7999  ./bigfiles/cvmfs_utils.tar.gz
 2abce34f55d02f482210d96e7dafeba8  ./bigfiles/README.md
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 231264d2191650a0137c6ea2df57b31b  ./creation/clone_glidein
@@ -58,7 +56,6 @@ baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 7d55037b80ff02688ca612ee662de407  ./creation/web_base/create_temp_mapfile.sh
 9dcd62b3da2df12a2c708b26d6877cdd  ./creation/web_base/cvmfs_setup.sh
 5a3dd35780b0a34ce7632eb356557ea5  ./creation/web_base/cvmfs_umount.sh
-ba748ed3bc5995aee49b1067feaf7999  ./creation/web_base/cvmfs_utils.tar.gz
 1d8db1a8453b5d5fb720dd27c53b1323  ./creation/web_base/error_augment.sh
 7cd821bb277a44f831a1765fbc1f88b6  ./creation/web_base/error_gen.sh
 0253e25ce6350ee987b8b473015e7dd3  ./creation/web_base/factory/images/factoryCompletedStats.png
