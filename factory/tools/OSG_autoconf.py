@@ -134,14 +134,11 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     edict["submit_attrs"] = {}
     if cpus != "":
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
-        edict["submit_attrs"]["+xcount"] = cpus
-    if walltime != sys.maxsize:
+    if walltime != sys.maxint:
         glide_walltime = walltime * 60 - 1800
         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
-        edict["submit_attrs"]["+maxWallTime"] = walltime
-    if memory != sys.maxsize:
+    if memory != sys.maxint:
         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
-        edict["submit_attrs"]["+maxMemory"] = memory
     return edict
 
 
@@ -308,7 +305,7 @@ def manage_common_entry_fields(whitelist_info):
             for ce_hostname, ce_information in site_information.items():
                 for qelem, q_information in ce_information.items():
                     for entry, entry_information in q_information.items():
-                        q_information[entry] = update(entry_information, cef)
+                        q_information[entry] = update(cef, entry_information)
             cef = None
 
 
@@ -468,6 +465,28 @@ def set_whole_node_entry(entry_information):
         entry_information["attrs"]["GLIDEIN_MaxMemMBs"] = {"type": "string", "value": ""}
     if "GLIDEIN_MaxMemMBs_Estimate" not in entry_information["attrs"]:
         entry_information["attrs"]["GLIDEIN_MaxMemMBs_Estimate"] = {"value": "True"}
+
+    return entry_information
+
+
+def update_submit_attrs(entry_information, attr, submit_attr):
+    """Update submit attribute according to produced attribute if submit attribute is not defined
+
+    Args:
+        entry_information (dict): a dictionary of entry information from white list file
+        attr (str): attribute name
+        submit_attr (str): submit attribute name
+
+    Returns:
+        dict: a dictionary of entry information from white list file with possible updated submit attribute
+    """
+    if attr in entry_information["attrs"] and entry_information["attrs"][attr]:
+        if "submit_attrs" not in entry_information:
+            entry_information["submit_attrs"] = {}
+        if attr == "GLIDEIN_Max_Walltime":
+            entry_information["submit_attrs"][submit_attr] = int(entry_information["attrs"][attr]["value"] / 60) + 30
+        else:
+            entry_information["submit_attrs"][submit_attr] = entry_information["attrs"][attr]["value"]
 
     return entry_information
 

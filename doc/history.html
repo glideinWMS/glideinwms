@@ -999,13 +999,24 @@ COLLECTOR.USE_SHARED_PORT=False
     </ul>
 </li>
 <li>
-  <b>v3_7_6</b> released on Dec 13 2021 (<a href="http://glideinwms.fnal.gov/doc.v3_7_6/index.html">Manual</a>,
+  <b>v3_7_6</b> released on Jan 18 2022 (<a href="http://glideinwms.fnal.gov/doc.v3_7_6/index.html">Manual</a>,
   <a href="http://glideinwms.fnal.gov/doc.v3_7_6/install.html">Installation instructions</a>)<br>  
     <ul>
     <li>Flexible mount point for CVMFS in glidein</li>
     <li>Frontend and factory check expiration of SciTokens</li>
     <li>Shared port is default for User Collector</li>
     <li>API to retrieve job information from condor jobID</li>
+    <li>OSG_autoconf now allows override yaml configuration files</li>
+    <li>expiration and other validity of JWT tokens checked before use</li>
+    <li>Bug Fix: condor_chirp no longer fail when python2 used in job</li>
+    <li>Bug Fix: IDTOKEN issuer changed from collector host to trust domain</li>
+    <li>Bug Fix: proxy was failing to renew when both SCITOKEN and grid_proxy auth used</li>
+    <li>Bug Fix: OSG_autoconf automatic assignment of submit attributes fixed</li>
+    <li>Bug Fix: OSG_autoconf common entry fields implemented</li>
+    <li>Bug Fix: OSG_autoconf now possible to append instead of replace values</li>
+    <li>Bug Fix: glidein clears LD_LIBRARY_PATH prior to starting HTCondor</li>
+    <li>Bug Fix: JOB_TOKENS no longer set in glidein environment if not needed</li>
+    <li>Bug Fix: IDTOKEN/SCITOKEN auth to bosco sites fixed</li>
     <li>Bug Fix: improved IDTOKEN revocation procedures</li>
     <li>Bug Fix: SSL added to condor *_AUTHENTICATION_METHODS</li>
     <li>Bug Fix: Possible to have frontend group with only SCITOKEN authentication</li>

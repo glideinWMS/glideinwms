@@ -1220,7 +1220,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
     condortoken = "%s.idtoken" % entry.name
-    condortoken_file = os.path.join(submit_credentials.cred_dir, condortoken)
+    condortokenbase = "credential_%s_%s.idtoken" % (client_int_name, entry.name)
+    condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
         (fd, tmpnm) = tempfile.mkstemp(dir=submit_credentials.cred_dir)
@@ -1240,9 +1241,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 os.remove(tmpnm)
     if os.path.exists(condortoken_file):
         if not submit_credentials.add_identity_credential('frontend_condortoken', condortoken_file):
-            entry.log.warning('failed to add frontend_condortoken %s to the security credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
+            entry.log.warning('failed to add frontend_condortoken %s to the identity credentials %s' % (condortoken_file,str(submit_credentials.identity_credentials)))
 
-    scitoken = "credential_%s.scitoken" % entry.name
+    scitoken = "credential_%s_%s.scitoken" % (client_int_name, entry.name)
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
@@ -1264,11 +1265,11 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 entry.log.exception('failed to create scitoken: %s' % err)
             finally:
                 if os.path.exists(tmpnm):
-                     os.remove(tmpnm)
+                    os.remove(tmpnm)
 
     if os.path.exists(scitoken_file):
         if not submit_credentials.add_identity_credential('frontend_scitoken', scitoken_file):
-            entry.log.warning('failed to add frontend_scitoken %s to security credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
+            entry.log.warning('failed to add frontend_scitoken %s to identity credentials %s' % (scitoken_file, str(submit_credentials.identity_credentials)))
 
     if 'scitoken' in auth_method:
         if os.path.exists(scitoken_file):

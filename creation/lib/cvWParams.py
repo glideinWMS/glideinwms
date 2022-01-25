@@ -210,7 +210,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['advertise_delay']=('5', 'NR', 'Advertize evert NR loops', None)
         self.defaults['advertise_with_tcp']=('True', 'Bool', 'Should condor_advertise use TCP connections?', None)
         self.defaults['advertise_with_multiple']=('True', 'Bool', 'Should condor_advertise use -multiple?', None)
-        self.defaults['enable_attribute_expansion']=('True', 'Bool', 'Should we expand attributes that contains a dollar?', None)
+        self.defaults['enable_attribute_expansion']=('False', 'Bool', 'Should we expand attributes that contains a dollar?', None)
 
         self.defaults['group_parallel_workers']=('2', 'NR', 'Max number of parallel workers that process the group policies', None)
 
