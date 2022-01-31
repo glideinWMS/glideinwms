@@ -63,9 +63,9 @@ def get_bestfit_pilot(celem, resource):
             dict: A dictionary to be used to generate the xml for this CE
     """
     vos = set()
-    memory = sys.maxsize
-    walltime = sys.maxsize
-    cpus = ""
+    memory = None
+    walltime = None
+    cpus = None
     for osg_catalog in celem["OSG_ResourceCatalog"]:
         if "AllowedVOs" in osg_catalog:
             if len(vos) == 0:
@@ -73,11 +73,17 @@ def get_bestfit_pilot(celem, resource):
             else:
                 vos = vos.intersection(get_vos(osg_catalog["AllowedVOs"]))
         if "Memory" in osg_catalog:
-            memory = min(memory, osg_catalog["Memory"])
+            if memory is None:
+                memory = osg_catalog["Memory"]
+            else:
+                memory = min(memory, osg_catalog["Memory"])
         if "MaxWallTime" in osg_catalog:
-            walltime = min(walltime, osg_catalog["MaxWallTime"])
+            if walltime is None:
+                walltime = osg_catalog["MaxWallTime"]
+            else:
+                walltime = min(walltime, osg_catalog["MaxWallTime"])
         if "CPUs" in osg_catalog:
-            if cpus == "":
+            if cpus == None:
                 cpus = osg_catalog["CPUs"]
             else:
                 cpus = fractions.gcd(cpus, osg_catalog["CPUs"])
@@ -132,12 +138,12 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     if len(vos) > 0:
         edict["attrs"]["GLIDEIN_Supported_VOs"] = {"value": ",".join(vos)}
     edict["submit_attrs"] = {}
-    if cpus != "":
+    if cpus != None:
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
-    if walltime != sys.maxint:
+    if walltime != None:
         glide_walltime = walltime * 60 - 1800
         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
-    if memory != sys.maxint:
+    if memory != None:
         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
     return edict
 
