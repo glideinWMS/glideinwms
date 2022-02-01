@@ -163,7 +163,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 'GLIDEIN_REQUIRED_OS': {'value': 'rhel6'}
              },
             'submit_attrs' : {},
-            'limits' : { 'entry' : { 'glideins' : 1000L}},
+            'limits' : { 'entry' : { 'glideins' : 1000 }},
         }
         self.maxDiff=None
         self.assertEqual(get_information_internal(info), expected_out)
