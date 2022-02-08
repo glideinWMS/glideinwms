@@ -135,8 +135,8 @@ class TestOSGAutoconf(unittest.TestCase):
                 'GLIDEIN_CPUS' : {'value': 1},
                 'GLIDEIN_Supported_VOs' : {'value': 'icecube'},
              },
-            'submit_attrs' : {'Request_GPUs': 2L},
-            'limits' : { 'entry' : { 'glideins' : 1000L}},
+            'submit_attrs' : {'Request_GPUs': 2},
+            'limits' : { 'entry' : { 'glideins' : 1000}},
         }
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['WholeNode'] = {}
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['WholeNode']['DEFAULT_ENTRY'] = {
@@ -163,7 +163,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 'GLIDEIN_REQUIRED_OS': {'value': 'rhel6'}
              },
             'submit_attrs' : {},
-            'limits' : { 'entry' : { 'glideins' : 1000L}},
+            'limits' : { 'entry' : { 'glideins' : 1000 }},
         }
         self.maxDiff=None
         self.assertEqual(get_information_internal(info), expected_out)
