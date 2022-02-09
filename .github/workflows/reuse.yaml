@@ -41,3 +41,4 @@ jobs:
       - name: reuse lint action step
         id: reuse
         uses: fsfe/reuse-action@v1
+        working-directory: ./glideinwms
