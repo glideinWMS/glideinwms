@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - master
-      - branch_v3_9
+      - branch_v3_7
 jobs:
   build_job:
     runs-on: ubuntu-latest

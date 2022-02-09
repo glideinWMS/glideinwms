@@ -6,13 +6,10 @@
 import os
 import sys
 import subprocess
-# not used - import shlex
-# not used - import traceback
-import string
 import shutil
 import platform
 try:
-    import distro
+    import distro  # pylint: disable=import-error
 except:
     distro = None
 

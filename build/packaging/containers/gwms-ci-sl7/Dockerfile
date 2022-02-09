@@ -23,6 +23,9 @@ RUN /usr/bin/yumalldeps.sh -i -y "--enablerepo=osg-contrib" glideinwms-factory g
 # Production version (Python 2)
 RUN /usr/bin/yumalldeps.sh -i glideinwms-factory glideinwms-vofrontend
 
+# python3-devel required by rpmbuild
+RUN yum install -y python-devel python3-devel
+
 # Other sw needed by CI
 # swig is used by pip to install m2crypto (TravisCI)
 RUN yum install -y bats swig

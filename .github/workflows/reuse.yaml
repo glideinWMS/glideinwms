@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: REUSE Licensing test
-on: [pull_request, push]
-branches:
-  - branch_v3_9
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - branch_v3_9
 
 
 jobs:
