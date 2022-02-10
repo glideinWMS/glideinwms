@@ -10,9 +10,10 @@ SPDX-License-Identifier: Apache-2.0
 ![.github/workflows/pyunittest.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pyunittest.yaml/badge.svg)
 ![.github/workflows/pylint.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pylint.yaml/badge.svg)
 ![.github/workflows/bats.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/bats.yaml/badge.svg)
-![.github/workflows/pycodestyle.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/pycodestyle.yaml/badge.svg)
+![.github/workflows/pycodestyle.yaml](https://github.com/GlideinWMS/glideinwms/workflows/PyCodeStyle/badge.svg)
 ![.github/workflows/build.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/build.yaml/badge.svg)
-![.github/workflows/reuse.yaml](https://github.com/GlideinWMS/glideinwms/workflows/.github/workflows/reuse.yaml/badge.svg)
+![.github/workflows/reuse.yaml](https://github.com/GlideinWMS/glideinwms/workflows/REUSE%20Licensing%20test/badge.svg)
+![.github/workflows/docker_build.yml](https://github.com/GlideinWMS/glideinwms/workflows/Build%20and%20Push%20Docker%20image%20(CI)/badge.svg)
 
 The purpose of the GlideinWMS is to provide a simple way to access distributed computing resources, including Grid resources, institutional clusters, commercial clouds (AWS and GCE) and HPC resources.
 GlideinWMS is a Glidein Based WMS (Workload Management System) that works on top of HTCondor. Glideins, aka pilot jobs, are like placeholders, a mechanism by which one or more remote resources temporarily join a local HTCondor pool. The HTCondor system is used for scheduling and job control.
