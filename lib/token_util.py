@@ -1,18 +1,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
 # Project:
 #   glideinWMS
 #
-# File Version:
-#
 # Description:
 #   This is a collection of utility functions for HTCondor IDTOKEN generation
-#
-# Author:
-#   Dennis Box (credit given in comments where source borrowed)
-#
+
+
 import os
 import re
 import socket
@@ -28,10 +23,9 @@ from cryptography.hazmat.primitives import hashes
 from glideinwms.lib.subprocessSupport import iexe_cmd
 from glideinwms.lib import logSupport
 
-"""
-2/3 compatibility helpers
-Inspired by http://python3porting.com/problems.html#nicer-solutions
-"""
+
+# 2/3 compatibility helpers
+# Inspired by http://python3porting.com/problems.html#nicer-solutions
 
 if sys.version_info[0] < 3:
     def byt(x):

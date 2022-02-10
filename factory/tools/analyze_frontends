@@ -6,7 +6,6 @@
 # analyze_frontends
 # Focuses mostly on Client Info
 
-# from __future__ import print_function
 import os
 import sys
 import getopt
@@ -327,8 +326,7 @@ Status Attributes (Clients) analysis for %s - %s
         
      title = ("Past %.1f hours" % (float(period)/3600))
 
-     print(
-"""----------------------------------------
+     print("""----------------------------------------
 %s:
 
 Registered:     %s

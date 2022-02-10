@@ -56,8 +56,7 @@ def blockprint(title,d,p,pd):
     else:
         avg_len=float('NaN')
 
-    print(
-"""
+    print("""
 %sGlideins: %s%s
 %sJobs: %d (Avg jobs/glidein: %.2f, avg job len: %.2fh) 
 
@@ -90,6 +89,8 @@ LINEPRINT_HEADER_DIV=LINEPRINT_HEADER_FMT% (
                      "----------", "---","---","---","---","---","---","---","---","---","---")
 LINEPRINT_HEADER=LINEPRINT_HEADER_FMT% (
                  "", "strt","fval","0job","val","idle","wst","badp","waste","time","total")
+
+
 def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attribute,min_limit,totals=None):  
     if g==1:
        s = 'Lasted'

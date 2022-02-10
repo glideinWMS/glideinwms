@@ -95,16 +95,6 @@ v3_6_2:
     - Adjust size of ClusterId and ProcessId fields for the condor_q custom format
     - Total of frontend info is 0 in Factory monitring
 
-v3_7:
-  Date: March 31, 2020
-  Series: Development
-  Tarball: true
-  Feature:
-    - Includes all features and fixes of 3.6.2
-    - Use of HTCondor token-auth for Glideins authentication
-    - Added secure logging channel
-    - Refactored glidien_startup.sh to separate out the code in heredoc sections and improve code quality
-
 v3_6_3:
   Date: July 16, 2020
   Series: Stable

@@ -15,15 +15,13 @@ import unittest
 module_globals = globals()
 unittest_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
 
-"""
-Check to see if $GLIDEINWMS_LOCATION is defined.  If it is, use that as the
-base directory for glideinWMS source code.  If not, then assume the source is
-one level above the current directory.  The reason of this is so that a
-developer can write and execute unittests without having to setup a special
-environment.  However, on nmi, the location of the tests may or may not be
-tied to the location of glideinWMS source.  On nmi, the $GLIDEINWMS_LOCATION
-will be defined instead.
-"""
+# Check to see if $GLIDEINWMS_LOCATION is defined.  If it is, use that as the
+# base directory for glideinWMS source code.  If not, then assume the source is
+# one level above the current directory.  The reason of this is so that a
+# developer can write and execute unittests without having to setup a special
+# environment.  However, on nmi, the location of the tests may or may not be
+# tied to the location of glideinWMS source.  On nmi, the $GLIDEINWMS_LOCATION
+# will be defined instead.
 if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "lib"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory"))

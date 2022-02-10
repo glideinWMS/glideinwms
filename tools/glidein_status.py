@@ -95,15 +95,6 @@ def entry_cmp(x, y):
     return 0
 
 
-"""
-    print " -bench        : Print out the benchmarking numbers, too"
-    print " -total        : Print out only the totals (skip details)"
-    print " -site         : Summarize by site (default by entry name)"
-    print " -pool         : Same as -pool in condor_status"
-    print " -constraint   : Same as -constraint in condor_status"
-"""
-
-
 def get_opts():
     parser = argparse.ArgumentParser(description='Equivalent to condor_status but with glidein specific info')
     parser.add_argument('-gatekeeper', '--gatekeeper', dest='want_gk',

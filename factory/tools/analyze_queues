@@ -335,8 +335,7 @@ Status Attributes analysis for %s - %s
      p = period_data[period]
      status_total = p['StatusRunning'] + p['StatusHeld'] + p['StatusIdle'] + p['StatusIdleOther']+p['StatusPending']+p['StatusWait']+p['StatusStageIn']+p['StatusStageOut']
 
-     print(
-"""----------------------------------------
+     print("""----------------------------------------
 %s:
 
 Status Running:  %s 
@@ -399,11 +398,9 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % x)
 Frontend stats for the past %s hours, units = %s.\n""" % (x,units[frontend_mode-1])) 
       list_print("", zero_supp, frontend_data[period],sorting,attr_list,sort_attribute,divs[frontend_mode-1])
 
-
 ################################################################################
 #    Print Key
 ################################################################################
-
 
    print("""-----------------------------------
 LEGEND:
