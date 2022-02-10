@@ -229,7 +229,7 @@ def write_one_rrd(name, updated, data, fact=0):
                 val_dict["%s%s" % (tp_str, a)] = None
 
     for tp in list(data.keys()):
-        # type - status or requested
+        # values (RRD type) - Status or Requested
         if not (tp in list(frontend_status_attributes.keys())):
             continue
         if not (tp in list(type_strings.keys())):

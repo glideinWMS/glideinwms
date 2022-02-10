@@ -258,7 +258,7 @@ def aggregateStatus(in_downtime):
     # initialize the RRD dictionary, so it gets created properly
     val_dict = {}
     for tp in list(global_total.keys()):
-        # type - status or requested
+        # values (RRD type) - Status or Requested
         if not (tp in list(status_attributes.keys())):
             continue
 
@@ -444,7 +444,7 @@ def aggregateStatus(in_downtime):
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
     # Total rrd across all frontends and factories
     for tp in global_total:
-        # type - status or requested
+        # values (RRD type) - Status or Requested
         if not (tp in list(status_attributes.keys())):
             continue
 
@@ -465,7 +465,7 @@ def aggregateStatus(in_downtime):
     for fe in list(status_fe['frontends'].keys()):
         glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s" % ("frontend_" + fe))
         for tp in list(status_fe['frontends'][fe].keys()):
-            # type - status or requested
+            # values (RRD type) - Status or Requested
             if not (tp in list(type_strings.keys())):
                 continue
             tp_str = type_strings[tp]

@@ -1,13 +1,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-#
-# Project:
-#   glideinWMS
-#
-# File Version:
-#
-
 """pubCrypto - This module defines classes to perform public key cryptography
 
 It uses M2Crypto: https://github.com/mcepl/M2Crypto
@@ -32,6 +25,10 @@ import binascii
 from . import defaults
 
 
+def passphrase_callback(v:bool, prompt1: str = 'Enter passphrase:', prompt2: str = 'Verify passphrase:'):
+   str3 = prompt1+prompt2
+   pass
+
 def _default_callback(*args):
     """Return a dummy passphrase
 
@@ -39,8 +36,8 @@ def _default_callback(*args):
     Used as a callback in the :mod:M2Crypto module:
         A Python callable object that is invoked to acquire a passphrase with which to unlock the key.
         The default is :func:M2Crypto.util.passphrase_callback ::
-            def passphrase_callback(v, prompt1='Enter passphrase:', prompt2='Verify passphrase:'):
-                # type: (bool, str, str) -> Optional[str]
+            def passphrase_callback(v: bool, prompt1: str = 'Enter passphrase:', prompt2: str = 'Verify passphrase:'
+                                   ): -> Optional[str]
 
     Args:
         *args:

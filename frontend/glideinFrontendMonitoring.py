@@ -347,7 +347,7 @@ class groupStats:
                 'Requested':'Req'
             }
 
-        #init, so that all get created properly
+        # init, so that all get created properly
         for tp in list(self.attributes.keys()):
             if tp in list(type_strings.keys()):
                 tp_str=type_strings[tp]
@@ -357,7 +357,7 @@ class groupStats:
 
 
         for tp in data:
-            # type - Jobs,Slots
+            # values (RRD type) - Jobs, Slots
             if not (tp in list(self.attributes.keys())):
                 continue
             if not (tp in list(type_strings.keys())):
@@ -371,7 +371,7 @@ class groupStats:
             for a in list(fe_el_tp.keys()):
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
-                    if not isinstance(a_el, dict): # ignore subdictionaries
+                    if not isinstance(a_el, dict):  # ignore subdictionaries
                         val_dict["%s%s"%(tp_str, a)]=a_el
 
         monitoringConfig.establish_dir("%s"%name)
@@ -579,7 +579,7 @@ class factoryStats:
 
             val_dict={}
 
-            #init, so that all get created properly
+            # init, so that all get created properly
             for tp in list(self.attributes.keys()):
                 tp_str=type_strings[tp]
                 attributes_tp=self.attributes[tp]
@@ -588,7 +588,7 @@ class factoryStats:
 
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
-                # type - Status, Requested or ClientMonitor
+                # values (RRD type) - Status, Requested or ClientMonitor
                 if not (tp in list(self.attributes.keys())):
                     continue
 
@@ -600,7 +600,7 @@ class factoryStats:
                 for a in list(fe_el_tp.keys()):
                     if a in attributes_tp:
                         a_el=fe_el_tp[a]
-                        if not isinstance(a_el, dict): # ignore subdictionaries
+                        if not isinstance(a_el, dict):  # ignore subdictionaries
                             val_dict["%s%s"%(tp_str, a)]=a_el
 
             monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,

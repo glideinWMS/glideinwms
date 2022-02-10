@@ -643,7 +643,7 @@ class condorQStats:
 
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
-                # type - Status, Requested or ClientMonitor
+                # values (RRD type) - Status, Requested or ClientMonitor
                 if not (tp in list(self.attributes.keys())):
                     continue
 

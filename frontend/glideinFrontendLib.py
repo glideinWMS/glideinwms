@@ -717,7 +717,7 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
     # Partitionable slots are *always* idle
     # The frontend only counts them when all the subslots have been
     # reclaimed (HTCondor sets TotalSlots == 1)
-    # type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
+    #   type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
     ###########################################################################
 
     if want_glideins_only:
