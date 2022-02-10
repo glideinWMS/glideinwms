@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Script to check if all the local branches have been pushed to the remote repository 
+# Script to check if all the local branches have been pushed to the remote repository
 # See help_msh for more information
 
 REMOTE=origin

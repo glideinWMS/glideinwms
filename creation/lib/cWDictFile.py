@@ -69,7 +69,7 @@ class DictFile:
         """
         self.dir = dir
         self.fname = fname
-        
+
         if fname_idx is None:
             fname_idx = fname
         self.fname_idx = fname_idx
@@ -172,7 +172,7 @@ class DictFile:
         File permission is 644, to avoid accidental execution of configuration files
 
         If dir and/or fname are not specified, use the defaults specified in __init__
-        
+
         Args:
             dir (str): folder containing the dictionary, override the object value
             fname (str): file name (the file path is the concatenation of dir and fname), override the object value
@@ -302,14 +302,14 @@ class DictFile:
         return data
 
     def load(self, dir=None, fname=None,
-             change_self=True,        
+             change_self=True,
              erase_first=True,
              set_not_changed=True):
         """
 
-        if dir and/or fname are not specified, use the defaults specified in __init__, 
+        if dir and/or fname are not specified, use the defaults specified in __init__,
         if they are, and change_self is True, change the self.
-        
+
         Args:
             dir:
             fname:
@@ -762,7 +762,7 @@ class SummarySHA1DictFile(DictFile):
         return DictFile.add(self, key, val, allow_overwrite)
 
     def add_from_file(self, filepath,
-                      fname2=None,  
+                      fname2=None,
                       allow_overwrite=False,
                       key=None):
         """Add a file and its SHA1 signature to a summary dictionary
@@ -1076,7 +1076,7 @@ class FileDictFile(SimpleFileDictFile):
                      allow_overwrite=False,
                      allow_overwrite_placeholder=True):
         """Add a file to the list, the content is provided separately (not in the val tuple)
-        
+
         Args:
             key (str): file ID
             val (tuple): lists of 6 or 7 components (see class definition)
@@ -1136,7 +1136,7 @@ class FileDictFile(SimpleFileDictFile):
             # Added a safety check that the last element is an attribute and not the value
             # Maybe check also string length or possible values?
             if '\n' in val[-1]:
-                raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % 
+                raise DictFileError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" %
                                     val)
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
@@ -1987,12 +1987,12 @@ class fileDicts:
                  simple_work_dir=False,
                  log_dir=None):
         """
-        
+
         Args:
-            work_dir: 
-            stage_dir: 
-            sub_list: 
-            workdir_name: 
+            work_dir:
+            stage_dir:
+            sub_list:
+            workdir_name:
             simple_work_dir: if True, do not create the lib and lock work_dir subdirs
             log_dir: used only if simple_work_dir=False
         """

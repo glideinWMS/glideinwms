@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Contains the algorithms needed for attribute expansion
@@ -37,7 +37,7 @@ def expand_DD(qstr,attr_dict):
             attr_str='"%s"'%attr_val.replace('"','\\"')
         qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
     return qstr
-    
+
 ######################
 # expand $(attr) and $$(attr)
 # $(attr) can be recursive
@@ -69,6 +69,6 @@ def expand_DLR(qstr,attr_dict):
         # recursevely expand any $ and $$ contained in the referenced attribute
         attr_str=expand_DLR(str(attr_dict[attr_name]),t_attr_dict)
         del t_attr_dict
-        
+
         qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
     return qstr

@@ -23,8 +23,8 @@ LogDir 	server-log
 ClientLogBaseDir 	client-log
 ClientProxiesBaseDir 	/var/lib/gwms-factory/client-proxies
 DowntimesFile 	/var/lib/gwms-factory/work-dir/glideinWMS.downtimes
-MonitorDisplayText 	
-MonitorLink 	
+MonitorDisplayText
+MonitorLink
 JobLogRetentionMaxDays 	7.0
 JobLogRetentionMinDays 	3.0
 JobLogRetentionMaxMBs 	100.0

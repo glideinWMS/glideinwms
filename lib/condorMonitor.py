@@ -928,8 +928,8 @@ def xml2list_start_element(name, attrs):
 
 def xml2list_end_element(name):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
-    # The following would be resetting global variables and failing ./test_frontend.py 
-    # xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype = {}  
+    # The following would be resetting global variables and failing ./test_frontend.py
+    # xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype = {}
     if name == "c":
         xml2list_data.append(xml2list_inclassad)
         xml2list_inclassad = None

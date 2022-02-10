@@ -31,7 +31,7 @@ robust_realpath() {
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
     #  ignore the files named .ignore files
-    #  run all the executable files passing glidein_config ($3) as argument, 
+    #  run all the executable files passing glidein_config ($3) as argument,
     #  source the remaining files if extension is .sh or .source
     # 1- directory scripts to process
     # 2- a modifier to search only in subdirectories (prejob)

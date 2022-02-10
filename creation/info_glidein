@@ -46,14 +46,14 @@ def main(params, flags):
                 outstr += " gridtype: '%s' gatekeeper: '%s'" % (entry_el.data['gridtype'], entry_el.data['gatekeeper'])
                 if entry_el.data['rsl'] is not None:
                     outstr += " rsl: '%s'" % entry_el.data['gridtype']
-                
+
             print("\tEntry '%s'\t%s" % (entry_name, outstr))
 
 
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 def parse_args(argv):
@@ -66,7 +66,7 @@ def parse_args(argv):
             argv = argv[0:1]+argv[2:]
         else:
             break
-            
+
     try:
         params = cgWParams.GlideinParams(usage,os.path.join(STARTUP_DIR, "web_base"), argv)
     except RuntimeError as e:

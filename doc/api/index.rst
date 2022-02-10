@@ -6,7 +6,7 @@ GlideinWMS
 
 Glidein Workload Management System
 
-.. automodule:: glideinwms 
+.. automodule:: glideinwms
    :members:
 
 .. automodule:: glideinwms.factory

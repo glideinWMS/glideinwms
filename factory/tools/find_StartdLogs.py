@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the StartdLogs for a certain date
@@ -63,9 +63,8 @@ def main():
         sys.stdout.write("%s\n"%fname)
         sys.stdout.write("===========================================================\n")
         sys.stdout.write("%s\n"%gWftLogParser.get_CondorLog(fname, 'CondorLog'))
-        
+
 
 
 if __name__ == '__main__':
     main()
- 

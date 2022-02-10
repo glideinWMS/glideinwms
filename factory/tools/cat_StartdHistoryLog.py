@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the StartdHistoryLog for a glidein output file
@@ -27,7 +27,7 @@ USAGE="Usage: cat_StartdHistoryLog.py <logname>"
 def main():
     fname=sys.argv[1]
     condor_log_id="StartdHistoryLog"
-        
+
     try:
         print(gWftLogParser.get_CondorLog(fname, condor_log_id))
     except:
@@ -37,4 +37,3 @@ def main():
 
 if __name__ == '__main__':
     main()
- 

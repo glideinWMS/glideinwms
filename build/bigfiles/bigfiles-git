@@ -78,7 +78,7 @@ fi
 # pushd/popd are not in sh, only bash
 old_dir="$PWD"
 if $INGIT; then
-    if [ -f "$gitdir"/bigfiles/bigfiles_list.txt ]; then    
+    if [ -f "$gitdir"/bigfiles/bigfiles_list.txt ]; then
         #pushd "$gitdir" > /dev/null
         cd "$gitdir"
         "$mydir"/bigfiles.sh -R

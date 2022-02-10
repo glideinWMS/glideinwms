@@ -19,5 +19,3 @@ teardownNotesEnv() {
     echo "** Did not delete $TEMP_DIRECTORY, as test failed **"
   fi
 }
-
-

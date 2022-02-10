@@ -9,13 +9,13 @@ SPDX-License-Identifier: Apache-2.0
 Project:
   glideinWMS
 
-File Version: 
+File Version:
 
 Description:
   Browse the glideinWMS RRDs
 
   Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
+  javascriptrrd/src/lib/rrdJFlot.html
    Original repository: http://javascriptrrd.sourceforge.net/
 -->
 
@@ -26,7 +26,7 @@ Description:
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
     <title id="brtitle">Browse gfactory RRDs</title>
-    
+
     <script type="text/javascript">
 	  var browser_title = "Browse gfactory RRDs";
 	  var page_title = "Browse gfactory RRDs";
@@ -95,15 +95,15 @@ Description:
    <hr>
     <p>Powered by
         <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
+        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and
         <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
     <div id="monitor_footer"></div>
-    
+
     <script type="text/javascript">
 
 	  var rrdOptions = new Array("Status_Attributes", "Log_Counts", "Log_Completed", "Log_Completed_Stats", "Log_Completed_WasteTime");
-	  var ENTRY; 
+	  var ENTRY;
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -148,12 +148,12 @@ Description:
               entries_select.appendChild(new Option(entries[entry],entries[entry]));
               ec_added++;
           } else {
-              if ((ec_added == groups_starting_idx) && (ec_added != 0)){ 
+              if ((ec_added == groups_starting_idx) && (ec_added != 0)){
                   entries_select.appendChild(sep2);
               }
               entries_select.appendChild(new Option(entry,entries[entry]));
               ec_added++;
-          } 
+          }
       }
       setOptions('total');
 
@@ -162,12 +162,12 @@ Description:
       gtype_id=undefined;
       rrd_group_data=[];
       files_loaded = 0;
-	  checkUrl(); 
+	  checkUrl();
 
       function setOptions(entry) {
         var fes = document.getElementById("frontends");
         //Remove frontends from previous entry choices, add back 'total'
-        // and this entry's frontends. 
+        // and this entry's frontends.
         while(fes.childNodes.length>0) {fes.removeChild(fes.firstChild);}
         fes.appendChild(new Option('total','total'));
         for(var frontend in frontend_list[entry]) {
@@ -216,7 +216,7 @@ Description:
       function update_fname_handler(bf) {
           var i_rrd_data=undefined;
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fname+" is not a valid RRD archive!");
           }
@@ -237,12 +237,12 @@ Description:
           }
 
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fname+" is not a valid RRD archive!");
           }
           if (i_rrd_data!=undefined) {
-            rrd_group_data[idx] = new Array(); 
+            rrd_group_data[idx] = new Array();
             rrd_group_data[idx] = i_rrd_data;
             update_fname()
           }
@@ -307,7 +307,7 @@ Description:
 
           for (var i=0; i<en_array.length; i++) {
             //alert("GROUP SELECTED with entry: " + en_array[i]);
-            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
+            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
             try {
               FetchBinaryURLAsync(fn,update_grouped_fname_handler);
             } catch (err) {
@@ -320,72 +320,72 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-		parameterArry = new Array("entry", "frontend", "rrd"); 
+		parameterArry = new Array("entry", "frontend", "rrd");
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
-		group = 0;  
-		var entrySpec; 
+		group = 0;
+		var entrySpec;
 		var infoGroupSpec;
-		urlValid = 0; 
-		paramSpecArry = new Array(); 
+		urlValid = 0;
+		paramSpecArry = new Array();
 		if(url)
 		{
 			url = url.substring(1);
-			urlSplit = url.split('&'); 
-			i = 0; 
+			urlSplit = url.split('&');
+			i = 0;
 			while(i < urlSplit.length)
-			{ 
-				equalSplit = urlSplit[i].split('='); 
+			{
+				equalSplit = urlSplit[i].split('=');
 				if(equalSplit[0] == parameterArry[i])
 				{
 					paramSpecArry[i] = equalSplit[1];
 				}
-				i++; 
+				i++;
 			}
 		}
 		for(i = 0; i< paramSpecArry.length; i++)
 		{
-			counter = 2; 
+			counter = 2;
 			if(i == 0)
 			{
 				for(entry in entries)
 				{
 					if(entry == paramSpecArry[0])
 					{
-						ENTRY = paramSpecArry[0]; 
-						urlValid = 1; 
+						ENTRY = paramSpecArry[0];
+						urlValid = 1;
 						for(j = 0; j< groups.length; j++)
 						{
 							if(entry == groups[j])
 							{
-								document.getElementById("entries").selectedIndex = counter + 1; 
+								document.getElementById("entries").selectedIndex = counter + 1;
                                                                 setOptions(entry);
 								group = 1;
-								break;  
-							}	
+								break;
+							}
 						}
 						if(!group)
 						{
-							document.getElementById("entries").selectedIndex = counter; 
+							document.getElementById("entries").selectedIndex = counter;
                                                         setOptions(entry);
                                                         var frontend = paramSpecArry[1];
-                                                        var fe_list = document.getElementById("frontends").childNodes; 
+                                                        var fe_list = document.getElementById("frontends").childNodes;
                                                         var fe_idx=0;
                                                         for(var k=0;k<fe_list.length;k++) {
 							  if(frontend==fe_list[k].innerHTML) {
 							    fe_idx=k;
 							  }
                                                         }
-                                                        document.getElementById("frontends").selectedIndex = fe_idx; 
+                                                        document.getElementById("frontends").selectedIndex = fe_idx;
 						}
 						break;
-					} 
+					}
 					else if("total" == 	paramSpecArry[0])
 					{
-						urlValid = 1; 
-						document.getElementById("entries").selectedIndex = 0; 
+						urlValid = 1;
+						document.getElementById("entries").selectedIndex = 0;
 						setOptions("total");
 						var frontend = paramSpecArry[1];
-						var fe_list = document.getElementById("frontends").childNodes; 
+						var fe_list = document.getElementById("frontends").childNodes;
 						var fe_idx=0;
 						for(var k=0;k<fe_list.length;k++) {
 						  if(frontend==fe_list[k].innerHTML) {
@@ -393,22 +393,22 @@ Description:
 						  }
 						}
 						document.getElementById("frontends").selectedIndex = fe_idx;
-						break;  	
+						break;
 					}
-					counter++; 
+					counter++;
 				}
 			}
 			else if(i == 2)
 			{
-				child = 1; 
+				child = 1;
 				for(i = 0; i< rrdOptions.length; i++)
 				{
 					if(rrdOptions[i] == paramSpecArry[2])
 					{
 						document.getElementById("rrds").elements[i].checked = true;
-						urlValid = 1; 
+						urlValid = 1;
 					}
-					child+=2;	
+					child+=2;
 				}
 			}
 		}
@@ -422,17 +422,17 @@ Description:
 	function showLink()
 	{
 		constructed = document.URL.split('?');
-		entriesTable = document.getElementById("entries"); 
-                frontendsTable = document.getElementById("frontends"); 
+		entriesTable = document.getElementById("entries");
+                frontendsTable = document.getElementById("frontends");
                 var specifiedEntry;
                 var specifiedFrontend;
-		var specifiedGOption; 
+		var specifiedGOption;
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
 		{
 			if(entriesTable.options[i].selected == true)
 			{
-				specifiedEntry = entriesTable.options[i].text; 	
+				specifiedEntry = entriesTable.options[i].text;
 			}
 		}
                 /* Find the current frontend specified. */
@@ -440,11 +440,11 @@ Description:
                 {
                         if(frontendsTable.options[i].selected == true)
                         {
-                                specifiedFrontend = frontendsTable.options[i].text;     
+                                specifiedFrontend = frontendsTable.options[i].text;
                         }
                 }
 		rrdTable = document.getElementById("rrds");
-		j = 0;  
+		j = 0;
 		/* Find the current group option specified. */
 		for(i = 1; i< rrdTable.childNodes.length; i+=2)
 		{
@@ -457,21 +457,21 @@ Description:
 				j++;
 			}
 		}
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&rrd="+specifiedGOption; 
-		document.location.href = constructed; 
-	}  
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&rrd="+specifiedGOption;
+		document.location.href = constructed;
+	}
 	/* Function to navigate to other glidein tools. */
 	function goToDestination(option)
 	{
 		if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
 		{
-			document.location.href = option.value + "?entry=" + ENTRY; 
+			document.location.href = option.value + "?entry=" + ENTRY;
 		}
 		else
 		{
-			document.location.href = option.value; 
+			document.location.href = option.value;
 		}
-		document.getElementById("destination").selectedIndex = 0; 
+		document.getElementById("destination").selectedIndex = 0;
 	}
     </script>
   </body>

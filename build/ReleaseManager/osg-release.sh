@@ -7,8 +7,8 @@ USAGE_STR="$0 [-h] TAG USER
  TAG       - tag or branch ID in the Git repository (branch pointers change, use a branch name only for scratch builds)
  USER      - username on the OSG build machine
  -h --help - print this message and exit"
- 
-[ "$1" == "-h" ] || [ "$1" == "--help" ] && { echo "$USAGE_STR"; exit 0; } 
+
+[ "$1" == "-h" ] || [ "$1" == "--help" ] && { echo "$USAGE_STR"; exit 0; }
 
 if [ $# -ne 2 ]; then
     echo "ERROR: Missing arguments 'tag' and 'user'"

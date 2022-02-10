@@ -9,17 +9,17 @@ SPDX-License-Identifier: Apache-2.0
 Project:
   glideinWMS
 
-File Version: 
+File Version:
 
 Description:
   Browse the glideinWMS RRDs
 
   Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
+  javascriptrrd/src/lib/rrdJFlot.html
    Original repository: https://javascriptrrd.sourceforge.net/
 
   ****************
-  Linking functional (hopefully). 
+  Linking functional (hopefully).
   ****************
 
 -->
@@ -42,14 +42,14 @@ Description:
     <table width="100%">
     <tr>
      <td><h1 id="pgtitle">VO frontend status</h1></td>
-     <td align="right">[ 
+     <td align="right">[
 	    <a href="frontendRRDBrowse.html">Browse</a> |
-	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> | 
+	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> |
         <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
 	    ]</td>
     </tr>
     </table>
- 
+
     <table border=0>
      <tr>
        <th>Group</th>
@@ -104,15 +104,15 @@ Description:
    <hr>
     <p>Powered by
         <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
+        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and
         <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
-    
+
     <div id="monitor_footer"></div>
 
-    
+
     <script type="text/javascript">
-	
+
       /* AutoUpdateInterval reference */
       var auInt;
 
@@ -124,14 +124,14 @@ Description:
 
       //global variables to preserve things across updates
       var graph_info;                   //gotten from rrdFilter.getGraphInfo()
-      var specified_rra = 0;            //gotten from checkUrl() (URL Link)     
+      var specified_rra = 0;            //gotten from checkUrl() (URL Link)
       var local_checked_DSs = [];       //checked elements from graphInfo
       var link_checked_DSs = [];        //checked elements from URL Link
-      var windows = true;               //whether to use window parameters passed into rrdFlot 
+      var windows = true;               //whether to use window parameters passed into rrdFlot
       var local_window_min=0;           //window params to pass into rrdFlot
-      var local_window_max=0;             
+      var local_window_max=0;
       var coming_from_link = true;
-      var coming_from_defaults = false; 
+      var coming_from_defaults = false;
 
       // Set to an invalid value, e.g. "default"
       // This way javascriptRRD will autodetect the local timezone
@@ -152,7 +152,7 @@ Description:
       // fname, gtype_id and rrd_data are the global variable used by all the functions below
       rrd_data=undefined;
       gtype_id=undefined;
- 
+
       checkUrl();
 
       //Applys an groups's factories to the dropdown box
@@ -161,21 +161,21 @@ Description:
         var fac = document.getElementById("factory");
         //Remove factories from previous group choice
         while(fac.childNodes.length>0) {fac.removeChild(fac.firstChild);}
-        fac.appendChild(new Option('total','total'));  //add back 'total', 
+        fac.appendChild(new Option('total','total'));  //add back 'total',
 
-        //add this groups's states 
+        //add this groups's states
         //note that checkUrl also puts states before factories;
         //    so if changing the order here (states after factories), also change the order in checkUrl().
         var states = getFrontendGroupStates(frontendStats, group);
-        
+
         for(var state in states) {
            state_name = states[state];
            fac.appendChild(new Option(state_name, state_name));
         }
 
-        // and then add this groups's factories. 
+        // and then add this groups's factories.
         var factories = getFrontendGroupFactories(frontendStats, group);
-        
+
         for(var factory in factories) {
            factory_name = factories[factory];
            fac.appendChild(new Option(factory_name, factory_name));
@@ -187,9 +187,9 @@ Description:
          this.getIdx = function() {return rra_idx;}
          this.getStep = function() {return null;}
       }
-      
-      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
-      / based on another RRA, whose data the new RRA averages. 
+
+      /* RRA Filter - Creates a new RRA with a different step size (in seconds)
+      / based on another RRA, whose data the new RRA averages.
       / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
       */
       function RRA_Avg(rra_idx,new_step_in_seconds) {
@@ -204,7 +204,7 @@ Description:
         // Finally, update the file name and enable the update button
         document.getElementById("fname").firstChild.data=fname;
 
-        
+
         var gtype_DSs=new Object();
         // TODO: is ReqMaxRun (used here) an error and should be ReqMaxIdle (used below)?
         gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchGlideinFailed','MatchCoreTotal','MatchCoreIdle','MatchCoreRunning','MatchJobIdle','ReqIdle','ReqMaxRun');
@@ -212,7 +212,7 @@ Description:
         gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','MatchGlideinFailed','MatchCoreTotal','MatchCoreIdle','MatchCoreRunning','ReqIdle','ReqMaxRun');
 
         var gtype_formats=new Object();
-        gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
+        gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true,
                                                           lines: { show: true, fill: true, fillColor:"#00ff00"} },
                                   'MatchJobRunning':{title: 'Matched running', label:'MatchRun', color: "#004000"},
                                   'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
@@ -233,7 +233,7 @@ Description:
                                   'GlideinIdle':{title: 'Global not matched', label:'GlobalUnmatched', color: "#ffff00"},
                                   'StatusIdle':{title: 'Global Idle jobs', label:'Idle', color: "#00ffff"}};
 
-        gtype_formats['idle']={'MatchJobIdle':{ title: 'Idle jobs', label:'Idle', color: "#00f8f8", checked:true, 
+        gtype_formats['idle']={'MatchJobIdle':{ title: 'Idle jobs', label:'Idle', color: "#00f8f8", checked:true,
                                            lines: { show: true, fill: true, fillColor:"#00ffff"} },
                                'MatchJobOldIdle':{title: 'Idle old jobs', label:'OldIdle', color: "#0000ff"},
                                'MatchJobEffIdle':{title: 'Effective idle jobs', label:'EffIdle', color: "#000080"},
@@ -267,7 +267,7 @@ Description:
         //preserve rra
         if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
         else if (!coming_from_link) {specified_rra = graph_info["rra"];}
-        
+
         local_checked_DSs = [];
 
         //if coming from link, used DS elements provided in link
@@ -277,8 +277,8 @@ Description:
         }
         else { //if coming from link
            checklist = link_checked_DSs;
-        }   
-        if (local_window_max==0 && local_window_min==0) {windows=false;} 
+        }
+        if (local_window_max==0 && local_window_min==0) {windows=false;}
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -306,7 +306,7 @@ Description:
       function update_plot_handler(bf) {
           var i_rrd_data=undefined;
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fname+" is not a valid RRD archive!");
           }
@@ -348,7 +348,7 @@ Description:
       }
 
       function nonlink_update() {
-         coming_from_link = false; 
+         coming_from_link = false;
          fname_update();
       }
 
@@ -356,26 +356,26 @@ Description:
         function checkUrl()
         {
            var url = window.location.search;
-           parameterArry = new Array("group", "factory", "infoGroup","elements","rra","window_min","window_max","timezone"); 
-           var groupSpec; 
+           parameterArry = new Array("group", "factory", "infoGroup","elements","rra","window_min","window_max","timezone");
+           var groupSpec;
            var infoGroupSpec;
            link_checked_DSs=[];
            specified_rra = 0;
-           urlValid = 0; 
-           paramSpecArry = new Array(); 
+           urlValid = 0;
+           paramSpecArry = new Array();
            if(url) //split URL
            {
               url = url.substring(1);
-              urlSplit = url.split('&'); 
-              i = 0; 
+              urlSplit = url.split('&');
+              i = 0;
               while(i < urlSplit.length)
-              { 
-                 equalSplit = urlSplit[i].split('='); 
+              {
+                 equalSplit = urlSplit[i].split('=');
                  if(equalSplit[0] == parameterArry[i])
                  {
                     paramSpecArry[i] = equalSplit[1];
                  }
-                 i++; 
+                 i++;
               }
            }
            //Read in link parameters
@@ -389,7 +389,7 @@ Description:
                  {
                     if(groups[group] == paramSpecArry[0])
                     {
-                       GROUP = paramSpecArry[0]; 
+                       GROUP = paramSpecArry[0];
                        groups_menu = document.getElementById("groups");
                        for(j = 0; j< groups_menu.options.length; j++)
                        {
@@ -401,8 +401,8 @@ Description:
 
                              //make factory list the list of both states and factories,
                              //   as seen in the factory menu.
-                             var state_list = getFrontendGroupStates(loadFrontendStats(), groups[group]); 
-                             var fac_list = getFrontendGroupFactories(loadFrontendStats(), groups[group]); 
+                             var state_list = getFrontendGroupStates(loadFrontendStats(), groups[group]);
+                             var fac_list = getFrontendGroupFactories(loadFrontendStats(), groups[group]);
 
                              //states listed first in the Factory menu, so push factories onto state list
                              state_list.push.apply(state_list,fac_list);
@@ -411,17 +411,17 @@ Description:
                              for(var k=0;k<fac_list.length;k++) {
                                 if(fac==fac_list[k]) {fac_idx=k+1;} //+1 to avoid hitting total
                              }
-                             document.getElementById("factory").selectedIndex = fac_idx; 
+                             document.getElementById("factory").selectedIndex = fac_idx;
 
-                             break;  
-                          }       
+                             break;
+                          }
                        }
-                    } 
+                    }
                     //else if("total" ==      paramSpecArry[0])
                     //{
-                    //   document.getElementById("groups").selectedIndex = 0; 
+                    //   document.getElementById("groups").selectedIndex = 0;
                     //   setFactoryMenu('total');
-                    //   break;          
+                    //   break;
                     //}
                  }
               }
@@ -440,7 +440,7 @@ Description:
                  for(var j=0;j<elems.length;j++)
                  {
                     link_checked_DSs.push(elems[j]);
-                 } 
+                 }
               }
               else if(i==4) {specified_rra = paramSpecArry[i];}
               else if(i==5) {local_window_min = paramSpecArry[i];}
@@ -456,11 +456,11 @@ Description:
         function showLink()
         {
                 constructed = document.URL.split('?');
-                groupsTable = document.getElementById("groups"); 
-                factoryTable = document.getElementById("factory"); 
+                groupsTable = document.getElementById("groups");
+                factoryTable = document.getElementById("factory");
                 var specifiedGroup;
                 var specifiedFactory;
-                var specifiedGOption; 
+                var specifiedGOption;
 
                 //Graph data from rrdFlot.js
                 graph_info = getGraphInfo();
@@ -469,7 +469,7 @@ Description:
                 var specified_timezone = graph_info["timezone"];
                 var specified_win_min = graph_info["window_min"];
                 var specified_win_max = graph_info["window_max"];
-                
+
                 //specifiedGroup = entries_obj.options[entries_obj.selectedIndex].value;
 
                 /* Find the current group specified. */
@@ -477,7 +477,7 @@ Description:
                 {
                         if(groupsTable.options[i].selected == true)
                         {
-                                specifiedGroup = groupsTable.options[i].text;  
+                                specifiedGroup = groupsTable.options[i].text;
                         }
                 }
                 /* Find the current factory specified. */
@@ -485,11 +485,11 @@ Description:
                 {
                         if(factoryTable.options[i].selected == true)
                         {
-                                specifiedFactory = factoryTable.options[i].text;     
+                                specifiedFactory = factoryTable.options[i].text;
                         }
                 }
                 gOptionTable = document.getElementById("gtypes");
-                j = 0;  
+                j = 0;
                 /* Find the current group option specified. */
                 for(i = 1; i< gOptionTable.childNodes.length; i+=2)
                 {
@@ -506,17 +506,17 @@ Description:
                 for(var i=0;i<local_checked_DSs_input.length;i++) {
                    elem_string += local_checked_DSs_input[i]+",";
                 }
-                constructed = constructed[0]+"?group="+specifiedGroup+"&factory="+specifiedFactory+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
+                constructed = constructed[0]+"?group="+specifiedGroup+"&factory="+specifiedFactory+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone;
 
-                document.location.href = constructed; 
-        }  
+                document.location.href = constructed;
+        }
 
 /////////////////////////////////////////////////////////////////////////////////////////
- 
+
         function unlink() {
            document.location.href= document.URL.split('?')[0];
         }
-   
+
         function defaults() {
            local_checked_DSs = [];
            link_checked_DSs = [];
@@ -531,18 +531,18 @@ Description:
         {
                 if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
                 {
-                        document.location.href = option.value + "?entry=" + ENTRY; 
+                        document.location.href = option.value + "?entry=" + ENTRY;
                 }
                 else
                 {
-                        document.location.href = option.value; 
+                        document.location.href = option.value;
                 }
-                document.getElementById("destination").selectedIndex = 0; 
+                document.getElementById("destination").selectedIndex = 0;
         }
 
       function autoupdate() {
         var auchk = document.getElementById("autoupdate").checked;
-        
+
         if (auchk) {
           auInt=setInterval(nonlink_update, 1800000);
         } else {
@@ -551,8 +551,7 @@ Description:
       }
 
     </script>
-    
-  </body>
-  
-</html>
 
+  </body>
+
+</html>

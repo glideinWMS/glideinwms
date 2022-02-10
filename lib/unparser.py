@@ -4,10 +4,10 @@
 # unparse.py imported from astunparse: https://github.com/simonpercivall/astunparse
 # Original Python 2/3 file relying on six transformed in pure Python 3
 # Minimal changes applied
-# Alternatives would be to pip install the package (adds six requirement) or 
-# create a simplified function by extracting only the AST nodes used  
+# Alternatives would be to pip install the package (adds six requirement) or
+# create a simplified function by extracting only the AST nodes used
 
-"""Usage (for testing, will do roundtrips on the files): 
+"""Usage (for testing, will do roundtrips on the files):
   unparse.py <path to source files>
   unparse.py --testdir <path to source files directories>
 """

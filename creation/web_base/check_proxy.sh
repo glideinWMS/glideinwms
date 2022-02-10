@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description;
 #   This is an include file for glidein_startup.sh
@@ -96,7 +96,7 @@ function get_x509_expiration {
     fi
 
     if [ $ret -eq 0 ]; then
-        if [ $l -lt 43200 ]; then 
+        if [ $l -lt 43200 ]; then
             STR="Proxy not valid in in 12 hours, only $l seconds left!\n"
             STR+="Proxy shorter than 12 hours are not allowed."
             STR1=`echo -e "$STR"`

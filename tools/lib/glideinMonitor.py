@@ -85,7 +85,7 @@ def monitor(jid,schedd_name,pool_name,
     monitorVM=getMonitorVM(pool_name, remoteVM)
 
     condor_status=getMonitorVMStatus(pool_name, monitorVM)
-    validateMonitorVMStatus(condor_status, monitorVM)        
+    validateMonitorVMStatus(condor_status, monitorVM)
 
     tmpdir=tempfile.mkdtemp(prefix="glidein_intmon_")
     try:
@@ -149,7 +149,7 @@ def getMonitorVM(pool_name, jobVM):
 def getMonitorVMStatus(pool_name, monitorVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
-                  format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('State', 's'), ('Activity', 's'), 
+                  format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('State', 's'), ('Activity', 's'),
                                ('vm2_State', 's'), ('vm2_Activity', 's'), ('USES_MONITOR_STARTD', 'b')])
     if monitorVM not in data:
         raise RuntimeError("Monitor slot %s does not exist!"%monitorVM)

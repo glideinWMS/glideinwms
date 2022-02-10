@@ -55,14 +55,14 @@ RET_NOT_RUNNING=7
 
 [ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
 
-# Variables substituted during the file creation (by cvWCreate.py)        
+# Variables substituted during the file creation (by cvWCreate.py)
 frontend_dir=%(frontend_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
 def_frontend_config=%(default_cfg_fpath)s
 RPM_INSTALL=%(rpm_install)s
 
 # RPM_INSTALL can be {''|'False'|'True'}
-# RPM only if RPM_INSTALL = True 
+# RPM only if RPM_INSTALL = True
 # '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
@@ -160,7 +160,7 @@ get_user() {
         echo $USER
     else
         # whoami is the current user, logname the original
-        whoami 
+        whoami
     fi
 }
 
@@ -219,13 +219,13 @@ invoke_as_frontend() {
 help_usage() {
     if [ "$RPM_INSTALL" = "True" ]; then
         # upgrade does not make sense for RPM because the RPM upgrade will take care of it
-        # it is actually needed 
+        # it is actually needed
         # TODO: find a way to avoid upgrade in RPMs
         echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}"
     else
         echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}
     $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
-    $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] 
+    $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}]
 "
     fi
 }
@@ -235,7 +235,7 @@ start() {
         check_configured
         echo -n "Starting glideinWMS frontend $id_str: "
 
-        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null
         MYRETVAL=$?
         if [ $MYRETVAL -eq 0 ]; then
             # already running, so nothing to be done
@@ -279,7 +279,7 @@ stop() {
         check_installed
         echo -n "Shutting down glideinWMS frontend $id_str: "
 
-        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null
         MYRETVAL=$?
         if [ $MYRETVAL -ne 0 ]; then
             # not running, so nothing to be done
@@ -299,7 +299,7 @@ stop() {
             RETVAL=$?
             echo
             return $RETVAL
-        fi         
+        fi
 
         # check that it has actually stopped
         # can take some time
@@ -312,7 +312,7 @@ stop() {
             fi
             sleep 1
         done
-        
+
         "${FRONTEND_CHECK}" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && failure || success
         RETVAL=$?
         echo
@@ -350,13 +350,13 @@ reconfig() {
         # RETVAL contains the exit code
         #  0 all OK
         #  6 bad or missing configuration (even if running w/ old configuration)
-        #  1 generic error (also start failed) 
+        #  1 generic error (also start failed)
         check_installed
         shift
         if [ -f "$1" ]; then
             echo "Using Frontend config file arg: $1"
             cfg_loc=$1
-            shift           
+            shift
         else
             echo "Using default Frontend config file: $def_frontend_config"
             cfg_loc=$def_frontend_config
@@ -436,7 +436,7 @@ reconfig() {
             fi
         fi
 }
-        
+
 upgrade() {
         # see reconfig for return values and logic explanation
         check_installed

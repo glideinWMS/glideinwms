@@ -39,10 +39,10 @@ def parse_args(argv):
     argparser.add_option("-q", "--quiet", dest="quiet", action="store_true",
                          help="Quiet mode")
     (options, other_args) = argparser.parse_args(argv[1:])
-    
+
     if options.work_dir is None:
         raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
-    
+
     if not os.path.isfile(os.path.join(options.work_dir, "frontend.descript")):
         raise ValueError("%s is not a valid FE work dir" % options.work_dir)
 
@@ -74,7 +74,7 @@ def main(argv):
             raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later" % action_type)
 
     os.chdir(options.work_dir)
-    
+
     action = "remove%s%s" % (options.removal_type[:1].upper(), options.removal_type[1:])
     if options.excess_only:
         action += "Excess"

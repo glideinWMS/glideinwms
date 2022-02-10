@@ -82,6 +82,3 @@ Loaded plugins: langpacks, priorities
 Installed Packages
 glideinwms-vofrontend.noarch  3.7.1-0.9.rc9.osgup.el7  @osg-upcoming-development
 [dbox@fermicloud073 ansible]$
-
-
-

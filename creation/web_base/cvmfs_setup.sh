@@ -48,7 +48,7 @@ if [[ $GWMS_IS_CVMFS_MNT -eq 0 ]]; then
 fi
 
 # if CVMFS is not found locally...
-# get the CVMFS source information from <attr> in the glidein configuration 
+# get the CVMFS source information from <attr> in the glidein configuration
 cvmfs_source=$(grep '^CVMFS_SRC ' $glidein_config | awk '{print $2}')
 
 # get the CVMFS requirement setting passed as one of the factory attributes
@@ -64,7 +64,7 @@ dist_file=cvmfsexec-${cvmfs_source}-${os_like}${os_ver}-${arch}
 tar -xvzf $cvmfs_utils_dir/utils/cvmfs_distros.tar.gz -C $cvmfs_utils_dir distros/$dist_file
 
 # TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_mount.sh
-. $cvmfs_utils_dir/utils/cvmfs_mount.sh	
+. $cvmfs_utils_dir/utils/cvmfs_mount.sh
 
 if [[ $GWMS_IS_CVMFS -ne 0 ]]; then
     # Error occurred during mount of CVMFS repositories"
@@ -82,7 +82,7 @@ if [[ -n "$mount_point" && "$mount_point" != TARGET* ]]; then
         export CVMFS_MOUNT_DIR
         add_config_line CVMFS_MOUNT_DIR "$mount_point"
     fi
-fi   
+fi
 
 # CVMFS is now available on the worker node"
 loginfo "Proceeding to execute user job..."

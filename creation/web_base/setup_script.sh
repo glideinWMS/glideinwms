@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 
 glidein_config="$1"

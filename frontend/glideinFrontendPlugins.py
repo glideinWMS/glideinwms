@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This module implements plugins for the VO frontend
@@ -138,7 +138,7 @@ class ProxyUserCardinality:
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
-    
+
     def update_usermap(self, condorq_dict, condorq_dict_types,
                     status_dict, status_dict_types):
         self.users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
@@ -260,7 +260,7 @@ class ProxyUserRR:
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
-    
+
     def update_usermap(self, condorq_dict, condorq_dict_types,
                     status_dict, status_dict_types):
         self.users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
@@ -292,7 +292,7 @@ class ProxyUserRR:
             num_cred=num_cred+1
             if (num_cred >= len(new_users_set)):
                 break
-                
+
         if (params_obj is not None):
             rtnlist=fair_assign(rtnlist, params_obj)
         return rtnlist
@@ -354,7 +354,7 @@ class ProxyUserMapWRecycling:
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
-    
+
     def update_usermap(self, condorq_dict, condorq_dict_types,
                     status_dict, status_dict_types):
         self.num_user_jobs={}
@@ -383,7 +383,7 @@ class ProxyUserMapWRecycling:
         # check if there are more users than proxies
         if (credential_type is None) or (trust_domain is None):
             # if no type or trust_domain is returned
-            # then we return the full list for the 
+            # then we return the full list for the
             # global advertisement
             rtnlist=[]
             for type in list(total_user_map.keys()):
@@ -402,7 +402,7 @@ class ProxyUserMapWRecycling:
             # If the user is not already mapped,
             # find an appropriate credential
             # skip all that do not match auth method or trust_domain
-                
+
             if user not in user_map:
                 keys = list(user_map.keys())
                 found=False
@@ -433,7 +433,7 @@ class ProxyUserMapWRecycling:
                     logSupport.log.error("Could not find a suitable credential for user %s!" % user)
                     #We could not find a suitable credential!
                     continue
-            
+
             cel = user_map[user]
 
             # Out of the max_run glideins,
@@ -447,14 +447,14 @@ class ProxyUserMapWRecycling:
                     this_idle=1
                 cel['proxy'].add_usage_details(this_idle, this_max)
             out_proxies.append(cel['proxy'])
-            # save that you have indeed seen the user 
+            # save that you have indeed seen the user
             cel['last_seen'] = time.time()
-                
+
 
         # save changes
         self.save()
-        
-        #Uncomment to print out proxy allocations 
+
+        #Uncomment to print out proxy allocations
         #print_list(out_proxies)
         #if params_obj is not None:
         #    logSupport.log.debug("Total: %d %d" % (params_obj.min_nr_glideins,params_obj.max_run_glideins))
@@ -475,7 +475,7 @@ class ProxyUserMapWRecycling:
         user_map[type][trust][idx] = {'proxy':proxy,
                      'proxy_index':idx,
                      'last_seen':0} #0 is the oldest UNIX have ever seen ;)
-        self.config_data['first_free_index'] = idx + 1   
+        self.config_data['first_free_index'] = idx + 1
 
     # load from self.config_fname into self.config_data
     # if the file does not exist, create a new config_data
@@ -488,7 +488,7 @@ class ProxyUserMapWRecycling:
             nr_proxies = len(self.proxy_list)
             for i in range(nr_proxies):
                 # use numbers for keys, so we are sure will not match to any user string
-                self.add_proxy(user_map, self.proxy_list[i]) 
+                self.add_proxy(user_map, self.proxy_list[i])
             self.config_data['user_map'] = user_map
         else:
             # load cache
@@ -517,7 +517,7 @@ class ProxyUserMapWRecycling:
                             del user_map[type][trust_domain][k]
             for proxy in self.proxy_list:
                 if proxy.filename not in cached_proxies:
-                    self.add_proxy(user_map, proxy) 
+                    self.add_proxy(user_map, proxy)
         return
 
     def save(self):
@@ -555,7 +555,7 @@ def createCredentialList(elementDescript):
 
 def fair_split(i, n, p):
     """
-    Split n requests amongst p proxies 
+    Split n requests amongst p proxies
     Returns how many requests go to the i-th proxy
     """
     n1=int(n)
@@ -581,7 +581,7 @@ def fair_assign(cred_list, params_obj):
     max run will remain constant between iterations
     req idle will be shuffled each iteration.
 
-    Note that shuffling will tend towards 
+    Note that shuffling will tend towards
     rounding up ReqIdle over the long run,
     but that, since this is partially a throttling
     mechanism, it is okay to slow this down a little

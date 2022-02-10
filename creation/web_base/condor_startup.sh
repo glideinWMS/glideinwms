@@ -282,7 +282,7 @@ cond_print_log() {
     shift
     # Use ls to allow fpath to include wild cards
     files_to_zip="`ls -1 "$@" 2>/dev/null`"
-    
+
     if [ "$files_to_zip" != "" ]; then
         echo "$logname" 1>&2
         echo "======== gzip | uuencode =============" 1>&2
@@ -390,7 +390,7 @@ find_gpus_num() {
     if [[ $ec -ne 0 ]]; then
         echo "WARNING: condor_gpu_discovery failed (exit code: $ec)" 1>&2
         return $ec
-    fi 
+    fi
     local tmp=$( echo "$tmp1" | grep "^DetectedGPUs=" )
     if [ "${tmp:13}" = 0 ]; then
         echo "No GPUs found with condor_gpu_discovery, setting them to 0" 1>&2
@@ -432,7 +432,7 @@ now=`date +%s`
 # If not an integer reset to 0 (a string could cause errors [#7899])
 [ "$X509_EXPIRE" -eq "$X509_EXPIRE" ] 2>/dev/null || X509_EXPIRE=0
 
-[ "$X509_EXPIRE" -eq 0 ] && [ -e "$GLIDEIN_CONDOR_TOKEN" ] && let "X509_EXPIRE=$now + 86400" 
+[ "$X509_EXPIRE" -eq 0 ] && [ -e "$GLIDEIN_CONDOR_TOKEN" ] && let "X509_EXPIRE=$now + 86400"
 
 #add some safety margin
 let "x509_duration=$X509_EXPIRE - $now - 300"
@@ -479,7 +479,7 @@ log_setup "${config_file}"
 #  retire_time = time that glidein will stop accepting jobs
 
 # DAEMON_SHUTDOWN is only updated when the classad is sent to the Collector
-# Since update interval is randomized, hardcode a grace period here to 
+# Since update interval is randomized, hardcode a grace period here to
 # make sure max_walltime is respected
 update_interval=370
 
@@ -488,11 +488,11 @@ min_glidein=600
 
 # Take into account GLIDEIN_Max_Walltime
 # GLIDEIN_Max_Walltime = Max allowed time for the glidein.
-#   If you specify this variable, then Condor startup scripts will calculate the 
-#   GLIDEIN_Retire_Time for the glidein as 
+#   If you specify this variable, then Condor startup scripts will calculate the
+#   GLIDEIN_Retire_Time for the glidein as
 #    (GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time)
-#   If GLIDEIN_Retire_Time is also specified, 
-#   it will be ignored and only the calculated value is used. 
+#   If GLIDEIN_Retire_Time is also specified,
+#   it will be ignored and only the calculated value is used.
 if [ -z "$max_walltime" ]; then
     retire_time=`grep -i "^GLIDEIN_Retire_Time " "$config_file" | cut -d ' ' -f 2-`
     if [ -z "$retire_time" ]; then
@@ -526,7 +526,7 @@ else
         echo "WARNING: job max time is bigger than max_walltime, lowering it.  " 1>&2
     fi
     echo "job max time, $job_maxtime" 1>&2
-  
+
     let "die_time=$max_walltime - $update_interval - $graceful_shutdown"
     let "retire_time=$die_time - $job_maxtime"
     GLIDEIN_Retire_Time=$retire_time
@@ -572,7 +572,7 @@ if [ "$retire_time" -lt "$min_glidein" ]; then
     let "retire_time=$retire_time + $retire_spread * $random100 / 100"
     let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
-if [ "$retire_time" -lt "$min_glidein" ] && [ "$adv_only" -ne "1" ]; then  
+if [ "$retire_time" -lt "$min_glidein" ] && [ "$adv_only" -ne "1" ]; then
     #echo "Retire time still too low ($retire_time), aborting" 1>&2
     STR="Retire time still too low ($retire_time), aborting"
     "$error_gen" -error "condor_startup.sh" "Config" "$STR" "retire_time" "$retire_time" "min_retire_time" "$min_glidein"
@@ -902,7 +902,7 @@ EOF
 DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 
 # The condition pre 8.2 is valid only for not partitionable slots
-# Since the idle timer doesn't reset/stop when resources are reclaimed, 
+# Since the idle timer doesn't reset/stop when resources are reclaimed,
 # partitionable slots will get reaped sooner than non-partitionable.
 DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
@@ -910,7 +910,7 @@ DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
 # is used to discriminate
 DS${I}_IS_HTCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
-# No jobs started (using GLIDEIN_Max_Idle) 
+# No jobs started (using GLIDEIN_Max_Idle)
 DS${I}_IDLE_NOJOB_NEW = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_SelfMonitorAge =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
                   (Slot${I}_JobStarts == 0) && \\
                   (Slot${I}_SelfMonitorAge > GLIDEIN_Max_Idle))
@@ -918,7 +918,7 @@ DS${I}_IDLE_NOJOB_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && (G
         \$(DS${I}_NOT_PARTITIONABLE) && \\
         (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
 DS${I}_IDLE_NOJOB = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \\
-        ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_NOJOB_NEW), \$(DS${I}_IDLE_NOJOB_PRE82))) 
+        ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_NOJOB_NEW), \$(DS${I}_IDLE_NOJOB_PRE82)))
 # Some jobs started (using GLIDEIN_Max_Tail)
 DS${I}_IDLE_TAIL_NEW = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) && (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
         (Slot${I}_JobStarts > 0) && \\
@@ -966,7 +966,7 @@ EOF
             if [ -d monitor ] && [ -d monitor/log ] && [ -d monitor/execute ]; then
                 echo "Monitoring dirs exist" 1>&2
             else
-                mkdir monitor monitor/log monitor/execute 
+                mkdir monitor monitor/log monitor/execute
                 if [ $? -ne 0 ]; then
                     #echo "Error creating monitor dirs" 1>&2
                     STR="Error creating monitor dirs"
@@ -982,7 +982,7 @@ fi  # end else of "get check_include file for testing" [ "$check_only" == "1" ]
 if [ -d log ] && [ -d execute ]; then
   echo "log and execute dirs exist" 1>&2
 else
-  mkdir log execute 
+  mkdir log execute
   if [ $? -ne 0 ]; then
     #echo "Error creating condor dirs" 1>&2
     STR="Error creating monitor dirs"
@@ -1139,7 +1139,7 @@ if [ "$check_only" -eq 1 ]; then
         # grab user proxy so we can authenticate ourselves to run condor_fetchlog
         PROXY_FILE="`grep -i "^X509_USER_PROXY " "$config_file" | cut -d ' ' -f 2-`"
 
-        let "fetch_curTime  += $fetch_sleeptime" 
+        let "fetch_curTime  += $fetch_sleeptime"
         FETCH_RESULTS=`X509_USER_PROXY=$PROXY_FILE $CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`
         fetch_exit_code=$?
         if [ $fetch_exit_code -eq 0 ]; then

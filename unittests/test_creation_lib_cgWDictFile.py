@@ -556,7 +556,7 @@ class TestGlideinEntryDicts(unittest.TestCase):
     @unittest.skip('broken af')
     def test_erase(self):
         # for this class erase is defined  self.dicts=self.get_sub_dicts()
-        # ask for leaks much?  This method is broken 
+        # ask for leaks much?  This method is broken
         for nm in self.edicts:
             l1 = self.edicts[nm].get_sub_dicts()
             self.edicts[nm].erase()

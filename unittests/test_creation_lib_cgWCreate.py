@@ -49,7 +49,7 @@ class TestGlideinSubmitDictFile(unittest.TestCase):
     def test_populate_standard_grid(self):
         rsl = 'rsl'
         auth_method = 'you look trustworthy, go ahead'
-        gridtype = 'gt2' 
+        gridtype = 'gt2'
         entry_enabled = 'True'
         try:
             self.gsdf.populate_standard_grid(rsl, auth_method, gridtype, entry_enabled, self.entry_name)

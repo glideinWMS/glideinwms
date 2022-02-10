@@ -156,7 +156,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
        else:
            curenv = val
        self.add('environment', '"'+curenv+'"', True)
-  
+
     def file_footer(self, want_comments):
         if self.jobs_in_cluster is None:
             return "Queue"

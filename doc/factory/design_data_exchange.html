@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -100,15 +100,15 @@ pieces publish.</p><br>
 See <a href="./protocol_details.html">here</a> for a detailed description of the protocol. </p>
 <h3><a name="factory_classads"></a>The Glidein&nbsp;Factory ClassAd</h3>
 <p>A&nbsp;Factory publishes one ClassAd per glidein entry. The
-class-ad contains 
+class-ad contains
 </p>
 <ul>
     <li>The name of the glidein (and the Factory)
     </li><li>The attributes that describe the glidein
     </li><li>The list of parameters that the glidein accepts. All the
     parameters have also default values associated with them, in
-    case a Frontend does not redefine them, and the (optional) public key 
-    algorithm, ID and value, together with the supported symmetric algorithms, 
+    case a Frontend does not redefine them, and the (optional) public key
+    algorithm, ID and value, together with the supported symmetric algorithms,
     that the Frontend can use to push back encrypted values.
     </li><li>The list of monitoring values (like how many glideins are in the queues, etc)
     </li><li>Limits configured in the Factory
@@ -128,7 +128,7 @@ representation of these ClassAds.<br><img src="../images/factory_client_publish.
 <p>A VO Frontend will obtain the list all available glideins and
 select the ones that fit its needs, based on the published
 attributes. For each fitting glidein, a Frontend ClassAd will be
-published. Such a ClassAd will contain 
+published. Such a ClassAd will contain
 </p>
 
 <ul>
@@ -162,9 +162,9 @@ published. Such a ClassAd will contain
 
       <li>The proxies themselves - <b>x509_proxy_0</b> ... <b>x509_proxy_N</b></li>
         </ul></li>
-      <li>The security name associated with the proxies - <b>SecurityName</b>. 
+      <li>The security name associated with the proxies - <b>SecurityName</b>.
           The Factory uses it for Frontend whitelisting.
-          If present, it is always encrypted.</li> 
+          If present, it is always encrypted.</li>
 </ul>
 <p>In the current implementation, the only glidein rate setting parameters
 supported are <font face="monospace"><b>ReqIdleGlideins</b></font>,

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Simplified magic file to find scripts in the GlideinWMS project
-# It will print the command after the #! 
+# It will print the command after the #!
 # Extracted from the system magic file
 #------------------------------------------------------------------------------
 # $File: varied.script,v 1.6 2009/09/19 16:28:13 christos Exp $
@@ -16,4 +16,3 @@
 >2      string          >\0                     %s script text executable
 0       string          #!\                     script text executable
 >3      string          >\0                     for %s
-

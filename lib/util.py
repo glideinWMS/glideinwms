@@ -430,7 +430,7 @@ def hash_nc(data, len=None):
     Returns:
         str: Hash
     """
-    
+
     #TODO set md5 usedforsecurity to False when updating to Python 3.9
     out = b32encode(md5(force_bytes(data)).digest()).decode(BINARY_ENCODING_ASCII)
     if len:

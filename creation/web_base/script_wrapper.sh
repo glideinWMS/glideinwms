@@ -18,8 +18,8 @@
 #   need to trap exit, worst case glidein will cleanup
 #   Runs as startd_cron (except first test invocation): stdout is
 #      interpreted as classad
-# 
-# script_wrapper "$glidein_config" "$s_ffb_id" "$s_name" "$s_fname" 
+#
+# script_wrapper "$glidein_config" "$s_ffb_id" "$s_name" "$s_fname"
 #
 # Attributes/files used:
 #  ERROR_GEN_PATH
@@ -40,7 +40,7 @@
 # find the real path even if realpath is not installed
 # realpath file
 robust_realpath() {
-    if ! realpath "$1" 2>/dev/null; then 
+    if ! realpath "$1" 2>/dev/null; then
         echo "$(cd "$(dirname "$1")"; pwd -P)/$(basename "$1")"
     fi
 }
@@ -55,7 +55,7 @@ s_fname=$(robust_realpath "$4")
 # and adds GLIDEIN_PS_ to stdout if the startd_cron has no prefix (s_prefix==NOPREFIX)
 s_prefix="$5"
 
-# Add the default GLIDEIN_PS_ prefix to stdout prints from this wrapper (sent to startd) 
+# Add the default GLIDEIN_PS_ prefix to stdout prints from this wrapper (sent to startd)
 # if there is no prefix (NOPREFIX special keyword)
 if [ "x${s_prefix}" = "xNOPREFIX" ]; then
     add_prefix=YES
@@ -63,7 +63,7 @@ else
     add_prefix=
 fi
 
-# find error reporting helper script 
+# find error reporting helper script
 error_gen=$(grep '^ERROR_GEN_PATH ' "$glidein_config" | cut -d ' ' -f 2-)
 
 if [ -z "$3" ]; then
@@ -77,7 +77,7 @@ verbose=
 
 # write to stderr only if verbose is set
 vmessage() {
-    # echo `date` $@ 1>&2 
+    # echo `date` $@ 1>&2
     [ -n "$verbose" ] && echo "# script_wrapper.sh `date`" "$@" 1>&2
 }
 
@@ -104,8 +104,8 @@ publish() {
 
 
 # Manage failure lists in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
-# GLIDEIN_PS_FAILING_LIST empty -> GLIDEIN_PS_OK True, GLIDEIN_PS_FAILING_LIST not empty -> GLIDEIN_PS_OK False 
-# list_manage add|del name list_name 
+# GLIDEIN_PS_FAILING_LIST empty -> GLIDEIN_PS_OK True, GLIDEIN_PS_FAILING_LIST not empty -> GLIDEIN_PS_OK False
+# list_manage add|del name list_name
 list_manage() {
     # invoked locally, trust 3 parameters
     # $1 command (add|del), $2 value_to_add_to_list, $3 list_name (in glidein_config, case insensitive)
@@ -168,7 +168,7 @@ failed() {
 
 ### Script wrapper starts
 
-vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id" 
+vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id"
 
 # start_dir should be the same as work_dir in glidein_startup.sh and GLIDEIN_WORK_DIR
 start_dir=$(pwd)
@@ -203,19 +203,19 @@ ret=$?
 END=$(date +%s)
 ${main_dir}/error_augment.sh  -process $ret "$s_ffb_id/$(basename "$s_fname")" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
 ${main_dir}/error_augment.sh -locked-concat
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
     vmessage "=== Error: unable to save the log file for $s_name ($s_fname): check for orphaned lock file ==="
-fi 
+fi
 if [ $ret -ne 0 ]; then
-    # Failed 
-    vmessage "=== Validation error in $s_fname ===" 
+    # Failed
+    vmessage "=== Validation error in $s_fname ==="
     [ -n "$verbose" ] || $(cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2)
     # add also the the failed/failing lists
     failed "Error running '$s_fname'"
-fi 
+fi
 
 # Ran successfully (failed includes exit)
-vmessage "=== Periodic script ran OK: $s_fname ===" 
+vmessage "=== Periodic script ran OK: $s_fname ==="
 list_manage del $s_name GLIDEIN_PS_FAILING_LIST
 publish LAST "\"$s_fname\""
 publish LAST_END "$END"

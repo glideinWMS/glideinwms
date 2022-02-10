@@ -9,13 +9,13 @@ SPDX-License-Identifier: Apache-2.0
 Project:
   glideinWMS
 
-File Version: 
+File Version:
 
 Description:
   Browse the glideinWMS RRDs
 
   Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
+  javascriptrrd/src/lib/rrdJFlot.html
    Original repository: https://javascriptrrd.sourceforge.net/
 -->
 
@@ -26,7 +26,7 @@ Description:
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
     <title id="brtitle">Completed glidein factory stats</title>
-    
+
     <script type="text/javascript">
 	  var browser_title = "Completed glidein factory stats";
 	  var page_title = "Glidein factory status from logs";
@@ -112,25 +112,25 @@ Description:
    <hr>
     <p>Powered by
         <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                              
+        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and
         <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
     <div id="monitor_footer"></div>
-    
+
     </td>
      </tr>
      <script type="text/javascript">
-	
+
       /* AutoUpdateInterval reference */
       var auInt;
 
       var total_file_to_load=0;
       var multi_rrd_flag=0;
-      var a =  document.getElementById("gtypes"); 
+      var a =  document.getElementById("gtypes");
 	  var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput","aggavg","aggwsum","aggavgf","affwsumf","fail");
-	  var ENTRY; 
+	  var ENTRY;
 
-	  
+
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
 
@@ -174,12 +174,12 @@ Description:
               entries_select.appendChild(new Option(entries[entry],entries[entry]));
               ec_added++;
           } else {
-              if ((ec_added == groups_starting_idx) && (ec_added != 0)){ 
+              if ((ec_added == groups_starting_idx) && (ec_added != 0)){
                   entries_select.appendChild(sep2);
               }
               entries_select.appendChild(new Option(entry,entries[entry]));
               ec_added++;
-          } 
+          }
       }
       setOptions('total');
 
@@ -188,12 +188,12 @@ Description:
       gtype_id=undefined;
       rrd_group_data=[];
       files_loaded = 0;
-	  checkUrl(); 
+	  checkUrl();
 
       function setOptions(entry) {
         var fes = document.getElementById("frontends");
         //Remove frontends from previous entry choices, add back 'total'
-        // and this entry's frontends. 
+        // and this entry's frontends.
         while(fes.childNodes.length>0) {fes.removeChild(fes.firstChild);}
         fes.appendChild(new Option('total','total'));
         for(var frontend in frontend_list[entry]) {
@@ -226,10 +226,10 @@ Description:
       function RelativeDS(list, ds, j) {
 
         //This function shows the relative values of DSs,
-        // Should add to 100% without Unknown for JobsLasted. 
-        // 'j' is the position of the desired DS. 
+        // Should add to 100% without Unknown for JobsLasted.
+        // 'j' is the position of the desired DS.
         var flag=false;
-        if (/JobsLasted/.test(list[0].getName())) {flag=true}   
+        if (/JobsLasted/.test(list[0].getName())) {flag=true}
 
         var i = 0, name_list=[];
         for(i=0;i<list.length;i++) {
@@ -242,7 +242,7 @@ Description:
            var i=0, sum=0, unknown_sum=0;
            for(i=0;i<val_list.length;i++) {
               if (flag && i==0) {continue;}
-              sum += val_list[i]; } 
+              sum += val_list[i]; }
            return val_list[j]/sum;
         }
       }
@@ -257,7 +257,7 @@ Description:
         for(i=0;i<list.length;i++){
            name_list.push(list[i].getName());
         }
-        
+
         this.getName = function() { return name; }
         this.getDSNames = function() {
            return name_list;}
@@ -273,18 +273,18 @@ Description:
 
       function AvgSumDS(list,name) {
 
-        //avgsum = individual_ds_value/weighted_sum 
+        //avgsum = individual_ds_value/weighted_sum
 
         //Do not factor JobsLasted_Unknown into average
         var flag=false;
-        if (/Lasted/.test(list[0].getName())) {flag=true}   
+        if (/Lasted/.test(list[0].getName())) {flag=true}
 
         var i = 0;
         var name_list=[];
         for(i=0;i<list.length;i++){
            name_list.push(list[i].getName());
         }
-        
+
         this.getName = function() { return name; }
         this.getDSNames = function() {
            return name_list;}
@@ -293,7 +293,7 @@ Description:
            var i=0;
            for(i=0;i<val_list.length;i++){
               if (flag && i==0) {continue;} //don't include Lasted_Unknown or JobsLasted_Unknown
-              val_sum += val_list[i]; 
+              val_sum += val_list[i];
               scaled_val_sum += scale(name_list[i],val_list[i]);
            }
            var result = scaled_val_sum/val_sum;
@@ -305,8 +305,8 @@ Description:
          var multiplier = 0;
          //if(name.search(/\%/)>=0) {return 0;}
          if (name.search(/Lasted/)>=0) { //if name contains 'Lasted' or 'JobsLasted'
-            word = name.replace(/Lasted_/,""); 
-            if (word.search(/Jobs/)>=0) {word = word.replace(/Jobs/,"");} 
+            word = name.replace(/Lasted_/,"");
+            if (word.search(/Jobs/)>=0) {word = word.replace(/Jobs/,"");}
             if (word=="Unknown") {multiplier = 0;}
             else if (word=="Minutes") {multiplier = 7.5*60;}
             else if (word=="30mins") {multiplier = 30*60;}
@@ -317,7 +317,7 @@ Description:
             else { }//document.write(name+word); }
          }
          else if (name.search(/JobsNr/)>=0) { //if name contains 'JobsNr'
-            word = name.replace(/JobsNr_/,""); 
+            word = name.replace(/JobsNr_/,"");
             if (word=="None") {multiplier = 0;}
             else if (word=="1job") {multiplier = 1;}
             else if (word=="2jobs") {multiplier = 2;}
@@ -327,26 +327,26 @@ Description:
             else { document.write(name+word); }
          }
          else if (name.search(/validation/)>=0 || name.search(/idle/)>=0
-                  || name.search(/nosuccess/)>=0 || name.search(/badput/)>=0) { 
-            word = name.replace(/validation_/,""); 
-            word = word.replace(/idle_/,""); 
-            word = word.replace(/nosuccess_/,""); 
-            word = word.replace(/badput_/,""); 
-            //word = name.replace(/%/,""); 
+                  || name.search(/nosuccess/)>=0 || name.search(/badput/)>=0) {
+            word = name.replace(/validation_/,"");
+            word = word.replace(/idle_/,"");
+            word = word.replace(/nosuccess_/,"");
+            word = word.replace(/badput_/,"");
+            //word = name.replace(/%/,"");
             if (word=="All") {multiplier = 1;}
             else if (word=="Most") {multiplier = .75;} //approximate
-            else if (word=="500m") {multiplier = .5;} 
-            else if (word=="250m") {multiplier = .25;} 
-            else if (word=="100m") {multiplier = .1;} 
-            else if (word=="25m") {multiplier = .25;} 
-            else if (word=="5m") {multiplier = .05;} 
-            else if (word=="None") {multiplier = 0;} 
+            else if (word=="500m") {multiplier = .5;}
+            else if (word=="250m") {multiplier = .25;}
+            else if (word=="100m") {multiplier = .1;}
+            else if (word=="25m") {multiplier = .25;}
+            else if (word=="5m") {multiplier = .05;}
+            else if (word=="None") {multiplier = 0;}
             else { alarm("No match"); }
          }
          else { alarm("No match"); }
          return value*multiplier;
       }
-    
+
       function entrylist2groupname(elist) {
           var gname = elist;
           for(var g in group_map) {
@@ -462,29 +462,29 @@ Description:
 
         gtype_list = ['Lasted','JobsLasted','JobsNr','validation','idle','nosuccess','badput'];
         for (var a in gtype_list) {
-           gtype_formats[gtype_list[a]]['WeightedSum'] = {stack:'negative', yaxis:2, color: '#990066', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
-           gtype_formats[gtype_list[a]]['Average'] = {stack:'negative', yaxis:2, color: '#000000', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
+           gtype_formats[gtype_list[a]]['WeightedSum'] = {stack:'negative', yaxis:2, color: '#990066', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}};
+           gtype_formats[gtype_list[a]]['Average'] = {stack:'negative', yaxis:2, color: '#000000', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}};
         }
         agg_name_list = ['aggavg','aggwsum'];
         for (var a in agg_name_list) {
            gtype_formats[agg_name_list[a]]={};
-           gtype_formats[agg_name_list[a]]['Wallclock time per glidein'] = {yaxis:2, color: '#000000', checked:true, lines: {show:true, fill:false}}; 
-           gtype_formats[agg_name_list[a]]['User jobs per glidein'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
-           gtype_formats[agg_name_list[a]]['Wallclock time per user job'] = {yaxis:2, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Wallclock time per glidein'] = {yaxis:2, color: '#000000', checked:true, lines: {show:true, fill:false}};
+           gtype_formats[agg_name_list[a]]['User jobs per glidein'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}};
+           gtype_formats[agg_name_list[a]]['Wallclock time per user job'] = {yaxis:2, color: '#FF00FF', checked:true, lines: {show:true, fill:false}};
         }
 
         agg_name_list = ['aggavgf','aggwsumf'];
         for (var a in agg_name_list) {
            gtype_formats[agg_name_list[a]]={};
-           gtype_formats[agg_name_list[a]]['Fraction wasted due to node validation'] = {yaxis:1, color: '#000000',checked:true,lines: {show:true, fill:false}}; 
-           gtype_formats[agg_name_list[a]]['Fraction wasted because idle'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
-           gtype_formats[agg_name_list[a]]['Fraction wasted due to job failures'] = {yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
-           gtype_formats[agg_name_list[a]]['Fraction not used by user jobs'] = {yaxis:1, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Fraction wasted due to node validation'] = {yaxis:1, color: '#000000',checked:true,lines: {show:true, fill:false}};
+           gtype_formats[agg_name_list[a]]['Fraction wasted because idle'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}};
+           gtype_formats[agg_name_list[a]]['Fraction wasted due to job failures'] = {yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}};
+           gtype_formats[agg_name_list[a]]['Fraction not used by user jobs'] = {yaxis:1, color: '#FF6600', checked:true, lines: {show:true, fill:false}};
         }
-        gtype_formats['fail']={}; 
-        gtype_formats['fail']['FailedNr'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
-        gtype_formats['fail']['Glideins'] = {yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
-        gtype_formats['fail']['FailedNr/Glideins'] = {yaxis:2, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
+        gtype_formats['fail']={};
+        gtype_formats['fail']['FailedNr'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}};
+        gtype_formats['fail']['Glideins'] = {yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}};
+        gtype_formats['fail']['FailedNr/Glideins'] = {yaxis:2, color: '#FF6600', checked:true, lines: {show:true, fill:false}};
 
 ////////////////////////////////////////////////////////////////
 /////Create Graph///////////////////////////////////////////////
@@ -522,7 +522,7 @@ Description:
           for(var i=0;i<gtype_filtered_list.length;i++) {
              rrd_filtered_data=new RRDFilterDS(rrd_data1,gtype_DSs[gtype_filtered_list[i]]);
              var DS_list = [];
-             for (var j=0;j<rrd_filtered_data.getNrDSs();j++) { 
+             for (var j=0;j<rrd_filtered_data.getNrDSs();j++) {
                 DS_list.push(rrd_filtered_data.getDS(j));
              }
              if(gtype_id=="aggavg" || gtype_id=='aggavgf'){op_list.push(new AvgSumDS(DS_list,name_list[i]));}
@@ -530,14 +530,14 @@ Description:
           }
           rrd_data1 = new RRDFilterOp(rrd_data1,op_list);
           var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],null);
-        } 
+        }
 
         else if(gtype_id=='fail') {
           var DS_list = [];
           var op_list=[];
           failed_idx=0,glidein_idx=0;
           for (var i=0;i<rrd_data1.getNrDSs();i++) {DS_list.push(rrd_data1.getDS(i));}
-          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+          for (var i=0;i<rrd_data1.getNrDSs();i++) {
              if (rrd_data1.getDS(i).getName()=='FailedNr') {
                 failed_idx=i;
                 op_list.push(new DoNothing(rrd_data1.getDS(i).getName()));
@@ -551,36 +551,36 @@ Description:
           op_list.push(new FractionDS(rrd_data1.getDS(failed_idx).getName(),rrd_data1.getDS(glidein_idx).getName()));
           rrd_data1 = new RRDFilterOp(rrd_data1,op_list);
           var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],null);
-           
+
         }
         //Non-Aggregated InfoGroups
         else {
-          //create a new rrdlist, which contains all original elements 
+          //create a new rrdlist, which contains all original elements
           //    plus an element which is a sum of the first two
           var op_list = [];
           var DS_list = [];
           var sum=0;
 
-          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+          for (var i=0;i<rrd_data1.getNrDSs();i++) {
              DS_list.push(rrd_data1.getDS(i));
-          } 
+          }
           //Push Lasted_Unknown and JobsLasted_Unknown to bottom of respective lists
           var flag=0;
-          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+          for (var i=0;i<rrd_data1.getNrDSs();i++) {
              if ((/Lasted_Unknown/).test(rrd_data1.getDS(i).getName())) {flag=1; continue;}
              op_list.push(new RelativeDS(DS_list, rrd_data1.getDS(i).getName(),i));
           }
           if(flag==1) {op_list.push(new RelativeDS(DS_list, rrd_data1.getDS(0).getName(),0));}
- 
+
           op_list.push(new AvgSumDS(DS_list,"Average"));
-          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+          for (var i=0;i<rrd_data1.getNrDSs();i++) {
              if ((/Lasted_Unknown/).test(rrd_data1.getDS(i).getName())) {flag=1; continue;}
              op_list.push(new DoNothing(rrd_data1.getDS(i).getName()));
           }
           if(flag==1) {op_list.push(new DoNothing(rrd_data1.getDS(0).getName()));}
 
           op_list.push(new WeightedSumDS(DS_list,"Weighted Sum"));
-            
+
           rrd_data1 = new RRDFilterOp(rrd_data1,op_list);
 
           //Choose number of rows for Graph Type
@@ -616,7 +616,7 @@ Description:
       function update_plot_handler(bf) {
           var i_rrd_data=undefined;
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fname+" is not a valid RRD archive!");
           }
@@ -636,12 +636,12 @@ Description:
           }
 
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fname+" is not a valid RRD archive!");
           }
           if (i_rrd_data!=undefined) {
-            rrd_group_data[idx] = new Array(); 
+            rrd_group_data[idx] = new Array();
             rrd_group_data[idx] = i_rrd_data;
             update_plot()
           }
@@ -713,7 +713,7 @@ Description:
           document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
 
           for (var i=0; i<en_array.length; i++) {
-            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
+            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
             try {
               FetchBinaryURLAsync(fn,update_grouped_plot_handler);
             } catch (err) {
@@ -728,62 +728,62 @@ Description:
       /* Function to read from the url any parameters the user has specified. */
       function checkUrl() {
         var url = window.location.search;
-        parameterArry = new Array("entry", "frontend", "infoGroup"); 
+        parameterArry = new Array("entry", "frontend", "infoGroup");
         groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
-        group = 0;  
-        var entrySpec; 
+        group = 0;
+        var entrySpec;
         var infoGroupSpec;
-        urlValid = 0; 
-        paramSpecArry = new Array(); 
+        urlValid = 0;
+        paramSpecArry = new Array();
         if(url) {
           url = url.substring(1);
-          urlSplit = url.split('&'); 
-          i = 0; 
-          while(i < urlSplit.length) { 
-            equalSplit = urlSplit[i].split('='); 
+          urlSplit = url.split('&');
+          i = 0;
+          while(i < urlSplit.length) {
+            equalSplit = urlSplit[i].split('=');
             if(equalSplit[0] == parameterArry[i]) {
               paramSpecArry[i] = equalSplit[1];
             }
-            i++; 
+            i++;
           }
         }
         for(i = 0; i< paramSpecArry.length; i++) {
-          counter = 2; 
+          counter = 2;
           group_sep_idx = groups_starting_idx + 2
           if(i == 0) {
             for(entry in entries) {
               if(entry == paramSpecArry[0]) {
-                ENTRY = paramSpecArry[0]; 
-                urlValid = 1; 
+                ENTRY = paramSpecArry[0];
+                urlValid = 1;
                 for(j = 0; j< groups.length; j++) {
                   if(entry == groups[j]) {
-                    document.getElementById("entries").selectedIndex = counter + 1; 
+                    document.getElementById("entries").selectedIndex = counter + 1;
                     setOptions(entry);
                     group = 1;
-                    break;  
-                  }	
+                    break;
+                  }
                 }
                 if(!group) {
-                  document.getElementById("entries").selectedIndex = counter; 
+                  document.getElementById("entries").selectedIndex = counter;
                   setOptions(entry);
                   var frontend = paramSpecArry[1];
-                  var fe_list = document.getElementById("frontends").childNodes; 
+                  var fe_list = document.getElementById("frontends").childNodes;
                   var fe_idx=0;
                   for(var k=0;k<fe_list.length;k++) {
                     if(frontend==fe_list[k].innerHTML) {
                       fe_idx=k;
                     }
                   }
-                  document.getElementById("frontends").selectedIndex = fe_idx; 
+                  document.getElementById("frontends").selectedIndex = fe_idx;
                 }
                 break;
               }
               else if("total" == paramSpecArry[0]) {
-                urlValid = 1; 
-                document.getElementById("entries").selectedIndex = 0; 
+                urlValid = 1;
+                document.getElementById("entries").selectedIndex = 0;
                 setOptions("total");
                 var frontend = paramSpecArry[1];
-                var fe_list = document.getElementById("frontends").childNodes; 
+                var fe_list = document.getElementById("frontends").childNodes;
                 var fe_idx=0;
                 for(var k=0;k<fe_list.length;k++) {
 		  if(frontend==fe_list[k].innerHTML) {
@@ -791,22 +791,22 @@ Description:
 		  }
 		}
 		document.getElementById("frontends").selectedIndex = fe_idx;
-                break;  	
+                break;
               }
-              counter++; 
+              counter++;
               if (counter == group_sep_idx) {
                 counter++;
               }
             }
           }
           else if(i == 2) {
-            child = 1; 
+            child = 1;
             for(i = 0; i< infoGroupOptions.length; i++) {
               if(infoGroupOptions[i] == paramSpecArry[2]) {
                 document.getElementById("gtypes").elements[i].checked = true;
-                urlValid = 1; 
+                urlValid = 1;
               }
-              child+=2;	
+              child+=2;
             }
           }
         }
@@ -818,25 +818,25 @@ Description:
       /* Function to show link for current options. */
       function showLink() {
         constructed = document.URL.split('?');
-        entriesTable = document.getElementById("entries"); 
-        frontendsTable = document.getElementById("frontends"); 
+        entriesTable = document.getElementById("entries");
+        frontendsTable = document.getElementById("frontends");
         var specifiedEntry;
         var specifiedFrontend;
-        var specifiedGOption; 
+        var specifiedGOption;
         /* Find the current entry specified. */
         for(i = 0; i < entriesTable.options.length; i++) {
           if(entriesTable.options[i].selected == true) {
-            specifiedEntry = entriesTable.options[i].text; 	
+            specifiedEntry = entriesTable.options[i].text;
           }
         }
         /* Find the current frontend specified. */
         for(i = 0; i < frontendsTable.options.length; i++) {
           if(frontendsTable.options[i].selected == true) {
-            specifiedFrontend = frontendsTable.options[i].text;     
+            specifiedFrontend = frontendsTable.options[i].text;
           }
         }
         gOptionTable = document.getElementById("gtypes");
-        j = 0;  
+        j = 0;
         /* Find the current group option specified. */
         for(i = 1; i< gOptionTable.childNodes.length; i+=2) {
           if(gOptionTable.childNodes[i].checked == true) {
@@ -846,23 +846,23 @@ Description:
             j++;
           }
         }
-        constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
-        document.location.href = constructed; 
-      }  
+        constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption;
+        document.location.href = constructed;
+      }
       /* Function to navigate to other glidein tools. */
       function goToDestination(option) {
         if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY) {
-          document.location.href = option.value + "?entry=" + ENTRY; 
+          document.location.href = option.value + "?entry=" + ENTRY;
         }
         else {
-          document.location.href = option.value; 
+          document.location.href = option.value;
         }
-        document.getElementById("destination").selectedIndex = 0; 
+        document.getElementById("destination").selectedIndex = 0;
       }
 
       function autoupdate() {
         var auchk = document.getElementById("autoupdate").checked;
-        
+
         if (auchk) {
           auInt=setInterval(fname_update, 1800000);
         } else {

@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -114,40 +114,40 @@ document describes how a glidein configures and starts the <A HREF="https://htco
 must perform several tasks, including:</P>
 <UL>
     <LI>Check that the working environment on the worker node is
-    reasonable (else user jobs will fail) 
+    reasonable (else user jobs will fail)
     </li>
-    <LI>Obtain the HTCondor binaries 
+    <LI>Obtain the HTCondor binaries
     </li>
-    <LI>Configure HTCondor 
+    <LI>Configure HTCondor
     </li>
 
-    <LI>Prepare the environment for HTCondor and the user jobs 
+    <LI>Prepare the environment for HTCondor and the user jobs
     </li>
-    <LI>Start HTCondor 
+    <LI>Start HTCondor
     </li>
 </UL>
 <P>Given the complexity of the task, and for the sake of flexibility,
 it makes sense to split the script in several pieces. So the glidein
 job is composed of several pieces, including a startup script, helper
-scripts, the HTCondor binaries and a base configuration file. 
+scripts, the HTCondor binaries and a base configuration file.
 </P>
 <P>However, having a Grid job with data files can represent a
 challenge; each Grid flavor treats data in a different way. To make
 the system as general as possible, the glideins rely on HTTP for data
 distribution. However, since the HTTP protocol is not a secure one,
-the glidein implements its own security on top of it. 
+the glidein implements its own security on top of it.
 </P>
 <P>The picture below for an overview.</p>
 <IMG SRC="../images/glidein_script.png">
 <p>
-    The security is implemented using SHA1 signatures. 
+    The security is implemented using SHA1 signatures.
 The signature checking is implemented in two steps:</P>
 
 <OL>
     <LI><P>The signatures of all the files to
     be transfered are saved in a signature file and stored on the Web
     server. The signature of the signature file is then passed as one of
-    the parameters of the glidein job. 
+    the parameters of the glidein job.
     </P>
     <LI><P>The glidein startup script loads the signature file from the
     Web server and verifies its signature. All other downloads,
@@ -195,8 +195,8 @@ entry-specific ones. Since order can be important, especially when
 executables are involved, the glidein allows for global helper files
 to be loaded (and executed) before and/or after the entry-specific
 ones.  One executable is special; this is the helper script that
-starts the 
-<A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-htcondor-daemons">HTCondor Startd</A>. 
+starts the
+<A HREF="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-htcondor-daemons">HTCondor Startd</A>.
 and  must be the last to be run, so it is handled in
 a special way.</P>
 <P>See the picture below for an overview.</P>
@@ -257,7 +257,7 @@ tarballs that need to be unpacked, or executables that need to be
 run. This stage will take the appropriate action.</P>
 <P>Finally, the invoker of this stage may request for the file
 processing to be recorded in the configuration file, by providing an
-output variable name. 
+output variable name.
 </P>
 <P>See figure below for an overview.</P>
 <P><IMG SRC="../images/flow_glidein_file.png"></P>
@@ -294,7 +294,7 @@ compressed and streamed to the standard error.</P>
 mostly using <A HREF="http://tldp.org/LDP/abs/html/">bash</A>,
 although grep and <A HREF="http://www.vectorsite.net/tsawk.html">awk</A> are used
 extensively, too.</P>
-<P>The files are located in <TT>glideinWMS/creation/web_base</TT>but are copied 
+<P>The files are located in <TT>glideinWMS/creation/web_base</TT>but are copied
 to the Factory configuration directory during the
 <A HREF="index.html#create_entry">Factory configuration</A>.</P>
 <P>The picture below shows the dependency tree of the most used
@@ -311,14 +311,14 @@ from configuration files and from command line arguments.</P>
 from <TT>glideinWMS/creation/web_base</TT></P>
 
 <UL>
-    <LI><TT>condor_config(*)</TT> - contains the base condor configuration. 
+    <LI><TT>condor_config(*)</TT> - contains the base condor configuration.
         It will be extended at runtime by the glidein scripts.</li>
-    <LI><TT>condor_vars(*)</TT> - 
+    <LI><TT>condor_vars(*)</TT> -
     contains the description and the defaults
     for the variables used by the glidein. Any meaningful parameter
     should be documented here.</li>
 </UL>
-<P>Another set of configuration files is generated during the 
+<P>Another set of configuration files is generated during the
 <A HREF="index.html#create_entry">Factory configuration</A>:</P>
 <UL>
 

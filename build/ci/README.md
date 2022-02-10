@@ -19,7 +19,7 @@ do_parse_options() { pass; }
 # 2 - outfile
 # 3... - options/arguments passed to the command (e.g. files/test list)
 do_process_branch() { pass; }
-# Run the test/linting on the current branch 
+# Run the test/linting on the current branch
 # 1 - branch
 # 2 - output file (output directory/output.branch)
 # 3... - files to process (optional)
@@ -41,7 +41,7 @@ do_log_close() { true; }
 
 do_table_headers() {
     # Tab separated list of fields
-    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    # example of table header 2 fields available start with ',' to keep first field from previous item
     # echo -e "TestName,var1\t,var2\t,var3"
     false
 }
@@ -117,7 +117,7 @@ Command options:
   -c        generate a coverage report while running unit tests
 ```
 
-The invocation directory or the new temporary directory become the working directory. In it there are the source tree, 
+The invocation directory or the new temporary directory become the working directory. In it there are the source tree,
 the Python virtual environment (if needed) and the output directory where the outputs from the tests are saved.
 Once the test completes all these directories can be removed if so desired.
 
@@ -126,8 +126,8 @@ Once the test completes all these directories can be removed if so desired.
 Each test will receive an output namespace: `output/gwms.BRANCH.TESTNAME`
 This will be the name of the file with the summary of the branch results.
 Different tests can have additional files or folders for detailed results, etc.
-Normally other names are defined adding '.' (dot) and the additional name. 
-'.d' is used for directories containing many additional files of the test 
+Normally other names are defined adding '.' (dot) and the additional name.
+'.d' is used for directories containing many additional files of the test
 (e.g. one file per source or test file).
 
 Here files in the output directory:
@@ -143,7 +143,7 @@ gwms.master.bats
 gwms.master.unittest
 
 
-``` 
+```
 
 The main files, `gwms.BRANCH.TESTNAME`, contain a series of (shell) variables with the results.
 ```bash
@@ -155,4 +155,4 @@ FILES_CHECKED_COUNT=218
 PYLINT_ERROR_FILES_COUNT=0
 PYLINT_ERROR_COUNT=0
 PEP8_ERROR_COUNT=7
-``` 
+```

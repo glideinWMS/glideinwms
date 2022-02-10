@@ -12,7 +12,7 @@
 #   $3 = job search pattern (e.g. '234\.3')
 
 # import signal
-import sys 
+import sys
 import os, os.path
 import re
 import traceback
@@ -29,7 +29,7 @@ def print_match(job, glidein, match_ast, counts, level, countid):
     prefix = ""
     for l in range(level):
         prefix += "  "
-    
+
     match_obj = exprParser.exp_compile(match_ast)
     res = eval(match_obj)
     c = "%s.%s" % (countid, res)
@@ -60,7 +60,7 @@ def print_match(job, glidein, match_ast, counts, level, countid):
         # print
         print("  %s%-5s due to NOT of" % (prefix, res))
         print_match(job, glidein, match_ast.expr, counts, level+2, c+".NOT")
-            
+
     return res
 
 
@@ -95,7 +95,7 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
             else:
                 glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
-    
+
 
 
     ## schedd
@@ -121,7 +121,7 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
 
             if job_filter_obj.search(t) is None:
                 continue #no matching
-            
+
             print()
             print("-=-=-=-=-=-=-=-=-=-")
             print("Job %s"%t)
@@ -180,7 +180,7 @@ def main(work_dir, group_name,job_filter):
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
-        
+
 
 ############################################################
 #

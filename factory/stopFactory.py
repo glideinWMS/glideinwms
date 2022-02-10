@@ -7,11 +7,11 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Stop a running glideinFactory
-# 
+#
 # Arguments:
 #   $1 = glidein submit_dir (i.e. factory dir)
 #
@@ -33,14 +33,14 @@ from glideinwms.factory import glideFactoryConfig
 
 def all_pids_in_pgid_dead(pgid):
     # return 1 if there are no pids in the pgid still alive
-    # 0 otherwise 
+    # 0 otherwise
     devnull = os.open(os.devnull, os.O_RDWR)
     return subprocess.call(["pgrep", "-g", "%s" % pgid],
                             stdout=devnull,
                             stderr=devnull)
 
 
-def kill_and_check_pgid(pgid, signr=signal.SIGTERM, 
+def kill_and_check_pgid(pgid, signr=signal.SIGTERM,
                         retries=100, retry_interval=0.5):
     # return 0 if all pids in pgid are dead
     # 50 sec timeout by default
@@ -105,7 +105,7 @@ def main(startup_dir,force=True):
     return 0
 
 USAGE_STRING = """Usage: stopFactory [-f|-force] submit_dir
-     return values: 0 Factory stopped, 
+     return values: 0 Factory stopped,
          1 unable to stop Factory or wrong invocation, 2 Factory was not running
 """
 if __name__ == '__main__':

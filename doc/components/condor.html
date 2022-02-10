@@ -82,16 +82,16 @@ Related Links:
 <div class="section">
     <p>
     <br>
-    For the purposes of the examples shown here the HTCondor install location is 
+    For the purposes of the examples shown here the HTCondor install location is
     shown as <b>/opt/glideincondor</b>.<br/>
     The working directory is
-    <b>/opt/glidecondor/condor_local</b> and the machine name is 
+    <b>/opt/glidecondor/condor_local</b> and the machine name is
     <b>mymachine.fnal.gov</b>.<br>
 
     If you want to use a different setup, make the necessary changes.
-    If you installed HTCondor via RPMs the configuration files location is different: see 
+    If you installed HTCondor via RPMs the configuration files location is different: see
      <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend/#installing-htcondor">this OSG guide</a>
-    or the OSG pages about the 
+    or the OSG pages about the
      <a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">Frontend</a>
     and <a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">Factory</a>.
     </p>
@@ -108,29 +108,29 @@ Related Links:
     post-installation changes you desire to make.
     </p>
     <p>
-    Unless explicity mentioned, all operations are to be done by the user that 
+    Unless explicity mentioned, all operations are to be done by the user that
     you installed HTCondor as.
     </p>
 
 <h3>Increase the number of available file descriptors</h3>
    <p>
   When using multiple schedds, you may want to consider increasing the available
-  file descriptors. 
-  This can be done by issuing a "ulimit -n" command as well as changing the 
+  file descriptors.
+  This can be done by issuing a "ulimit -n" command as well as changing the
   values in the /etc/security/limits.conf file</p>
    </p>
 
 <h3>Using the condor_shared_port feature</h3>
     <p>
-    
+
     <!-- Shared port V2.5.2+ ----- -->
     <h4>GlideinWMS V3+ </h4>
     Additional information on this daemon can be found here:<ul>
     <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html?highlight=Daemons#the-htcondor-daemons">HTCondor manual -  Daemons</a></br>
-    <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=Networking%20(includes%20sections%20on%20Port%20Usage%20and%20CCB)#networking-includes-sections-on-port-usage-and-ccb">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    <a href="https://htcondor.readthedocs.io/en/latest/admin-manual/networking.html?highlight=Networking%20(includes%20sections%20on%20Port%20Usage%20and%20CCB)#networking-includes-sections-on-port-usage-and-ccb">HTCondor manual - Reducing Port Usage with the condor_shared_port Daemon</a><br></ul>
     </p>
     <p>
-    Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
+    Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b>
     will need to contain the following attributes. Port 9618 is the default port
     for the schedds.
     <blockquote>
@@ -141,8 +141,8 @@ Related Links:
          SCHEDD.SHARED_PORT_ARGS = -p 9618<br>
          DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
     </blockquote>
-    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect. 
-    <b>Very important:</b> As explained below in this documentation, all HTCondor daemons on the Frontend (including User Collector and Schedd) use the <i>shared port</i> daemon       on port 9618, which must be open. For the secondary collectors, you may need to open the port range 9620 to 9660 depending on your configuration (i.e. if Glideins call 
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    <b>Very important:</b> As explained below in this documentation, all HTCondor daemons on the Frontend (including User Collector and Schedd) use the <i>shared port</i> daemon       on port 9618, which must be open. For the secondary collectors, you may need to open the port range 9620 to 9660 depending on your configuration (i.e. if Glideins call
        back on those ports). If there are standalone submit hosts, they may have only port 9615 open, as indicated in the examples. In this case, please review the firewalls to        make sure 9618 is open.
        The same range must be open also for the GlideinWMS versions prior to 3.4.1, as well as the port 9615.
        Please note, if you install the user schedd on a separate host, incoming TCP port 9618 remains to be open (it was 9615 for GlideinWMS 3.4.0 and earlier).
@@ -152,12 +152,12 @@ Related Links:
 <!-- Multiple Schedds ---- -->
 <a name="new_schedd_setup"/>
 <h3>Multiple Schedds in GlideinWMS</h3>
-The following needs to be added to your HTCondor config file for each additional 
-schedd desired.  
+The following needs to be added to your HTCondor config file for each additional
+schedd desired.
 Note the <b><font color="red">numeric</font></b> suffix used to distinguish each schedd.
 <br/> <br/>
 If the multiple schedds are being used on your WMS Collector, HTCondor-G is used
-to submit the glidein pilot jobs and the 
+to submit the glidein pilot jobs and the
     <font color="green"><b>SCHEDD(GLIDEINS/JOBS)2_ENVIRONMENT attribute</b></font> shown
 below is required.  If not, then it should be omitted.
 <br/> <br/>
@@ -214,8 +214,8 @@ The directories files will need to be created for the attributes by these attrib
 </blockquote>
 </p>
 <p>
-A script is available to do this for you, given the attributes are defined 
-with the naming convention shown.  If they already exist, it will verify their 
+A script is available to do this for you, given the attributes are defined
+with the naming convention shown.  If they already exist, it will verify their
 existance and ownership, otherwise they will be created.
 <blockquote>
  source /opt/glidecondor/condor.sh<br/>
@@ -252,9 +252,9 @@ Processing schedd: SCHEDDJOBS2<br/>
     post-installation changes you desire to make.
     </p>
     <p>
-    <b>Important: </b>When secondary (additional) collectors are added to either 
-       the WMS Collector or User Collector, changes must also be made to the 
-       <a href="../frontend/configuration.html">Frontend configurations</a> of all Frontends,  
+    <b>Important: </b>When secondary (additional) collectors are added to either
+       the WMS Collector or User Collector, changes must also be made to the
+       <a href="../frontend/configuration.html">Frontend configurations</a> of all Frontends,
        so they are made aware of them.
     </p>
 <h3></a>HTCondor configuration changes</h3>
@@ -350,17 +350,17 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 <div class="section">
 <a name="collectors_ha"><h2>Multiple Collectors for High Availability (HA)</h2></a>
     <p>
-     For reliability purposes, you may want to utilize HTCondor's High Availability (HA) feature for 
-     collectors.<br/>  
+     For reliability purposes, you may want to utilize HTCondor's High Availability (HA) feature for
+     collectors.<br/>
      <p/>
-     The HTCondor configuration of additional (secondary) collectors is the same as in the previous section, 
+     The HTCondor configuration of additional (secondary) collectors is the same as in the previous section,
      <a href="#collectors">Multiple Collectors for Scalability</a>.
-     Refer to the <a href="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor manual</a> section on 
+     Refer to the <a href="https://htcondor.readthedocs.io/en/latest/index.html">HTCondor manual</a> section on
      High Availability of the Central Manager for additional configuration requirements.
-     <p> 
-    <b>Important: </b>When the HTCondor High Availability feature is used in the User Collector, 
-       changes must also be made to the 
-       <a href="../frontend/configuration.html">Frontend configurations</a>  
+     <p>
+    <b>Important: </b>When the HTCondor High Availability feature is used in the User Collector,
+       changes must also be made to the
+       <a href="../frontend/configuration.html">Frontend configurations</a>
        so it is made aware of them.
     </p>
     <p/>
@@ -371,16 +371,16 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
 
       <h2><a name="fine_tune">Fine Tuning User Schedd for Large Scale Installations</a></h2>
       <h3>Increase the number of available file descriptors</h3>
-  
+
       <p>
           Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
-          of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in 
-          the queue at any given time. This is particularly required for large scale installations. 
+          of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in
+          the queue at any given time. This is particularly required for large scale installations.
           <br><br>
           In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor. This
           is a good place to set higher file descriptor limit for the schedd process.
       </p>
-  
+
   </div>
 
 <div class="footer">

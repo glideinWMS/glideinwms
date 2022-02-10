@@ -72,9 +72,9 @@ SPDX-License-Identifier: Apache-2.0
 <h2><a name="description">1. Description</a></h2>
             <p><img src="../images/overview_collector.png" name="Collector Overview" align="right" border="0"></p>
             <p>
-                The User Pool will be the 
-                <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Central Manager</a> 
-                for the glidein pool, i.e. it will run the HTCondor Collector and Negotiator daemons. 
+                The User Pool will be the
+                <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Central Manager</a>
+                for the glidein pool, i.e. it will run the HTCondor Collector and Negotiator daemons.
                 All glideins submitted by the Factories connected to this User Pool will report to it and be available to match with
                 the jobs submitted to the Schedds (User submit nodes) connected to it.
                 These daemons define the glidein pool; if this node
@@ -102,7 +102,7 @@ SPDX-License-Identifier: Apache-2.0
             </tbody></table>
 
             <p>
-                This machine needs <b>one or two fast CPUs</b> and a moderate amount of 
+                This machine needs <b>one or two fast CPUs</b> and a moderate amount of
                 <b>memory</b> (<b>1GB</b> should be enough for most tasks; really big pools may need more).
             </p>
 
@@ -111,7 +111,7 @@ SPDX-License-Identifier: Apache-2.0
                 all worker nodes will be continuously sending UDP packets to the Collector.
             </p>
             <p>
-                The machine must be <b>very stable</b>; if the Collector dies, the glidein pool dies with it (There are HTCondor techniques to 
+                The machine must be <b>very stable</b>; if the Collector dies, the glidein pool dies with it (There are HTCondor techniques to
                 minimize this damage, but you should still try to choose the stablest machine you can afford.)
             </p>
 

@@ -44,7 +44,7 @@ class PerfMetric:
 
     def event_start(self, event_name, t=None):
         self.register_event_time(event_name, 'start_time', t=t)
-    
+
 
     def event_end(self, event_name, t=None):
         self.register_event_time(event_name, 'end_time', t=t)
@@ -104,6 +104,3 @@ def getPerfMetric(name):
     if name not in _perf_metric:
         _perf_metric[name] = PerfMetric(name)
     return _perf_metric[name]
-
-
-

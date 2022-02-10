@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -329,7 +329,7 @@ class GlideinParams(cWParams.CommonParams):
 ############################################################
 #
 # P R I V A T E - Do not use
-# 
+#
 ############################################################
 
 #####################################
@@ -339,4 +339,3 @@ def find_condor_base_dir():
         return None
     else:
         return os.path.dirname(condorExe.condor_bin_path)
-

@@ -6,10 +6,10 @@
 # Project:
 #       GlideinWMS
 #
-# 
+#
 # Description:
-#       This script checks the status of CVMFS mounted on the filesystem in the worker node. 
-#	If CVMFS is mounted, the script unmounts all CVMFS repositories using the umountrepo utility and 
+#       This script checks the status of CVMFS mounted on the filesystem in the worker node.
+#	If CVMFS is mounted, the script unmounts all CVMFS repositories using the umountrepo utility and
 #	prints appropriate message. If CVMFS is not found to be mounted, then an appropriate message
 #	will be displayed.
 #
@@ -45,9 +45,9 @@ if [[ $use_cvmfsexec -ne 1 ]]; then
 fi
 
 # get the glidein work directory location from glidein_config file
-work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}') 
+work_dir=$(grep '^GLIDEIN_WORK_DIR ' $glidein_config | awk '{print $2}')
 cvmfs_utils_dir="$work_dir"/cvmfs_utils
-# $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD 
+# $PWD=/tmp/glide_xxx and every path is referenced with respect to $PWD
 # source the helper script
 # TODO: Is this file somewhere in the source tree? use: # shellcheck source=./cvmfs_helper_funcs.sh
 . "$cvmfs_utils_dir"/utils/cvmfs_helper_funcs.sh
@@ -72,7 +72,7 @@ fi
 loginfo "Unmounting CVMFS (that mounted by the glidein)..."
 "$cvmfs_utils_dir"/distros/.cvmfsexec/umountrepo -a
 
-if [[ -n "$CVMFS_MOUNT_DIR" ]]; then 
+if [[ -n "$CVMFS_MOUNT_DIR" ]]; then
     CVMFS_MOUNT_DIR=
     export CVMFS_MOUNT_DIR
     add_config_line CVMFS_MOUNT_DIR ""

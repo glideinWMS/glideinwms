@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
   <link rel="canonical" href="https://glideinwms.fnal.gov/doc.prd/factory/index.html" />
 </head>
@@ -74,9 +74,9 @@ SPDX-License-Identifier: Apache-2.0
 <div class="jump">
 <u>Jump to:</u>
 <ol>
-    <LI><A HREF="#overview">Overview</A> 
-    <LI><A HREF="#philosophy">Factory Philosophy</A> 
-    <li><a href="#management">Factory Management</a> 
+    <LI><A HREF="#overview">Overview</A>
+    <LI><A HREF="#philosophy">Factory Philosophy</A>
+    <li><a href="#management">Factory Management</a>
     </li>
 </ol>
 </div>
@@ -113,26 +113,26 @@ the desirable resources.</P>
 
 <div class="section">
 <H2><A NAME="philosophy"></A>The Glidein Factory philosophy</H2>
-<P>The main idea behind a Glidein Factory is to make the life of a 
+<P>The main idea behind a Glidein Factory is to make the life of a
 Frontend as easy as possible. And to do that, the Factory needs to
 abstract as much as possible. </p>
 <p>
-    For starters, the Factory itself is the one that knows the details 
-of various Grid sites and properly configures the glidein entry points, 
-so they will run without any additional knowledge. A Frontend only needs 
+    For starters, the Factory itself is the one that knows the details
+of various Grid sites and properly configures the glidein entry points,
+so they will run without any additional knowledge. A Frontend only needs
 to know that an entry point exists, and the parameters it takes.
 </p>
 <p>
-    Additionally, the Factory also does the submissions themselves. The Frontend just publishes that it needs some glideins and the Factory 
-will start submitting them. The only handle the Frontend may want to use 
+    Additionally, the Factory also does the submissions themselves. The Frontend just publishes that it needs some glideins and the Factory
+will start submitting them. The only handle the Frontend may want to use
 is the ability to regulate the rate of glideins that are sent to the
 Grid site. In the current implementation, this can be achieved by
-setting the desired number of 
+setting the desired number of
 <A HREF="https://htcondor.readthedocs.io/en/latest/users-manual/managing-a-job.html?highlight=managing%20job#managing-a-job">idle glideins</A>
 to be kept in the Grid queue.
 </p>
 <p>
-    The <A HREF="../images/factory_overview.png" TARGET="_blank">typical scenario</A> 
+    The <A HREF="../images/factory_overview.png" TARGET="_blank">typical scenario</A>
 features a Frontend with several (hundreds or even
 thousands of) user jobs in the queue that is looking for resources to
 run them. It will fetch the Factory classads, select the ones that
@@ -147,7 +147,7 @@ glideins in the queue.</P>
 <div class="section">
 <H2><A NAME="management"></A>Factory Management At a Glance</H2>
 <p>
-    Here are some common tasks you may need to do as a Factory admin 
+    Here are some common tasks you may need to do as a Factory admin
     (with links to more information):
 </p>
 <ul>
@@ -158,14 +158,14 @@ glideins in the queue.</P>
     <li><a href="configuration.html">Configuration</a> can be found in either
         <tt>factory.xml</tt> or <tt>glideinWMS.xml</tt> in your Factory's
         instance directory (depending on your installation method).</li>
-    <li>After modifying the xml, be sure to 
+    <li>After modifying the xml, be sure to
         reconfig your Factory:
         <tt>systemctl stop gwms-factory; gwms-factory reconfig; systemctl start gwms-factory
         </tt></li>
     <li><a href="monitoring.html">Monitoring the Factory</a></li>
 </ul>
 <p>
-     For more information, see the 
+     For more information, see the
 
     <a href="https://opensciencegrid.org/operations/services/install-gwms-factory">Factory OSG RPM guide</a>.
 </p>

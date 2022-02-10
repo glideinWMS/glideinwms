@@ -120,12 +120,12 @@ def parse_args(args):
                 modargs.append(arg)
     except IndexError as e:
         raise ArgError("Expected to find another argument at %i" % i)
-        
+
     if '-h' in opts:
         # help requested, no error
         usage()
         sys.exit(0)
-        
+
     if len(args) < 2:
         raise ArgError("Not enough arguments")
 
@@ -219,7 +219,7 @@ def parse_import_args(args, QUIET_OPS):
         # end for lines
         pass
     # end for args
-    
+
     return dnlist
 
 
@@ -258,7 +258,7 @@ def update_mapfile(mapfile,dnlist,opts):
     if enable_checks and (lines[0][:4]!='GSI '):
         print("File '%s' is not a condor mapfile; first line is not a valid GSI mapping!" % mapfile)
         sys.exit(3)
-        
+
     if enable_checks:
         found=False
         for i in range(0,len(lines)):
@@ -287,7 +287,7 @@ def update_mapfile(mapfile,dnlist,opts):
         if line[:5]!='GSI "':
             found=True
             break
-    
+
     for dnel in dnlist:
         dn = dnel['dn']
         user = dnel['user']
@@ -305,7 +305,7 @@ def update_mapfile(mapfile,dnlist,opts):
     tmpfile="%s.new~"%mapfile
     if os.path.isfile(tmpfile):
         os.unlink(tmpfile)
-    
+
     with open(tmpfile,'w') as fd:
         fd.writelines(lines)
     os.chmod(tmpfile,mapmode)
@@ -322,7 +322,7 @@ def update_mapfile(mapfile,dnlist,opts):
 def cond_update_config(config_file,dnlist,opts):
     recreate=opts['recreate']
     allow_others=opts['allow_others']
-    
+
     # create a tmpfile first, so the change is semi-atomic
     # always use a final tilde to avoid Condor using it
     tmpfile="%s.new~"%config_file
@@ -339,7 +339,7 @@ def cond_update_config(config_file,dnlist,opts):
             lines=fd.readlines()
         # never destroy anything... we will just append to the end of the file
         is_first=False
-    
+
     for dnel in dnlist:
         if dnel['is_daemon_dn']:
             dn=dnel['dn']
@@ -425,7 +425,7 @@ def main(args):
                         raise IOError(errno.ENOENT, "No alternate CONFIG_FILE found")
         else:
             condor_config = opts['dnsfile']
-    
+
         check_config(condor_config, opts)
     except IOError as e:
         print(e)

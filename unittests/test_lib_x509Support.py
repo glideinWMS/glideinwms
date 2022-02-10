@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Project: 
+Project:
     glideinwms
 Purpose:
     unit test of glideinwms/lib/x509Support.py

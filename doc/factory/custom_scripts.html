@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Custom Scripts</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
   <link rel="canonical" href="https://glideinwms.fnal.gov/doc.prd/factory/custom_scripts.html" />
 </head>
@@ -94,7 +94,7 @@ Related Links: <br/>
 </ul>
 </div>
 <div class="section">
- 
+
 <H2>Description</H2>
 <P>This document describes how to write custom scripts to run in a
 glidein. Glidein Factory administrators may want to write them to
@@ -104,7 +104,7 @@ node validation, and discovery and setup of VO-specific software.<BR>
 The &quot;scripts&quot; can be any executable, also compiled binaries.</P>
 
     <H2><A NAME="config"></A>Script inclusion</H2>
-<P>A script is a file that was listed in the 
+<P>A script is a file that was listed in the
 
 <A HREF="configuration.html#args">Glidein Factory</A> or <A HREF="../frontend/configuration.html#args">Frontend</A>
     configuration file as being executable (see the <A HREF="configuration.html#custom_code">attributes description</A>):</P>
@@ -151,13 +151,13 @@ error. A non-zero return value on following invocations of periodic scripts will
 <H2><A NAME="glidein_config"></A>The glidein configuration file</H2>
 <P>The glidein configuration file acts as a dashboard between
 different scripts.</P>
-<P>It is a simple ASCII file, with one value per line; the first column 
+<P>It is a simple ASCII file, with one value per line; the first column
 represents the attribute name, while the rest is the attribute value.<BR>
-If the value does not contain any spaces, the easiest way to extract a 
+If the value does not contain any spaces, the easiest way to extract a
 value in bash is:</P>
 
     <BLOCKQUOTE>
-    <I>attr_val</I>=`grep &quot;^$<I>attr_name</I> 
+    <I>attr_val</I>=`grep &quot;^$<I>attr_name</I>
     &quot; $<I>glidein_config</I> | awk '{print $2}'`
     </BLOCKQUOTE>
 
@@ -185,7 +185,7 @@ provided script and use it. Here is an example:</P>
 
 <BLOCKQUOTE>
     # import add_config_line function<BR>
-    add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' 
+    add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE '
         $glidein_config | awk '{print $2}'`<BR>
     source $add_config_line_source
 </BLOCKQUOTE>
@@ -211,7 +211,7 @@ glidein configuration file</A> as</P>
 <P>It is an ASCII file, with one entry per row. Each non comment line
 must have 7 columns. Each column has a specific meaning:</P>
 <OL>
-    <LI>Attribute name (will be extracted from 
+    <LI>Attribute name (will be extracted from
     <A HREF="#glidein_config">the glidein configuration file</A>)</li>
     <LI>Attribute type</li>
     <UL>
@@ -281,7 +281,7 @@ $glidein_config | awk '{print $2}'`<BR>
 </BLOCKQUOTE>
 <BLOCKQUOTE>
     # add an attribute<BR>
-    add_condor_vars_line 
+    add_condor_vars_line
         <I>myattribute type def condor_name req publish jobid</I>
 
 </BLOCKQUOTE>
@@ -289,7 +289,7 @@ $glidein_config | awk '{print $2}'`<BR>
 
 <div class="section">
 <H2><A NAME="xml_output"></A>Reporting script exit status</H2>
-<P>GlideinWMS Factory can receive and interpret a detailed exit status report, 
+<P>GlideinWMS Factory can receive and interpret a detailed exit status report,
 if provided by the validation script.</P>
 <P>The script should write the exit status report in the following file:</P>
 <BLOCKQUOTE>
@@ -315,10 +315,10 @@ you verified during your valudation run, if any.</P>
     # Uh oh, we hit an error <BR>
     &quot;$error_gen&quot; -error &lt;script name&gt; &lt;error type&gt; &quot;&lt;detailed description&gt;&quot;  [&lt;key&gt; &lt;value&gt;]*
 </BLOCKQUOTE>
-<P>The script should use one of the 
+<P>The script should use one of the
 <A HREF="validation_xml_output.html#error_types">standard <i>error types</i></A>.
-<BR>It should also provide a human readable <i>detailed description</i>. 
-It is perfectly fine if it extends over multiple lines; 
+<BR>It should also provide a human readable <i>detailed description</i>.
+It is perfectly fine if it extends over multiple lines;
 just make sure you properly pass it to the script.
 <BR>You can also specify any number of (key,value) pairs,
 representing any metrics that failed during the test.
@@ -467,7 +467,7 @@ error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 if [ -f &quot;$VO_SW_DIR/setup.sh&quot; ]; then
    source &quot;$VO_SW_DIR/setup.sh&quot;
 else
-  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;Could not find $VO_SW_DIR/setup.sh&quot; \ 
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;Could not find $VO_SW_DIR/setup.sh&quot; \
               &quot;file&quot; &quot;$VO_SW_DIR/setup.sh&quot; &quot;base_dir_attr&quot; &quot;VO_SW_DIR&quot;
    exit 1
 fi
@@ -493,7 +493,7 @@ sw_list=`cat $tmpname | awk '{if (length(a)!=0) {a=a &quot;,&quot; $0} else {a=$
 if [ -z &quot;$sw_list&quot; ]; then
   ERRSTR=&quot;No SW found.
 But the setup script was present at $VO_SW_DIR/setup.sh.&quot;
-  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;$ERRSTR&quot; \ 
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;$ERRSTR&quot; \
                &quot;source_file&quot; &quot;$VO_SW_DIR/setup.sh&quot;
 
   exit 1
@@ -542,7 +542,7 @@ if [ &quot;$tot_mem&quot; -lt 500000 ]; then
   add_config_line VO_SCALABILITY $vo_scalability
   &quot;$error_gen&quot; -ok  &quot;memset.sh&quot; &quot;vo_scalability&quot; &quot;$vo_scalability&quot;
   exit 0
-fi 
+fi
 &quot;$error_gen&quot; -ok  &quot;memset.sh&quot;
 exit 0
 </PRE>

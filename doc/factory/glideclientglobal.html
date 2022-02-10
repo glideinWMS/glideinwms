@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -77,7 +77,7 @@ SPDX-License-Identifier: Apache-2.0
     <LI><A HREF="#identify">Identify the ClassAd</A></li>
     <LI><A HREF="#configuration">Configuration and installation</A></li>
     <LI><A HREF="#security">Encrypted security parameters</A></li>
-    <LI><A HREF="#credential">Credentials</A></li>   
+    <LI><A HREF="#credential">Credentials</A></li>
 </ol>
 </div>
 <div class="related">
@@ -115,11 +115,11 @@ contains the credentials that are mapped to that Factory and are categorized by 
 			</li>
 		</ol>
 	</li>
-	
-	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for 
-	querying the collector or possibly in match expressions.  
+
+	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for
+	querying the collector or possibly in match expressions.
 		<ol type="a">
-			<li>These describe the Frontend and group making the request.  
+			<li>These describe the Frontend and group making the request.
 				<ul>
 					<li>ClientName  = &quot;frontend_name.group_name&quot;</li>
 					<li>FrontendName  = &quot;frontend_name&quot; </li>
@@ -128,17 +128,17 @@ contains the credentials that are mapped to that Factory and are categorized by 
 				</ul>
 			</li>
 		</ol>
-	</li>	
-				
-	<li><a name="security"></a><b>Encrypted security parameters.  </b> The Factory and Frontend use these to identify and 
+	</li>
+
+	<li><a name="security"></a><b>Encrypted security parameters.  </b> The Factory and Frontend use these to identify and
 	talk with each other.  These values will be encrypted in the actual Classad.
 		<ol type="a">
-			<li>The Frontend needs to tell the Factory what security name it is mapped to.  
+			<li>The Frontend needs to tell the Factory what security name it is mapped to.
 				<ul>
 					<li>GlideinEncParamSecurityName = &quot;encrypted security name&quot;</li>
 				</ul>
 			</li>
-			<li>The symmetric key used for encryption.  The Frontend generates this key and encrypts it using the Factory 
+			<li>The symmetric key used for encryption.  The Frontend generates this key and encrypts it using the Factory
 			public key.  All other encrypted parameters passed to the Factory are encrypted with the symmetric key.
 				<ul>
 					<li>ReqPubKeyID = &quot;03910dfe2d1101f80fd4f7c388fd2e1c&quot;</li>
@@ -151,15 +151,15 @@ contains the credentials that are mapped to that Factory and are categorized by 
 				</ul>
 			</li>
 		</ol>
-	</li>	
-		
-	<li><a name="credential"></a><b>Credentials allowed for this Frontend group for this Factory.  </b> The credentials are 
+	</li>
+
+	<li><a name="credential"></a><b>Credentials allowed for this Frontend group for this Factory.  </b> The credentials are
 	identified by an ID, which needs to be unique and must stay the same for the lifetime of the requests that use it (a renewed proxy
-	will have the same ID as the expired proxy with the same subject).  Credential ids should not based on the type or content of the 
-	credential.  An example would be to base the ID on a hash of the filename.  All these attributes are encrypted with the 
+	will have the same ID as the expired proxy with the same subject).  Credential ids should not based on the type or content of the
+	credential.  An example would be to base the ID on a hash of the filename.  All these attributes are encrypted with the
 	Frontend-generated symmetric key.
 		<ol type="a">
-			<li>Credential and associated security class.  
+			<li>Credential and associated security class.
 				<ul>
 					<li>GlideinEncParamID = &quot;encrypted credential with id_1&quot;</li>
 					<li>GlideinEncParamSecurityClassID = &quot;encrypted security class for credential id_1&quot;</li>
@@ -174,15 +174,15 @@ contains the credentials that are mapped to that Factory and are categorized by 
 				</ul>
 			</li>
 		</ol>
-	</li>	
-	
+	</li>
+
 </ol>
 
 
 <h2>Example glideclient ClassAd</h2>
 <pre>
 MyType = "glideclientglobal"
-GlideinMyType = "glideclientglobal" 
+GlideinMyType = "glideclientglobal"
 **ReqEncIdentity = "fb5c26ceaca17ead"
 Name = "glidein_name@factory_name@frontend_name.group_name"
 AuthenticatedIdentity = "frontend_user@node.domain.name"

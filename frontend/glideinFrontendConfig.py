@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Frontend config related classes
@@ -83,7 +83,7 @@ class ConfigFile:
         else:
             # local file
             return open(fname, "r")
-        
+
 
     def validate_func(self, data, validate, fname):
         if validate is not None:
@@ -118,7 +118,7 @@ class ConfigFile:
 
     def derive(self):
         return # by default, do nothing
-    
+
     def __str__(self):
         output = '\n'
         for key in list(self.data.keys()):
@@ -159,7 +159,7 @@ class FrontendDescript(ConfigFile):
         global frontendConfig
         ConfigFile.__init__(self, config_dir, frontendConfig.frontend_descript_file,
                             repr) # convert everything in strings
-        
+
 
 class ElementDescript(GroupConfigFile):
     def __init__(self, base_dir, group_name):
@@ -304,7 +304,7 @@ class ElementMergedDescript:
                     self.merged_data[t] = data[t]
 
         proxies = []
-        # switching the order, so that the group credential will 
+        # switching the order, so that the group credential will
         # be chosen before the global credential when ProxyFirst is used.
         for data in (self.element_data, self.frontend_data):
             if 'Proxies' in data:
@@ -416,7 +416,7 @@ class MergeStageFiles:
         main_consts.group_hash_value=group_consts.hash_value
 
         return main_consts
-    
+
     def get_condor_vars(self):
         main_cv=self.main_stage.get_condor_vars()
         group_cv=self.group_stage.get_condor_vars()

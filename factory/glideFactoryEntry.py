@@ -1231,7 +1231,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             os.write(fd, condortoken_data.encode('utf-8'))
             os.close(fd)
             util.file_tmp2final(condortoken_file, tmpnm)
-                
+
         except Exception as err:
             entry.log.exception('failed to create token: %s' % err)
             for i in sys.exc_info():

@@ -110,7 +110,7 @@ v3_6_3:
     - Updated the singularity wrapper with new features form the OSG wrapper
     - Clean PYTHONPATH and setup GWMS environment in Singularity containers
     - Improved the environment handling of the Singularity wrapper
-  Bug fix: 
+  Bug fix:
     - Upgrade the factory documentation not to ask to install the switchboard
     - The Python version of condor_chirp now works with Singularity jobs
     - Enable RFC proxies by default for direct proxies
@@ -166,7 +166,7 @@ v3_7_1:
     - Configuration changes to make more compatible with HTCondor 8.9  on initial install
     - SciTokens authentication between Factory and CE
     - IDTokens authentication between Factory and Frontend
-  Bug fix: 
+  Bug fix:
     - Factory reconfigs and startups do not require manual creation of directories
     - Factory builds Condor Tarballs to send with glideins correctly
 
@@ -177,7 +177,7 @@ v3_9:
   Feature:
     - Includes all features and fixes of 3.6.3 and 3.7.1
     - Python 3 code, some pitfalls to pay attention to are in the Bug Fix section
-  Bug fix: 
+  Bug fix:
     - custom disctionaries with __getattr__ in the creation package (an infinite loop was masked in Python 2)
     - str vs bytes, especially in crypto libraries
     - None cannot be used in sorted string lists and we use (None, None, None) for unmatched jobs in the Frontend
@@ -290,14 +290,14 @@ v3_7_6:
 
     Bug Fix:
         - condor_chirp no longer fail when python2 used in job
-        - IDTOKEN issuer changed from collector host to trust domain 
+        - IDTOKEN issuer changed from collector host to trust domain
         - proxy was failing to renew when both SCITOKEN and grid_proxy auth used
         - OSG_autoconf automatic assignment of submit attributes fixed
         - OSG_autoconf common entry fields implemented
         - OSG_autoconf now possible to append instead of replace values
         - glidein clears LD_LIBRARY_PATH prior to starting HTCondor
         - JOB_TOKENS no longer set in glidein environment if not needed
-        - IDTOKEN/SCITOKEN auth to bosco sites fixed 
+        - IDTOKEN/SCITOKEN auth to bosco sites fixed
         - improved IDTOKEN revocation procedures
         - SSL added to condor *_AUTHENTICATION_METHODS
         - Possible to have frontend group with only SCITOKEN authentication

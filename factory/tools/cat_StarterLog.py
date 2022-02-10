@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the StarterLog for a glidein output file
@@ -52,4 +52,3 @@ def main():
 
 if __name__ == '__main__':
     main()
- 

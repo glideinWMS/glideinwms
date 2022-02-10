@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the basic functions needed
@@ -67,7 +67,7 @@ class BaseRRDSupport:
             heartbeat - the maximum number of seconds that may pass between two updates before it becomes unknown
             min       - min value
             max       - max value
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
@@ -98,7 +98,7 @@ class BaseRRDSupport:
             heartbeat - the maximum number of seconds that may pass between two updates before it becomes unknown
             min       - min value
             max       - max value
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
@@ -106,8 +106,8 @@ class BaseRRDSupport:
             return # nothing to do in this case
 
         # make the start time to be aligned on the rrd_step boundary
-        # This is needed for optimal resoultion selection 
-        start_time = (int(time.time() - 1)/rrd_step) * rrd_step 
+        # This is needed for optimal resoultion selection
+        start_time = (int(time.time() - 1)/rrd_step) * rrd_step
         #print (rrdfname,start_time,rrd_step)+rrd_ds
         args = [str(rrdfname), '-b', '%li' % start_time, '-s', '%i' % rrd_step]
         for rrd_ds in rrd_ds_arr:
@@ -177,14 +177,14 @@ class BaseRRDSupport:
         args.append('-t')
         args.append(':'.join(ds_names_real))
         args.append(('%li:' % time) + ':'.join(ds_vals))
-    
+
         lck = self.get_disk_lock(rrdfname)
         try:
             #print args
             self.rrd_obj.update(*args)
         finally:
             lck.close()
-            
+
         return
 
     #############################################################
@@ -218,7 +218,7 @@ class BaseRRDSupport:
                 graph_type    - Graph type (LINE, STACK, AREA)
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
@@ -260,7 +260,7 @@ class BaseRRDSupport:
                 graph_type    - Graph type (LINE, STACK, AREA)
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
@@ -301,7 +301,7 @@ class BaseRRDSupport:
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
           img_format    - format of the graph file (default PNG)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
@@ -346,11 +346,11 @@ class BaseRRDSupport:
             ds_graph_type = plot_el[2]
             ds_color = plot_el[3]
             args.append("%s:%s#%s:%s" % (ds_graph_type, ds_id, ds_color, ds_id))
-            
+
 
         args.append("COMMENT:Created on %s" % time.strftime("%b %d %H\:%M\:%S %Z %Y"))
 
-    
+
         try:
             lck = self.get_graph_lock(fname)
             try:
@@ -393,7 +393,7 @@ class BaseRRDSupport:
                 grpah_color   - Graph color in rrdtool format
           trend         - Trend value in seconds (if desired, None else)
           img_format    - format of the graph file (default PNG)
-          
+
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
@@ -448,16 +448,16 @@ class BaseRRDSupport:
             args.append(str(daemon))
 
         return self.rrd_obj.fetch(*args)
-        
+
     def verify_rrd(self, filename, expected_dict):
         """
         Verifies that an rrd matches a dictionary of datastores.
         This will return a tuple of arrays ([missing],[extra]) attributes
-    
+
         @param filename: filename of the rrd to verify
         @param expected_dict: dictionary of expected values
         @return: A two-tuple of arrays ([missing attrs],[extra attrs])
-    
+
         """
         rrd_info=self.rrd_obj.info(filename)
         rrd_dict={}
@@ -528,7 +528,7 @@ def string_quote_join(arglist):
 
 
 class rrdtool_exe:
-    """This class is a wrapper around the rrdtool client (binary) and 
+    """This class is a wrapper around the rrdtool client (binary) and
     is used in place of the rrdtool python module, if that one is not available
     """
     def __init__(self):
@@ -543,7 +543,7 @@ class rrdtool_exe:
         cmdline = '%s update %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
-    
+
     def info(self,*args):
         cmdline = '%s info %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
@@ -553,10 +553,10 @@ class rrdtool_exe:
                 linearr = line.split('=')
                 outarr[linearr[0].strip()] = linearr[1].strip()
         return outarr
-    
+
     def dump(self, *args):
         """Run rrd_tool dump
-        
+
         Input is usually just the file name.
         Output is a list of lines, as returned from rrdtool.
 
@@ -570,7 +570,7 @@ class rrdtool_exe:
         cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split('\n')
         return outstr
-    
+
     def restore(self,*args):
         cmdline = '%s restore %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
@@ -580,7 +580,7 @@ class rrdtool_exe:
         cmdline = '%s graph %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
-    
+
     def fetch(self,*args):
         cmdline = '%s fetch %s' % (self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
@@ -640,4 +640,3 @@ def addDataStore(filenamein, filenameout, attrlist):
             out.write(line)
         if "<database>" in line:
             parse=True
-

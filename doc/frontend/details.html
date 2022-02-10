@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Glidein Frontend</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -87,7 +87,7 @@ SPDX-License-Identifier: Apache-2.0
             <p>The Glidein Frontend (or VO frontend) will match user jobs with Glidein Factory ads. It is responsible for the submission of new glideins.</p>
 
             <p>
-                The VO frontend also keeps part of the configuration of a glidein, and can also provide the 
+                The VO frontend also keeps part of the configuration of a glidein, and can also provide the
                 <a href="../factory/install.html">glidein Factory</a> with the pilot proxies.
             </p>
 
@@ -111,7 +111,7 @@ SPDX-License-Identifier: Apache-2.0
                 <td>~30GB</td>
             </tr>
             </table>
-            
+
             <p>
                 This machine needs <b>4 cores</b>, preferable no more than 2 years old  and a moderate amount of <b>memory</b> (<b>3GB </b> plus 2MB per running job should be enough).<br>
                 The <b>disk</b> needed is just for binaries, config files and log files (<b>30GB</b> should be enough)<br/>
@@ -123,7 +123,7 @@ SPDX-License-Identifier: Apache-2.0
 <div class="section">
 
     <h2><a name="frontend">3. Downtime handling</a></h2>
-    
+
     <p>The glidein Frontend supports the dynamic handling of downtimes.</p>
     <p>You (Frontend admins) should add the following attribute for the Frontend tag in frontend.xml manually:
     <blockquote>
@@ -138,7 +138,7 @@ SPDX-License-Identifier: Apache-2.0
     <p>More advanced configuration can be done with the following script:</p>
     <blockquote>
       /usr/sbin/manageFrontendDowntimes.py
-        <b>-dir /var/lib/gwms-frontend/vofrontend</b> 
+        <b>-dir /var/lib/gwms-frontend/vofrontend</b>
         <b>-cmd</b> [command] [options]
     </blockquote>
 

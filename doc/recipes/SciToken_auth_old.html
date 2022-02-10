@@ -128,9 +128,9 @@ htcondor-ce-condor.noarch   4.4.1-1.osg35.el7    @osg
         <div class="section">
           <h2 id="Generate" class="western">Obtain a SciToken </h2>
           <p> Method 1: follow instructions at https://opensciencegrid.org/technology/software/requesting-tokens/#requesting-tokens
-          <p> Method 2: generate your own self-signed Scitokens.  You need the python scitokens library and admin access to a web 
-              server that the Factory, Frontend, and CE can all access. 
-          <p>The following is an example of Method 2 on  website 'jobsub.fnal.gov' 
+          <p> Method 2: generate your own self-signed Scitokens.  You need the python scitokens library and admin access to a web
+              server that the Factory, Frontend, and CE can all access.
+          <p>The following is an example of Method 2 on  website 'jobsub.fnal.gov'
           <pre>
 1.  yum install python2-scitokens or pip install scitokens
 
@@ -192,7 +192,7 @@ SCITOKENS,TOKEN,FS,GSI
               </pre>
               <li>Place the correctly named, previously genereated SciToken in the correct directory so that the VOFrontend
                 knows to send it on to the Factory, which uses it to authenticate with the CE.
-          <p> In this example, the SciToken must be named <b>el7_osg35.scitoken</b> to associate it with Factory entry el7_osg35 The SciToken goes in directory <br>/var/lib/gwms-frontend/tokens.d/ <br> 
+          <p> In this example, the SciToken must be named <b>el7_osg35.scitoken</b> to associate it with Factory entry el7_osg35 The SciToken goes in directory <br>/var/lib/gwms-frontend/tokens.d/ <br>
 
           <p> As SciTokens expire, a mechanism must be in place to renew it periodically.  A cron job running 'scitokens-admin-create-token' would suffice for development purposes, but some other mechanism would be used in a production environment.
           </ol>

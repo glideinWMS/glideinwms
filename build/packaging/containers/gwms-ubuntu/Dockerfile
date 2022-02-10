@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Selecting Ubuntu 18:04 as the base OS, current default in GitHub (evaluate switching to 20.04) 
-FROM ubuntu:18.04 
+# Selecting Ubuntu 18:04 as the base OS, current default in GitHub (evaluate switching to 20.04)
+FROM ubuntu:18.04
 MAINTAINER The GlideinWMS team "glideinwms-support@fnal.gov"
 LABEL description="This is custom Docker Image for running GitHub actions locally"
- 
+
 # Install the required packages to be a runner for GitHub actions
 # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
 
@@ -46,8 +46,8 @@ RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - &&\
     apt update && apt install yarn
 
 
-# Default entry point 
-CMD ["/bin/bash"] 
+# Default entry point
+CMD ["/bin/bash"]
 
 
 # build info

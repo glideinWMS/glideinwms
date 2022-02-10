@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This script will determine the number of cpus on a machine if
@@ -56,7 +56,7 @@ function detect_cpus_htcondor {
 # Alt. to verify, using PBS_NODEFILE (incomplete, multinode jobs!)
 # http://stackoverflow.com/questions/17804614/determine-total-cpu-count-after-qsub-within-pbs-script
 # NP=$(wc -l $PBS_NODEFILE | awk '{print $1}')
-# 
+#
 # https://wiki.hpcc.msu.edu/display/hpccdocs/Advanced+Scripting+Using+PBS+Environment+Variables
 # PBS_NUM_PPN
 #
@@ -92,7 +92,7 @@ function detect_cpus_pbs {
 }
 
 # https://www-01.ibm.com/support/knowledgecenter/SSETD4_9.1.3/lsf_config_ref/lsf_envars_job_exec.dita
-# e.g.  LSB_MCPU_HOSTS=hequ0190 2 fell0247 2 
+# e.g.  LSB_MCPU_HOSTS=hequ0190 2 fell0247 2
 function detect_cpus_lsf {
     local host_info="`hostname -s`"
     if [ -n "$LSB_MCPU_HOSTS" ]; then
@@ -122,7 +122,7 @@ function detect_cpus_sge {
 }
 
 function detect_slot_cpus {
-    # LRM selector 
+    # LRM selector
     # 1. if present is a name of a LRM, otherwise they are tried in order
     # each function exit w/ 0 if cores are found and values is stored in "cores"
     # glidein_cpus_how is set as well
@@ -199,4 +199,3 @@ add_condor_vars_line GLIDEIN_CPUS "C" "-" "+" "N" "N" "-"
 
 "$error_gen" -ok "glidein_cpu_setup.sh" "GLIDEIN_CPUS" "${GLIDEIN_CPUS}"
 exit 0
-

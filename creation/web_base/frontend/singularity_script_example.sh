@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# 
+#
 EXITSLEEP=5
 # Change the variable to control the exit code returned
 EXIT_CODE=0
@@ -191,6 +191,3 @@ rm -f .gwms-${SCRIPT_NAME} >/dev/null 2>&1 || true
 
 
 exit $EXIT_CODE
-
-
-

@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the logs for a certain date
@@ -63,9 +63,8 @@ def main():
         with open(fname, "r") as fd:
             sys.stdout.write(fd.read())
         sys.stdout.write("\n")
-        
+
 
 
 if __name__ == '__main__':
     main()
- 

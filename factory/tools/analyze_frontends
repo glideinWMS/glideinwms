@@ -9,7 +9,7 @@
 import os
 import sys
 import getopt
-# import re 
+# import re
 import datetime
 from urllib.request import urlopen
 
@@ -32,9 +32,9 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
       unmatched_percent = 0
       rundiff_percent = 0
       if entry['StatusRunning']!=0:
-         rundiff_percent = float(entry['RunDiff'])/float(entry['StatusRunning'])*100  
-      if entry['ClientGlideTotal']!=0: 
-         unmatched_percent = float(entry['ClientGlideIdle'])/float(entry['ClientGlideTotal'])*100  
+         rundiff_percent = float(entry['RunDiff'])/float(entry['StatusRunning'])*100
+      if entry['ClientGlideTotal']!=0:
+         unmatched_percent = float(entry['ClientGlideIdle'])/float(entry['ClientGlideTotal'])*100
       entry['UM'] = unmatched_percent
       entry['RD'] = rundiff_percent
 
@@ -43,7 +43,7 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
          for a in attr_list:
             sum += entry[a]
          if sum==0:
-            continue 
+            continue
          sum2 += sum
 
       to_be_printed.append((entry[attr_list[sort_attribute]],
@@ -66,17 +66,17 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
 
    if sorting == 1:
       if zero_supp==1 and sum2==0:
-         return 
+         return
       to_be_printed.sort()
       to_be_printed.reverse()
-      to_be_printed.insert(0,(0,columns)) 
+      to_be_printed.insert(0,(0,columns))
       for a in to_be_printed:
          print(a[1])
       print()
-   else: 
+   else:
       if zero_supp==1 and sum2==0:
-         return 
-      to_be_printed.insert(0,(0,columns)) 
+         return
+      to_be_printed.insert(0,(0,columns))
       for a in to_be_printed:
          print(a[1])
       print()
@@ -87,11 +87,11 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
 def main():
 
    usage="""
-USAGE: 
+USAGE:
     -x [#] : interval to do verbose stats (default 24)
     --source [ABSPATH or http addr] : factory base (default current directory)
-    -s [attribute]: sort by attribute 
-              (-s x to see list of choices) 
+    -s [attribute]: sort by attribute
+              (-s x to see list of choices)
     -f [frontend] : filter by a single frontend
          (can omit "frontend_" before name)
     -z : zero suppression (don't show entries with 0s across all attributes)
@@ -112,7 +112,7 @@ USAGE:
    frontend_mode = 0
    show_all_periods = 0
    zero_supp = 0
- 
+
    try:
        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:s:zmp', ['source=','ms','mh'])
    except getopt.GetoptError:
@@ -133,15 +133,15 @@ USAGE:
            sort_attribute = a.lower()
            sorting = 1
        elif o == "-z":
-           zero_supp = 1 
+           zero_supp = 1
        elif o == "-p":
-           show_all_periods = 1 
+           show_all_periods = 1
        elif o == "-m":
-           frontend_mode = 1 
+           frontend_mode = 1
        elif o == "--ms":
-           frontend_mode = 2 
+           frontend_mode = 2
        elif o == "--mh":
-           frontend_mode = 3 
+           frontend_mode = 3
        elif o == "-f":
            filter_frontend = a
            if 'frontend_' not in filter_frontend:
@@ -153,7 +153,7 @@ USAGE:
 
    sort_attributes = ['registered', 'claimed', 'unmatched',
                       'jobsrunning','jobsrunhere','jobsidle',
-                      'reqidle','rundiff', 
+                      'reqidle','rundiff',
                       '%unmatched','%rundiff']
 
    attr_list = ['ClientGlideTotal','ClientGlideRunning','ClientGlideIdle',
@@ -166,16 +166,16 @@ USAGE:
          for a in sort_attributes:
             print(a)
          print()
-         return   
+         return
       sort_attribute = sort_attributes.index(sort_attribute)
 
    data = {}  #sorted data
-   rrd_data = {} 
-   rrd = "rrd_Status_Attributes.xml" 
+   rrd_data = {}
+   rrd = "rrd_Status_Attributes.xml"
 
    if "http" in dir:
        file_dir = os.path.join(dir, rrd)
-   else: 
+   else:
        file_dir = os.path.join(dir, "monitor", rrd)
 
        if not os.path.exists(file_dir):
@@ -192,9 +192,9 @@ USAGE:
                print("Using RPM default %s instead" % rpmfile_dir)
            dir=rpmdir
            file_dir=rpmfile_dir
-   
-   try:  
-       u = urlopen(file_dir)        
+
+   try:
+       u = urlopen(file_dir)
        rrd_data = xmlParse.xmlfile2dict(u)
    except:
        print("\nCannot open", file_dir,"\n\tor",rrd,"was not found there.\n")
@@ -206,7 +206,7 @@ USAGE:
    # rrd_data numbers verified by hand
 
 ##############################################################################
-#   Rearranges rrd_data from data[entries][frontends][periods]  
+#   Rearranges rrd_data from data[entries][frontends][periods]
 #                   into data = [periods][frontends][entries][elements]
 #      (periods are integers and in seconds)
 ###############################################################################
@@ -226,15 +226,15 @@ USAGE:
             print(frontend)
          print()
          sys.exit(1)
-    
+
    for entry in rrd_data['entries']:
       for frontend in rrd_data['entries'][entry]['frontends']:
-          
+
          # if filtering, only choose selected frontend
          if filter_frontend != 0:
             if frontend != filter_frontend:
                continue
-           
+
          for period, elements in rrd_data['entries'][entry]['frontends'][frontend]['periods'].items():
 
             if int(period) not in data:
@@ -243,17 +243,17 @@ USAGE:
                data[int(period)][frontend] = {}
             if entry not in data[int(period)][frontend]:
                data[int(period)][frontend][entry] = {}
-            
+
             for a in attributes.keys():
                if a not in data[int(period)][frontend][entry]:
-                  data[int(period)][frontend][entry][a] = 0 
+                  data[int(period)][frontend][entry][a] = 0
                try: data[int(period)][frontend][entry][a] += int(float(elements[a])*int(period))
-               except: pass 
+               except: pass
 
    # data[period[frontend[entry[element[value]]]]]
    #'data' numbers verified by hand
    #debug_print_dict(data)
-  
+
 #####################################################################
 # Organize totals/stats for each period, frontend, and entry independantly
 ######################################################################
@@ -266,12 +266,12 @@ Status Attributes (Clients) analysis for All Entries - %s
 Status Attributes (Clients) analysis for %s - %s
 """ % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
 
-          
-   period_data = {} 
-   frontend_data = {} 
-   entry_data = {} 
-   entry_data_all_frontends = {} 
- 
+
+   period_data = {}
+   frontend_data = {}
+   entry_data = {}
+   entry_data_all_frontends = {}
+
    for period, frontends in data.items():
       period = int(period)
       period_data[period] = {}
@@ -280,7 +280,7 @@ Status Attributes (Clients) analysis for %s - %s
       entry_data_all_frontends[period] = {}
       for a in attributes.keys(): period_data[period][a]=0
 
-      for frontend, entries in frontends.items(): 
+      for frontend, entries in frontends.items():
          frontend_data[period][frontend]={}
          entry_data[period][frontend] = {}
          for a in attributes.keys(): frontend_data[period][frontend][a]=0
@@ -288,15 +288,15 @@ Status Attributes (Clients) analysis for %s - %s
          for entry, elements in entries.items():
             entry_data[period][frontend][entry] = {}
             entry_data_all_frontends[period][entry] = {}
-            for a in attributes.keys(): 
+            for a in attributes.keys():
                entry_data[period][frontend][entry][a]=0
                entry_data_all_frontends[period][entry][a]=0
 
             for a in attributes.keys():
-               entry_data[period][frontend][entry][a] += elements[a]  
-               frontend_data[period][frontend][a] += elements[a] 
+               entry_data[period][frontend][entry][a] += elements[a]
+               frontend_data[period][frontend][a] += elements[a]
                period_data[period][a] += elements[a]
-               entry_data_all_frontends[period][entry][a] += elements[a] 
+               entry_data_all_frontends[period][entry][a] += elements[a]
 
 
 ######################################################################
@@ -308,7 +308,7 @@ Status Attributes (Clients) analysis for %s - %s
    period_list.sort()
    period_list.remove(86400)
    period_list.insert(0,86400)
-      
+
    period = int(x)*3600
 
     # if filtering by period, make sure it's in the data
@@ -323,14 +323,14 @@ Status Attributes (Clients) analysis for %s - %s
       period_list=[period]
 
    for period in period_list:
-        
+
      title = ("Past %.1f hours" % (float(period)/3600))
 
      print("""----------------------------------------
 %s:
 
 Registered:     %s
-Claimed:        %s 
+Claimed:        %s
 Unmatched :     %s
 
 Requested Idle: %s
@@ -356,7 +356,7 @@ RunDiff (Running-ClientRegistered): %s
 
 
 ################################################################################
-#    Print list-style stats 
+#    Print list-style stats
 ################################################################################
 
    period = int(x)*3600
@@ -365,14 +365,14 @@ RunDiff (Running-ClientRegistered): %s
       print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (all frontends) stats for the past %s hours.\n""" % x) 
+Per Entry (all frontends) stats for the past %s hours.\n""" % x)
       list_print("",zero_supp, entry_data_all_frontends[period],sorting, attr_list, sort_attribute,1)
 
    if frontend_mode == 0:
       print("""
 ---------------------------------------
 ---------------------------------------
-Per Entry (per frontend) stats for the past %s hours.\n""" % x) 
+Per Entry (per frontend) stats for the past %s hours.\n""" % x)
 
    if frontend_mode==0:
       for frontend, entries in data[period].items():
@@ -384,7 +384,7 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % x)
       print("""
 ---------------------------------------
 ---------------------------------------
-Frontend stats for the past %s hours, units = %s.\n""" % (x,units[frontend_mode-1])) 
+Frontend stats for the past %s hours, units = %s.\n""" % (x,units[frontend_mode-1]))
       list_print("", zero_supp, frontend_data[period],sorting,attr_list,sort_attribute,divs[frontend_mode-1])
 
 ################################################################################

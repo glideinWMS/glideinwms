@@ -1055,7 +1055,7 @@ rm -rf $RPM_BUILD_ROOT
 * Fri Mar 26 2021 Dennis Box <dbox@fnal.gov> - 3.7.3-1
 - GlideinWMS v3.7.3
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_7_3/history.html
-- Release candidates: 3.7.3-01.rc1 .rc1 to 
+- Release candidates: 3.7.3-01.rc1 .rc1 to
 
 * Thu Feb 11 2021 Bruno Coimbra <coimbra@fnal.gov> - 3.9.1-1
 - GlideinWMS v3.9.1

@@ -85,7 +85,7 @@ SPDX-License-Identifier: Apache-2.0
                 </ol>
                 <li><a href="#VOFrontendCE">VOFrontend, glideins</a></li>
                 <ol>
-                <li><a href="#adminCE">Required Steps</a> </li> 
+                <li><a href="#adminCE">Required Steps</a> </li>
                 <li><a href="#Check">Verify IDTOKENS Functionality</a> </li>
                 <li><a href="#Revoke">Revoking Tokens for Entries</a> </li>
                 </ol>
@@ -99,8 +99,8 @@ SPDX-License-Identifier: Apache-2.0
             see <a href="../components/jwt.html">JWT configuration</a> for current JWT instructions.
             </p>
             <p>
-             This page documents enabling and managing HTCondor IDTokens authorization between VOFrontends 
-             and Factories version 3.7.3 or greater, and also between VOFrontends and remote glideins. 
+             This page documents enabling and managing HTCondor IDTokens authorization between VOFrontends
+             and Factories version 3.7.3 or greater, and also between VOFrontends and remote glideins.
             </p>
         </div>
         <div class="section">
@@ -127,18 +127,18 @@ SPDX-License-Identifier: Apache-2.0
           <h2 id="VOFrontendFactory" class="western">VOFrontend to Factory IDTokens Authentication </h2>
         <div class="subsection">
           <h3 id="OutOfBox" class="western">Out of the Box </h3>
-          <p>GlideinWMS comes pre-configured with a list of authentication methods to try for HTCondor interprocess communication. 
-          Starting with the GWMS 3.7 series the IDTOKENS method was prepended to the existing  method list, which was 
-          previously "FS, GSI" .  
-          The effect of this is that HTCondor processes owned by the 'condor' uid (i.e. most of them) on a 3.7.x or greater installation will use 
+          <p>GlideinWMS comes pre-configured with a list of authentication methods to try for HTCondor interprocess communication.
+          Starting with the GWMS 3.7 series the IDTOKENS method was prepended to the existing  method list, which was
+          previously "FS, GSI" .
+          The effect of this is that HTCondor processes owned by the 'condor' uid (i.e. most of them) on a 3.7.x or greater installation will use
           IDTOKENS auth for internal communication 'out of the box'.
-          If IDTOKENS  auth fails, FS, then  GSI authentication are tried next.  An existing  GWMS Factory or VOFrontend that 
-          is upgraded to 3.7.x will mostly authenticate internally with IDTOKENS and externally with GSI. 
+          If IDTOKENS  auth fails, FS, then  GSI authentication are tried next.  An existing  GWMS Factory or VOFrontend that
+          is upgraded to 3.7.x will mostly authenticate internally with IDTOKENS and externally with GSI.
         </div>
         <div class="subsection">
           <h3 id="Frontendp" class="western">Frontend uid Processes </h3>
-          <p>The VOFrontend runs some HTCondor processes under the vofrontend owner uid, which is typically 'frontend'.  
-          To make these processes authenticate with IDTOKENS, the VOFrontend admin must  manually generate a 
+          <p>The VOFrontend runs some HTCondor processes under the vofrontend owner uid, which is typically 'frontend'.
+          To make these processes authenticate with IDTOKENS, the VOFrontend admin must  manually generate a
           token for these processes to use. One way to do this as is follows:
           <p>First, verify that the 'frontend' uid is the one  running VOFrontend processes:
           <pre>
@@ -154,13 +154,13 @@ glideresource el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.
 glideresource el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud170.fnal.gov GSI
 [root@fermicloud170 ~]#
           </pre>
-          <p>We see that we need an IDTOKEN with the subject 'vofrontend_service@fermicloud170.fnal.gov' to replace existing GSI 
+          <p>We see that we need an IDTOKEN with the subject 'vofrontend_service@fermicloud170.fnal.gov' to replace existing GSI
           authentication.  The following commands accomplish this:
           <pre>
 [root@fermicloud170 ~]# mkdir -p ~frontend/.condor/tokens.d
 [root@fermicloud170 ~]# condor_token_create -id vofrontend_service@fermicloud170.fnal.gov -key POOL > ~frontend/.condor/tokens.d/frontend.$HOSTNAME.idtoken
 [root@fermicloud170 ~]# chown -R frontend:frontend ~frontend/.condor
-[root@fermicloud170 ~]# chmod 600 ~frontend/.condor/tokens.d/*          
+[root@fermicloud170 ~]# chmod 600 ~frontend/.condor/tokens.d/*
           </pre>
           <p>Verify that the processes are now  using IDTOKENS authentication:
           <pre>
@@ -215,7 +215,7 @@ glidefactoryglobal gfactory_instance@gfactory_service gfactory@fermicloud161.fna
           <p>Factories also have HTCondor processes authenticating from other machines (like VOFrontends) that do not use IDTOKENS auth, but can be made to do so.  This can be looked for  with a query such as:
           <pre>
 [root@fermicloud161 ~]# condor_status -any  -constraint '!regexp("IDTOKENS",AuthenticationMethod)' -af MyType Name AuthenticatedIdentity AuthenticationMethod
-glideclient 67748_el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI 
+glideclient 67748_el6_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
 glideclient 67748_el7_osg34@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
 glideclient 67748_el7_osg35@gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
 glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main vofrontend_service@fermicloud161.fnal.gov GSI
@@ -245,8 +245,8 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
         </div>
         <div class="section">
           <h2 id="VOFrontendCE" class="western">VOFrontend to glidein IDTokens Authentication </h2>
-          <p>Starting with version 3.7.3, when the VOFrontend requests glideins from a Factory Entry, it 
-          sends a self-generated IDTOKEN to be included in the glidein payload. 
+          <p>Starting with version 3.7.3, when the VOFrontend requests glideins from a Factory Entry, it
+          sends a self-generated IDTOKEN to be included in the glidein payload.
           The newly generated IDTOKEN is encrypted and passed to the Factory, then  on to the CE.
           When the glidein starts, it attempts to use the payload IDTOKEN to authenticate back to
           the VOFrontend collector.  If  IDTOKENS authentication fails for some reason, GSI authentication
@@ -261,15 +261,15 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
         </div>
         <div class="subsection">
           <h3 id="Check" class="western">Verifying IDTOKENS Functionality in the Glidein</h3>
-          <p>Once the required steps have been implemented, there are a few different ways to verify that 
+          <p>Once the required steps have been implemented, there are a few different ways to verify that
           IDTOKENS authentication between the glidein and VOFrontend Collector is working. These include:
           <ul>
-          <li> Submit a condor job to the Frontend with condor requirements that make it run on the newly 
-            modified Factory Entry.  Make sure the job has a 'printenv' or equivalent in it to show the 
-            environment the glidein runs the job under.   When the job completes, check the output from 
-            the 'printenv' command.  If a token was generated 
-            by the VOFrontend, forwarded to the Factory, forwarded again to the CE, and integrated into the glidein 
-            enviroment, GLIDEIN_CONDOR_TOKEN will be set and its value will include the GLIDEIN_Site name, for 
+          <li> Submit a condor job to the Frontend with condor requirements that make it run on the newly
+            modified Factory Entry.  Make sure the job has a 'printenv' or equivalent in it to show the
+            environment the glidein runs the job under.   When the job completes, check the output from
+            the 'printenv' command.  If a token was generated
+            by the VOFrontend, forwarded to the Factory, forwarded again to the CE, and integrated into the glidein
+            enviroment, GLIDEIN_CONDOR_TOKEN will be set and its value will include the GLIDEIN_Site name, for
             example if the GLIDEIN_Site is named 'el7_osg34', GLIDEIN_CONDOR_TOKEN will contain the string
             'el7_osg34.idtoken'. </li>
           <li> Edit the CERTIFICATE_MAPFILE of the VOFrontend to comment out the GSI entry for the CE that
@@ -281,13 +281,13 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
             what method was used. It is recommended to reset ALL_DEBUG to something less verbose after
             verification/debugging. </li>
           </ul>
-        </div> 
+        </div>
         <div class="subsection">
           <h3 id="Revoke" class="western">Revoking Tokens for Entry Points</h3>
           <ul>
-            <li>Each Glidein_Site that a VOFrontend submits to is sent an IDTOKEN generated from a password in /var/lib/gwms-frontend/passwords.d.  
-              HTCondor authenticates these IDTOKENS with its copy of the password in /etc/condor/passwords.d. When the 3.7.3 rpm is installed, 
-              a default frontend password is stored in /etc/condor/passwords.d/FRONTEND, which is copied to and MUST MATCH the password 
+            <li>Each Glidein_Site that a VOFrontend submits to is sent an IDTOKEN generated from a password in /var/lib/gwms-frontend/passwords.d.
+              HTCondor authenticates these IDTOKENS with its copy of the password in /etc/condor/passwords.d. When the 3.7.3 rpm is installed,
+              a default frontend password is stored in /etc/condor/passwords.d/FRONTEND, which is copied to and MUST MATCH the password
               file ~frontend/passwords.d/FRONTEND for authentication to succeed.
               To invalidate all tokens genereated from the default password, change it on the condor side
               <pre>
@@ -301,8 +301,8 @@ glideclientglobal gfactory_instance@gfactory_service@Frontend-master-v1_0.main v
               To give each glidein site its own individually revokable password:
               <pre>
 ###################################################
-# #configure uniqe per-site password 
-# #for glidein site 'HCC_US_Omaha_crane_gpu'            
+# #configure uniqe per-site password
+# #for glidein site 'HCC_US_Omaha_crane_gpu'
 ###################################################
 # export GLIDEIN_SITE='HCC_US_Omaha_crane_gpu'
 # openssl rand -base64 64 | /usr/sbin/condor_store_cred -u frontend@$HOSTNAME -f /etc/condor/passwords.d/${GLIDEIN_SITE} add

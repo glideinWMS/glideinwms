@@ -381,4 +381,3 @@ def exe_condor_advertise(fname, command, pool, is_multi=False, use_tcp=False):
                                                               use_tcp))
     return condorManager.condorAdvertise(fname, command, use_tcp,
                                          is_multi, pool)
-

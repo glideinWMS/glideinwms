@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
   <link rel="canonical" href="https://glideinwms.fnal.gov/doc.prd/index.html" />
 </head>
@@ -36,7 +36,7 @@ SPDX-License-Identifier: Apache-2.0
         <div class="search">
             <script>
     // old www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/ (cse - ?) 006450287401290132076:v1ncvuycvmi
-    // glideinwms.fnal.gov/doc.prd (cse - Marco Mambelli) : 013439253731257915088:h-xvmglqvrq 
+    // glideinwms.fnal.gov/doc.prd (cse - Marco Mambelli) : 013439253731257915088:h-xvmglqvrq
             (function() {
                 var cx = '013439253731257915088:h-xvmglqvrq';
                 var gcse = document.createElement('script');
@@ -109,49 +109,49 @@ Factory:
     <a name="overview" />
     <h2>Overview</h2>
     <p>
-    The purpose of the GlideinWMS is to provide a simple way 
-    to access the Grid resources. 
-    GlideinWMS is a Glidein Based WMS (Workload Management System) 
-    that works on top of 
+    The purpose of the GlideinWMS is to provide a simple way
+    to access the Grid resources.
+    GlideinWMS is a Glidein Based WMS (Workload Management System)
+    that works on top of
     <a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor</a>.
-    Glideins are like placeholders, a mechanism by which one or more remote 
-    resources temporarily join a local HTCondor pool. 
+    Glideins are like placeholders, a mechanism by which one or more remote
+    resources temporarily join a local HTCondor pool.
     The HTCondor system is used for scheduling and job control.
     </p>
     <p>
     <img align="right" width="40%" src="images/simple_animation.gif" />
 
-    The GlideinWMS is made of several services (In animation to the right, you 
-    can see this process with green circles representing jobs, 
-    black circles as glideins and gray as resources in HTCondor).  
+    The GlideinWMS is made of several services (In animation to the right, you
+    can see this process with green circles representing jobs,
+    black circles as glideins and gray as resources in HTCondor).
     <ul>
-        <li>Users submit jobs to the <b>User Pool</b> 
+        <li>Users submit jobs to the <b>User Pool</b>
         HTCondor schedd process.</li>
         <li>The <b>GlideinWMS Frontend</b> polls the user pool to make
         sure that there are enough glideins (workers) to satisfy user
         jobs.  It submits requests to the glidein factory to submit glideins.
         </li>
-        <li>The <b>Glidein Factory and WMS Pool</b> receives requests 
-        from the frontend(s) and submits a HTCondor startd wrapper (glidein) to 
+        <li>The <b>Glidein Factory and WMS Pool</b> receives requests
+        from the frontend(s) and submits a HTCondor startd wrapper (glidein) to
         entry points (grid sites).</li>
         <li>The grid sites receive the (glidein) jobs and start a HTCondor startd
-        that joins the User Pool.  This glidein shows up as a resource 
+        that joins the User Pool.  This glidein shows up as a resource
         in the User Pool.</li>
         <li>The user jobs are matched with these resources</li>
     </ul>
-    The result is that users can 
+    The result is that users can
     <a href="./tutorials.html">submit regular HTCondor jobs</a>
-    to the local queue and the Glidein Factory will provide the 
-    computing resources behind the scenes. From the final 
-    user point of view, the HTCondor pool (User Pool) just magically grows 
+    to the local queue and the Glidein Factory will provide the
+    computing resources behind the scenes. From the final
+    user point of view, the HTCondor pool (User Pool) just magically grows
     and shrinks as needed.  The user needs not worry about grid entry
-    points, managing queues, or provisioning worker nodes.  
+    points, managing queues, or provisioning worker nodes.
     </p>
 
     <a name="release" />
     <h3>Current release</h3>
     <p>
-        For release information, 
+        For release information,
         see the <a href="download.html">Download Page</a>.
     </p>
 
@@ -163,7 +163,7 @@ Factory:
           The GlideinWMS can be used to shield regular users from the Grid.<br>
           A user will submit a vanilla or standard job to a local HTCondor
           schedd and the GlideinWMS will make sure the job runs somewhere.<br>
-          A user needs not worry about site selection 
+          A user needs not worry about site selection
           or other grid technicalities.</li>
       <li><b>If the GlideinWMS is HTCondor based, does this mean it can only
              be used on Grid sites that use HTCondor as the
@@ -180,9 +180,9 @@ Factory:
             the user pool, the glidein will continue servicing the user pool.
             <br/>
             GlideinWMS also solves many problems with the grid.  If a site
-            is malfunctioning, this will only affect the glidein factory (see 
+            is malfunctioning, this will only affect the glidein factory (see
             <a href="images/animation_broken_site.gif">animation</a>).
-            User jobs will not be lost to the broken site.  
+            User jobs will not be lost to the broken site.
             Other similar problems will be shielded from users.
         </li>
       <li><b>How do I submit jobs?</b><br>
@@ -200,15 +200,15 @@ Factory:
           </ul>
           There may be one or more instances of the components above and they may be on different hosts or
           colocated on the same host.
-          The design documents (<a href="frontend/design.html">Frontend</a>, 
+          The design documents (<a href="frontend/design.html">Frontend</a>,
           <a href="factory/design.html">Factory</a>) give more information.
      </li>
 
     </ul>
 </div>
 <div class="footer">
-Banner image by 
-<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a> 
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
 Original Home URL: <a href="https://glideinwms.fnal.gov">https://glideinwms.fnal.gov</a>.
 GlideinWMS email support: glideinwms-support at fnal.gov
@@ -216,4 +216,3 @@ GlideinWMS email support: glideinwms-support at fnal.gov
 
 </body>
 </html>
-

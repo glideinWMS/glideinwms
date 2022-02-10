@@ -118,10 +118,10 @@ class MonitoringConfig:
 
     def write_file(self, relative_fname, output_str):
         """Write out a string or bytes to a file
-        
+
         Args:
-            relative_fname (AnyStr): The relative path name to write out 
-            output_str (AnyStr): the string (unicode str or bytes) to write to the file 
+            relative_fname (AnyStr): The relative path name to write out
+            output_str (AnyStr): the string (unicode str or bytes) to write to the file
 
         """
         # TODO: Fix str/bytes confusion in the pathname

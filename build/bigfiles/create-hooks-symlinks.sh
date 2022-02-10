@@ -28,4 +28,3 @@ for hook in $HOOK_NAMES; do
     # or if the script is re-executed
     ln -s -f ../../"$WRAPPER_PATH" "$HOOK_DIR/$hook"
 done
-

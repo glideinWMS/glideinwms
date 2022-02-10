@@ -212,7 +212,7 @@ def forked_check_and_perform_work(factory_in_downtime, entry, work):
     @return: dictionary with entry state + work_done
     """
     work_done = glideFactoryEntry.check_and_perform_work(factory_in_downtime, entry, work)
-    
+
     # entry object now has updated info in the child process
     # This info is required for monitoring and advertising
     # Compile the return info from the updated entry object
@@ -427,7 +427,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         # Write classads to file if work was done or if advertise flag is set
         # Actual advertise is done using multi classad advertisement
         entrywork_done = 0
-        if ( (entry.name in groupwork_done) and 
+        if ( (entry.name in groupwork_done) and
              ('work_done' in groupwork_done[entry.name]) ):
             entrywork_done = groupwork_done[entry.name]['work_done']
             done_something += entrywork_done

@@ -242,7 +242,7 @@ class TaskVersionFile(TaskRelease):
         self.status = 'COMPLETE'
 
     def checksumRelease(self, chksumFile, exclude):
-        excludePattern = self.checksumFilePattern + " install/templates CVS config_examples " 
+        excludePattern = self.checksumFilePattern + " install/templates CVS config_examples "
         if len(exclude) > 0:
             excludePattern = "\"" + "%s "%excludePattern + " ".join(exclude) + "\""
         cmd = "cd %s; %s %s %s %s" % (self.release.sourceDir, self.chksumBin,
@@ -300,7 +300,7 @@ class TaskRPM(TaskTar):
         #fdin = open(self.specFileTemplate, 'r')
         with open(self.specFileTemplate, 'r') as fdin:
             lines = fdin.readlines()
-        
+
         with open(self.specFile, 'w') as fdout:
             for line in lines:
                 line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)
@@ -356,7 +356,7 @@ class TaskRPM(TaskTar):
             # Create the srpm
             self.buildSRPM()
             # Create the rpm
-            if self.use_mock: 
+            if self.use_mock:
                 self.buildRPM()
             else:
                 self.buildRPMWithRPMBuild()
@@ -500,4 +500,3 @@ def which(program):
                 return exe_file
 
     return None
-

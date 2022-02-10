@@ -20,7 +20,7 @@ FactoryMatchAttrs 	[]
 JobQueryExpr 	True
 JobMatchAttrs 	[]
 FactoryCollectors 	[]
-JobSchedds 	
+JobSchedds
 MatchExpr 	True
 RemovalType         NO
 RemovalWait         0

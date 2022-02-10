@@ -5,11 +5,11 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  Handle pid lock files
-# 
+#
 # Author:
 #   Igor Sfiligoi
 #
@@ -46,7 +46,7 @@ class PidSupport:
         self.fd = None
         self.mypid = None
         self.lock_in_place = False
-        
+
     # open the pid_file and gain the exclusive lock
     # also write in the PID information
     def register(self,
@@ -64,7 +64,7 @@ class PidSupport:
         self.started_time = started_time
 
         # check lock file
-        if not os.path.exists(self.pid_fname): 
+        if not os.path.exists(self.pid_fname):
             #create a lock file if needed
             fd = open(self.pid_fname, "w")
             fd.close()
@@ -103,7 +103,7 @@ class PidSupport:
 
         # make sure it is initialized (to not registered)
         self.reset_to_default()
-        
+
         self.lock_in_place = False
         # else I don't own it
         if not os.path.isfile(self.pid_fname):
@@ -131,7 +131,7 @@ class PidSupport:
             self.mypid = None
         return
 
-        
+
     ###############################
     # INTERNAL
     # Can be redefined by children
@@ -156,10 +156,10 @@ class PidSupport:
             pid = int(pidarr[1])
         except:
             raise RuntimeError("Corrupted lock file: invalid PID")
-        
+
         self.mypid = pid
         return
-    
+
 #######################################################
 #
 # self.mypid and self.parent_pid are valid only
@@ -168,7 +168,7 @@ class PidWParentSupport(PidSupport):
     def __init__(self, pid_fname):
         PidSupport.__init__(self, pid_fname)
         self.parent_pid = None
-        
+
     # open the pid_file and gain the exclusive lock
     # also write in the PID information
     def register(self,
@@ -180,7 +180,7 @@ class PidWParentSupport(PidSupport):
 
         self.parent_pid = parent_pid
         PidSupport.register(self, pid, started_time)
-        
+
     ###############################
     # INTERNAL
     # Can be redefined by children
@@ -196,7 +196,7 @@ class PidWParentSupport(PidSupport):
     def parse_pid_file_content(self, lines):
         self.mypid = None
         self.parent_pid = None
-        
+
         if len(lines) < 3:
             raise RuntimeError("Corrupted lock file: too short")
 
@@ -208,7 +208,7 @@ class PidWParentSupport(PidSupport):
             pid = int(pidarr[1])
         except:
             raise RuntimeError("Corrupted lock file: invalid PID")
-        
+
         pidarr = lines[1].split(':')
         if (len(pidarr) != 2) or (pidarr[0] != 'Parent PID'):
             raise RuntimeError("Corrupted lock file: no Parent PID")
@@ -217,7 +217,7 @@ class PidWParentSupport(PidSupport):
             parent_pid = int(pidarr[1])
         except:
             raise RuntimeError("Corrupted lock file: invalid Parent PID")
-        
+
         self.mypid = pid
         self.parent_pid = parent_pid
         return

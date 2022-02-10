@@ -187,7 +187,7 @@ def create_and_sign_token(pwd_file, issuer=None, identity=None, kid=None, durati
         duration: (int, optional) number of seconds IDTOKEN is valid.
                                   Default is infinity
         scope: (str, optional) permissions IDTOKEN will have.
-                               Default is everything,  
+                               Default is everything,
                     example: condor:/READ condor:/WRITE condor:/ADVERTISE_STARTD
 
     Returns:

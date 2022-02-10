@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module contains the Match Policy related class
@@ -107,7 +107,7 @@ class MatchPolicy:
 
     def policyFileToPyModuleName(self):
         policy_fname = os.path.basename(self.file)
-        policy_module_name = re.sub('.py$', '', policy_fname) 
+        policy_module_name = re.sub('.py$', '', policy_fname)
         return policy_module_name
 
     def loadMatchAttrs(self):

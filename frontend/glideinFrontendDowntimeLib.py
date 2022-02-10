@@ -134,7 +134,7 @@ def addPeriod(fname, start_time, end_time,  create_if_empty=True):
         exists = os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
             raise IOError("[Errno 2] No such file or directory: '%s'" % fname)
-       
+
         with open(fname, 'a+') as fd:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
@@ -145,7 +145,7 @@ def addPeriod(fname, start_time, end_time,  create_if_empty=True):
                 fd.write("%-30s %-20s\n" % (timeConversion.getISO8601_Local(start_time), timeConversion.getISO8601_Local(end_time)))
             else:
                 fd.write("%-30s %-30s\n" % (timeConversion.getISO8601_Local(start_time), "None"))
-        
+
         return 0
 
 

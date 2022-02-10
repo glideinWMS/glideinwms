@@ -1,4 +1,4 @@
-# This file is similar to creation/web_base/add_config_line.source 
+# This file is similar to creation/web_base/add_config_line.source
 # except the warnings are printed to &3 to comply with BATS
 cvf_warn() {
  echo \`date\` "$@" 1>&3

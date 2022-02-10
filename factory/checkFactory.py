@@ -7,11 +7,11 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Check if a glideinFactory is running
-# 
+#
 # Arguments:
 #   $1 = glidein submit_dir (i.e. factory dir)
 #
@@ -31,4 +31,3 @@ except:
 
 print("Running")
 sys.exit(0)
-

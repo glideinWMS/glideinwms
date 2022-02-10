@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   factory/tool specific condorLogs helper
@@ -45,11 +45,11 @@ def get_glideins(log_dir_name, date_arr, time_arr):
         glidein_list.append(glidein_id)
 
     return glidein_list
-            
+
 # get the list of log files for an entry that were active at a certain time
 def get_glidein_logs_entry(factory_dir,entry,date_arr,time_arr,ext="err"):
     log_list=[]
-    
+
     log_dir_name=os.path.join(factory_dir, "entry_%s/log"%entry)
     glidein_list=get_glideins(log_dir_name, date_arr, time_arr)
     for glidein_id in glidein_list:
@@ -60,7 +60,7 @@ def get_glidein_logs_entry(factory_dir,entry,date_arr,time_arr,ext="err"):
             log_list.append(glidein_log_filepath)
 
     return log_list
-    
+
 # get the list of log files for an entry that were active at a certain time
 def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
     log_list=[]
@@ -70,7 +70,7 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 
     return log_list
 
-# extract the blob from a glidein log file starting from position 
+# extract the blob from a glidein log file starting from position
 def get_Compressed_raw(log_fname,start_str, start_pos=0):
     SL_START_RE=re.compile(b"%s\nbegin-base64 644 -\n"%force_bytes(start_str, BINARY_ENCODING), re.M|re.DOTALL)
     size = os.path.getsize(log_fname)

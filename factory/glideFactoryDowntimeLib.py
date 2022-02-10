@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the functions needed to
@@ -145,7 +145,7 @@ def read(fname, raise_on_error=False):
 
             out.append((start_time, end_time, entry, frontend, security_class, comment))
             # end for long_line in lines:
-            
+
         return out
 
 def printDowntime(fname,entry="Any",check_time=None):
@@ -192,7 +192,7 @@ def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_ti
             if ((time_tuple[2]=="All")and(entry=="factory")):
                 continue
             #make sure that this time tuple applies to this security_class
-            #If the security class does not match the downtime entry, 
+            #If the security class does not match the downtime entry,
             #   this is not a relevant downtime
             #   UNLESS the downtime says All
             if ((time_tuple[3]!="All") and (frontend!=time_tuple[3])):
@@ -208,12 +208,12 @@ def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_ti
                 return (comment, True) # within limit
 
         return ("", False) # not found a downtime window
-        
+
 def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         exists=os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
             raise IOError("[Errno 2] No such file or directory: '%s'"%fname)
-       
+
         comment=comment.replace("\n", " ")
         comment=comment.replace("\r", " ")
         with open(fname, 'a+') as fd:
@@ -306,7 +306,7 @@ def endDowntime(fname, end_time=None, entry="All", frontend="All", security_clas
         comment = comment.replace("\n", " ")
         if end_time is None:
             end_time = int(time.time())
-    
+
         try:
             fd = open(fname, 'r+')
         except IOError:

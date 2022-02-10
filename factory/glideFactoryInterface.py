@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -369,7 +369,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
     @param pub_key_obj: only support 'RSA'
     @type additional_constraints: string
     @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
-    
+
     @type factory_collector: string or None
     @param factory_collector: the collector to query, special value 'default' will get it from the global config
 

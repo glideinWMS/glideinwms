@@ -21,7 +21,7 @@ def argv_gdb(argv):
     if len(argv)==0:
         raise RuntimeError("Missing PID")
     pid=argv[0]
-    
+
     # parse args to get the command
     gdb_cmd="where"
     if len(argv)>1:
@@ -39,7 +39,7 @@ def argv_gdb(argv):
     script_lines.append(gdb_cmd)
     script_lines.append('quit')
     script_lines.append('EOF')
-    script_lines.append('gdb -command %s /proc/%s/exe %s'%(gdbcommand, pid, pid)) 
+    script_lines.append('gdb -command %s /proc/%s/exe %s'%(gdbcommand, pid, pid))
     script_lines.append('rm -f %s'%gdbcommand)
 
     return script_lines

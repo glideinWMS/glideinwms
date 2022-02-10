@@ -26,7 +26,7 @@ def force_bytes(instr, encoding=BINARY_ENCODING_CRYPTO):
 
     Args:
         instr (AnyStr): string to be converted
-        encoding (str): a valid encoding, utf8, ascii, latin-1  
+        encoding (str): a valid encoding, utf8, ascii, latin-1
 
     Returns:
         bytes: instr as bytes string

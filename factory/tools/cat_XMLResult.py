@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the XML Result for a glidein output file
@@ -35,7 +35,7 @@ def main(args):
         if (len(args)<1):
             sys.stderr.write("Missing logname.\n")
             sys.stderr.write("%s\n"%USAGE)
-            sys.exit(1)        
+            sys.exit(1)
 
         if (args[0]=="-h"):
             print(USAGE)
@@ -48,7 +48,7 @@ def main(args):
             args=args[1:]
         else:
             break # looks like I found a log name
-    
+
     if (len(args)==1) and (not force_multi):
         # single file, just pass through
         try:
@@ -101,21 +101,20 @@ def main(args):
                 # serious error... die
                 raise
             pass
-        
+
         if (len(xmls)==0):
             sys.stderr.write("Could not read a single file!")
             sys.exit(1)
         if not raw_out:
             sys.stdout.write('<?xml version="1.0"?>\n')
             sys.stdout.write("<OSGTestResultSet>\n")
-        
+
         for l in xmls:
             sys.stdout.write(l+"\n")
-        
+
         if not raw_out:
             sys.stdout.write("</OSGTestResultSet>\n")
 
 
 if __name__ == '__main__':
     main(sys.argv[1:])
- 

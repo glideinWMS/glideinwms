@@ -211,8 +211,8 @@ v3_5    Removed support for Globus GRAM (GT2/GT5)
         Bug fix: Entries in downtime setting seems not to work correctly
         Bug fix: GlideinWMS proxy renewal service broken for Xenon
         NOTE: v3_5 and v3_4 are fully interoperable. I.e. You can mic v3_5 and v3_4_x Factories and Frontends in your system
-        NOTE-FACTORY: The v3.5 Factory is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to: 
-          1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory. 
+        NOTE-FACTORY: The v3.5 Factory is using a single user. This is a major change. If you are upgrading, after the RPM upgrade you will need to:
+          1. stop Factory and HTCondor, 2. Migrate the HTCondor status running the fact_chown script, 3. Run upgrade and restart the HTCondor and the Factory.
           For detailed instructions see: http://glideinwms.fnal.gov/doc.dev/factory/configuration.html#single_user
 
 v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send voms and glexec attributes as strings (Fermilab Frontend not communicating w/ upgraded Factory)
@@ -223,8 +223,8 @@ v3_4_6  Make Factory compatible with older 3.4 Frontends reverting back to send 
         Bug fix: Not escaped comma in GSI_DAEMON_NAME causing problems
         Bug fix: Debug options causing Singularity invocation to fail
         Bug fix: Singularity workdir creation failing at some sites
-        Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758) 
-        
+        Bug fix: Fixing chkconfig lines on proxy renewal (SOFTWARE-3758)
+
 v3_4_5  Add a bind mount for /etc/localtime in Singularity
         Bug fix: Strings evaluated as boolean (New error preventing the Frontend fo match jobs)
 
@@ -343,9 +343,9 @@ v3_2_20 Verified that Factory can start 1500 entries at a time
         Improved Factory monitoring by adding cores count for running and idle jobs and requests
         Removed dependency from Globus clients
         Support Singularity (future replacement for glexec)
-        Avoid race conditions with multiple reload quick invocations in SL7 
+        Avoid race conditions with multiple reload quick invocations in SL7
         Bug Fix: -fix_rrd is always in the upgrade command beside reconfig option
-        Bug Fix: Fixed some failing unit tests 
+        Bug Fix: Fixed some failing unit tests
         Bug Fix: Fixed Factory job stats are empty
         Bug Fix: Bad link to Frontend monitoring
         Bug Fix: Custom Google search in the documentation pointing to the new site,
@@ -377,13 +377,13 @@ v3_2_19 Added counters for Idle jobs older than X hours
 
 v3_2_18 Bug Fix: ProjectId is missing double quotes
         Bug Fix: Stdout messages from startup script in SL7 are confusing
-        Bug Fix: Service definition file for SL7 is marked executable 
+        Bug Fix: Service definition file for SL7 is marked executable
           and it should not
         Bug Fix: Upgrade not working when frontend/factory are running
-        Bug Fix: Use of daemon function to start process does not play well 
+        Bug Fix: Use of daemon function to start process does not play well
           with non empty pid files
 
-v3_2_17 Glideins fallback to curl if transferring files from the 
+v3_2_17 Glideins fallback to curl if transferring files from the
 	  factory/frontend staging area fails using wget
 	Bug Fix: Factory not correctly consider the cluster size when
 	  doing multiple submissions during same cycle
@@ -403,7 +403,7 @@ v3_2_17 Glideins fallback to curl if transferring files from the
 	Bug Fix: When not configured GLIDEIN_CPUS default back to 1
 	  rather than trying to auto detect available cores
 	Bug Fix: Glideins will not use UTMP be default
-	
+
 v3_2_16	Information about job and machine features are now available in glidein
 	  startd's classad
 	New tool manual_glidein_startup now lets you manually start a glidein
@@ -507,7 +507,7 @@ v3_2_13	Support XSEDE ProjectId as a credential in frontend
 	  log a negative count in case of multi core glideins
 	Bug Fix: Fixed several issues with the cron type scripts
 
-v3_2_12_1 Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
+v3_2_12_1 Bug Fix: Fixed incompatibility with python 2.4 and bad failure when
           there is no entry, both introduced in v3_2_12 factory configuration
 
 v3_2_12 Various curbs and limits triggered in the frontend are now logged
@@ -515,11 +515,11 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
         Frontend is now more conservative while computing max request
           running
         Glideins now support advertising custom resources on the worker
-          node This can be used to advertise resources like GPUs. GPUs can also 
+          node This can be used to advertise resources like GPUs. GPUs can also
           be auto discovered and advertised
         Several improvements to rpm packaging. Useful frontend tools are
           now available in the user path
-        Support of version control for the factory configuration and splitting 
+        Support of version control for the factory configuration and splitting
           of entries configuration from the main factory configuration (entries.d)
         Unique idle jobs matched by the frontend is now available in
           glideresource classads
@@ -533,9 +533,9 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
           classads on shutdown
         Bug Fix: Disable collector's use of shared port to support
           HTCondor 8.4 (in both factory and user pool)
-        Bug Fix: Counting correctly glidein and cores, specially for 
+        Bug Fix: Counting correctly glidein and cores, specially for
           partitionable slots
-        Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
+        Bug Fix: Fixed bug where DaemonShutdown was failing to consider
           dynamic slots
         Bug Fix: Fixed bug where NUM_CPUS was not set for partitionable slots
           resulting in hardware cpu number being used instead of GLIDEIN_CPUS
@@ -598,7 +598,7 @@ v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
         Added option to compress process logs in factory and frontend
         Added failed glidein statistics to frontend monitoring
         Added idle/running/total core statistics to frontend monitoring
-        Added the support for HTCondor GANGLIAD monitoring 
+        Added the support for HTCondor GANGLIAD monitoring
           (requires HTCondor 8.1 or newer). If you have HTCondor 8.0.x or earlier
           you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
           otherwise your HTCondor will complain about an unsupported option
@@ -924,7 +924,7 @@ v2_6_2  Factory now supports glidein failure modes. This information is
           This will now enable frontends to override this attr.
         Bug Fix: Ini-installer now correctly cleans up files on re-install
 
-v2_6_1  Factory now limits the speed at which it releases held glideins. After 
+v2_6_1  Factory now limits the speed at which it releases held glideins. After
           too many unrecoverable attempts, held glideins are removed.
         Added support for Condor 7.8+
           KNOWN ISSUE: Only applies if you upgrade condor binaries in place
@@ -936,13 +936,13 @@ v2_6_1  Factory now limits the speed at which it releases held glideins. After
         Glideins now support curl & data file transfer plugins in condor
         New installations of factory and frontend services now communicate with
           condor daemons using TCP by default.
-        Bug Fix: Factory configuration now supports specifying limits for 
+        Bug Fix: Factory configuration now supports specifying limits for
           different security classes of same frontend
           KNOWN ISSUE: If limits are configured in the factory, this change
           breaks backward compatibility. As a workaround, admin needs to remove
           the limits and re-apply them.
         Bug Fix: Factory monitoring pages now correctly work in Firefox 14+
-        Bug Fix: Frontend now monitors the glideins correctly when the 
+        Bug Fix: Frontend now monitors the glideins correctly when the
           corresponding factory classad is missing
         Bug Fix: Fixed factory logging. Factory can now correctly extract info
           from a voms proxy
@@ -956,7 +956,7 @@ v2_6    Add attr_dict in the environment of the frontend match_expr
         Misbehaving glidein can be put on hold using WANT_HOLD
         The start_expr is now a native part of match
         Startd now advertises per-slot memory when configured by the factory.
-          VO frontend can use GLIDEIN_MaxMemMBs_Estimate attr to make glidein 
+          VO frontend can use GLIDEIN_MaxMemMBs_Estimate attr to make glidein
           estimate the available memory (based on memory/core or memory/cpu)
         entry_q now reads GLIDEIN_FACTORY_DIR from env before checking cwd
         Multiple user collectors are supported in HA mode
@@ -965,10 +965,10 @@ v2_6    Add attr_dict in the environment of the frontend match_expr
           optional during reconfig
         Entry downtime reason is now reported in the glidefactory classad
         Improved support for RHEL 6 platform
-        Added support for new ARC Gatekeeper 1.x 
+        Added support for new ARC Gatekeeper 1.x
         Linux distro of the worker node is available in the glidein's classad
         Condor classad fields are now considered case insensitive
-        Bug Fix: Java is correctly disable by default preventing increase in 
+        Bug Fix: Java is correctly disable by default preventing increase in
           the image size during condor daemon benchmarking
         Bug Fix: Glidein correctly handles semicolons in STARTER_JOB_ENVIRONMENT
         Bug Fix: Frontend correctly correctly supports <attr> properties
@@ -1011,7 +1011,7 @@ v2_5_5	Added filtering to analyze_entries
 	Reduced the number of debug log messages when entry becomes inactive.
 	Frontend match making uses autoclusters, greatly increasing the
 	  performance for busy frontends
-	Package the list of shared libraries required by Condor 7.7.3+ for 
+	Package the list of shared libraries required by Condor 7.7.3+ for
 	  glidein tarballs
 	Pilot proxy is not available in the user job environment any more
 	  reducing the chance for user job using it.
@@ -1073,7 +1073,7 @@ v2_5_3  Updated the license to reflect current Fermitools license
         Bug fix: Fixed a bug where factory would not correctly accept requests
           from frontends that were still using old keys
         Bug fix: Fixed a bug where glidein pilot proxy lifetime was not taken
-          into account vs GLIDEIN_Max_Walltime 
+          into account vs GLIDEIN_Max_Walltime
         Bug fix: Fixed a bug where expired/renewed proxy created error in
           completed_jobs accounting
         Bug fix: Fixed a bug where running_glideins_per_entry was not treating
@@ -1145,8 +1145,8 @@ v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	GlideinWMS factory and the Corral frontend can now talk to each other
 	Factory is smarter about handling held glideins
 	Factory can now black/white list VOs on a per-entry basis
-	Version of GlideinWMS is now published in the classads. Scheme can 
-	  detect any changes to any service appropriate files and advertises 
+	Version of GlideinWMS is now published in the classads. Scheme can
+	  detect any changes to any service appropriate files and advertises
 	  cersion as patched.
 	Frontend should try to recover the crashed group before it gives up and
 	  shutsdown
@@ -1159,15 +1159,15 @@ v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	Add JobsRunningHere attribute - CANNOT SIMPLY UPGRADE, NEEDS NEW
 	  INSTANCE FOR BOTH FACTORY AND FRONTEND
 	Graceful shutdown of the glidein by trapping signals in glidein_startup
-	BUG FIX: Fixed a bug where factory would create a malformed 
-	  glideinWMS.xml config file when configured to use a default proxy 
+	BUG FIX: Fixed a bug where factory would create a malformed
+	  glideinWMS.xml config file when configured to use a default proxy
 	  for glideins from the factory.
-	BUG FIX: Factory entry sometimes stops reporting when it gets an 
+	BUG FIX: Factory entry sometimes stops reporting when it gets an
 	  exception for any reason
 	BUG FIX: Top-level schedd_status.xml malformed Total data
 	BUG FIX: Fixed a bug where the LogCounts.rrd was created with wrong
 	  data types.
-	KNOWN ISSUE: Automatic release of held glideins for CREAM CEs with 
+	KNOWN ISSUE: Automatic release of held glideins for CREAM CEs with
 	  issues could result in factory submitting more than required
 	  glideins to the CE. As a workaround, disable release of held glideins
 	  for CREAM CE.
@@ -1230,12 +1230,12 @@ v2_4	Add proxy security classes to the frontend
 	Put client logs and client proxies in separate trees.
 	Implement privilege separation in the factory.
 	Various minor refactoring of code to achieve the above.
-	Aggregate gatekeeper/sites for factory monitoring. 
+	Aggregate gatekeeper/sites for factory monitoring.
 	Introduced monitoringgroups to group sites together for monitoring
 	  purposes in factory.
-	KNOWN ISSUES: Installer is not always able to get the correct 
+	KNOWN ISSUES: Installer is not always able to get the correct
 	  DN from the certificates/proxies. It does not correctly strip the
-	  CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+	  CN=<blah> bit of the DN in certain cases. If the DN guessed is not
 	  correct, make the required changes in the configurations and/or
 	  condor_mapfile.
 
@@ -1244,21 +1244,21 @@ v2_3_2	Fixed a security bug in the way certificate/proxy DN(s) are handled. If
 	  should patch the condor_mapfile used by Condor daemons in your
 	  installation using the convert_condormap tool available from the
 	  GlideinWMS download page. For additional security, users should
-	  add new DN to the condor_mapfile only by using the glidecondor_addDN 
+	  add new DN to the condor_mapfile only by using the glidecondor_addDN
 	  tool available in the GlideinWMS/install directory.
 
 v2_3_1	Updated documentation. This is document change only release
 	Introduced monitoringgroups to group sites together for monitoring
 	  purposes in factory.
-	KNOWN ISSUES: Installer is not always able to get the correct 
+	KNOWN ISSUES: Installer is not always able to get the correct
 	  DN from the certificates/proxies. It does not correctly strip the
-	  CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+	  CN=<blah> bit of the DN in certain cases. If the DN guessed is not
 	  correct, make the required changes in the configurations and/or
 	  condor_mapfile.
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
-	  interval restart_interval sec in te factory. 
+	  interval restart_interval sec in te factory.
 	Add vacuum option to manageDowntimes.
 	Factory now properly handles new-style frontends without a group.
 	Frontend code has been refactored to allow use as a library.
@@ -1279,14 +1279,14 @@ v2_2	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
 	Addedd support for VDT 2.0, and made it the default.
 	  Added Globus-Client and Myproxy-Client in the minimal VDT install.
 	Installer now allows the collector to run on non-standard port.
-	Factory now only checks X509_USER_PROXY if it needs it.  
+	Factory now only checks X509_USER_PROXY if it needs it.
 	Added support for multiple versions of condor in a single factory.
-	Added ReqEncIdentity to the frontend->factory protocol 
+	Added ReqEncIdentity to the frontend->factory protocol
 	   to prevent replay attacks.
 	   WARNING: This effectively prevents old-style frontends to talk
                     to new style factories.
 	   NOTE: Will only work with Condor 7.3.1 or newer
-	KNOWN ISSUES: Pseudo interactive monitoring will not work with glexec. 
+	KNOWN ISSUES: Pseudo interactive monitoring will not work with glexec.
 
 v2_1	Fixed a bug that was throwing an exception if a glidein failed.
 	Fixed handling of grid-mapfiles coming from client.
@@ -1314,7 +1314,7 @@ v1_6_3 Fixed a security bug in way certificate/proxy DN(s) are handled. If
           installation using the convert_condormap tool available from the
           GlideinWMS download page. For additional security, users should
           add new DN to the condor_mapfile only by using the glidecondor_addDN
-          tool available in the glideinWMS/install directory.	
+          tool available in the glideinWMS/install directory.
 
 v1_6_2	Fixed a bug where Frontend would crash during certain conditions.
 
@@ -1325,7 +1325,7 @@ v1_6_1	Better randomization of GCBs and collectors
 	Add support for CCB and USE_MATCH_AUTH in the installer.
 	Add OSG:vo-client to the minimal VDT install
 	Better handling of Nordugrid sites.
-	Start factory in nice mode to give priority to Condor daemons 
+	Start factory in nice mode to give priority to Condor daemons
 	In condor_config for glideins remove explicit STARTER_UPDATE_INTERVAL
 	Removing GLIDEIN_Use_TCP, now uses UPDATE_COLLECTOR_WITH_TCP instead
 	Force integrity on reads from WMS collector
@@ -1345,7 +1345,7 @@ v1_6	The XML file now supports comments.
           as a non-privileged user.
 	Added create_frontend, recreate_frontend.
 	Refactoring creation libs;
-	  create_frontend and create_glidein now share much code 
+	  create_frontend and create_glidein now share much code
 	Using m2crypto for sha1 checks.
 	Added support for CCB.
         Monitoring refactored
@@ -1391,7 +1391,7 @@ v1_4_4	Add factory_constraint parameter to the frontend.
 	Warnings go into the info file, too. Easier to correlate errors this way.
 	Better colors in graphs.
 
-v1_4_3	Improve scalability 
+v1_4_3	Improve scalability
  	  by adding locks into monitoring
 	  Now only one rdd update can proceed at a time, and
 	  only one graphing operation can proceed at a time
@@ -1409,7 +1409,7 @@ v1_4_1	Improved pseudo-interactive monitoring
 v1_4	Better support for RESS and BDII
 	 Including automatic downtime handling
 	User STARTD_SENDS_ALIVES=True by default.
-	Disable glidein UDP port by default. 
+	Disable glidein UDP port by default.
 	Global files can now be loaded after entry
 	Added support for job wrapper scripts.
 	Fix monitor locking.
@@ -1457,7 +1457,7 @@ v1_2	More fine grained configuration of glideins
         Glideins now publish the gatekeeper name.
 
 v1_1	Entry points can now be updated by using reconfig_glidein
-        Add automatic OSG glexec discovery 
+        Add automatic OSG glexec discovery
         Use condor_mapfile for authorization
         Installer now supports Condor v7 (without Quill)
         Installer now supports gLExec

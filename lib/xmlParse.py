@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description: general purpose XML decoder
 #
@@ -23,7 +23,7 @@ class CorruptXML(Exception):
 
 
 # Dictionaries are guaranteed to maintain order starting py3.6
-# missing methods (were not in the custom class): __dict__, __reversed__, move_to_end 
+# missing methods (were not in the custom class): __dict__, __reversed__, move_to_end
 # OrderedDict from collections is not maintaining the __repr__ of a dict
 class OrderedDict(dict):
     pass
@@ -88,7 +88,7 @@ class OrderedDict2(UserDict):
 
     def values(self):
         return list(map(self.get, self._keys))
-    
+
 
 # convert a XML file into a dictionary
 # ignore text sections
@@ -130,7 +130,7 @@ def xmlfile2dict(fname,
 #   u'temperature': {u'C': u'40',
 #                    u'F': u'100'}
 #  }
-#  
+#
 def xmlstring2dict(instr,
                    use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
                    always_singular_list=[]):  # anything id listed here will be considered as a list
@@ -161,7 +161,7 @@ def getXMLElements(element):
 
 def getXMLAttributes(element, use_ord_dict):
     ael = element.attributes
-    
+
     if use_ord_dict:
         attrs = OrderedDict()
     else:
@@ -212,7 +212,7 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
         tag = el.tagName
         #print tag
         eldata = domel2dict(el, use_ord_dict, always_singular_list)
-        if is_singular_of(tag, myname, always_singular_list): 
+        if is_singular_of(tag, myname, always_singular_list):
             # subelements, like "param" - "params"
             if "name" in eldata:
                 data[eldata['name']] = eldata
@@ -230,5 +230,3 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
             #just a regular subtree
             data[tag] = eldata
     return data
-
-

@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -41,16 +41,16 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
                want_format_completion=True, job_status_filter=(1, 2)):
     """Return a dictionary of schedds containing interesting jobs
     Each element is a condorQ
-    
+
     If not all the jobs of the schedd has to be considered,
     specify the appropriate constraint
-    
+
     Args:
-        schedd_names: 
+        schedd_names:
         constraint (str): constraint string or None
-        format_list: 
-        want_format_completion (bool): 
-        job_status_filter: 
+        format_list:
+        want_format_completion (bool):
+        job_status_filter:
 
     Returns:
 
@@ -217,7 +217,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
                condorq_match_list=None, match_policies=[], group_name=None):
     """
     Get the number of jobs that match each glidein
-    
+
     :param match_obj: output of re.compile(match string,'<string>','eval')
     :type condorq_dict: dictionary: sched_name->CondorQ object
     :param condorq_dict: output of getidleCondorQ
@@ -273,7 +273,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
     # Since we have to convert a 3 dimensional entity into a linear number
     # we have to pick two ranges to use as multipliers
     # len(schedds) is the first obvious one, since it is fixed
-    # between ClusterId and ProcId, we select max(ProcId) 
+    # between ClusterId and ProcId, we select max(ProcId)
     # since it is the smaller of the two the formula thus becomes
     #  (ClusterId*max_ProcId+ProcId)*len(schedds)+scheddIdx
     #
@@ -330,13 +330,13 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
     # Results:
     # list_of_all_jobs: a list containing the set of jobs that match
     #                   a gliedin (i.e. entry) the position in the list
-    #                   identifies the glidein and each element is a set of 
+    #                   identifies the glidein and each element is a set of
     #                   indexes representing a job cluster each
     #  all_jobs_clusters: dictionary of cluster index -> list of jobs in
     #                     the cluster (represented each by its own index)
     list_of_all_jobs = []
     all_jobs_clusters = {}
-    
+
     for glidename in glidein_dict:
         glidein = glidein_dict[glidename]
         # Number of glideins to request
@@ -516,7 +516,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, ignore_down_ent
             # that provided by the individual submission on the site
             # this is the cores on the worker node multiplied for the number
             # of nodes in one submission if multi-node submissions are enabled
-            
+
             # rounding only the result, prop_out_count and prop_cpus are float
             prop_cpus = (out_cpu_counts[site] * new_out_counts[site_index]) / out_glidein_counts[site]
             prop_out_count = prop_cpus / glidein_cpus_nodes
@@ -714,7 +714,7 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
     # get the partitionable slot (ie parent slot) classads as well.
     # Move the type_constraint below to individual getCondorStatus* filtering
     #
-    # Partitionable slots are *always* idle 
+    # Partitionable slots are *always* idle
     # The frontend only counts them when all the subslots have been
     # reclaimed (HTCondor sets TotalSlots == 1)
     # type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
@@ -768,8 +768,8 @@ def getIdleCondorStatus(status_dict):
         # 2. (el.get('TotalSlots') == 1)
         # p-slots not yet partitioned
         #
-        # 3. (el.get('Cpus', 0) > 0 and 
-        #     el.get('Memory', 2501) > 2500) and 
+        # 3. (el.get('Cpus', 0) > 0 and
+        #     el.get('Memory', 2501) > 2500) and
         #     (el.get('TotalGpus', 0) == 0 or el.get('Gpus', 0) > 0))
         # p-slots that have enough idle resources.
 
@@ -781,7 +781,7 @@ def getIdleCondorStatus(status_dict):
                 (
                     (el.get('PartitionableSlot') != True) or
                     (el.get('TotalSlots') == 1) or
-                    (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500 and 
+                    (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500 and
                         (el.get('TotalGpus', 0) == 0 or el.get('Gpus', 0) > 0)
                     )
                 )
@@ -1106,7 +1106,7 @@ def getFactoryEntryList(status_dict):
             out.add((entry_str, factory_pool))
 
     return list(out)
-        
+
 
 #
 # Return a dictionary of collectors containing interesting classads
@@ -1140,7 +1140,7 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
 ############################################################
 
 #
-# Return a dictionary of schedds containing jobs of a certain type 
+# Return a dictionary of schedds containing jobs of a certain type
 # Each element is a condorQ
 #
 # If not all the jobs of the schedd has to be considered,
@@ -1170,12 +1170,12 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             continue
         except Exception:
             logSupport.log.exception("Unknown Exception. Failed to talk to schedd %s" % schedd)
-            
+
     return out_condorq_dict
 
 
 #
-# Return a dictionary of collectors containing classads of a certain kind 
+# Return a dictionary of collectors containing classads of a certain kind
 # Each element is a condorStatus
 #
 # If not all the jobs of the schedd has to be considered,
@@ -1210,7 +1210,7 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
 
         if len(status.fetchStored()) > 0:
             out_status_dict[collector] = status
-            
+
     return out_status_dict
 
 
@@ -1284,8 +1284,8 @@ def uniqueSets(in_sets):
 
     sorted_sets.append(sum_set)
 
-    # index_list is a list of lists. Each list corresponds to 
-    # an element in sorted_sets, and contains the indexes of 
+    # index_list is a list of lists. Each list corresponds to
+    # an element in sorted_sets, and contains the indexes of
     # that elements shared elements in the initial list of sets
     index_list = []
     for s in sorted_sets:
@@ -1328,7 +1328,7 @@ def getGlideinCpusNum(glidein, estimate_cpus=True):
     In the future there should be better guesses
     """
     # TODO: better estimation of cpus available on resources (e.g. average of obtained ones)
-   
+
     cpus = str(glidein['attrs'].get('GLIDEIN_CPUS', 1))
     try:
         glidein_cpus = int(cpus)

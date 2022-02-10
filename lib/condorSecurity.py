@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements classes that will setup
@@ -35,7 +35,7 @@ class EnvState(object):
         # filter is a list of Condor variables to save
         self.filter=filter
         self.load()
-    
+
     #################################
     # Restore back to what you found
     # when creating this object
@@ -118,7 +118,7 @@ class SecEnvRequest(object):
                 del self.requests[context][feature]
                 if len(list(self.requests[context].keys())) == 0:
                     del self.requests[context]
-    
+
     def get(self, context, feature):
         if context in self.requests:
             if feature in self.requests[context]:
@@ -140,7 +140,7 @@ class SecEnvRequest(object):
         filter = {}
         for c in list(self.requests.keys()):
             filter[c] = list(self.requests[c].keys())
-            
+
         self.saved_state = SecEnvState(filter)
 
     def restore_state(self):
@@ -208,7 +208,7 @@ class EnvProtoState(SecEnvState):
                 for f in CONDOR_PROTO_FEATURE_LIST:
                     cfilter.append(f)
                 filter[c]=cfilter
-        
+
         SecEnvState.__init__(self, filter)
 
 
@@ -266,7 +266,7 @@ class GSIRequest(ProtoRequest):
                         raise ValueError("Must specify either IDTOKENS or GSI as one of the options")
             else:
                 proto_requests[context]['AUTHENTICATION']=auth_str
-        
+
         ProtoRequest.__init__(self, proto_requests)
         self.allow_fs=allow_fs
         self.x509_proxy_saved_state = None
@@ -278,7 +278,7 @@ class GSIRequest(ProtoRequest):
 
         # Here I should probably check if the proxy is valid
         # To be implemented in a future release
-        
+
         self.x509_proxy=x509_proxy
 
     ##############################################

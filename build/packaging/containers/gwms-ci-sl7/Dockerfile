@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# Selecting SL7 as the base OS 
-FROM scientificlinux/sl:7 
+# Selecting SL7 as the base OS
+FROM scientificlinux/sl:7
 MAINTAINER The GlideinWMS team "glideinwms-support@fnal.gov"
 
 # Install the quired RPMS and clean yum
@@ -17,7 +17,7 @@ RUN yum install -y wget sed git;\
 # yum dep program needs to be added
 ADD shared/yumalldeps.sh /usr/bin/yumalldeps.sh
 
-# Specific dependencies for GlideinWMS will be added 
+# Specific dependencies for GlideinWMS will be added
 # Python 3 version is in osg-contrib
 RUN /usr/bin/yumalldeps.sh -i -y "--enablerepo=osg-contrib" glideinwms-factory glideinwms-vofrontend
 # Production version (Python 2)
@@ -38,8 +38,8 @@ RUN yum install -y http://opensource.wandisco.com/centos/7/git/x86_64/wandisco-g
 # Cleaning caches to reduce size of image
 RUN yum clean all
 
-# Default entry point 
-CMD ["/bin/bash"] 
+# Default entry point
+CMD ["/bin/bash"]
 
 
 # build info

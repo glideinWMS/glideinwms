@@ -9,13 +9,13 @@ SPDX-License-Identifier: Apache-2.0
 Project:
   glideinWMS
 
-File Version: 
+File Version:
 
 Description:
   Browse the glideinWMS RRDs over the groups
 
   Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
+  javascriptrrd/src/lib/rrdJFlot.html
    Original repository: https://javascriptrrd.sourceforge.net/
 -->
 
@@ -37,7 +37,7 @@ Description:
     <table width="100%">
     <tr>
      <td><h1 id="pgtitle">RRD matrix by frontend groups</h1></td>
-     <td align="right">[ 
+     <td align="right">[
 	    <a href="frontendStatus.html">Status</a> |
 	    <a href="frontendRRDBrowse.html">Browse</a> |
         <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
@@ -74,12 +74,12 @@ Description:
    <hr>
     <p>Powered by
         <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
+        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and
         <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
- 
+
 	<div id="monitor_footer"></div>
-	
+
     <script type="text/javascript">
 
       // Remove the Javascript warning
@@ -115,7 +115,7 @@ Description:
 	var rrd_files=[];
 	for (var i in rrd_data) {
 	   rrd_files.push([group_names[i],rrd_data[i]]);
-	} 
+	}
 
         // the rrdFlot object creates and handles the graph
         var f=new rrdFlotMatrix("mygraph",rrd_files);
@@ -131,7 +131,7 @@ Description:
 
           var i_rrd_data=undefined;
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fnames[idx]+" is not a valid RRD archive!");
           }
@@ -143,7 +143,7 @@ Description:
             if (rrd_data[idx]==null) {
 	       all_defined=false;
 	    }
-	  } 
+	  }
 
            if (all_defined) {
             update_fname()
@@ -164,7 +164,7 @@ Description:
            var group=groups_obj.group[i];
            if (group.checked==true) {
   	     group_names.push(group.value);
-           } 
+           }
           }
         } else {
 	  group_names.push(groups_obj.group.value);
@@ -197,7 +197,7 @@ Description:
 	}
       }
     </script>
-    
+
   </body>
-  
+
 </html>

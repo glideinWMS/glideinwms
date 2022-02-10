@@ -32,17 +32,17 @@ from glideinwms.lib.util import chmod
 
 
 class SubParams(Mapping):
-    """Read-only dictionary containing Configuration info   
+    """Read-only dictionary containing Configuration info
     """
     def __init__(self, data):
         """Constructor, only method changing the value"""
         self.data = data
-    
+
     def __repr__(self):
         return self.data.__repr__()
 
     # Abstract methods to implement for the Mapping
-    def __getitem__(self, key): 
+    def __getitem__(self, key):
         return self.__get_el(key)
 
     def __len__(self):
@@ -50,7 +50,7 @@ class SubParams(Mapping):
 
     def __iter__(self):
         return iter(self.data)
-    
+
     def __getattr__(self, name):
         """Make data elements look like class attributes
 
@@ -186,10 +186,10 @@ class SubParams(Mapping):
 
         Returns:
             value
-            
+
         Raises:
             KeyError: when the key/attribute name is not in self.data
-            
+
         """
         try:
             el = self.data[name]
@@ -224,14 +224,14 @@ class Params:
     """
     def __init__(self, usage_prefix, src_dir, argv):
         """Constructor. Load the default values and override with the config file content
-        
+
         Args:
-            usage_prefix: 
-            src_dir (str): source directory of the config file(s) 
+            usage_prefix:
+            src_dir (str): source directory of the config file(s)
             argv (list): TODO: this way for historical reasons, should probably be refactored
                             [0] is the caller, sys.argv[0] (NOT USED)
                             [1] can be the config file or '-help'
-                            it seems the length used is always 2, other elements are NOT USED   
+                            it seems the length used is always 2, other elements are NOT USED
         """
         self.usage_prefix=usage_prefix
 
@@ -319,20 +319,20 @@ class Params:
     def __getattr__(self, name):
         """__getattr__ is called if the object (Params subclass) has not the 'name' attribute
         Return the attribute from the included SubParam objects (self.subparams)
-        
+
         Args:
-            name (str): name of the attribute 
+            name (str): name of the attribute
 
         Returns:
-            value of the attribute 
-            
+            value of the attribute
+
         Raises:
-            AttributeError: when subparams is requested 
+            AttributeError: when subparams is requested
 
         """
         if name == 'subparams':
             # if there is no subparams, it cannot be used to retrieve values (of itself!)
-            # this can happen w/ deepcopy or pickle, where __init__ is not called 
+            # this can happen w/ deepcopy or pickle, where __init__ is not called
             raise AttributeError("%r has no attribute %r" % (type(self), name))
         return self.subparams.__getattr__(name)
 
@@ -640,4 +640,3 @@ def defdict2string(defaults, indent, width=80):
             else:
                 outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent, k, ktype, txt, defvalue), width, wrap_indent))
     return "\n".join(outstrarr)
-

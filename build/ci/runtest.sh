@@ -86,7 +86,7 @@ ${filename} [options] COMMAND [command options]
   bats - run Shell unit tests and coverage
   pyunittest (unittest) - run Python unit test and coverage
   pylint - run pylint and pycodestyle (pep8)
-  NOT_IMPLEMENTED: futurize - run futurize 
+  NOT_IMPLEMENTED: futurize - run futurize
   shellcheck - run shellcheck
   summary - finalize the summary table only
  Options:
@@ -424,10 +424,10 @@ write_summary_table() {
         # transpose the table to be able to append the test lines
         echo "$(transpose_table "$table_tmp")" >> "$summary_table_file"
         # Since there was an update, rebuild table w/ branches as row
-        echo "$(transpose_table "$(cat "$summary_table_file")" , )" > "$summary_htable_file"  
+        echo "$(transpose_table "$(cat "$summary_table_file")" , )" > "$summary_htable_file"
         [[ -z "$output_format" || "$output_format" == text ]] && sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_htable_file" > "${summary_htable_file%.csv}.txt"
         [[ "$output_format" == html* ]] && echo "$(table_to_html "$summary_htable_file" ${output_format})" > "${summary_htable_file%.csv}.html"
-    fi   
+    fi
 }
 
 # Process a branch using the COMMAND
@@ -461,7 +461,7 @@ process_branch() {
             loginfo "Processing Python2 branch $git_branch"
             setup_python2_venv "$WORKSPACE"
         fi
-        if [[ $? -ne 0 ]]; then 
+        if [[ $? -ne 0 ]]; then
             logerror "Could not setup Python as required, skipping branch ${git_branch}"
             loglog "RESULT_${COMMAND}_${git_branch}=2:failed"
             return 2
@@ -536,8 +536,8 @@ summary_command() {
         tail -n +2 "$i" >> "$append_table_file"
     done
     loginfo "Writing summary table per branch: $summary_table_file"
-    echo "$(transpose_table "$(cat "$append_table_file")" , )" > "$summary_table_file"  
-    if [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]]; then 
+    echo "$(transpose_table "$(cat "$append_table_file")" , )" > "$summary_table_file"
+    if [[ -z "$SUMMARY_TABLE_FORMAT" || "$SUMMARY_TABLE_FORMAT" == text ]]; then
         loginfo "Writing summary table in txt format: ${summary_table_file%.csv}.txt"
         sed -e 's;=success=;;g;s;=error=;;g;s;=warning=;;g' "$summary_table_file" > "${summary_table_file%.csv}.txt"
     fi
@@ -549,7 +549,7 @@ summary_command() {
 
 
 #################
-# Commands description and functions 
+# Commands description and functions
 #
 # Commands provide functions to perform the actions
 # Required functions:
@@ -570,7 +570,7 @@ do_parse_options() { logexit "command not implemented"; }
 # 2 - outfile
 # 3... - options/arguments passed to the command (e.g. files/test list)
 do_process_branch() { logexit "command not implemented"; }
-# Run the test/linting on the current branch 
+# Run the test/linting on the current branch
 # 1 - branch
 # 2 - output file (output directory/output.branch)
 # 3... - files to process (optional)
@@ -609,7 +609,7 @@ do_log_close() { true; }
 
 do_table_headers() {
     # Tab separated list of fields
-    # example of table header 2 fields available start with ',' to keep first field from previous item 
+    # example of table header 2 fields available start with ',' to keep first field from previous item
     # echo -e "TestName,var1\t,var2\t,var3"
     false
 }
@@ -660,7 +660,7 @@ _main() {
         summary) summary_command "$@"; exit $?;;
         *) logerror "invalid command ($COMMAND)"; help_msg 1>&2; exit 1;;
     esac
-    
+
     UTILS_OK=
     COMMAND_OK=
     TEST_COMPLETE=
@@ -671,13 +671,13 @@ _main() {
             COMMAND_OK=yes
         fi
     fi
-    
+
     # Parse options to the command, output in CMD_OPTIONS array
     # Postpone options parsing if the command file was not found
     [[ -n "${COMMAND_OK}" ]] && do_parse_options "$@"
     # Check if Dry-run, end here
     [[ -n "${TEST_COMPLETE}" ]] && exit 0
-    
+
     ## Need this because some strange control sequences when using default TERM=xterm
     export TERM="linux"
 
@@ -707,7 +707,7 @@ _main() {
                 logexit "failed to setup the test directory $TEST_DIR" 1 SETUP
             fi
         fi
-    
+
         #if [[ -d glideinwms && -z "$GITFLAG" ]]; then
         if [[ -d glideinwms ]]; then
             if [[ -z "${GWMS_REPO_OPTIONAL}" ]]; then
@@ -723,7 +723,7 @@ _main() {
             fi
         fi
     fi
-    
+
     # After this line the script is in the working directory and the source tree is in ./glideinwms
     WORKSPACE=$(pwd)
     export GLIDEINWMS_SRC="$WORKSPACE"/glideinwms
@@ -732,7 +732,7 @@ _main() {
         logexit "repository not found in ./glideinwms (${GLIDEINWMS_SRC})" 1 SETUP
     fi
     STATFILE="$WORKSPACE"/gwmstest.$(date +"%s").txt
-    
+
     echo "command=$full_command_line" >> "$STATFILE"
     echo "workdir=$WORKSPACE" >> "$STATFILE"
     echo "srcdir=$GLIDEINWMS_SRC" >> "$STATFILE"
@@ -741,15 +741,15 @@ _main() {
     logreportstr workdir "$WORKSPACE"
     logreportstr srcdir "$GLIDEINWMS_SRC"
     logreportstr outdir "$OUT_DIR"
-    
+
     # Iterate throughout the git_branches array
     fail_global=0
-    
+
     cd "${GLIDEINWMS_SRC}" || logexit "Could not cd to the repository (${GLIDEINWMS_SRC})" 1 SETUP
-    
+
     # Initialize and save the email to a file
     log_init "$OUT_DIR/email.txt"
-    
+
     if [[ -n "$INPLACE" ]]; then
         loginfo "Running on local files in glideinwms subdirectory"
         # Adding do_git_init_command also here for when -i is used
@@ -810,13 +810,13 @@ _main() {
         branches_list="${git_branches[*]}"
         write_summary_table "${branches_list// /,}" $SUMMARY_TABLE_FORMAT
     fi
-    
+
     # Finish off the end of the email
     log_close
-    
+
     echo "exit_code=$fail_global" >> "${STATFILE}"
     logreport RESULT_${COMMAND} $fail_global
-    
+
     # All done
     loginfo "Logs are in $OUT_DIR"
     if [[ "$fail_global" -ne 0 ]]; then
@@ -824,12 +824,12 @@ _main() {
         exit ${fail_global}
     fi
     loginfo "Tests Complete - Success"
-    
+
     logstep cleanup
     if [[ "${TEST_CLEAN}" = always ]] || [[ "${TEST_CLEAN}" = always && "$fail_global" -eq 0 ]]; then
         test_cleanup "${TEST_DIR}"
     fi
-    
+
     logstep end
 }
 

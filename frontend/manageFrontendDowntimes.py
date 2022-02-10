@@ -33,7 +33,7 @@ def strtxt2time( timeStr ):
     month = deftime[1]
     day   = deftime[2]
     seconds=0
-    
+
     darr = timeStr.split('-') # [[[YYYY-]MM-]DD-]HH:MM[:SS]
     if len(darr)>1: # we have at least part of the date
         timeStr=darr[-1]
@@ -87,7 +87,7 @@ def delay2time( delayStr ):
         delayStr=delayStr[:-1] # remove final s if present
     if len(delayStr)>0:
         seconds=int(delayStr)
-    
+
     return seconds+60*(minutes+60*hours)
 
 
@@ -100,7 +100,7 @@ def get_downtime_fd( work_dir ):
 # major commands
 def add( opt_dict ):
     # glideinFrontendDowntimeLib.DowntimeFile(  self.elementDescript.frontend_data['DowntimesFile']  )
-    down_fd = get_downtime_fd( opt_dict["dir"] ) 
+    down_fd = get_downtime_fd( opt_dict["dir"] )
 
     start_time = str2time( opt_dict["start"] )
     end_time   = str2time( opt_dict["end"]   )
@@ -109,7 +109,7 @@ def add( opt_dict ):
 
 
 # this calls checkDowntime(with delayed_start_time ) first and then startDowntime(with delayed_start_time and end_time)
-def down( opt_dict ): 
+def down( opt_dict ):
     down_fd = get_downtime_fd(opt_dict["dir"])
 
     when = delay2time( opt_dict["delay"] )
@@ -127,7 +127,7 @@ def down( opt_dict ):
 
     if not down_fd.checkDowntime( check_time=when ):
         # only add a new line if not in downtime at that time
-        return down_fd.startDowntime( start_time=when, end_time=end_time) 
+        return down_fd.startDowntime( start_time=when, end_time=end_time)
     else:
         print("Frontend is already down. ")
 
@@ -135,7 +135,7 @@ def down( opt_dict ):
 
 
 # calls endDowntime( with end_time only )
-def up( opt_dict ): 
+def up( opt_dict ):
     down_fd = get_downtime_fd(opt_dict["dir"])
 
     when = delay2time( opt_dict["delay"] )
@@ -173,15 +173,15 @@ def get_args(argv):
         if (len(argv)<=index+1):
             continue
 
-        if (arg == "-cmd"):            
+        if (arg == "-cmd"):
             opt_dict["cmd"] = argv[index+1]
-        if (arg == "-dir"):            
+        if (arg == "-dir"):
             opt_dict["dir"] = argv[index+1]
-        if (arg == "-start"):          
+        if (arg == "-start"):
             opt_dict["start"] = argv[index+1]
-        if (arg == "-end"):            
+        if (arg == "-end"):
             opt_dict["end"] = argv[index+1]
-        if (arg == "-delay"):          
+        if (arg == "-delay"):
             opt_dict["delay"] = argv[index+1]
 
         index=index+1
@@ -224,7 +224,6 @@ def main(argv):
         usage()
         print("Invalid command %s" % cmd)
         return 1
-    
+
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-

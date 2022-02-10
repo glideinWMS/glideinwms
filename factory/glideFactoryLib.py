@@ -469,7 +469,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     # old file exists, check if same content
     with open(fname, 'r') as fl:
         old_data = fl.read()
-    
+
     if proxy_data == old_data:
         # nothing changed, done
         return fname
@@ -686,14 +686,14 @@ def clean_glidein_queue(remove_excess_tp, glidein_totals, condorQ, req_min_idle,
 
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
     for these totals to occur so it would be difficult to reflect the true state of the system.
-    
+
     TODO: req_min_idle=0 when remove_excess_tp.frontend_req_min_idle is not means that a limit was reached in the Factory
         or some component (Factory/Entry) is in downtime. Check if the removal behavior should change
 
     Args:
         remove_excess_tp (tuple): remove_excess_str (NO, WAIT, IDLE, ALL), remove_excess_margin, frontend_req_min_idle
             remove_excess_str and remove_excess_margin are the removal request form the Frontend
-            The frontend_req_min_idle item of the tuple indicates the original frontend pressure. We use this 
+            The frontend_req_min_idle item of the tuple indicates the original frontend pressure. We use this
             instead of req_min_idle for the IDLE pilot removal because the factory could set req_min_idle to 0
             if an entry is in downtime, or the factory limits are reached. We do not want to remove idle pilots in
             these cases!
@@ -1308,7 +1308,7 @@ def extractJobId(submit_out):
     Returns:
         tuple: Number of jobs and cluster id.
     """
-    
+
     for line in submit_out:
         found = extractJobId_recmp.search(line.strip())
         if found:

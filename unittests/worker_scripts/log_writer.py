@@ -37,8 +37,8 @@ def main():
 
         log_dir = "/tmp/%s" % log_name
 
-        logSupport.add_processlog_handler(log_name, log_dir, msg_types, 
-                    extension, max_days, min_days, max_mbytes, 
+        logSupport.add_processlog_handler(log_name, log_dir, msg_types,
+                    extension, max_days, min_days, max_mbytes,
                     backupCount=backupCount, compression=compression)
 
         log = logging.getLogger(log_name)

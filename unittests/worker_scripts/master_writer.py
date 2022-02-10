@@ -22,7 +22,7 @@ class CalledProcessError(Exception):
     def __str__(self):
         return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
 
-# including this function from python 2.7 since RHEL5 and variants don't have it 
+# including this function from python 2.7 since RHEL5 and variants don't have it
 def check_output(*popenargs, **kwargs):
     r"""Run command with arguments and return its output as a byte string.
 

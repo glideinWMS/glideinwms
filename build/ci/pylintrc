@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Based on Apache 2.0 licensed code from https://github.com/datawire/quark/
-# 
+#
 [MASTER]
 
 # Specify a configuration file.

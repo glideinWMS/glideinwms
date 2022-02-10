@@ -616,7 +616,7 @@ Currently these set the values of the 'rhel6', 'rhel7' and 'default' images resp
         </blockquote>
 	    If CVMFS is mounted in a different place CVMFS_MOUNT_DIR will be set in the environment and the Glidein will replace
       /cvms with the correct mount point.
-      If users use this feature and if the Singularity image is not in the path indicated in the CVMFS repository, 
+      If users use this feature and if the Singularity image is not in the path indicated in the CVMFS repository,
       the user job will error out.
           </li>
 	  <li> If the users do not specify their own singularity image, the default singularity image will be used.
@@ -1265,14 +1265,14 @@ Anytime one of the following two bits are found inside the configuration file
 the value of the <i>named attribute</i> is inserted in that place.
 </p>
 <p>
-The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
+The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate,
 while the <b>$</b> requires a <i>string</i> type and will use it as-is.<br>
 They can appear in any string of the configuration file.
 </p>
 <p>
 If an attribute is defined both in the main and the group section, the section one will prevail.<br>
 This can be used to e.g. define a generic expression in the global section, and customize it on a group by group basis
-by only re-defining the relevant bits. 
+by only re-defining the relevant bits.
 </p>
 <p>
 The attribute expansion also works recursively, as long as there are no loops.<br>
@@ -1303,7 +1303,7 @@ will be expanded into
 Please notice that the Frontend will throw an error on reconfig if a referenced attribute is not defined.
 </p>
 </div>
-  
+
 <div class="section">
 <a name="multiple_proxy" />
   <h2><font color="red">[GSI proxies are deprecated]</font>  Using Multiple Proxies</h2>
@@ -1421,9 +1421,9 @@ Then you can use REQUIRED_OS to select one of the images.
 </blockquote>
     </li>
 </ul>
-  NOTE: For all the image path specified with the methods above, if CVMFS is mounted in a different place 
+  NOTE: For all the image path specified with the methods above, if CVMFS is mounted in a different place
   CVMFS_MOUNT_DIR will be set in the environment and the Glidein will replace /cvms/ at the beginning of the path
-  with the correct mount point. I.e. operators and users do not have to worry about CVMFS bein mounted on 
+  with the correct mount point. I.e. operators and users do not have to worry about CVMFS bein mounted on
   an unusual mount point.
 </li>
 </ol>
@@ -1451,7 +1451,7 @@ The <a href="../factory/custom_vars.html#singularity_vars">custom variables file
 <div class="section">
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend
 Daemon</H2>
-<P>Once you have the desired configuration file, reconfigure the frontend 
+<P>Once you have the desired configuration file, reconfigure the frontend
 and start it with the commands:</P>
 
     <blockquote>gwms-frontend reconfig; systemctl start gwms-frontend</blockquote>

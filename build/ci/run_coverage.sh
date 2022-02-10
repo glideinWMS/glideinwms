@@ -30,7 +30,7 @@ do
     h) show_help;;
     b) shift; BRANCH=$1;;
     c) BRANCH='current';;
-    *) echo "illegal option: -$OPTARG"; show_help;;    
+    *) echo "illegal option: -$OPTARG"; show_help;;
     esac
     shift $((OPTIND-1))
 done

@@ -64,7 +64,7 @@ class TestDowntimes(unittest.TestCase):
         # Test downtime comments
         self.assertEqual(self.downtime.downtime_comment, "unittest downtime")
         self.downtime.endDowntime(entry="All", comment="end unittest downtime")
-       
+
         # Use now+1 since we just ended the downtime
         # The second counter may not have updated
         now = int(time.time())
@@ -159,12 +159,12 @@ class TestDowntimes(unittest.TestCase):
                 entry="All",
                 check_time=now2 + 1))
         # Relative to the initial time (must be now2 < now + 7200)
-        # Otherwise endDowntime() interrupts started downtime intervals 
+        # Otherwise endDowntime() interrupts started downtime intervals
         if now2 < now + 7200:
             self.assertTrue(
                 self.downtime.checkDowntime(
                     entry="All",
-                    check_time=now + 9600)) 
+                    check_time=now + 9600))
 
     def test_setfrontendsecclass(self):
         now = int(time.time())

@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -95,11 +95,11 @@ Factory Design Topics: <br/>
 <div class="section">
 
 <h2>Factory Advertisement of Entries</h2>
-<p>Each Factory entry advertises information about itself that Frontends use when creating requests.  The Frontend also 
-uses this information to publish resource ClassAds to the User Collector. <br><br> There is one ClassAd per 
+<p>Each Factory entry advertises information about itself that Frontends use when creating requests.  The Frontend also
+uses this information to publish resource ClassAds to the User Collector. <br><br> There is one ClassAd per
 entry point and it includes the following:</p>
 <ol>
-	<li><a name="identify"></a><b>Information used to identify the ClassAd.</b> FactoryName and GlideinName are used 
+	<li><a name="identify"></a><b>Information used to identify the ClassAd.</b> FactoryName and GlideinName are used
 	by the Frontend to identify the factory needed when generating requests.
 		<ol type="a">
 			<li>Values used to manage Classads in the Collector
@@ -119,18 +119,18 @@ entry point and it includes the following:</p>
 				</ul>
 			</li>
 		</ol>
-	</li>	
+	</li>
 	<li><a name="requirements"></a><b>Requirements of the Factory.  </b>
 		<ol type="a">
-			<li>The Factory and Frontend agree on trust domains and are used to determine what credentials are valid for a site.  This 
-			is used by the Frontend to map a credential to an entry so each entry publishes its trust domain.  The Factory does not 
+			<li>The Factory and Frontend agree on trust domains and are used to determine what credentials are valid for a site.  This
+			is used by the Frontend to map a credential to an entry so each entry publishes its trust domain.  The Factory does not
 			interpret this value and it is used by Frontends.
 				<ul>
 					<li>GLIDEIN_TrustDomain = &quot;OSG&quot;</li>
 				</ul>
 			</li>
-			<li>Each entry supports an authentication method that describes the credential requirements for submitting glideins.  Only 
-			one method is allowed per entry and these attributes are only used by v3+ Frontends.  The glidein proxy attribute is True 
+			<li>Each entry supports an authentication method that describes the credential requirements for submitting glideins.  Only
+			one method is allowed per entry and these attributes are only used by v3+ Frontends.  The glidein proxy attribute is True
 			for non-grid-proxy entries.
 				<ul>
 					<li>GLIDEIN_SupportedAuthenticationMethod = &quot;grid_proxy&quot;</li>
@@ -141,7 +141,7 @@ entry point and it includes the following:</p>
 			</li>
 		</ol>
 	</li>
-	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for querying the 
+	<li><a name="configuration"></a><b>Information about the configuration and installation.  </b>  This is used by admins for querying the
 	collector or possibly in match expressions.
 		<ol type="a">
 			<li>Factory information
@@ -151,7 +151,7 @@ entry point and it includes the following:</p>
 					<li>GlideinWMSVersion = &quot;glideinWMS UNKNOWN&quot;</li>
 				</ul>
 			</li>
-			<li>Entry information.  These values are specific to each entry and may be used by the Frontends in matching user requirements 
+			<li>Entry information.  These values are specific to each entry and may be used by the Frontends in matching user requirements
 			to jobs.
 				<ul>
 					<li>EntryName = &quot;entry_name&quot;</li>
@@ -162,8 +162,8 @@ entry point and it includes the following:</p>
 				</ul>
 			</li>
 		</ol>
-	</li>	
-	<li><a name="optional"></a><b>Optional Factory admin defined attributes.  </b>If const=False, they will be prefaced with GlideinParam.  The 
+	</li>
+	<li><a name="optional"></a><b>Optional Factory admin defined attributes.  </b>If const=False, they will be prefaced with GlideinParam.  The
 	intention of this is to indicate that the Frontend can override but this functionality is broken.
 		<ol type="a">
 			<li>Values used to affect glidein behavior.
@@ -173,14 +173,14 @@ entry point and it includes the following:</p>
 					<li>Etc.</li>
 				</ul>
 			</li>
-			<li>Information published about an entry that can be used by the Frontend, for example, something used in a Match expression for 
+			<li>Information published about an entry that can be used by the Frontend, for example, something used in a Match expression for
 			matching user jobs to entries.
 				<ul>
 					<li>GLIDEIN_Site = &quot;site_name&quot;</li>
 					<li>Etc.</li>
 				</ul>
 			</li>
-			<li>Glidein Collector:  This special value is automatically added by the Factory in every Classad.  
+			<li>Glidein Collector:  This special value is automatically added by the Factory in every Classad.
 			The Frontend is required to overwrite it (define in the Frontend request).
 				<ul>
 					<li>GlideinParamGLIDEIN_Collector = &quot;Fake&quot;</li>
@@ -202,7 +202,7 @@ entry point and it includes the following:</p>
 	</li>
 	<li><a name="downtime"></a><b>Downtime information.  </b>
 		<ol type="a">
-			<li>An entry can go into downtime when there are issues.  The Frontend can then use this information in selecting entries so that 
+			<li>An entry can go into downtime when there are issues.  The Frontend can then use this information in selecting entries so that
 			it only requests glideins from entries that can service the request.
 				<ul>
 					<li>GLIDEIN_In_Downtime = &quot;True&quot;</li>
@@ -212,7 +212,7 @@ entry point and it includes the following:</p>
 	</li>
 	<li><a name="monitoring"><b>Monitoring values.  </b>
 		<ol type="a">
-			<li>These are generated by the Factory and used for generating the monitoring data.  All are prefaced with GlideinMonitor.  
+			<li>These are generated by the Factory and used for generating the monitoring data.  All are prefaced with GlideinMonitor.
 			Monitoring values may be shared between services but are only used in generating monitoring information and not to affect glidein submission.
 				<ul>
 					<li>GlideinMonitorTotalStatusPending = 0</li>
@@ -223,7 +223,7 @@ entry point and it includes the following:</p>
 		</ol>
 	</li>
 </ol>
-<p>The Factory does not advertise all configuration information for an entry.  There may be additional values may affect glidein submission, such as limits 
+<p>The Factory does not advertise all configuration information for an entry.  There may be additional values may affect glidein submission, such as limits
 on how many pilots are allowed in the queue, or glidein behavior at the site, such as unpublished attributes.
 </p>
 
