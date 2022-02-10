@@ -152,4 +152,3 @@ for glidein in glideins:
 sub_dict={'clients':{'dict_name':'clients','el_name':'client','subtypes_params':{'class':{}}}}
 print(xmlFormat.dict2string(glideins_obj, 'glideinWMS', 'factory',
                             subtypes_params={'class':{'dicts_params':sub_dict}}))
-

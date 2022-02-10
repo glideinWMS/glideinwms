@@ -40,4 +40,3 @@ teardown() {
     [ "$status" -eq 0 ]
     [[ "${lines[0]}" = "GNU bash, version "* ]] || false
 }
-

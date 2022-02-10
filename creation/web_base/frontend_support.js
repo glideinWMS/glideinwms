@@ -4,8 +4,8 @@
 /*
  * Project:
  *   glideinWMS
- * 
- * File Version: 
+ *
+ * File Version:
  *
  * Support javascript module for the frontend monitoring
  * Part of the gldieinWMS package
@@ -20,7 +20,7 @@ function loadFrontendStats() {
   var request =  new XMLHttpRequest();
   request.open("GET", "frontend_status.xml",false);
   request.send(null);
-  
+
   var frontendStats=request.responseXML.firstChild;
   return frontendStats;
 }
@@ -59,7 +59,7 @@ function getFrontendGroupFoS(frontendStats, group_name, fos_tag_top, fos_tag_one
 	    }
           }
        }
-    } 
+    }
     return factories;
   }
 
@@ -71,17 +71,17 @@ function getFrontendGroupFoS(frontendStats, group_name, fos_tag_top, fos_tag_one
 	if ((group.nodeType==1)&&(group.nodeName=="group")) {
 	  var group_name1=group.attributes.getNamedItem("name").value;
           if(group_name1==group_name) {
-             for(var k=0; k<group.childNodes.length; k++) { 
+             for(var k=0; k<group.childNodes.length; k++) {
                var el2 = group.childNodes[k];
                if (el2.nodeName==fos_tag_top) {
-                  for(var m=0; m<el2.childNodes.length; m++) { 
+                  for(var m=0; m<el2.childNodes.length; m++) {
                      var factory = el2.childNodes[m];
                      if(factory.nodeName==fos_tag_one) {
                         factory_name=factory.attributes.getNamedItem("name");
 	                factories.push(factory_name.value);
                      }
                   }
-               }               
+               }
              }
           }
 	}
@@ -111,7 +111,7 @@ function sanitize(name) {
     out=out.concat(c);
   }
  }
- return out; 
+ return out;
 }
 
 
@@ -120,7 +120,7 @@ function set_title_and_footer(browser_title, page_title)
 {
 	var xmlhttp_descript;
 	var frontend_name;
-	
+
 	if(window.XMLHttpRequest)
 	{
 		xmlhttp_descript=new XMLHttpRequest();
@@ -129,25 +129,25 @@ function set_title_and_footer(browser_title, page_title)
 	{
 		xmlhttp_descript=new ActiveXObject("Microsoft.XMLHTTP");
 	}
-	  
+
 	xmlhttp_descript.onreadystatechange=function()
-	{	
+	{
 		if (xmlhttp_descript.readyState == 4) //4 == READY
     	{
 			frontend_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("frontend");
 			frontend_name = frontend_info[0].attributes[0].value;
-			document.getElementById("pgtitle").innerHTML= page_title + " - " + frontend_name; 
+			document.getElementById("pgtitle").innerHTML= page_title + " - " + frontend_name;
 			document.getElementById("brtitle").innerHTML= browser_title + " - " + frontend_name;
-			
+
 			footer_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("monitor_footer");
 			footer_text = footer_info[0].attributes[0].value;
 			footer_link = footer_info[0].attributes[1].value;
-			
+
         	var a_tag = document.createElement('a');
         	a_tag.appendChild(document.createTextNode(footer_text));
         	a_tag.setAttribute("href", footer_link);
-        	document.getElementById("monitor_footer").appendChild(a_tag);    	
-		} 	 
+        	document.getElementById("monitor_footer").appendChild(a_tag);
+		}
 	}
 	xmlhttp_descript.open("GET", "descript.xml", true);
 	xmlhttp_descript.send(null);

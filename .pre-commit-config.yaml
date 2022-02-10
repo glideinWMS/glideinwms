@@ -14,12 +14,12 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
       - id: check-yaml
-#      - id: end-of-file-fixer
-#      - id: fix-byte-order-marker
-#      - id: mixed-line-ending
-#      - id: trailing-whitespace
-#        args:
-#          - "--markdown-linebreak-ext=md"
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+        args:
+          - "--markdown-linebreak-ext=md"
 #  - repo: "https://github.com/pre-commit/pygrep-hooks"
 #    rev: v1.9.0
 #    hooks:
@@ -74,4 +74,3 @@ repos:
 #    hooks:
 #      - id: sort-all
 #        language_version: "3.8"
-

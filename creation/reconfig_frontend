@@ -18,7 +18,7 @@ import os.path
 
 STARTUP_DIR = sys.path[0]
 
-# Change this if you have changed the source for the 
+# Change this if you have changed the source for the
 # For instance, in the frontend RPM
 WEB_BASE_DIR = os.path.join(STARTUP_DIR,"web_base")
 fix_rrd = False
@@ -73,17 +73,17 @@ def main(params, old_params, update_scripts, update_def_cfg):
     # write to disk
     frontend_dicts_obj.save()
     frontend_dicts_obj.set_readonly(True)
-    
+
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
         # This will never happen in RPM installations (because of the init.d file)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
         startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.INITD_STARTUP_FILE)
-        
+
         # Remove startup file if already exists
         if os.path.exists(os.path.join(frontend_dir, startup_fname)):
             os.remove(os.path.join(frontend_dir, startup_fname))
-       
+
         cvWCreate.create_initd_startup(startup_fname,
                                        frontend_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR, '..')),
@@ -93,7 +93,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
             print2("...Updated default config file location to: %s" % params.cfg_name)
 
     cfgfile = os.path.join(frontend_dicts_obj.main_dicts.work_dir, cvWConsts.XML_CONFIG_FILE)
-    
+
     # save config into file (with backup, since the old one already exists)
     # This is the current working version of the frontend in the frontend instance dir
     params.save_into_file_wbackup(cfgfile, set_ro=True)
@@ -122,7 +122,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 #
 # S T A R T U P
-# 
+#
 ############################################################
 
 if __name__ == '__main__':
@@ -185,7 +185,7 @@ if __name__ == '__main__':
         sys.exit(1)
     if msg:
         print2(msg)
-    
+
     # Check config file compatibility with Python 3
     p3_compatible, report = check_python3_expr.main(xml, False, True)
     if p3_compatible:
@@ -221,7 +221,7 @@ if __name__ == '__main__':
             print("")
             print2("This is not a '%s' config file ('%s' found)" % (force_name, params.frontend_name))
             sys.exit(1)
-        
+
     if not (writeback in ('yes', 'no')):
         print2(usage)
         print("")
@@ -232,8 +232,8 @@ if __name__ == '__main__':
         print2(usage)
         print("")
         print2("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
-        sys.exit(1)  
-                   
+        sys.exit(1)
+
     try:
         # This is the current running version, saved in the frontend work dir
         old_config_file = os.path.join(params.work_dir, cvWConsts.XML_CONFIG_FILE)
@@ -248,9 +248,9 @@ if __name__ == '__main__':
             print2("If this is the first reconfig, you can ignore this message.")
 
             old_params = None
-            
+
         main(params, old_params, update_scripts, update_def_cfg)
-        
+
     except RuntimeError as e:
         print2(usage)
         print("")

@@ -27,7 +27,7 @@ class FEConfig:
         argparser.add_option("-g", "--group-name", dest="group_name",
                              help="Frontend group name (default: $FE_GROUP_NAME)", metavar="GROUP_NAME",
                              default=os.environ.get("FE_GROUP_NAME"))
-        
+
     def load_frontend_config(self, options):
         """
         Given the reulst of a optparse.OptionParser.parge_args call
@@ -35,7 +35,7 @@ class FEConfig:
         return a glideinFrontendConfig.ElementMergedDescript object
         """
         self.options=options
-        
+
         self.validate_options()
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.options.work_dir, self.options.group_name)
         return self.elementDescript
@@ -48,7 +48,7 @@ class FEConfig:
         Note: Assumes load_frontend_config() was already called.
         """
         self.wpilots = wpilots
-        
+
         os.environ['CONDOR_CONFIG'] = self.elementDescript.frontend_data['CondorConfig']
         if self.wpilots:
             os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = self.elementDescript.element_data['MapFileWPilots']
@@ -70,6 +70,3 @@ class FEConfig:
             raise ValueError("FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting")
         if not os.path.isfile(os.path.join(self.options.work_dir, "group_%s/group.descript"%self.options.group_name)):
             raise ValueError("%s is not a valid FE group name (no valid group_%s subdir found)"%(self.options.group_name, self.options.group_name))
-
-
-    

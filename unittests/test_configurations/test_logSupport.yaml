@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-test_size_rotate: 
+test_size_rotate:
   log_name: sizeRotate
   msg_types: INFO,DEBUG,ERR,WARN
   extension: size
@@ -9,7 +9,7 @@ test_size_rotate:
   min_days: 0
   max_mbytes: 1
 
-test_time_rotate: 
+test_time_rotate:
   log_name: timeRotate
   msg_types: INFO,DEBUG,ERR,WARN
   extension: time

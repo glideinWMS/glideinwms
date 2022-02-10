@@ -405,7 +405,7 @@ glide_local_tmp_dir_created=0
 glidien_cleanup() {
     # Remove Glidein directories (work_dir, glide_local_tmp_dir)
     # 1 - exit code
-    # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir, 
+    # Using GLIDEIN_DEBUG_OPTIONS, start_dir, work_dir_created, work_dir,
     #   glide_local_tmp_dir_created, glide_local_tmp_dir
     if ! cd "${start_dir}"; then
         warn "Cannot find ${start_dir} anymore, exiting but without cleanup"
@@ -1390,7 +1390,7 @@ fetch_file() {
     # 6. periodic scripts prefix
     # 7. config check TRUE,FALSE
     # 8. config out TRUE,FALSE
-    # The above is the most recent list, below some adaptations for different versions 
+    # The above is the most recent list, below some adaptations for different versions
     if [ $# -gt 8 ]; then
         # For compatibility w/ future versions (add new parameters at the end)
         echo "More then 8 arguments, considering the first 8 ($#/${ifs_str}): $*" 1>&2
@@ -1449,7 +1449,7 @@ fetch_file_try() {
         fft_get_ss=$(grep -i "^${fft_config_check} " glidein_config | cut -d ' ' -f 2-)
         # Stop download and processing if the cond_attr variable is not defined or has a value different from 1
         [[ "${fft_get_ss}" != "1" ]] && return 0
-        # TODO: what if fft_get_ss is not 1? nothing, still skip the file? 
+        # TODO: what if fft_get_ss is not 1? nothing, still skip the file?
     fi
 
     local fft_base_name=$(basename "${fft_real_fname}")
@@ -1941,10 +1941,10 @@ do
     fi
 
     gs_file_list_id="$(echo "${gs_file_id}" |awk '{print $2}')"
-    
+
     gs_id_work_dir="$(get_work_dir "${gs_id}")"
     gs_id_descript_file="$(get_descript_file "${gs_id}")"
-    
+
     # extract list file name
     if ! gs_file_list_line="$(grep "^${gs_file_list_id} " "${gs_id_work_dir}/${gs_id_descript_file}")"; then
         if [ -z "${client_repository_group_url}" ]; then
@@ -1958,10 +1958,10 @@ do
     fi
     # space+tab separated file with multiple elements (was: awk '{print $2}', not safe for spaces in file name)
     gs_file_list="$(echo "${gs_file_list_line}" | cut -s -f 2 | sed -e 's/[[:space:]]*$//')"
-    
+
     # fetch list file
     fetch_file_regular "${gs_id}" "${gs_file_list}"
-    
+
     # Fetch files contained in list
     # TODO: $file is actually a list, so it cannot be doublequoted (expanding here is needed). Can it be made more robust for linters? for now, just suppress the sc warning here
     # shellcheck disable=2086
@@ -1988,7 +1988,7 @@ do
         # new knowns binaries? add a loop like above: for file in ...
     elif [[ "$gs_file_id" = client* ]]; then
         # TODO: gwms25073 this is a workaround until there is an official designation for setup script fragments
-        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; } 
+        [[ -e "${gs_id_work_dir}/setup_prejob.sh" ]] && { cp "${gs_id_work_dir}/setup_prejob.sh" "$gwms_exec_dir"/prejob/ ; chmod a-x "$gwms_exec_dir"/prejob/setup_prejob.sh ; }
     fi
 done
 
@@ -2040,4 +2040,3 @@ echo 1>&2
 #########################
 # clean up after I finish
 glidein_exit ${ret}
-

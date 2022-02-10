@@ -40,14 +40,14 @@ from . import defaults
 ##########################################################################
 # Generic hash class
 class Hash:
-    """Generic hash class 
-    
+    """Generic hash class
+
     Available hash algorithms:
         'sha1'
         'sha224'
         'sha256',
         'ripemd160'
-        'md5'   
+        'md5'
     """
     def __init__(self, hash_algo):
         self.hash_algo = hash_algo
@@ -62,11 +62,11 @@ class Hash:
 
     def compute(self, data):
         """Compute hash inline
-        
+
         len(data) must be less than len(key)
-        
+
         Args:
-            data (bytes): data to calculate the hash of 
+            data (bytes): data to calculate the hash of
 
         Returns:
             bytes: digest value as bytes string (OpenSSL final and digest together)
@@ -88,12 +88,12 @@ class Hash:
 
     def extract(self, fname, block_size=1048576):
         """Extract hash from a file
-        
+
         len(data) must be less than len(key)
 
         Args:
-            fname (str): input file path (binary file) 
-            block_size: 
+            fname (str): input file path (binary file)
+            block_size:
 
         Returns:
             bytes: digest value as bytes string (OpenSSL final and digest together)
@@ -121,7 +121,7 @@ class Hash:
 
 def get_hash(hash_algo, data):
     """Compute hash inline
-    
+
     Args:
         hash_algo (str): hash algorithm to use
         data (AnyStr): data of which to calculate the hash
@@ -138,11 +138,11 @@ def get_hash(hash_algo, data):
 
 def extract_hash(hash_algo, fname, block_size=1048576):
     """Compute hash from file
-    
+
     Args:
         hash_algo (str): hash algorithm to use
         fname (str): file path (file will be open in binary mode)
-        block_size (int): block size 
+        block_size (int): block size
 
     Returns:
         str: utf-8 encoded hash

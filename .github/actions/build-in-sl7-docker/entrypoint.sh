@@ -11,7 +11,7 @@ export RPM_REL=${RPM_RELESE:-"55"}
 export RPM_FULLREL="$RPM_REL.post.$(date +"%Y%m%d%H%M")"
 export HERE="`pwd`"
 mkdir rel
-glideinwms/build/ReleaseManager/release.py --no-mock --release-version=$SW_VER --source-dir="$HERE"/glideinwms --release-dir="$HERE"/rel --rpm-release=$RPM_FULLREL --rpm-version=$RPM_VER 
+glideinwms/build/ReleaseManager/release.py --no-mock --release-version=$SW_VER --source-dir="$HERE"/glideinwms --release-dir="$HERE"/rel --rpm-release=$RPM_FULLREL --rpm-version=$RPM_VER
 status=$?
 mkdir gwms_rpms
 #mkdir rpm_logs

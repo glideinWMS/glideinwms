@@ -41,16 +41,16 @@ function updiv(x,y) {
   dstr=sprintf("%d",t+0.99);
   return int(dstr);
 }
- 
-########################################################################  
+
+########################################################################
 / Communicating with shadow /{
   # 7/17 10:42:20 (pid:26855) Communicating with shadow <131.225.204.208:34839>
-  # 
+  #
   for (i=1; i<NF; i++) {
     if ($i=="Communicating") {
       changenr=i;
       break;
-    }    
+    }
   }
   shadow=$(changenr+3);
   shadow=substr(shadow,2,length(shadow)-2)
@@ -58,24 +58,24 @@ function updiv(x,y) {
 }
 / Starting .* job with ID: /{
   # 7/17 10:42:21 (pid:26855) Starting a VANILLA universe job with ID: 40.0
-  # 
+  #
   for (i=1; i<NF; i++) {
     if ($i=="ID:") {
       changenr=i;
       break;
-    }    
+    }
   }
   jid=$(changenr+1);
   #print  $1,$2,"Jid:",jid
 }
 / Create_Process succeeded, /{
   # 7/17 10:42:21 (pid:26855) Create_Process succeeded, pid=26858
-  # 
+  #
   for (i=1; i<NF; i++) {
     if ($i=="Create_Process") {
       changenr=i;
       break;
-    }    
+    }
   }
   pidstr=$(changenr+2);
   split(pidstr,pidarr,"=");
@@ -93,7 +93,7 @@ function updiv(x,y) {
     if ($i=="Process") {
       changenr=i;
       break;
-    }    
+    }
   }
   pidstr=$(changenr+2);
   reasonstr=$(changenr+3);
@@ -146,13 +146,13 @@ function updiv(x,y) {
   jid="";
   shadow="";
   starttime=0;
-} 
-########################################################################  
+}
+########################################################################
 END {
   tj=updiv(ended_jobs,parallelism);
 
   #since it is rounded, the sum could exceed tj
-  tcnt=0; 
+  tcnt=0;
   tgnz=updiv(goodjobsNZ,parallelism);tcnt=tcnt+tgnz;
   if (tcnt>tj) {tgnz=tgnz-(tcnt-tj); tcnt=tj;}
   tbjs=updiv(badjobsSignal,parallelism);tcnt=tcnt+tbjs;

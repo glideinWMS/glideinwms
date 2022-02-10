@@ -51,7 +51,7 @@ def main(argv):
         gfactory_dir="."
 
     want_schedd=False
-    
+
     # parse arguments
     alen=len(argv)
     i=2
@@ -83,7 +83,7 @@ def main(argv):
     if entry=="-l":
         print_entries(glideinDescript.data['Entries'], want_schedd)
         sys.exit(0)
-    
+
     jobDescript=glideFactoryConfig.JobDescript(entry)
     os.chdir(curdir)
 
@@ -108,7 +108,7 @@ def main(argv):
     if want_schedd:
         print("Schedd: %s" % schedd_name)
         print("Constraint: '%s'" % const_str)
-    
+
     # must flush out before forking, or any buffered content wil be lost
     sys.__stdout__.flush()
     sys.__stderr__.flush()

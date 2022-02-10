@@ -28,4 +28,3 @@ pytest
 tabulate
 # std in p3 unittest
 xmlrunner
-

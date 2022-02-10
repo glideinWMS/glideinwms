@@ -581,7 +581,7 @@ class glideinFrontendElement:
 
         # TODO: python2 allows None elements to be sorted putting them on top
         #   recreating the behavior but should check if (None, None, None) is giving problems somewhere else
-        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys(),  
+        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys(),
                               key=lambda x: ("", "", "") if x == (None, None, None) else x )
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
@@ -625,9 +625,9 @@ class glideinFrontendElement:
             # If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see
             # the proxy, so it can be avoided.
-            # TODO: GlExec is gone (assuming same as NEVER), what is the meaning of GLIDEIN_REQUIRE_VOMS, 
+            # TODO: GlExec is gone (assuming same as NEVER), what is the meaning of GLIDEIN_REQUIRE_VOMS,
             #  VomsIdle, are they still needed?
-            #  The following lines should go and maybe all GLIDEIN_REQUIRE_VOMS 
+            #  The following lines should go and maybe all GLIDEIN_REQUIRE_VOMS
             #if (self.glexec != 'NEVER'):
             #    if safe_boolcomp(glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS'), True):
             #            prop_jobs['Idle']=prop_jobs['VomsIdle']
@@ -823,7 +823,7 @@ class glideinFrontendElement:
                         if cred_type_map[cfname] == 'scitoken':
                             if trust_domain_map[cfname] == trust_domain:
                                 scitoken_fullpath = cfname
-                    
+
                 if os.path.exists(scitoken_fullpath):
                     try:
                         logSupport.log.info('found scitoken %s' % scitoken_fullpath)
@@ -958,7 +958,7 @@ class glideinFrontendElement:
                         pwd_file = pwd_default
                 if os.path.exists(tkn_file):
                     tkn_age = time.time() - os.stat(tkn_file).st_mtime
-                if tkn_age > one_hr and os.path.exists(pwd_file):    
+                if tkn_age > one_hr and os.path.exists(pwd_file):
                     #TODO: scope, duration, identity  should be configurable from frontend.xml
                     (fd, tmpnm) = tempfile.mkstemp()
                     scope = "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
@@ -1461,7 +1461,7 @@ class glideinFrontendElement:
         - otherwise check automatic triggers and configured removal and send the max of the 2
 
         If configured removal is selected, take into account also the margin and the tracking
-        This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms 
+        This handles all the Glidein removals triggered by the Frontend. It does not affect automatic mechanisms
         in the Factory, like Glidein timeouts
 
         Args:
@@ -2241,10 +2241,10 @@ def log_factory_header():
 # TODO: 5345 to remove once verified, because global expansion is supported during configuration
 def expand_DD(qstr, attr_dict):
     """expand $$(attribute)
-    
+
     Args:
         qstr (str): string to be expanded
-        attr_dict (dict): attributes to use in the expansion 
+        attr_dict (dict): attributes to use in the expansion
 
     Returns:
         str: expanded string

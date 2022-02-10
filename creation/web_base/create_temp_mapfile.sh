@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This is an include file for glidein_startup.sh
@@ -35,7 +35,7 @@ function create_condormapfile {
     # add local user
     echo "FS $id localuser" >> "$X509_CONDORMAP"
 
-    # deny any other type of traffic 
+    # deny any other type of traffic
     echo "FS (.*) anonymous" >> "$X509_CONDORMAP"
 
     return 0

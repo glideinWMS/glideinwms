@@ -7,11 +7,11 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Stop a running glideinFrontend
-# 
+#
 # Arguments:
 #   $1 = work_dir
 #
@@ -123,7 +123,7 @@ def main(work_dir, force=False):
     return 0
 
 USAGE_STRING = """Usage: stopFrontend [-f|force] work_dir
-     return values: 0 Frontend stopped, 
+     return values: 0 Frontend stopped,
          1 unable to stop Frontend or wrong invocation, 2 Frontend was not running
 """
 if __name__ == '__main__':
@@ -141,4 +141,3 @@ if __name__ == '__main__':
         #sys.exit(main(sys.argv[1]))
         # force should be false but keeping old behavior, always forced stop
         sys.exit(main(sys.argv[1], force=True))
-

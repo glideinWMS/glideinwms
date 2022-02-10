@@ -28,7 +28,7 @@ In verbose mode adds more details about the issues and the branches above and al
 Options
 -h           Print this help
 -v           Verbose mode
--a AUTHFILE  Add a configuration file to use for authentication. Make a private file. 
+-a AUTHFILE  Add a configuration file to use for authentication. Make a private file.
              Write in it a line like "--user REDMINE_USER:REDMINE_PASSWORD"
 -u USER      RedMine user. The script will ask for your RedMine (services) password twice.
              You cannot use -a and -u at the same time.
@@ -63,7 +63,7 @@ do
 done
 shift $((OPTIND-1))
 
-if [[ -n "$AUTHFILE" && -n "$CURLUSER" ]]; then 
+if [[ -n "$AUTHFILE" && -n "$CURLUSER" ]]; then
     echo "ERROR: You cannot use -a and -u at the same time. The user is already specified in the AUTHFILE."
     help_msg
     exit 1
@@ -111,7 +111,7 @@ loginfo "Querying Redmine about the version ID and the issues..."
 #VER_ID=$(curl -s -H "Content-Type: application/json" -X GET $REDMINE/projects/glideinwms/versions.json | jq ' .versions[] | {name: .name, id: .id } | select(.name == "'$RELEASE'") | .id')
 VER_ID=$(curl $CURLOPTIONS -s -H "Content-Type: application/json" -X GET $REDMINE/projects/glideinwms/versions.json | jq ' .versions[] | select(.name == "'$RELEASE'") | .id')
 if [[ -z "$VER_ID" ]]; then
-    echo "ERROR: Unable to find the ID for version ${RELEASE}." 
+    echo "ERROR: Unable to find the ID for version ${RELEASE}."
     echo "Please check the version name and that you can access Redmine (VPN and authentication)."
     exit 1
 fi
@@ -171,7 +171,7 @@ loginfo "Issues without a branch merged directly in $RELEASE_BRANCH ($(echo $VER
 loginfo "$VER_NOMERGED"
 # issues with branches, but not contained (not merged) in the release
 VER_NOCONTAIN=
-# list of the branches corresponding to the issues in VER_NOCONTAIN 
+# list of the branches corresponding to the issues in VER_NOCONTAIN
 VER_NOCONTAIN_BRANCH=
 if [[ -n "$VER_ONLYBRANCH" ]]; then
     loginfo "These issues have branches but have not been merged directly in $RELEASE_BRANCH:"
@@ -214,5 +214,3 @@ fi
 # echo "$VER_BRANCHES"
 # echo "Version merged branches: "
 # echo "$MERGED_BRANCHES"
-
-

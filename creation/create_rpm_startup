@@ -16,17 +16,17 @@ import stat
 def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname, work_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
-    """            
+    """
     template = get_template(template_fname, glideinWMS_dir_template)
     with open(startup_fname, "w") as fd:
         if template_fname.startswith('frontend'):
-            template = template % {"frontend_dir": work_dir, 
-                                   "glideinWMS_dir": glideinWMS_dir, 
+            template = template % {"frontend_dir": work_dir,
+                                   "glideinWMS_dir": glideinWMS_dir,
                                    "default_cfg_fpath": cfg_name,
                                    "rpm_install": rpm_install}
         else:
-            template = template % {"factory_dir": work_dir, 
-                                   "glideinWMS_dir": glideinWMS_dir, 
+            template = template % {"factory_dir": work_dir,
+                                   "glideinWMS_dir": glideinWMS_dir,
                                    "default_cfg_fpath": cfg_name,
                                    "rpm_install": rpm_install}
         fd.write(template)
@@ -48,7 +48,7 @@ def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend,
 
     # Commenting this out
     # This is removing the files from          gwms_src_root_dir + file_name
-    # The function create_initd_startup is creating the file as    file_name 
+    # The function create_initd_startup is creating the file as    file_name
     # and the open in write mode will delete an old file anyway
     ## Remove startup file if already exists
     #for startup_fname in [sfile_frontend, sfile_factory]:

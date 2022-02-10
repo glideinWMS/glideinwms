@@ -50,11 +50,11 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(l
 
 def alternate_log(msg):
     """
-    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a 
+    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a
     log file) an alternate logging is necessary, e.g. writing to stderr
     """
     sys.stderr.write("%s\n" % msg)
-    
+
 
 class GlideinHandler(BaseRotatingHandler):
     """

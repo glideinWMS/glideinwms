@@ -5,7 +5,7 @@
  * Project:
  *   glideinWMS
  *
- * File Version: 
+ * File Version:
  *
  * Support javascript module for the gfactroy monitoring
  * Part of the gldieinWMS package
@@ -19,7 +19,7 @@ function loadFactoryQStats() {
   var request =  new XMLHttpRequest();
   request.open("GET", "schedd_status.xml",false);
   request.send(null);
-  
+
   var factoryQStats=request.responseXML.firstChild;
   return factoryQStats;
 }
@@ -82,7 +82,7 @@ function getFactoryFrontends(factoryQStats){
              if(el2.nodeName=="frontends") {
                for (var b=0; b<el2.childNodes.length;b++) {
                  var el3=el2.childNodes[b];
-                 if(el3.nodeName=="frontend") { 
+                 if(el3.nodeName=="frontend") {
                    var frontend_name=el3.attributes[0].value.toString();
                    groups[entry_name.value].push(frontend_name);
   }}}}}}}}
@@ -102,7 +102,7 @@ function getFactoryEntryGroups(factoryQStats) {
 	  var entry_name=entry.attributes.getNamedItem("name");
           if (entry_name.value in groups) {
             (groups[entry_name.value]).push(entry_name.value);
-          } 
+          }
           else {
             groups[entry_name.value] = new Array();
             (groups[entry_name.value]).push(entry_name.value);
@@ -116,7 +116,7 @@ function getFactoryEntryGroups(factoryQStats) {
 	          var group_name=grp.attributes.getNamedItem("group_name");
                   if (group_name.value in groups) {
                     (groups[group_name.value]).push(entry_name.value);
-                  } 
+                  }
                   else {
                     groups[group_name.value] = new Array();
                     (groups[group_name.value]).push(entry_name.value);
@@ -139,7 +139,7 @@ function set_title_and_footer(browser_title, page_title)
 	var xmlhttp_descript;
 	var factory_name;
 	var glidein_name;
-	
+
 	if(window.XMLHttpRequest)
 	{
 		xmlhttp_descript=new XMLHttpRequest();
@@ -148,13 +148,13 @@ function set_title_and_footer(browser_title, page_title)
 	{
 		xmlhttp_descript=new ActiveXObject("Microsoft.XMLHTTP");
 	}
-	  
+
 	xmlhttp_descript.onreadystatechange=function()
-	{	
+	{
 		if (xmlhttp_descript.readyState == 4) //4 == READY
     	{
     	    factory_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("factory");
-    	    
+
 			for (var i=0; i<factory_info[0].attributes.length; i++) {
 				if (factory_info[0].attributes[i].name == "FactoryName") {
 					factory_name = factory_info[0].attributes[i].value;
@@ -162,24 +162,24 @@ function set_title_and_footer(browser_title, page_title)
 				if (factory_info[0].attributes[i].name == "GlideinName") {
 					glidein_name = factory_info[0].attributes[i].value;
 				}
-				
+
 				if (factory_info[0].attributes[i].name == "MonitorDisplayText") {
 					footer_text = factory_info[0].attributes[i].value;
 				}
 				if (factory_info[0].attributes[i].name == "MonitorLink") {
 					footer_link = factory_info[0].attributes[i].value;
 				}
-        	}   
-			document.getElementById("pgtitle").innerHTML= page_title + " - " + glidein_name + "@" + factory_name; 
+        	}
+			document.getElementById("pgtitle").innerHTML= page_title + " - " + glidein_name + "@" + factory_name;
 			document.getElementById("brtitle").innerHTML= browser_title + " - " + glidein_name + "@" + factory_name;
-        	
+
         	if (footer_text != "") {
         		var a_tag = document.createElement('a');
         		a_tag.appendChild(document.createTextNode(footer_text));
         		a_tag.setAttribute("href", footer_link);
-        		document.getElementById("monitor_footer").appendChild(a_tag); 
-        	}  
-		} 	 
+        		document.getElementById("monitor_footer").appendChild(a_tag);
+        	}
+		}
 	}
 	xmlhttp_descript.open("GET", "descript.xml",true);
 	xmlhttp_descript.send(null);

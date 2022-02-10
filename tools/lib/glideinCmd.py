@@ -131,5 +131,3 @@ def createCmdMonitorFileSimple(monitor_file_name, monitor_control_relname,
 def createCmdMonitorFileScript(monitor_file_name, monitor_control_relname,
                                script_list, condor_status, monitorVM):
     return monitorScriptFromList(monitor_file_name, monitor_control_relname, script_list)
-
-

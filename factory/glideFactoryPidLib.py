@@ -5,11 +5,11 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  Handle factory pids
-# 
+#
 # Author:
 #   Igor Sfiligoi
 #

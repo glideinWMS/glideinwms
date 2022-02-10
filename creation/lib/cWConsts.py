@@ -73,6 +73,3 @@ SIGNATURE_FILE="signature.sha1"
 BLACKLIST_FILE="nodes.blacklist"
 
 GRIDMAP_FILE='grid-mapfile'
-
-
-

@@ -12,7 +12,7 @@ from subprocess import CalledProcessError
 
 
 # TODO: remove once the import from subprocess is proven to work
-#    Helper functions below have been remoced as well since they are the same as in subprocess and seem not used 
+#    Helper functions below have been remoced as well since they are the same as in subprocess and seem not used
 # Exception classes used by this module.
 class CalledProcessError2(Exception):
     """This exception is raised when a process run by check_call() or
@@ -42,14 +42,14 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None, text=True):
 
     One possible improvement would be to add a function to accept
     an array instead of a command string.
-    
+
     Args:
         cmd (str): String containing the entire command including all arguments
         useShell (bool): if True run the command in a shell (passed to Popen as shell)
         stdin_data (str/bytes): Data that will be fed to the command via stdin. It will be bytes if text is False,
             str otherwise
         child_env (dict): Environment to be set before execution
-        text (bool): if False, then stdin_data and the return value are bytes instead of str (default: True) 
+        text (bool): if False, then stdin_data and the return value are bytes instead of str (default: True)
 
     Returns:
         str/bytes: output of the command. It will be bytes if text is False,

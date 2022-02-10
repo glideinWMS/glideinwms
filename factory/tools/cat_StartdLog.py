@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Print out the StartdLog for a glidein output file
@@ -31,7 +31,7 @@ def main():
     else:
         fname=sys.argv[1]
         condor_log_id="StartdLog"
-        
+
     try:
         print(gWftLogParser.get_CondorLog(fname, condor_log_id))
     except:
@@ -41,4 +41,3 @@ def main():
 
 if __name__ == '__main__':
     main()
- 

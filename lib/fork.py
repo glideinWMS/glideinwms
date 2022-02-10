@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements functions and classes
@@ -99,10 +99,10 @@ def fetch_fork_result(r, pid):
     OSError if Bad file descriptor or file already closed or if waitpid syscall returns -1
     FetchError if a os.read error was encountered
     Possible errors from os.read (catched here):
-    - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string 
+    - EOFError if the forked process failed an nothing was written to the pipe, if cPickle finds an empty string
     - IOError failure for an I/O-related reason, e.g., "pipe file not found" or "disk full".
     - OSError other system-related error
- 
+
     @type r: pipe
     @param r: Input pipe
 
@@ -120,7 +120,7 @@ def fetch_fork_result(r, pid):
         while s != b"":  # "" means EOF
             rin += s
             s = os.read(r, 1024*1024)
-        # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.' 
+        # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.'
         out = pickle.loads(rin)
     except (OSError, IOError, EOFError, pickle.UnpicklingError) as err:
         etype, evalue, etraceback = sys.exc_info()
@@ -137,9 +137,9 @@ def fetch_fork_result_list(pipe_ids):
     """
     Read the output pipe of the children, used after forking to perform work
     and after forking to entry.writeStats()
- 
+
     @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid 
+    @param pipe_ids: Dictinary of pipe and pid
 
     @rtype: dict
     @return: Dictionary of fork_results
@@ -265,7 +265,7 @@ def fetch_ready_fork_result_list(pipe_ids):
             # KeyError: inconsistent dictionary or reverse dictionary
             # IOError: Error in poll_obj.unregister()
             # OSError: [Errno 9] Bad file descriptor - fetch_fork_result with wrong file descriptor
-            # FetchError: read error in fetch_fork_result 
+            # FetchError: read error in fetch_fork_result
             errmsg = ("Failed to extract info from child '%s': %s" % (str(key), err))
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)
@@ -275,10 +275,10 @@ def fetch_ready_fork_result_list(pipe_ids):
 
     if failures > 0:
         raise ForkResultError(failures, work_info, failed=failed)
-    
+
     if time_this:
         logSupport.log.debug("%s: using %s fetched %s of %s in %s seconds" %
-                             ('fetch_ready_fork_result_list', poll_type, count, len(list(fds_to_entry.keys())), 
+                             ('fetch_ready_fork_result_list', poll_type, count, len(list(fds_to_entry.keys())),
                               time.time() - t_begin)
                              )
 

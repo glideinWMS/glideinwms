@@ -20,9 +20,9 @@ from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendLib
 # /var/lib/gwms-frontend/vofrontend/frontend.descript has hardcoded line
-# MatchExpr (True) and (getGlideinCpusNum(glidein) >= 
+# MatchExpr (True) and (getGlideinCpusNum(glidein) >=
 # int(job.get("RequestCpus", 1)))
-# and this script fails to find getGlideinCpusNum() unless we import it 
+# and this script fails to find getGlideinCpusNum() unless we import it
 # from glideinFrontendLib explicitly
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
@@ -93,7 +93,7 @@ def do_work(elementDescript, paramsDescript, signatureDescript):
             pass
         glidein_jobs_dict[glidename[1]]=jobs
         pass
-    
+
     # Print
     print("Glideins")
     print("============================================================")
@@ -135,7 +135,7 @@ def main(work_dir, group_name):
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
         print("Exception occurred: %s" % tb)
-        
+
 
 ############################################################
 #

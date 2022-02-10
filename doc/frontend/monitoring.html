@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Glidein Frontend</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -89,7 +89,7 @@ Related Information:
 <div class="section">
 
     <p>This document refers to the Glidein Frontend installed via tarball. If you used the RPM installation
-    (<a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG documentation</a>) 
+    (<a href="https://opensciencegrid.org/docs/other/install-gwms-frontend">OSG documentation</a>)
     the commands will be the same but most paths will be different.
     </p>
     <p>There are several ways to monitor the VO Frontend:</p>
@@ -126,9 +126,9 @@ Related Information:
 
     <p>
 
-        All errors are reported in the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log</b> contains entries 
+        All errors are reported in the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log</b> contains entries
         about what the VO Frontend is doing.
-        You can change the log files and their level of detail by editing the 
+        You can change the log files and their level of detail by editing the
         <a href="configuration.html#process_logs">process logs section</a> of the configuration.
     </p>
 
@@ -147,23 +147,23 @@ Related Information:
 <h2><a name="pseudo_interactive"></a>Pseudo Interactive Monitoring</h2>
 <p>The GlideinWMS also provides pseudo interactive monitoring
 functionalities; a user can run short lived commands alongide any
-already running job in the queue. 
+already running job in the queue.
 </p>
-<p>To run a pseudo interactive command, move into 
+<p>To run a pseudo interactive command, move into
 </p>
 <pre>glideinWMS/tools</pre><p>
-and run 
+and run
 </p>
 <pre>./glidein_interactive.py <i>jobid</i> <i>cmdline</i></pre><p>
 
 There are also a set of useful often used commands that you may want
-to use: 
+to use:
 </p>
 <ul>
-    <li>glidein_ls.py <i>jobid</i> <i>[subdir]</i> 
-    </li><li>glidein_cat.py <i>jobid</i> <i>fname</i> 
-    </li><li>glidein_top.py <i>jobid</i> 
-    </li><li>glidein_ps.py <i>jobid</i> <i>[opts]</i> 
+    <li>glidein_ls.py <i>jobid</i> <i>[subdir]</i>
+    </li><li>glidein_cat.py <i>jobid</i> <i>fname</i>
+    </li><li>glidein_top.py <i>jobid</i>
+    </li><li>glidein_ps.py <i>jobid</i> <i>[opts]</i>
 
 </li></ul>
 </div>

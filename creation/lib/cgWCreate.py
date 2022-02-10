@@ -277,7 +277,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 "LeaveJobInQueue",
                 "((time() - EnteredCurrentStatus) < 12*60*60)")
 
-        # GLIDEIN_IDLE_LIFETIME comes from idle_glideins_lifetime in the config section of the Frontend configuration (glidein limits) 
+        # GLIDEIN_IDLE_LIFETIME comes from idle_glideins_lifetime in the config section of the Frontend configuration (glidein limits)
         # GlideinSkipIdleRemoval is set instead in the submit_attr section of the Factory
         remove_expr = "(isUndefined(GlideinSkipIdleRemoval)==True || GlideinSkipIdleRemoval==False) && (JobStatus==1 && isInteger($ENV(GLIDEIN_IDLE_LIFETIME)) && $ENV(GLIDEIN_IDLE_LIFETIME)>0 && (time() - QDate)>$ENV(GLIDEIN_IDLE_LIFETIME))"
         max_walltime = next(iter([x for x in entry.get_child_list(
@@ -493,7 +493,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         filename: base name of the file
         work_dir: destination directory
         org_dir: source directory
-        overwrite: if True, delete the destination file before making a copy of the source. If false shutil.copy2 
+        overwrite: if True, delete the destination file before making a copy of the source. If false shutil.copy2
             (the command used underneath) will overwrite the destination
 
     Returns:

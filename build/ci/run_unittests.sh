@@ -129,4 +129,3 @@ if [ "$RUN_COVERAGE" = "yes" ]; then
         coverage --version || echo "coverage not installed"
     fi
 fi
-

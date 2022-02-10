@@ -320,7 +320,7 @@ list_get_intersection() {
 #
 # GWMS path functions
 #
-# TODO: to remove from here. These 3 variables and 3 functions are also in glidein_paths.source, 
+# TODO: to remove from here. These 3 variables and 3 functions are also in glidein_paths.source,
 #  because used in glidien_startup.sh
 #  This file should import from there
 #  Make sure that are in sync in the mean time. Consider glidein_paths.source authoritative
@@ -349,7 +349,7 @@ robust_realpath() {
 gwms_process_scripts() {
     # Process all the scripts in the directory, in lexicographic order
     #  ignore the files named .ignore files
-    #  run all the executable files passing glidein_config ($3) as argument, 
+    #  run all the executable files passing glidein_config ($3) as argument,
     #  source the remaining files if extension is .sh or .source
     # 1- directory scripts to process
     # 2- a modifier to search only in subdirectories (prejob)
@@ -605,7 +605,7 @@ htc_rematch() {
 
 
 htc_get_vars_from_env_str() {
-  local str_arr condor_var_string=""  
+  local str_arr condor_var_string=""
   # TODO: used \" instead of '"' - check w/ Carl if changes are ok, ask about quoting
   env_str=${env_str#\"}
   env_str=${env_str%\"}
@@ -734,8 +734,8 @@ env_preserve() {
     # or referenced during the second execution of this script, they will
     # also need to be added to this list.  I don't know an elegant way
     # to automate that process.
-    # 
-    # CVMFS_MOUNT_DIR is important outside singularity, but CVMFS is assumed 
+    #
+    # CVMFS_MOUNT_DIR is important outside singularity, but CVMFS is assumed
     # to be mounted always as /cvmfs inside, so no need to preserve the variable
 
     # In
@@ -925,8 +925,8 @@ cvmfs_test_and_open() {
 
 cvmfs_path_in_cvmfs_literal() {
     # True (0) if the image path is in CVMFS, i.e. is /cvmfs or starts with /cvmfs/
-    # TODO: What if cvmfs cannot be mounted there (non root, ...) and is mounted e.g. in /srv/cvmfs ? 
-    #  Should check for "/cvmfs" in path (not only at the beginning, could this be confusing 
+    # TODO: What if cvmfs cannot be mounted there (non root, ...) and is mounted e.g. in /srv/cvmfs ?
+    #  Should check for "/cvmfs" in path (not only at the beginning, could this be confusing
     #  moving to a function to change easily the heuristic
     # In:
     #  1 - path to check
@@ -935,7 +935,7 @@ cvmfs_path_in_cvmfs_literal() {
 
 
 cvmfs_path_in_cvmfs() {
-    # True (0) if the image path is in CVMFS, whichever the actual mount point is, 
+    # True (0) if the image path is in CVMFS, whichever the actual mount point is,
     # - the path is /cvmfs or starts with /cvmfs/ (could be symbolic)
     # - the path is $CVMFS_MOUNT_DIR or starts with $CVMFS_MOUNT_DIR/ and CVMFS_MOUNT_DIR is set
     # In:
@@ -1019,8 +1019,8 @@ singularity_get_binds() {
     local retv=  # default controlled from outside ($2)
     local checks=$1
 
-    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, 
-    # invoker adds default /cvmfs (via $2), 
+    # Get singularity binds from GLIDEIN_SINGULARITY_BINDPATH, GLIDEIN_SINGULARITY_BINDPATH_DEFAULT,
+    # invoker adds default /cvmfs (via $2),
     # add overrides, and remove non existing src (checks=e) - if src is not existing Singularity will error (not run)
 
     info_dbg "Singularity binds: OVERRIDE:$3, BINDPATH:$GLIDEIN_SINGULARITY_BINDPATH, BINDPATH_DEFAULT:$GLIDEIN_SINGULARITY_BINDPATH_DEFAULT, DEFAULT:$2, CHECKS($checks)"
@@ -1332,14 +1332,14 @@ singularity_test_bin() {
     if [[ -z "$sin_path" ]] && [[ "$step" = module || "$step" = PATH ]]; then
         info_dbg "which failed ($PATH). Trying command: $(command -v singularity)"
         sin_path=$(command -v singularity)
-    fi    
+    fi
     local bread_crumbs=" $step($sin_path):"
     if ! sin_version=$("$sin_path" version 2>/dev/null); then
         # singularity 2.6.1 does not have the version command, must use option
         sin_version=$("$sin_path" --version 2>/dev/null)
     fi
     [[ $? -ne 0 || -z "$sin_version" ]] && { echo "$bread_crumbs"; false; return; }
-    # More recent singularity versions add a "singularity version " prefix to the version number 
+    # More recent singularity versions add a "singularity version " prefix to the version number
     # in "singularity --version" this is not the case with "singularity version"
     sin_version=${sin_version#singularity version }
     if [[ -z "$sin_image" ]]; then
@@ -1365,8 +1365,8 @@ singularity_locate_bin() {
     # Find Singularity in search path, check the version and validate w/ the image (if an image is passed)
     # This will search in order:
     # 1. Optional: Look first in the override path (GLIDEIN_SINGULARITY_BINARY_OVERRIDE)
-    # 2. Look in the path suggested via $1 (SINGULARITY_BIN) 
-    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH; 
+    # 2. Look in the path suggested via $1 (SINGULARITY_BIN)
+    #      (keywords: PATH -> go to step 3 - ie start w/ $PATH;
     #           OSG -> OSG location, and continue from step 3 if failed, this is the default)
     # 3. Look in $PATH
     # 4. Invoke module singularitypro
@@ -1409,14 +1409,14 @@ singularity_locate_bin() {
             bread_crumbs+="_path"
             test_out=$(singularity_test_bin "s_override,${singularity_binary_override_bin}" "$s_image") &&
                 HAS_SINGULARITY=True
-            bread_crumbs+="${test_out##*@}"                
+            bread_crumbs+="${test_out##*@}"
             fi
         else
             bread_crumbs+="_bin"
             test_out=$(singularity_test_bin "s_override,${singularity_binary_override}" "$s_image") &&
                 HAS_SINGULARITY=True
             bread_crumbs+="${test_out##*@}"
-        fi        
+        fi
     fi
     if [[ "$HAS_SINGULARITY" != True && -n "$s_location" && "$s_location" != PASS ]]; then
         s_location_msg=" at $s_location,"
@@ -1670,7 +1670,7 @@ singularity_exit_or_fallback () {
             exit_wrapper "${@}"
         else
             # TODO: also this?: touch ../../.stop-glidein.stamp >/dev/null 2>&1
-            [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" || 
+            [[ -n "$1" ]] && warn "exit_wrapper not defined, printing message and exiting: $1" ||
                 warn "exit_wrapper not defined, exiting"
             eixt ${2:-1}
         fi
@@ -1687,11 +1687,11 @@ singularity_verify_image() {
     # Exit codes
     #  0 - all OK
     #  1 - image (file or directory) does not exist
-    #  2 - image (directory) exists, is in CVMFS, but the listing fails 
+    #  2 - image (directory) exists, is in CVMFS, but the listing fails
     local singularity_image=$1
     local ok_compressed=false
     [[ "$2" = "ok_compressed" ]] && ok_compressed=true
-    
+
     # TODO: better -e or ls?
     #if ! ls -l "$GWMS_SINGULARITY_IMAGE/" >/dev/null; then
     #if [[ ! -e "$GWMS_SINGULARITY_IMAGE" ]]; then

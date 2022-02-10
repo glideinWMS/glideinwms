@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Keep all the constants used to create frontend entries in this module
@@ -72,5 +72,3 @@ def get_group_name_from_group_monitor_dir(group_monitor_dir):
     if group_name_arr[0]!='group':
         raise ValueError('%s not a group_monitor_dir'%group_monitor_dir)
     return group_name_arr[1]
-
-

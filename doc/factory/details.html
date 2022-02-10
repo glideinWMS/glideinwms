@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -86,18 +86,18 @@ SPDX-License-Identifier: Apache-2.0
                 <p>
         <img src="../images/overview_WMS_factory.png" name="graphics1" align="right" border="0">
 
-                    The glidein Factory node will be the 
-                    <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Central Manager</a> 
-                    for the WMS, i.e. it will run the HTCondor Collector and Negotiator daemons, but it will also act as a 
+                    The glidein Factory node will be the
+                    <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Central Manager</a>
+                    for the WMS, i.e. it will run the HTCondor Collector and Negotiator daemons, but it will also act as a
                     <a target="_blank" href="https://htcondor.readthedocs.io/en/latest/admin-manual/introduction-admin-manual.html#the-different-roles-a-machine-can-play">HTCondor Submit node</a>
                     for the glidein Factory, running HTCondor schedds used for Grid submission.
                 </p>
                 <p>
-                    On top of that, this node also hosts the Glidein Factory daemons. The Glidein Factory is also responsible for the base 
+                    On top of that, this node also hosts the Glidein Factory daemons. The Glidein Factory is also responsible for the base
                     configuration of the glideins (although part of the configuration comes from the <a href="../frontend/install.html">Glidein Frontend</a>).
                 </p>
 
-                <p><b>Note:</b> The WMS Pool collector and Factory must be 
+                <p><b>Note:</b> The WMS Pool collector and Factory must be
                 installed on the same node.</p>
 </div>
 
@@ -130,18 +130,18 @@ SPDX-License-Identifier: Apache-2.0
 
                 <p>
                 <img src="../images/overview_glidein.png" name="graphics1b" align="right" border="0">
-                    A major installation, serving tens of sites and several thousand glideins will require 
+                    A major installation, serving tens of sites and several thousand glideins will require
                     <b>several CPUs</b> (recommended <b>4-8</b>: 1 for the HTCondor damons, 1-2 for the glidein
-                    Factory daemons and 2 or more for HTCondor-G schedds) and a reasonable amount of 
-                    <b>memory</b> (at least <b>2GB</b>, <b>4GB</b> for a large installation to provide some 
+                    Factory daemons and 2 or more for HTCondor-G schedds) and a reasonable amount of
+                    <b>memory</b> (at least <b>2GB</b>, <b>4GB</b> for a large installation to provide some
                     disk caching).
                 </p>
 
                 <p>
-                    The <b>disk</b> needed is for binaries, config files, log files and Web monitoring data 
-                    (For just a few sites, <b>10GB</b> could be enough, larger installations will need 
-                    <b>100+GB</b> to maintain a reasonable history).  Monitoring can be pretty I/O intensive 
-                    when serving many sites, so get the fastest disk you can afford, or consider setting up a 
+                    The <b>disk</b> needed is for binaries, config files, log files and Web monitoring data
+                    (For just a few sites, <b>10GB</b> could be enough, larger installations will need
+                    <b>100+GB</b> to maintain a reasonable history).  Monitoring can be pretty I/O intensive
+                    when serving many sites, so get the fastest disk you can afford, or consider setting up a
                     RAMDISK.
                 </p>
 
@@ -166,7 +166,7 @@ SPDX-License-Identifier: Apache-2.0
 	element corrupting user files).<br>In this case the Factory
 	administrator can temporarily stop submitting glideins to the
 	affected sites, without stopping the Factory as a whole.
-	The list of current downtimes are listed in the Factory 
+	The list of current downtimes are listed in the Factory
 	file in <tt>glideinWMS.downtimes</tt>
 	</p>
 	<p>Downtimes are handled with </p>
@@ -183,8 +183,8 @@ SPDX-License-Identifier: Apache-2.0
 	<p>More advanced configuration can be done with the following script:</p>
     <blockquote>
       manageFactoryDowntimes.py
-        <b>-dir</b> factory_dir 
-        <b>-entry</b> ['all'|'factory'|'entries'|entry_name] 
+        <b>-dir</b> factory_dir
+        <b>-entry</b> ['all'|'factory'|'entries'|entry_name]
         <b>-cmd</b> [command]
         [options]
     </blockquote>
@@ -200,34 +200,34 @@ SPDX-License-Identifier: Apache-2.0
     </ul>
     <p>Additional options that can be given based on the command above are:</p>
     <ul>
-        <li> -start [[[YYYY-]MM-]DD-]HH:MM[:SS] 
+        <li> -start [[[YYYY-]MM-]DD-]HH:MM[:SS]
                 (start time for adding a downtime)
         <li> -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)
-        <li> -delay [HHh][MMm][SS[s]]           
+        <li> -delay [HHh][MMm][SS[s]]
             (delay a downtime for down, up, and check cmds)
-        <li> -security SECURITY_CLASS  
+        <li> -security SECURITY_CLASS
             (restricts a downtime to users of that security class)<br/>
             (If not specified, the downtime is for all users.)
-        <li> -comment "Comment here"   
+        <li> -comment "Comment here"
             (user comment for the downtime. Not used by WMS.)
     </ul>
 	<p>
     This script can allow you to have more control over managing downtimes,
-    by allowing you to make downtimes specific to security classes, 
-    and adding comments to the downtimes file.  
+    by allowing you to make downtimes specific to security classes,
+    and adding comments to the downtimes file.
     </p>
     <p>
 	Please note that the date format is currently very specific.
 	You need to specify dates in the format "YYYY-MM-DD-HH:MM:SS",
 	such as "2011-11-28:23:01:00."
     </p>
-    
+
 	<h2><a name="localtest"></a>4. Testing with a local glidein</h2>
-		
+
 		<p>In case of problems, you may want to test a glidein by hand.</p>
 		<p>Move to the glidein directory and run</p>
 		<blockquote>
-		    ./local_start.sh <i>entry_name</i> fast -- GLIDEIN_Collector 
+		    ./local_start.sh <i>entry_name</i> fast -- GLIDEIN_Collector
 		    <i>yourhost</i>.dot,<i>your</i>.dot,<i>domain</i>
 		</blockquote>
 		<p>This will start a glidein on the local machine and pointing to the
@@ -235,7 +235,7 @@ SPDX-License-Identifier: Apache-2.0
 		<p>Please make sure you have a valid Grid environment set up,
 		including a valid proxy, as the glidein needs it in order to work.</p>
     </div>
-    
+
     <div class="section">
         <h2> <a name="verification">5. Verification</a></h2>
 
@@ -243,7 +243,7 @@ SPDX-License-Identifier: Apache-2.0
             <blockquote>
                 ps -ef | grep condor
             </blockquote>
-        <p>You should see several condor_master and condor_procd processes.  You should also be able to see one 
+        <p>You should see several condor_master and condor_procd processes.  You should also be able to see one
         schedd process for each secondary schedd you specified in the install.</p>
         <p>Verify GlideinWMS processes are running by:</p>
             <blockquote>
@@ -257,21 +257,21 @@ SPDX-License-Identifier: Apache-2.0
                 $ condor_q -global<br/>
                 $ condor_status -any<br/>
             </blockquote>
-            
+
         <p>The condor_q command queries any jobs by schedd in the WMS pool (-global is needed to show grid jobs).<br/><br/>
-            The condor_status will show all daemons and glidein classads in the condor pool.  Eventually, there will be 
-            glidefactory classads for each entry, glideclient classads for each client and credential, and glidefactoryclient classads 
+            The condor_status will show all daemons and glidein classads in the condor pool.  Eventually, there will be
+            glidefactory classads for each entry, glideclient classads for each client and credential, and glidefactoryclient classads
             for each entry-client relationship.  The glideclient and glidefactoryclient classads will not show up unless a Frontend is
             able to communicate with the WMS Collector.</p>
             <pre>
-MyType               TargetType           Name                          
+MyType               TargetType           Name
 
 glidefactory         None                 FNAL_FERMIGRID_ITB@v1_0@mySite
 glidefactoryclient   None                 FNAL_FERMIGRID_ITB@v1_0@mySite
 glideclient          None                 FNAL_FERMIGRID_ITB@v1_0@mySite
-Scheduler            None                 xxxx.fnal.gov            
-DaemonMaster         None                 xxxx.fnal.gov            
-Negotiator           None                 xxxx.fnal.gov            
+Scheduler            None                 xxxx.fnal.gov
+DaemonMaster         None                 xxxx.fnal.gov
+Negotiator           None                 xxxx.fnal.gov
 Scheduler            None                 schedd_glideins1@xxxx.fna
 DaemonMaster         None                 schedd_glideins1@xxxx.fna
 Scheduler            None                 schedd_glideins2@xxxx.fna

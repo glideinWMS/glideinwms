@@ -1323,4 +1323,3 @@ def calc_primary_monitoring_collectors(collectors):
         return None
     else:
         return ",".join(list(collector_nodes.values()))
-

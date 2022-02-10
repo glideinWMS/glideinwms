@@ -5,12 +5,12 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description: general purpose python expression parser and unparser
 #
 # Author:
-#  Igor Sfiligoi 
+#  Igor Sfiligoi
 #
 
 
@@ -20,7 +20,7 @@ from io import StringIO
 
 from .unparser import Unparser
 
-# Keeping this line from the Python 2 version to have a list of the objects supported 
+# Keeping this line from the Python 2 version to have a list of the objects supported
 # NOTE: compiler.ast is slightly different from the concrete tree in ast
 # from compiler.ast import Name, Const, Keyword, List, Tuple, And, Or, Not, UnaryAdd, UnarySub, Compare, Add, Sub, Mul, FloorDiv, Div, Mod, Power, LeftShift, RightShift, Bitand, Bitor, Bitxor, CallFunc, Getattr, Subscript, Slice, Lambda
 
@@ -30,7 +30,7 @@ from ast import And, Or, Not
 
 def exp_parse(expression):
     """Convert an expression string into an ast object
-    
+
     Args:
         expression (str): expression string
 
@@ -46,9 +46,9 @@ def exp_parse(expression):
 
 def exp_compile(obj):
     """Convert an ast object into a code object
-    
+
     Args:
-        obj (ast.AST): AST object to compile 
+        obj (ast.AST): AST object to compile
 
     Returns:
         code object
@@ -59,10 +59,10 @@ def exp_compile(obj):
 
 def exp_unparse(obj, raise_on_unknown=False):
     """Convert an ast object back into a string
-    
+
     Args:
-        obj (ast.AST): ast object to convert back to string 
-        raise_on_unknown (bool): 
+        obj (ast.AST): ast object to convert back to string
+        raise_on_unknown (bool):
 
     Returns:
         str: string with the expression
@@ -76,7 +76,7 @@ def exp_unparse(obj, raise_on_unknown=False):
 
 def exp_compare(node1, node2):
     """Compare 2 AST trees to verify if they are the same
-    
+
     Args:
         node1 (ast.AST): AST tree
         node2 (ast.AST): AST tree

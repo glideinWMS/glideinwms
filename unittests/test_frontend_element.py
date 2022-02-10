@@ -303,7 +303,7 @@ class FEElementTestCase(unittest.TestCase):
 
         # go through glideinFrontendElement data structures
         # collecting data to match against log output
-        glideid_list = sorted(self.gfe.condorq_dict_types['Idle']['count'].keys(), 
+        glideid_list = sorted(self.gfe.condorq_dict_types['Idle']['count'].keys(),
                               key=lambda x: ("", "", "") if x == (None, None, None) else x )
         glideids = []
         in_downtime = {}

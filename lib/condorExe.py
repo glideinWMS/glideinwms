@@ -42,12 +42,12 @@ class ExeError(CondorExeError):
 
 def set_path(new_condor_bin_path, new_condor_sbin_path=None):
     """Set path to condor binaries, if needed
-    
+
     Works changing the global variables condor_bin_path and condor_sbin_path
 
     Args:
-        new_condor_bin_path (str): directory where the HTCondor binaries are located 
-        new_condor_sbin_path (str): directory where the HTCondor system binaries are located 
+        new_condor_bin_path (str): directory where the HTCondor binaries are located
+        new_condor_sbin_path (str): directory where the HTCondor system binaries are located
 
     """
     global condor_bin_path, condor_sbin_path
@@ -145,11 +145,11 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         child_env (dict): Environment to be set before execution
 
     Returns:
-        list of str: Lines of stdout from the command 
-        
+        list of str: Lines of stdout from the command
+
     Raises:
         ExeError
-        
+
     """
     stdout_data = ""
     try:

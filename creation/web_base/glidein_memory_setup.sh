@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This script will setup the memory available to the glidein
@@ -54,7 +54,7 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
                 # Old style, no multiple cores or hyperthreading
                 cores=`grep processor /proc/cpuinfo  | wc -l`
             fi
-        
+
             GLIDEIN_MaxMemMBs=`echo "$mem / $cores" | bc`
 
             echo "`date` Estimate: memory=$mem cores=$cores mem/core=$GLIDEIN_MaxMemMBs"
@@ -73,7 +73,7 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
     fi
 fi
 
-# Export the GLIDEIN_MaxMemMBs 
+# Export the GLIDEIN_MaxMemMBs
 echo "`date` Setting GLIDEIN_MaxMemMBs=$GLIDEIN_MaxMemMBs"
 
 add_config_line MEMORY "${GLIDEIN_MaxMemMBs}"

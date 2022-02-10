@@ -7,7 +7,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  This program allows to add announced downtimes
@@ -31,7 +31,7 @@ def usage():
     print("  manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]")
     print("where command is one of:")
     print("  add           - Add a scheduled downtime period")
-    print("  down          - Put the factory down now(+delay)") 
+    print("  down          - Put the factory down now(+delay)")
     print("  up            - Get the factory back up now(+delay)")
     print("  ress          - Set the up/down based on RESS status")
     print("  check         - Report if the factory is in downtime now(+delay)")
@@ -54,7 +54,7 @@ def strtxt2time(timeStr):
     month=deftime[1]
     day=deftime[2]
     seconds=0
-    
+
     darr=timeStr.split('-')
     if len(darr)>1: # we have at least part of the date
         timeStr=darr[-1]
@@ -161,7 +161,7 @@ def delay2time(delayStr):
         delayStr=delayStr[:-1] # remove final s if present
     if len(delayStr)>0:
         seconds=int(delayStr)
-    
+
     return seconds+60*(minutes+60*hours)
 
 
@@ -178,7 +178,7 @@ def down(entry_name, opt_dict):
         end_time=str2time(opt_dict["end"])
     frontend=opt_dict["frontend"]
     sec_name=opt_dict["sec"]
-    if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
+    if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when):
         #only add a new line if not in downtime at that time
         return down_fd.startDowntime(start_time=when, end_time=end_time, frontend=frontend, security_class=sec_name, entry=entry_name, comment=opt_dict["comment"])
     else:
@@ -198,7 +198,7 @@ def up(entry_name, opt_dict):
     # commenting this check out since we could be in a downtime
     # for certain security_classes/frontend, but if we specify
     # -cmd up and -security All, etc, it should clear out all downtimes
-    #if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")): 
+    #if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")):
 
     rtn=down_fd.endDowntime(end_time=when, entry=entry_name, frontend=frontend, security_class=sec_name, comment=comment)
     if (rtn>0):
@@ -209,7 +209,7 @@ def up(entry_name, opt_dict):
 
 # This function replaces "check", which does not take into account
 # security classes.  This function will read the downtimes file
-# and parse it to determine whether the downtime is relevant to the 
+# and parse it to determine whether the downtime is relevant to the
 # security class
 def printtimes(entry_or_id, opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
@@ -261,8 +261,8 @@ def get_production_ress_entries(server, ref_dict_list):
     for el in ref_dict_list:
         ref=el['ref']
         if ref in condor_refs:
-            production_entries.append(el['entry_name'])    
-    
+            production_entries.append(el['entry_name'])
+
     return production_entries
 
 def infosys_based(entry_name, opt_dict, infosys_types):
@@ -301,7 +301,7 @@ def infosys_based(entry_name, opt_dict, infosys_types):
             # entry not associated with a compatible infosys, cannot be managed, ignore
             del config_els[entry]
             continue
-            
+
         config_els[entry]['infosys_fd']=infosys_fd
 
     if len(list(config_els.keys()))==0:
@@ -335,7 +335,7 @@ def infosys_based(entry_name, opt_dict, infosys_types):
                 else:
                     raise RuntimeError("Unknown infosys type '%s'"%infosys_type) # should never get here
 
-    # Use the info to put the 
+    # Use the info to put the
     entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         if entry in production_entries:
@@ -343,8 +343,8 @@ def infosys_based(entry_name, opt_dict, infosys_types):
             up(entry, ['up'])
         else:
             print("%s down"%entry)
-            down(entry, ['down']) 
-    
+            down(entry, ['down'])
+
     return 0
 
 def get_args(argv):
@@ -464,6 +464,6 @@ def main(argv):
         usage()
         print("Invalid command %s"%cmd)
         return 1
-    
+
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

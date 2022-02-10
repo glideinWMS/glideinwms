@@ -48,7 +48,7 @@ pycodestyle:  # Same as scanner.linter value. Other option is flake8
 #    show-source: True
 #    statistics: True
 
-    
+
 no_blank_comment: True  # If True, no comment is made on PR without any errors.
 descending_issues_order: False  # If True, PEP 8 issues in message will be displayed in descending order of line numbers in the file
 
@@ -62,4 +62,3 @@ message:  # Customize the comment made by the bot
         header: "Hello @{name}! Thanks for updating this PR. "
         footer: ""  # Why to comment the link to the style guide everytime? :)
     no_errors: "There are currently no PEP 8 issues detected in this Pull Request. Cheers! :beers: "
-

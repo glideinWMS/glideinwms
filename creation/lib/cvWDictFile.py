@@ -457,4 +457,3 @@ class frontendDicts(cWDictFile.fileDicts):
 
     def get_sub_name_from_sub_stage_dir(self, sign_key):
         return cvWConsts.get_group_name_from_group_stage_dir(sign_key)
-

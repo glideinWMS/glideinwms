@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   Argument parser helper
@@ -19,7 +19,7 @@ def str2int_range(str, min, max):
     if (val<min) or (val>max):
         raise ValueError("Must be in the range %i-%i."%(min, max))
     return val
-    
+
 
 def parse_date(str):
     arr=str.split('/')
@@ -64,4 +64,3 @@ def parse_time(str):
         raise ValueError("Invalid second '%s'. %s"%(arr[2], e))
 
     return (hour, min, sec)
-

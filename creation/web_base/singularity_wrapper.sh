@@ -46,7 +46,7 @@ exit_wrapper () {
     #  1: Error message
     #  2: Exit code (1 by default)
     #  may receive sleep time as 3, ignoring it
-    #  4: Error type (default: Corruption) 
+    #  4: Error type (default: Corruption)
     #     https://glideinwms.fnal.gov/doc.prd/factory/validation_xml_output.html#error_types
     # The error is published to stderr, as default reported
     local exit_code=${2:-1}
@@ -82,7 +82,7 @@ if [[ -z "$3" ]]; then
     glidein_config=$1
 fi
 
-# Accessing glidein_config. This is the same file used by all other scripts 
+# Accessing glidein_config. This is the same file used by all other scripts
 # TODO: evaluate the use of a copy to control visibility/updates
 if [[ ! -e "$glidein_config" ]]; then
     if [[ -e "$GWMS_THIS_SCRIPT_DIR/glidein_config" ]]; then
@@ -152,7 +152,7 @@ if [[ -z "$GWMS_SINGULARITY_REEXEC" ]]; then
     # Outside Singularity - Run this only on the 1st invocation
     info_dbg "GWMS singularity wrapper, first invocation"
     # Set up environment to know if Singularity is enabled and so we can execute Singularity
-    # In the Glidein/setup: use the current environment or glidein_config, not the HTCondor ClassAd (condor not started yet)  
+    # In the Glidein/setup: use the current environment or glidein_config, not the HTCondor ClassAd (condor not started yet)
     setup_from_environment
 
     # Check if singularity is disabled or enabled
@@ -177,7 +177,7 @@ else
 
     # Need to start in /srv (Singularity's --pwd is not reliable)
     # /srv should always be there in Singularity, we set the option '--home \"$PWD\":/srv'
-    [[ -d /srv ]] && cd /srv || warn "GWMS singularity wrapper, unable to cd in /srv" 
+    [[ -d /srv ]] && cd /srv || warn "GWMS singularity wrapper, unable to cd in /srv"
     export HOME=/srv
 
     # Changing env variables (especially TMP and X509 related) to work w/ chrooted FS

@@ -43,4 +43,3 @@ do
     fi
 done
 echo "ALL DONE ... EXITING" >> $log_file
-

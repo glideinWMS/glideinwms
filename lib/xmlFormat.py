@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description: general purpose XML formatter
 #
@@ -125,7 +125,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
             head_arr.append(' %s=%s' % (attr, xml_quoteattr(el)))
         else:
             raise RuntimeError("Param attr %s is not a simple type (%s)" % (attr, debug_str))
-        
+
 
     if isinstance(inst, DEFAULT_OVERRIDE_DICT['TypeDict']):
         #dictionaries can be use like classes
@@ -209,7 +209,7 @@ def class2string(inst, inst_name, params={}, subclass_params={},
     head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs = class2head(inst, inst_name, params, dicts_params, lists_params, tree_params, text_params, leading_tab, debug_str)
     if is_complete:
         return head_str
-    
+
     res_arr = []
     res_arr.append(head_str)
     for attr in text_attrs:
@@ -252,12 +252,12 @@ def class2file(fd, inst, inst_name, params={}, subclass_params={},
         tree_params = DEFAULT_TREE_PARAMS
     if text_params is None:
         text_params = DEFAULT_TEXT_PARAMS
-        
+
     head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs = class2head(inst, inst_name, params, dicts_params, lists_params, tree_params, text_params, leading_tab, debug_str)
     fd.write(head_str + "\n")
     if is_complete:
         return fd
-    
+
     for attr in text_attrs:
         fd.write(leading_tab + indent_tab + "<%s>\n%s\n</%s>\n" % (attr, xml.sax.saxutils.escape(inst[attr], 1), attr))
     for attr in inst_attrs:
@@ -319,8 +319,8 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
     if isinstance(dict_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         keys = sorted(dict_data.keys())
     else:
-        keys = list(range(len(dict_data))) # allow lists to be used as dictionaries  
-    
+        keys = list(range(len(dict_data))) # allow lists to be used as dictionaries
+
     for idx in keys:
         el = dict_data[idx]
         if (type(el) in SIMPLE_TYPES) or (el is None):
@@ -387,8 +387,8 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
         keys = sorted(dict_data.keys())
     else:
         keys = list(range(len(dict_data))) # allow lists to be used as dictionaries
-    
-    
+
+
     for idx in keys:
         el = dict_data[idx]
         if ((type(el) in SIMPLE_TYPES) or
@@ -470,7 +470,7 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
     res_arr.append(head_str)
 
     #print head_str
-    
+
     if isinstance(list_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         els = sorted(list_data.keys()) # Use only the keys of the dictionary
     else:
@@ -543,7 +543,7 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
     fd.write(head_str)
 
     #print head_str
-    
+
     if isinstance(list_data, DEFAULT_OVERRIDE_DICT['TypeDict']):
         els = sorted(list_data.keys()) # Use only the keys of the dictionary
     else:
@@ -614,7 +614,7 @@ def tree2string(tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
         res.append(leading_tab + "</" + tree_name + ">")
     else:
         res.append(line + "/>")
-    
+
     return "\n".join(res)
 
 # Write a tree as XML into an open file
@@ -641,7 +641,7 @@ def tree2file(fd, tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
         fd.write(leading_tab + "</" + tree_name + ">\n")
     else:
         fd.write(line + "/>\n")
-    
+
     return fd
 
 def time2xml(the_time, outer_tag, indent_tab=DEFAULT_TAB, leading_tab=""):
@@ -655,5 +655,3 @@ def time2xml(the_time, outer_tag, indent_tab=DEFAULT_TAB, leading_tab=""):
                                  dict_name=outer_tag, el_name="timezone",
                                  subtypes_params={"class":{}},
                                  indent_tab=indent_tab, leading_tab=leading_tab)
-    
-    

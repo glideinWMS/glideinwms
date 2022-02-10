@@ -116,7 +116,7 @@ log_init_tokens() {
     done
 
     serialize_assoc_arr "tokens_arr" tokens_arr
-    
+
     # It's important to remove these files because they contain private information
     rm -rf tokens.tgz url_dirs.desc tokens
 }
@@ -143,9 +143,9 @@ log_init() {
         source "${add_config_line_source}"
     fi
 
-    logdir="logs/${1}" 
-    stdout_logfile="${1}.out" 
-    stderr_logfile="${1}.err" 
+    logdir="logs/${1}"
+    stdout_logfile="${1}.out"
+    stderr_logfile="${1}.err"
     log_logfile="${1}.log"
     log_relative_basepath="${2}"
 
@@ -411,7 +411,7 @@ send_logs_to_remote() {
         return 1
     fi
     eval "declare -A tokens_arr=$(cat tokens_arr)"
-    
+
     # Upload stdout, stderr and log file
     logfiles=("${stdout_logfile}" "${stderr_logfile}" "${log_logfile}")
 
@@ -425,4 +425,3 @@ send_logs_to_remote() {
         done
     done
 }
-

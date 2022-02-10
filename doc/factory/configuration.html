@@ -1069,14 +1069,14 @@ Anytime one of the following two bits are found inside the configuration file
 the value of the <i>named attribute</i> is inserted in that place.
 </p>
 <p>
-The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
+The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate,
 while the <b>$</b> requires a <i>string</i> type and will use it as-is.<br>
 They can appear in any string of the configuration file.
 </p>
 <p>
 If an attribute is defined both in the main and the entry section, the section one will prevail.<br>
 This can be used to e.g. define a generic expression in the global section, and customize it on a entry by entry basis
-by only re-defining the relevant bits. 
+by only re-defining the relevant bits.
 </p>
 <p>
 The attribute expansion also works recursively, as long as there are no loops.<br>
@@ -1105,7 +1105,7 @@ will be expanded into
 Please notice that the Factory will throw an error on reconfig if a referenced attribute is not defined.
 </p>
 </div>
-  
+
 <div class="section">
 <a name="metasites"></a><h2>Grouping entries into metasites</h2>
 <p>
@@ -1369,7 +1369,7 @@ fails (e.g. the singularity binary or the image are not found).
 in the PATH and then invoking Modules (if available).
         SINGULARITY_BIN can not be used any more to control the use of Singularity in the Factory. Use GLIDEIN_SINGULARITY_REQUIRE instead.
 SINGULARITY_BIN is only considered in the search for singularity: the keyword OSG (default) starts the search form the OSG provided binary,
-  the keyword PATH starts the search form the system path. 
+  the keyword PATH starts the search form the system path.
   See <a htef="/factory/custom_vars.html#singularity_vars">the SINGULARITY_BIN description</a> for more.
     </P>
     <LI><P STYLE="margin-bottom: 0in">NOTE: For compatibility with previous versions and to ease the migration to the use of GWMS scripts,
@@ -1393,7 +1393,7 @@ SINGULARITY_BIN is only considered in the search for singularity: the keyword OS
     NEVER (do not use Singularity),
     PREFERRED (use Singularity but allow to fall-back to no Singularity if something goes wrong, e.g. no image is found) or
     REQUIRED (use Singularity and fail the Glidein if it cannot run with Singularity).<br>
-    The specification of a Singularity image in a job (+SingularityImage) removes the possibility to fall-back to no Singularity 
+    The specification of a Singularity image in a job (+SingularityImage) removes the possibility to fall-back to no Singularity
     if something goes wrong.
     <b>The table below combines GLIDEIN_SINGULARITY_REQUIRE</b> values (first row, in bold) <b>and GLIDEIN_Singularity_Use</b> values (first column, in bold)
     and the results are in the intersection. REQUIRED_GWMS is in the same column as REQUIRED and the only difference is with DISABLE_GWMS,
@@ -1450,8 +1450,8 @@ SINGULARITY_BIN is only considered in the search for singularity: the keyword OS
 <H3 CLASS="western"><A NAME="glexec"></A>GlExec</H3>
 
 <P>All of the glideins in a Frontend group are submitted with the same service proxy.
-  gLExec is a tool, now unsupported, that was used before containers to 
-  achieve security (sandboxing) and isolation between different jobs in the same 
+  gLExec is a tool, now unsupported, that was used before containers to
+  achieve security (sandboxing) and isolation between different jobs in the same
   Glidein. It used a service with sudo privileges to switch the jobs to
   different Unix users dpending on the identity in a x509/VOMS Proxy.
   To obtain the same results look into Singularity.
@@ -1918,11 +1918,11 @@ daemons are started up.</P>
         </TR>
         <TR>
             <TD> <P><b>absfname</b></P></TD>
-            <TD> <P>Path of the file on the server (Factory or Frontend). 
+            <TD> <P>Path of the file on the server (Factory or Frontend).
               The file name (basename of absfname) can be used also to control the conditional download of the file.
               If the file name starts with "gconditional_" (e.g. gconditional_FEATURE_myfile), then the name between
               the prefix and the following underscore is taken and GWMS will look for an attribute (in the attrs list)
-              called GLIDEIN_USE_ followed by the name, and download and process the file 
+              called GLIDEIN_USE_ followed by the name, and download and process the file
               only if the attribute is defined and not empty (e.g. GLIDEIN_USE_FEATURE=1).
             </P></TD>
         </TR>
@@ -1940,9 +1940,9 @@ daemons are started up.</P>
         </TR>
         <TR>
             <TD> <P><b>type</b></P></TD>
-            <TD> <P>File type, must be one of the valid types (regular, run, source, wrapper, untar). 
+            <TD> <P>File type, must be one of the valid types (regular, run, source, wrapper, untar).
               Can have qualifiers depending on the type after a colon (":"). Valid qualifier for <i>run</i> is
-              "singularity" causes setup scripts to run in Singularity. 
+              "singularity" causes setup scripts to run in Singularity.
               Currently <i>type</i> is ignored for non executables and the only values used are "run" or "run:singularity".
               Default is empty</P></TD>
         </TR>

@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -196,11 +196,11 @@ class VOFrontendParams(cWParams.CommonParams):
         process_log_defaults['msg_types'] = ["INFO, WARN, ERR", "string", "types of log messages", None]
         process_log_defaults['backup_count'] = ["5", "string", "Number of backup logs to keep", None]
         process_log_defaults['compression'] = ["", "string", "Compression for backup log files", None]
-        
+
         log_retention_defaults = cWParams.CommentedOrderedDict()
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
         self.defaults["log_retention"] = log_retention_defaults
-        
+
         monitor_footer_defaults=cWParams.CommentedOrderedDict()
         monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
         monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
@@ -226,7 +226,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor", "base_dir", "Monitoring base dir", None)
         self.monitor_defaults["web_base_url"]=(None, "web_base_url", "Monitoring base dir", None)
         self.defaults["monitor"]=self.monitor_defaults
-        
+
         pool_collector_defaults=cWParams.CommentedOrderedDict()
         pool_collector_defaults["node"]=(None, "nodename", "Pool collector node name (for example, col1.my.org:9999)", None)
         pool_collector_defaults["DN"]=(None, "dn", "Pool collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)", None)
@@ -305,7 +305,7 @@ class VOFrontendParams(cWParams.CommonParams):
     def derive(self):
         if len(list(self.groups.keys()))==0:
             raise ValueError("No groups defined!")
-            
+
         self.validate_names()
 
         frontendVersioning = False
@@ -478,7 +478,7 @@ class VOFrontendParams(cWParams.CommonParams):
 def extract_attr_val(attr_obj):
     if (not attr_obj.type in ("string", "int", "expr")):
         raise RuntimeError("Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type)
-    
+
     if attr_obj.type in ("string", "expr"):
         return str(attr_obj.value)
     else:

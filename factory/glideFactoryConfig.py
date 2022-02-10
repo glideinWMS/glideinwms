@@ -78,7 +78,7 @@ class ConfigFile:
 
     def __contains__(self, key_name):
         return key_name in self.data
-    
+
     def __str__(self):
         output = '\n'
         for key in list(self.data.keys()):
@@ -117,9 +117,9 @@ class GlideinKey:
 
     def load(self,key_fname=None,recreate=False):
         """Create the key if required and initialize it
-        
+
         Args:
-            key_fname (str): Filename of the key 
+            key_fname (str): Filename of the key
             recreate (bool): Create a new key if True else load existing key. Defaults to False.
 
         Raises:
@@ -161,7 +161,7 @@ class GlideinKey:
         """Extracts the symkey from encrypted fronted attribute
 
         Args:
-            enc_sym_key (AnyStrASCII): encrypted symmetric key 
+            enc_sym_key (AnyStrASCII): encrypted symmetric key
 
         Returns:
             SymKey: symmetric key (SymKey child object)
@@ -193,16 +193,16 @@ class GlideinDescript(ConfigFile):
         """
         Backup existing key and load the key object
         """
- 
+
         if self.data['PubKeyType'] is not None:
             self.backup_rsa_key()
         self.load_old_rsa_key()
-                
+
     def backup_rsa_key(self):
         """
         Backup existing rsa key.
         """
-        
+
         if self.data['PubKeyType'] == 'RSA':
             try:
                 shutil.copy(self.default_rsakey_fname, self.backup_rsakey_fname)
@@ -212,7 +212,7 @@ class GlideinDescript(ConfigFile):
                 # In case of failure, the requests from frontend get
                 # delayed. So it is not critical enough to fail.
                 pass
-            
+
         self.data['OldPubKeyType'] = None
         self.data['OldPubKeyObj'] = None
         return
@@ -245,17 +245,17 @@ class GlideinDescript(ConfigFile):
         self.data['OldPubKeyType'] = None
         self.data['OldPubKeyObj'] = None
         return
-    
+
     def load_pub_key(self,recreate=False):
         """
         Load the key object. Create the key if required
-        
+
         @type recreate: bool
         @param recreate: Create a new key overwriting the old one. Defaults to False
         """
-        
+
         if self.data['PubKeyType'] is not None:
-            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'], 
+            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'],
                                               key_fname=self.default_rsakey_fname,
                                               recreate=recreate)
         else:
@@ -341,7 +341,7 @@ class FrontendDescript(ConfigFile):
                 username = fe[sec_class]
                 usernames[username] = True
         return list(usernames.keys())
-    
+
     def get_all_frontend_sec_classes(self):
         """
         Get a list of all frontend:sec_class
@@ -352,7 +352,7 @@ class FrontendDescript(ConfigFile):
             for sec_class in list(fe.keys()):
                 frontend_sec_classes.append("%s:%s" % (fe_name, sec_class))
         return frontend_sec_classes
-    
+
     def get_frontend_name(self, identity):
         """
         Get the frontend:sec_class mapping for the given identity
@@ -360,8 +360,8 @@ class FrontendDescript(ConfigFile):
         for fe_name in list(self.data.keys()):
             if self.data[fe_name]['ident'] == identity:
                 return fe_name
-        
-            
+
+
 
 # Signatures File
 ## File: signatures.sha1

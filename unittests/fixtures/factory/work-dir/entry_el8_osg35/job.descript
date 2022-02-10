@@ -25,8 +25,8 @@ RemoveSleep 	0.2
 MaxReleaseRate 	20
 ReleaseSleep 	0.2
 RequireVomsProxy 	False
-PerFrontendMaxGlideins 	
-PerFrontendMaxHeld 	
-PerFrontendMaxIdle 	
+PerFrontendMaxGlideins
+PerFrontendMaxHeld
+PerFrontendMaxIdle
 WhitelistMode 	Off
-AllowedVOs 	
+AllowedVOs

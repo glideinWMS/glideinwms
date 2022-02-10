@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -95,7 +95,7 @@ Frontend troubleshooting:
 
 <div class="section">
 <p>
-    If you installed the RPM distribution, files and commands differ a bit, see the 
+    If you installed the RPM distribution, files and commands differ a bit, see the
     <a href="https://opensciencegrid.org/operations/services/install-gwms-factory/">Factory OSG RPM guide</a>.
 </p>
 </div>
@@ -110,12 +110,12 @@ Frontend troubleshooting:
     <b>Debugging Steps:</b>
 
     <p>
-    Once the Frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient ClassAd in the WMS Pool collector for that corresponding entry point. 
-    You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector&gt;&rdquo; Glidein factory looks up the glideclient ClassAd, queries the wms collector to find out distribution of existing glideins in the glidein queues and submits additional glideins as required. 
-Once the factory has submitted the required glideins, you can see them by querying glideins queue using command, &ldquo;condor_q -g -pool &lt;wms collector&gt;&rdquo; 
+    Once the Frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient ClassAd in the WMS Pool collector for that corresponding entry point.
+    You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector&gt;&rdquo; Glidein factory looks up the glideclient ClassAd, queries the wms collector to find out distribution of existing glideins in the glidein queues and submits additional glideins as required.
+Once the factory has submitted the required glideins, you can see them by querying glideins queue using command, &ldquo;condor_q -g -pool &lt;wms collector&gt;&rdquo;
     </p>
     <p>
-    If you do not see any glideins corresponding to your job, 
+    If you do not see any glideins corresponding to your job,
 
     <ul>
         <li>Check if the Factory is running. If not, start it.</li>
@@ -150,37 +150,37 @@ the Factory config's security_class element name attribute. </li>
     <li>Client provided invalid ReqEncIdentity: (Client X provided invalid ReqEncIdentity ( id1@x.fnal.gov!= id2@x.fnal.gov). Skipping for security reasons. When the VOFrontend contacts the WMS Pool collector using the Frontend configuration file's security element proxy_DN/classad_proxy attribute, the WMS Pool HTCondor uses the certs/condor_mapfile to map the VOFrontend to a name. This name identifies how the Factory knows the VOFrontend on the Factory node. This must match with the Factory configuration file's Frontend element identity attribute.  <br/>
         Verify that the proxy_dn in the security section of the Frontend config matches the condor_mapfile on the WMS Pool node.  This identity (with machine name) should map the Frontend identity in the Factory config.  Also, if you are running all services on the same machine, make sure that HTCondor is using GSI authentication and not file system (FS) authentication.</li>
     </ul>
-    <br/> 
+    <br/>
     <h2>Security Overview</h2>
     <a name="colorcoded" />
     For a visual representation of the GSI configuration that must match, see the below:
     <blockquote>
-        <u>Frontend config</u>         (on host myfrontend.example.org) <br> 
-        &lt;frontend frontend_name="frontend_service-v3_4"<br> 
-        &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@myfactory.example.org"</font></strong> <br/> 
-        &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong> proxy_DN="<font color="crimson"> <strong>/DC=org/DC=doegrids/OU=Services/CN=glidein/myfactory.example.org</strong> </font>"<br> 
+        <u>Frontend config</u>         (on host myfrontend.example.org) <br>
+        &lt;frontend frontend_name="frontend_service-v3_4"<br>
+        &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@myfactory.example.org"</font></strong> <br/>
+        &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong> proxy_DN="<font color="crimson"> <strong>/DC=org/DC=doegrids/OU=Services/CN=glidein/myfactory.example.org</strong> </font>"<br>
         &lt;credential type="grid_proxy"  <font color="dodgerblue">security_class="frontend"</font><br><br>
-    
-        <u>Factory config</u>          (on myfactory.example.org) <br> 
-        &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font><br> 
+
+        <u>Factory config</u>          (on myfactory.example.org) <br>
+        &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font><br>
         &lt;security_class <strong><font color="cornflowerblue">name="frontend"</font></strong> username="vo_cms"
 <br/><br/>
 
-<u>CONDOR_LOCATION/certs/condor_mapfile</u>        (on both myfrontend.example.org  and myfactory.example.org)<br>  
+<u>CONDOR_LOCATION/certs/condor_mapfile</u>        (on both myfrontend.example.org  and myfactory.example.org)<br>
 GSI " <strong>^</strong> <font color="crimson"> <strong>\/DC\=org\/DC\=doegrids\/OU\=Services\/CN\=glidein\/myfactory\.fnal\.gov$</strong> </font>" <strong><font color="coral">frontend_identity</font></strong>
 
     </blockquote>
 
 For a visual representation of the JWT configuration that must match, see the below:
 <blockquote>
-    <u>Frontend config</u>     (on myfrontend.example.org)<br> 
+    <u>Frontend config</u>     (on myfrontend.example.org)<br>
     &lt;frontend frontend_name="frontend_service-v3_4"<br>
-    &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@myfactory.example.org"</font></strong> <br/> 
-    &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong>  </font><br> 
+    &lt;collector <strong><font color="chocolate">my_identity="frontend_identity@myfactory.example.org"</font></strong> <br/>
+    &lt;security <strong><font color="darkcyan">security_name="frontend_identity"</font></strong>  </font><br>
     &lt;credential type="scitoken"  <font color="dodgerblue"><strong><font color="dodgerblue">security_class="frontend"</font></strong></font><br><br>
 
-    <u>Factory config</u>     (on myfactory.example.org)<br> 
-    &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font><br> 
+    <u>Factory config</u>     (on myfactory.example.org)<br>
+    &lt;frontend<font color="darkcyan"> <strong>name="frontend_identity"</strong> </font> <font color="coral"> <strong>identity="frontend_identity@myfactory.example.org"</strong> </font><br>
     &lt;security_class <strong><font color="cornflowerblue">name="frontend"</font></strong> </strong></font> username="vo_cms"
 <br/><br/>
 
@@ -222,7 +222,7 @@ RequestId = "9299245"</br>
         yes</br>
         Request 9299245 approved successfully.</br>
         </blockquote>
-    <li> The above action generates an IDTOKEN that is printed to stdout on the frontend admins screen.  The frontend admin places 
+    <li> The above action generates an IDTOKEN that is printed to stdout on the frontend admins screen.  The frontend admin places
      this output in a file in directory ~frontend/.condor/tokens.d, and changes file ownership so it is owned by the frontend user.
    </div>
 
@@ -238,29 +238,29 @@ RequestId = "9299245"</br>
         GLIDEINWMS_WMSCOLLECTOR_HOME/certs/condor_mapfile<br/>
     <b>Debugging Steps:</b>
     <p>
-    Once the glideins are submitted, they should start running on the remote sites. Time taken for them to enter the running state could vary based on the site, how busy the site is, priority your glideins have on the site. 
+    Once the glideins are submitted, they should start running on the remote sites. Time taken for them to enter the running state could vary based on the site, how busy the site is, priority your glideins have on the site.
     </p>
 
     <p>
-    If the glideins stay idle for quite some time, 
+    If the glideins stay idle for quite some time,
     <ul>
     <li>
         Check if the glidein has been submitted to the remote site. You can find this information either from the condor_activity log found in the GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log or by querying glideins queue using &ldquo;condor_q -globus -g -pool &lt;wms collector&gt;&rdquo;. If the glidein job was submitted to the remote site, its quite possible that it is waiting for a worker node to be available to run it.
     </li>
     <li>
-        Check HTCondor logs in GLIDEINWMS_WMSCOLLECTOR_HOME/condor_local/logs.  
+        Check HTCondor logs in GLIDEINWMS_WMSCOLLECTOR_HOME/condor_local/logs.
     </li>
 
     <li>
-    Verify GLIDEINWMS_WMSCOLLECTOR_HOME/certs/condor_mapfile.  
-    Each DN should map to a user on this system.  
+    Verify GLIDEINWMS_WMSCOLLECTOR_HOME/certs/condor_mapfile.
+    Each DN should map to a user on this system.
     The glidein will use the proxy/cert of the Frontend to submit a glidein and the two will need to trust each other. If this is the problem, there will usually be something like this in the SchedLog:
     <blockquote>
         05/05 10:30:11 (pid:21711) OwnerCheck(userschedd) failed in SetAttribute for job 1243.0
     </blockquote>
     </li>
     <li>
-        Check the Grid manager log.  Note that some configurations put this file in /tmp.  
+        Check the Grid manager log.  Note that some configurations put this file in /tmp.
         This will let you know if there is a problem submitting to grid entry points.
     </li>
     <li>
@@ -279,7 +279,7 @@ RequestId = "9299245"</br>
 
         Error 7: authentication failed with remote server.
     </blockquote>
-    Make sure the proxy/cert is correct.  
+    Make sure the proxy/cert is correct.
     Try the following to make sure the user is authorized to run jobs on the site (You need to have globus-gram-client-tools installed).
     <blockquote>
         X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in Factory config&gt;
@@ -327,7 +327,7 @@ You should see a wget and/or curl error in the Glidein los files. You can test t
 	<li>monitoring pages: http://FACTORY_HOST_NAME/factory/monitor/ </li>
 	<li>staging area (most files have a hash in the file name):  http://FACTORY_HOST_NAME/factory/stage/glidein_startup.sh</li>
 </ul>
-If the pages are not reachable check that your web server is running and that no firewall (host or network) is blocking those pages. 
+If the pages are not reachable check that your web server is running and that no firewall (host or network) is blocking those pages.
 See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troubleshooting page</a> to check the Frontend Web server.
 </p>
    </li>
@@ -342,11 +342,11 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
         In this case, the version of glibc on the worker node is less than the glibc that HTCondor is using.  For instance, this can happen if the Factory is on SL5, but the worker node is SL4.  HTCondor has special binaries for glib2.3, so you can re-install/re-compile using these binaries.  For advanced users, you can configure multiple tarballs for various architectures in the Factory config.
     </li>
     <li><b>Collector authentication issues</b>:<br/>
-        Another error that can happen and cause these symptoms is 
+        Another error that can happen and cause these symptoms is
         if authentication is failing.
-        First, verify that the certificates for all services exist 
+        First, verify that the certificates for all services exist
         and are owned by the proper users.  In particular, make sure
-        that the user collector certificate is owned by the user 
+        that the user collector certificate is owned by the user
         running the user colelctor instance (this can be a non-root user).
         Another tool to debug errors is to enable the option:
         <blockquote>
@@ -356,15 +356,15 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
         logs <tt>USER_COLLECTOR/condor_local/log/CollectorLog</tt>
         For instance,
         <blockquote>
-         03/25/11 15:36:43 authenticate_self_gss: acquiring self credentials failed. Please check your HTCondor configuration file if this is a server process. Or the user environment variable if this is a user process. 
+         03/25/11 15:36:43 authenticate_self_gss: acquiring self credentials failed. Please check your HTCondor configuration file if this is a server process. Or the user environment variable if this is a user process.
         </blockquote>
          Or:
         <blockquote>
         globus_sysconfig: File is not owned by current user: /etc/grid-security/glideincert.pem is not owned by current user
         </blockquote>
-   </li>    
+   </li>
     <li><b>Gridmap issues</b>:<br/>
-        If the problem is not with the user pool resources 
+        If the problem is not with the user pool resources
         (collector and/or schedd),
         a problem could exist with the gridmap on the glidein itself.
         Symptoms of this could include errors in the startd logs:
@@ -373,8 +373,8 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
 03/18 13:06:42 (pid:13094) PERMISSION DENIED to anonymous@fnpc3061 from host 131.225.67.70 for command 442 (REQUEST_CLAIM), access level DAEMON: reason: DAEMON authorization policy denies IP address 131.225.67.70<br/>
 03/18 13:07:43 (pid:13094) PERMISSION DENIED to anonymous@fnpc3061 from host 131.225.67.70 for command 442 (REQUEST_CLAIM), access level DAEMON: reason: cached result for DAEMON; see first case for the full reason<br/>
         </blockquote>
-        If this happens, the gridmap file used by the startd (ie the glidein) 
-        does not contain the DN for either the user collector or the 
+        If this happens, the gridmap file used by the startd (ie the glidein)
+        does not contain the DN for either the user collector or the
         user submit node.  Make sure the information in the
         &lt;collectors&gt; tag and the &lt;schedds&gt; tags in the
         frontend.xml are correct and reconfig.
@@ -424,36 +424,36 @@ See the <a href="../frontend/troubleshooting.html#idle_jobs">Frontend troublesho
         </blockquote>
     </p>
     <p>
-        If the job is held, make sure the user schedd is running as root (if getting permission denied).  Run "condor_q -analyze" to see what is holding the process.   
+        If the job is held, make sure the user schedd is running as root (if getting permission denied).  Run "condor_q -analyze" to see what is holding the process.
     </p>
 </div>
 <div class="section">
 <h2><a name="find_user">Finding the user</a></h2>
-		
+
 		<b>Symptoms:</b> There are issues and you need to find the user running the job<br/>
     	<b>Useful Files:</b> HTCondor logs, glidein logs<br/>
 		<b>Debugging steps</b>:<br/>
-		<p> 
-		When the Frontend sees user jobs in the queue, it requests glideins on behalf of those users.  The Frontend provides a proxy (possibly one 
-		shared by multiple members of the VO) that is authorized to submit those glideins to a site.  The glideins then report back to the local 
+		<p>
+		When the Frontend sees user jobs in the queue, it requests glideins on behalf of those users.  The Frontend provides a proxy (possibly one
+		shared by multiple members of the VO) that is authorized to submit those glideins to a site.  The glideins then report back to the local
 		HTCondor Collector (User Pool) as slots that are available to run jobs.
 		<br/>
 		<br/>
-    Once the user job gets matched to a glidein by the local HTCondor Collector (User Pool), 
-      there are security logs where the identity of the user, retrieved from job attributes, is logged.  
-      This mapping prevents the security problem introduced in pilot-based systems where there is no 
-      authentication of the actual user credentials so that the job is run on a local account.  
+    Once the user job gets matched to a glidein by the local HTCondor Collector (User Pool),
+      there are security logs where the identity of the user, retrieved from job attributes, is logged.
+      This mapping prevents the security problem introduced in pilot-based systems where there is no
+      authentication of the actual user credentials so that the job is run on a local account.
 		Because the jobs aren't being run explicitly as the user, it is also not obvious whose job is running at a site.
 		<br/>
 		<br/>
 If you add a x509userproxy in the user job submission it will help w/ identification.
      A proxy may also be required for other reasons, such as having the job stage data.
 		</p>
-		
+
 	    <h4>If the glideins have completed</h4>
-		<p> 
-	    If the glideins have completed, a Factory admin can find the glidein logs in the client logs directory on the Factory.  The HTCondor logs 
-	    are automatically included in the glidein logs sent back to the Factory.  GlideinWMS provides tools for viewing these HTCondor logs in 
+		<p>
+	    If the glideins have completed, a Factory admin can find the glidein logs in the client logs directory on the Factory.  The HTCondor logs
+	    are automatically included in the glidein logs sent back to the Factory.  GlideinWMS provides tools for viewing these HTCondor logs in
 	    glideinWMS/factory/tools/:
 	    <ul>
                 <li>cat_logs.py <i>glidein_log</i></li>
@@ -462,16 +462,16 @@ If you add a x509userproxy in the user job submission it will help w/ identifica
                 <li>cat_StarterLog.py <i>glidein_log</i></li>
                 <li>cat_StartdHistoryLog.py <i>glidein_log</i></li>
 	    </ul>
-		The Startd and StartdHistory log will contain the DN of the user, just search for x509UserProxyFQAN. 
+		The Startd and StartdHistory log will contain the DN of the user, just search for x509UserProxyFQAN.
 		</p>
-	    
-	    
+
+
 	    <h4>If the glideins are still running</h4>
-		<p> 
-	    The user proxy DN is located in the Startd HTCondor logs as the x509UserProxyFQAN.  The site admin can access this log    
+		<p>
+	    The user proxy DN is located in the Startd HTCondor logs as the x509UserProxyFQAN.  The site admin can access this log
 		on the node under glide_*/log.  The location of the glide_* directory may change if multi-glidein or containers are used.
 		</p>
-  
+
 	</div>
 
 <div class="section">

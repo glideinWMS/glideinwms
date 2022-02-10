@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS - Factory</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -110,7 +110,7 @@ Factory Entry Daemons.</p>
 <div class="section">
 <H2><A NAME="components"></A>Factory Components</H2>
 
-The factory is made of several parts, which each have their own section on their design.  
+The factory is made of several parts, which each have their own section on their design.
 
 <ul>
 <li> <a href="design_factory.html">Factory Internals</a></li>
@@ -126,7 +126,7 @@ The factory is made of several parts, which each have their own section on their
 
 <p>Also, the Glidein Factory is composed of several entry points. The
 Factory Daemon is really just a small process tasked to start and
-monitor the Factory Entry Daemons. See picture in the 
+monitor the Factory Entry Daemons. See picture in the
 <a href="#entry_daemons">next section</a> for a logical overview.</p>
 <p>All daemons of a Glidein Factory share the same directory tree,
 which root contains the main configuration files used by
@@ -184,7 +184,7 @@ challenge; each Grid flavor treats data in a different way!
 <p>
     To make the system as general as possible, the Glidein Factory
 requires the use of a Web Server to distribute its data. This version
-of the Glidein based Factory was tested with 
+of the Glidein based Factory was tested with
 <a href="http://www.apache.org/">Apache</a>
 and <a href="http://www.stllinux.org/meeting_notes/2001/0719/tux/index.html">TUX</a>,
 but any other web server should work just well, as only static file
@@ -213,7 +213,7 @@ too.</p>
     <li>The signature of all the files to be transfered is saved in a
     file called <tt><b>signature.sha1</b></tt> and
     stored on the Web server. The signature of the signature file is
-    then passed as one of the parameters to the startup script.</li> 
+    then passed as one of the parameters to the startup script.</li>
     <li>The startup script loads the signature file from the Web
     server and verifies its signature. All other downloads, including
     the file containing the list of other files, is checked against the
@@ -245,7 +245,7 @@ come from using standard Web technologies. Web technologies are
 widely used nowadays and there is a plethora of tools that can be
 readily used. In our case, we can reduce the network load and speed
 startup times by using a Web cache near the worker nodes, if
-available. The Glidein Factory was tested with 
+available. The Glidein Factory was tested with
 <a href="http://www.squid-cache.org/">Squid</a>,
 but other products should work as well. It is also worth mentioning
 that both OSG and gLite has expressed interest in deploying a Squid

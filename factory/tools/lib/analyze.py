@@ -17,7 +17,7 @@ import urllib.request, urllib.parse, urllib.error
 def km(z):
 
    if z<0: neg = "-"
-   else: neg = "" 
+   else: neg = ""
    z = abs(z)
 
    x = int(z)
@@ -33,7 +33,7 @@ def km(z):
          return "%s%.1fG" % (neg, t)
    else: return "%s%.1f" % (neg, z)
 
-# prints a dictionary with \n and \t 
+# prints a dictionary with \n and \t
 #    between elements for ease of debugging.
 
 def debug_print_dict(data):
@@ -48,10 +48,10 @@ def debug_print_dict(data):
    return
 
 #Prints a line formatted the following way:
-# printline(1234, 7200 (2 days), total) returns: 
-# "1.2K (.34 hours - .17 slots - %XX of total)" 
+# printline(1234, 7200 (2 days), total) returns:
+# "1.2K (.34 hours - .17 slots - %XX of total)"
 # Set div = 1 to omit percentage of total
- 
+
 def printline(x, div, period):
    if div==1:
       sp = ""
@@ -65,4 +65,3 @@ def printline(x, div, period):
          km(float(x)/3600.0),
          km(float(x)/float(period)),
          sp))
-

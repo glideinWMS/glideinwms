@@ -160,7 +160,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
         glideid = None
         self.gfe.removal_type = 'DISABLE'
         self.assertEqual('DISABLE', self.gfe.check_removal_type_config(glideid))
-        self.gfe.removal_type = None 
+        self.gfe.removal_type = None
         self.assertEqual('NO', self.gfe.check_removal_type_config(glideid))
 
     def test_init_factory_stats_arr(self):
@@ -251,7 +251,7 @@ class TestGlideinFrontendElement(unittest.TestCase):
     @unittest.skip('for now')
     def test_populate_condorq_dict_types(self):
         self.gfe.condorq_dict = {
-            'Idle_3600': {'abs': 0, 'dict': {}}, 
+            'Idle_3600': {'abs': 0, 'dict': {}},
             'IdleAll': {'abs': 0, 'dict': {}},
             'Running': {'abs': 0, 'dict': {}},
             'Idle': {'abs': 0, 'dict': {}},

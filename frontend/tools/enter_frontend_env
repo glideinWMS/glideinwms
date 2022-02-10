@@ -47,10 +47,10 @@ def main(argv):
         else:
             sys.stdout.write("Pilot DNs are also trusted, so you can contact and manage the glideins.\n")
             sys.stdout.write("(unlike what happens in the frontend processes themselves)\n\n")
-            
+
         sys.stdout.write("Executing shell %s\n\n" % os.environ['SHELL'])
         sys.stdout.flush()
-    
+
     os.execl(os.environ['SHELL'])
     # this never returns
 

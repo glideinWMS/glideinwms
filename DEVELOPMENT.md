@@ -34,7 +34,7 @@ Run `./glideinwms/build/ci/runtest.sh -h` for instructions and to list the avail
 
 Document your code so we can easily generate API documentation using Sphinx.
 Write docstrings in the Google format which is more readable, reasonably compact
-and still can be included in the API documentation ([here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) is an example). 
+and still can be included in the API documentation ([here](https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html#example-google) is an example).
 
 
 ## Licensing compliance

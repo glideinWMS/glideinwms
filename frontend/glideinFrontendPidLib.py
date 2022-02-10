@@ -5,11 +5,11 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #  Handle frontend pids
-# 
+#
 # Author:
 #   Igor Sfiligoi
 #
@@ -77,7 +77,7 @@ def get_frontend_pid(startup_dir):
 
     Returns:
 
-        
+
     Raises:
         RuntimeError: if the Frontend is not running or is unable to find the pid
     """

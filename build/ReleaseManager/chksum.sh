@@ -21,7 +21,7 @@ checksum() {
             hash="`md5 $file | awk -F'=' '{print $NF}' | tr -d ' '`"
             echo "$hash  $file" >> $chksum_file
             ;;
-        *) 
+        *)
             echo "Build on $platform not supported"
             exit 1
             ;;

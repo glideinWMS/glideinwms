@@ -13,15 +13,15 @@
 It uses M2Crypto: https://github.com/mcepl/M2Crypto
 a wrapper around OpenSSL: https://www.openssl.org/docs/man1.1.1/man3/
 
-NOTE For convenience and consistency w/ previous versions of this module, Encryption/Signing functions 
-    (b64, hex and .encrypt() ) accept bytes-like objects (bytes, bytearray) and also Unicode strings 
-    utf-8 encoded (defaults.BINARY_ENCODING_CRYPTO). 
-    B64 and hex Decryption functions, consistent w/ Python's binascii.a2b_* functions, accept bytes and 
-    Unicode strings containing only ASCII characters, .decrypt() only accepts bytes-like objects (such as bytes,  
+NOTE For convenience and consistency w/ previous versions of this module, Encryption/Signing functions
+    (b64, hex and .encrypt() ) accept bytes-like objects (bytes, bytearray) and also Unicode strings
+    utf-8 encoded (defaults.BINARY_ENCODING_CRYPTO).
+    B64 and hex Decryption functions, consistent w/ Python's binascii.a2b_* functions, accept bytes and
+    Unicode strings containing only ASCII characters, .decrypt() only accepts bytes-like objects (such as bytes,
     bytearray and other objects that support the buffer protocol).
     All these functions return bytes.
 
-    Keys can be loaded from AnyStr (str, bytes, bytearray). Keys are returned as bytes string. Key files are binary. 
+    Keys can be loaded from AnyStr (str, bytes, bytearray). Keys are returned as bytes string. Key files are binary.
 
 """
 
@@ -57,12 +57,12 @@ def _default_callback(*args):
 
 
 class PubCryptoError(Exception):
-    """Exception masking M2Crypto exceptions, 
+    """Exception masking M2Crypto exceptions,
     to ease error handling in modules importing pubCrypto
     """
     def __init__(self, msg):
         Exception.__init__(self, msg)
-        
+
 ######################
 #
 # Available paddings:
@@ -101,7 +101,7 @@ class PubRSAKey:
                  encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
                  sign_algo='sha256'):
         """Constructor for RSA public key
-        
+
         One and only one of the two key_str or key_fname must be defined (not None)
 
         Available paddings:
@@ -110,7 +110,7 @@ class PubRSAKey:
             M2Crypto.RSA.sslv23_padding
             M2Crypto.RSA.pkhas1_oaep_padding
 
-        Available sign algos: 
+        Available sign algos:
             'sha1', 'sha224', 'sha256', 'ripemd160', 'md5'
 
         Available ciphers, too many to list them all, try `man enc` a few of them are:
@@ -120,13 +120,13 @@ class PubRSAKey:
             'aes_256_cfb'
             'bf_cbc'
             'des3'
-        
+
         Args:
-            key_str (str/bytes): string w/ base64 encoded key 
+            key_str (str/bytes): string w/ base64 encoded key
                 Must be bytes-like object or ASCII string, like base64 inputs
-            key_fname (str): key file path 
-            encryption_padding: 
-            sign_algo (str): valid signing algorithm (default: 'sha256') 
+            key_fname (str): key file path
+            encryption_padding:
+            sign_algo (str): valid signing algorithm (default: 'sha256')
         """
         self.rsa_key = None
         self.has_private = False
@@ -153,9 +153,9 @@ class PubRSAKey:
         Load the key into self.rsa_key
 
         Args:
-            key_str (str/bytes): string w/ base64 encoded key 
+            key_str (str/bytes): string w/ base64 encoded key
                 Must be bytes-like object or ASCII string, like base64 inputs
-            key_fname (str): file name 
+            key_fname (str): file name
 
         Raises:
             ValueError: if both key_str and key_fname are defined
@@ -186,7 +186,7 @@ class PubRSAKey:
         Protected, overridden by child classes. Used by load
 
         Args:
-            bio (M2Crypto.BIO.BIO): BIO to retrieve the key from (file or memory buffer) 
+            bio (M2Crypto.BIO.BIO): BIO to retrieve the key from (file or memory buffer)
         """
         self.rsa_key = M2Crypto.RSA.load_pub_key_bio(bio)
         self.has_private = False
@@ -197,11 +197,11 @@ class PubRSAKey:
 
     def save(self, key_fname):
         """Save the key to a file
-        
+
         The file is binary and is written using M2Crypto.BIO
-        
+
         Args:
-            key_fname (str): file name 
+            key_fname (str): file name
 
         Returns:
 
@@ -219,9 +219,9 @@ class PubRSAKey:
     # like save, but return a string
     def get(self):
         """Retrieve the key
-        
+
         Returns:
-            bytes: key 
+            bytes: key
 
         """
         bio = M2Crypto.BIO.MemoryBuffer()
@@ -233,9 +233,9 @@ class PubRSAKey:
         """Save the key from the object
 
         Protected, overridden by child classes. Used by save and get
-        
+
         Args:
-            bio (M2Crypto.BIO.BIO): BIO object to save the key to (file or memory buffer) 
+            bio (M2Crypto.BIO.BIO): BIO object to save the key to (file or memory buffer)
 
         Returns:
             int: status returned by M2Crypto.m2.rsa_write_pub_key
@@ -252,10 +252,10 @@ class PubRSAKey:
 
     def encrypt(self, data):
         """Encrypt the data
-        
+
         Args:
-            data (AnyStr): string to encrypt. bytes-like or str. If unicode, 
-                it is encoded using utf-8 before being encrypted. 
+            data (AnyStr): string to encrypt. bytes-like or str. If unicode,
+                it is encoded using utf-8 before being encrypted.
                 len(data) must be less than len(key)
 
         Returns:
@@ -276,11 +276,11 @@ class PubRSAKey:
 
     def verify(self, data, signature):
         """Verify that the signature gets you the data
-        
+
         Args:
-            data (AnyStr): string to verify. bytes-like or str. If unicode, 
-                it is encoded using utf-8 before being encrypted. : 
-            signature (bytes): signature to use in the verification 
+            data (AnyStr): string to verify. bytes-like or str. If unicode,
+                it is encoded using utf-8 before being encrypted. :
+            signature (bytes): signature to use in the verification
 
         Returns:
             bool: True if the signature gets you the data
@@ -359,7 +359,7 @@ class RSAKey(PubRSAKey):
         Protected, overridden by child classes. Used by save and get
 
         Args:
-            bio (M2Crypto.BIO.BIO): BIO to save the key into (file or memory buffer) 
+            bio (M2Crypto.BIO.BIO): BIO to save the key into (file or memory buffer)
 
         Returns:
 
@@ -374,10 +374,10 @@ class RSAKey(PubRSAKey):
     # generate key function
     def new(self, key_length=None, exponent=65537):
         """Refresh/Generate a new key and store it in the object
-        
+
         Args:
-            key_length (int/None): if no key_length provided, use the length of the existing one 
-            exponent (int): exponent 
+            key_length (int/None): if no key_length provided, use the length of the existing one
+            exponent (int): exponent
         """
         if key_length is None:
             if self.rsa_key is None:
@@ -390,7 +390,7 @@ class RSAKey(PubRSAKey):
 
     def decrypt(self, data):
         """Decrypt data inline
-        
+
         Args:
             data (bytes): data to decrypt
 
@@ -414,9 +414,9 @@ class RSAKey(PubRSAKey):
 
     def sign(self, data):
         """Sign data inline. Same as private_encrypt
-        
+
         Args:
-            data (AnyStr): string to encrypt. If unicode, it is encoded using utf-8 before being encrypted. 
+            data (AnyStr): string to encrypt. If unicode, it is encoded using utf-8 before being encrypted.
                 len(data) must be less than len(key)
 
         Returns:

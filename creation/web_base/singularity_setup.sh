@@ -179,8 +179,8 @@ singularity_bin="$(echo $temp_singularity_bin)"
 # OSG_SINGULARITY_BINARY in glidein_config (if present and not empty) takes precedence to the environment one
 temp_singularity_bin="$(grep '^OSG_SINGULARITY_BINARY ' "$glidein_config" | cut -d ' ' -f 2-)"
 [[ -n "$temp_singularity_bin" ]] && export OSG_SINGULARITY_BINARY="$temp_singularity_bin"
-# GLIDEIN_SINGULARITY_BINARY_OVERRIDE is not controlled, expected to be done at the site level. 
-# If Factory or Frontend set it in the configuration, they must make sure that goes into the Glidein environment 
+# GLIDEIN_SINGULARITY_BINARY_OVERRIDE is not controlled, expected to be done at the site level.
+# If Factory or Frontend set it in the configuration, they must make sure that goes into the Glidein environment
 
 # Does frontend want to use singularity?
 use_singularity=$(grep '^GLIDEIN_Singularity_Use ' "$glidein_config" | cut -d ' ' -f 2-)
@@ -312,4 +312,3 @@ info_stdout "`date` Decided to use Singularity ($gwms_singularity_status)"
 
 "$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True"
 exit 0
-

@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the functions needed
@@ -101,7 +101,7 @@ rrd_problems_found = False
 def verifyHelper(filename, dict, fix_rrd=False):
     """
     Helper function for verifyRRD.  Checks one file,
-    prints out errors.  if fix_rrd, will attempt to 
+    prints out errors.  if fix_rrd, will attempt to
     dump out rrd to xml, add the missing attributes,
     then restore.  Original file is obliterated.
 
@@ -356,7 +356,7 @@ def aggregateStatus():
                     for a in list(el.keys()):  # coming from XML, everything is a string
                         tel[a] = int(el[a])  # pylint: disable=unsupported-assignment-operation
                 else:
-                    # successive, sum 
+                    # successive, sum
                     for a in list(el.keys()):
                         if a in tel:  # pylint: disable=unsupported-membership-test
                             tel[a] += int(el[a])  # pylint: disable=unsupported-assignment-operation

@@ -17,4 +17,3 @@ for REQ in $(ls "$REQ_DIR") ; do
         chown frontend ~frontend/passwords.d/$KEY
     fi
 done
-

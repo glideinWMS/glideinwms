@@ -112,7 +112,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                 if not user_file.type.startswith("run"):
                     raise RuntimeError("An executable file type must start with 'run': $s" % user_file)
         dicts[file_list_idx].add_from_file(relfname,
-                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname),
                                                                                   file_type,
                                                                                   user_file.period, user_file.prefix),
                                            absfname)

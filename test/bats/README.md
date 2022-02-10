@@ -13,7 +13,7 @@ git submodule add https://github.com/ztombol/bats-support test/bats/lib/bats-sup
 git submodule add https://github.com/ztombol/bats-assert test/bats/lib/bats-assert
 git submodule add https://github.com/jasonkarns/bats-mock test/bats/lib/bats-mock
 ```
-If you want to use bats directly without running first at least once via the scripts in `build/ci`, then you must 
+If you want to use bats directly without running first at least once via the scripts in `build/ci`, then you must
 initialize (populate) the subpackages using:
 ```git submodule update --init --recursive```
 
@@ -42,13 +42,11 @@ Here some brief notes.
 * You can find basic examples in `example_tests.sh`
 * Tests are similar to shell functions, starting with a line like
 `@test "DescriptiveNameOfTest" { test lines }`
-* test lines are normal shell commands, the first one failing (returning a non 0 exit code) fails the test. 
-Note that you have to terminate positively all branches that are not error. 
-E.g. `[ -n "${verbose}" ] && echo "Verbose output"` will fail if it is not verbose, which is not an error, so you should use 
-  `[ -n "${verbose}" ] && echo "Verbose output" || true` instead. 
-* the `run` helper can be used to invoke a command (or function). 
-After it, the `$status` variable contains the status code of the command, 
-and the `$output` variable contains the combined contents of the command's standard 
+* test lines are normal shell commands, the first one failing (returning a non 0 exit code) fails the test.
+Note that you have to terminate positively all branches that are not error.
+E.g. `[ -n "${verbose}" ] && echo "Verbose output"` will fail if it is not verbose, which is not an error, so you should use
+  `[ -n "${verbose}" ] && echo "Verbose output" || true` instead.
+* the `run` helper can be used to invoke a command (or function).
+After it, the `$status` variable contains the status code of the command,
+and the `$output` variable contains the combined contents of the command's standard
 output and standard error streams. `$lines` array, is available for easily accessing individual lines of output.
-
-

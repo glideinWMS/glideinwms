@@ -5,7 +5,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements the functions needed
@@ -56,9 +56,9 @@ class MonitoringConfig:
 
         tmp2final(fname)
         return
-    
+
     def establish_dir(self, relative_dname):
-        dname=os.path.join(self.monitor_dir, relative_dname)      
+        dname=os.path.join(self.monitor_dir, relative_dname)
         if not os.path.isdir(dname):
             os.mkdir(dname)
         return
@@ -69,12 +69,12 @@ class MonitoringConfig:
         """
         if self.rrd_obj.isDummy():
             return # nothing to do, no rrd bin no rrd creation
-        
+
         for tp in ((".rrd", self.rrd_archives),):
             rrd_ext, rrd_archives=tp
             fname=os.path.join(self.monitor_dir, relative_fname+rrd_ext)
             #print "Writing RRD "+fname
-        
+
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
                 if min_val is None:
@@ -97,7 +97,7 @@ class MonitoringConfig:
                 logSupport.log.error("Failed to update %s" % fname)
                 #logSupport.log.exception(traceback.format_exc())
         return
-    
+
 
 #########################################################################################################################################
 #
@@ -182,7 +182,7 @@ class groupStats:
         }
 
         self.update=time.time()
-            
+
     def logFactAttrs(self, factory, attrs, blacklist):
         factory_or_state_d = self.get_factory_dict(factory)
 
@@ -192,7 +192,7 @@ class groupStats:
                 factory_or_state_d['Attributes'][attr] = attrs[attr]
 
         self.update=time.time()
-        
+
     def logFactReq(self, factory, reqIdle, reqMaxRun, params):
         factory_or_state_d = self.get_factory_dict(factory)
 
@@ -251,7 +251,7 @@ class groupStats:
                             if type(el[a]) in numtypes: # copy only numbers
                                 tel[a]=el[a]
                     else:
-                        # successive, sum 
+                        # successive, sum
                         for a in list(el.keys()):
                             if type(el[a]) in numtypes: # consider only numbers
                                 if a in tel:
@@ -263,7 +263,7 @@ class groupStats:
                                 del tel[a]
                             elif not (type(el[a]) in numtypes):
                                 del tel[a]
-        
+
         for w in list(total.keys()):
             if total[w] is None:
                 del total[w] # remove entry if not defined
@@ -283,8 +283,8 @@ class groupStats:
 
         if (self.files_updated is not None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
-            return 
-        
+            return
+
 
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
@@ -309,7 +309,7 @@ class groupStats:
         for fact in list(data.keys()):
             self.write_one_rrd("state_%s"%sanitize(fact), data[fact], 1)
 
-        self.files_updated=self.updated        
+        self.files_updated=self.updated
         return
 
     ################################################
@@ -354,8 +354,8 @@ class groupStats:
                 attributes_tp=self.attributes[tp]
                 for a in attributes_tp:
                     val_dict["%s%s"%(tp_str, a)]=None
-            
-        
+
+
         for tp in data:
             # type - Jobs,Slots
             if not (tp in list(self.attributes.keys())):
@@ -366,7 +366,7 @@ class groupStats:
             tp_str=type_strings[tp]
 
             attributes_tp=self.attributes[tp]
-                
+
             fe_el_tp=data[tp]
             for a in list(fe_el_tp.keys()):
                 if a in attributes_tp:
@@ -379,7 +379,7 @@ class groupStats:
                                          "GAUGE", self.updated, val_dict)
 
 ########################################################################
-    
+
 class factoryStats:
     def __init__(self):
         self.data={}
@@ -467,7 +467,7 @@ class factoryStats:
 
         if 'LastHeardFrom' in client_internals:
             el['InfoAge']=int(time.time()-int(client_internals['LastHeardFrom']))
-            el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
+            el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum
 
         self.updated=time.time()
 
@@ -480,7 +480,7 @@ class factoryStats:
                 for a in list(el.keys()):
                     if a[-10:]=='AvgCounter': # do not publish avgcounter fields... they are internals
                         del el[a]
-            
+
         return data1
 
     def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -509,7 +509,7 @@ class factoryStats:
                             if type(el[a]) in numtypes: # copy only numbers
                                 tel[a]=el[a]
                     else:
-                        # successive, sum 
+                        # successive, sum
                         for a in list(el.keys()):
                             if type(el[a]) in numtypes: # consider only numbers
                                 if a in tel:
@@ -521,7 +521,7 @@ class factoryStats:
                                 del tel[a]
                             elif not (type(el[a]) in numtypes):
                                 del tel[a]
-        
+
         for w in list(total.keys()):
             if total[w] is None:
                 del total[w] # remove entry if not defined
@@ -537,7 +537,7 @@ class factoryStats:
                         del tel[a]
 
         return total
-    
+
     def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         total=self.get_total()
         return xmlFormat.class2string(total,
@@ -546,14 +546,14 @@ class factoryStats:
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         return xmlFormat.time2xml(self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab="")
-    
+
     def write_file(self):
         global monitoringConfig
 
         if (self.files_updated is not None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
-            return 
-        
+            return
+
 
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
@@ -578,14 +578,14 @@ class factoryStats:
                 fe_el=data[fe]
 
             val_dict={}
-            
+
             #init, so that all get created properly
             for tp in list(self.attributes.keys()):
                 tp_str=type_strings[tp]
                 attributes_tp=self.attributes[tp]
                 for a in attributes_tp:
-                    val_dict["%s%s"%(tp_str, a)]=None                
-            
+                    val_dict["%s%s"%(tp_str, a)]=None
+
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
                 # type - Status, Requested or ClientMonitor
@@ -595,20 +595,20 @@ class factoryStats:
                 tp_str=type_strings[tp]
 
                 attributes_tp=self.attributes[tp]
-                
+
                 fe_el_tp=fe_el[tp]
                 for a in list(fe_el_tp.keys()):
                     if a in attributes_tp:
                         a_el=fe_el_tp[a]
                         if not isinstance(a_el, dict): # ignore subdictionaries
                             val_dict["%s%s"%(tp_str, a)]=a_el
-                
+
             monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
                                              "GAUGE", self.updated, val_dict)
 
-        self.files_updated=self.updated        
+        self.files_updated=self.updated
         return
-    
+
 ############### P R I V A T E ################
 
 ##################################################
@@ -653,20 +653,20 @@ monitoringConfig=MonitoringConfig()
 def write_frontend_descript_xml(frontendDescript, monitor_dir):
     """
     Writes out the frontend descript.xml file in the monitor web area.
-    
+
     @type frontendDescript: FrontendDescript
     @param frontendDescript: contains the data in the frontend.descript file in the frontend instance dir
     @type monitor_dir: string
     @param monitor_dir: filepath the the monitor dir in the frontend instance dir
     """
-    
+
     frontend_data = copy.deepcopy(frontendDescript.data)
-    
+
     frontend_str = '<frontend FrontendName="%s"' % frontend_data['FrontendName'] + '/>'
 
     dis_link_txt = 'display_txt="%s"  href_link="%s"' % (frontend_data['MonitorDisplayText'], frontend_data['MonitorLink'])
     footer_str = '<monitor_footer ' + dis_link_txt + '/>'
-    
+
     output = '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' + \
                    '<glideinFrontendDescript>\n' \
                    + xmlFormat.time2xml(time.time(), "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" \
@@ -675,13 +675,12 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
                    + '</glideinFrontendDescript>'
 
     fname = os.path.join(monitor_dir, 'descript.xml')
-    
+
     try:
         with open(fname + '.tmp', 'wb') as f:
             f.write(output.encode(BINARY_ENCODING))
 
         tmp2final(fname)
-    
+
     except IOError:
         logSupport.log.exception("Error writing out the frontend descript.xml: ")
-        

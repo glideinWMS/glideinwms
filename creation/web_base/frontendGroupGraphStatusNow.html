@@ -66,7 +66,7 @@ google.setOnLoadCallback(googleReady);
 // The next functions are from http://code.google.com/apis/chart/docs/data_formats.html
 // used to encode the data before sending off to google.
 // You would think they could host a js lib to do this.
-var simpleEncoding = 
+var simpleEncoding =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 // This function scales the submitted values so that
@@ -76,7 +76,7 @@ function simpleEncode(valueArray,maxValue) {
   for (var i = 0; i < valueArray.length; i++) {
     var currentValue = valueArray[i];
     if (!isNaN(currentValue) && currentValue >= 0) {
-    chartData.push(simpleEncoding.charAt(Math.round((simpleEncoding.length-1) * 
+    chartData.push(simpleEncoding.charAt(Math.round((simpleEncoding.length-1) *
       currentValue / maxValue)));
     }
       else {
@@ -97,7 +97,7 @@ function extendedEncode(arrVals, maxVal) {
     // In case the array vals were translated to strings.
     var numericVal = new Number(arrVals[i]);
     // Scale the value to maxVal.
-    var scaledVal = Math.floor(EXTENDED_MAP_LENGTH * 
+    var scaledVal = Math.floor(EXTENDED_MAP_LENGTH *
         EXTENDED_MAP_LENGTH * numericVal / maxVal);
 
     if(scaledVal > (EXTENDED_MAP_LENGTH * EXTENDED_MAP_LENGTH) - 1) {
@@ -117,10 +117,10 @@ function extendedEncode(arrVals, maxVal) {
 
 
 
-function googleReady() { 
-    gready = 1; 
-    drawChart(); 
-    /* timeout = setTimeout("reloadAll()", reloadTime); */ 
+function googleReady() {
+    gready = 1;
+    drawChart();
+    /* timeout = setTimeout("reloadAll()", reloadTime); */
 
 
 	$("#entrysearch").autocomplete({
@@ -144,16 +144,16 @@ function googleReady() {
                     showRows.push(i);
                 }
             }
-	
+
 	        // Tell the table what to display
             dataview.setRows(showRows);
             table.draw(dataview);
             // Always return false, don't pop anything up
             return false;
 	    }
-	
+
 	});
-       
+
 
 }
 
@@ -211,11 +211,11 @@ function addParameter(url, parameterName, parameterValue){
 // Function to handle back / forward
 var going_back = false;
 window.onpopstate = function(event) {
-    
+
     if ( event.state ) {
         going_back = true;
         $("#" + event.state.group).trigger("click");
-    } 
+    }
 
 };
 
@@ -283,7 +283,7 @@ function updatedata(xml) {
 
     $("group_graphs").find("#idle").addClass("thumbnail");
     $("group_graphs").find("#running").addClass("thumbnail");
-    
+
     // Update the images
     $(xml).find("group").each(function() {
         var group_name = $(this).attr('name');
@@ -305,7 +305,7 @@ function parseuserdata(xml) {
     var url_group = getURLParameter('group');
     $(xml).find("group").each(function() {
         var group_name = $(this).attr('name');
-    
+
         // Add to the group list
         $("#groups_list").append("<li class='group_selector'><a class='group_link' href='javascript:void(0);' id='" + group_name + "' value='" + group_name + "'><i class='icon-chevron-right'></i>" + group_name + "</a>  </li>");
 
@@ -326,7 +326,7 @@ function parseuserdata(xml) {
 
     $("#" + selected_group).parent().addClass("active");
     UpdateGroup(group_object);
-    
+
     // Add history element to the initial
     history.replaceState({group: selected_group}, "", "");
 
@@ -342,7 +342,7 @@ function parseuserdata(xml) {
 
 
     });
-    
+
     UpdateXMLTime();
 
 }
@@ -403,7 +403,7 @@ function UpdateGroup(group_obj) {
     var matchedjobs_running = [];
     var requested_idle = [];
     requested_max_running = [];
-    
+
     // Convinence variables
     var group_name = $(group_obj).attr('name');
     var group_selector = "#group_graphs";
@@ -464,7 +464,7 @@ function UpdateGroup(group_obj) {
         $("#group_graphs").fadeTo(0, 0.5);
         ShowDialog($("#content-area"), "No Entry Points Detected",
             "No entry points were detected in the group: <strong>" + group_name +"</strong>. <p>Please select another group from the menu on the left.</p>");
-    
+
     // If no jobs are detected, idle or running
     } else if ((SumElements(matchedjobs_running) == 0) &&
                (SumElements(matchedjobs_idle) == 0) &&
@@ -503,7 +503,7 @@ function UpdateGroup(group_obj) {
     data.setCell(counter, 7, SumElements(requested_idle));
 
 
-    
+
     // Generate the graphs
     var img = CreateGraphImage();
     $(group_selector).find("#MatchedGlideins").find("#idle").prepend(img);
@@ -592,8 +592,8 @@ function MakeChart(entry_points, data, title, image) {
     var normal_data = normalize(to_normalize);
     for (var i in entry_data) entry_data[i].push(normal_data[i]);
 
-    
-    
+
+
     // Build the URL for the image
     // baseurl = "http://chart.apis.google.com/chart?cht=p&chf=bg,s,EFEFEF&chs=850x350&chtt=" + title + "&chco=FF0000,00FFFF&";
     baseurl = "//chart.apis.google.com/chart?cht=p&chf=bg,s,EFEFEF&chs=850x350&chtt=" + title + "&chco=FF0000,00FFFF&";
@@ -630,7 +630,7 @@ function ShowDialog(tocenter_object, title, text) {
 }
 
 function HideDialog() {
-    $("#group_graphs").fadeTo(0, 1.0);   
+    $("#group_graphs").fadeTo(0, 1.0);
     $("#error_dialog").remove();
 
 }
@@ -676,13 +676,13 @@ function HideDialog() {
 
 <!-- Sidebar -->
 <div class="span2">
-<!-- <table cellpadding=10 id='graphtable' border=1> 
+<!-- <table cellpadding=10 id='graphtable' border=1>
 <tr><td valign=top align=center> -->
 
 <!-- Groups -->
 <div class="row-fluid">
 <div class="span12">
-<div id="groups_list_container"> 
+<div id="groups_list_container">
 <div class="well" style="padding: 8px 0;">
 <ul class="nav nav-list" id="groups_list">
 <li class="nav-header">Groups</li>
@@ -690,14 +690,14 @@ function HideDialog() {
 
 </ul>
 </div><!-- End Button Group -->
-<!--<div id="group_display"> </div>--> <br/> 
+<!--<div id="group_display"> </div>--> <br/>
 <!-- <input type='button' class="btn" value='Enlarge Graphs' id='expandtoggle' onclick='ToggleExpandGroup()'/> -->
 </div>
 </div> <!-- span2 -->
 </div> <!-- Sidebar -->
 </div>
 
-<!-- </td><td id="group_graphs"> 
+<!-- </td><td id="group_graphs">
 <table cellpadding='20px'> -->
 <div class="span10">
 
@@ -717,7 +717,7 @@ Entry Search: <input class="search-query" type='text' id='entrysearch' onkeypres
 <div class="row-fluid">
 <div id="group_table">
 </div>
- </div>   
+ </div>
 
 </div> <!-- End table tab -->
 
@@ -770,8 +770,3 @@ Entry Search: <input class="search-query" type='text' id='entrysearch' onkeypres
 </body>
 
 </html>
-
-
-
-
-

@@ -9,13 +9,13 @@ SPDX-License-Identifier: Apache-2.0
 Project:
   glideinWMS
 
-File Version: 
+File Version:
 
 Description:
   Browse the glideinWMS RRDs
 
   Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
+  javascriptrrd/src/lib/rrdJFlot.html
    Original repository: https://javascriptrrd.sourceforge.net/
 -->
 
@@ -37,7 +37,7 @@ Description:
     <table width="100%">
     <tr>
      <td><h1 id="pgtitle">Browse VO Frontend RRDs</h1></td>
-     <td align="right">[ 
+     <td align="right">[
 	    <a href="frontendStatus.html">Status</a> |
 	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> |
         <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
@@ -75,11 +75,11 @@ Description:
    <hr>
     <p>Powered by
         <a href="//oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
+        <a href="//sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and
         <a href="//www.flotcharts.org/" target="_blank">Flot</a>.
-    </p>  
-	<div id="monitor_footer"></div>  
- 
+    </p>
+	<div id="monitor_footer"></div>
+
     <script type="text/javascript">
 
       // Remove the Javascript warning
@@ -120,7 +120,7 @@ Description:
       function update_fname_handler(bf) {
           var i_rrd_data=undefined;
           try {
-            var i_rrd_data=new RRDFile(bf);            
+            var i_rrd_data=new RRDFile(bf);
           } catch(err) {
             alert("File "+fname+" is not a valid RRD archive!");
           }

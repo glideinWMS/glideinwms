@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>GlideinWMS</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -96,30 +96,30 @@ SPDX-License-Identifier: Apache-2.0
     <b>NOTE:</b>  It is recommended that you always provide a VOMS proxy in the user job submission.  A proxy may also be required for other reasons, such as the job staging data.
     <br/>
     <br/>
-    The GlideinWMS environment looks almost exactly like a regular, local HTCondor pool.  It just does not have any 
+    The GlideinWMS environment looks almost exactly like a regular, local HTCondor pool.  It just does not have any
     resources attached unless you ask for them; try
     <pre>$ condor_status</pre>
-    and you can see that no glideins are connected to your local pool. The GlideinWMS system will submit glideins on your behalf when 
-    they are needed.  Some information may need to be specified in order for you get glideins that can run your jobs. 
+    and you can see that no glideins are connected to your local pool. The GlideinWMS system will submit glideins on your behalf when
+    they are needed.  Some information may need to be specified in order for you get glideins that can run your jobs.
     Depending on your VO Frontend configuration, you may also have to specify additional requirements.
     <br/>
     <br/>
-        
+
     <h4>Submitting a simple job with no requirements</h4>
     Here is a generic job that calculates Pi using the monte carlo method.  First create a file called pi.py and make it executable:
     <pre>
 #!/bin/env python
-from random import *  
-from math import sqrt,pi  
+from random import *
+from math import sqrt,pi
 from sys import argv
-inside=0  
+inside=0
 n=int(argv[1])
-for i in range(0,n):  
-    x=random()  
-    y=random()  
-    if sqrt(x*x+y*y)<=1:  
-        inside+=1  
-pi_prime=4.0*inside/n  
+for i in range(0,n):
+    x=random()
+    y=random()
+    if sqrt(x*x+y*y)<=1:
+        inside+=1
+pi_prime=4.0*inside/n
 print pi_prime, pi-pi_prime
     </pre>
     You can run it:
@@ -127,7 +127,7 @@ print pi_prime, pi-pi_prime
 $ ./pi.py 1000000
 3.1428 -0.00120734641021
     </pre>
-    The first number is the approximation of pi.  The second number is how far from the real pi it is.  If you repeat this, you will 
+    The first number is the approximation of pi.  The second number is how far from the real pi it is.  If you repeat this, you will
     see how the result changes every time.
     <br/>
     <br/>
@@ -156,11 +156,11 @@ Queue 100
     Once the jobs have finished, you can view the output in the job.$(Cluster).$(Process).out files.
     <br/>
     <br/>
-    
+
     <h4>Understanding where jobs are running</h4>
-    While your jobs can run everywhere, you may still want to know where they actually ran; possibly because you want to know who to thank for the 
-    CPUs you were consuming, or to debug problems you had with your program. 
-    <br/> 
+    While your jobs can run everywhere, you may still want to know where they actually ran; possibly because you want to know who to thank for the
+    CPUs you were consuming, or to debug problems you had with your program.
+    <br/>
     <br/>
     To do this, we add some additional attributes to the submit file:
     <pre>
@@ -177,15 +177,15 @@ when_to_transfer_output = ON_EXIT
 +JOB_Gatekeeper = "$$(GLIDEIN_Gatekeeper:Unknown)"
 Queue 100
     </pre>
-    These additional attributes in the job are used by the VO Frontend to find sites that match these requirements.  HTCondor also uses them to 
-    match your jobs to the right glideins.  
-    </br>  
+    These additional attributes in the job are used by the VO Frontend to find sites that match these requirements.  HTCondor also uses them to
+    match your jobs to the right glideins.
+    </br>
     </br>
     Now submit the job cluster as before.  You can monitor the running jobs with:
     <pre>
 $ condor_q `id -un` -const 'JobStatus==2' -format '%d.' ClusterId -format '%d ' ProcId -format '%s\n' MATCH_EXP_JOB_Site
     </pre>
-    
+
 </div>
 
 
@@ -196,7 +196,7 @@ $ condor_q `id -un` -const 'JobStatus==2' -format '%d.' ClusterId -format '%d ' 
 
     From the user point of view, this is just a regular HTCondor pool.<br><br>
 
-    However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b> line in their JDL, 
+    However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b> line in their JDL,
     in order to prevent the jobs from landing on sites that cannot run their jobs.<br><br>
     Users will need to know which attributes the glideins publish and use them accordingly.
     One useful attribute that all glideins publish is GLIDEIN_Site. If a user wants to restrict its job to a list of sites, he can do it by using:
@@ -205,12 +205,12 @@ $ condor_q `id -un` -const 'JobStatus==2' -format '%d.' ClusterId -format '%d ' 
         Requirements = stringListMember(GLIDEIN_Site,DESIRED_Sites)
     </blockquote>
 
-    
+
     Some glideins may also need to properly identify the final user, using GSI authentication. A user should thus add the following line:
     <blockquote>x509userproxy = <i>&lt;path to X509 proxy&gt;</i></blockquote>
-    
+
     to their HTCondor submission file.
-                   
+
 </div>
 
 
