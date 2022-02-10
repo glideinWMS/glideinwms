@@ -298,10 +298,10 @@ class TaskRPM(TaskTar):
 
         #shutil.copyfile(self.specFileTemplate, self.specFile)
         #fdin = open(self.specFileTemplate, 'r')
-        with open(self.specFileTemplate, 'r') as fdin:
+        with open(self.specFileTemplate, 'r', encoding='utf-8') as fdin:
             lines = fdin.readlines()
 
-        with open(self.specFile, 'w') as fdout:
+        with open(self.specFile, 'w', encoding='utf-8') as fdout:
             for line in lines:
                 line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)
                 line = line.replace('__GWMS_RPM_RELEASE__', self.release.rpmRelease)

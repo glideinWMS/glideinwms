@@ -1,7 +1,7 @@
-# How to build tar file
-
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
+
+# How to build tar file
 
 # git clone http://cdcvs.fnal.gov/projects/glideinwms
 # cd glideinwms
