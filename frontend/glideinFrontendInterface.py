@@ -197,14 +197,13 @@ def findGlideins(factory_pool, factory_identity,
     if signtype is not None:
         status_constraint += ' && stringListMember("%s",%s)' % (signtype, frontendConfig.factory_signtype_id)
 
-    # Note that Require and Allow x509_Proxy has been replaced by credential
-    # type and trust domain
+    # Note that Require and Allow x509_Proxy has been replaced by credential type and trust domain
 
     if additional_constraint is not None:
         status_constraint += ' && (%s)' % additional_constraint
 
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
-    status.require_integrity(True) #important, especially for proxy passing
+    status.require_integrity(True)  # important, especially for proxy passing
     status.load(status_constraint)
 
     data = status.fetchStored()
