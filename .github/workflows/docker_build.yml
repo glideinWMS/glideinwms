@@ -1,17 +1,22 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+# This workflow can be triggered w/ a dispatch event, e.g.
+# curl -X POST -H "Accept: application/vnd.github.v3+json" \
+#  https://api.github.com/repos/glideinwms/glideinwms/dispatches \
+#  -d '{"event_type":"docker-build"}'
+
 name: Build and Push Docker image (CI)
 
 on:
   push:
     branches: [ master, master_ci ]
     path:
-      - 'build/packaging/containers/*'
-      - '.github/workflows/docker_build.yml'
+      - build/packaging/containers/gwms-ci-sl7/Dockerfile
+      - build/packaging/containers/gwms-ci-sl7/Dockerfile
   repository_dispatch:
     types:
-      - dispatch-build
+      - docker-build
 
 jobs:
   build:

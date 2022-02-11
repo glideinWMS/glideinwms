@@ -34,10 +34,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: 'glideinwms'
-      - name: build action step
+      - name: RPM build action step
         id: build_rpm
         uses: ./.github/actions/build-in-sl7-docker
-      - name: Archive unittest log
+      - name: Archive RPM packages
         if: always()
         uses: actions/upload-artifact@v2
         with:
