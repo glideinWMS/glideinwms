@@ -151,8 +151,8 @@ def main():
         sym_key_obj, frontend_sec_name = validate_frontend(
             ad_gc, frontend_descript, glidein_descript.data['PubKeyObj'])
         security_class = sym_key_obj.decrypt_hex(
-            ad_gc['GlideinEncParamSecurityClass']) # GlideinSecurityClass
-        proxyid = sym_key_obj.decrypt_hex(ad_gc['GlideinEncParamSubmitProxy'])
+            ad_gc['GlideinEncParamSecurityClass']).decode('utf8') # GlideinSecurityClass
+        proxyid = sym_key_obj.decrypt_hex(ad_gc['GlideinEncParamSubmitProxy']).decode('utf8')
         user_name = frontend_descript.get_username(
             frontend_sec_name, security_class)
 
