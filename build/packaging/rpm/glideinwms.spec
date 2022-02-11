@@ -366,6 +366,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitignore
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.gitmodules
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.mailmap
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.pep8speaks.yml
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.pre-commit-config.yaml
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/.travis.yml
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/test
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/unittests
@@ -376,6 +377,7 @@ rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/tox.ini
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSE
 rm -Rf $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/LICENSES
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/ACKNOWLEDGMENTS.md
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/DEVELOPMENT.md
 rm -f $RPM_BUILD_ROOT%{python3_sitelib}/glideinwms/README.md
 
 # Following files are Put in other places. Remove them from python3_sitelib
