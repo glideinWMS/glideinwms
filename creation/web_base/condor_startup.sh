@@ -60,9 +60,6 @@ for v in $condor_vars; do
     unset $v
 done
 echo "Removed condor variables $condor_vars" 1>&2
-# Clearing LD_LIBRARY_PATH to avoid interferences between a local condor and the Glidein one
-# The Glidein's condor is using RPATH
-unset LD_LIBRARY_PATH
 
 # Condor 7.5.6 and above will use the system's gsi-authz.conf.  We don't want that.
 export GSI_AUTHZ_CONF=/dev/null
