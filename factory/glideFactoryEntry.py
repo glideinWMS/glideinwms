@@ -1247,6 +1247,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get('frontend_scitoken')
     if scitoken_data:
+        scitoken_data = scitoken_data.rstrip('\n')
         if token_util.token_str_expired(scitoken_data):
             entry.log.warning("frontend_scitoken supplied by frontend, but expired. Renaming to %s.expired" % scitoken_file)
             if os.path.exists(scitoken_file):
