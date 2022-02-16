@@ -140,11 +140,14 @@ def get_entry_dictionary(resource, vos, cpus, walltime, memory):
     edict["submit_attrs"] = {}
     if cpus != None:
         edict["attrs"]["GLIDEIN_CPUS"] = {"value": cpus}
+        edict["submit_attrs"]["+xcount"] = cpus
     if walltime != None:
         glide_walltime = walltime * 60 - 1800
         edict["attrs"]["GLIDEIN_Max_Walltime"] = {"value": glide_walltime}
+        edict["submit_attrs"]["+maxWallTime"] = walltime
     if memory != None:
         edict["attrs"]["GLIDEIN_MaxMemMBs"] = {"value": memory}
+        edict["submit_attrs"]["+maxMemory"] = memory
     return edict
 
 

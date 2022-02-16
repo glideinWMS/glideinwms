@@ -58,7 +58,7 @@ class TestOSGAutoconf(unittest.TestCase):
                             'GLIDEIN_Max_Walltime': {'value': 171000},
                             'GLIDEIN_ResourceName': {'value': 'AMNH'},
                             'GLIDEIN_MaxMemMBs': {'value': 65536}},
-                            'submit_attrs': {}
+                            'submit_attrs': {'+maxWallTime': 2880, '+xcount': 8, '+maxMemory': 65536}
                         }
                     }
                 }
@@ -87,7 +87,7 @@ class TestOSGAutoconf(unittest.TestCase):
                     'GLIDEIN_Max_Walltime': {'value': 84600},
                     'GLIDEIN_ResourceName': {'value': 'AMNH'},
                     'GLIDEIN_MaxMemMBs': {'value': 32768}},
-                    'submit_attrs': {}
+                    'submit_attrs': {'+maxWallTime': 1440, '+xcount': 4, '+maxMemory': 32768}
                 }
             }
         }
@@ -102,6 +102,7 @@ class TestOSGAutoconf(unittest.TestCase):
         expected_out['AMNH']['hosted-ce37.opensciencegrid.org'][BEST_FIT_TAG]['DEFAULT_ENTRY']['attrs']['GLIDEIN_MaxMemMBs'] = {'value': 2000} # The minimum memory
         expected_out['AMNH']['hosted-ce37.opensciencegrid.org'][BEST_FIT_TAG]['DEFAULT_ENTRY']['attrs']['GLIDEIN_Max_Walltime'] = {'value': 1000 * 60 - 1800} # The minimum walltime
         expected_out['AMNH']['hosted-ce37.opensciencegrid.org'][BEST_FIT_TAG]['DEFAULT_ENTRY']['attrs']['GLIDEIN_CPUS'] = {'value': 2} # The GCD (greater common divisor)
+        expected_out['AMNH']['hosted-ce37.opensciencegrid.org'][BEST_FIT_TAG]['DEFAULT_ENTRY']['submit_attrs'] = {'+maxWallTime': 1000, '+xcount': 2, '+maxMemory': 2000}
         self.assertEqual(get_information_internal(info), expected_out)
 
         # Now check the "IsPilotEntry = true" case
@@ -135,7 +136,7 @@ class TestOSGAutoconf(unittest.TestCase):
                 'GLIDEIN_CPUS' : {'value': 1},
                 'GLIDEIN_Supported_VOs' : {'value': 'icecube'},
              },
-            'submit_attrs' : {'Request_GPUs': 2},
+            'submit_attrs' : {'+maxWallTime': 2880, '+xcount': 1, '+maxMemory': 8192, 'Request_GPUs': 2},
             'limits' : { 'entry' : { 'glideins' : 1000}},
         }
         expected_out['LSU']['hosted-ce29.grid.uchicago.edu']['WholeNode'] = {}
@@ -162,8 +163,8 @@ class TestOSGAutoconf(unittest.TestCase):
                 'GLIDEIN_Supported_VOs' : {'value': 'osg,cms'},
                 'GLIDEIN_REQUIRED_OS': {'value': 'rhel6'}
              },
-            'submit_attrs' : {},
-            'limits' : { 'entry' : { 'glideins' : 1000 }},
+            'submit_attrs' : {'+maxWallTime': 1440, '+xcount': 8, '+maxMemory': 32768},
+            'limits' : { 'entry' : { 'glideins' : 1000}},
         }
         self.maxDiff=None
         self.assertEqual(get_information_internal(info), expected_out)
