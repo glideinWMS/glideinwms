@@ -363,7 +363,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate_submit_attrs(self, submit_attrs, gridtype, attr_prefix=''):
         for submit_attr in submit_attrs:
             if submit_attr.get('all_grid_types', 'False') == 'True' or gridtype.startswith(
-                    'batch ') or gridtype in ('condor', 'gce', 'ec2'):
+                    'batch ') or gridtype in ('condor', 'gce', 'ec2', 'arc'):
                 self.add(
                     '%s%s' %
                     (attr_prefix,
