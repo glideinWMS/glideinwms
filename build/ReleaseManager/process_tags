@@ -308,7 +308,7 @@ def release2html(v, tags):
     if tags['Tarball']:
         tar_string = ',<a href="http://glideinwms.fnal.gov/glideinWMS_%s.tgz">Tarball</a>' % tags['Name']
     tmp = """<li>
-  <b>{Name}</b> released on {Date} (<a href="http://glideinwms.fnal.gov/doc.{Name}/index.html">Manual</a>,
+  <a id="{Name}"><b>{Name}</b></a> released on {Date} (<a href="http://glideinwms.fnal.gov/doc.{Name}/index.html">Manual</a>,
   <a href="http://glideinwms.fnal.gov/doc.{Name}/install.html">Installation instructions</a>%s)<br>
     <ul>""" % tar_string
     lines = [tmp.format(**tags)]
