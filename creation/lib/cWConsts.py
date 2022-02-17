@@ -30,16 +30,21 @@ def get_timestr(when=time.time()):
         str: 6 chars string depending on the time
     """
     start_time_tuple = time.localtime(when)
-    timestr = (string.printable[(start_time_tuple[0]-2000) % 62] +  # year, looping to keep alphanumeric, will repeat after 2062
-               string.printable[start_time_tuple[1]] +      # month
-               string.printable[start_time_tuple[2]] +      # day
-               string.printable[start_time_tuple[3]] +      # hours
-               string.printable[start_time_tuple[4]] +      # minutes
-               string.printable[start_time_tuple[5]])       # seconds
+    timestr = (
+        string.printable[(start_time_tuple[0] - 2000) % 62]
+        + string.printable[  # year, looping to keep alphanumeric, will repeat after 2062
+            start_time_tuple[1]
+        ]
+        + string.printable[start_time_tuple[2]]  # month
+        + string.printable[start_time_tuple[3]]  # day
+        + string.printable[start_time_tuple[4]]  # hours
+        + string.printable[start_time_tuple[5]]  # minutes
+    )  # seconds
     return timestr
 
 
 TIMESTR = get_timestr()
+
 
 def insert_timestr(instr):
     """insert timestr just before the last '.' (dot)
@@ -50,26 +55,27 @@ def insert_timestr(instr):
     Returns:
         str: input string with TIMESTR, dot separated, before the last dot
     """
-    arr = instr.split('.')
+    arr = instr.split(".")
     if len(arr) == 1:
         arr.append(TIMESTR)
     else:
         arr.insert(-1, TIMESTR)
-    return '.'.join(arr)
+    return ".".join(arr)
+
 
 # these two are in the work dir, so they can be changed
-SUMMARY_SIGNATURE_FILE="signatures.sha1"
+SUMMARY_SIGNATURE_FILE = "signatures.sha1"
 
 # these are in the stage dir, so they need to be renamed if changed
-DESCRIPTION_FILE="description.cfg"
+DESCRIPTION_FILE = "description.cfg"
 
-VARS_FILE="condor_vars.lst"
-CONSTS_FILE="constants.cfg"
-UNTAR_CFG_FILE="untar.cfg"
+VARS_FILE = "condor_vars.lst"
+CONSTS_FILE = "constants.cfg"
+UNTAR_CFG_FILE = "untar.cfg"
 
-FILE_LISTFILE="file_list.lst"
-SIGNATURE_FILE="signature.sha1"
+FILE_LISTFILE = "file_list.lst"
+SIGNATURE_FILE = "signature.sha1"
 
-BLACKLIST_FILE="nodes.blacklist"
+BLACKLIST_FILE = "nodes.blacklist"
 
-GRIDMAP_FILE='grid-mapfile'
+GRIDMAP_FILE = "grid-mapfile"

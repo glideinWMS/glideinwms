@@ -33,32 +33,40 @@ import sys
 import traceback
 
 
-class ProxyEnvironmentError(Exception): pass
-class CompressionError(Exception): pass
+class ProxyEnvironmentError(Exception):
+    pass
+
+
+class CompressionError(Exception):
+    pass
+
 
 def compress_credential(credential_data):
     try:
         cfile = io.StringIO()
-        f = gzip.GzipFile(fileobj=cfile, mode='wb')
+        f = gzip.GzipFile(fileobj=cfile, mode="wb")
         f.write(credential_data)
         f.close()
         return base64.b64encode(cfile.getvalue())
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        tb = traceback.format_exception(
+            sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
+        )
         msg = "Error compressing credential: \n%s" % tb
         raise CompressionError(msg)
+
 
 def update_credential(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0o600)
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, credential_data)
         finally:
             os.close(fd)
     else:
         # old file exists, check if same content
-        with open(fname, 'r') as fl:
+        with open(fname, "r") as fl:
             old_data = fl.read()
 
         #  if proxy_data == old_data nothing changed, done else
@@ -68,10 +76,10 @@ def update_credential(fname, credential_data):
             try:
                 os.remove(fname + ".old")
             except:
-                pass # just protect
+                pass  # just protect
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0o600)
+            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
             try:
                 os.write(fd, credential_data)
             finally:
@@ -81,28 +89,30 @@ def update_credential(fname, credential_data):
             try:
                 shutil.copy2(fname, fname + ".old")
             except:
-                pass # just protect
+                pass  # just protect
 
             os.rename(fname + ".new", fname)
+
 
 def get_env():
     # Extract data from environment
     # Arguments not used
-    if 'HEXDATA' not in os.environ:
-        raise ProxyEnvironmentError('HEXDATA env variable not defined.')
+    if "HEXDATA" not in os.environ:
+        raise ProxyEnvironmentError("HEXDATA env variable not defined.")
 
-    if 'FNAME' not in os.environ:
-        raise ProxyEnvironmentError('FNAME env variable not defined.')
+    if "FNAME" not in os.environ:
+        raise ProxyEnvironmentError("FNAME env variable not defined.")
 
-    credential_data = binascii.a2b_hex(os.environ['HEXDATA'])
-    fname = os.environ['FNAME']
+    credential_data = binascii.a2b_hex(os.environ["HEXDATA"])
+    fname = os.environ["FNAME"]
 
-    if 'FNAME_COMPRESSED' in os.environ:
-        fname_compressed = os.environ['FNAME_COMPRESSED']
+    if "FNAME_COMPRESSED" in os.environ:
+        fname_compressed = os.environ["FNAME_COMPRESSED"]
     else:
         fname_compressed = None
 
     return credential_data, fname, fname_compressed
+
 
 def main():
     update_code = 0
@@ -111,7 +121,9 @@ def main():
         update_credential(fname, credential_data)
         if fname_compressed:
             compressed_credential = compress_credential(credential_data)
-            update_credential(fname_compressed, 'glidein_credentials=%s'%compressed_credential)
+            update_credential(
+                fname_compressed, "glidein_credentials=%s" % compressed_credential
+            )
             # in branch_v3_2 after migration_3_1 WAS: update_credential(fname_compressed, compressed_credential)
     except ProxyEnvironmentError as ex:
         sys.stderr.write(str(ex))

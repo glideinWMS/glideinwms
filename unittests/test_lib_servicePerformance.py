@@ -15,16 +15,17 @@ Project:
 """
 
 
-
-
 import unittest
 
 import xmlrunner
 
-from glideinwms.lib.servicePerformance import (PerfMetric, endPerfMetricEvent,
-                                               getPerfMetric,
-                                               getPerfMetricEventLifetime,
-                                               startPerfMetricEvent)
+from glideinwms.lib.servicePerformance import (
+    PerfMetric,
+    endPerfMetricEvent,
+    getPerfMetric,
+    getPerfMetricEventLifetime,
+    startPerfMetricEvent,
+)
 
 # define these globally for convenience
 name = "timing_test"
@@ -34,12 +35,11 @@ event_begin = 1518767040
 event_begin_repr = "{'timing_test': {'test_start': {'start_time': 1518767040}}}"
 event_end = 1518768040
 event_end_repr = "{'timing_test': {'test_start': {'start_time': 1518767040, 'end_time': 1518768040}}}"
-t_tag = 't_tag'
+t_tag = "t_tag"
 tagged_event_repr = "{'timing_test': {'test_start': {'t_tag': 1518767040}}}"
 
 
 class TestPerfMetric(unittest.TestCase):
-
     def test___init__(self):
         perf_metric = PerfMetric(name)
         self.assertNotEqual(perf_metric, None)
@@ -69,8 +69,8 @@ class TestPerfMetric(unittest.TestCase):
         perf_metric.event_start(event_name, event_begin)
         perf_metric.event_end(event_name, event_end)
         self.assertEqual(
-            1000, perf_metric.event_lifetime(
-                event_name, check_active_event=True))
+            1000, perf_metric.event_lifetime(event_name, check_active_event=True)
+        )
 
     def test_event_start(self):
         perf_metric = PerfMetric(name)
@@ -84,7 +84,6 @@ class TestPerfMetric(unittest.TestCase):
 
 
 class TestGetPerfMetricEventLifetime(unittest.TestCase):
-
     def test_get_perf_metric_event_lifetime(self):
         startPerfMetricEvent(name, event_name, event_begin)
         endPerfMetricEvent(name, event_name, event_end)
@@ -92,14 +91,11 @@ class TestGetPerfMetricEventLifetime(unittest.TestCase):
 
 
 class TestGetPerfMetric(unittest.TestCase):
-
     def test_get_perf_metric(self):
         startPerfMetricEvent(name, event_name, event_begin)
         endPerfMetricEvent(name, event_name, event_end)
         self.assertEqual(event_end_repr, getPerfMetric(name).__repr__())
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

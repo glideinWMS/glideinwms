@@ -26,7 +26,7 @@ def get_lock(name):
     Params:
         name (str): the name of the file you want to lock. A lockfile name.lock will be created
     """
-    with open(name + '.lock', 'a+') as fdesc:
+    with open(name + ".lock", "a+") as fdesc:
         fcntl.flock(fdesc, fcntl.LOCK_EX)
         yield fdesc
 
@@ -50,8 +50,7 @@ class DiskCache(object):
         self.cache_duration = cache_duration
 
     def get_fname(self, objid):
-        """Simple auxiliary function that returns the cache filename given a cache object id
-        """
+        """Simple auxiliary function that returns the cache filename given a cache object id"""
         return os.path.join(self.cache_dir, objid)
 
     def get(self, objid):
@@ -74,7 +73,7 @@ class DiskCache(object):
             saved_time, obj = self.mem_cache[objid]
         elif os.path.isfile(fname):
             with get_lock(fname):
-                with open(fname, 'rb') as fdesc:
+                with open(fname, "rb") as fdesc:
                     saved_time, obj = pickle.load(fdesc)
             self.mem_cache[objid] = (saved_time, obj)
         if time() - saved_time < self.cache_duration:
@@ -96,7 +95,7 @@ class DiskCache(object):
         """
         fname = self.get_fname(objid)
         with get_lock(fname):
-            with open(fname, 'wb') as fdesc:
+            with open(fname, "wb") as fdesc:
                 save_time = time()
                 pickle.dump((save_time, obj), fdesc)
                 self.mem_cache[objid] = (save_time, obj)

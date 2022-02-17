@@ -28,7 +28,7 @@ USAGE = "Usage: cat_named_log.py [-monitor] <HTC_log> <GWMS_logname>"
 
 
 def main():
-    if sys.argv[1] == '-monitor':
+    if sys.argv[1] == "-monitor":
         lname = sys.argv[2]
         fname = sys.argv[3]
         # ((name1)|(name2)) allows to check for multiple names
@@ -44,5 +44,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

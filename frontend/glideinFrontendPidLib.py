@@ -20,16 +20,14 @@ from glideinwms.lib import pidSupport
 
 ############################################################
 
+
 class FrontendPidSupport(pidSupport.PidSupport):
     def __init__(self, startup_dir):
         lock_file = os.path.join(startup_dir, "lock/frontend.lock")
         pidSupport.PidSupport.__init__(self, lock_file)
         self.action_type = None
 
-    def register(self,
-                 action_type,
-                 pid = None,
-                 started_time = None):
+    def register(self, action_type, pid=None, started_time=None):
         """See parent for full description
         We add action_type here
 
@@ -46,11 +44,11 @@ class FrontendPidSupport(pidSupport.PidSupport):
     # Extend the parent methods
     ###############################
     def format_pid_file_content(self):
-        base_cnt=pidSupport.PidSupport.format_pid_file_content(self)
+        base_cnt = pidSupport.PidSupport.format_pid_file_content(self)
         if self.action_type is None:
-            cnt=base_cnt
+            cnt = base_cnt
         else:
-            cnt=base_cnt+("TYPE: %s\n"%self.action_type)
+            cnt = base_cnt + ("TYPE: %s\n" % self.action_type)
         return cnt
 
     def reset_to_default(self):
@@ -62,9 +60,9 @@ class FrontendPidSupport(pidSupport.PidSupport):
 
         pidSupport.PidSupport.parse_pid_file_content(self, lines)
         # the above will throw in case of error
-        if len(lines)>=3:
+        if len(lines) >= 3:
             if lines[2].startswith("TYPE: "):
-                self.action_type=lines[2][6:].strip()
+                self.action_type = lines[2][6:].strip()
 
         return
 
@@ -111,9 +109,12 @@ def get_frontend_action_type(startup_dir):
 
 ############################################################
 
+
 class ElementPidSupport(pidSupport.PidWParentSupport):
     def __init__(self, startup_dir, group_name):
-        lock_file = os.path.join(startup_dir, "%s/group_%s/lock/frontend.lock" % (startup_dir, group_name))
+        lock_file = os.path.join(
+            startup_dir, "%s/group_%s/lock/frontend.lock" % (startup_dir, group_name)
+        )
         pidSupport.PidWParentSupport.__init__(self, lock_file)
 
 

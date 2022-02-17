@@ -16,16 +16,13 @@ Project:
 """
 
 
-
-
 import copy
 import os
 import unittest
 
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import (TestImportError,
-                                                 create_temp_file)
+from glideinwms.unittests.unittest_utils import TestImportError, create_temp_file
 
 try:
     from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
@@ -41,12 +38,14 @@ class TestDictFileTwoKeys(unittest.TestCase):
     """
 
     def test___getitem__(self):
-        self.assertEqual("'True'",
-                         self.dict_file.__getitem__('GLIDECLIENT_Group_Start'))
+        self.assertEqual(
+            "'True'", self.dict_file.__getitem__("GLIDECLIENT_Group_Start")
+        )
 
     def setUp(self):
-        self.dict_file = DictFileTwoKeys(dir="fixtures/frontend/group_group1",
-                                         fname="attrs.cfg", sort_keys=True)
+        self.dict_file = DictFileTwoKeys(
+            dir="fixtures/frontend/group_group1", fname="attrs.cfg", sort_keys=True
+        )
         self.dict_file.load()
         self.dict_file.add("a", "b")
         self.dict_file.add("c", "d")
@@ -68,7 +67,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
             self.dict_file.add("foo", "baz", allow_overwrite=False)
             assert False
         except RuntimeError:
-            assert True # "raised correctly"
+            assert True  # "raised correctly"
             return
         assert False
 
@@ -82,17 +81,19 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
     def test_file_header(self):
         self.assertEqual(None, self.dict_file.file_header(want_comments=False))
-        self.assertEqual('# File: %s\n#' % self.dict_file.fname,
-                         self.dict_file.file_header(want_comments=True))
+        self.assertEqual(
+            "# File: %s\n#" % self.dict_file.fname,
+            self.dict_file.file_header(want_comments=True),
+        )
 
     def test_format_val(self):
-        key = 'GLIDECLIENT_Group_Start'
+        key = "GLIDECLIENT_Group_Start"
         expected = "%s \t%s" % (key, "'True'")
         self.assertEqual(expected, self.dict_file.format_val(key, False))
         # assert False TODO: implement your test here
 
     def test_get_dir(self):
-        expected = 'fixtures/frontend/group_group1'
+        expected = "fixtures/frontend/group_group1"
         self.assertEqual(expected, self.dict_file.get_dir())
 
     def test_get_filepath(self):
@@ -104,7 +105,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
     def test_has_key(self):
         expected = True
-        key = 'GLIDECLIENT_Group_Start'
+        key = "GLIDECLIENT_Group_Start"
         # has_key should be renamed has_key1
         self.assertEqual(expected, key in self.dict_file)
 
@@ -112,8 +113,8 @@ class TestDictFileTwoKeys(unittest.TestCase):
         self.assertTrue(self.dict_file.is_compatible2("foo", "bar"))
 
     def test_is_compatible(self):
-        old_val = 'foo'
-        new_val = 'bar'
+        old_val = "foo"
+        new_val = "bar"
         self.assertEqual(True, self.dict_file.is_compatible(old_val, new_val))
 
     def test_is_equal(self):
@@ -124,10 +125,11 @@ class TestDictFileTwoKeys(unittest.TestCase):
                     cd = bool(cd)
                     cf = bool(cf)
                     ck = bool(ck)
-                    self.assertTrue(self.dict_file.is_equal(other,
-                                                            compare_dir=cd,
-                                                            compare_fname=cf,
-                                                            compare_keys=ck))
+                    self.assertTrue(
+                        self.dict_file.is_equal(
+                            other, compare_dir=cd, compare_fname=cf, compare_keys=ck
+                        )
+                    )
         other.add("foo", "bar", allow_overwrite=True)
         for cd in range(0, 2):
             for cf in range(0, 2):
@@ -135,38 +137,43 @@ class TestDictFileTwoKeys(unittest.TestCase):
                     cd = bool(cd)
                     cf = bool(cf)
                     ck = bool(ck)
-                    self.assertFalse(self.dict_file.is_equal(other,
-                                                             compare_dir=cd,
-                                                             compare_fname=cf,
-                                                             compare_keys=ck))
+                    self.assertFalse(
+                        self.dict_file.is_equal(
+                            other, compare_dir=cd, compare_fname=cf, compare_keys=ck
+                        )
+                    )
         other = copy.deepcopy(self.dict_file)
-        other.dir = '/tmp'
+        other.dir = "/tmp"
         for cf in range(0, 2):
             for ck in range(0, 2):
                 cf = bool(cf)
                 ck = bool(ck)
-                self.assertTrue(self.dict_file.is_equal(other,
-                                                        compare_dir=False,
-                                                        compare_fname=cf,
-                                                        compare_keys=ck))
-                self.assertFalse(self.dict_file.is_equal(other,
-                                                         compare_dir=True,
-                                                         compare_fname=cf,
-                                                         compare_keys=ck))
+                self.assertTrue(
+                    self.dict_file.is_equal(
+                        other, compare_dir=False, compare_fname=cf, compare_keys=ck
+                    )
+                )
+                self.assertFalse(
+                    self.dict_file.is_equal(
+                        other, compare_dir=True, compare_fname=cf, compare_keys=ck
+                    )
+                )
         other = copy.deepcopy(self.dict_file)
-        other.fname = 'foo'
+        other.fname = "foo"
         for cd in range(0, 2):
             for ck in range(0, 2):
                 cd = bool(cd)
                 ck = bool(ck)
-                self.assertTrue(self.dict_file.is_equal(other,
-                                                        compare_dir=cd,
-                                                        compare_fname=False,
-                                                        compare_keys=ck))
-                self.assertFalse(self.dict_file.is_equal(other,
-                                                         compare_dir=cd,
-                                                         compare_fname=True,
-                                                         compare_keys=ck))
+                self.assertTrue(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=False, compare_keys=ck
+                    )
+                )
+                self.assertFalse(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=True, compare_keys=ck
+                    )
+                )
         other = copy.deepcopy(self.dict_file)
         other.remove("a")
         other.remove("c")
@@ -175,29 +182,25 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
         sdf = self.dict_file
         fmt_str = "%s=%s self=\n%s other=\n%s"
-        asck = 'assertTrue compare_keys'
+        asck = "assertTrue compare_keys"
         for cd in range(0, 2):
             for cf in range(0, 2):
                 ck = False
                 cd = bool(cd)
                 cf = bool(cf)
-                self.assertTrue(self.dict_file.is_equal(other,
-                                                        compare_dir=cd,
-                                                        compare_fname=cf,
-                                                        compare_keys=ck),
-                                fmt_str % (asck,
-                                           ck,
-                                           sdf.save_into_str(),
-                                           other.save_into_str()))
+                self.assertTrue(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=cf, compare_keys=ck
+                    ),
+                    fmt_str % (asck, ck, sdf.save_into_str(), other.save_into_str()),
+                )
                 ck = True
-                self.assertFalse(self.dict_file.is_equal(other,
-                                                         compare_dir=cd,
-                                                         compare_fname=cf,
-                                                         compare_keys=ck),
-                                 fmt_str % (asck,
-                                            ck,
-                                            sdf.save_into_str(),
-                                            other.save_into_str()))
+                self.assertFalse(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=cf, compare_keys=ck
+                    ),
+                    fmt_str % (asck, ck, sdf.save_into_str(), other.save_into_str()),
+                )
 
     def test_parse_val(self):
 
@@ -219,7 +222,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
         # TODO: seems like fail_if_missing is correct unlike
         # this classes base class
         #
-        key = 'GLIDECLIENT_Group_Start'
+        key = "GLIDECLIENT_Group_Start"
         self.dict_file.remove(key, fail_if_missing=False)
         self.dict_file.remove(key, fail_if_missing=False)
         self.assertFalse(key in self.dict_file.keys)
@@ -248,13 +251,13 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
     def test_save_to_load_from_str(self):
         other = copy.deepcopy(self.dict_file)
-        d_str = self.dict_file.save_into_str(sort_keys=False,
-                                             set_readonly=False,
-                                             reset_changed=False,
-                                             want_comments=False)
-        other.load_from_str(data=d_str,
-                            erase_first=True,
-                            set_not_changed=False)
+        d_str = self.dict_file.save_into_str(
+            sort_keys=False,
+            set_readonly=False,
+            reset_changed=False,
+            want_comments=False,
+        )
+        other.load_from_str(data=d_str, erase_first=True, set_not_changed=False)
         self.assertTrue(self.dict_file.is_equal(other))
 
     def test_set_readonly(self):
@@ -269,6 +272,6 @@ class TestDictFileTwoKeys(unittest.TestCase):
         self.dict_file.add("foo", "bar", allow_overwrite=True)
 
 
-if __name__ == '__main__':
-    OFL = 'unittests-reports'
+if __name__ == "__main__":
+    OFL = "unittests-reports"
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output=OFL))

@@ -22,21 +22,50 @@ import xmlrunner
 
 import glideinwms.lib.exprParser as ep
 
-TEST_LIST = ['a or b', 'a and b', '3', 'None', 'False', 'a + b',
-             'a*b', 'a/b', 'not a', 'x[:1]', 'str(a)', 'a<<3',
-             '(a,b,x)', '[a,b,x]', 'a<3', 'a+b>4', 'a**b',
-             'a>>3', 'a/b', 'a/3', 'lambda a,b:hash((a,b))',
-             'a-b', 'a in x', 'x[0]', 'd[a]', 'a in d', ]
+TEST_LIST = [
+    "a or b",
+    "a and b",
+    "3",
+    "None",
+    "False",
+    "a + b",
+    "a*b",
+    "a/b",
+    "not a",
+    "x[:1]",
+    "str(a)",
+    "a<<3",
+    "(a,b,x)",
+    "[a,b,x]",
+    "a<3",
+    "a+b>4",
+    "a**b",
+    "a>>3",
+    "a/b",
+    "a/3",
+    "lambda a,b:hash((a,b))",
+    "a-b",
+    "a in x",
+    "x[0]",
+    "d[a]",
+    "a in d",
+]
 
-TEST_RAISE_LIST = ['a^b', 'a&b', 'a|b', 'a+=3', ]
+TEST_RAISE_LIST = [
+    "a^b",
+    "a&b",
+    "a|b",
+    "a+=3",
+]
 
 
 class TestExprParserSymmetric(unittest.TestCase):
-
     def test_parse_symmetric(self):
         for itm in TEST_LIST:
-            self.assertEqual(ast.dump(ep.exp_parse(ep.exp_unparse(ep.exp_parse(itm)))),
-                             ast.dump(ep.exp_parse(itm)))
+            self.assertEqual(
+                ast.dump(ep.exp_parse(ep.exp_unparse(ep.exp_parse(itm)))),
+                ast.dump(ep.exp_parse(itm)),
+            )
 
     def test_unparse_ret(self):
         for itm in TEST_LIST:
@@ -59,5 +88,5 @@ class TestExprParserSymmetric(unittest.TestCase):
                 raise RuntimeError(bad_itm)
 
 
-if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner('unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner("unittests-reports"))

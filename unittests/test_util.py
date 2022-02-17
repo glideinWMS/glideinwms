@@ -35,7 +35,6 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(safe_boolcomp("foo", True))
         self.assertFalse(safe_boolcomp("foo", False))
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

@@ -25,8 +25,10 @@ import subprocess
 import tempfile
 import time
 from base64 import b32encode
+
 # imports and global for flattenDict
 from collections.abc import Mapping
+
 # imports for hash_nc
 from hashlib import md5
 from operator import add
@@ -179,8 +181,8 @@ except AttributeError:
 
 
 class ExpiredFileException(Exception):
-    """The file is too old to be used
-    """
+    """The file is too old to be used"""
+
     pass
 
 
@@ -192,9 +194,9 @@ def print_funct(*args, **kwargs):
     :param kwargs: keywords, valid keywords: 'sep' separator, default is space
     :return: None
     """
-    sep = ' '
+    sep = " "
     try:
-        sep = kwargs['sep']
+        sep = kwargs["sep"]
     except KeyError:
         pass
     print(sep.join([str(i) for i in args]))
@@ -210,7 +212,7 @@ def conditional_raise(mask_exceptions):
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
     :return: None
     """
-    if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
+    if mask_exceptions and hasattr(mask_exceptions[0], "__call__"):
         # protect and report
         mask_exceptions[0](*mask_exceptions[1:])
         return
@@ -219,7 +221,14 @@ def conditional_raise(mask_exceptions):
 
 # pylint: enable=misplaced-bare-raise
 
-def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
+
+def file_pickle_dump(
+    fname,
+    content,
+    tmp_type="PID",
+    mask_exceptions=None,
+    protocol=pickle.HIGHEST_PROTOCOL,
+):
     """Serialize and save content
 
     To avoid inconsistent content
@@ -235,7 +244,7 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
-        with open(tmp_fname, 'wb') as pfile:
+        with open(tmp_fname, "wb") as pfile:
             pickle.dump(content, pfile, protocol)
     except:
         conditional_raise(mask_exceptions)
@@ -245,7 +254,14 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, proto
         return True
 
 
-def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, remove_expired=False, last_time={}):
+def file_pickle_load(
+    fname,
+    mask_exceptions=None,
+    default=None,
+    expiration=-1,
+    remove_expired=False,
+    last_time={},
+):
     """Load a serialized dictionary
 
     This implementation does not use file locking, it relies on the atomicity of file movement/replacement and deletion
@@ -269,7 +285,7 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
     """
     data = default
     try:
-        with open(fname, 'rb') as fo:
+        with open(fname, "rb") as fo:
             if expiration >= 0:
                 # check date of file and time
                 fname_time = os.path.getmtime(fname)
@@ -277,13 +293,17 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
                 if expiration > 0:
                     if fname_time < current_time - expiration:
                         # if expired raise ExpiredFile (w/ timestamp)
-                        raise ExpiredFileException("File %s expired, older then %s seconds (file time: %s)" %
-                                                   (fname, expiration, fname_time))
+                        raise ExpiredFileException(
+                            "File %s expired, older then %s seconds (file time: %s)"
+                            % (fname, expiration, fname_time)
+                        )
                 else:
                     try:
                         if fname_time <= last_time[fname]:
                             # expired
-                            raise ExpiredFileException("File %s already used at %s" % (fname, last_time[fname]))
+                            raise ExpiredFileException(
+                                "File %s already used at %s" % (fname, last_time[fname])
+                            )
                     except KeyError:
                         pass
                     last_time[fname] = fname_time
@@ -307,8 +327,11 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
 #     KEL this exact method is also in glideinFrontendMonitoring.py
 # TODO: replace all definitions with this one
 
-def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None):
-    """ Complete an atomic write by moving a file new version to its destination.
+
+def file_tmp2final(
+    fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None
+):
+    """Complete an atomic write by moving a file new version to its destination.
 
     If do_backup is True it removes the previous backup and copies the file to bak_fname.
     Moves tmp_fname to fname.
@@ -371,13 +394,14 @@ def file_get_tmp(fname=None, tmp_type=None):
     else:
         f_dir = os.path.dirname(fname)
         f_name = os.path.basename(fname)
-        tmp_file, tmp_fname = tempfile.mkstemp(suffix='tmp', prefix=f_name, dir=f_dir)
+        tmp_file, tmp_fname = tempfile.mkstemp(suffix="tmp", prefix=f_name, dir=f_dir)
         # file is open, reopening it is OK
         return tmp_fname
 
 
 # in classadSupport
 # def generate_classad_filename(prefix='gwms_classad'):
+
 
 def safe_boolcomp(value, expected):
     """Safely do a boolean comparison.
@@ -396,20 +420,18 @@ def safe_boolcomp(value, expected):
 
 
 def str2bool(val):
-    """ Convert u"True" or u"False" to boolean or raise ValueError
-    """
-    if val not in [u"True", u"False"]:
+    """Convert u"True" or u"False" to boolean or raise ValueError"""
+    if val not in ["True", "False"]:
         # Not using ValueError intentionally: all config errors are RuntimeError
         raise RuntimeError("Found %s instead of 'True' of 'False'" % val)
-    elif val == u"True":
+    elif val == "True":
         return True
     else:
         return False
 
 
 def handle_hooks(basedir, script_dir):
-    """The function itaretes over the script_dir directory and executes any script found there
-    """
+    """The function itaretes over the script_dir directory and executes any script found there"""
 
     dirname = os.path.join(basedir, script_dir)
     if not os.path.isdir(dirname):
@@ -419,6 +441,7 @@ def handle_hooks(basedir, script_dir):
         if os.path.isfile(script_name) and os.access(script_name, os.X_OK):
             print("\nExecuting reconfigure hook: " + script_name)
             subprocess.call(script_name)
+
 
 def hash_nc(data, len=None):
     """Returns a non-cryptographic MD5 hash encoded in base32
@@ -431,7 +454,7 @@ def hash_nc(data, len=None):
         str: Hash
     """
 
-    #TODO set md5 usedforsecurity to False when updating to Python 3.9
+    # TODO set md5 usedforsecurity to False when updating to Python 3.9
     out = b32encode(md5(force_bytes(data)).digest()).decode(BINARY_ENCODING_ASCII)
     if len:
         out = out[:len]

@@ -26,15 +26,14 @@ from glideinwms.lib.condorExe import ExeError, exe_cmd, exe_cmd_sbin, iexe_cmd
 
 
 class TestCondorExe(unittest.TestCase):
-
     def setUp(self):
         # set the paths to the worker script directory for the purposes of our
         # unittests
         condorExe.condor_bin_path = os.path.join(sys.path[0], "worker_scripts")
         condorExe.condor_sbin_path = condorExe.condor_bin_path
 
-        self.normal_exit_scripts = ['write_exit_0.sh', 'write_exit_0.py']
-        self.abnormal_exit_scripts = ['write_exit_1.sh', 'write_exit_1.py']
+        self.normal_exit_scripts = ["write_exit_0.sh", "write_exit_0.py"]
+        self.abnormal_exit_scripts = ["write_exit_1.sh", "write_exit_1.py"]
 
         # exe_cmd and exe_cmd_sbin expect args but the worker scripts don't
         # nor do they care, so just add some dummy args to complete the calls
@@ -103,11 +102,8 @@ class TestCondorExe(unittest.TestCase):
 
         # Execution should exit with an exception.  If no exception, then fail
         for script in self.abnormal_exit_scripts:
-            self.assertRaises(
-                ExeError, exe_cmd_sbin, script, self.dummy_args)
+            self.assertRaises(ExeError, exe_cmd_sbin, script, self.dummy_args)
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

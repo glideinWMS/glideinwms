@@ -24,14 +24,14 @@ import tempfile
 import time
 
 from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.lib import (logSupport, rrdSupport, timeConversion, xmlFormat,
-                            xmlParse)
+from glideinwms.lib import logSupport, rrdSupport, timeConversion, xmlFormat, xmlParse
 
 ############################################################
 #
 # Configuration
 #
 ############################################################
+
 
 class MonitorAggregatorConfig:
     def __init__(self):
@@ -65,29 +65,29 @@ monitorAggregatorConfig = MonitorAggregatorConfig()
 # when trying to read from a field with name longer than 20 chars.
 # Truncate the names for following to be in limits to avoid above issue.
 frontend_status_attributes = {
-    'Jobs': ("Idle", "OldIdle", "Running", "Total", "Idle_3600"),
-    'Glideins': ("Idle", "Running", "Total"),
-    'MatchedJobs': ("Idle", "EffIdle", "OldIdle", "Running", "RunningHere"),
-    'MatchedGlideins': ("Total", "Idle", "Running", "Failed"),
+    "Jobs": ("Idle", "OldIdle", "Running", "Total", "Idle_3600"),
+    "Glideins": ("Idle", "Running", "Total"),
+    "MatchedJobs": ("Idle", "EffIdle", "OldIdle", "Running", "RunningHere"),
+    "MatchedGlideins": ("Total", "Idle", "Running", "Failed"),
     # 'MatchedGlideins':("Total","Idle","Running","Failed","TCores","ICores","RCores"),
-    'MatchedCores': ("Total", "Idle", "Running"),
-    'Requested': ("Idle", "MaxRun")
+    "MatchedCores": ("Total", "Idle", "Running"),
+    "Requested": ("Idle", "MaxRun"),
 }
 
 frontend_total_type_strings = {
-    'Jobs': 'Jobs',
-    'Glideins': 'Glidein',
-    'MatchedJobs': 'MatchJob',
-    'MatchedGlideins': 'MatchGlidein',
-    'MatchedCores': 'MatchCore',
-    'Requested': 'Req'
+    "Jobs": "Jobs",
+    "Glideins": "Glidein",
+    "MatchedJobs": "MatchJob",
+    "MatchedGlideins": "MatchGlidein",
+    "MatchedCores": "MatchCore",
+    "Requested": "Req",
 }
 
 frontend_job_type_strings = {
-    'MatchedJobs': 'MatchJob',
-    'MatchedGlideins': 'MatchGlidein',
-    'MatchedCores': 'MatchCore',
-    'Requested': 'Req'
+    "MatchedJobs": "MatchJob",
+    "MatchedGlideins": "MatchGlidein",
+    "MatchedCores": "MatchCore",
+    "Requested": "Req",
 }
 
 ####################################
@@ -195,13 +195,15 @@ def verifyRRD(fix_rrd=False):
     #                     "Status_Attributes.rrd"), status_total_dict, fix_rrd)
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:
-            if file_name == 'Status_Attributes.rrd':
-                if os.path.basename(dir_name) == 'total':
-                    verifyHelper(os.path.join(dir_name, file_name),
-                                 status_total_dict, fix_rrd)
+            if file_name == "Status_Attributes.rrd":
+                if os.path.basename(dir_name) == "total":
+                    verifyHelper(
+                        os.path.join(dir_name, file_name), status_total_dict, fix_rrd
+                    )
                 else:
-                    verifyHelper(os.path.join(dir_name, file_name),
-                                 status_dict, fix_rrd)
+                    verifyHelper(
+                        os.path.join(dir_name, file_name), status_dict, fix_rrd
+                    )
 
     return not rrd_problems_found
 
@@ -243,8 +245,9 @@ def write_one_rrd(name, updated, data, fact=0):
                     val_dict["%s%s" % (tp_str, a)] = a_el
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
-    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s" % name,
-                                                               "GAUGE", updated, val_dict)
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi(
+        "%s" % name, "GAUGE", updated, val_dict
+    )
 
 
 ##############################################################################
@@ -254,52 +257,56 @@ def aggregateStatus():
     global monitorAggregatorConfig
 
     type_strings = {
-        'Jobs': 'Jobs',
-        'Glideins': 'Glidein',
-        'MatchedJobs': 'MatchJob',
-        'MatchedGlideins': 'MatchGlidein',
-        'MatchedCores': 'MatchCore',
-        'Requested': 'Req'
+        "Jobs": "Jobs",
+        "Glideins": "Glidein",
+        "MatchedJobs": "MatchJob",
+        "MatchedGlideins": "MatchGlidein",
+        "MatchedCores": "MatchCore",
+        "Requested": "Req",
     }
     global_total = {
-        'Jobs': None,
-        'Glideins': None,
-        'MatchedJobs': None,
-        'Requested': None,
-        'MatchedGlideins': None,
-        'MatchedCores': None,
+        "Jobs": None,
+        "Glideins": None,
+        "MatchedJobs": None,
+        "Requested": None,
+        "MatchedGlideins": None,
+        "MatchedCores": None,
     }
-    status = {'groups': {}, 'total': global_total}
+    status = {"groups": {}, "total": global_total}
     global_fact_totals = {}
 
-    for fos in ('factories', 'states'):
+    for fos in ("factories", "states"):
         global_fact_totals[fos] = {}
 
     nr_groups = 0
     for group in monitorAggregatorConfig.groups:
         # load group status file
-        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'group_' + group),
-                                    monitorAggregatorConfig.status_relname)
+        status_fname = os.path.join(
+            os.path.join(monitorAggregatorConfig.monitor_dir, "group_" + group),
+            monitorAggregatorConfig.status_relname,
+        )
         try:
             group_data = xmlParse.xmlfile2dict(status_fname)
         except xmlParse.CorruptXML as e:
-            logSupport.log.error("Corrupt XML in %s; deleting (it will be recreated)." % (status_fname))
+            logSupport.log.error(
+                "Corrupt XML in %s; deleting (it will be recreated)." % (status_fname)
+            )
             os.unlink(status_fname)
             continue
         except IOError:
             continue  # file not found, ignore
 
         # update group
-        status['groups'][group] = {}
-        for fos in ('factories', 'states'):
+        status["groups"][group] = {}
+        for fos in ("factories", "states"):
             try:
-                status['groups'][group][fos] = group_data[fos]
+                status["groups"][group][fos] = group_data[fos]
             except KeyError as e:
                 # first time after upgrade factories may not be defined
-                status['groups'][group][fos] = {}
+                status["groups"][group][fos] = {}
 
-        this_group = status['groups'][group]
-        for fos in ('factories', 'states'):
+        this_group = status["groups"][group]
+        for fos in ("factories", "states"):
             for fact in list(this_group[fos].keys()):
                 this_fact = this_group[fos][fact]
                 if not fact in list(global_fact_totals[fos].keys()):
@@ -309,9 +316,13 @@ def aggregateStatus():
                         global_fact_totals[fos][fact][attribute] = {}
                         if attribute in list(this_fact.keys()):
                             for type_attribute in list(this_fact[attribute].keys()):
-                                this_type_attribute = this_fact[attribute][type_attribute]
+                                this_type_attribute = this_fact[attribute][
+                                    type_attribute
+                                ]
                                 try:
-                                    global_fact_totals[fos][fact][attribute][type_attribute] = int(this_type_attribute)
+                                    global_fact_totals[fos][fact][attribute][
+                                        type_attribute
+                                    ] = int(this_type_attribute)
                                 except:
                                     pass
                 else:
@@ -319,43 +330,55 @@ def aggregateStatus():
                     for attribute in list(type_strings.keys()):
                         if attribute in list(this_fact.keys()):
                             for type_attribute in list(this_fact[attribute].keys()):
-                                this_type_attribute = this_fact[attribute][type_attribute]
-                                if isinstance(this_type_attribute, type(global_fact_totals[fos])):
+                                this_type_attribute = this_fact[attribute][
+                                    type_attribute
+                                ]
+                                if isinstance(
+                                    this_type_attribute, type(global_fact_totals[fos])
+                                ):
                                     # dict, do nothing
                                     pass
                                 else:
                                     if attribute in list(
-                                        global_fact_totals[fos][fact].keys()) and type_attribute in list(
-                                        global_fact_totals[fos][fact][attribute].keys()):
-                                        global_fact_totals[fos][fact][attribute][type_attribute] += int(
-                                            this_type_attribute)
+                                        global_fact_totals[fos][fact].keys()
+                                    ) and type_attribute in list(
+                                        global_fact_totals[fos][fact][attribute].keys()
+                                    ):
+                                        global_fact_totals[fos][fact][attribute][
+                                            type_attribute
+                                        ] += int(this_type_attribute)
                                     else:
-                                        global_fact_totals[fos][fact][attribute][type_attribute] = int(
-                                            this_type_attribute)
+                                        global_fact_totals[fos][fact][attribute][
+                                            type_attribute
+                                        ] = int(this_type_attribute)
         # nr_groups+=1
         # status['groups'][group]={}
 
-        if 'total' in group_data:
+        if "total" in group_data:
             nr_groups += 1
-            status['groups'][group]['total'] = group_data['total']
+            status["groups"][group]["total"] = group_data["total"]
 
             for w in list(global_total.keys()):
                 tel = global_total[w]
-                if w not in group_data['total']:
+                if w not in group_data["total"]:
                     continue
                 # status['groups'][group][w]=group_data[w]
-                el = group_data['total'][w]
+                el = group_data["total"][w]
                 if tel is None:
                     # new one, just copy over
                     global_total[w] = {}
                     tel = global_total[w]
                     for a in list(el.keys()):  # coming from XML, everything is a string
-                        tel[a] = int(el[a])  # pylint: disable=unsupported-assignment-operation
+                        tel[a] = int(
+                            el[a]
+                        )  # pylint: disable=unsupported-assignment-operation
                 else:
                     # successive, sum
                     for a in list(el.keys()):
                         if a in tel:  # pylint: disable=unsupported-membership-test
-                            tel[a] += int(el[a])  # pylint: disable=unsupported-assignment-operation
+                            tel[a] += int(
+                                el[a]
+                            )  # pylint: disable=unsupported-assignment-operation
 
                     # if any attribute from prev. factories are not in the current one, remove from total
                     for a in list(tel.keys()):
@@ -369,65 +392,138 @@ def aggregateStatus():
     # Write xml files
 
     updated = time.time()
-    xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
-               '<VOFrontendStats>\n' +
-               xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,
-                                  leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-               xmlFormat.dict2string(status["groups"], dict_name="groups", el_name="group",
-                                     subtypes_params={"class": {"dicts_params": {"factories": {"el_name": "factory",
-                                                                                               "subtypes_params": {
-                                                                                                   "class": {
-                                                                                                       "subclass_params": {
-                                                                                                           "Requested": {
-                                                                                                               "dicts_params": {
-                                                                                                                   "Parameters": {
-                                                                                                                       "el_name": "Parameter",
-                                                                                                                       "subtypes_params": {
-                                                                                                                           "class": {}}}}}}}}},
-                                                                                 "states": {"el_name": "state",
-                                                                                            "subtypes_params": {
-                                                                                                "class": {
-                                                                                                    "subclass_params": {
-                                                                                                        "Requested": {
-                                                                                                            "dicts_params": {
-                                                                                                                "Parameters": {
-                                                                                                                    "el_name": "Parameter",
-                                                                                                                    "subtypes_params": {
-                                                                                                                        "class": {}}}}}}}}}
-                                                                                 }}},
-                                     leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-               xmlFormat.class2string(status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
+    xml_str = (
+        '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'
+        + "<VOFrontendStats>\n"
+        + xmlFormat.time2xml(
+            updated,
+            "updated",
+            indent_tab=xmlFormat.DEFAULT_TAB,
+            leading_tab=xmlFormat.DEFAULT_TAB,
+        )
+        + "\n"
+        + xmlFormat.dict2string(
+            status["groups"],
+            dict_name="groups",
+            el_name="group",
+            subtypes_params={
+                "class": {
+                    "dicts_params": {
+                        "factories": {
+                            "el_name": "factory",
+                            "subtypes_params": {
+                                "class": {
+                                    "subclass_params": {
+                                        "Requested": {
+                                            "dicts_params": {
+                                                "Parameters": {
+                                                    "el_name": "Parameter",
+                                                    "subtypes_params": {"class": {}},
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                        },
+                        "states": {
+                            "el_name": "state",
+                            "subtypes_params": {
+                                "class": {
+                                    "subclass_params": {
+                                        "Requested": {
+                                            "dicts_params": {
+                                                "Parameters": {
+                                                    "el_name": "Parameter",
+                                                    "subtypes_params": {"class": {}},
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                        },
+                    }
+                }
+            },
+            leading_tab=xmlFormat.DEFAULT_TAB,
+        )
+        + "\n"
+        + xmlFormat.class2string(
+            status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB
+        )
+        + "\n"
+        + xmlFormat.dict2string(
+            global_fact_totals["factories"],
+            dict_name="factories",
+            el_name="factory",
+            subtypes_params={
+                "class": {
+                    "subclass_params": {
+                        "Requested": {
+                            "dicts_params": {
+                                "Parameters": {
+                                    "el_name": "Parameter",
+                                    "subtypes_params": {"class": {}},
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            leading_tab=xmlFormat.DEFAULT_TAB,
+        )
+        + "\n"
+        + xmlFormat.dict2string(
+            global_fact_totals["states"],
+            dict_name="states",
+            el_name="state",
+            subtypes_params={
+                "class": {
+                    "subclass_params": {
+                        "Requested": {
+                            "dicts_params": {
+                                "Parameters": {
+                                    "el_name": "Parameter",
+                                    "subtypes_params": {"class": {}},
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            leading_tab=xmlFormat.DEFAULT_TAB,
+        )
+        + "\n"
+        + "</VOFrontendStats>\n"
+    )
 
-               xmlFormat.dict2string(global_fact_totals['factories'], dict_name="factories", el_name="factory",
-                                     subtypes_params={"class": {"subclass_params": {
-                                         "Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter",
-
-                                                                                       "subtypes_params": {
-                                                                                           "class": {}}}}}}}},
-                                     leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-               xmlFormat.dict2string(global_fact_totals['states'], dict_name="states", el_name="state",
-                                     subtypes_params={"class": {"subclass_params": {
-                                         "Requested": {"dicts_params": {"Parameters": {"el_name": "Parameter",
-
-                                                                                       "subtypes_params": {
-                                                                                           "class": {}}}}}}}},
-                                     leading_tab=xmlFormat.DEFAULT_TAB) + "\n" +
-               "</VOFrontendStats>\n")
-
-    glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
+    glideinFrontendMonitoring.monitoringConfig.write_file(
+        monitorAggregatorConfig.status_relname, xml_str
+    )
 
     # Write rrds
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
     write_one_rrd("total/Status_Attributes", updated, global_total, 0)
 
-    for fact in list(global_fact_totals['factories'].keys()):
+    for fact in list(global_fact_totals["factories"].keys()):
         fe_dir = "total/factory_%s" % glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes" % fe_dir, updated, global_fact_totals['factories'][fact], 1)
-    for fact in list(global_fact_totals['states'].keys()):
+        write_one_rrd(
+            "%s/Status_Attributes" % fe_dir,
+            updated,
+            global_fact_totals["factories"][fact],
+            1,
+        )
+    for fact in list(global_fact_totals["states"].keys()):
         fe_dir = "total/state_%s" % glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes" % fe_dir, updated, global_fact_totals['states'][fact], 1)
+        write_one_rrd(
+            "%s/Status_Attributes" % fe_dir,
+            updated,
+            global_fact_totals["states"][fact],
+            1,
+        )
 
     return status

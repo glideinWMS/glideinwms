@@ -23,7 +23,8 @@ from glideinwms.creation.lib import cgWCreate
 
 
 def usage():
-    print("""
+    print(
+        """
 Usage: create_condor_tarball output_filename input_tarfile_or_dir
 
    output_filename - file name of the output tarball created
@@ -42,10 +43,12 @@ Extracts the needed binaries and creates a smaller tarball.
 Refer to the glideinwms documentation:
    WMSfactory -> Configuration -> Multiple HTCondor Tarballs
 for additional information on configuring the factory to use the tarball.
-""")
+"""
+    )
 
 
 ################################################################################
+
 
 def main(argv):
     if len(argv) != 3:
@@ -59,18 +62,23 @@ def main(argv):
     if os.path.isfile(in_dir):
         # this should be a tarfile, not a dir
         # Untar in a tmpdir
-        with tarfile.open(in_dir,"r:gz") as fd:
-            tmpdir = tempfile.mkdtemp("_tmp","condor_",os.path.dirname(out_fname))
+        with tarfile.open(in_dir, "r:gz") as fd:
+            tmpdir = tempfile.mkdtemp("_tmp", "condor_", os.path.dirname(out_fname))
             try:
                 # first create the regular files
                 for f in fd.getmembers():
                     if not f.islnk():
-                        fd.extract(f,tmpdir)
+                        fd.extract(f, tmpdir)
                 # then create the links
                 for f in fd.getmembers():
                     if f.islnk():
-                        os.link(os.path.join(tmpdir, f.linkname), os.path.join(tmpdir, f.name))
-                in_dir = os.path.join(tmpdir, os.listdir(tmpdir)[0])  # there is a condor* subdir there
+                        os.link(
+                            os.path.join(tmpdir, f.linkname),
+                            os.path.join(tmpdir, f.name),
+                        )
+                in_dir = os.path.join(
+                    tmpdir, os.listdir(tmpdir)[0]
+                )  # there is a condor* subdir there
             except:
                 shutil.rmtree(tmpdir)
                 raise
@@ -91,9 +99,10 @@ def main(argv):
             out_fd = open(out_fname, "w")
         except:
             usage()
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            print('\n'.join(tb))
+            tb = traceback.format_exception(
+                sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
+            )
+            print("\n".join(tb))
             sys.exit(3)
 
         delete_at_end = True  # cleanup by default
@@ -122,5 +131,5 @@ def main(argv):
 #
 ############################################################
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

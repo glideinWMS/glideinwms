@@ -23,9 +23,15 @@ def usage():
     print("Usage:")
     print(" glidecondor_createSecCol [-useportasname] [-commonlog] <portrange>")
     print("where:")
-    print("  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)")
-    print("  -commonlog      - If specified, all secondary collectors will share the log file")
-    print("  portrange       - Range of ports used by the secondary collectors to put in the config file (required)")
+    print(
+        "  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)"
+    )
+    print(
+        "  -commonlog      - If specified, all secondary collectors will share the log file"
+    )
+    print(
+        "  portrange       - Range of ports used by the secondary collectors to put in the config file (required)"
+    )
     print("Example:")
     print("  glidecondor_createSecCol 9620-9639")
     return
@@ -33,7 +39,7 @@ def usage():
 
 def get_config_val(attr, fail_if_missing=True):
     try:
-        p = subprocess.Popen(['condor_config_val', attr], stdout=subprocess.PIPE)
+        p = subprocess.Popen(["condor_config_val", attr], stdout=subprocess.PIPE)
     except OSError as e:
         print("Count not find condor_config_val!")
         print("%s\n" % e)
@@ -48,11 +54,11 @@ def get_config_val(attr, fail_if_missing=True):
             return None
 
     res = p.communicate()
-    return res[0].strip('\n')  # only the first line, and no trailing newline
+    return res[0].strip("\n")  # only the first line, and no trailing newline
 
 
 def extract_condor_info():
-    config_dir = get_config_val('LOCAL_CONFIG_DIR')
+    config_dir = get_config_val("LOCAL_CONFIG_DIR")
     return config_dir
 
 
@@ -60,16 +66,18 @@ def add_collector(index, port, config_fd):
     global common_log
 
     if common_log:
-        logname = 'CollectorSecLog'
+        logname = "CollectorSecLog"
     else:
-        logname = 'Collector%iLog' % index
-    fstr = ('%(col)s = $(COLLECTOR)\n' +
-            '%(col)s_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/%(logname)s"\n' +
-            '%(col)s_ARGS = -f -p %(port)s\n' +
-            'DAEMON_LIST=$(DAEMON_LIST), %(col)s\n\n')
-    config_fd.write(fstr % {'col': 'COLLECTOR%i' % index,
-                            'logname': logname,
-                            'port': str(port)})
+        logname = "Collector%iLog" % index
+    fstr = (
+        "%(col)s = $(COLLECTOR)\n"
+        + '%(col)s_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/%(logname)s"\n'
+        + "%(col)s_ARGS = -f -p %(port)s\n"
+        + "DAEMON_LIST=$(DAEMON_LIST), %(col)s\n\n"
+    )
+    config_fd.write(
+        fstr % {"col": "COLLECTOR%i" % index, "logname": logname, "port": str(port)}
+    )
 
 
 def create_config(fname):
@@ -80,14 +88,16 @@ def create_config(fname):
         print("%s" % e)
         sys.exit(2)
     with fd:
-        fd.write("#################################################\n" +
-                 "# Secondary Collectors\n" +
-                 "#################################################\n\n" +
-                 "#\n" +
-                 "# This file has been dynamically generated\n" +
-                 "# and thus may be different than the templates\n" +
-                 "#\n\n" +
-                 "# Define sub-collectors, their ports and their log files\n")
+        fd.write(
+            "#################################################\n"
+            + "# Secondary Collectors\n"
+            + "#################################################\n\n"
+            + "#\n"
+            + "# This file has been dynamically generated\n"
+            + "# and thus may be different than the templates\n"
+            + "#\n\n"
+            + "# Define sub-collectors, their ports and their log files\n"
+        )
 
         # still name collector 0,1,etc.
         i = 0
@@ -108,14 +118,14 @@ def parse_args(args):
         usage()
         sys.exit(1)
 
-    if args[0] == '-h':
+    if args[0] == "-h":
         usage()
         sys.exit(0)
 
     while len(args) > 1:
-        if args[0] == '-commonlog':
+        if args[0] == "-commonlog":
             common_log = True
-        elif args[0] == '-useportasname':
+        elif args[0] == "-useportasname":
             use_port_as_name = True
         else:
             print("Unknown option %s" % args[0])
@@ -124,7 +134,7 @@ def parse_args(args):
         args = args[1:]
 
     port_range_str = args[0]
-    port_range_arr = port_range_str.split('-')
+    port_range_arr = port_range_str.split("-")
     if len(port_range_arr) != 2:
         print("Invalid port range '%s', not a range" % port_range_str)
         usage()
@@ -142,7 +152,7 @@ def parse_args(args):
         usage()
         sys.exit(1)
 
-    collector_ports = range(port_min, port_max+1)
+    collector_ports = range(port_min, port_max + 1)
 
 
 def main(args):
@@ -154,5 +164,5 @@ def main(args):
     create_config(conf_fname)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv[1:])

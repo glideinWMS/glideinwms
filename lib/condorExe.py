@@ -22,6 +22,7 @@ from . import logSupport, subprocessSupport
 
 class CondorExeError(RuntimeError):
     """Base class for condorExe module errors"""
+
     def __init__(self, err_str):
         RuntimeError.__init__(self, err_str)
 
@@ -39,6 +40,7 @@ class ExeError(CondorExeError):
 #
 # Configuration
 #
+
 
 def set_path(new_condor_bin_path, new_condor_sbin_path=None):
     """Set path to condor binaries, if needed
@@ -112,27 +114,31 @@ def generate_bash_script(cmd, environment):
     Returns:
         str: multi-line string with environment, command and eventually the input file
     """
-    script = ['script to reproduce failure:', '-' * 20 + ' begin script ' + '-' * 20, '#!/bin/bash']
+    script = [
+        "script to reproduce failure:",
+        "-" * 20 + " begin script " + "-" * 20,
+        "#!/bin/bash",
+    ]
     # FROM:migration_3_1, 3 lines
     # script = ['script to reproduce failure:']
     # script.append('-' * 20 + ' begin script ' + '-' * 20)
     # script.append('#!/bin/bash')
 
-    script += ['%s=%s' % (k, v) for k, v in environment.items()]
+    script += ["%s=%s" % (k, v) for k, v in environment.items()]
     script.append(cmd)
-    script.append('-'*20 + '  end script  ' + '-'*20)
+    script.append("-" * 20 + "  end script  " + "-" * 20)
     cmd_list = cmd.split()
     if len(cmd_list) > 1:
         last_par = cmd_list[-1]
         if last_par and os.path.isfile(last_par):
-            script.append('-'*20 + '  parameter file: %s  ' % last_par + '-'*20)
+            script.append("-" * 20 + "  parameter file: %s  " % last_par + "-" * 20)
             try:
                 with open(last_par) as f:
                     script += f.read().splitlines()
             except IOError:
                 pass
-            script.append('-'*20 + '  end parameter file ' + '-'*20)
-    return '\n'.join(script)
+            script.append("-" * 20 + "  end parameter file " + "-" * 20)
+    return "\n".join(script)
 
 
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
@@ -154,9 +160,15 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     stdout_data = ""
     try:
         # invoking subprocessSupport.iexe_cmd w/ text=True (default), stdin_data and returned output are str
-        stdout_data = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data, child_env=child_env)
+        stdout_data = subprocessSupport.iexe_cmd(
+            cmd, stdin_data=stdin_data, child_env=child_env
+        )
     except Exception as ex:
-        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdout_data)
+        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (
+            cmd,
+            ex,
+            stdout_data,
+        )
         try:
             logSupport.log.error(msg)
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
@@ -171,12 +183,15 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
 # Module initialization
 #
 
+
 def init1():
     """Set condor_bin_path"""
     global condor_bin_path
     # try using condor commands to find it out
     try:
-        condor_bin_path = iexe_cmd("condor_config_val BIN")[0].strip()  # remove trailing newline
+        condor_bin_path = iexe_cmd("condor_config_val BIN")[
+            0
+        ].strip()  # remove trailing newline
     except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:
@@ -201,8 +216,12 @@ def init1():
                 except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
-                        release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
-                        condor_bin_path = os.path.join(release_def[0].strip().split()[2], "bin")
+                        release_def = iexe_cmd(
+                            'grep "^ *RELEASE_DIR" %s' % condor_config
+                        )
+                        condor_bin_path = os.path.join(
+                            release_def[0].strip().split()[2], "bin"
+                        )
                     except ExeError as e:
                         pass  # don't know what else to try
 
@@ -212,7 +231,9 @@ def init2():
     global condor_sbin_path
     # try using condor commands to find it out
     try:
-        condor_sbin_path = iexe_cmd("condor_config_val SBIN")[0].strip()  # remove trailing newline
+        condor_sbin_path = iexe_cmd("condor_config_val SBIN")[
+            0
+        ].strip()  # remove trailing newline
     except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:
@@ -232,13 +253,17 @@ def init2():
 
                 try:
                     # BIN = <path>
-                    bin_def = iexe_cmd('grep "^ *SBIN" %s'%condor_config)
+                    bin_def = iexe_cmd('grep "^ *SBIN" %s' % condor_config)
                     condor_sbin_path = bin_def[0].strip().split()[2]
                 except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
-                        release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
-                        condor_sbin_path = os.path.join(release_def[0].strip().split()[2], "sbin")
+                        release_def = iexe_cmd(
+                            'grep "^ *RELEASE_DIR" %s' % condor_config
+                        )
+                        condor_sbin_path = os.path.join(
+                            release_def[0].strip().split()[2], "sbin"
+                        )
                     except ExeError as e:
                         pass  # don't know what else to try
 

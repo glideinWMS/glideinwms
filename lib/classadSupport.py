@@ -21,9 +21,9 @@ from . import condorManager, logSupport
 # Generic Classad Structure
 ###############################################################################
 
+
 class Classad(object):
-    """Base class describing a classad.
-    """
+    """Base class describing a classad."""
 
     def __init__(self, adType, advertiseCmd, invalidateCmd):
         """Constructor
@@ -44,9 +44,9 @@ class Classad(object):
         except:
             self.adParams = {}
         """
-        self.adParams['MyType'] = self.adType
-        self.adParams['GlideinMyType'] = self.adType
-        self.adParams['GlideinWMSVersion'] = 'UNKNOWN'
+        self.adParams["MyType"] = self.adType
+        self.adParams["GlideinMyType"] = self.adType
+        self.adParams["GlideinWMSVersion"] = "UNKNOWN"
 
     def update(self, params_dict, prefix=""):
         """Update or Add ClassAd attributes
@@ -58,10 +58,10 @@ class Classad(object):
         for k, v in list(params_dict.items()):
             if isinstance(v, int):
                 # don't quote ints
-                self.adParams['%s%s' % (prefix, k)] = v
+                self.adParams["%s%s" % (prefix, k)] = v
             else:
-                escaped_v = str(v).replace('\n', '\\n')
-                self.adParams['%s%s' % (prefix, k)] = "%s" % escaped_v
+                escaped_v = str(v).replace("\n", "\\n")
+                self.adParams["%s%s" % (prefix, k)] = "%s" % escaped_v
 
     def writeToFile(self, filename, append=True):
         """Write a ClassAd to file, adding a blank line if in append mode to separate the ClassAd
@@ -87,12 +87,11 @@ class Classad(object):
                 # Write empty line when in append mode to be considered a separate classad
                 # Skip at the beginning of the file (HTCondor bug #5147)
                 # (one or more empty lines separate multiple classads on the same file)
-                f.write('\n')
+                f.write("\n")
             f.write("%s" % self)
 
     def __str__(self):
-        """String representation of the classad.
-        """
+        """String representation of the classad."""
 
         ad = ""
 
@@ -100,10 +99,10 @@ class Classad(object):
             if isinstance(value, str) or isinstance(value, str):
                 # Format according to Condor String Literal definition
                 # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
-                classad_value = value.replace('"', r'\"')
+                classad_value = value.replace('"', r"\"")
                 ad += '%s = "%s"\n' % (key, classad_value)
             else:
-                ad += '%s = %s\n' % (key, value)
+                ad += "%s = %s\n" % (key, value)
         return ad
 
 
@@ -111,13 +110,13 @@ class Classad(object):
 # Generic Classad Advertiser
 ###############################################################################
 
+
 class ClassadAdvertiser:
     """
     Base Class to handle the advertisement of classads to condor pools.
     It contains a dictionary of classads keyed by the classad name and
     functions to do advertisement and invalidation of classads
     """
-
 
     def __init__(self, pool=None, multi_support=False, tcp_support=False):
         """
@@ -133,17 +132,16 @@ class ClassadAdvertiser:
         self.classads = {}
         self.pool = pool
         self.multiAdvertiseSupport = multi_support
-        self.multiClassadDelimiter = '\n'
+        self.multiClassadDelimiter = "\n"
         self.tcpAdvertiseSupport = tcp_support
 
         # Following data members should be overridden.
         # Use generic defaults here.
-        self.adType = 'glideclassad'
-        self.adAdvertiseCmd = 'UPDATE_AD_GENERIC'
-        self.adInvalidateCmd = 'INVALIDATE_ADS_GENERIC'
+        self.adType = "glideclassad"
+        self.adAdvertiseCmd = "UPDATE_AD_GENERIC"
+        self.adInvalidateCmd = "INVALIDATE_ADS_GENERIC"
         # gcs_ac = glide-classad-support_advertise-classad
-        self.advertiseFilePrefix = 'gcs_ac'
-
+        self.advertiseFilePrefix = "gcs_ac"
 
     def addClassad(self, name, ad_obj):
         """
@@ -156,7 +154,6 @@ class ClassadAdvertiser:
         """
 
         self.classads[name] = ad_obj
-
 
     def classadToFile(self, ad):
         """
@@ -180,7 +177,6 @@ class ClassadAdvertiser:
 
         return fname
 
-
     def classadsToFile(self, ads):
         """
         Write multiple classads to a file and return the filename.
@@ -198,7 +194,7 @@ class ClassadAdvertiser:
         try:
             with open(fname, "w") as fd:
                 for ad in ads:
-                    fd.write('%s' % self.classads[ad])
+                    fd.write("%s" % self.classads[ad])
                     # Condor uses an empty line as classad delimiter
                     # Append an empty line for advertising multiple classads
                     fd.write(self.multiClassadDelimiter)
@@ -207,7 +203,6 @@ class ClassadAdvertiser:
             return ""
 
         return fname
-
 
     def doAdvertise(self, fname):
         """
@@ -219,14 +214,17 @@ class ClassadAdvertiser:
 
         if (fname) and (fname != ""):
             try:
-                exe_condor_advertise(fname, self.adAdvertiseCmd, self.pool,
-                                     is_multi=self.multiAdvertiseSupport,
-                                     use_tcp=self.tcpAdvertiseSupport)
+                exe_condor_advertise(
+                    fname,
+                    self.adAdvertiseCmd,
+                    self.pool,
+                    is_multi=self.multiAdvertiseSupport,
+                    use_tcp=self.tcpAdvertiseSupport,
+                )
             finally:
                 os.remove(fname)
         else:
-            raise RuntimeError('Failed advertising %s classads' % self.adType)
-
+            raise RuntimeError("Failed advertising %s classads" % self.adType)
 
     def advertiseClassads(self, ads=None):
         """
@@ -236,7 +234,7 @@ class ClassadAdvertiser:
         @param ads: classad names to advertise
         """
 
-        if (ads is None) or (len(ads) == 0) :
+        if (ads is None) or (len(ads) == 0):
             logSupport.log.info("There are 0 classads to advertise")
             return
 
@@ -251,7 +249,6 @@ class ClassadAdvertiser:
             for ad in ads:
                 self.advertiseClassad(ad)
 
-
     def advertiseClassad(self, ad):
         """
         Advertise the classad to the pool
@@ -263,14 +260,12 @@ class ClassadAdvertiser:
         fname = self.classadToFile(ad)
         self.doAdvertise(fname)
 
-
     def advertiseAllClassads(self):
         """
         Advertise all the known classads to the pool
         """
 
         self.advertiseClassads(list(self.classads.keys()))
-
 
     def invalidateClassad(self, ad):
         """
@@ -282,7 +277,6 @@ class ClassadAdvertiser:
 
         self.invalidateConstrainedClassads('Name == "%s"' % ad)
 
-
     def invalidateAllClassads(self):
         """
         Invalidate all the known classads
@@ -290,7 +284,6 @@ class ClassadAdvertiser:
 
         for ad in list(self.classads.keys()):
             self.invalidateClassad(ad)
-
 
     def invalidateConstrainedClassads(self, constraint):
         """
@@ -305,17 +298,20 @@ class ClassadAdvertiser:
             with open(fname, "w") as fd:
                 fd.write('MyType = "Query"\n')
                 fd.write('TargetType = "%s"\n' % self.adType)
-                fd.write('Requirements = %s' % constraint)
+                fd.write("Requirements = %s" % constraint)
 
-            exe_condor_advertise(fname, self.adInvalidateCmd, self.pool,
-                                 is_multi=self.multiAdvertiseSupport,
-                                 use_tcp=self.tcpAdvertiseSupport)
+            exe_condor_advertise(
+                fname,
+                self.adInvalidateCmd,
+                self.pool,
+                is_multi=self.multiAdvertiseSupport,
+                use_tcp=self.tcpAdvertiseSupport,
+            )
         finally:
             if fd:
                 os.remove(fname)
             else:
                 logSupport.log.error("Error creating a classad file %s" % fname)
-
 
     def getAllClassads(self):
         """
@@ -330,7 +326,6 @@ class ClassadAdvertiser:
         for ad in list(self.classads.keys()):
             ads = "%s%s\n" % (ads, self.classads[ad])
         return ads
-
 
     def getUniqClassadFilename(self):
         """
@@ -347,7 +342,8 @@ class ClassadAdvertiser:
 # Generic Utility Functions used with classads
 ###############################################################################
 
-def generate_classad_filename(prefix='gwms_classad'):
+
+def generate_classad_filename(prefix="gwms_classad"):
     """
     Return a uniq file name for advertising/invalidating classads
 
@@ -364,19 +360,20 @@ def generate_classad_filename(prefix='gwms_classad'):
 
     return fname
 
+
 ############################################################
 #
 # I N T E R N A L - Do not use
 #
 ############################################################
 
+
 def exe_condor_advertise(fname, command, pool, is_multi=False, use_tcp=False):
     """
     Wrapper to execute condorAdvertise from the condorManager
     """
 
-    logSupport.log.debug("CONDOR ADVERTISE %s %s %s %s %s" % (fname, command,
-                                                              pool, is_multi,
-                                                              use_tcp))
-    return condorManager.condorAdvertise(fname, command, use_tcp,
-                                         is_multi, pool)
+    logSupport.log.debug(
+        "CONDOR ADVERTISE %s %s %s %s %s" % (fname, command, pool, is_multi, use_tcp)
+    )
+    return condorManager.condorAdvertise(fname, command, use_tcp, is_multi, pool)

@@ -40,8 +40,8 @@ class TestCleanupSupport(unittest.TestCase):
         logSupport.log = FakeLogger()
         self.num_cleanup_files_wanted = 10
         self.num_noncleanup_files_wanted = 5
-        self.cleanup_extension = '.cleanup'
-        self.keep_extension = '.dont_cleanup'
+        self.cleanup_extension = ".cleanup"
+        self.keep_extension = ".dont_cleanup"
 
         # mkdir tempdir
         self.cleanup_dir = tempfile.mkdtemp()
@@ -68,9 +68,7 @@ class TestCleanupSupport(unittest.TestCase):
         """
         files_created = 0
         while not files_created == number_of_files:
-            path = create_temp_file(
-                file_suffix=suffix,
-                file_dir=self.cleanup_dir)
+            path = create_temp_file(file_suffix=suffix, file_dir=self.cleanup_dir)
             files_created += 1
             self.assertTrue(len(path) > 0)
 
@@ -79,18 +77,14 @@ class TestCleanupSupport(unittest.TestCase):
         Call the create_files function with the appropriate suffix to denote
         files that should be cleaned up.
         """
-        self.create_files(
-            self.num_cleanup_files_wanted,
-            self.cleanup_extension)
+        self.create_files(self.num_cleanup_files_wanted, self.cleanup_extension)
 
     def create_noncleanup_tempfiles(self):
         """
         Call the create_files function with the appropriate suffix to denote
         files that should not be cleaned up.
         """
-        self.create_files(
-            self.num_noncleanup_files_wanted,
-            self.keep_extension)
+        self.create_files(self.num_noncleanup_files_wanted, self.keep_extension)
 
     def check_for_cleanup_files(self):
         """
@@ -101,8 +95,8 @@ class TestCleanupSupport(unittest.TestCase):
         """
         files = os.listdir(self.cleanup_dir)
         files = [
-            filename for filename in files if filename.endswith(
-                self.cleanup_extension)]
+            filename for filename in files if filename.endswith(self.cleanup_extension)
+        ]
         return len(files)
 
     def check_for_noncleanup_files(self):
@@ -114,8 +108,8 @@ class TestCleanupSupport(unittest.TestCase):
         """
         files = os.listdir(self.cleanup_dir)
         files = [
-            filename for filename in files if filename.endswith(
-                self.keep_extension)]
+            filename for filename in files if filename.endswith(self.keep_extension)
+        ]
         return len(files)
 
     def test_DirCleanupWSpace(self):
@@ -126,19 +120,24 @@ class TestCleanupSupport(unittest.TestCase):
         the other files created.  Fail if any were deleted.
         """
         cleaner = cleanupSupport.DirCleanupWSpace(
-            self.cleanup_dir, ".*\%s" %
-            self.cleanup_extension, 0, 0, 0)
+            self.cleanup_dir, ".*\%s" % self.cleanup_extension, 0, 0, 0
+        )
         cleaner.cleanup()
         num_cleanup_files_left = self.check_for_cleanup_files()
         num_noncleanup_files_left = self.check_for_noncleanup_files()
-        self.assertEqual(num_cleanup_files_left, 0,
-                         "The cleaner left %s files that should have been deleted." % str(num_cleanup_files_left))
-        self.assertEqual(num_noncleanup_files_left, self.num_noncleanup_files_wanted,
-                         "The cleaner deleted %s files that should not have been deleted." %
-                         str(self.num_noncleanup_files_wanted - num_cleanup_files_left))
+        self.assertEqual(
+            num_cleanup_files_left,
+            0,
+            "The cleaner left %s files that should have been deleted."
+            % str(num_cleanup_files_left),
+        )
+        self.assertEqual(
+            num_noncleanup_files_left,
+            self.num_noncleanup_files_wanted,
+            "The cleaner deleted %s files that should not have been deleted."
+            % str(self.num_noncleanup_files_wanted - num_cleanup_files_left),
+        )
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

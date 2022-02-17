@@ -67,27 +67,32 @@ import mock
 # from glideinwms.factory.glideFactoryLib import in_submit_environment
 # from glideinwms.factory.glideFactoryLib import get_submit_environment
 # from glideinwms.factory.glideFactoryLib import isGlideinWithinHeldLimits
-from glideinwms.factory.glideFactoryLib import (FactoryConfig, days2sec,
-                                                env_list2dict,
-                                                getCondorQCredentialList,
-                                                getCondorQData,
-                                                getCondorStatusData,
-                                                getQCredentials,
-                                                getQProxSecClass, getQStatus,
-                                                getQStatusSF, getQStatusStale,
-                                                hrs2sec, is_str_safe,
-                                                isGlideinUnrecoverable,
-                                                secClass2Name,
-                                                set_condor_integrity_checks,
-                                                which)
+from glideinwms.factory.glideFactoryLib import (
+    FactoryConfig,
+    days2sec,
+    env_list2dict,
+    getCondorQCredentialList,
+    getCondorQData,
+    getCondorStatusData,
+    getQCredentials,
+    getQProxSecClass,
+    getQStatus,
+    getQStatusSF,
+    getQStatusStale,
+    hrs2sec,
+    is_str_safe,
+    isGlideinUnrecoverable,
+    secClass2Name,
+    set_condor_integrity_checks,
+    which,
+)
 from glideinwms.unittests.unittest_utils import FakeLogger
 
 
 class TestFactoryConfig(unittest.TestCase):
-
     def setUp(self):
         self.cwd = os.getcwd()
-        os.chdir('fixtures/factory/work-dir')
+        os.chdir("fixtures/factory/work-dir")
         self.cnf = FactoryConfig()
         self.gf_cnf = glideinwms.factory.glideFactoryConfig.FactoryConfig()
         os.chdir(self.cwd)
@@ -96,11 +101,11 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertTrue(isinstance(self.cnf, FactoryConfig))
 
     def test_config_whoamI_(self):
-        self.cnf.config_whoamI('my_factory', 'my_glidein')
-        self.assertEqual(self.cnf.factory_name, 'my_factory')
-        self.assertEqual(self.cnf.glidein_name, 'my_glidein')
+        self.cnf.config_whoamI("my_factory", "my_glidein")
+        self.assertEqual(self.cnf.factory_name, "my_factory")
+        self.assertEqual(self.cnf.glidein_name, "my_glidein")
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_get_condor_q_credential_list(self):
         glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
         glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
@@ -108,13 +113,14 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual([], crdl)
 
     def test_config_dirs(self):
-        submit_dir = 'submit_dir'
-        log_base_dir = 'log_base_dir'
-        client_log_base_dir = 'client_log_base_dir'
-        client_proxies_base_dir = 'client_proxies_base_dir'
-        self.cnf.config_dirs(submit_dir, log_base_dir,
-                             client_log_base_dir, client_proxies_base_dir)
-        self.assertEqual(self.cnf.submit_dir, 'submit_dir')
+        submit_dir = "submit_dir"
+        log_base_dir = "log_base_dir"
+        client_log_base_dir = "client_log_base_dir"
+        client_proxies_base_dir = "client_proxies_base_dir"
+        self.cnf.config_dirs(
+            submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir
+        )
+        self.assertEqual(self.cnf.submit_dir, "submit_dir")
 
     def test_config_remove_freq(self):
         sleepBetweenRemoves = 10
@@ -131,54 +137,56 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual(self.cnf.max_submits, 10)
 
     def test_config_whoamI(self):
-        factory_name = 'factory_name'
-        glidein_name = 'glidein_name'
+        factory_name = "factory_name"
+        glidein_name = "glidein_name"
         self.cnf.config_whoamI(factory_name, glidein_name)
         self.assertEqual(self.cnf.factory_name, factory_name)
         self.assertEqual(self.cnf.glidein_name, glidein_name)
 
     def test_get_client_log_dir(self):
-        entry_name = 'entry_name'
-        username = 'username'
-        submit_dir = 'submit_dir'
-        log_base_dir = 'log_base_dir'
-        client_log_base_dir = 'client_log_base_dir'
-        client_proxies_base_dir = 'client_proxies_base_dir'
-        self.cnf.config_dirs(submit_dir, log_base_dir,
-                             client_log_base_dir, client_proxies_base_dir)
-        factory_name = 'factory_name'
-        glidein_name = 'glidein_name'
+        entry_name = "entry_name"
+        username = "username"
+        submit_dir = "submit_dir"
+        log_base_dir = "log_base_dir"
+        client_log_base_dir = "client_log_base_dir"
+        client_proxies_base_dir = "client_proxies_base_dir"
+        self.cnf.config_dirs(
+            submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir
+        )
+        factory_name = "factory_name"
+        glidein_name = "glidein_name"
         self.cnf.config_whoamI(factory_name, glidein_name)
 
         cldr = self.cnf.get_client_log_dir(entry_name, username)
-        expected = 'client_log_base_dir/user_username/'
-        expected += 'glidein_glidein_name/entry_entry_name'
+        expected = "client_log_base_dir/user_username/"
+        expected += "glidein_glidein_name/entry_entry_name"
         self.assertEqual(expected, cldr)
 
     def test_get_client_proxies_dir(self):
-        entry_name = 'entry_name'
-        username = 'username'
-        submit_dir = 'submit_dir'
-        log_base_dir = 'log_base_dir'
-        client_log_base_dir = 'client_log_base_dir'
-        client_proxies_base_dir = 'client_proxies_base_dir'
-        self.cnf.config_dirs(submit_dir, log_base_dir,
-                             client_log_base_dir, client_proxies_base_dir)
-        factory_name = 'factory_name'
-        glidein_name = 'glidein_name'
+        entry_name = "entry_name"
+        username = "username"
+        submit_dir = "submit_dir"
+        log_base_dir = "log_base_dir"
+        client_log_base_dir = "client_log_base_dir"
+        client_proxies_base_dir = "client_proxies_base_dir"
+        self.cnf.config_dirs(
+            submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir
+        )
+        factory_name = "factory_name"
+        glidein_name = "glidein_name"
         self.cnf.config_whoamI(factory_name, glidein_name)
 
         cldr = self.cnf.get_client_proxies_dir(username)
-        expected = 'client_proxies_base_dir/user_username/glidein_glidein_name'
+        expected = "client_proxies_base_dir/user_username/glidein_glidein_name"
         self.assertEqual(expected, cldr)
 
     def test_sec_class2_name(self):
-        self.assertEqual('foo_bar', secClass2Name('foo', 'bar'))
+        self.assertEqual("foo_bar", secClass2Name("foo", "bar"))
 
     def test_get_condor_q_data(self):
-        entry_name = 'entry_name'
-        client_name = 'client_name'
-        schedd_name = 'sched_name'
+        entry_name = "entry_name"
+        client_name = "client_name"
+        schedd_name = "sched_name"
         glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
         glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
         glideinwms.factory.glideFactoryLib.condorMonitor.CondorQ = mock.Mock()
@@ -193,23 +201,24 @@ class TestFactoryConfig(unittest.TestCase):
         glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
         glideinwms.factory.glideFactoryLib.condorMonitor.SubQuery = mock.Mock()
         condorq = mock.Mock()
-        schedd_name = 'schedd_name'
+        schedd_name = "schedd_name"
         condorq.schedd_name = schedd_name
-        factory_name = 'factory_name'
+        factory_name = "factory_name"
         condorq.factory_name = factory_name
-        glidein_name = 'glidein_name'
+        glidein_name = "glidein_name"
         condorq.glidein_name = glidein_name
-        entry_name = 'entry_name'
+        entry_name = "entry_name"
         condorq.entry_name = entry_name
-        client_name = 'client_name'
+        client_name = "client_name"
         condorq.client_name = client_name
         creds = mock.Mock()
-        client_sa = 'fake'
-        cred_secclass_sa = 'fake'
-        cred_id_sa = 'fake'
+        client_sa = "fake"
+        cred_secclass_sa = "fake"
+        cred_id_sa = "fake"
 
-        crd = getQCredentials(condorq, client_name,
-                              creds, client_sa, cred_secclass_sa, cred_id_sa)
+        crd = getQCredentials(
+            condorq, client_name, creds, client_sa, cred_secclass_sa, cred_id_sa
+        )
         self.assertEqual(crd.schedd_name, condorq.schedd_name)
         self.assertEqual(crd.factory_name, condorq.factory_name)
         self.assertEqual(crd.glidein_name, condorq.glidein_name)
@@ -221,23 +230,28 @@ class TestFactoryConfig(unittest.TestCase):
         glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
         glideinwms.factory.glideFactoryLib.condorMonitor.SubQuery = mock.Mock()
         condorq = mock.Mock()
-        schedd_name = 'schedd_name'
+        schedd_name = "schedd_name"
         condorq.schedd_name = schedd_name
-        factory_name = 'factory_name'
+        factory_name = "factory_name"
         condorq.factory_name = factory_name
-        glidein_name = 'glidein_name'
+        glidein_name = "glidein_name"
         condorq.glidein_name = glidein_name
-        entry_name = 'entry_name'
+        entry_name = "entry_name"
         condorq.entry_name = entry_name
-        client_name = 'client_name'
+        client_name = "client_name"
         condorq.client_name = client_name
-        proxy_security_class = 'fake'
-        credential_secclass_schedd_attribute = 'fake'
-        client_schedd_attribute = 'fake'
+        proxy_security_class = "fake"
+        credential_secclass_schedd_attribute = "fake"
+        client_schedd_attribute = "fake"
 
-        crd = getQProxSecClass(condorq, client_name, proxy_security_class,
-                               client_schedd_attribute,
-                               credential_secclass_schedd_attribute, self.cnf)
+        crd = getQProxSecClass(
+            condorq,
+            client_name,
+            proxy_security_class,
+            client_schedd_attribute,
+            credential_secclass_schedd_attribute,
+            self.cnf,
+        )
         self.assertEqual(crd.schedd_name, condorq.schedd_name)
         self.assertEqual(crd.factory_name, condorq.factory_name)
         self.assertEqual(crd.glidein_name, condorq.glidein_name)
@@ -268,8 +282,8 @@ class TestFactoryConfig(unittest.TestCase):
         condorq = mock.Mock()
         glideinwms.factory.glideFactoryLib.condorMonitor.CondorStatus = condorq
 
-        entry_name = 'entry_name'
-        client_name = 'client_name'
+        entry_name = "entry_name"
+        client_name = "client_name"
 
         crd = getCondorStatusData(entry_name, client_name)
 
@@ -279,18 +293,18 @@ class TestFactoryConfig(unittest.TestCase):
         self.assertEqual(crd.client_name, client_name)
 
     def test_is_str_safe(self):
-        s1 = '//\\'
+        s1 = "//\\"
         self.assertFalse(is_str_safe(s1))
-        s2 = 'lalalala'
+        s2 = "lalalala"
         self.assertTrue(is_str_safe(s2))
 
     def test_env_list2dict(self):
 
-        env = ['a=b', 'c=d']
-        expected = {'a': 'b', 'c': 'd'}
+        env = ["a=b", "c=d"]
+        expected = {"a": "b", "c": "d"}
         self.assertEqual(expected, env_list2dict(env))
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_update_x509_proxy_file(self):
         # glideinwms.factory.glideFactoryLib.logSupport.log = FakeLogger()
         # glideinwms.factory.glideFactoryLib.condorMonitor = mock.Mock()
@@ -304,7 +318,7 @@ class TestFactoryConfig(unittest.TestCase):
 
 
 class TestClientWeb(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test___init__(self):
         # client_web = ClientWeb(
         #     client_web_url,
@@ -318,7 +332,7 @@ class TestClientWeb(unittest.TestCase):
         #     factoryConfig)
         assert False  # TODO: implement your test here
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_get_glidein_args(self):
         # client_web = ClientWeb(
         #     client_web_url,
@@ -335,7 +349,7 @@ class TestClientWeb(unittest.TestCase):
 
 
 class TestKeepIdleGlideins(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_keep_idle_glideins(self):
         # self.assertEqual(
         #     expected,
@@ -357,7 +371,7 @@ class TestKeepIdleGlideins(unittest.TestCase):
 
 
 class TestCleanGlideinQueue(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_clean_glidein_queue(self):
         # self.assertEqual(
         #     expected,
@@ -374,7 +388,7 @@ class TestCleanGlideinQueue(unittest.TestCase):
 
 
 class TestSanitizeGlideins(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_sanitize_glideins(self):
         #  self.assertEqual(
         #      expected, sanitizeGlideins(
@@ -383,7 +397,7 @@ class TestSanitizeGlideins(unittest.TestCase):
 
 
 class TestLogStats(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_log_stats(self):
         # self.assertEqual(
         #     expected,
@@ -398,7 +412,7 @@ class TestLogStats(unittest.TestCase):
 
 
 class TestLogWorkRequest(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_log_work_request(self):
         # self.assertEqual(
         #      expected,
@@ -416,49 +430,49 @@ class TestLogWorkRequest(unittest.TestCase):
 
 
 class TestGetStatusGlideidx(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_get_status_glideidx(self):
         # self.assertEqual(expected, get_status_glideidx(el))
         assert False  # TODO: implement your test here
 
 
 class TestHashStatus(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_hash_status(self):
         # self.assertEqual(expected, hash_status(el))
         assert False  # TODO: implement your test here
 
 
 class TestSumIdleCount(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_sum_idle_count(self):
         # self.assertEqual(expected, sum_idle_count(qc_status))
         assert False  # TODO: implement your test here
 
 
 class TestHashStatusStale(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_hash_status_stale(self):
         # self.assertEqual(expected, hash_statusStale(el))
         assert False  # TODO: implement your test here
 
 
 class TestDiffList(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_diff_list(self):
         # self.assertEqual(expected, diffList(base_list, subtract_list))
         assert False  # TODO: implement your test here
 
 
 class TestExtractStaleSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_stale_simple(self):
         # self.assertEqual(expected, extractStaleSimple(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractUnrecoverableHeldSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_unrecoverable_held_simple(self):
         # self.assertEqual(
         #     expected, extractUnrecoverableHeldSimple(
@@ -467,7 +481,7 @@ class TestExtractUnrecoverableHeldSimple(unittest.TestCase):
 
 
 class TestExtractUnrecoverableHeldForceX(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_unrecoverable_held_force_x(self):
         # self.assertEqual(
         #     expected, extractUnrecoverableHeldForceX(
@@ -476,7 +490,7 @@ class TestExtractUnrecoverableHeldForceX(unittest.TestCase):
 
 
 class TestExtractRecoverableHeldSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_recoverable_held_simple(self):
         # self.assertEqual(
         #     expected, extractRecoverableHeldSimple(
@@ -485,7 +499,7 @@ class TestExtractRecoverableHeldSimple(unittest.TestCase):
 
 
 class TestExtractRecoverableHeldSimpleWithinLimits(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_recoverable_held_simple_within_limits(self):
         # self.assertEqual(
         #     expected,
@@ -496,84 +510,84 @@ class TestExtractRecoverableHeldSimpleWithinLimits(unittest.TestCase):
 
 
 class TestExtractHeldSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_held_simple(self):
         # self.assertEqual(expected, extractHeldSimple(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractIdleSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_idle_simple(self):
-        #self.assertEqual(expected, extractIdleSimple(q, factoryConfig))
+        # self.assertEqual(expected, extractIdleSimple(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractIdleUnsubmitted(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_idle_unsubmitted(self):
         # self.assertEqual(expected, extractIdleUnsubmitted(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractIdleQueued(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_idle_queued(self):
         # self.assertEqual(expected, extractIdleQueued(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractNonRunSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_non_run_simple(self):
         # self.assertEqual(expected, extractNonRunSimple(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractRunSimple(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_run_simple(self):
         # self.assertEqual(expected, extractRunSimple(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestExtractRunStale(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_run_stale(self):
         # self.assertEqual(expected, extractRunStale(q, factoryConfig))
         assert False  # TODO: implement your test here
 
 
 class TestGroupUnclaimed(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_group_unclaimed(self):
         # self.assertEqual(expected, group_unclaimed(el_list))
         assert False  # TODO: implement your test here
 
 
 class TestScheddName2str(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_schedd_name2str(self):
         # self.assertEqual(expected, schedd_name2str(schedd_name))
         assert False  # TODO: implement your test here
 
 
 class TestExtractJobId(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_extract_job_id(self):
         # self.assertEqual(expected, extractJobId(submit_out))
         assert False  # TODO: implement your test here
 
 
 class TestEscapeParam(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_escape_param(self):
         # self.assertEqual(expected, escapeParam(param_str))
         assert False  # TODO: implement your test here
 
 
 class TestExecuteSubmit(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_execute_submit(self):
         # self.assertEqual(
         #     expected,
@@ -588,7 +602,7 @@ class TestExecuteSubmit(unittest.TestCase):
 
 
 class TestPickSubmitFile(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_pick_submit_file(self):
         # self.assertEqual(
         #     expected,
@@ -601,7 +615,7 @@ class TestPickSubmitFile(unittest.TestCase):
 
 
 class TestSubmitGlideins(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_submit_glideins(self):
         # self.assertEqual(
         #     expected,
@@ -622,7 +636,7 @@ class TestSubmitGlideins(unittest.TestCase):
 
 
 class TestRemoveGlideins(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_remove_glideins(self):
         # self.assertEqual(
         #     expected,
@@ -637,7 +651,7 @@ class TestRemoveGlideins(unittest.TestCase):
 
 
 class TestReleaseGlideins(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_release_glideins(self):
         # self.assertEqual(
         #     expected,
@@ -651,7 +665,7 @@ class TestReleaseGlideins(unittest.TestCase):
 
 
 class TestInSubmitEnvironment(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_in_submit_environment(self):
         # self.assertEqual(expected, in_submit_environment(entry_name, exe_env))
         # assert False # TODO: implement your test here
@@ -659,7 +673,7 @@ class TestInSubmitEnvironment(unittest.TestCase):
 
 
 class TestGetSubmitEnvironment(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_get_submit_environment(self):
         # self.assertEqual(
         #     expected,
@@ -677,7 +691,7 @@ class TestGetSubmitEnvironment(unittest.TestCase):
 
 
 class TestIsGlideinWithinHeldLimits(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_is_glidein_within_held_limits(self):
         # self.assertEqual(
         #     expected, isGlideinWithinHeldLimits(
@@ -690,48 +704,68 @@ class TestIsGlideinUnrecoverable(unittest.TestCase):
     def test_is_glidein_unrecoverable(self):
         class FactoryConfigMock:
             max_release_count = 20
+
         class GlideinDescriptMock:
-            data = {'RecoverableExitcodes' : '24,36 7 8'}
+            data = {"RecoverableExitcodes": "24,36 7 8"}
+
         # Do not crash if jobInfo is empy
         jobInfo = {}
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertTrue(res)
         # 7 is not a recoverable code
-        jobInfo = { 'HoldReasonCode' : 7 }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": 7}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertTrue(res)
         # Should also work if 7 is passed as string
-        jobInfo = { 'HoldReasonCode' : '7' }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": "7"}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertTrue(res)
         # now 24 is a recoverable code
-        jobInfo = { 'HoldReasonCode' : 24 }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": 24}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertFalse(res)
         # Try it as a string as well
-        jobInfo = { 'HoldReasonCode' : '24' }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": "24"}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertFalse(res)
         # Non integer values are ignored
-        jobInfo = { 'HoldReasonCode' : 'aaa24' }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": "aaa24"}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertTrue(res)
         # 36 without subcode is unrecoverable
-        jobInfo = { 'HoldReasonCode' : 36 }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": 36}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertTrue(res)
         # 36 with subcode 7 is recoverable
-        jobInfo = { 'HoldReasonCode' : 36 , 'HoldReasonSubCode' : 7 }
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        jobInfo = {"HoldReasonCode": 36, "HoldReasonSubCode": 7}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertFalse(res)
         # test what happens with an empty string
-        GlideinDescriptMock.data = {'RecoverableExitcodes' : ''}
-        res = isGlideinUnrecoverable(jobInfo, FactoryConfigMock(), GlideinDescriptMock())
+        GlideinDescriptMock.data = {"RecoverableExitcodes": ""}
+        res = isGlideinUnrecoverable(
+            jobInfo, FactoryConfigMock(), GlideinDescriptMock()
+        )
         self.assertTrue(res)
 
 
 class TestIsGlideinHeldNTimes(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_is_glidein_held_n_times(self):
         # self.assertEqual(
         #     expected, isGlideinHeldNTimes(
@@ -741,7 +775,7 @@ class TestIsGlideinHeldNTimes(unittest.TestCase):
 
 
 class TestGlideinTotals(unittest.TestCase):
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test___init__(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -752,7 +786,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test___str__(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -764,7 +798,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_add_idle_glideins(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -780,7 +814,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_can_add_idle_glideins(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -798,7 +832,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_get_max_held(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -810,7 +844,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_has_entry_exceeded_max_glideins(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -824,7 +858,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_has_entry_exceeded_max_held(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -838,7 +872,7 @@ class TestGlideinTotals(unittest.TestCase):
         # assert False # TODO: implement your test here
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_has_entry_exceeded_max_idle(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -851,7 +885,7 @@ class TestGlideinTotals(unittest.TestCase):
         #     glidein_totals.has_entry_exceeded_max_idle())
         assert False
 
-    @unittest.skip('for now')
+    @unittest.skip("for now")
     def test_has_sec_class_exceeded_max_held(self):
         # glidein_totals = GlideinTotals(
         #     entry_name,
@@ -868,15 +902,13 @@ class TestGlideinTotals(unittest.TestCase):
 class TestSetCondorIntegrityChecks(unittest.TestCase):
     def test_set_condor_integrity_checks(self):
         set_condor_integrity_checks()
-        self.assertEqual(
-            os.environ['_CONDOR_SEC_DEFAULT_INTEGRITY'],
-            'REQUIRED')
+        self.assertEqual(os.environ["_CONDOR_SEC_DEFAULT_INTEGRITY"], "REQUIRED")
 
 
 class TestWhich(unittest.TestCase):
     def test_which(self):
-        lsloc = which('ls')
-        self.assertTrue('/bin/ls' in lsloc)
+        lsloc = which("ls")
+        self.assertTrue("/bin/ls" in lsloc)
 
 
 class TestDays2sec(unittest.TestCase):
@@ -889,7 +921,5 @@ class TestHrs2sec(unittest.TestCase):
         self.assertEqual(7200, hrs2sec(2))
 
 
-if __name__ == '__main__':
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(
-            output='unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output="unittests-reports"))

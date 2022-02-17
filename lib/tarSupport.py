@@ -123,6 +123,7 @@ class GlideinTar:
             invalid compression type has been passed in
         """
         from io import BytesIO
+
         tar_mode = "w:%s" % compression
         file_out = BytesIO()
         # TODO #23166: Use context managers[with statement] when python 3

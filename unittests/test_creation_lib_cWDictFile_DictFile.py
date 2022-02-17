@@ -15,16 +15,13 @@ Project:
 """
 
 
-
-
 import copy
 import os
 import unittest
 
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import (TestImportError,
-                                                 create_temp_file)
+from glideinwms.unittests.unittest_utils import TestImportError, create_temp_file
 
 try:
     from glideinwms.creation.lib.cWDictFile import DictFile
@@ -39,15 +36,18 @@ class TestDictFile(unittest.TestCase):
     """
 
     def test___getitem__(self):
-        self.assertEqual("'True'",
-                         self.dict_file.__getitem__('GLIDEIN_Expose_Grid_Env'))
+        self.assertEqual(
+            "'True'", self.dict_file.__getitem__("GLIDEIN_Expose_Grid_Env")
+        )
 
     def setUp(self):
-        self.dict_file = DictFile(dir="fixtures/frontend",
-                                  fname="attrs.cfg",
-                                  sort_keys=True,
-                                  order_matters=None,
-                                  fname_idx=None)
+        self.dict_file = DictFile(
+            dir="fixtures/frontend",
+            fname="attrs.cfg",
+            sort_keys=True,
+            order_matters=None,
+            fname_idx=None,
+        )
         self.dict_file.load()
 
     def test___init__(self):
@@ -55,17 +55,22 @@ class TestDictFile(unittest.TestCase):
 
     def test_bad_init(self):
         try:
-            df = DictFile(dir="fixtures/frontend",
-                          fname="attrs.cfg",
-                          sort_keys=True,
-                          order_matters=True,
-                          fname_idx=None)
-            self.assertTrue(False, "DictFile init succeeded with " +
-                            "sort_keys=True and order_matters=True")
+            df = DictFile(
+                dir="fixtures/frontend",
+                fname="attrs.cfg",
+                sort_keys=True,
+                order_matters=True,
+                fname_idx=None,
+            )
+            self.assertTrue(
+                False,
+                "DictFile init succeeded with "
+                + "sort_keys=True and order_matters=True",
+            )
         except RuntimeError:
-            self.assertTrue(True,
-                            "Raised exception when " +
-                            "sort_keys=True and order_matters=True")
+            self.assertTrue(
+                True, "Raised exception when " + "sort_keys=True and order_matters=True"
+            )
 
     def test_add(self):
         self.dict_file.add("foo", "bar", allow_overwrite=True)
@@ -76,9 +81,10 @@ class TestDictFile(unittest.TestCase):
             self.dict_file.add("foo", "baz", allow_overwrite=False)
             assert False
         except RuntimeError:
-            self.assertTrue(True,
-                            "Raised exception when " +
-                            "overwriting when allow_overwrite=False")
+            self.assertTrue(
+                True,
+                "Raised exception when " + "overwriting when allow_overwrite=False",
+            )
             return
         assert False
 
@@ -92,16 +98,18 @@ class TestDictFile(unittest.TestCase):
 
     def test_file_header(self):
         self.assertEqual(None, self.dict_file.file_header(want_comments=False))
-        self.assertEqual('# File: %s\n#' % self.dict_file.fname,
-                         self.dict_file.file_header(want_comments=True))
+        self.assertEqual(
+            "# File: %s\n#" % self.dict_file.fname,
+            self.dict_file.file_header(want_comments=True),
+        )
 
     def test_format_val(self):
-        key = 'GLIDEIN_Expose_Grid_Env'
+        key = "GLIDEIN_Expose_Grid_Env"
         expected = "%s \t%s" % (key, "'True'")
         self.assertEqual(expected, self.dict_file.format_val(key, False))
 
     def test_get_dir(self):
-        expected = 'fixtures/frontend'
+        expected = "fixtures/frontend"
         self.assertEqual(expected, self.dict_file.get_dir())
 
     def test_get_filepath(self):
@@ -113,13 +121,13 @@ class TestDictFile(unittest.TestCase):
 
     def test_has_key(self):
         expected = True
-        key = 'GLIDEIN_Expose_Grid_Env'
+        key = "GLIDEIN_Expose_Grid_Env"
         # TODO change this method name to has_key1()
         self.assertEqual(expected, key in self.dict_file)
 
     def test_is_compatible(self):
-        old_val = 'foo'
-        new_val = 'bar'
+        old_val = "foo"
+        new_val = "bar"
         self.assertEqual(True, self.dict_file.is_compatible(old_val, new_val))
 
     def test_is_equal(self):
@@ -127,54 +135,62 @@ class TestDictFile(unittest.TestCase):
         for cd in range(0, 2):
             for cf in range(0, 2):
                 for ck in range(0, 2):
-                    self.assertTrue(self.dict_file.is_equal(other,
-                                                            compare_dir=cd,
-                                                            compare_fname=cf,
-                                                            compare_keys=ck))
+                    self.assertTrue(
+                        self.dict_file.is_equal(
+                            other, compare_dir=cd, compare_fname=cf, compare_keys=ck
+                        )
+                    )
         other.add("foo", "bar", allow_overwrite=True)
         for cd in range(0, 2):
             for cf in range(0, 2):
                 for ck in range(0, 2):
-                    self.assertFalse(self.dict_file.is_equal(other,
-                                                             compare_dir=cd,
-                                                             compare_fname=cf,
-                                                             compare_keys=ck))
+                    self.assertFalse(
+                        self.dict_file.is_equal(
+                            other, compare_dir=cd, compare_fname=cf, compare_keys=ck
+                        )
+                    )
         other = copy.deepcopy(self.dict_file)
-        other.dir = '/tmp'
+        other.dir = "/tmp"
         for cf in range(0, 2):
             for ck in range(0, 2):
-                self.assertTrue(self.dict_file.is_equal(other,
-                                                        compare_dir=False,
-                                                        compare_fname=cf,
-                                                        compare_keys=ck))
-                self.assertFalse(self.dict_file.is_equal(other,
-                                                         compare_dir=True,
-                                                         compare_fname=cf,
-                                                         compare_keys=ck))
+                self.assertTrue(
+                    self.dict_file.is_equal(
+                        other, compare_dir=False, compare_fname=cf, compare_keys=ck
+                    )
+                )
+                self.assertFalse(
+                    self.dict_file.is_equal(
+                        other, compare_dir=True, compare_fname=cf, compare_keys=ck
+                    )
+                )
         other = copy.deepcopy(self.dict_file)
-        other.fname = 'foo'
+        other.fname = "foo"
         for cd in range(0, 2):
             for ck in range(0, 2):
-                self.assertTrue(self.dict_file.is_equal(other,
-                                                        compare_dir=cd,
-                                                        compare_fname=False,
-                                                        compare_keys=ck))
-                self.assertFalse(self.dict_file.is_equal(other,
-                                                         compare_dir=cd,
-                                                         compare_fname=True,
-                                                         compare_keys=ck))
+                self.assertTrue(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=False, compare_keys=ck
+                    )
+                )
+                self.assertFalse(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=True, compare_keys=ck
+                    )
+                )
         other = copy.deepcopy(self.dict_file)
         other.keys.sort()
         for cd in range(0, 2):
             for cf in range(0, 2):
-                self.assertTrue(self.dict_file.is_equal(other,
-                                                        compare_dir=cd,
-                                                        compare_fname=cf,
-                                                        compare_keys=False))
-                self.assertFalse(self.dict_file.is_equal(other,
-                                                         compare_dir=cd,
-                                                         compare_fname=cf,
-                                                         compare_keys=True))
+                self.assertTrue(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=cf, compare_keys=False
+                    )
+                )
+                self.assertFalse(
+                    self.dict_file.is_equal(
+                        other, compare_dir=cd, compare_fname=cf, compare_keys=True
+                    )
+                )
 
     def test_parse_val(self):
         line = """foo    'bar'"""
@@ -194,7 +210,7 @@ class TestDictFile(unittest.TestCase):
     def test_remove(self):
         # TODO: seems like fail_if_missing is exactly backwards
         #
-        key = 'GLIDEIN_Expose_Grid_Env'
+        key = "GLIDEIN_Expose_Grid_Env"
         self.dict_file.remove(key, fail_if_missing=False)
         self.dict_file.remove(key, fail_if_missing=True)
         self.assertFalse(key in self.dict_file.keys)
@@ -223,13 +239,13 @@ class TestDictFile(unittest.TestCase):
 
     def test_save_to_load_from_str(self):
         other = copy.deepcopy(self.dict_file)
-        d_str = self.dict_file.save_into_str(sort_keys=False,
-                                             set_readonly=False,
-                                             reset_changed=False,
-                                             want_comments=False)
-        other.load_from_str(data=d_str,
-                            erase_first=True,
-                            set_not_changed=False)
+        d_str = self.dict_file.save_into_str(
+            sort_keys=False,
+            set_readonly=False,
+            reset_changed=False,
+            want_comments=False,
+        )
+        other.load_from_str(data=d_str, erase_first=True, set_not_changed=False)
         self.assertTrue(self.dict_file.is_equal(other))
 
     def test_set_readonly(self):
@@ -244,5 +260,5 @@ class TestDictFile(unittest.TestCase):
         self.dict_file.add("foo", "bar", allow_overwrite=True)
 
 
-if __name__ == '__main__':
-    unittest.main(testRunner=xmlrunner.XMLTestRunner('unittests-reports'))
+if __name__ == "__main__":
+    unittest.main(testRunner=xmlrunner.XMLTestRunner("unittests-reports"))

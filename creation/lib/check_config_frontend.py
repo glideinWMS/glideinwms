@@ -20,6 +20,7 @@ def mylog(*args, **kwargs):
 
 class ConfigFileError(RuntimeError):
     """Class to raise config verification error"""
+
     pass
 
 
@@ -28,8 +29,8 @@ def get_factory_version(node_name):
     collector = htcondor.Collector(node_name)
     adtype = htcondor.AdTypes.Any
     constraint = 'MyType == "glidefactoryglobal"'
-    results = collector.query(adtype, constraint, ['GlideinWMSVersion'])
-    return results[0]['GlideinWMSVersion']
+    results = collector.query(adtype, constraint, ["GlideinWMSVersion"])
+    return results[0]["GlideinWMSVersion"]
 
 
 def check_fail(msg):
@@ -38,16 +39,22 @@ def check_fail(msg):
 
 def check_attr(attr):
     # print ("MMDB: att %r (%s, %s)" % (attr,attr.attrib['name'],attr.attrib['value']))
-    if attr.attrib['name'] == "GLIDEIN_Singularity_Use" and attr.attrib['value'] == "PREFERRED":
+    if (
+        attr.attrib["name"] == "GLIDEIN_Singularity_Use"
+        and attr.attrib["value"] == "PREFERRED"
+    ):
         check_fail("'PREFERRED' value for GLIDEIN_Singularity_Use")
-    if attr.attrib['name'] == "SINGULARITY_IMAGES_DICT" or attr.attrib['name'] == "GLIDEIN_SINGULARITY_BINDPATH" or \
-        attr.attrib['name'] == "GLIDEIN_SINGULARITY_OPTS":
-        check_fail("Using attribute %s" % attr.attrib['name'])
+    if (
+        attr.attrib["name"] == "SINGULARITY_IMAGES_DICT"
+        or attr.attrib["name"] == "GLIDEIN_SINGULARITY_BINDPATH"
+        or attr.attrib["name"] == "GLIDEIN_SINGULARITY_OPTS"
+    ):
+        check_fail("Using attribute %s" % attr.attrib["name"])
 
 
 def check_collector(coll_elem):
     # print ("MMDB: coll %r (%s, %s)" % (coll_elem,coll_elem.attrib,coll_elem.attrib['node']))
-    coll = coll_elem.attrib['node']
+    coll = coll_elem.attrib["node"]
     ind1 = coll.find("sock=")
     if ind1 > 0:
         ind2 = coll.find("-", ind1)
@@ -73,7 +80,9 @@ def check_config(root):
             check_collector(coll)
     except ConfigFileError as err:
         raise RuntimeError(
-            "At least one GWMS Factory connected is lower than v3.4.1\nYour configuration requires v3.4.1 Factories: %s" % err)
+            "At least one GWMS Factory connected is lower than v3.4.1\nYour configuration requires v3.4.1 Factories: %s"
+            % err
+        )
     return "Config file compatible w/ GWMS v3.4 Factories"
 
 
@@ -88,31 +97,36 @@ def main(config_file):
     root = tree.getroot()
     fc_list = []
     for factory_collector in root.findall("./match/factory/collectors/collector"):
-        fc_list.append(factory_collector.attrib['node'])
+        fc_list.append(factory_collector.attrib["node"])
     all_3_4_1 = True
     for fc in fc_list:
         try:
             f_version = get_factory_version(fc)
-            if f_version.startswith("glideinWMS 3.4-") or f_version.startswith(
-                "glideinWMS 3.2") or f_version.startswith("glideinWMS 3.3"):
+            if (
+                f_version.startswith("glideinWMS 3.4-")
+                or f_version.startswith("glideinWMS 3.2")
+                or f_version.startswith("glideinWMS 3.3")
+            ):
                 all_3_4_1 = False
                 break
         except (IOError, IndexError, AttributeError):
             mylog(
-                "WARNING: Unable to retrieve factory version for %s. Assuming it is compatible with all the options you use." % fc)
+                "WARNING: Unable to retrieve factory version for %s. Assuming it is compatible with all the options you use."
+                % fc
+            )
     if all_3_4_1:
         return "All connected Factories are at least v3.4.1"
     return check_config(root)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     config_file = CONFIG_FILE
     if len(sys.argv) == 2:
         config_file = sys.argv[1]
     try:
         msg = main(config_file)
     except RuntimeError as e:
-        for line in str(e).split('\n'):
+        for line in str(e).split("\n"):
             mylog(line)
         sys.exit(1)
     mylog(msg)

@@ -25,7 +25,7 @@ def main():
         # read these from config file
         section = "test_size_rotate"
         config_file = "../test_configurations/test_logSupport.yaml"
-        config = yaml.load(open(config_file, 'r'), Loader=yaml.FullLoader)
+        config = yaml.load(open(config_file, "r"), Loader=yaml.FullLoader)
 
         log_name = str(config[section]["log_name"])
         extension = str(config[section]["extension"])
@@ -34,13 +34,21 @@ def main():
         min_days = float(config[section]["min_days"])
         max_mbytes = float(config[section]["max_mbytes"])
         backupCount = 5
-        compression = ''
+        compression = ""
 
         log_dir = "/tmp/%s" % log_name
 
-        logSupport.add_processlog_handler(log_name, log_dir, msg_types,
-                    extension, max_days, min_days, max_mbytes,
-                    backupCount=backupCount, compression=compression)
+        logSupport.add_processlog_handler(
+            log_name,
+            log_dir,
+            msg_types,
+            extension,
+            max_days,
+            min_days,
+            max_mbytes,
+            backupCount=backupCount,
+            compression=compression,
+        )
 
         log = logging.getLogger(log_name)
         log.info("%s\n" % create_random_string(length=2048))
@@ -48,6 +56,7 @@ def main():
         return 0
     except:
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

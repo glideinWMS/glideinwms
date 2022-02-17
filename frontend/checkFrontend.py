@@ -26,7 +26,7 @@ import sys
 
 from glideinwms.frontend import glideinFrontendPidLib
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         work_dir = sys.argv[1]
         action_type = glideinFrontendPidLib.get_frontend_action_type(work_dir)
@@ -43,9 +43,11 @@ if __name__ == '__main__':
     else:
         req_action_type = "run"
 
-
     if action_type != req_action_type:
-        print('Not running my type (note that conflicting "%s" type is running).' % action_type)
+        print(
+            'Not running my type (note that conflicting "%s" type is running).'
+            % action_type
+        )
         sys.exit(2)
 
     print("Running")

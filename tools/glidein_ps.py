@@ -16,4 +16,4 @@ sys.path.append(os.path.join(sys.path[0], "../.."))
 
 from glideinwms.tools.lib import glideinCmd
 
-glideinCmd.exe_cmd_simple(lambda argv:(['ps', '-u', '`id', '-n', '-u`']+argv))
+glideinCmd.exe_cmd_simple(lambda argv: (["ps", "-u", "`id", "-n", "-u`"] + argv))

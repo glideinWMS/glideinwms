@@ -25,24 +25,12 @@ unittest_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
 if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "lib"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "frontend"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "factory/tools"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "frontend"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "factory/tools"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "install"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "poolwatcher"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "poolwatcher"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools"))
-    sys.path.append(
-        os.path.join(
-            os.environ["GLIDEINWMS_LOCATION"],
-            "tools/lib"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"], "tools/lib"))
 else:
     sys.path.append(os.path.join(unittest_dir, "../lib"))
     sys.path.append(os.path.join(unittest_dir, "../factory"))
@@ -80,8 +68,11 @@ def runAllTests():
     """
 
     def is_test(filename):
-        if os.path.isfile(os.path.join(unittest_dir, filename)) and \
-            filename.startswith("test_") and filename.endswith(".py"):
+        if (
+            os.path.isfile(os.path.join(unittest_dir, filename))
+            and filename.startswith("test_")
+            and filename.endswith(".py")
+        ):
             return True
         return False
 
@@ -154,14 +145,20 @@ class TestImportError(Exception):
     def __init__(self, err_msg="Error"):
         handled_import_errors = ["M2Crypto"]
         sys_ = platform.system()
-        if sys_ != 'Linux':
+        if sys_ != "Linux":
             err_msg += """.  Platform %s is not well tested/supported """ % sys_
         for imp_lib in handled_import_errors:
             if imp_lib in err_msg:
-                if sys_ == 'Darwin':
-                    err_msg += """.  Hint: try brew install or conda install %s first.""" % imp_lib
-                elif sys_ == 'Linux':
-                    err_msg += """.  Hint: try yum install or apt-get install %s first.""" % imp_lib
+                if sys_ == "Darwin":
+                    err_msg += (
+                        """.  Hint: try brew install or conda install %s first."""
+                        % imp_lib
+                    )
+                elif sys_ == "Linux":
+                    err_msg += (
+                        """.  Hint: try yum install or apt-get install %s first."""
+                        % imp_lib
+                    )
                 else:
                     err_msg += """.  %s python package must be present.""" % imp_lib
                 print("%s" % err_msg)
@@ -169,19 +166,25 @@ class TestImportError(Exception):
         raise Exception(err_msg)
 
 
-def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
-                     text_access=True, write_path_to_file=True):
-    fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix,
-                                dir=file_dir, text=text_access)
+def create_temp_file(
+    file_suffix="",
+    file_prefix="tmp",
+    file_dir="/tmp",
+    text_access=True,
+    write_path_to_file=True,
+):
+    fd, path = tempfile.mkstemp(
+        suffix=file_suffix, prefix=file_prefix, dir=file_dir, text=text_access
+    )
     if write_path_to_file:
-        os.write(fd, path.encode('UTF-8'))
+        os.write(fd, path.encode("UTF-8"))
     os.close(fd)
     return path
 
 
 def create_random_string(length=8):
     char_set = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(char_set) for x in range(length))
+    return "".join(random.choice(char_set) for x in range(length))
 
 
 if __name__ == "__main__":
