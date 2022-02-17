@@ -99,9 +99,9 @@ def get_pilot(resource, pilot_entry):
             dict: A dictionary to be used to generate the xml for this pilot entry
     """
     vos = pilot_entry.get("AllowedVOs", set())
-    cpus = pilot_entry.get("CPUs", "")
-    walltime = pilot_entry.get("MaxWallTime", "")
-    memory = pilot_entry.get("Memory", "")
+    cpus = pilot_entry.get("CPUs", None)
+    walltime = pilot_entry.get("MaxWallTime", None)
+    memory = pilot_entry.get("Memory", None)
 
     res = get_entry_dictionary(resource, vos, cpus, walltime, memory)
 
@@ -290,8 +290,6 @@ def sanitize(whitelist_info):
             if ce_hostname == 'common_entry_fields':
                 continue
             for qelem, q_information in ce_information.items():
-                if type(q_information)==type("aaa"):
-                    import pdb;pdb.set_trace()
                 for entry, entry_information in q_information.items():
                     if entry_information is None:
                         q_information[entry] = {}
