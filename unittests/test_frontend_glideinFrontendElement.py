@@ -13,24 +13,21 @@ Author:
 """
 
 
-import mock
 import os
 import unittest
+
+import mock
 import xmlrunner
 
 import glideinwms
-from glideinwms.frontend import glideinFrontendMonitoring
-import glideinwms.lib.condorMonitor as condorMonitor
 import glideinwms.lib.condorExe as condorExe
-from glideinwms.frontend.glideinFrontendElement import CounterWrapper
-from glideinwms.frontend.glideinFrontendElement import glideinFrontendElement
-from glideinwms.frontend.glideinFrontendElement import write_stats
-from glideinwms.frontend.glideinFrontendElement import log_and_sum_factory_line
-from glideinwms.frontend.glideinFrontendElement import init_factory_stats_arr
-from glideinwms.frontend.glideinFrontendElement import log_factory_header
-from glideinwms.frontend.glideinFrontendElement import check_parent
+import glideinwms.lib.condorMonitor as condorMonitor
+from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.frontend.glideinFrontendElement import (
+    CounterWrapper, check_parent, glideinFrontendElement,
+    init_factory_stats_arr, log_and_sum_factory_line, log_factory_header,
+    write_stats)
 from glideinwms.unittests.unittest_utils import FakeLogger
-
 
 LOG_DATA = []
 

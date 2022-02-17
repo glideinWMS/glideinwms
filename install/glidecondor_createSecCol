@@ -8,9 +8,11 @@
 #   the secondary collectors
 
 from __future__ import print_function
-import sys
+
 import os
 import subprocess
+import sys
+
 # not used: import string, copy
 
 

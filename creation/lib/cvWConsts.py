@@ -14,6 +14,7 @@
 #
 
 import os.path
+
 from . import cWConsts
 
 AFTERGROUP_FILE_LISTFILE="aftergroup_%s"%cWConsts.FILE_LISTFILE

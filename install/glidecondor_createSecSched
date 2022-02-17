@@ -9,11 +9,12 @@
 #
 
 from __future__ import print_function
-import sys
-import os
-import subprocess
-import string
+
 import copy
+import os
+import string
+import subprocess
+import sys
 
 
 def usage():

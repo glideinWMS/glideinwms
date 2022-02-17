@@ -14,16 +14,16 @@
 #
 ####################################
 
+import io
 import os
 import shutil
-import subprocess
 import stat
+import subprocess
 import tarfile
-import io
-from . import cgWDictFile
-from . import cWDictFile
+
 from glideinwms.lib.util import chmod
 
+from . import cgWDictFile, cWDictFile
 
 ##############################
 

@@ -18,13 +18,13 @@ Project:
 
 
 import unittest
+
 import xmlrunner
 
-from glideinwms.lib.servicePerformance import PerfMetric
-from glideinwms.lib.servicePerformance import startPerfMetricEvent
-from glideinwms.lib.servicePerformance import endPerfMetricEvent
-from glideinwms.lib.servicePerformance import getPerfMetricEventLifetime
-from glideinwms.lib.servicePerformance import getPerfMetric
+from glideinwms.lib.servicePerformance import (PerfMetric, endPerfMetricEvent,
+                                               getPerfMetric,
+                                               getPerfMetricEventLifetime,
+                                               startPerfMetricEvent)
 
 # define these globally for convenience
 name = "timing_test"

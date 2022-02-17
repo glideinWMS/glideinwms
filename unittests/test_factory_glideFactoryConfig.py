@@ -13,27 +13,24 @@ Author:
 """
 
 
-import unittest
-import xmlrunner
 import os
+import unittest
 
+import xmlrunner
 
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.factory.glideFactoryConfig import FactoryConfig
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.factory.glideFactoryConfig import ConfigFile
-from glideinwms.factory.glideFactoryConfig import EntryConfigFile
-from glideinwms.factory.glideFactoryConfig import JoinConfigFile
-from glideinwms.factory.glideFactoryConfig import GlideinKey
-from glideinwms.factory.glideFactoryConfig import GlideinDescript
-from glideinwms.factory.glideFactoryConfig import JobDescript
-from glideinwms.factory.glideFactoryConfig import JobAttributes
-from glideinwms.factory.glideFactoryConfig import JobParams
-from glideinwms.factory.glideFactoryConfig import FrontendDescript
-from glideinwms.factory.glideFactoryConfig import SignatureFile
+from glideinwms.factory.glideFactoryConfig import (ConfigFile, EntryConfigFile,
+                                                   FrontendDescript,
+                                                   GlideinDescript, GlideinKey,
+                                                   JobAttributes, JobDescript,
+                                                   JobParams, JoinConfigFile,
+                                                   SignatureFile)
 
 
 class TestFactoryConfig(unittest.TestCase):

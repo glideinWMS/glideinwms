@@ -13,19 +13,20 @@ Author:
 """
 
 
-import unittest
-import xmlrunner
 import os
-import mock
 import sys
+import unittest
 
+import mock
+import xmlrunner
 
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.unittests.unittest_utils import TestImportError
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
+
 try:
     import glideinwms.factory.glideFactoryEntry
     import glideinwms.factory.glideFactoryLib
     from glideinwms.factory.glideFactoryEntry import Entry
+
     # TODO - to remove - code commented in glideFactoryEntry.py because unused
     # from glideinwms.factory.glideFactoryEntry import dump_obj
 except ImportError as err:
@@ -37,10 +38,8 @@ except ImportError as err:
 # from glideinwms.factory.glideFactoryEntry import perform_work_v3
 # from glideinwms.factory.glideFactoryEntry import write_descript
 # from glideinwms.factory.glideFactoryEntry import termsignal
-from glideinwms.factory.glideFactoryConfig import GlideinDescript
-from glideinwms.factory.glideFactoryConfig import FrontendDescript
-
-
+from glideinwms.factory.glideFactoryConfig import (FrontendDescript,
+                                                   GlideinDescript)
 
 
 class TestEntry(unittest.TestCase):

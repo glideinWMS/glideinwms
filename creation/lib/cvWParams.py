@@ -14,23 +14,24 @@
 #   Igor Sfiligoi
 #
 
-import os
 import copy
+import os
 #import re
 #import imp
 import os.path
+#from .matchPolicy import MatchPolicy
+import pprint
 #import imp
 #import string
 import socket
-#from collections import OrderedDict
-from glideinwms.lib.xmlParse import OrderedDict
 
 #from glideinwms.lib import xmlParse
 from glideinwms.lib.util import safe_boolcomp
+#from collections import OrderedDict
+from glideinwms.lib.xmlParse import OrderedDict
+
 # from glideinwms.lib import condorExe  # not used
 from . import cWParams
-#from .matchPolicy import MatchPolicy
-import pprint
 
 
 class VOFrontendSubParams(cWParams.CommonSubParams):

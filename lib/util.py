@@ -17,26 +17,26 @@
 #
 
 
+import contextlib
 import os
-import shutil
 import pickle
+import shutil
+import subprocess
 import tempfile
 import time
-import subprocess
-import contextlib
-
+from base64 import b32encode
+# imports and global for flattenDict
+from collections.abc import Mapping
 # imports for hash_nc
 from hashlib import md5
-from base64 import b32encode
-from glideinwms.lib.defaults import force_bytes, BINARY_ENCODING_ASCII
+from operator import add
+
+from glideinwms.lib.defaults import BINARY_ENCODING_ASCII, force_bytes
 
 #################################
 # Dictionary functions
 #################################
 
-# imports and global for flattenDict
-from collections.abc import Mapping
-from operator import add
 
 _FLAG_FIRST = object()
 

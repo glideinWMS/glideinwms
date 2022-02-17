@@ -3,29 +3,28 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
+import logging
 import os
-import sys
 import pprint
 import socket
-import logging
-import argparse
+import sys
 
 from glideinwms.creation.lib.factoryXmlConfig import parse
 
 try:
-    import htcondor # pylint: disable=import-error
+    import htcondor  # pylint: disable=import-error
 except:
     print("Python bindings not available. Exiting.")
     sys.exit(1)
 
 from glideinwms.factory import glideFactoryConfig as gfc
-from glideinwms.factory.glideFactoryLib import ClientWeb
-from glideinwms.factory.glideFactoryLib import escapeParam
-from glideinwms.factory.glideFactoryLib import FactoryConfig
-from glideinwms.factory.glideFactoryLib import submitGlideins
-from glideinwms.factory.glideFactoryCredentials import SubmitCredentials
-from glideinwms.factory.glideFactoryCredentials import validate_frontend
-from glideinwms.factory.glideFactoryLib import set_condor_integrity_checks
+from glideinwms.factory.glideFactoryCredentials import (SubmitCredentials,
+                                                        validate_frontend)
+from glideinwms.factory.glideFactoryLib import (ClientWeb, FactoryConfig,
+                                                escapeParam,
+                                                set_condor_integrity_checks,
+                                                submitGlideins)
 
 
 def parse_opts():

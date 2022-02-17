@@ -15,10 +15,12 @@
 #
 
 
-import xmlrunner
 import unittest
 
+import xmlrunner
+
 from glideinwms.lib.util import safe_boolcomp
+
 
 class TestUtils(unittest.TestCase):
     def test_safe_boolcomp(self):

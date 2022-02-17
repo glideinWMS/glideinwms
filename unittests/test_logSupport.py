@@ -20,16 +20,18 @@ import sys
 import tempfile
 import time
 import unittest
-import xmlrunner
 
+import xmlrunner
 # pylint: disable=E0611,F0401
 import yaml
-# pylint: enable=E0611,F0401
-
-from glideinwms.unittests.unittest_utils import create_random_string
-from glideinwms.lib import logSupport
 # use tesfixtures.test_time speed up clock so test takes less elapsed time
 from testfixtures import Replacer, test_time
+
+from glideinwms.lib import logSupport
+from glideinwms.unittests.unittest_utils import create_random_string
+
+# pylint: enable=E0611,F0401
+
 
 
 class TestLogSupport(unittest.TestCase):

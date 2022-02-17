@@ -14,25 +14,23 @@ Author:
 
 
 import unittest
+
 import xmlrunner
 
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     import glideinwms.factory.glideFactoryLib
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.factory.glideFactoryLib import FactoryConfig
-from glideinwms.factory.glideFactoryLib import secClass2Name
-from glideinwms.factory.glideFactoryLib import getCondorQData
-from glideinwms.factory.glideFactoryLib import getCondorQCredentialList
-from glideinwms.factory.glideFactoryLib import getQCredentials
-from glideinwms.factory.glideFactoryLib import getQProxSecClass
-from glideinwms.factory.glideFactoryLib import getQStatusSF
-from glideinwms.factory.glideFactoryLib import getQStatus
-from glideinwms.factory.glideFactoryLib import getQStatusStale
-from glideinwms.factory.glideFactoryLib import getCondorStatusData
+# from glideinwms.factory import glideFactoryConfig
+import os
+
+import mock
+
+# from glideinwms.factory.glideFactoryLib import GlideinTotals
+# from glideinwms.factory.glideFactoryLib import isGlideinHeldNTimes
 # from glideinwms.factory.glideFactoryLib import update_x509_proxy_file
 # from glideinwms.factory.glideFactoryLib import ClientWeb
 # from glideinwms.factory.glideFactoryLib import keepIdleGlideins
@@ -69,18 +67,20 @@ from glideinwms.factory.glideFactoryLib import getCondorStatusData
 # from glideinwms.factory.glideFactoryLib import in_submit_environment
 # from glideinwms.factory.glideFactoryLib import get_submit_environment
 # from glideinwms.factory.glideFactoryLib import isGlideinWithinHeldLimits
-from glideinwms.factory.glideFactoryLib import isGlideinUnrecoverable
-# from glideinwms.factory.glideFactoryLib import isGlideinHeldNTimes
-from glideinwms.factory.glideFactoryLib import is_str_safe
-# from glideinwms.factory.glideFactoryLib import GlideinTotals
-from glideinwms.factory.glideFactoryLib import set_condor_integrity_checks
-from glideinwms.factory.glideFactoryLib import which
-from glideinwms.factory.glideFactoryLib import days2sec
-from glideinwms.factory.glideFactoryLib import hrs2sec
-from glideinwms.factory.glideFactoryLib import env_list2dict
-# from glideinwms.factory import glideFactoryConfig
-import os
-import mock
+from glideinwms.factory.glideFactoryLib import (FactoryConfig, days2sec,
+                                                env_list2dict,
+                                                getCondorQCredentialList,
+                                                getCondorQData,
+                                                getCondorStatusData,
+                                                getQCredentials,
+                                                getQProxSecClass, getQStatus,
+                                                getQStatusSF, getQStatusStale,
+                                                hrs2sec, is_str_safe,
+                                                isGlideinUnrecoverable,
+                                                secClass2Name,
+                                                set_condor_integrity_checks,
+                                                which)
+from glideinwms.unittests.unittest_utils import FakeLogger
 
 
 class TestFactoryConfig(unittest.TestCase):

@@ -15,9 +15,10 @@ Project:
 """
 
 
-import unittest
-import xmlrunner
 import ast
+import unittest
+
+import xmlrunner
 
 import glideinwms.lib.exprParser as ep
 

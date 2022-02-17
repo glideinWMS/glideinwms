@@ -11,12 +11,12 @@
 #
 
 import codecs
-import sys  # for alternate_log
+import logging
 import os
 import re
 import stat
+import sys  # for alternate_log
 import time
-import logging
 from logging.handlers import BaseRotatingHandler
 
 # Compressions depend on the available module

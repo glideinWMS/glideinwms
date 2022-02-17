@@ -16,8 +16,9 @@
 
 import re
 import string
-from . import condorMonitor
-from . import condorExe
+
+from . import condorExe, condorMonitor
+
 
 ##############################################
 # Helper functions

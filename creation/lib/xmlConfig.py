@@ -3,8 +3,8 @@
 
 import copy
 import os
-from collections.abc import MutableMapping
 import xml.sax
+from collections.abc import MutableMapping
 
 INDENT_WIDTH = 3
 

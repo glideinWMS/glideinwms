@@ -14,7 +14,9 @@
 #
 
 import os
+
 from glideinwms.frontend import glideinFrontendConfig
+
 
 class FEConfig:
     def config_optparse(self, argparser):

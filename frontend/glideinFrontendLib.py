@@ -16,17 +16,16 @@
 #   Igor Sfiligoi (Sept 19th 2006)
 #
 
-import os
-import pickle
-import os.path
 import math
+import os
+import os.path
+import pickle
 import sys
 import traceback
 
-from glideinwms.lib.util import safe_boolcomp
 from glideinwms.lib import condorMonitor, logSupport
-
-from glideinwms.lib.xmlParse import OrderedDict # needed for eval
+from glideinwms.lib.util import safe_boolcomp
+from glideinwms.lib.xmlParse import OrderedDict  # needed for eval
 
 
 #############################################################################################

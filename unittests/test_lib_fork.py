@@ -14,25 +14,22 @@ Project:
    Dennis Box dbox@fnal.gov
 """
 
-# import select
-import time
 import os
 import sys
-import xmlrunner
+# import select
+import time
 import unittest
 
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.unittests.unittest_utils import create_temp_file
+import xmlrunner
+
+import glideinwms.lib.logSupport
 # needed to manipulate the select seen by the functions in fork
 from glideinwms.lib import fork
-from glideinwms.lib.fork import ForkResultError
-from glideinwms.lib.fork import fork_in_bg
-from glideinwms.lib.fork import fetch_fork_result
-from glideinwms.lib.fork import fetch_fork_result_list
-from glideinwms.lib.fork import fetch_ready_fork_result_list
-from glideinwms.lib.fork import wait_for_pids
-from glideinwms.lib.fork import ForkManager
-import glideinwms.lib.logSupport
+from glideinwms.lib.fork import (ForkManager, ForkResultError,
+                                 fetch_fork_result, fetch_fork_result_list,
+                                 fetch_ready_fork_result_list, fork_in_bg,
+                                 wait_for_pids)
+from glideinwms.unittests.unittest_utils import FakeLogger, create_temp_file
 
 LOG_FILE = create_temp_file()
 

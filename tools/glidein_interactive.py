@@ -9,10 +9,13 @@
 # Usage:
 #  glidein_interactive.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>] command
 
-import sys, os.path
+import os.path
+import sys
+
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
 from glideinwms.tools.lib import glideinCmd
+
 
 def argv_interactive(argv):
     if len(argv)<1:

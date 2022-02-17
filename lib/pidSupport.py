@@ -14,12 +14,11 @@
 #   Igor Sfiligoi
 #
 
+import fcntl
 import os
 import os.path
 import signal
-import fcntl
 import time
-
 
 ############################################################
 

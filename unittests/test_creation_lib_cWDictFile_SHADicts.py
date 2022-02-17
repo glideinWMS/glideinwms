@@ -20,14 +20,14 @@ Project:
 
 import copy
 import unittest
+
 import xmlrunner
 
-
-
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
-    from glideinwms.creation.lib.cWDictFile import SHA1DictFile
-    from glideinwms.creation.lib.cWDictFile import SummarySHA1DictFile
+    from glideinwms.creation.lib.cWDictFile import (SHA1DictFile,
+                                                    SummarySHA1DictFile)
 except ImportError as err:
     raise TestImportError(str(err))
 

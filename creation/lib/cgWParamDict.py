@@ -12,14 +12,15 @@
 #   created out of the parameter object
 #
 
-import os, os.path
+import os
+import os.path
 import shutil
 
-from . import cgWDictFile, cWDictFile
-from . import cgWCreate
-from . import cgWConsts, cWConsts
-from . import factoryXmlConfig
-from . import cWExpand
+from glideinwms.lib import pubCrypto
+from glideinwms.lib.util import str2bool
+
+from . import (cgWConsts, cgWCreate, cgWDictFile, cWConsts, cWDictFile,
+               cWExpand, factoryXmlConfig)
 
 #
 # see the note in add_file_unparsed def below to understand
@@ -27,8 +28,6 @@ from . import cWExpand
 #
 #from cWParamDict import is_true, add_file_unparsed
 
-from glideinwms.lib import pubCrypto
-from glideinwms.lib.util import str2bool
 #from factoryXmlConfig import EntrySetElement
 
 

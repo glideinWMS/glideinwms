@@ -16,6 +16,8 @@
 
 import ast
 import itertools
+# These are used in modules importing exprParser, like frontend_match_ana
+from ast import And, Not, Or
 from io import StringIO
 
 from .unparser import Unparser
@@ -24,8 +26,6 @@ from .unparser import Unparser
 # NOTE: compiler.ast is slightly different from the concrete tree in ast
 # from compiler.ast import Name, Const, Keyword, List, Tuple, And, Or, Not, UnaryAdd, UnarySub, Compare, Add, Sub, Mul, FloorDiv, Div, Mod, Power, LeftShift, RightShift, Bitand, Bitor, Bitxor, CallFunc, Getattr, Subscript, Slice, Lambda
 
-# These are used in modules importing exprParser, like frontend_match_ana
-from ast import And, Or, Not
 
 
 def exp_parse(expression):

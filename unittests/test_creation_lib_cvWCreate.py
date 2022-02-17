@@ -17,14 +17,15 @@ Author:
 
 
 import os
-import mock
 import unittest
+
+import mock
 import xmlrunner
 
-from glideinwms.creation.lib.cvWCreate import create_client_mapfile
-from glideinwms.creation.lib.cvWCreate import create_client_condor_config
-from glideinwms.creation.lib.cvWCreate import filter_unwanted_config_attrs
-from glideinwms.creation.lib.cvWCreate import get_template
+from glideinwms.creation.lib.cvWCreate import (create_client_condor_config,
+                                               create_client_mapfile,
+                                               filter_unwanted_config_attrs,
+                                               get_template)
 
 
 class Test_cvWCreate(unittest.TestCase):

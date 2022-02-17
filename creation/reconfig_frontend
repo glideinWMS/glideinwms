@@ -8,13 +8,14 @@
 #  based on a configuration file
 
 from __future__ import print_function
+
 import os
+import os.path
+import signal
 # import copy
 # import subprocess
 import sys
 import tempfile
-import signal
-import os.path
 
 STARTUP_DIR = sys.path[0]
 
@@ -25,17 +26,14 @@ fix_rrd = False
 
 
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-from glideinwms.creation.lib import cvWParams
-from glideinwms.creation.lib import cvWDictFile
-from glideinwms.creation.lib import cvWConsts,cWConsts
-from glideinwms.creation.lib import cvWCreate
-from glideinwms.creation.lib import cvWParamDict
-from glideinwms.creation.lib import xslt
-from glideinwms.creation.lib import check_config_frontend
-from glideinwms.creation.lib import check_python3_expr
-from glideinwms.frontend import glideinFrontendMonitorAggregator
-from glideinwms.frontend import glideinFrontendLib
-from glideinwms.lib.util import handle_hooks, HOOK_PRE_RECONFIG_DIRNAME, HOOK_POST_RECONFIG_DIRNAME
+from glideinwms.creation.lib import (check_config_frontend, check_python3_expr,
+                                     cvWConsts, cvWCreate, cvWDictFile,
+                                     cvWParamDict, cvWParams, cWConsts, xslt)
+from glideinwms.frontend import (glideinFrontendLib,
+                                 glideinFrontendMonitorAggregator)
+from glideinwms.lib.util import (HOOK_POST_RECONFIG_DIRNAME,
+                                 HOOK_PRE_RECONFIG_DIRNAME, handle_hooks)
+
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
 

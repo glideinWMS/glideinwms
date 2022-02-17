@@ -12,12 +12,12 @@
 #
 
 import os.path
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from glideinwms.creation.lib.matchPolicy import MatchPolicy
-from glideinwms.lib import hashCrypto
-from glideinwms.lib import util
-
+from glideinwms.lib import hashCrypto, util
 
 ############################################################
 #

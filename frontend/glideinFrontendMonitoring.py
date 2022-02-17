@@ -15,13 +15,20 @@
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
-import os, os.path
-import re, time, copy, string, math, random, fcntl
+import copy
+import fcntl
+import math
+import os
+import os.path
+import random
+import re
+import string
+import time
 import traceback
-from glideinwms.lib import xmlFormat, timeConversion
-from glideinwms.lib import rrdSupport
-from glideinwms.lib import logSupport
+
+from glideinwms.lib import logSupport, rrdSupport, timeConversion, xmlFormat
 from glideinwms.lib.defaults import BINARY_ENCODING
+
 ############################################################
 #
 # Configuration

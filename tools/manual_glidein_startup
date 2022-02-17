@@ -7,13 +7,15 @@
 #   Generate the glidein_startup.sh command to be run manually for given entry
 
 from __future__ import print_function
-import sys
-import os
-import stat
+
 import argparse
-import logging
 import itertools
+import logging
+import os
 import pprint
+import stat
+import sys
+
 import htcondor  # pylint: disable=import-error
 
 GLIDEIN_PARAM_PREFIX = 'GlideinParam'

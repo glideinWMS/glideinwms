@@ -5,9 +5,8 @@
 
 import os
 import sys
+from subprocess import PIPE, Popen
 
-from subprocess import Popen
-from subprocess import PIPE
 
 class CalledProcessError(Exception):
     """This exception is raised when a process run by check_call() or

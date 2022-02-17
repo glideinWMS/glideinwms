@@ -16,13 +16,14 @@
 #
 
 
-import os
-import sys
-import glob
-import pickle
 import cProfile
+import glob
+import os
+import pickle
+import sys
 
 from glideinwms.lib import logSupport
+
 # from glideinwms.frontend.glideinFrontendLib import countMatch
 
 

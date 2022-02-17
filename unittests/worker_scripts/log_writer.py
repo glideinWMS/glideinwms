@@ -6,12 +6,13 @@
 import logging
 import os
 import sys
-import yaml
 
+import yaml
 
 # this shoud be not needed #was-pylint: disable=import-error
 import glideinwms.lib.logSupport as logSupport
 from glideinwms.unittests.unittest_utils import create_random_string
+
 # this shoud be not needed #was-pylint: enable=import-error
 
 module_globals = globals()

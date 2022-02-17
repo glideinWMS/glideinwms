@@ -26,11 +26,11 @@ NOTE For convenience and consistency w/ previous versions of this module, Encryp
 
 """
 
-import M2Crypto
 import binascii
 
-from . import defaults
+import M2Crypto
 
+from . import defaults
 
 ######################
 #

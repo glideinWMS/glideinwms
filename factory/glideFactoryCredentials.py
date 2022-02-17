@@ -9,19 +9,17 @@
 #
 
 
-import os
-import shutil
-import re
-import pwd
+import base64
 import gzip
 import io
-import base64
+import os
+import pwd
+import re
+import shutil
 
-from . import glideFactoryLib
-from . import glideFactoryInterface
+from glideinwms.lib import condorMonitor, logSupport
 
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import logSupport
+from . import glideFactoryInterface, glideFactoryLib
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 SUPPORTED_AUTH_METHODS = ['grid_proxy',

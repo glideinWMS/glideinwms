@@ -17,11 +17,12 @@ Project:
 
 
 
-import tempfile
 import copy
 import os
-import xmlrunner
+import tempfile
 import unittest
+
+import xmlrunner
 
 from glideinwms.creation.lib.cgWParams import GlideinParams
 # from glideinwms.creation.lib.cgWParams import find_condor_base_dir

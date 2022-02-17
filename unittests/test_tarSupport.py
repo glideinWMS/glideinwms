@@ -14,21 +14,22 @@ Author:
 
 import os
 import shutil
-import tempfile
 import tarfile
+import tempfile
 import unittest
+
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import create_temp_file
-from glideinwms.unittests.unittest_utils import create_random_string
-from glideinwms.unittests.unittest_utils import TestImportError
+from glideinwms.unittests.unittest_utils import (TestImportError,
+                                                 create_random_string,
+                                                 create_temp_file)
+
 try:
     from glideinwms.lib.hashCrypto import extract_md5
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.lib.tarSupport import GlideinTar
-from glideinwms.lib.tarSupport import FileDoesNotExist
+from glideinwms.lib.tarSupport import FileDoesNotExist, GlideinTar
 
 
 class TestTarSupport(unittest.TestCase):

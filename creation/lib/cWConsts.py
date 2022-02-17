@@ -13,8 +13,8 @@
 # Author: Igor Sfiligoi
 #
 
-import time
 import string
+import time
 
 
 def get_timestr(when=time.time()):

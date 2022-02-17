@@ -18,13 +18,15 @@ Project:
 
 
 
-import os
 import copy
+import os
 import unittest
+
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import create_temp_file
-from glideinwms.unittests.unittest_utils import TestImportError
+from glideinwms.unittests.unittest_utils import (TestImportError,
+                                                 create_temp_file)
+
 try:
     from glideinwms.creation.lib.cWDictFile import DictFileTwoKeys
 except ImportError as err:

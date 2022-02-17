@@ -16,21 +16,15 @@
 #
 
 
-import os
-import copy
 import calendar
+import copy
+import os
 import time
 
-from glideinwms.lib import defaults
 from glideinwms.lib import symCrypto  # pubCrypto was removed because unused
-from glideinwms.lib import condorExe
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorManager
-from glideinwms.lib import classadSupport
-from glideinwms.lib import logSupport
-from glideinwms.lib import x509Support
-from glideinwms.lib import glideinWMSVersion
-from glideinwms.lib import token_util
+from glideinwms.lib import (classadSupport, condorExe, condorManager,
+                            condorMonitor, defaults, glideinWMSVersion,
+                            logSupport, token_util, x509Support)
 from glideinwms.lib.util import hash_nc
 
 ############################################################

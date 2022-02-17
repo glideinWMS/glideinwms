@@ -23,10 +23,10 @@
 
 import os
 import sys
-
 # pylint: disable=E0611
 #  (hashlib methods are called dynamically)
 from hashlib import md5
+
 # pylint: enable=E0611
 
 

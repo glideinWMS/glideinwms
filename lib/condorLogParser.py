@@ -20,14 +20,13 @@
 # Such files will not change in the future
 #
 
+import mmap
 import os
 import os.path
 import stat
-import mmap
 import time
 
 from . import util
-
 
 # -------------- Single Log classes ------------------------
 

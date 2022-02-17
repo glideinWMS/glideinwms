@@ -15,19 +15,16 @@
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
-import json
 import copy
-import pickle
+import json
 import os.path
-import tempfile
+import pickle
 import shutil
+import tempfile
 import time
 
-from glideinwms.lib import xmlParse, xmlFormat
-from glideinwms.lib import logSupport
-from glideinwms.lib import rrdSupport
 from glideinwms.factory import glideFactoryMonitoring
-
+from glideinwms.lib import logSupport, rrdSupport, xmlFormat, xmlParse
 
 ############################################################
 #

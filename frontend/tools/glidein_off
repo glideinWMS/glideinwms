@@ -40,17 +40,16 @@
 #   -x, --all             If specified, kill all glideins belonging to the FE
 #   -p N, --parallel=N    Number of commands to send in parallel (default: 10)
 
-import os
-import sys
-import time
-import threading
 import optparse
+import os
 import random
+import sys
+import threading
+import time
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend.tools.lib import frontenvparse
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorExe
+from glideinwms.lib import condorExe, condorMonitor
 
 
 def convert_legacy_args(args):

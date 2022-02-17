@@ -14,7 +14,10 @@
 #   Igor Sfiligoi (May 2008)
 #
 
-import sys, os, stat
+import os
+import stat
+import sys
+
 from . import glideinMonitor
 
 

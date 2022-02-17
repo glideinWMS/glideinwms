@@ -10,8 +10,10 @@
 # Usage: entry_q entry|-l [-dir <dir>] [-printschedd] [condor_q options]
 
 from __future__ import print_function
+
 import os
 import sys
+
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 

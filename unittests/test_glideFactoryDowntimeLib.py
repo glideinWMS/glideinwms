@@ -13,24 +13,23 @@ Author:
 """
 
 import os
-import sys
 import shutil
-import tempfile
+import sys
 import tarfile
-import unittest
+import tempfile
 import time
+import unittest
+
 import xmlrunner
 
+from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.lib import condorMonitor, logSupport
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import runTest
-from glideinwms.unittests.unittest_utils import create_temp_file
-from glideinwms.unittests.unittest_utils import create_random_string
-from glideinwms.unittests.unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import (FakeLogger,
+                                                 create_random_string,
+                                                 create_temp_file, runTest)
 
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import logSupport
-from glideinwms.factory import glideFactoryDowntimeLib
 #from glideinwms.frontend.glideinFrontendInterface import Credential
 
 

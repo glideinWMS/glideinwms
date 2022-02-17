@@ -20,13 +20,12 @@
 #
 
 
+import os
 import signal
 import sys
-import os
 import time
 
-from glideinwms.frontend import glideinFrontendPidLib
-from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendConfig, glideinFrontendPidLib
 
 
 # this one should  never throw an exeption

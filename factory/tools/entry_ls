@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import sys
-import os
-import xml.parsers.expat
-import tempfile
 import getopt
+import os
 import stat
+import sys
+import tempfile
 import time
+import xml.parsers.expat
 
 
 # assumes the following globals are defined:

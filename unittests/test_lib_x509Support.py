@@ -15,10 +15,12 @@ Author:
 
 
 import unittest
+
 import xmlrunner
 
 import glideinwms.lib.subprocessSupport
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.lib.x509Support import extract_DN
 except ImportError as err:

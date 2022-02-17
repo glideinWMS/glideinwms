@@ -5,18 +5,20 @@
 
 from __future__ import print_function
 
-import os
-import sys
-import grp
-import pwd
-import logging
-import tarfile
 import argparse
+import grp
+import logging
+import os
+import pwd
 import subprocess
+import sys
+import tarfile
 from contextlib import closing  # python 2.6 tarfile does not support with
 
 import htcondor
+
 from glideinwms.creation.lib import factoryXmlConfig
+
 
 def parse_opts():
     """ Parse the command line options for this command

@@ -15,15 +15,13 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os
-import time
-import string
 import fcntl
-from glideinwms.lib import condorExe
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorManager
-from glideinwms.lib import logSupport
-from glideinwms.lib import classadSupport
+import os
+import string
+import time
+
+from glideinwms.lib import (classadSupport, condorExe, condorManager,
+                            condorMonitor, logSupport)
 
 ############################################################
 #

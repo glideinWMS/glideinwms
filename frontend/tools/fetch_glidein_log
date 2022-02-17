@@ -16,9 +16,10 @@
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
 
 from __future__ import print_function
+
+import optparse
 import os
 import sys
-import optparse
 
 sys.path.append(os.path.join(sys.path[0],"../../.."))
 from glideinwms.frontend import glideinFrontendConfig

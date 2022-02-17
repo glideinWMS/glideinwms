@@ -11,9 +11,9 @@
   unparse.py <path to source files>
   unparse.py --testdir <path to source files directories>
 """
-import sys
 import ast
 import os
+import sys
 import tokenize
 from io import StringIO
 

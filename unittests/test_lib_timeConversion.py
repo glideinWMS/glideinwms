@@ -14,30 +14,26 @@ Author:
 
 
 import os
-import unittest
 import time
-import xmlrunner
+import unittest
+
 import hypothesis
 import hypothesis.strategies as st
+import xmlrunner
+
+from glideinwms.lib.timeConversion import (extractHuman, extractISO8601_Local,
+                                           extractISO8601_UTC,
+                                           extractRFC2822_Local,
+                                           extractRFC2822_UTC, extractSeconds,
+                                           get_time_in_format, getHuman,
+                                           getISO8601_Local, getISO8601_UTC,
+                                           getRFC2822_Local, getRFC2822_UTC,
+                                           getSeconds, getTZval)
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
 #from glideinwms.unittests.unittest_utils import runTest
 
-from glideinwms.lib.timeConversion import getSeconds
-from glideinwms.lib.timeConversion import extractSeconds
-from glideinwms.lib.timeConversion import getHuman
-from glideinwms.lib.timeConversion import extractHuman
-from glideinwms.lib.timeConversion import getISO8601_UTC
-from glideinwms.lib.timeConversion import extractISO8601_UTC
-from glideinwms.lib.timeConversion import getISO8601_Local
-from glideinwms.lib.timeConversion import extractISO8601_Local
-from glideinwms.lib.timeConversion import getRFC2822_UTC
-from glideinwms.lib.timeConversion import extractRFC2822_UTC
-from glideinwms.lib.timeConversion import getRFC2822_Local
-from glideinwms.lib.timeConversion import extractRFC2822_Local
-from glideinwms.lib.timeConversion import get_time_in_format
-from glideinwms.lib.timeConversion import getTZval
 
 
 #

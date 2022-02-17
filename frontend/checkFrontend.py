@@ -23,6 +23,7 @@
 #
 
 import sys
+
 from glideinwms.frontend import glideinFrontendPidLib
 
 if __name__ == '__main__':

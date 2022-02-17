@@ -12,12 +12,13 @@ Author:
     Marco Mascheroni, marco.mascheroni@cern.ch
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import copy
-import xmlrunner
 import unittest
+
+import xmlrunner
+
 #from unittest.mock import patch
 
 
@@ -28,8 +29,9 @@ except ImportError as err:
         pass
 
 try:
+    from glideinwms.factory.tools.OSG_autoconf import (
+        create_missing_file_internal, get_information_internal)
     from glideinwms.lib.config_util import BEST_FIT_TAG
-    from glideinwms.factory.tools.OSG_autoconf import create_missing_file_internal, get_information_internal
 except ImportError as err:
     raise TestImportError(str(err))
 

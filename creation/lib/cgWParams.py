@@ -14,20 +14,23 @@
 #   Igor Sfiligoi
 #
 
-import os
 import copy
+import os
 # import sys
 import os.path
 # import string
 import socket
+
+from glideinwms.lib import condorExe
+from glideinwms.lib.util import safe_boolcomp
+from glideinwms.lib.xmlParse import OrderedDict
+
+from . import cWParams
+
 # import types
 # import traceback
 #from collections import OrderedDict
 
-from glideinwms.lib.xmlParse import OrderedDict
-from glideinwms.lib import condorExe
-from glideinwms.lib.util import safe_boolcomp
-from . import cWParams
 
 
 ######################################################

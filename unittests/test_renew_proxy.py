@@ -12,8 +12,9 @@ Author:
     Brian Lin <brianhlin@gmail.com>
 """
 
-import mock
 import unittest
+
+import mock
 import xmlrunner
 
 from glideinwms.frontend import gwms_renew_proxies as proxy

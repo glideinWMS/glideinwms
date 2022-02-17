@@ -14,16 +14,15 @@
 #  Igor Sfiligoi  (since Mar 31st 2009)
 #
 
-import os
 import copy
-import time
-import random
 import math
-from glideinwms.lib import logSupport
-from glideinwms.lib import util
-from . import glideinFrontendLib
-from . import glideinFrontendInterface
+import os
+import random
+import time
 
+from glideinwms.lib import logSupport, util
+
+from . import glideinFrontendInterface, glideinFrontendLib
 
 ################################################################################
 #                                                                              #

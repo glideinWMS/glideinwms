@@ -18,19 +18,20 @@ Project:
 
 
 import dis
+import io
 import re
 import sys
-import io
-import xmlrunner
-import mock
 import unittest
-from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
-from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
+
+import mock
+import xmlrunner
+
+import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
-import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
+from glideinwms.frontend.glideinFrontendLib import (
+    getClientCondorStatusCredIdOnly, getClientCondorStatusPerCredId)
 from glideinwms.unittests.unittest_utils import FakeLogger
-
 
 # todo
 # def countMatch

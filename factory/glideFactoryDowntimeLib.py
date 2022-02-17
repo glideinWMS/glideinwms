@@ -15,10 +15,12 @@
 #   Igor Sfiligoi (July 7th 2008)
 #
 
-import time
 import fcntl
 import os.path
+import time
+
 from glideinwms.lib import timeConversion
+
 
 #
 # Handle a downtime file

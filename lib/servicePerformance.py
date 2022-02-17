@@ -18,6 +18,7 @@
 
 import time
 
+
 class PerfMetric:
     """
     Class to store performance metrics for different events in a service

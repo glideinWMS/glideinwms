@@ -15,19 +15,16 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
+import copy
 import json
+import math
 import os
+import pickle
 import re
 import time
-import copy
-import math
-import pickle
-from glideinwms.lib import xmlFormat
-from glideinwms.lib import timeConversion
-from glideinwms.lib import rrdSupport
-from glideinwms.lib import logSupport
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib import util
+
+from glideinwms.lib import (cleanupSupport, logSupport, rrdSupport,
+                            timeConversion, util, xmlFormat)
 
 # list of rrd files that each site has
 RRD_LIST = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd',

@@ -20,18 +20,18 @@
 #   Igor Sfiligoi (May 2007)
 #
 
-import time
-import tempfile
-import shutil
 import os
 import os.path
+import shutil
 import sys
+import tempfile
+import time
+
+from glideinwms.lib import condorManager, condorMonitor
 
 # This should be done by the user of the module
 #sys.path.append("../../lib")
 
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorManager
 
 # returns a dictionary of jid,schedd_name,pool_name, timeout and argv
 # the argv contains the arguments not parsed by the function

@@ -4,9 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import print_function
+
 import os
-import sys
 import stat
+import sys
+
 # STARTUP_DIR=sys.path[0]
 # import os.path
 # sys.path.append(os.path.join(STARTUP_DIR,"../.."))

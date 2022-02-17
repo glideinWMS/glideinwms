@@ -14,8 +14,8 @@
 #
 
 import os.path
-from . import cWConsts
 
+from . import cWConsts
 
 # these are in the stage dir, so they need to be renamed if changed
 AFTER_FILE_LISTFILE = "after_%s" % cWConsts.FILE_LISTFILE

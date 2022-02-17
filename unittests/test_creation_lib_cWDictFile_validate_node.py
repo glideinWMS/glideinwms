@@ -19,10 +19,11 @@ Project:
 
 
 import unittest
+
 import xmlrunner
 
-
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.creation.lib.cWDictFile import validate_node
 except ImportError as err:

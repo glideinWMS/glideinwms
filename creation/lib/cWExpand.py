@@ -16,7 +16,6 @@
 import re
 import string
 
-
 ######################
 # expand $$(attribute)
 # quote, if needed

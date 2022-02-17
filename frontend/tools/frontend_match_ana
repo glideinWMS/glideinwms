@@ -11,17 +11,18 @@
 #   $2 = group_name
 #   $3 = job search pattern (e.g. '234\.3')
 
+import os
+import os.path
+import re
 # import signal
 import sys
-import os, os.path
-import re
-import traceback
 import time
+import traceback
 
-from glideinwms.frontend import glideinFrontendConfig
-from glideinwms.frontend import glideinFrontendInterface
-from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import (glideinFrontendConfig,
+                                 glideinFrontendInterface, glideinFrontendLib)
 from glideinwms.lib import exprParser
+
 # from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
 

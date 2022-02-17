@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import time
 import fcntl
 import os.path
+import time
 
 from glideinwms.lib import timeConversion
+
 
 # Handle a downtime file
 #

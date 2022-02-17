@@ -12,9 +12,9 @@
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
 #  -n, --no-pilots                         Do not include pilot DNs in mapfile
 
+import optparse
 import os
 import sys
-import optparse
 
 sys.path.append(os.path.join(sys.path[0],"../../.."))
 # from glideinwms.frontend import glideinFrontendConfig

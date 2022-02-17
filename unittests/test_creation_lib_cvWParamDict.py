@@ -16,38 +16,32 @@ Author:
 import os
 import tempfile
 import unittest
+
 import xmlrunner
 
+from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 # pylint: disable=no-member
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from glideinwms.unittests.unittest_utils import runTest
-from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
+from glideinwms.unittests.unittest_utils import TestImportError, runTest
 
-from glideinwms.unittests.unittest_utils import TestImportError
 try:
     from glideinwms.creation.lib.cvWParamDict import populate_group_descript
 except ImportError as err:
     raise TestImportError(str(err))
 
 
-from glideinwms.creation.lib.cvWParamDict import derive_and_validate_match
-from glideinwms.creation.lib.cvWParamDict import apply_group_singularity_policy
-from glideinwms.creation.lib.cvWParamDict import apply_multicore_policy
-from glideinwms.creation.lib.cvWParamDict import get_pool_list
-from glideinwms.creation.lib.cvWParamDict import populate_common_descript
-from glideinwms.creation.lib.cvWParamDict import calc_glidein_collectors
-from glideinwms.creation.lib.cvWParamDict import calc_glidein_ccbs
-from glideinwms.creation.lib.cvWParamDict import populate_main_security
-from glideinwms.creation.lib.cvWParamDict import populate_group_security
-from glideinwms.creation.lib.cvWParamDict import populate_common_attrs
-from glideinwms.creation.lib.cvWParamDict import frontendMainDicts
-from glideinwms.creation.lib.cvWParamDict import frontendGroupDicts
-from glideinwms.creation.lib.cvWParamDict import frontendDicts
-from glideinwms.creation.lib.cvWParams import VOFrontendSubParams
-from glideinwms.creation.lib.cvWParams import VOFrontendParams
 from glideinwms.creation.lib import xslt
+from glideinwms.creation.lib.cvWParamDict import (
+    apply_group_singularity_policy, apply_multicore_policy, calc_glidein_ccbs,
+    calc_glidein_collectors, derive_and_validate_match, frontendDicts,
+    frontendGroupDicts, frontendMainDicts, get_pool_list,
+    populate_common_attrs, populate_common_descript, populate_group_security,
+    populate_main_security)
+from glideinwms.creation.lib.cvWParams import (VOFrontendParams,
+                                               VOFrontendSubParams)
 from glideinwms.frontend import glideinFrontendLib
+
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 STARTUP_DIR = 'fixtures/frontend/web-base'
 

@@ -15,8 +15,8 @@
 #   Igor Sfiligoi @ UCSD (Apr 2010)
 #
 
-import os
 import copy
+import os
 
 ###############
 #

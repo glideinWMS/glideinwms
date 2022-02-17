@@ -12,11 +12,10 @@
 #
 
 import os
-import time
 import string
-from . import logSupport
-from . import condorManager
+import time
 
+from . import condorManager, logSupport
 
 ###############################################################################
 # Generic Classad Structure

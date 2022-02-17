@@ -16,19 +16,15 @@
 
 
 import unittest
-import xmlrunner
 import xml
 
+import xmlrunner
 
 # TODO: should OrderedDict be removed, it is the one from the stdlib. But tests are texting XML conversion as well
 #       should be directly: from collections import OrderedDict
-from glideinwms.lib.xmlParse import OrderedDict
-from glideinwms.lib.xmlParse import xmlfile2dict
-from glideinwms.lib.xmlParse import xmlstring2dict
-from glideinwms.lib.xmlParse import getXMLElements
-from glideinwms.lib.xmlParse import getXMLAttributes
-from glideinwms.lib.xmlParse import is_singular_of
-from glideinwms.lib.xmlParse import domel2dict
+from glideinwms.lib.xmlParse import (OrderedDict, domel2dict, getXMLAttributes,
+                                     getXMLElements, is_singular_of,
+                                     xmlfile2dict, xmlstring2dict)
 
 xmlstr = """
 <test date="1/2/07">

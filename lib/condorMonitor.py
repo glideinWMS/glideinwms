@@ -16,14 +16,14 @@
 #   Igor Sfiligoi (Aug 30th 2006)
 #
 
-import os
-import sys
 import copy
+import os
 import socket
+import sys
 import xml.parsers.expat
 from itertools import groupby
-from . import condorExe
-from . import condorSecurity
+
+from . import condorExe, condorSecurity
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
@@ -39,8 +39,8 @@ try:
     # Furthemore _CONDOR_ variables are ignored by htcondor and need to be added
     # manually to htcondor.param.
     # This mandates that we do a htcondor_full_reload() every time to use the bindings.
-    import htcondor  # pylint: disable=import-error
     import classad  # pylint: disable=import-error
+    import htcondor  # pylint: disable=import-error
 
     USE_HTCONDOR_PYTHON_BINDINGS = True
 except ImportError:

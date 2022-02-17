@@ -16,19 +16,19 @@ Project:
 
 
 import os
-import mock
 import unittest
-import xmlrunner
+
 import jsonpickle
+import mock
+import xmlrunner
+
 import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.unittests.unittest_utils import TestImportError
+from glideinwms.frontend import (glideinFrontendInterface,
+                                 glideinFrontendMonitoring)
 from glideinwms.lib.fork import ForkManager
-from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.lib.util import safe_boolcomp
-
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
 
 try:
     import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig

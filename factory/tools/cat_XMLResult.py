@@ -21,6 +21,7 @@
 import os.path
 import string
 import sys
+
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 from glideinwms.factory.tools.lib import gWftLogParser

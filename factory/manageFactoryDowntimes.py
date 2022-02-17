@@ -15,16 +15,15 @@
 #
 
 import os
-import time, string
-import sys
 import re
+import string
+import sys
+import time
 
+from glideinwms.creation.lib import cgWConsts, cgWDictFile
+from glideinwms.factory import glideFactoryConfig, glideFactoryDowntimeLib
 from glideinwms.lib import condorMonitor
-from glideinwms.creation.lib import cgWDictFile
-from glideinwms.creation.lib import cgWConsts
 
-from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory import glideFactoryDowntimeLib
 
 def usage():
     print("Usage:")

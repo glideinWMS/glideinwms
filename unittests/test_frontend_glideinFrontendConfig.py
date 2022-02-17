@@ -15,27 +15,27 @@ Author:
 """
 
 
-import unittest
-import xmlrunner
-import string
 import os
+import string
+import unittest
 
+import xmlrunner
 
-from glideinwms.frontend.glideinFrontendConfig import FrontendConfig
-from glideinwms.frontend.glideinFrontendConfig import FrontendDescript
-from glideinwms.frontend.glideinFrontendConfig import get_group_dir
-from glideinwms.frontend.glideinFrontendConfig import ConfigFile
-from glideinwms.frontend.glideinFrontendConfig import GroupConfigFile
-from glideinwms.frontend.glideinFrontendConfig import ElementDescript
-from glideinwms.frontend.glideinFrontendConfig import ParamsDescript
-from glideinwms.frontend.glideinFrontendConfig import AttrsDescript
-from glideinwms.frontend.glideinFrontendConfig import SignatureDescript
-from glideinwms.frontend.glideinFrontendConfig import ElementMergedDescript
-from glideinwms.frontend.glideinFrontendConfig import GroupSignatureDescript
-from glideinwms.frontend.glideinFrontendConfig import StageFiles
-from glideinwms.frontend.glideinFrontendConfig import ExtStageFiles
-from glideinwms.frontend.glideinFrontendConfig import MergeStageFiles
-from glideinwms.frontend.glideinFrontendConfig import HistoryFile
+from glideinwms.frontend.glideinFrontendConfig import (AttrsDescript,
+                                                       ConfigFile,
+                                                       ElementDescript,
+                                                       ElementMergedDescript,
+                                                       ExtStageFiles,
+                                                       FrontendConfig,
+                                                       FrontendDescript,
+                                                       GroupConfigFile,
+                                                       GroupSignatureDescript,
+                                                       HistoryFile,
+                                                       MergeStageFiles,
+                                                       ParamsDescript,
+                                                       SignatureDescript,
+                                                       StageFiles,
+                                                       get_group_dir)
 
 
 class TestFrontendConfig(unittest.TestCase):

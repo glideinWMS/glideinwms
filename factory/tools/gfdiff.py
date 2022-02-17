@@ -8,17 +8,18 @@
 
 
 
+import argparse
+import base64
+import hashlib
 import re
 import sys
 import uuid
-import base64
-import hashlib
-import argparse
+
 import requests
 
+from glideinwms.creation.lib.factoryXmlConfig import EntryElement  # , parse
+from glideinwms.creation.lib.factoryXmlConfig import FactAttrElement, _parse
 from glideinwms.creation.lib.xmlConfig import DictElement, ListElement
-from glideinwms.creation.lib.factoryXmlConfig import _parse, EntryElement, FactAttrElement #, parse
-
 
 g_entry_a = None
 g_entry_b = None

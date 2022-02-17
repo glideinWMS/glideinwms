@@ -13,20 +13,21 @@
 #   created out of the parameter object
 #
 
-import os, os.path, shutil, string
-from . import cvWDictFile, cWDictFile
-from . import cvWConsts, cWConsts
-from . import cvWCreate
-from . import cWExpand
-from .cWParamDict import is_true, add_file_unparsed, has_file_wrapper, has_file_wrapper_params
+import os
+import os.path
 import shutil
+import string
+
+from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 # import re - not used
 from glideinwms.lib import x509Support
 from glideinwms.lib.util import str2bool
-from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
+
+from . import cvWConsts, cvWCreate, cvWDictFile, cWConsts, cWDictFile, cWExpand
+from .cWParamDict import (add_file_unparsed, has_file_wrapper,
+                          has_file_wrapper_params, is_true)
 #from .cvWParams import MatchPolicy
 from .matchPolicy import MatchPolicy
-
 
 ####################################################################################
 # Functions to validate the match expression once expanded

@@ -16,8 +16,8 @@
 
 
 import os
-from . import logSupport
-from . import subprocessSupport
+
+from . import logSupport, subprocessSupport
 
 
 class CondorExeError(RuntimeError):

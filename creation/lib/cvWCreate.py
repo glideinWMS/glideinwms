@@ -14,11 +14,11 @@
 #
 
 import os
+import re
 import stat
 import string
-import re
-from glideinwms.lib import condorExe
-from glideinwms.lib import condorSecurity
+
+from glideinwms.lib import condorExe, condorSecurity
 from glideinwms.lib.util import chmod
 
 

@@ -14,30 +14,23 @@
 #
 
 
-import signal
-import os
-import os.path
-import sys
-import traceback
-import string
 import copy
 import logging
+import os
+import os.path
+import signal
+import string
+import sys
 import tempfile
+import traceback
 
-from glideinwms.factory import glideFactoryPidLib
-from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory import glideFactoryLib
-from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import (glideFactoryConfig, glideFactoryCredentials,
+                                glideFactoryDowntimeLib)
 from glideinwms.factory import glideFactoryInterface as gfi
-from glideinwms.factory import glideFactoryLogParser
-from glideinwms.factory import glideFactoryDowntimeLib
-from glideinwms.factory import glideFactoryCredentials
-from glideinwms.lib import logSupport
-from glideinwms.lib import util
-from glideinwms.lib import classadSupport
-from glideinwms.lib import glideinWMSVersion
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib import token_util
+from glideinwms.factory import (glideFactoryLib, glideFactoryLogParser,
+                                glideFactoryMonitoring, glideFactoryPidLib)
+from glideinwms.lib import (classadSupport, cleanupSupport, glideinWMSVersion,
+                            logSupport, token_util, util)
 from glideinwms.lib.util import chmod
 
 

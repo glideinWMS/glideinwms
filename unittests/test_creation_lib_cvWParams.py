@@ -17,20 +17,19 @@ Project:
 
 
 
+import copy
 import os
 import sys
-import copy
 import tempfile
 import unittest
-import xmlrunner
+
 import mock
+import xmlrunner
 
-
-from glideinwms.creation.lib.cvWParams import VOFrontendSubParams
-from glideinwms.creation.lib.cvWParams import VOFrontendParams
-from glideinwms.creation.lib.cvWParams import extract_attr_val
-from glideinwms.creation.lib.cWParams import Params
-from glideinwms.creation.lib.cWParams import SubParams
+from glideinwms.creation.lib.cvWParams import (VOFrontendParams,
+                                               VOFrontendSubParams,
+                                               extract_attr_val)
+from glideinwms.creation.lib.cWParams import Params, SubParams
 
 ARGV = ["fixtures/frontend.xml", "fixtures/frontend.xml"]
 SRC_DIR = "fixtures/frontend"

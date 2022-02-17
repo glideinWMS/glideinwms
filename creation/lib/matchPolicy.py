@@ -14,12 +14,13 @@
 #   Parag Mhashilkar
 #
 
+import imp
 import os
-# import copy
-import re
 # import imp
 import os.path
-import imp
+# import copy
+import re
+
 # import string
 # import socket
 #from collections import OrderedDict

@@ -22,14 +22,15 @@
 #  Igor Sfiligoi (Mar 18th, 2010) @UCSD
 #
 
-import os
-import sys
+import base64
 import binascii
 import gzip
 import io
-import traceback
-import base64
+import os
 import shutil
+import sys
+import traceback
+
 
 class ProxyEnvironmentError(Exception): pass
 class CompressionError(Exception): pass

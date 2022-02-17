@@ -20,8 +20,9 @@ NOTE get_hash() and extract_hash() both return Unicode utf-8 (defaults.BINARY_EN
 """
 # TODO: should this module be replaced (or reimplemented) by using Python's hashlib?
 
-import M2Crypto
 import binascii
+
+import M2Crypto
 
 from . import defaults
 

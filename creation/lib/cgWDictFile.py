@@ -12,13 +12,17 @@
 #   handle dictionary files
 #
 
-import os, os.path, string, copy
-from . import cgWConsts, cWConsts
-from . import cWDictFile
+import copy
+import os
+import os.path
 import pwd
 import shutil
+import string
+
 import glideinwms.lib.subprocessSupport
 from glideinwms.lib.util import chmod
+
+from . import cgWConsts, cWConsts, cWDictFile
 
 
 # values are (group_name)

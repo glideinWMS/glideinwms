@@ -4,11 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-import sys
-import tempfile
+import platform
 import random
 import string
-import platform
+import sys
+import tempfile
 import unittest
 
 # We assume that this module is in the unittest directory

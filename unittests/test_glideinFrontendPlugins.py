@@ -22,18 +22,17 @@ import os
 import tempfile
 #import tarfile
 import unittest
+
 import xmlrunner
 
+from glideinwms.lib import condorMonitor, logSupport
 # from glideinwms.unittests.unittest_utils import create_temp_file
 # from glideinwms.unittests.unittest_utils import create_random_string
-from glideinwms.unittests.unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import FakeLogger, TestImportError
 
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import logSupport
-from glideinwms.unittests.unittest_utils import TestImportError
 try:
-    from glideinwms.frontend.glideinFrontendInterface import Credential
     from glideinwms.frontend import glideinFrontendPlugins
+    from glideinwms.frontend.glideinFrontendInterface import Credential
 except ImportError as err:
     raise TestImportError(str(err))
 

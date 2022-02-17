@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import errno
+import os
 #
 # Project:
 #   glideinWMS
@@ -18,13 +20,12 @@
 # TODO: This could be rewritten so that the polling lists are registered once and the fd are removed only when
 #       not needed anymore (currently there is an extrnal structure and the poll object is a new one each time)
 import pickle
-import os
+import select
 import sys
 import time
-import select
-import errno
-from .pidSupport import register_sighandler, unregister_sighandler, termsignal
+
 from . import logSupport
+from .pidSupport import register_sighandler, termsignal, unregister_sighandler
 
 
 class ForkError(RuntimeError):

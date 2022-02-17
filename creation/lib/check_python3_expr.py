@@ -14,12 +14,11 @@
 #   Bruno Coimbra
 #
 
-import sys
-import ast
-import xml.etree.ElementTree as ET
-import difflib
 import argparse
-
+import ast
+import difflib
+import sys
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 
 # Initialize a refactoring tool if 2to3 is available

@@ -11,18 +11,18 @@
 import os
 import re
 import socket
-import time
-import uuid
 import struct
 import sys
+import time
+import uuid
+
 import jwt
-
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
-from glideinwms.lib.subprocessSupport import iexe_cmd
-from glideinwms.lib import logSupport
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
+from glideinwms.lib import logSupport
+from glideinwms.lib.subprocessSupport import iexe_cmd
 
 # 2/3 compatibility helpers
 # Inspired by http://python3porting.com/problems.html#nicer-solutions

@@ -18,9 +18,10 @@ NOTE For convenience and consistency w/ previous versions of this module, Encryp
 
 """
 
-import M2Crypto
-import os
 import binascii
+import os
+
+import M2Crypto
 
 from . import defaults
 

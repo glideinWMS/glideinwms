@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-import subprocess
 import shlex
-
+import subprocess
 from subprocess import CalledProcessError
+
 # CalledProcessError(self, returncode, cmd, output=None, stderr=None)
 # Provides: cmd, returncode, stdout, stderr, output (same as stdout)
 # __str__ of this class is not printing the stdout in the error message

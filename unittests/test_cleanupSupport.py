@@ -19,12 +19,11 @@ import os
 import shutil
 import tempfile
 import unittest
+
 import xmlrunner
 
-from glideinwms.unittests.unittest_utils import FakeLogger
-from glideinwms.unittests.unittest_utils import create_temp_file
-from glideinwms.lib import logSupport
-from glideinwms.lib import cleanupSupport
+from glideinwms.lib import cleanupSupport, logSupport
+from glideinwms.unittests.unittest_utils import FakeLogger, create_temp_file
 
 
 class TestCleanupSupport(unittest.TestCase):

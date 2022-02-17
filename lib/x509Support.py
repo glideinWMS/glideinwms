@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import sys
+
 import M2Crypto
+
 from . import defaults
 
 

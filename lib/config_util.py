@@ -8,10 +8,9 @@ configuration generation helper tools
 
 
 import collections
-
 import os
-import yaml
 
+import yaml
 
 BEST_FIT_TAG = "BEST_FIT"
 

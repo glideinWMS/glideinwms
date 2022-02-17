@@ -12,10 +12,10 @@
 
 import os.path
 import sys
+
 sys.path.append(os.path.join(sys.path[0], "../.."))
 
-from glideinwms.factory import glideFactoryInterface
-from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryConfig, glideFactoryInterface
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.lib import xmlFormat
 

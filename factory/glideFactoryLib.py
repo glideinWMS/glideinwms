@@ -16,27 +16,21 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os
-import time
-import glob
-import string
-import re
-import pwd
 import base64
+import glob
+import os
+import pwd
+import re
+import string
 import tempfile
+import time
 from itertools import groupby
-
-from glideinwms.lib import condorExe
-from glideinwms.lib import logSupport
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorManager
-from glideinwms.lib import timeConversion
-from glideinwms.lib import x509Support
-from glideinwms.lib import subprocessSupport
 
 import glideinwms.factory.glideFactorySelectionAlgorithms
 from glideinwms.factory import glideFactoryConfig
-
+from glideinwms.lib import (condorExe, condorManager, condorMonitor,
+                            logSupport, subprocessSupport, timeConversion,
+                            x509Support)
 from glideinwms.lib.defaults import BINARY_ENCODING
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]

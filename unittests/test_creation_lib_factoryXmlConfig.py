@@ -18,17 +18,15 @@ Project:
 
 
 import unittest
+
 import xmlrunner
 
-
-from glideinwms.creation.lib.factoryXmlConfig import FactAttrElement
-from glideinwms.creation.lib.factoryXmlConfig import FactFileElement
-from glideinwms.creation.lib.factoryXmlConfig import CondTarElement
-from glideinwms.creation.lib.factoryXmlConfig import FrontendElement
-from glideinwms.creation.lib.factoryXmlConfig import EntryElement
-from glideinwms.creation.lib.factoryXmlConfig import EntrySetElement
-from glideinwms.creation.lib.factoryXmlConfig import Config
-from glideinwms.creation.lib.factoryXmlConfig import parse
+from glideinwms.creation.lib.factoryXmlConfig import (CondTarElement, Config,
+                                                      EntryElement,
+                                                      EntrySetElement,
+                                                      FactAttrElement,
+                                                      FactFileElement,
+                                                      FrontendElement, parse)
 
 XML = 'fixtures/factory/glideinWMS.xml'
 XML_ENTRY = 'fixtures/factory/config.d/Dev_Sites.xml'

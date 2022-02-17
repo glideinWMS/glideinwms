@@ -14,8 +14,8 @@
 #   Igor Sfiligoi (Mar 15th 2007)
 #
 
-import time
 import calendar
+import time
 
 
 def getSeconds(now=None):

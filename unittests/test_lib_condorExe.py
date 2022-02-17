@@ -18,14 +18,11 @@ Project:
 import os
 import sys
 import unittest
+
 import xmlrunner
 
-
 from glideinwms.lib import condorExe
-from glideinwms.lib.condorExe import iexe_cmd
-from glideinwms.lib.condorExe import exe_cmd
-from glideinwms.lib.condorExe import exe_cmd_sbin
-from glideinwms.lib.condorExe import ExeError
+from glideinwms.lib.condorExe import ExeError, exe_cmd, exe_cmd_sbin, iexe_cmd
 
 
 class TestCondorExe(unittest.TestCase):

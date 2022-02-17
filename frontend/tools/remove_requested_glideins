@@ -10,19 +10,18 @@
 #  -d DIR, --work-dir=DIR         Frontend work dir (default: $FE_WORK_DIR)
 #  -t TYPE, --removal-type=TYPE   Type of removal request (defalt: IDLE)
 
-import os
-import sys
 import fcntl
-import signal
 import optparse
+import os
+import signal
 import subprocess
+import sys
 import time
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
-from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontend, glideinFrontendPidLib
 
-from glideinwms.frontend import glideinFrontend
 FRONTEND_DIR = os.path.dirname(glideinFrontend.__file__)
 
 

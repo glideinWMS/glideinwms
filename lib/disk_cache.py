@@ -8,10 +8,10 @@ Each object you want to save needs to have a string id that identifies it. The i
 locate the object in the memory (a key in a dictionary), and on the disk (the filename).
 """
 
-import os
-import fcntl
-import pickle
 import contextlib
+import fcntl
+import os
+import pickle
 from time import time
 
 

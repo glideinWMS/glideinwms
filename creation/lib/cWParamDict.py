@@ -16,8 +16,8 @@
 #
 
 import os.path
-from . import cWConsts
-from . import cWDictFile
+
+from . import cWConsts, cWDictFile
 
 
 def is_true(s):

@@ -12,50 +12,50 @@
 
 
 import getpass
-import unittest
 import os
 import tempfile
-import xmlrunner
+import unittest
 
+import xmlrunner
 
 # from glideinwms.creation.lib.cgWDictFile import MonitorGroupDictFile
 # from glideinwms.creation.lib.cgWDictFile import InfoSysDictFile
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.creation.lib.cgWDictFile import CondorJDLDictFile
 except ImportError as err:
     raise TestImportError(str(err))
 
-from glideinwms.creation.lib.cgWDictFile import get_common_dicts
-from glideinwms.creation.lib.cgWDictFile import get_main_dicts
-from glideinwms.creation.lib.cgWDictFile import get_entry_dicts
-from glideinwms.creation.lib.cgWDictFile import load_common_dicts
-from glideinwms.creation.lib.cgWDictFile import load_main_dicts
-from glideinwms.creation.lib.cgWDictFile import load_entry_dicts
-# from glideinwms.creation.lib.cgWDictFile import refresh_description
-# from glideinwms.creation.lib.cgWDictFile import refresh_file_list
-# from glideinwms.creation.lib.cgWDictFile import refresh_signature
-from glideinwms.creation.lib.cgWDictFile import save_common_dicts
-from glideinwms.creation.lib.cgWDictFile import save_main_dicts
-from glideinwms.creation.lib.cgWDictFile import save_entry_dicts
-# from glideinwms.creation.lib.cgWDictFile import reuse_simple_dict
-# from glideinwms.creation.lib.cgWDictFile import reuse_file_dict
-# from glideinwms.creation.lib.cgWDictFile import reuse_common_dicts
-# from glideinwms.creation.lib.cgWDictFile import reuse_main_dicts
-# from glideinwms.creation.lib.cgWDictFile import reuse_entry_dicts
-from glideinwms.creation.lib.cgWDictFile import clientDirSupport
 # from glideinwms.creation.lib.cgWDictFile import chmodClientDirSupport
 # from glideinwms.creation.lib.cgWDictFile import baseClientDirSupport
 # from glideinwms.creation.lib.cgWDictFile import clientSymlinksSupport
 # from glideinwms.creation.lib.cgWDictFile import clientLogDirSupport
 # from glideinwms.creation.lib.cgWDictFile import clientProxiesDirSupport
-from glideinwms.creation.lib.cgWDictFile import glideinMainDicts
-from glideinwms.creation.lib.cgWDictFile import glideinEntryDicts
-from glideinwms.creation.lib.cgWDictFile import glideinDicts
+# from glideinwms.creation.lib.cgWDictFile import reuse_simple_dict
+# from glideinwms.creation.lib.cgWDictFile import reuse_file_dict
+# from glideinwms.creation.lib.cgWDictFile import reuse_common_dicts
+# from glideinwms.creation.lib.cgWDictFile import reuse_main_dicts
+# from glideinwms.creation.lib.cgWDictFile import reuse_entry_dicts
+# from glideinwms.creation.lib.cgWDictFile import refresh_description
+# from glideinwms.creation.lib.cgWDictFile import refresh_file_list
+# from glideinwms.creation.lib.cgWDictFile import refresh_signature
+from glideinwms.creation.lib.cgWDictFile import (clientDirSupport,
+                                                 get_common_dicts,
+                                                 get_entry_dicts,
+                                                 get_main_dicts, glideinDicts,
+                                                 glideinEntryDicts,
+                                                 glideinMainDicts,
+                                                 load_common_dicts,
+                                                 load_entry_dicts,
+                                                 load_main_dicts,
+                                                 save_common_dicts,
+                                                 save_entry_dicts,
+                                                 save_main_dicts)
+from glideinwms.creation.lib.factoryXmlConfig import parse
 
 # import glideinwms.creation.lib.cWDictFile as cWDictFile
 
-from glideinwms.creation.lib.factoryXmlConfig import parse
 
 XML = 'fixtures/factory/glideinWMS.xml'
 XML_ENTRY = 'fixtures/factory/config.d/Dev_Sites.xml'

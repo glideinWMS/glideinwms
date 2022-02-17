@@ -18,16 +18,15 @@ Project:
 
 
 import os
-import xmlrunner
 import unittest
 
-from glideinwms.creation.lib.cvWConsts import get_group_work_dir
-from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_work_dir
-from glideinwms.creation.lib.cvWConsts import get_group_log_dir
-from glideinwms.creation.lib.cvWConsts import get_group_stage_dir
-from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_stage_dir
-from glideinwms.creation.lib.cvWConsts import get_group_monitor_dir
-from glideinwms.creation.lib.cvWConsts import get_group_name_from_group_monitor_dir
+import xmlrunner
+
+from glideinwms.creation.lib.cvWConsts import (
+    get_group_log_dir, get_group_monitor_dir,
+    get_group_name_from_group_monitor_dir, get_group_name_from_group_stage_dir,
+    get_group_name_from_group_work_dir, get_group_stage_dir,
+    get_group_work_dir)
 
 # test fixtures defined globall here for convenience
 work_dir = 'templates/frontend'

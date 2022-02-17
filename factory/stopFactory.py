@@ -20,16 +20,16 @@
 #
 
 
-import signal
-import sys
-import os
 import fcntl
+import os
+import signal
 import string
-import time
 import subprocess
+import sys
+import time
 
-from glideinwms.factory import glideFactoryPidLib
-from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryConfig, glideFactoryPidLib
+
 
 def all_pids_in_pgid_dead(pgid):
     # return 1 if there are no pids in the pgid still alive

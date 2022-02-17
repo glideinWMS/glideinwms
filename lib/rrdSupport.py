@@ -17,13 +17,16 @@
 
 import string
 import time
+
 try:
-    import rrdtool # pylint: disable=import-error
+    import rrdtool  # pylint: disable=import-error
 except:
     pass
-import subprocess
 import shlex
+import subprocess
+
 from . import subprocessSupport
+
 
 class BaseRRDSupport:
     #############################################################

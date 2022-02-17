@@ -16,19 +16,16 @@
 
 
 
-import unittest
-import xmlrunner
 import os
+import unittest
 
-from glideinwms.creation.lib.cgWConsts import get_entry_submit_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_name_from_entry_submit_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_log_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_userlog_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_userproxies_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_stage_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_name_from_entry_stage_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_monitor_dir
-from glideinwms.creation.lib.cgWConsts import get_entry_name_from_entry_monitor_dir
+import xmlrunner
+
+from glideinwms.creation.lib.cgWConsts import (
+    get_entry_log_dir, get_entry_monitor_dir,
+    get_entry_name_from_entry_monitor_dir, get_entry_name_from_entry_stage_dir,
+    get_entry_name_from_entry_submit_dir, get_entry_stage_dir,
+    get_entry_submit_dir, get_entry_userlog_dir, get_entry_userproxies_dir)
 
 entry_name = 'TEST_SITE_1'
 entry_basedir = 'entry_%s' % entry_name

@@ -8,31 +8,30 @@
 #  based on a configuration file
 
 from __future__ import print_function
-import os
-import sys
+
 import logging
+import os
 import os.path
 import shutil
+import signal
+import sys
 import tarfile
 import tempfile
-import signal
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
+#from glideinwms.creation.lib import cWConsts
 #from glideinwms.creation.lib import cgWParams
 #from glideinwms.creation.lib import cgWDictFile
-from glideinwms.creation.lib import cgWConsts
-#from glideinwms.creation.lib import cWConsts
-from glideinwms.creation.lib import cgWCreate
-from glideinwms.creation.lib import cgWParamDict
-from glideinwms.creation.lib import factoryXmlConfig
-from glideinwms.creation.lib import xslt
-from glideinwms.factory import glideFactoryMonitorAggregator
-from glideinwms.factory import glideFactoryConfig
+from glideinwms.creation.lib import (cgWConsts, cgWCreate, cgWParamDict,
+                                     factoryXmlConfig, xslt)
+from glideinwms.factory import (glideFactoryConfig, glideFactoryLib,
+                                glideFactoryMonitorAggregator)
 from glideinwms.lib import logSupport
-from glideinwms.factory import glideFactoryLib
-from glideinwms.lib.util import handle_hooks, HOOK_PRE_RECONFIG_DIRNAME, HOOK_POST_RECONFIG_DIRNAME
+from glideinwms.lib.util import (HOOK_POST_RECONFIG_DIRNAME,
+                                 HOOK_PRE_RECONFIG_DIRNAME, handle_hooks)
+
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 
 # necessary because systemd is not on rhel6

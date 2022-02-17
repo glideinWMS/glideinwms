@@ -9,18 +9,22 @@
 
 
 
+import argparse
+import copy
+import fractions
+import logging
 import os
 import sys
-import copy
-import logging
-import argparse
-import fractions
 
 import htcondor
 
-from glideinwms.lib.config_util import ENTRY_STUB, GLIDEIN_SUPPORTED_VO_MAP, ProgramError, get_attr_str, update, \
-     get_yaml_file_info, write_to_yaml_file, get_submit_attr_str, write_to_xml_file, get_limits_str, \
-     get_submission_speed, BEST_FIT_TAG
+from glideinwms.lib.config_util import (BEST_FIT_TAG, ENTRY_STUB,
+                                        GLIDEIN_SUPPORTED_VO_MAP, ProgramError,
+                                        get_attr_str, get_limits_str,
+                                        get_submission_speed,
+                                        get_submit_attr_str,
+                                        get_yaml_file_info, update,
+                                        write_to_xml_file, write_to_yaml_file)
 
 
 def load_config():

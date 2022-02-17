@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import io
 import os
 import tarfile
-import io
 
 
 class FileDoesNotExist(Exception):

@@ -8,17 +8,16 @@
 #  from a remote xml config into a local one
 
 from __future__ import print_function
-import os
-import sys
-import os.path
-import copy
-import re
 
+import copy
+import os
+import os.path
+import re
+import sys
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 from glideinwms.creation.lib import cgWParams
-
 
 ################################################################################
 

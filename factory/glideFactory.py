@@ -19,40 +19,35 @@
 #   Igor Sfiligoi (Apr 9th 2007 - moved old glideFactory to glideFactoryEntry)
 #
 
-import os
-import sys
-import json
-import fcntl
-import resource
-import subprocess
-import signal
-import time
 import copy
+import fcntl
+import glob
+import json
 import logging
 import math
-import glob
-import jwt
-import urllib.request, urllib.parse, urllib.error
+import os
+import resource
+import signal
+import subprocess
+import sys
 import tarfile
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
+import jwt
 from M2Crypto.RSA import RSAError
 
-from glideinwms.lib import logSupport
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib import glideinWMSVersion
-from glideinwms.lib import util
-from glideinwms.lib.pubCrypto import RSAKey
+from glideinwms.factory import (glideFactoryConfig, glideFactoryCredentials,
+                                glideFactoryDowntimeLib,
+                                glideFactoryEntryGroup, glideFactoryInterface,
+                                glideFactoryLib, glideFactoryMonitorAggregator,
+                                glideFactoryMonitoring, glideFactoryPidLib)
+from glideinwms.lib import (cleanupSupport, condorMonitor, glideinWMSVersion,
+                            logSupport, util)
 from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
-from glideinwms.factory import glideFactoryPidLib
-from glideinwms.factory import glideFactoryConfig
-from glideinwms.factory import glideFactoryLib
-from glideinwms.factory import glideFactoryInterface
-from glideinwms.factory import glideFactoryMonitorAggregator
-from glideinwms.factory import glideFactoryMonitoring
-from glideinwms.factory import glideFactoryDowntimeLib
-from glideinwms.factory import glideFactoryCredentials
-from glideinwms.factory import glideFactoryEntryGroup
-from glideinwms.lib import condorMonitor
+from glideinwms.lib.pubCrypto import RSAKey
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 

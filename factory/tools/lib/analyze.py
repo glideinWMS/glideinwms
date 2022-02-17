@@ -6,9 +6,15 @@
 #   analyze_queues and analyze_frontends.
 ########################
 
-import os, sys, getopt, re
 import datetime
-import urllib.request, urllib.parse, urllib.error
+import getopt
+import os
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
 
 # Convert particularly large numbers
 #    into kilo/mega; keeps 3 sig figs

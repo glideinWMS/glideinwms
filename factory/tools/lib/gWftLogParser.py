@@ -11,18 +11,18 @@
 #   factory/tool specific condorLogs helper
 #
 
-import time
-import os.path
-import mmap
-import re
 import binascii
-import io
 import gzip
+import io
+import mmap
+import os.path
+import re
+import time
 
-from glideinwms.lib import condorLogParser
 from glideinwms.factory import glideFactoryLogParser
+from glideinwms.lib import condorLogParser
+from glideinwms.lib.defaults import BINARY_ENCODING, force_bytes
 
-from glideinwms.lib.defaults import force_bytes, BINARY_ENCODING
 
 # get the list of jobs that were active at a certain time
 def get_glideins(log_dir_name, date_arr, time_arr):

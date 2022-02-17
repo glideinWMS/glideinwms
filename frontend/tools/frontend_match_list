@@ -11,14 +11,15 @@
 #   $2 = group_name
 
 from __future__ import print_function
-import sys
-import os, os.path
-import traceback
-import time
 
-from glideinwms.frontend import glideinFrontendConfig
-from glideinwms.frontend import glideinFrontendInterface
-from glideinwms.frontend import glideinFrontendLib
+import os
+import os.path
+import sys
+import time
+import traceback
+
+from glideinwms.frontend import (glideinFrontendConfig,
+                                 glideinFrontendInterface, glideinFrontendLib)
 # /var/lib/gwms-frontend/vofrontend/frontend.descript has hardcoded line
 # MatchExpr (True) and (getGlideinCpusNum(glidein) >=
 # int(job.get("RequestCpus", 1)))

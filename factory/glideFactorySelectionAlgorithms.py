@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import time
 import random
+import time
+
 
 def selectionAlgoDefault(submit_files, status_sf, jobDescript, nr_glideins, log):
     """

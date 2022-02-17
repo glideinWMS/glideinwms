@@ -7,14 +7,17 @@
 #   This tool adds a DN to the Condor security configuration
 
 from __future__ import print_function
-import sys,os,os.path
-import stat
-import time
-import re
-import errno
 
-from glideinwms.lib.x509Support import extract_DN
+import errno
+import os
+import os.path
+import re
+import stat
+import sys
+import time
+
 from glideinwms.lib import condorExe
+from glideinwms.lib.x509Support import extract_DN
 
 
 class ArgError(RuntimeError):

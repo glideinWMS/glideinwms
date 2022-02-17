@@ -12,16 +12,17 @@
 #   And other support functions
 #
 
-import os, os.path  # string
+import copy
+import io
+import os  # string
+import os.path
 import re
 import shutil
-import copy
 import socket
-import io
-from glideinwms.lib import hashCrypto
-from glideinwms.lib.util import chmod
-from glideinwms.lib.defaults import BINARY_ENCODING
 
+from glideinwms.lib import hashCrypto
+from glideinwms.lib.defaults import BINARY_ENCODING
+from glideinwms.lib.util import chmod
 
 ########################################
 #

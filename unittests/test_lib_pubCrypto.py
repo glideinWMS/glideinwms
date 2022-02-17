@@ -18,13 +18,13 @@
 
 import os
 import unittest
+
 import xmlrunner
 
-
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
-    from glideinwms.lib.pubCrypto import PubRSAKey
-    from glideinwms.lib.pubCrypto import RSAKey
+    from glideinwms.lib.pubCrypto import PubRSAKey, RSAKey
 except ImportError as err:
     raise TestImportError(str(err))
 

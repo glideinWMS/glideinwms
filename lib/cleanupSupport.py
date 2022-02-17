@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import re
 import stat
 import time
-import re
+
 from . import logSupport
 from .pidSupport import register_sighandler, unregister_sighandler
 

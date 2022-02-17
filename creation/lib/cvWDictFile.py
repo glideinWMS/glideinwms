@@ -12,9 +12,13 @@
 #   Classes and functions needed to handle dictionary files
 #
 
-import os, os.path, shutil, string, copy
-from . import cvWConsts, cWConsts
-from . import cWDictFile
+import copy
+import os
+import os.path
+import shutil
+import string
+
+from . import cvWConsts, cWConsts, cWDictFile
 
 
 class ParamsDictFile(cWDictFile.DictFile):

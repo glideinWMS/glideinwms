@@ -20,27 +20,23 @@
 #
 
 
-import os
-import sys
 import fcntl
-import subprocess
-import traceback
-import signal
-import time
-import shutil
 import logging
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import time
+import traceback
 
-from glideinwms.lib import condorExe
-from glideinwms.lib import logSupport
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib import servicePerformance
-from glideinwms.frontend import glideinFrontendPidLib
-from glideinwms.frontend import glideinFrontendConfig
-from glideinwms.frontend import glideinFrontendLib
-from glideinwms.frontend import glideinFrontendInterface
-from glideinwms.frontend import glideinFrontendMonitorAggregator
-from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.frontend import glideinFrontendElement
+from glideinwms.frontend import (glideinFrontendConfig, glideinFrontendElement,
+                                 glideinFrontendInterface, glideinFrontendLib,
+                                 glideinFrontendMonitorAggregator,
+                                 glideinFrontendMonitoring,
+                                 glideinFrontendPidLib)
+from glideinwms.lib import (cleanupSupport, condorExe, logSupport,
+                            servicePerformance)
 
 
 ############################################################

@@ -15,21 +15,17 @@
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
-import time
-import string
-import os.path
-import os
 import copy
-import tempfile
+import os
+import os.path
 import shutil
-
-from glideinwms.lib import logSupport
-from glideinwms.lib import timeConversion
-from glideinwms.lib import xmlParse, xmlFormat
-from glideinwms.lib import rrdSupport
+import string
+import tempfile
+import time
 
 from glideinwms.frontend import glideinFrontendMonitoring
-
+from glideinwms.lib import (logSupport, rrdSupport, timeConversion, xmlFormat,
+                            xmlParse)
 
 ############################################################
 #

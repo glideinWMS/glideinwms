@@ -22,41 +22,34 @@
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
 #
 
-import sys
-import os
 import copy
-import traceback
-import time
 import logging
+import os
 import re
-import tempfile
 import shutil
 import socket
+import sys
+import tempfile
+import time
+import traceback
+
+from glideinwms.frontend import (glideinFrontendConfig,
+                                 glideinFrontendDowntimeLib,
+                                 glideinFrontendInterface, glideinFrontendLib,
+                                 glideinFrontendMonitoring,
+                                 glideinFrontendPidLib, glideinFrontendPlugins)
+# from glideinwms.lib.util import file_tmp2final
+from glideinwms.lib import (cleanupSupport, condorMonitor, logSupport,
+                            pubCrypto, servicePerformance, subprocessSupport,
+                            token_util)
+from glideinwms.lib.disk_cache import DiskCache
+from glideinwms.lib.fork import ForkManager, fork_in_bg, wait_for_pids
+from glideinwms.lib.pidSupport import register_sighandler
+from glideinwms.lib.util import chmod, safe_boolcomp
 
 # this should not be needed in RPM install: sys.path.append(os.path.join(sys.path[0], "../.."))
 
-from glideinwms.lib import pubCrypto
-from glideinwms.lib import logSupport
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib.util import safe_boolcomp
-# from glideinwms.lib.util import file_tmp2final
-from glideinwms.lib import servicePerformance
-from glideinwms.lib import subprocessSupport
-from glideinwms.lib import condorMonitor
-from glideinwms.lib.disk_cache import DiskCache
-from glideinwms.lib.fork import fork_in_bg, wait_for_pids
-from glideinwms.lib.fork import ForkManager
-from glideinwms.lib.pidSupport import register_sighandler
-from glideinwms.lib import token_util
-from glideinwms.lib.util import chmod
 
-from glideinwms.frontend import glideinFrontendConfig
-from glideinwms.frontend import glideinFrontendInterface
-from glideinwms.frontend import glideinFrontendLib
-from glideinwms.frontend import glideinFrontendPidLib
-from glideinwms.frontend import glideinFrontendMonitoring
-from glideinwms.frontend import glideinFrontendPlugins
-from glideinwms.frontend import glideinFrontendDowntimeLib
 
 
 ###########################################################

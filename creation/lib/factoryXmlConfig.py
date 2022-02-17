@@ -3,8 +3,10 @@
 
 import os
 import xml.sax
-from . import xmlConfig
+
 import glideinwms.factory.glideFactorySelectionAlgorithms
+
+from . import xmlConfig
 
 ENTRY_INDENT = 6
 CONFIG_DIR = 'config.d'

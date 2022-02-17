@@ -14,7 +14,6 @@ import shutil
 
 from glideinwms.lib import pubCrypto, symCrypto
 
-
 ############################################################
 #
 # Configuration

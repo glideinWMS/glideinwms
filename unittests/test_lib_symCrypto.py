@@ -15,27 +15,25 @@ Project:
 """
 
 
-import unittest
 import string
-import xmlrunner
+import unittest
+
 import hypothesis
 import hypothesis.strategies as st
+import xmlrunner
 
 from glideinwms.unittests.unittest_utils import TestImportError
+
 try:
     from glideinwms.lib.symCrypto import SymKey
 except ImportError as err:
     raise TestImportError(str(err))
 
 from glideinwms.lib import defaults
-from glideinwms.lib.symCrypto import MutableSymKey
-from glideinwms.lib.symCrypto import ParametrizedSymKey
-from glideinwms.lib.symCrypto import AutoSymKey
-from glideinwms.lib.symCrypto import SymAES128Key
-from glideinwms.lib.symCrypto import SymAES256Key
-from glideinwms.lib.symCrypto import SymBlowfishKey
-from glideinwms.lib.symCrypto import Sym3DESKey
-from glideinwms.lib.symCrypto import SymDESKey
+from glideinwms.lib.symCrypto import (AutoSymKey, MutableSymKey,
+                                      ParametrizedSymKey, Sym3DESKey,
+                                      SymAES128Key, SymAES256Key,
+                                      SymBlowfishKey, SymDESKey)
 
 
 class TestMutableSymKey(unittest.TestCase):

@@ -23,26 +23,22 @@
 #   Parag Mhashilkar (October 2012)
 #
 
+import logging
 import os
 import os.path
+import pickle
 import sys
 import time
-import pickle
-import logging
 
-from glideinwms.lib import logSupport
-from glideinwms.lib import classadSupport
-from glideinwms.lib import cleanupSupport
-from glideinwms.lib.fork import fetch_fork_result_list
-from glideinwms.lib.fork import ForkManager
-from glideinwms.lib.pidSupport import register_sighandler
-from glideinwms.lib.pidSupport import unregister_sighandler
-from glideinwms.factory import glideFactoryEntry
 from glideinwms.factory import glideFactoryConfig as gfc
-from glideinwms.factory import glideFactoryLib as gfl
+from glideinwms.factory import glideFactoryDowntimeLib, glideFactoryEntry
 from glideinwms.factory import glideFactoryInterface as gfi
+from glideinwms.factory import glideFactoryLib as gfl
 from glideinwms.factory import glideFactoryPidLib
-from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.lib import classadSupport, cleanupSupport, logSupport
+from glideinwms.lib.fork import ForkManager, fetch_fork_result_list
+from glideinwms.lib.pidSupport import (register_sighandler,
+                                       unregister_sighandler)
 
 ############################################################
 # Memory foot print of a entry process when forked for check_and_perform_work

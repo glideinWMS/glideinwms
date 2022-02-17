@@ -8,21 +8,19 @@
 #  based on a configuration file
 
 from __future__ import print_function
+
 import os
-import sys
 import shutil
 import string
+import sys
 import tarfile
 import traceback
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-from glideinwms.creation.lib import cgWConsts, cWConsts
-from glideinwms.creation.lib import cgWCreate
-from glideinwms.creation.lib import cgWParamDict
-from glideinwms.creation.lib import factoryXmlConfig
-
+from glideinwms.creation.lib import (cgWConsts, cgWCreate, cgWParamDict,
+                                     cWConsts, factoryXmlConfig)
 
 ################################################################################
 

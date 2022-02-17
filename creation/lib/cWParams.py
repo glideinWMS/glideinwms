@@ -17,18 +17,17 @@
 #   Igor Sfiligoi
 #
 
-import os
 import copy
-import sys
+import os
 import os.path
 import string
-from collections.abc import Mapping
+import sys
 import xml.parsers.expat
+from collections.abc import Mapping
 
-from glideinwms.lib import xmlParse
-from glideinwms.lib.xmlParse import OrderedDict
-from glideinwms.lib import xmlFormat
+from glideinwms.lib import xmlFormat, xmlParse
 from glideinwms.lib.util import chmod
+from glideinwms.lib.xmlParse import OrderedDict
 
 
 class SubParams(Mapping):

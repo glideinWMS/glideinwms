@@ -6,10 +6,10 @@
 # Description:
 #   Equivalent to condor_status, but with glidein specific info
 
-import time
-import sys
-import os.path
 import argparse
+import os.path
+import sys
+import time
 
 sys.path.append(os.path.join(sys.path[0], "../.."))
 

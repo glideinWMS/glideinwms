@@ -3,16 +3,19 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-# from __future__ import print_function
-import os, sys, getopt, re
 import datetime
+import getopt
+# from __future__ import print_function
+import os
+import re
+import sys
 from urllib.request import urlopen
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 
-from glideinwms.lib import xmlParse
 from glideinwms.factory.tools.lib import analyze
+from glideinwms.lib import xmlParse
 
 
 def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute):

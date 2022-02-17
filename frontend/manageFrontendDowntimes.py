@@ -3,14 +3,16 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import os.path
 import os
-import time, string
-import sys
+import os.path
 import re
+import string
+import sys
+import time
 
-from glideinwms.frontend import glideinFrontendDowntimeLib
-from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import (glideinFrontendConfig,
+                                 glideinFrontendDowntimeLib)
+
 
 def usage():
     print("Usage:")
