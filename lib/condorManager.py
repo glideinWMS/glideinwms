@@ -42,7 +42,7 @@ def cached_exe_cmd(cmd, arg_str, schedd_name, pool_name, schedd_lookup_cache):
 
     schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
-    opts = "%s%s%s" % (pool2str(pool_name), schedd_str, arg_str)
+    opts = f"{pool2str(pool_name)}{schedd_str}{arg_str}"
     return condorExe.exe_cmd(cmd, opts, env=env)
 
 
@@ -210,7 +210,7 @@ def ismulti2str(is_multi):
 def condorAdvertise(
     classad_fname, command, use_tcp=False, is_multi=False, pool_name=None
 ):
-    cmd_opts = "%s%s%s%s %s" % (
+    cmd_opts = "{}{}{}{} {}".format(
         pool2str(pool_name),
         usetcp2str(use_tcp),
         ismulti2str(is_multi),

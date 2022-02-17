@@ -74,12 +74,12 @@ class SubParams(Mapping):
         # work around for pickle bug in Python 3.4
         # see http://bugs.python.org/issue16251
         if name == "__getnewargs_ex__" or name == "__getnewargs__":
-            raise AttributeError("%r has no attribute %r" % (type(self), name))
+            raise AttributeError(f"{type(self)!r} has no attribute {name!r}")
         if name == "__deepcopy__" or name == "__copy__":
-            raise AttributeError("%r has no attribute %r" % (type(self), name))
+            raise AttributeError(f"{type(self)!r} has no attribute {name!r}")
         # if not name in self.data:
         if name.startswith("__"):
-            raise AttributeError("%r has no attribute %r" % (type(self), name))
+            raise AttributeError(f"{type(self)!r} has no attribute {name!r}")
         return self.__get_el(name)
 
     #
@@ -100,13 +100,13 @@ class SubParams(Mapping):
             self.data
             if k not in base:
                 # element not in base, report
-                raise RuntimeError("Unknown parameter %s.%s" % (path_text, k))
+                raise RuntimeError(f"Unknown parameter {path_text}.{k}")
             else:
                 # verify sub-elements, if any
                 defel = base[k]
                 if isinstance(defel, OrderedDict):
                     # subdictionary
-                    self[k].validate(defel, "%s.%s" % (path_text, k))
+                    self[k].validate(defel, f"{path_text}.{k}")
                 else:
                     # final element
                     defvalue, ktype, txt, subdef = defel
@@ -116,7 +116,7 @@ class SubParams(Mapping):
                         data_el = self[k]
                         for data_subkey in list(data_el.keys()):
                             data_el[data_subkey].validate(
-                                subdef, "%s.%s.%s" % (path_text, k, data_subkey)
+                                subdef, f"{path_text}.{k}.{data_subkey}"
                             )
                     elif isinstance(defvalue, list):
                         # list of elements
@@ -135,7 +135,7 @@ class SubParams(Mapping):
                                 % (path_text, k, type(mylist), mylist)
                             )
                         for data_el in mylist:
-                            data_el.validate(subdef, "%s.*.%s" % (path_text, k))
+                            data_el.validate(subdef, f"{path_text}.*.{k}")
                     else:
                         # a simple value
                         pass  # nothing to be done
@@ -326,7 +326,7 @@ class Params:
             self.data = xmlParse.xmlfile2dict(fname, use_ord_dict=True)
         except xml.parsers.expat.ExpatError as e:
             raise RuntimeError("XML error parsing config file: %s" % e)
-        except IOError as e:
+        except OSError as e:
             raise RuntimeError("Config file error: %s" % e)
         self.subparams = self.get_subparams_class()(self.data)
         return
@@ -355,7 +355,7 @@ class Params:
         if name == "subparams":
             # if there is no subparams, it cannot be used to retrieve values (of itself!)
             # this can happen w/ deepcopy or pickle, where __init__ is not called
-            raise AttributeError("%r has no attribute %r" % (type(self), name))
+            raise AttributeError(f"{type(self)!r} has no attribute {name!r}")
         return self.subparams.__getattr__(name)
 
     def save_into_file(self, fname, set_ro=False):
@@ -751,19 +751,19 @@ def defdict2string(defaults, indent, width=80):
         el = defaults[k]
         if isinstance(el, OrderedDict):  # sub-dictionary
             outstrarr.append(
-                "%s%s:" % (indent, k) + "\n" + defdict2string(el, indent + "\t", width)
+                f"{indent}{k}:" + "\n" + defdict2string(el, indent + "\t", width)
             )
         else:
             # print el
             defvalue, ktype, txt, subdef = el
-            wrap_indent = indent + " " * len("%s(%s) - " % (k, ktype))
+            wrap_indent = indent + " " * len(f"{k}({ktype}) - ")
             if subdef is not None:
                 if isinstance(defvalue, OrderedDict):
                     dict_subdef = copy.deepcopy(subdef)
                     dict_subdef["name"] = (None, "name", "Name", None)
                     outstrarr.append(
                         col_wrap(
-                            "%s%s(%s) - %s:" % (indent, k, ktype, txt),
+                            f"{indent}{k}({ktype}) - {txt}:",
                             width,
                             wrap_indent,
                         )
@@ -773,7 +773,7 @@ def defdict2string(defaults, indent, width=80):
                 else:
                     outstrarr.append(
                         col_wrap(
-                            "%s%s(%s) - %s:" % (indent, k, ktype, txt),
+                            f"{indent}{k}({ktype}) - {txt}:",
                             width,
                             wrap_indent,
                         )
@@ -783,7 +783,7 @@ def defdict2string(defaults, indent, width=80):
             else:
                 outstrarr.append(
                     col_wrap(
-                        "%s%s(%s) - %s [%s]" % (indent, k, ktype, txt, defvalue),
+                        f"{indent}{k}({ktype}) - {txt} [{defvalue}]",
                         width,
                         wrap_indent,
                     )

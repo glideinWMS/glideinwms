@@ -136,7 +136,7 @@ class ProgramError(Exception):
     }
 
     def __init__(self, code):
-        super(ProgramError, self).__init__(self.codes_map[code])
+        super().__init__(self.codes_map[code])
         self.code = code
 
 
@@ -216,7 +216,7 @@ def get_submit_attr_str(submit_attrs):
     if submit_attrs:
         for name, value in sorted(submit_attrs.items()):
             if value is not None:
-                out += '\n                  <submit_attr name="%s" value="%s"/>' % (
+                out += '\n                  <submit_attr name="{}" value="{}"/>'.format(
                     name,
                     value,
                 )

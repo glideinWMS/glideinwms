@@ -278,7 +278,7 @@ class groupStats:
             "MatchedGlideins": None,
             "MatchedCores": None,
         }
-        numtypes = (type(1), type(1), type(1.0))
+        numtypes = (int, int, float)
 
         for f in list(self.data["factories"].keys()):
             fa = self.data["factories"][f]
@@ -411,7 +411,7 @@ class groupStats:
                 tp_str = type_strings[tp]
                 attributes_tp = self.attributes[tp]
                 for a in attributes_tp:
-                    val_dict["%s%s" % (tp_str, a)] = None
+                    val_dict[f"{tp_str}{a}"] = None
 
         for tp in data:
             # values (RRD type) - Jobs, Slots
@@ -429,7 +429,7 @@ class groupStats:
                 if a in attributes_tp:
                     a_el = fe_el_tp[a]
                     if not isinstance(a_el, dict):  # ignore subdictionaries
-                        val_dict["%s%s" % (tp_str, a)] = a_el
+                        val_dict[f"{tp_str}{a}"] = a_el
 
         monitoringConfig.establish_dir("%s" % name)
         monitoringConfig.write_rrd_multi(
@@ -584,7 +584,7 @@ class factoryStats:
 
     def get_total(self):
         total = {"Status": None, "Requested": None, "ClientMonitor": None}
-        numtypes = (type(1), type(1), type(1.0))
+        numtypes = (int, int, float)
 
         for f in list(self.data.keys()):
             fe = self.data[f]
@@ -694,7 +694,7 @@ class factoryStats:
                 tp_str = type_strings[tp]
                 attributes_tp = self.attributes[tp]
                 for a in attributes_tp:
-                    val_dict["%s%s" % (tp_str, a)] = None
+                    val_dict[f"{tp_str}{a}"] = None
 
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
@@ -711,7 +711,7 @@ class factoryStats:
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
                         if not isinstance(a_el, dict):  # ignore subdictionaries
-                            val_dict["%s%s" % (tp_str, a)] = a_el
+                            val_dict[f"{tp_str}{a}"] = a_el
 
             monitoringConfig.write_rrd_multi(
                 "%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict
@@ -741,8 +741,8 @@ def tmp2final(fname):
     try:
         os.rename(fname + ".tmp", fname)
     except:
-        print("Failed renaming %s.tmp into %s" % (fname, fname))
-        logSupport.log.error("Failed renaming %s.tmp into %s" % (fname, fname))
+        print(f"Failed renaming {fname}.tmp into {fname}")
+        logSupport.log.error(f"Failed renaming {fname}.tmp into {fname}")
     return
 
 
@@ -778,7 +778,7 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
 
     frontend_str = '<frontend FrontendName="%s"' % frontend_data["FrontendName"] + "/>"
 
-    dis_link_txt = 'display_txt="%s"  href_link="%s"' % (
+    dis_link_txt = 'display_txt="{}"  href_link="{}"'.format(
         frontend_data["MonitorDisplayText"],
         frontend_data["MonitorLink"],
     )
@@ -811,5 +811,5 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
 
         tmp2final(fname)
 
-    except IOError:
+    except OSError:
         logSupport.log.exception("Error writing out the frontend descript.xml: ")

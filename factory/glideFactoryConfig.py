@@ -59,7 +59,7 @@ class ConfigFile:
 
     def load(self, fname, convert_function):
         self.data = {}
-        with open(fname, "r") as fd:
+        with open(fname) as fd:
             lines = fd.readlines()
             for line in lines:
                 if line[0] == "#":
@@ -72,7 +72,7 @@ class ConfigFile:
                     lval = ""
                 else:
                     lval = larr[1][:-1]  # strip newline
-                exec("self.data['%s']=%s" % (lname, convert_function(lval)))
+                exec(f"self.data['{lname}']={convert_function(lval)}")
 
     def has_key(self, key_name):
         return key_name in self.data
@@ -83,7 +83,7 @@ class ConfigFile:
     def __str__(self):
         output = "\n"
         for key in list(self.data.keys()):
-            output += "%s = %s, (%s)\n" % (
+            output += "{} = {}, ({})\n".format(
                 key,
                 str(self.data[key]),
                 type(self.data[key]),
@@ -381,7 +381,7 @@ class FrontendDescript(ConfigFile):
         for fe_name in list(self.data.keys()):
             fe = self.data[fe_name]["usermap"]
             for sec_class in list(fe.keys()):
-                frontend_sec_classes.append("%s:%s" % (fe_name, sec_class))
+                frontend_sec_classes.append(f"{fe_name}:{sec_class}")
         return frontend_sec_classes
 
     def get_frontend_name(self, identity):
@@ -421,7 +421,7 @@ class SignatureFile(ConfigFile):
 
         """
         self.data = {}
-        with open(fname, "r") as fd:
+        with open(fname) as fd:
             lines = fd.readlines()
             for line in lines:
                 if line[0] == "#":

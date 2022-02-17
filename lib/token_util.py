@@ -59,7 +59,7 @@ def token_file_expired(token_file):
     """
     expired = True
     try:
-        with open(token_file, "r") as tf:
+        with open(token_file) as tf:
             token_str = tf.read()
         token_str = token_str.strip()
         return token_str_expired(token_str)
@@ -217,7 +217,7 @@ def create_and_sign_token(
         split_issuers = re.split(" |,|\t", full_issuer)
         issuer = split_issuers[0]
     if not identity:
-        identity = "%s@%s" % (os.getlogin(), socket.gethostname())
+        identity = f"{os.getlogin()}@{socket.gethostname()}"
 
     with open(pwd_file, "rb") as fd:
         data = fd.read()

@@ -193,7 +193,7 @@ def log_work_info(work, key=""):
     for entry in work:
         # Only log if there is work to do
         if len(work[entry]) > 0:
-            logSupport.log.info("Entry: %s (Tasks: %s)" % (entry, len(work[entry])))
+            logSupport.log.info(f"Entry: {entry} (Tasks: {len(work[entry])})")
 
 
 def get_work_count(work):
@@ -809,12 +809,12 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_names, group
     init_logs(group_name, logSupport.log_dir, process_logs)
 
     logSupport.log.info("Starting up")
-    logSupport.log.info("Entries processed by %s: %s " % (group_name, entry_names))
+    logSupport.log.info(f"Entries processed by {group_name}: {entry_names} ")
 
     # Check if all the entries in this group are valid
     for entry in entry_names.split(":"):
         if not (entry in glidein_entries.split(",")):
-            msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
+            msg = f"Entry '{entry}' not configured: {glidein_entries}"
             logSupport.log.warning(msg)
             raise RuntimeError(msg)
 

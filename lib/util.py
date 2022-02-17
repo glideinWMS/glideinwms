@@ -120,7 +120,7 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
     else:
         out_list = flattenDict(in_dict)
     if prefix or suffix:
-        out_dict = dict([("%s%s%s" % (prefix, i[0], suffix), i[1]) for i in out_list])
+        out_dict = {f"{prefix}{i[0]}{suffix}": i[1] for i in out_list}
     else:
         out_dict = dict(out_list)
     return out_dict
@@ -140,9 +140,9 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
     for k, v in list(in_dict.items()):
         if isinstance(v, dict):
             for k2, v2 in list(dict_to_flat(v).items()):
-                out_dict["%s%s%s%s" % (prefix, k, k2, suffix)] = v2
+                out_dict[f"{prefix}{k}{k2}{suffix}"] = v2
         else:
-            out_dict["%s%s%s" % (prefix, k, suffix)] = v
+            out_dict[f"{prefix}{k}{suffix}"] = v
     return out_dict
 
 
@@ -160,7 +160,7 @@ def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
     if not keys:
         keys = list(in_dict.keys())
     for k in keys:  # glideFactoryMonitoring.getAllJobRanges():
-        out_dict["%s%s%s" % (prefix, k, suffix)] = in_dict.get(k, default)
+        out_dict[f"{prefix}{k}{suffix}"] = in_dict.get(k, default)
     return out_dict
 
 
@@ -302,7 +302,7 @@ def file_pickle_load(
                         if fname_time <= last_time[fname]:
                             # expired
                             raise ExpiredFileException(
-                                "File %s already used at %s" % (fname, last_time[fname])
+                                f"File {fname} already used at {last_time[fname]}"
                             )
                     except KeyError:
                         pass
@@ -390,7 +390,7 @@ def file_get_tmp(fname=None, tmp_type=None):
     if not tmp_type:
         return fname + ".tmp"
     elif tmp_type == "PID":
-        return "%s.%s.tmp" % (fname, os.getpid())
+        return f"{fname}.{os.getpid()}.tmp"
     else:
         f_dir = os.path.dirname(fname)
         f_name = os.path.basename(fname)

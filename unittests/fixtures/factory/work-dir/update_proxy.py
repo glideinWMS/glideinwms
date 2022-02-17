@@ -66,7 +66,7 @@ def update_credential(fname, credential_data):
             os.close(fd)
     else:
         # old file exists, check if same content
-        with open(fname, "r") as fl:
+        with open(fname) as fl:
             old_data = fl.read()
 
         #  if proxy_data == old_data nothing changed, done else

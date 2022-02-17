@@ -108,14 +108,14 @@ def poll_group_process(group_name, child):
     try:
         tempOut = child.stdout.read()
         if tempOut:
-            logSupport.log.info("[%s]: %s" % (group_name, tempOut))
-    except IOError:
+            logSupport.log.info(f"[{group_name}]: {tempOut}")
+    except OSError:
         pass  # ignore
     try:
         tempErr = child.stderr.read()
         if tempOut:
-            logSupport.log.warning("[%s]: %s" % (group_name, tempErr))
-    except IOError:
+            logSupport.log.warning(f"[{group_name}]: {tempErr}")
+    except OSError:
         pass  # ignore
 
     return child.poll()
@@ -311,7 +311,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
     try:
         set_frontend_htcondor_env(work_dir, frontendDescript)
         fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser()
-        constraint = '(GlideFrontendName=="%s")&&(GlideFrontendHAMode=?="%s")' % (
+        constraint = '(GlideFrontendName=="{}")&&(GlideFrontendHAMode=?="{}")'.format(
             frontend_name,
             ha_mode,
         )
@@ -555,7 +555,7 @@ def clear_diskcache_dir(work_dir):
         shutil.rmtree(cache_dir)
     except OSError as ose:
         if (
-            ose.errno is not 2
+            ose.errno != 2
         ):  # errno 2 is ok, dir is missing. Maybe it's the first execution?
             logSupport.log.exception("Error removing cache directory %s" % cache_dir)
             raise

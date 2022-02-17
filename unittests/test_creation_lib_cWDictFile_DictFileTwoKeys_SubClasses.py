@@ -37,7 +37,7 @@ class TestDescriptionDictFile(unittest.TestCase):
 
     def test_format_val(self):
         key = "signature.i2cmtV.sha1"
-        expected = "%s \t%s.i2cmtV.sha1" % ("signature", "signature")
+        expected = "{} \t{}.i2cmtV.sha1".format("signature", "signature")
         self.assertEqual(expected, self.description_dict_file.format_val(key, False))
 
     def test_parse_val(self):

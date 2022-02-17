@@ -31,7 +31,7 @@ def get_lock(name):
         yield fdesc
 
 
-class DiskCache(object):
+class DiskCache:
     """The class that manages the cache. Objects expires after a cache_duration time (defaults
     to one hour). Objects are pickled into a file. The directory to save those files has to
     be specified. Methods to save and load an object by its id are provided.

@@ -46,7 +46,7 @@ def get_factory_pid(startup_dir):
 class EntryPidSupport(pidSupport.PidWParentSupport):
     def __init__(self, startup_dir, entry_name):
         lock_file = os.path.join(
-            startup_dir, "%s/entry_%s/lock/factory.lock" % (startup_dir, entry_name)
+            startup_dir, f"{startup_dir}/entry_{entry_name}/lock/factory.lock"
         )
         pidSupport.PidWParentSupport.__init__(self, lock_file)
 
@@ -69,9 +69,7 @@ def get_entry_pid(startup_dir, entry_name):
 
 class EntryGroupPidSupport(pidSupport.PidWParentSupport):
     def __init__(self, startup_dir, group_name):
-        lock_file = os.path.join(
-            startup_dir, "%s/lock/%s.lock" % (startup_dir, group_name)
-        )
+        lock_file = os.path.join(startup_dir, f"{startup_dir}/lock/{group_name}.lock")
         pidSupport.PidWParentSupport.__init__(self, lock_file)
 
 

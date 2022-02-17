@@ -15,7 +15,6 @@
 #  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
 
-from __future__ import print_function
 
 import optparse
 import os
@@ -56,7 +55,7 @@ def main(argv):
 
     try:
         out = condorExe.exe_cmd_sbin(
-            "condor_fetchlog", "-startd %s %s" % (glidein_name, log_type)
+            "condor_fetchlog", f"-startd {glidein_name} {log_type}"
         )
         print("\n".join(out))
     except condorExe.ExeError as e:

@@ -27,7 +27,7 @@ except ImportError as err:
 # from glideinwms.factory import glideFactoryConfig
 import os
 
-import mock
+from unittest import mock
 
 # from glideinwms.factory.glideFactoryLib import GlideinTotals
 # from glideinwms.factory.glideFactoryLib import isGlideinHeldNTimes

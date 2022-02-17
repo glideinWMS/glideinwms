@@ -7,7 +7,6 @@
 #  This program updates a glidein factory directory structure
 #  based on a configuration file
 
-from __future__ import print_function
 
 import logging
 import os
@@ -183,7 +182,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
                 st_file.write(b"exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
-        except IOError as ioe:
+        except OSError as ioe:
             print2(
                 "Unable to append the payload to the startup file. IOError [%d]: %s"
                 % (ioe.errno, ioe.strerror)

@@ -33,7 +33,7 @@ def xslt_xml(old_xmlfile, xslt_plugin_dir):
             os.path.join(xslt_plugin_dir, f) for f in os.listdir(xslt_plugin_dir)
         ]
     except OSError as e:
-        print("Error opening %s directory: %s" % (xslt_plugin_dir, e.strerror))
+        print(f"Error opening {xslt_plugin_dir} directory: {e.strerror}")
         return old_xml_fd.read()
 
     plugins.sort()

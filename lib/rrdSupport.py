@@ -380,13 +380,9 @@ class BaseRRDSupport:
             ds_name = rrd_file[2]
             ds_type = rrd_file[3]
             if trend is None:
-                args.append(
-                    str("DEF:%s=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type))
-                )
+                args.append(str(f"DEF:{ds_id}={ds_fname}:{ds_name}:{ds_type}"))
             else:
-                args.append(
-                    str("DEF:%s_inst=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type))
-                )
+                args.append(str(f"DEF:{ds_id}_inst={ds_fname}:{ds_name}:{ds_type}"))
                 args.append(str("CDEF:%s=%s_inst,%i,TREND" % (ds_id, ds_id, trend)))
 
         plot_arr = rrd_files
@@ -399,7 +395,7 @@ class BaseRRDSupport:
                 cdef_formula = cdef_el[1]
                 ds_graph_type = rrd_file[2]
                 ds_color = rrd_file[3]
-                args.append(str("CDEF:%s=%s" % (ds_id, cdef_formula)))
+                args.append(str(f"CDEF:{ds_id}={cdef_formula}"))
         else:
             plot_arr = []
             for rrd_file in rrd_files:
@@ -413,9 +409,9 @@ class BaseRRDSupport:
             ds_id = plot_el[0]
             ds_graph_type = plot_el[2]
             ds_color = plot_el[3]
-            args.append("%s:%s#%s:%s" % (ds_graph_type, ds_id, ds_color, ds_id))
+            args.append(f"{ds_graph_type}:{ds_id}#{ds_color}:{ds_id}")
 
-        args.append("COMMENT:Created on %s" % time.strftime("%b %d %H\:%M\:%S %Z %Y"))
+        args.append("COMMENT:Created on %s" % time.strftime(r"%b %d %H\:%M\:%S %Z %Y"))
 
         try:
             lck = self.get_graph_lock(fname)
@@ -630,17 +626,17 @@ class rrdtool_exe:
         ).strip()
 
     def create(self, *args):
-        cmdline = "%s create %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} create {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def update(self, *args):
-        cmdline = "%s update %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} update {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def info(self, *args):
-        cmdline = "%s info %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} info {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline).split("\n")
         outarr = {}
         for line in outstr:
@@ -662,22 +658,22 @@ class rrdtool_exe:
             str: multi-line string, output of rrd dump
 
         """
-        cmdline = "%s dump %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} dump {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline).decode("utf-8").split("\n")
         return outstr
 
     def restore(self, *args):
-        cmdline = "%s restore %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} restore {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def graph(self, *args):
-        cmdline = "%s graph %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} graph {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def fetch(self, *args):
-        cmdline = "%s fetch %s" % (self.rrd_bin, string_quote_join(args))
+        cmdline = f"{self.rrd_bin} fetch {string_quote_join(args)}"
         outstr = subprocessSupport.iexe_cmd(cmdline).split("\n")
         headers = tuple(outstr.pop(0).split())
         lines = []
@@ -685,7 +681,7 @@ class rrdtool_exe:
             if len(line) == 0:
                 continue
             lines.append(
-                tuple([float(i) if i != "-nan" else None for i in line.split()[1:]])
+                tuple(float(i) if i != "-nan" else None for i in line.split()[1:])
             )
         tstep = int(outstr[2].split(":")[0]) - int(outstr[1].split(":")[0])
         ftime = int(outstr[1].split(":")[0]) - tstep
@@ -703,7 +699,7 @@ def addDataStore(filenamein, filenameout, attrlist):
     @param filenameout: filename path of output xml with datastores added
     @param attrlist: array of datastores to add
     """
-    f = open(filenamein, "r")
+    f = open(filenamein)
     out = open(filenameout, "w")
     parse = False
     writenDS = False

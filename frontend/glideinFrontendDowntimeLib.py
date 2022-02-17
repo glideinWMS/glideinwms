@@ -55,10 +55,10 @@ class DowntimeFile:
 # for example: [(1215339200,1215439170),(1215439271,None)]
 def read(fname, raise_on_error=False):
     try:
-        with open(fname, "r") as fd:
+        with open(fname) as fd:
             fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
             lines = fd.readlines()
-    except IOError as e:
+    except OSError as e:
         if raise_on_error:
             raise
         else:
@@ -135,7 +135,7 @@ def checkDowntime(fname, check_time=None):
 def addPeriod(fname, start_time, end_time, create_if_empty=True):
     exists = os.path.isfile(fname)
     if (not exists) and (not create_if_empty):
-        raise IOError("[Errno 2] No such file or directory: '%s'" % fname)
+        raise OSError("[Errno 2] No such file or directory: '%s'" % fname)
 
     with open(fname, "a+") as fd:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -168,7 +168,7 @@ def endDowntime(fname, end_time=None):
 
     try:
         fd = open(fname, "r+")
-    except IOError:
+    except OSError:
         return 0  # no file -> nothing to end
 
     with fd:

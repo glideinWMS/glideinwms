@@ -85,14 +85,14 @@ class ConfigFile:
             return urllib.request.urlopen(fname)
         else:
             # local file
-            return open(fname, "r")
+            return open(fname)
 
     def validate_func(self, data, validate, fname):
         if validate is not None:
             vhash = hashCrypto.get_hash(validate[0], data)
             self.hash_value = vhash
             if (validate[1] is not None) and (vhash != validate[1]):
-                raise IOError(
+                raise OSError(
                     "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"
                     % (fname, validate[0], vhash, validate[1])
                 )
@@ -120,7 +120,7 @@ class ConfigFile:
             lval = ""
         else:
             lval = larr[1]
-        exec("self.data['%s']=%s" % (lname, convert_function(lval)))
+        exec(f"self.data['{lname}']={convert_function(lval)}")
 
     def derive(self):
         return  # by default, do nothing
@@ -128,7 +128,7 @@ class ConfigFile:
     def __str__(self):
         output = "\n"
         for key in list(self.data.keys()):
-            output += "%s = %s, (%s)\n" % (
+            output += "{} = {}, ({})\n".format(
                 key,
                 str(self.data[key]),
                 type(self.data[key]),
@@ -227,9 +227,7 @@ class ParamsDescript(JoinConfigFile):
             elif type_str == "CONST":
                 self.const_data[k] = val
             else:
-                raise RuntimeError(
-                    "Unknown parameter type '%s' for '%s'!" % (type_str, k)
-                )
+                raise RuntimeError(f"Unknown parameter type '{type_str}' for '{k}'!")
 
 
 class AttrsDescript(JoinConfigFile):
@@ -322,13 +320,13 @@ class ElementMergedDescript:
                 raise RuntimeError("Found empty %s!" % t)
 
         for t in ("FactoryQueryExpr", "JobQueryExpr"):
-            self.merged_data[t] = "(%s) && (%s)" % (
+            self.merged_data[t] = "({}) && ({})".format(
                 self.frontend_data[t],
                 self.element_data[t],
             )
             for data in (self.frontend_data, self.element_data):
                 if "MatchPolicyModule%s" % t in data:
-                    self.merged_data[t] = "(%s) && (%s)" % (
+                    self.merged_data[t] = "({}) && ({})".format(
                         self.merged_data[t],
                         data["MatchPolicyModule%s" % t],
                     )
@@ -352,7 +350,7 @@ class ElementMergedDescript:
             self.merged_data[t] = attributes
 
         for t in ("MatchExpr",):
-            self.merged_data[t] = "(%s) and (%s)" % (
+            self.merged_data[t] = "({}) and ({})".format(
                 self.frontend_data[t],
                 self.element_data[t],
             )
@@ -457,7 +455,7 @@ class StageFiles:
             self.stage_descript.hash_value
             != self.signature_descript.data[descript_fname]
         ):
-            raise IOError(
+            raise OSError(
                 "Descript file %s signature invalid, expected'%s' got '%s'"
                 % (
                     descript_fname,

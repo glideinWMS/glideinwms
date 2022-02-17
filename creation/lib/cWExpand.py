@@ -19,7 +19,7 @@ import string
 ######################
 # expand $$(attribute)
 # quote, if needed
-EDD_RE = re.compile("\$\$\((?P<attrname>[^\)]*)\)")
+EDD_RE = re.compile(r"\$\$\((?P<attrname>[^\)]*)\)")
 
 
 def expand_DD(qstr, attr_dict):
@@ -31,18 +31,18 @@ def expand_DD(qstr, attr_dict):
         if not attr_dict.has_key(attr_name):
             raise KeyError("Missing attribute %s" % attr_name)
         attr_val = attr_dict[attr_name]
-        if type(attr_val) == type(1):
+        if type(attr_val) == int:
             attr_str = str(attr_val)
         else:  # assume it is a string for all other purposes... quote and escape existing quotes
             attr_str = '"%s"' % attr_val.replace('"', '\\"')
-        qstr = "%s%s%s" % (qstr[: m.start()], attr_str, qstr[m.end() :])
+        qstr = f"{qstr[: m.start()]}{attr_str}{qstr[m.end() :]}"
     return qstr
 
 
 ######################
 # expand $(attr) and $$(attr)
 # $(attr) can be recursive
-EDLR_RE = re.compile("\$\((?P<attrname>[^\)]*)\)")
+EDLR_RE = re.compile(r"\$\((?P<attrname>[^\)]*)\)")
 
 
 def expand_DLR(qstr, attr_dict):
@@ -60,7 +60,7 @@ def expand_DLR(qstr, attr_dict):
         attr_name = m.group("attrname")
         if attr_name == "DOLLAR":
             # $(DOLLAR) is special
-            qstr = "%s$%s" % (qstr[: m.start()], qstr[m.end() :])
+            qstr = f"{qstr[: m.start()]}${qstr[m.end() :]}"
             continue
 
         if not attr_dict.has_key(attr_name):
@@ -77,5 +77,5 @@ def expand_DLR(qstr, attr_dict):
         attr_str = expand_DLR(str(attr_dict[attr_name]), t_attr_dict)
         del t_attr_dict
 
-        qstr = "%s%s%s" % (qstr[: m.start()], attr_str, qstr[m.end() :])
+        qstr = f"{qstr[: m.start()]}{attr_str}{qstr[m.end() :]}"
     return qstr

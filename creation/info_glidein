@@ -7,7 +7,6 @@
 #  This program describes a glidein factory
 #  based on a configuration file
 
-from __future__ import print_function
 
 import os
 import os.path
@@ -44,14 +43,14 @@ def main(params, flags):
             if "schedd" in flags:
                 outstr += " schedd: '%s'" % entry_el.data["schedd_name"]
             if "CE" in flags:
-                outstr += " gridtype: '%s' gatekeeper: '%s'" % (
+                outstr += " gridtype: '{}' gatekeeper: '{}'".format(
                     entry_el.data["gridtype"],
                     entry_el.data["gatekeeper"],
                 )
                 if entry_el.data["rsl"] is not None:
                     outstr += " rsl: '%s'" % entry_el.data["gridtype"]
 
-            print("\tEntry '%s'\t%s" % (entry_name, outstr))
+            print(f"\tEntry '{entry_name}'\t{outstr}")
 
 
 ############################################################

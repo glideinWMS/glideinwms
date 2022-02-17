@@ -84,7 +84,7 @@ def frontend_print(
 def blockprint(title, d, p, pd):
     if pd != 0:
         s = " - %.1f%% of total" % (
-            (float(d["glideins"]) / float(pd["glideins"]) * 100.0)
+            float(d["glideins"]) / float(pd["glideins"]) * 100.0
         )
         t = ""
     else:

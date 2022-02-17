@@ -27,7 +27,7 @@ class CalledProcessError2(Exception):
         self.output = output
 
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %s: %s" % (
+        return "Command '{}' returned non-zero exit status {}: {}".format(
             self.cmd,
             self.returncode,
             self.output,

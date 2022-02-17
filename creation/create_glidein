@@ -7,7 +7,6 @@
 #  This program creates a glidein factory directory structure
 #  based on a configuration file
 
-from __future__ import print_function
 
 import os
 import shutil
@@ -84,7 +83,7 @@ def main(conf):
                 st_file.write("exit 0\n#EOF\n")
                 with open("tar_utils.tar.gz", "rb") as tar_utils:
                     shutil.copyfileobj(tar_utils, st_file)
-        except IOError as ioe:
+        except OSError as ioe:
             print(
                 "Unable to append the payload to the startup file. IOError [%d]: %s"
                 % (ioe.errno, ioe.strerror)

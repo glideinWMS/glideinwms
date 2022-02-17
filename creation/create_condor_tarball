@@ -7,7 +7,6 @@
 #  This program creates a condor tarball
 #  suitable to be used in the glideins
 
-from __future__ import print_function
 
 import os
 import os.path

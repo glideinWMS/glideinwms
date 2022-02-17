@@ -8,7 +8,6 @@
 #   the secondary schedds
 #
 
-from __future__ import print_function
 
 import copy
 import os
@@ -114,7 +113,7 @@ def add_schedd(schedd, config_fd):
             )
         )
 
-    expenv_str = "%(attrname)s_EXPENV = " % {"attrname": attrname}
+    expenv_str = f"{attrname}_EXPENV = "
     condor_env_str = " \\\n" + (" " * len(expenv_str)).join(condor_env_arr)
 
     config_fd.write(
@@ -167,7 +166,7 @@ def add_schedd(schedd, config_fd):
         rc = p.wait()
         res = p.communicate()
         if rc != 0:
-            print("condor_init failed for %s: %s" % (schedd, res))
+            print(f"condor_init failed for {schedd}: {res}")
             sys.exit(2)
         print("Schedd %s configured and initialized" % schedd)
     else:
@@ -177,7 +176,7 @@ def add_schedd(schedd, config_fd):
 def create_config(fname, schedds):
     try:
         fd = open(fname, "w")
-    except IOError as e:
+    except OSError as e:
         print("%s" % e)
         sys.exit(2)
 

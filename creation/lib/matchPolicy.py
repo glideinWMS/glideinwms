@@ -42,9 +42,11 @@ class MatchPolicyLoadError(Exception):
         if self.file == "":
             err_str = "No match policy file provided"
         else:
-            err_str = "Failed to load policy from the file %s in the search path %s" % (
-                self.file,
-                self.searchPath,
+            err_str = (
+                "Failed to load policy from the file {} in the search path {}".format(
+                    self.file,
+                    self.searchPath,
+                )
             )
         return err_str
 
@@ -57,7 +59,7 @@ class MatchPolicyContentError(Exception):
         self.attrType = actual_type
 
     def __str__(self):
-        return "%s in policy file %s should be of type %s and not %s" % (
+        return "{} in policy file {} should be of type {} and not {}".format(
             self.attr,
             self.file,
             self.attrExpectedType,

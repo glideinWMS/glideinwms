@@ -10,7 +10,6 @@
 #   $1 = work dir
 #   $2 = group_name
 
-from __future__ import print_function
 
 import os
 import os.path
@@ -58,7 +57,7 @@ def do_work(elementDescript, paramsDescript, signatureDescript):
             )
         except RuntimeError as e:
             if factory_pool_node is not None:
-                print("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
+                print(f"Failed to talk to factory_pool {factory_pool_node}: {e}")
             else:
                 print("Failed to talk to factory_pool: %s" % e)
             # failed to talk, like empty... maybe the next factory will have something

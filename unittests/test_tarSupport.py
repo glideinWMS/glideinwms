@@ -87,7 +87,7 @@ class TestTarSupport(unittest.TestCase):
 
     def create_archive_file(self):
         random_file_name = create_random_string()
-        archive_file = "%s/%s.tar.gz" % (self.working_dir, random_file_name)
+        archive_file = f"{self.working_dir}/{random_file_name}.tar.gz"
         tarball = GlideinTar()
         for f in self.files:
             tarball.add_file(f["path"], "/")
@@ -115,10 +115,8 @@ class TestTarSupport(unittest.TestCase):
 
         extract_files = []
         for f in files:
-            md5sum = extract_md5("%s/%s" % (self.extract_dir, f))
-            extract_files.append(
-                {"path": "%s/%s" % (self.extract_dir, f), "md5sum": md5sum}
-            )
+            md5sum = extract_md5(f"{self.extract_dir}/{f}")
+            extract_files.append({"path": f"{self.extract_dir}/{f}", "md5sum": md5sum})
 
         for file_dict in self.files:
             for extract_dict in extract_files:
@@ -134,7 +132,7 @@ class TestTarSupport(unittest.TestCase):
         )
         # clean up for next test
         for f in files:
-            os.remove("%s/%s" % (self.extract_dir, f))
+            os.remove(f"{self.extract_dir}/{f}")
 
     def test_tarSupport_blob(self):
         archive_blob = self.create_archive_blob()
@@ -145,7 +143,7 @@ class TestTarSupport(unittest.TestCase):
         self.assertTrue(len(extracted_files) == len(list(self.strings.keys())), msg)
 
         for f in extracted_files:
-            fd = open("%s/%s" % (self.extract_dir, f), "r")
+            fd = open(f"{self.extract_dir}/{f}")
             file_contents = fd.read()
             self.assertTrue(
                 f in list(self.strings.keys()),

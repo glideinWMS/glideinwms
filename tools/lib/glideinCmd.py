@@ -111,7 +111,7 @@ def argv2cmd(argv):
     # everything else should be passed to the cmsdline as it is
     eargv = []
     for arg in argv:
-        eargv.append(arg.replace(" ", "\ "))
+        eargv.append(arg.replace(" ", r"\ "))
     return " ".join(eargv)
 
 

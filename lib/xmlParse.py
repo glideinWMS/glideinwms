@@ -102,7 +102,7 @@ def xmlfile2dict(
     try:
         doc = xml.dom.minidom.parse(fname)
     except xml.parsers.expat.ExpatError as e:
-        raise CorruptXML("XML corrupt in file %s: %s" % (fname, e))
+        raise CorruptXML(f"XML corrupt in file {fname}: {e}")
 
     data = domel2dict(doc.documentElement, use_ord_dict, always_singular_list)
 

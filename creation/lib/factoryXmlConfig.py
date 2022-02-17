@@ -15,7 +15,9 @@ FACTORY_DEFAULTS_XML = "factory_defaults.xml"
 xmlConfig.register_list_elements(
     {
         "allow_frontends": lambda d: d["name"],
-        "condor_tarballs": lambda d: "%s,%s,%s" % (d["arch"], d["os"], d["version"]),
+        "condor_tarballs": lambda d: "{},{},{}".format(
+            d["arch"], d["os"], d["version"]
+        ),
         "entries": lambda d: d["name"],
         "entry_sets": lambda d: d["alias"],
         "frontends": lambda d: d["name"],
@@ -34,7 +36,7 @@ xmlConfig.register_list_elements(
 # TODO: e.g. GLIDEIN_ESTIMATED_CPUS should not be set if GLIDEIN_CPUS is not set or GLIDEIN_CPUS > 0
 class FactAttrElement(xmlConfig.AttrElement):
     def validate(self):
-        super(FactAttrElement, self).validate()
+        super().validate()
         self.check_boolean("const")
         self.check_boolean("publish")
         is_publish = eval(self["publish"])
@@ -71,11 +73,9 @@ class FactAttrElement(xmlConfig.AttrElement):
                     else self.parent.parent.getName()
                 )
                 raise RuntimeError(
-                    (
-                        '%s: attribute %s is already defined in the global section, but it is const="%s". '
-                        "Please make sure the 'const' value is the same."
-                        % (entry, self["name"], att["const"])
-                    )
+                    '%s: attribute %s is already defined in the global section, but it is const="%s". '
+                    "Please make sure the 'const' value is the same."
+                    % (entry, self["name"], att["const"])
                 )
 
 
@@ -84,7 +84,7 @@ xmlConfig.register_tag_classes({"attr": FactAttrElement})
 
 class FactFileElement(xmlConfig.FileElement):
     def validate(self):
-        super(FactFileElement, self).validate()
+        super().validate()
         # only defined in factory global entries
         if "after_entry" in self:
             self.check_boolean("after_entry")
@@ -210,7 +210,7 @@ xmlConfig.register_tag_classes({"entry_set": EntrySetElement})
 
 class Config(xmlConfig.DictElement):
     def __init__(self, tag, *args, **kwargs):
-        super(Config, self).__init__(tag, *args, **kwargs)
+        super().__init__(tag, *args, **kwargs)
 
         # dir paths should be set after validation in parse function
         self.submit_dir = None

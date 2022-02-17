@@ -90,7 +90,7 @@ def main(config_file):
     """Parse and check the Frontend configuration in config_file"""
     try:
         tree = ET.parse(config_file)
-    except IOError:
+    except OSError:
         return "Config file not readable: %s" % config_file
     except:
         return "Error parsing config file: %s" % config_file
@@ -109,7 +109,7 @@ def main(config_file):
             ):
                 all_3_4_1 = False
                 break
-        except (IOError, IndexError, AttributeError):
+        except (OSError, IndexError, AttributeError):
             mylog(
                 "WARNING: Unable to retrieve factory version for %s. Assuming it is compatible with all the options you use."
                 % fc

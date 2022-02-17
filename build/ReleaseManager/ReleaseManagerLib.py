@@ -53,7 +53,7 @@ class Release:
     def createTarballVersionString(self, ver, rc):
         ver_str = "%s" % ver
         if rc:
-            ver_str = "%s_rc%s" % (ver, rc)
+            ver_str = f"{ver}_rc{rc}"
         return ver_str
 
     def versionToRPMVersion(self, ver):
@@ -65,7 +65,7 @@ class Release:
     def createRPMReleaseNVR(self, rpmRel, rc):
         nvr = "%s" % rpmRel
         if rc:
-            nvr = "0.%s.rc%s" % (rpmRel, rc)
+            nvr = f"0.{rpmRel}.rc{rc}"
         return nvr
 
     def getElVersion(self):
@@ -211,7 +211,7 @@ class TaskTar(TaskRelease):
             exclude = "--exclude='" + "' --exclude='".join(self.excludePattern) + "'"
         # cmd = 'cd %s/..; /bin/tar %s -czf %s/%s glideinwms' % \
         #      (self.release.sourceDir, exclude, self.release.releaseDir, self.releaseFilename)
-        src_dir = "%s/../src/%s" % (self.release.releaseDir, self.release.version)
+        src_dir = f"{self.release.releaseDir}/../src/{self.release.version}"
         cmd = (
             "rm -rf %s; mkdir -p %s; cp -r %s %s/glideinwms; cd %s; %s %s -czf %s/%s glideinwms"
             % (
@@ -259,7 +259,7 @@ class TaskVersionFile(TaskRelease):
         )
         if len(exclude) > 0:
             excludePattern = '"' + "%s " % excludePattern + " ".join(exclude) + '"'
-        cmd = "cd %s; %s %s %s %s" % (
+        cmd = "cd {}; {} {} {} {}".format(
             self.release.sourceDir,
             self.chksumBin,
             self.release.version,
@@ -323,7 +323,7 @@ class TaskRPM(TaskTar):
 
         # shutil.copyfile(self.specFileTemplate, self.specFile)
         # fdin = open(self.specFileTemplate, 'r')
-        with open(self.specFileTemplate, "r", encoding="utf-8") as fdin:
+        with open(self.specFileTemplate, encoding="utf-8") as fdin:
             lines = fdin.readlines()
 
         with open(self.specFile, "w", encoding="utf-8") as fdout:
@@ -345,16 +345,16 @@ class TaskRPM(TaskTar):
     def createRPMMacros(self):
         with open(self.rpmmacrosFile, "w") as fd:
             for m in self.rpmMacros:
-                fd.write("%%%s %s\n" % (m, self.rpmMacros[m]))
+                fd.write(f"%{m} {self.rpmMacros[m]}\n")
 
     def buildSRPM(self):
         cmd = "rpmbuild -bs %s" % self.specFile
         for m in self.rpmMacros:
-            cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
+            cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
         execute_cmd(cmd)
 
     def buildRPM(self):
-        cmd = "mock -r epel-%s-x86_64 --macro-file=%s -i %s" % (
+        cmd = "mock -r epel-{}-x86_64 --macro-file={} -i {}".format(
             self.release.rpmOSVersion[1],
             self.rpmmacrosFile,
             self.python_version,
@@ -374,7 +374,7 @@ class TaskRPM(TaskTar):
     def buildRPMWithRPMBuild(self):
         cmd = "rpmbuild -bb %s" % self.specFile
         for m in self.rpmMacros:
-            cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
+            cmd = f'{cmd} --define "{m} {self.rpmMacros[m]}"'
         execute_cmd(cmd)
 
     def execute(self):
@@ -512,7 +512,7 @@ def execute_cmd(cmd, stdin_data=None):
             # have seen a lot of those when running very short processes
             errcode = 0
         else:
-            msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (
+            msg = "Error running '{}'\nStdout:{}\nStderr:{}\nException OSError: {}".format(
                 cmd,
                 tempOut,
                 tempErr,
@@ -521,7 +521,7 @@ def execute_cmd(cmd, stdin_data=None):
             print(msg)
             raise ExeError(msg)
     if errcode != 0:
-        msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s" % (
+        msg = "Error running '{}'\nStdout:{}\nStderr:{}\nException Error: {}".format(
             cmd,
             tempOut,
             tempErr,

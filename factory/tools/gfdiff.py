@@ -65,7 +65,7 @@ def check_list_diff(list_a, list_b):
             elif len(elem_b) == 0:
                 print(
                     "\t" * (tabs + 1)
-                    + "%s: not present in %s" % (elem["name"], g_entry_b.getName())
+                    + "{}: not present in {}".format(elem["name"], g_entry_b.getName())
                 )
             else:
                 print("More than one FactAttrElement")
@@ -77,7 +77,7 @@ def check_list_diff(list_a, list_b):
             if len(elem_a) == 0:
                 print(
                     "\t" * (tabs + 1)
-                    + "%s: not present in %s" % (elem["name"], g_entry_a.getName())
+                    + "{}: not present in {}".format(elem["name"], g_entry_a.getName())
                 )
 
 
@@ -93,10 +93,7 @@ def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True
         if key in SKIP_KEYS:
             continue
         if key not in tmp_dict_b:
-            print(
-                "\t" * tabs
-                + "Key %s(%s) not found in %s" % (key, val, g_entry_b.getName())
-            )
+            print("\t" * tabs + f"Key {key}({val}) not found in {g_entry_b.getName()}")
         elif isinstance(val, ListElement):
             check_list_diff(tmp_dict_a[key], tmp_dict_b[key])
         elif isinstance(val, DictElement):
@@ -123,10 +120,7 @@ def check_dict_diff(dict_a, dict_b, itemfunc=EntryElement.items, print_name=True
         if key in SKIP_KEYS:
             continue
         if key not in tmp_dict_a:
-            print(
-                "\t" * tabs
-                + "Key %s(%s) not found in %s" % (key, val, g_entry_a.getName())
-            )
+            print("\t" * tabs + f"Key {key}({val}) not found in {g_entry_a.getName()}")
 
 
 def parse_opts():

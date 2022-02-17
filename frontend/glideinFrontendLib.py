@@ -162,7 +162,7 @@ def appendRealRunning(condorq_dict, status_dict):
                         # split by : to remove port number if there
                         fact_pool = schedd[-1].split(":")[0]
 
-                        condorq[jid]["RunningOn"] = "%s@%s@%s@%s" % (
+                        condorq[jid]["RunningOn"] = "{}@{}@{}@{}".format(
                             condor_status[remote_host]["GLIDEIN_Entry_Name"],
                             condor_status[remote_host]["GLIDEIN_Name"],
                             condor_status[remote_host]["GLIDEIN_Factory"],
@@ -652,7 +652,7 @@ def countRealRunning(
 
     for glidename in glidein_dict:
         # split by : to remove port number if there
-        glide_str = "%s@%s" % (glidename[1], glidename[0].split(":")[0])
+        glide_str = "{}@{}".format(glidename[1], glidename[0].split(":")[0])
         glidein = glidein_dict[glidename]
         glidein_count = 0
         # Sets are necessary to remove duplicates
@@ -717,7 +717,7 @@ def countRealRunning(
                             # N core: slotN_M@glidein_XXXXX_XXXXX@fqdn
                             try:
                                 token = job["RemoteHost"].split("@")
-                                glidein_id = "%s@%s" % (token[-2], token[-1])
+                                glidein_id = f"{token[-2]}@{token[-1]}"
                             except (KeyError, IndexError):
                                 # If RemoteHost is missing or has a different
                                 # format just identify it with the uniq jobid
@@ -844,7 +844,7 @@ def getCondorStatusNonDynamic(status_dict):
     for collector_name in list(status_dict.keys()):
         # Exclude partitionable slots with no free memory/cpus
         sq = condorMonitor.SubQuery(
-            status_dict[collector_name], lambda el: ((el.get("SlotType") != "Dynamic"))
+            status_dict[collector_name], lambda el: (el.get("SlotType") != "Dynamic")
         )
         sq.load()
         out[collector_name] = sq
@@ -970,10 +970,8 @@ def getRunningJobsCondorStatus(status_dict):
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
             lambda el: (
-                (
-                    (el.get("State") == "Claimed")
-                    and (el.get("Activity") in ("Busy", "Retiring"))
-                )
+                (el.get("State") == "Claimed")
+                and (el.get("Activity") in ("Busy", "Retiring"))
             ),
         )
         sq.load()
@@ -1022,8 +1020,8 @@ def getRunningCoresCondorStatus(status_dict):
 # Use the output of getCondorStatus
 #
 def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
-    client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
-    client_name_new = "%s.%s" % (frontend_name, group_name)
+    client_name_old = f"{request_name}@{frontend_name}.{group_name}"
+    client_name_new = f"{frontend_name}.{group_name}"
     out = {}
     for collector_name in list(status_dict.keys()):
         sq = condorMonitor.SubQuery(
@@ -1239,7 +1237,7 @@ def getFactoryEntryList(status_dict):
                 and "GLIDECLIENT_ReqNode" in el
             ):
                 continue  # ignore this glidein... no factory info
-            entry_str = "%s@%s@%s" % (
+            entry_str = "{}@{}@{}".format(
                 el["GLIDEIN_Entry_Name"],
                 el["GLIDEIN_Name"],
                 el["GLIDEIN_Factory"],
@@ -1306,7 +1304,7 @@ def getCondorQConstrained(
             continue
         full_constraint = type_constraint[0:]  # make copy
         if constraint is not None:
-            full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
+            full_constraint = f"({full_constraint}) && ({constraint})"
 
         try:
             condorq = condorMonitor.CondorQ(schedd)
@@ -1348,7 +1346,7 @@ def getCondorStatusConstrained(
     for collector in collector_names:
         full_constraint = type_constraint[0:]  # make copy
         if constraint is not None:
-            full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
+            full_constraint = f"({full_constraint}) && ({constraint})"
 
         try:
             status = condorMonitor.CondorStatus(

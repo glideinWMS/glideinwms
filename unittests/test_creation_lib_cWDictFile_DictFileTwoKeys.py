@@ -88,7 +88,7 @@ class TestDictFileTwoKeys(unittest.TestCase):
 
     def test_format_val(self):
         key = "GLIDECLIENT_Group_Start"
-        expected = "%s \t%s" % (key, "'True'")
+        expected = "{} \t{}".format(key, "'True'")
         self.assertEqual(expected, self.dict_file.format_val(key, False))
         # assert False TODO: implement your test here
 

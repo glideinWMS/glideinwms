@@ -115,7 +115,7 @@ class Element:
 
 class DictElement(Element, MutableMapping):
     def __init__(self, tag, *args, **kwargs):
-        super(DictElement, self).__init__(tag, *args, **kwargs)
+        super().__init__(tag, *args, **kwargs)
         self.attrs = {}
         self.children = {}
 
@@ -190,7 +190,7 @@ class DictElement(Element, MutableMapping):
                 self.children[tag].merge(other.children[tag])
 
     def err_str(self, str):
-        return "%s:%s: %s: %s" % (self.file, self.line_no, self.tag, str)
+        return f"{self.file}:{self.line_no}: {self.tag}: {str}"
 
     def check_boolean(self, flag):
         if self[flag] != "True" and self[flag] != "False":
@@ -204,7 +204,7 @@ class DictElement(Element, MutableMapping):
 # TODO: Should this inherit from MutableSequence?
 class ListElement(Element):
     def __init__(self, tag, *args, **kwargs):
-        super(ListElement, self).__init__(tag, *args, **kwargs)
+        super().__init__(tag, *args, **kwargs)
         self.children = []
 
     def get_children(self):

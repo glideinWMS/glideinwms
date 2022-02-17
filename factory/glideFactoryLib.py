@@ -145,14 +145,14 @@ class FactoryConfig:
     def get_client_log_dir(self, entry_name, username):
         log_dir = os.path.join(
             self.client_log_base_dir,
-            "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name),
+            f"user_{username}/glidein_{self.glidein_name}/entry_{entry_name}",
         )
         return log_dir
 
     def get_client_proxies_dir(self, username):
         proxy_dir = os.path.join(
             self.client_proxies_base_dir,
-            "user_%s/glidein_%s" % (username, self.glidein_name),
+            f"user_{username}/glidein_{self.glidein_name}",
         )
         return proxy_dir
 
@@ -163,7 +163,7 @@ factoryConfig = FactoryConfig()
 
 ############################################################
 def secClass2Name(client_security_name, proxy_security_class):
-    return "%s_%s" % (client_security_name, proxy_security_class)
+    return f"{client_security_name}_{proxy_security_class}"
 
 
 ############################################################
@@ -190,7 +190,7 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
     if client_name is None:
         client_constraint = ""
     else:
-        client_constraint = ' && (%s =?= "%s")' % (
+        client_constraint = ' && ({} =?= "{}")'.format(
             factoryConfig.client_schedd_attribute,
             client_name,
         )
@@ -241,7 +241,7 @@ def getCondorQCredentialList(factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()["factoryConfig"]
 
-    q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") ' % (
+    q_glidein_constraint = '({} =?= "{}") && ({} =?= "{}") '.format(
         factoryConfig.factory_schedd_attribute,
         factoryConfig.factory_name,
         factoryConfig.glidein_schedd_attribute,
@@ -381,18 +381,16 @@ def getQStatusSF(condorq):
     NOTE: this has not the same level of detail as getQStatus, e.g. Idle jobs are not split depending on GridJobStatus
     """
     qc_status = {}
-    submit_files = set(
+    submit_files = {
         v.get("GlideinEntrySubmitFile") for k, v in list(condorq.stored_data.items())
-    ) - {None}
+    } - {None}
     for sf in submit_files:
         sf_status = sorted(
             v["JobStatus"]
             for k, v in list(condorq.stored_data.items())
             if v.get("GlideinEntrySubmitFile") == sf
         )
-        qc_status[sf] = dict(
-            (key, len(list(group))) for key, group in groupby(sf_status)
-        )
+        qc_status[sf] = {key: len(list(group)) for key, group in groupby(sf_status)}
     return qc_status
 
 
@@ -503,7 +501,7 @@ def update_x509_proxy_file(
         voms_proxy_info = which("voms-proxy-info")
         if voms_proxy_info is not None:
             voms_list = condorExe.iexe_cmd(
-                "%s -fqan -file %s" % (voms_proxy_info, tempfilename)
+                f"{voms_proxy_info} -fqan -file {tempfilename}"
             )
             # sort output in case order of voms fqan changed
             voms = "\n".join(sorted(voms_list))
@@ -537,7 +535,7 @@ def update_x509_proxy_file(
         return fname
 
     # old file exists, check if same content
-    with open(fname, "r") as fl:
+    with open(fname) as fl:
         old_data = fl.read()
 
     if proxy_data == old_data:
@@ -1159,28 +1157,28 @@ def logStatsAll(condorq, log=logSupport.log, factoryConfig=None):
         # Count glideins by status
         # getQStatus() equivalent
         data_list = sorted(hash_status(v) for v in list(client_data.values()))
-        qc_status = dict(
-            (key, len(list(group)))
+        qc_status = {
+            key: len(list(group))
             for key, group in groupby([i for i in data_list if i is not None])
-        )
+        }
         # getQStatusSF() equivalent
         qc_status_sf = {}
-        submit_files = set(
+        submit_files = {
             v.get("GlideinEntrySubmitFile") for k, v in list(client_data.items())
-        ) - {None}
+        } - {None}
         for sf in submit_files:
             sf_status = sorted(
                 v["JobStatus"]
                 for k, v in list(client_data.items())
                 if v.get("GlideinEntrySubmitFile") == sf
             )
-            qc_status_sf[sf] = dict(
-                (key, len(list(group))) for key, group in groupby(sf_status)
-            )
+            qc_status_sf[sf] = {
+                key: len(list(group)) for key, group in groupby(sf_status)
+            }
 
         sum_idle_count(qc_status)
 
-        log.info("Inactive client %s schedd status %s" % (client_name, qc_status))
+        log.info(f"Inactive client {client_name} schedd status {qc_status}")
         # client_stats are the one actually used in classads and monitoring, ignoring factoryConfig.qc_stats
         factoryConfig.client_stats.logSchedd(client_name, qc_status, qc_status_sf)
         # factoryConfig.qc_stats.logSchedd(client_log_name, qc_status, qc_status_sf)
@@ -1702,7 +1700,7 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
     # same as the factory username
     try:
         submit_out = condorExe.iexe_cmd(
-            "condor_submit -name %s %s" % (schedd, submitFile),
+            f"condor_submit -name {schedd} {submitFile}",
             child_env=env_list2dict(exe_env),
         )
 
@@ -1760,9 +1758,7 @@ def submitGlideins(
     schedd = jobDescript.data["Schedd"]
     algo_name = jobDescript.data.get("EntrySelectionAlgorithm", None)
     if algo_name and algo_name != "Default":
-        log.debug(
-            "Selection algorithm name for entry %s is: %s" % (entry_name, algo_name)
-        )
+        log.debug(f"Selection algorithm name for entry {entry_name} is: {algo_name}")
 
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
@@ -1793,7 +1789,7 @@ def submitGlideins(
                 or (var[:7] == "CONDOR_")
             ):
                 try:
-                    entry_env.append("%s=%s" % (var, os.environ[var]))
+                    entry_env.append(f"{var}={os.environ[var]}")
                 except KeyError:
                     msg = """KeyError: '%s' not found in execution environment!!""" % (
                         var
@@ -1987,8 +1983,8 @@ def get_submit_environment(
             if not str(v).strip():
                 log.warning("Skipping empty job parameter (%s)" % k)
                 continue
-            exe_env.append("GLIDEIN_PARAM_%s=%s" % (k, str(v)))
-            params_str += " -param_%s %s" % (k, escapeParam(str(v)))
+            exe_env.append(f"GLIDEIN_PARAM_{k}={str(v)}")
+            params_str += f" -param_{k} {escapeParam(str(v))}"
 
         exe_env.append("GLIDEIN_CLIENT=%s" % client_name)
         exe_env.append("GLIDEIN_SEC_CLASS=%s" % submit_credentials.security_class)
@@ -2250,7 +2246,7 @@ email_logs = False
 
             if "project_id" in jobDescript.data["AuthMethod"]:
                 # Append project id to the rsl
-                glidein_rsl = "%s(project=%s)" % (
+                glidein_rsl = "{}(project={})".format(
                     glidein_rsl,
                     submit_credentials.identity_credentials["ProjectId"],
                 )

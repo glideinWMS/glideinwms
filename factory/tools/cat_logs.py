@@ -56,7 +56,7 @@ def main():
     try:
         glideinDescript = parse_args()
     except ValueError as e:
-        sys.stderr.write("%s\n\n%s\n" % (e, USAGE))
+        sys.stderr.write(f"{e}\n\n{USAGE}\n")
         sys.exit(1)
     entries = glideinDescript.data["Entries"].split(",")
 
@@ -72,7 +72,7 @@ def main():
         sys.stdout.write(
             "===========================================================\n"
         )
-        with open(fname, "r") as fd:
+        with open(fname) as fd:
             sys.stdout.write(fd.read())
         sys.stdout.write("\n")
 

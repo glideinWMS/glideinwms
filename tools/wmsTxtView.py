@@ -55,7 +55,7 @@ if factory_name is not None:
         # just the generic factory name
         factory_constraints = 'FactoryName=?="%s"' % factory_name
     elif len(farr) == 2:
-        factory_constraints = '(FactoryName=?="%s")&&(GlideinName=?="%s")' % (
+        factory_constraints = '(FactoryName=?="{}")&&(GlideinName=?="{}")'.format(
             farr[1],
             farr[0],
         )

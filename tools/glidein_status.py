@@ -333,7 +333,7 @@ def main():
         if summarize == "site":
             sum_str = cel["GLIDEIN_Site"]
         else:
-            sum_str = "%s@%s@%s" % (
+            sum_str = "{}@{}@{}".format(
                 cel["GLIDEIN_Entry_Name"],
                 cel["GLIDEIN_Name"],
                 cel["GLIDEIN_Factory"],
@@ -350,7 +350,7 @@ def main():
                 ct[state] += 1
             elif state == "Claimed":
                 if activity in ("Busy", "Retiring"):
-                    ct["%s/%s" % (state, activity)] += 1
+                    ct[f"{state}/{activity}"] += 1
                 else:
                     ct["Claimed/Other"] += 1
             else:
@@ -364,7 +364,7 @@ def main():
             if want_gk:
                 print_arr += (cel["GLIDEIN_GridType"], cel["GLIDEIN_Gatekeeper"])
             print_arr += (
-                "%s@%s" % (cel["GLIDEIN_Name"], cel["GLIDEIN_Factory"]),
+                "{}@{}".format(cel["GLIDEIN_Name"], cel["GLIDEIN_Factory"]),
                 cel["GLIDEIN_Entry_Name"],
             )
             if want_gc:

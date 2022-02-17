@@ -213,9 +213,7 @@ TP_FAIL = False
 def run_off(addr, off_type):
     global TP_FAIL
     try:
-        out = condorExe.exe_cmd_sbin(
-            "condor_off", "-master -%s -addr %s" % (off_type, addr)
-        )
+        out = condorExe.exe_cmd_sbin("condor_off", f"-master -{off_type} -addr {addr}")
     except condorExe.ExeError as e:
         sys.stderr.write("%s\n" % e)
         TP_FAIL = True  # setting the value should be thread safe
@@ -310,7 +308,7 @@ def main(argv):
 
     # we only want to deal with our own glideins
     # it is unlikely we can shut down any others
-    complete_constr = '(GLIDECLIENT_Name=?="%s.%s")&&(%s)' % (
+    complete_constr = '(GLIDECLIENT_Name=?="{}.{}")&&({})'.format(
         frontend_name,
         group_name,
         glidein_constr,

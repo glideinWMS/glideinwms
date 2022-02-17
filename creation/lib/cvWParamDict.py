@@ -62,7 +62,7 @@ def translate_match_attrs(loc_str, match_attrs_name, match_attrs):
             translated_attrs[attr_name] = translations[attr_type]
         except KeyError as e:
             raise RuntimeError(
-                "Invalid %s %s attr type '%s'" % (loc_str, match_attrs_name, attr_type)
+                f"Invalid {loc_str} {match_attrs_name} attr type '{attr_type}'"
             )
 
     return translated_attrs
@@ -112,7 +112,7 @@ def validate_match(
         elif attr_type == "expr":
             attr_val = "a"
         else:
-            raise RuntimeError("Invalid %s attr type '%s'" % (loc_str, attr_type))
+            raise RuntimeError(f"Invalid {loc_str} attr type '{attr_type}'")
         env["attr_dict"][attr_name] = attr_val
 
     # Now that we have validated the match_attrs, compile match_obj
@@ -123,10 +123,10 @@ def validate_match(
         eval(match_obj, env)
     except KeyError as e:
         raise RuntimeError(
-            "Invalid %s match_expr '%s': Missing attribute %s" % (loc_str, match_str, e)
+            f"Invalid {loc_str} match_expr '{match_str}': Missing attribute {e}"
         )
     except Exception as e:
-        raise RuntimeError("Invalid %s match_expr '%s': %s" % (loc_str, match_str, e))
+        raise RuntimeError(f"Invalid {loc_str} match_expr '{match_str}': {e}")
 
     # Validate the match(job, glidein) from the policy modules
     for pmodule in policy_modules:
@@ -365,7 +365,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                 if start_expr is None:
                     start_expr = params.attrs[attr_name].value
                 elif not (params.attrs[attr_name].value in (None, "True")):
-                    start_expr = "(%s)&&(%s)" % (
+                    start_expr = "({})&&({})".format(
                         start_expr,
                         params.attrs[attr_name].value,
                     )
@@ -381,7 +381,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         real_start_expr = params.match.start_expr
         if start_expr is not None:
             if real_start_expr != "True":
-                real_start_expr = "(%s)&&(%s)" % (real_start_expr, start_expr)
+                real_start_expr = f"({real_start_expr})&&({start_expr})"
             else:
                 real_start_expr = start_expr
             # since I removed the attributes, roll back into the match.start_expr
@@ -428,10 +428,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # some of the descript attributes may need expansion... push them into group
         for attr_name in ("JobQueryExpr", "FactoryQueryExpr", "MatchExpr"):
             if (
-                (
-                    type(self.dicts["frontend_descript"][attr_name])
-                    in (type("a"), type("a"))
-                )
+                (type(self.dicts["frontend_descript"][attr_name]) in (str, str))
                 and (self.dicts["frontend_descript"][attr_name].find("$") != -1)
                 and self.enable_expansion
             ):
@@ -655,7 +652,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                 if start_expr is None:
                     start_expr = sub_params.attrs[attr_name].value
                 elif sub_params.attrs[attr_name].value is not None:
-                    start_expr = "(%s)&&(%s)" % (
+                    start_expr = "({})&&({})".format(
                         start_expr,
                         sub_params.attrs[attr_name].value,
                     )
@@ -667,7 +664,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         real_start_expr = sub_params.match.start_expr
         if start_expr is not None:
             if real_start_expr != "True":
-                real_start_expr = "(%s)&&(%s)" % (real_start_expr, start_expr)
+                real_start_expr = f"({real_start_expr})&&({start_expr})"
             else:
                 real_start_expr = start_expr
             # since I removed the attributes, roll back into the match.start_expr
@@ -675,7 +672,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         if params.match.start_expr.find("$") != -1 and self.enable_expansion:
             # the global one must be expanded, so deal with it at the group level
-            real_start_expr = "(%s)&&(%s)" % (params.match.start_expr, real_start_expr)
+            real_start_expr = f"({params.match.start_expr})&&({real_start_expr})"
 
         self.dicts["consts"].add("GLIDECLIENT_Group_Start", real_start_expr)
 
@@ -729,7 +726,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for dname in ("attrs", "consts", "group_descript"):
             for attr_name in self.dicts[dname].keys:
                 if (
-                    (type(self.dicts[dname][attr_name]) in (type("a"), type("a")))
+                    (type(self.dicts[dname][attr_name]) in (str, str))
                     and (self.dicts[dname][attr_name].find("$") != -1)
                     and self.enable_expansion
                 ):
@@ -741,7 +738,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for dname in ("params",):
             for attr_name in self.dicts[dname].keys:
                 if (
-                    (type(self.dicts[dname][attr_name][1]) in (type("a"), type("a")))
+                    (type(self.dicts[dname][attr_name][1]) in (str, str))
                     and (self.dicts[dname][attr_name][1].find("$") != -1)
                     and self.enable_expansion
                 ):
@@ -904,9 +901,7 @@ def add_attr_unparsed(attr_name, params, dicts, description):
     try:
         add_attr_unparsed_real(attr_name, params, dicts)
     except RuntimeError as e:
-        raise RuntimeError(
-            "Error parsing attr %s[%s]: %s" % (description, attr_name, str(e))
-        )
+        raise RuntimeError(f"Error parsing attr {description}[{attr_name}]: {str(e)}")
 
 
 def validate_attribute(attr_name, attr_val):
@@ -933,9 +928,7 @@ def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj = params.attrs[attr_name]
 
     if attr_obj.value is None:
-        raise RuntimeError(
-            "Attribute '%s' does not have a value: %s" % (attr_name, attr_obj)
-        )
+        raise RuntimeError(f"Attribute '{attr_name}' does not have a value: {attr_obj}")
 
     is_parameter = is_true(attr_obj.parameter)
     # attr_obj.type=="expr" is now used for HTCondor expression
@@ -964,7 +957,7 @@ def add_attr_unparsed_real(attr_name, params, dicts):
                 or ((attr_obj.type == "string") and (attr_var_type == "I"))
             ):
                 raise RuntimeError(
-                    "Types not compatible (%s,%s)" % (attr_obj.type, attr_var_type)
+                    f"Types not compatible ({attr_obj.type},{attr_var_type})"
                 )
             attr_var_export = attr_var_el[4]
             if do_glidein_publish and (attr_var_export == "N"):
@@ -1381,7 +1374,7 @@ def populate_common_descript(descript_dict, params):
             else:  # pool
                 pool_idx_list_expanded_strings = get_pool_list(pel)
                 for idx in pool_idx_list_expanded_strings:
-                    absfname = "%s%s" % (pel["absfname"], idx)
+                    absfname = "{}{}".format(pel["absfname"], idx)
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
@@ -1561,7 +1554,7 @@ def populate_group_security(client_security, params, sub_params, group_name):
                     # pool
                     pool_idx_list_expanded_strings = get_pool_list(pel)
                     for idx in pool_idx_list_expanded_strings:
-                        real_proxy_fname = "%s%s" % (proxy_fname, idx)
+                        real_proxy_fname = f"{proxy_fname}{idx}"
                         dn = x509Support.extract_DN(real_proxy_fname)
                         # don't worry about conflict... there is nothing wrong if the DN is listed twice
                         pilot_dns.append(dn)

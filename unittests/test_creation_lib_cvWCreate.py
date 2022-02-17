@@ -18,7 +18,7 @@ Author:
 import os
 import unittest
 
-import mock
+from unittest import mock
 import xmlrunner
 
 from glideinwms.creation.lib.cvWCreate import (
@@ -85,7 +85,7 @@ class Test_cvWCreate(unittest.TestCase):
         try:
             bad = get_template("I-dont-exist", glideinWMS_dir)
             assert False
-        except IOError as ior:
+        except OSError as ior:
             pass
 
     def test_create_client_condor_config(self):
@@ -97,7 +97,7 @@ class Test_cvWCreate(unittest.TestCase):
         classad_proxy = "/tmp/classad_proxy"
 
         with mock.patch("glideinwms.lib.condorExe.exe_cmd") as m_exe_cmd:
-            with open("fixtures/frontend/ccvd.fixture", "r") as fil:
+            with open("fixtures/frontend/ccvd.fixture") as fil:
                 m_exe_cmd.return_value = fil.readlines()
                 create_client_condor_config(
                     config_fname, mapfile_fname, collector_nodes, classad_proxy

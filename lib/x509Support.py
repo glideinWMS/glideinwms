@@ -16,7 +16,7 @@ def extract_DN(fname):
     @param fname: Filename containing the X.509 proxy
     """
 
-    with open(fname, "r") as fd:
+    with open(fname) as fd:
         data = fd.read()
 
     while True:

@@ -34,13 +34,13 @@ def km(z):
     t = z * 1.0e-9
     if x >= 1000:
         if x >= 1000 and x < 1000000:
-            return "%s%.1fK" % (neg, w)
+            return f"{neg}{w:.1f}K"
         if x >= 1000000 and x < 1000000000:
-            return "%s%.1fM" % (neg, v)
+            return f"{neg}{v:.1f}M"
         if x >= 1000000000:
-            return "%s%.1fG" % (neg, t)
+            return f"{neg}{t:.1f}G"
     else:
-        return "%s%.1f" % (neg, z)
+        return f"{neg}{z:.1f}"
 
 
 # prints a dictionary with \n and \t

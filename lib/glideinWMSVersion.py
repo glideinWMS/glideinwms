@@ -87,7 +87,6 @@ class GlideinWMSDistro:
                             os.path.join(
                                 rpm_dir, os.path.dirname(file), os.path.basename(file)
                             ),
-                            "r",
                         )
 
                         chksum = md5(fd.read()).hexdigest()
@@ -102,7 +101,7 @@ class GlideinWMSDistro:
             # if len(modifiedFiles) > 0:
             #    print "Modified files: %s" % " ".join(modifiedFiles)
 
-            self._version = "glideinWMS %s %s" % (ver, patch)
+            self._version = f"glideinWMS {ver} {patch}"
 
         def version(self):
             return self._version

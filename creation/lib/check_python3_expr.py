@@ -214,7 +214,7 @@ def main(config_file, enforce_2to3=False, silent=False, refactoring_tool=rt):
 
     try:
         tree = ET.parse(config_file)
-    except IOError:
+    except OSError:
         return "Config file not readable: %s" % config_file
     except:
         return "Error parsing config file: %s" % config_file

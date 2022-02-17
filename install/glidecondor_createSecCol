@@ -7,7 +7,6 @@
 #   This tool creates the configuration file containing
 #   the secondary collectors
 
-from __future__ import print_function
 
 import os
 import subprocess
@@ -84,7 +83,7 @@ def create_config(fname):
     global collector_ports, use_port_as_name
     try:
         fd = open(fname, "w")
-    except IOError as e:
+    except OSError as e:
         print("%s" % e)
         sys.exit(2)
     with fd:

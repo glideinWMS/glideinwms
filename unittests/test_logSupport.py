@@ -48,7 +48,7 @@ class TestLogSupport(unittest.TestCase):
         config_file = "%s/test_logSupport.yaml" % os.path.join(
             sys.path[0], "test_configurations"
         )
-        self.config = yaml.load(open(config_file, "r"), Loader=yaml.FullLoader)
+        self.config = yaml.load(open(config_file), Loader=yaml.FullLoader)
         self.replace = Replacer()
         self.replace(
             "glideinwms.lib.logSupport.time.time",
@@ -80,7 +80,7 @@ class TestLogSupport(unittest.TestCase):
         except BaseException:
             pass  # compress may not exist in all sections
 
-        log_dir = "%s/%s" % (self.log_base_dir, log_name)
+        log_dir = f"{self.log_base_dir}/{log_name}"
         os.makedirs(log_dir)
 
         logSupport.add_processlog_handler(
@@ -98,7 +98,7 @@ class TestLogSupport(unittest.TestCase):
         return logging.getLogger(log_name), log_dir
 
     def rotated_log_tests(self, section, log_dir):
-        log_file_name = "%s.%s.log" % (
+        log_file_name = "{}.{}.log".format(
             str(self.config[section]["log_name"]),
             str(self.config[section]["extension"]),
         )

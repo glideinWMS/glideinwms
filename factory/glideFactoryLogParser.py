@@ -348,7 +348,7 @@ ELD_RC_VALIDATE_END = re.compile(
 ELD_RC_CONDOR_START = re.compile("=== Condor starting.*===")
 ELD_RC_CONDOR_END = re.compile("=== Condor ended.*after (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_SLOT = re.compile(
-    "=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===",
+    r"=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===",
     re.M | re.DOTALL,
 )
 ELD_RC_CONDOR_SLOT_CONTENT_COUNT = re.compile(
@@ -392,7 +392,7 @@ def extractLogData(fname):
     size = os.path.getsize(fname)
     if size < 10:
         return copy.deepcopy(EMPTY_LOG_DATA)
-    with open(fname, "r") as fd:
+    with open(fname) as fd:
         buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
         try:
             buf_idx = 0

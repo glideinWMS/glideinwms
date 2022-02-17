@@ -112,12 +112,12 @@ def verifyHelper(filename, dict, fix_rrd=False):
     rrd_obj = rrdSupport.rrdSupport()
     (missing, extra) = rrd_obj.verify_rrd(filename, dict)
     for attr in extra:
-        print("ERROR: %s has extra attribute %s" % (filename, attr))
+        print(f"ERROR: {filename} has extra attribute {attr}")
         if fix_rrd:
             print("ERROR: fix_rrd cannot fix extra attributes")
     if not fix_rrd:
         for attr in missing:
-            print("ERROR: %s missing attribute %s" % (filename, attr))
+            print(f"ERROR: {filename} missing attribute {attr}")
         if len(missing) > 0:
             rrd_problems_found = True
     if fix_rrd and (len(missing) > 0):
@@ -125,7 +125,7 @@ def verifyHelper(filename, dict, fix_rrd=False):
         (out, tempfilename2) = tempfile.mkstemp()
         (restored, restoredfilename) = tempfile.mkstemp()
         backup_str = str(int(time.time())) + ".backup"
-        print("Fixing %s... (backed up to %s)" % (filename, filename + backup_str))
+        print(f"Fixing {filename}... (backed up to {filename + backup_str})")
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
@@ -165,12 +165,12 @@ def verifyRRD(fix_rrd=False):
             tp_str = frontend_total_type_strings[tp]
             attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
-                status_total_dict["%s%s" % (tp_str, a)] = None
+                status_total_dict[f"{tp_str}{a}"] = None
         if tp in list(frontend_job_type_strings.keys()):
             tp_str = frontend_job_type_strings[tp]
             attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
-                status_dict["%s%s" % (tp_str, a)] = None
+                status_dict[f"{tp_str}{a}"] = None
 
     if not os.path.isdir(mon_dir):
         print("WARNING: monitor/ directory does not exist, skipping rrd verification.")
@@ -224,7 +224,7 @@ def write_one_rrd(name, updated, data, fact=0):
             tp_str = type_strings[tp]
             attributes_tp = frontend_status_attributes[tp]
             for a in attributes_tp:
-                val_dict["%s%s" % (tp_str, a)] = None
+                val_dict[f"{tp_str}{a}"] = None
 
     for tp in list(data.keys()):
         # values (RRD type) - Status or Requested
@@ -242,7 +242,7 @@ def write_one_rrd(name, updated, data, fact=0):
             if a in attributes_tp:
                 a_el = int(tp_el[a])
                 if not isinstance(a_el, dict):  # ignore subdictionaries
-                    val_dict["%s%s" % (tp_str, a)] = a_el
+                    val_dict[f"{tp_str}{a}"] = a_el
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s" % name)
     glideinFrontendMonitoring.monitoringConfig.write_rrd_multi(
@@ -293,7 +293,7 @@ def aggregateStatus():
             )
             os.unlink(status_fname)
             continue
-        except IOError:
+        except OSError:
             continue  # file not found, ignore
 
         # update group

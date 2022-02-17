@@ -78,7 +78,7 @@ class MonitoringConfig:
         self.log_dir = log_dir
         cleaner = cleanupSupport.DirCleanupWSpace(
             log_dir,
-            "(completed_jobs_.*\.log)",
+            r"(completed_jobs_.*\.log)",
             int(max_days * 24 * 3600),
             int(min_days * 24 * 3600),
             int(max_mbs * (1024.0 * 1024.0)),
@@ -193,11 +193,11 @@ class MonitoringConfig:
 
         try:
             f = None
-            self.log.info("Writing %s to %s" % (relative_fname, str(fname)))
+            self.log.info(f"Writing {relative_fname} to {str(fname)}")
             f = open(fname, "w")
             json.dump(data, f)
             # f.write(json.dumps(data, indent=4))
-        except IOError as e:
+        except OSError as e:
             self.log.err(
                 "unable to open and write to file %s in write_completed_json: %s"
                 % (str(fname), str(e))
@@ -772,7 +772,7 @@ class condorQStats:
                 tp_str = type_strings[tp]
                 attributes_tp = self.attributes[tp]
                 for a in attributes_tp:
-                    val_dict["%s%s" % (tp_str, a)] = None
+                    val_dict[f"{tp_str}{a}"] = None
 
             monitoringConfig.establish_dir(fe_dir)
             for tp in list(fe_el.keys()):
@@ -789,7 +789,7 @@ class condorQStats:
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
                         if not isinstance(a_el, dict):  # ignore subdictionaries
-                            val_dict["%s%s" % (tp_str, a)] = a_el
+                            val_dict[f"{tp_str}{a}"] = a_el
 
             monitoringConfig.write_rrd_multi(
                 "%s/Status_Attributes" % fe_dir, "GAUGE", self.updated, val_dict
@@ -1490,12 +1490,12 @@ class condorLogSummary:
                     for w in list(count_waste_mill.keys()):
                         count_waste_mill_w = count_waste_mill[w]
                         for p in list(count_waste_mill_w.keys()):
-                            val_dict_waste["%s_%s" % (w, p)] = count_waste_mill_w[p]
+                            val_dict_waste[f"{w}_{p}"] = count_waste_mill_w[p]
 
                     for w in list(time_waste_mill.keys()):
                         time_waste_mill_w = time_waste_mill[w]
                         for p in list(time_waste_mill_w.keys()):
-                            val_dict_wastetime["%s_%s" % (w, p)] = time_waste_mill_w[p]
+                            val_dict_wastetime[f"{w}_{p}"] = time_waste_mill_w[p]
 
             # end for s in self.job_statuses
 
@@ -1580,7 +1580,7 @@ class condorLogSummary:
                     "completed_stats": completed_stats_data,
                     "completed_wastetime": completed_wastetime_data,
                 }
-            except IOError as e:
+            except OSError as e:
                 self.log.info(
                     "Could not find files to aggregate in frontend %s" % fe_dir
                 )
@@ -1882,7 +1882,7 @@ class FactoryStatusData:
             )
             try:
                 monitoringConfig.write_file(file_name, xml_str)
-            except IOError:
+            except OSError:
                 self.log.exception("FactoryStatusData:write_file: ")
         return
 

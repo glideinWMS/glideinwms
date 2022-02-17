@@ -120,12 +120,12 @@ def verifyHelper(filename, dict, fix_rrd=False):
     rrd_obj = rrdSupport.rrdSupport()
     (missing, extra) = rrd_obj.verify_rrd(filename, dict)
     for attr in extra:
-        print("ERROR: %s has extra attribute %s" % (filename, attr))
+        print(f"ERROR: {filename} has extra attribute {attr}")
         if fix_rrd:
             print("ERROR: fix_rrd cannot fix extra attributes")
     if not fix_rrd:
         for attr in missing:
-            print("ERROR: %s missing attribute %s" % (filename, attr))
+            print(f"ERROR: {filename} missing attribute {attr}")
         if len(missing) > 0:
             rrd_problems_found = True
     if fix_rrd and (len(missing) > 0):
@@ -133,7 +133,7 @@ def verifyHelper(filename, dict, fix_rrd=False):
         (out, tempfilename2) = tempfile.mkstemp()
         (restored, restoredfilename) = tempfile.mkstemp()
         backup_str = str(int(time.time())) + ".backup"
-        print("Fixing %s... (backed up to %s)" % (filename, filename + backup_str))
+        print(f"Fixing {filename}... (backed up to {filename + backup_str})")
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
@@ -175,23 +175,23 @@ def verifyRRD(fix_rrd=False):
             tp_str = type_strings[tp]
             attributes_tp = status_attributes[tp]
             for a in attributes_tp:
-                status_dict["%s%s" % (tp_str, a)] = None
+                status_dict[f"{tp_str}{a}"] = None
 
     for jobrange in glideFactoryMonitoring.getAllJobRanges():
-        completed_stats_dict["JobsNr_%s" % (jobrange,)] = None
+        completed_stats_dict[f"JobsNr_{jobrange}"] = None
     for timerange in glideFactoryMonitoring.getAllTimeRanges():
-        completed_stats_dict["Lasted_%s" % (timerange,)] = None
-        completed_stats_dict["JobsLasted_%s" % (timerange,)] = None
+        completed_stats_dict[f"Lasted_{timerange}"] = None
+        completed_stats_dict[f"JobsLasted_{timerange}"] = None
 
     for jobtype in glideFactoryMonitoring.getAllJobTypes():
         for timerange in glideFactoryMonitoring.getAllMillRanges():
-            completed_waste_dict["%s_%s" % (jobtype, timerange)] = None
+            completed_waste_dict[f"{jobtype}_{timerange}"] = None
 
     for jobtype in ("Entered", "Exited", "Status"):
         for jobstatus in ("Wait", "Idle", "Running", "Held"):
-            counts_dict["%s%s" % (jobtype, jobstatus)] = None
+            counts_dict[f"{jobtype}{jobstatus}"] = None
     for jobstatus in ("Completed", "Removed"):
-        counts_dict["%s%s" % ("Entered", jobstatus)] = None
+        counts_dict["{}{}".format("Entered", jobstatus)] = None
     # FROM: lib2to3.fixes.fix_ws_comma
     #         completed_waste_dict["%s_%s"%(jobtype, timerange)]=None
     #
@@ -285,7 +285,7 @@ def aggregateStatus(in_downtime):
 
         attributes_tp = status_attributes[tp]
         for a in attributes_tp:
-            val_dict["%s%s" % (tp_str, a)] = None
+            val_dict[f"{tp_str}{a}"] = None
 
     nr_entries = 0
     nr_feentries = {}  # dictionary for nr entries per fe
@@ -306,7 +306,7 @@ def aggregateStatus(in_downtime):
             entry_data = xmlParse.xmlfile2dict(status_fname)
             completed_data_fp = open(completed_data_fname)
             completed_data = json.load(completed_data_fp)
-        except IOError:
+        except OSError:
             continue  # file not found, ignore
         finally:
             if completed_data_fp:
@@ -548,7 +548,7 @@ def aggregateStatus(in_downtime):
         for a in list(tp_el.keys()):
             if a in attributes_tp:
                 a_el = int(tp_el[a])
-                val_dict["%s%s" % (tp_str, a)] = a_el
+                val_dict[f"{tp_str}{a}"] = a_el
 
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi(
         "total/Status_Attributes", "GAUGE", updated, val_dict
@@ -571,7 +571,7 @@ def aggregateStatus(in_downtime):
             for a in list(tp_el.keys()):
                 if a in attributes_tp:
                     a_el = int(tp_el[a])
-                    val_dict["%s%s" % (tp_str, a)] = a_el
+                    val_dict[f"{tp_str}{a}"] = a_el
         glideFactoryMonitoring.monitoringConfig.write_rrd_multi(
             "total/%s/Status_Attributes" % ("frontend_" + fe),
             "GAUGE",
@@ -609,7 +609,7 @@ def aggregateJobsSummary():
         try:
             with open(status_fname, "rb") as fd:
                 entry_joblist = pickle.load(fd)
-        except IOError:
+        except OSError:
             continue
         schedd_name = entry_joblist.get("schedd_name", None)
         pool_name = entry_joblist.get("collector_name", None)
@@ -704,7 +704,7 @@ def aggregateLogSummary():
             entry_data = xmlParse.xmlfile2dict(
                 status_fname, always_singular_list=["Fraction", "TimeRange", "Range"]
             )
-        except IOError:
+        except OSError:
             continue  # file not found, ignore
 
         # update entry
@@ -965,12 +965,12 @@ def writeLogSummaryRRDs(fe_dir, status_el):
             for w in list(count_waste_mill.keys()):
                 count_waste_mill_w = count_waste_mill[w]
                 for p in list(count_waste_mill_w.keys()):
-                    val_dict_waste["%s_%s" % (w, p)] = count_waste_mill_w[p]
+                    val_dict_waste[f"{w}_{p}"] = count_waste_mill_w[p]
 
             for w in list(time_waste_mill.keys()):
                 time_waste_mill_w = time_waste_mill[w]
                 for p in list(time_waste_mill_w.keys()):
-                    val_dict_wastetime["%s_%s" % (w, p)] = time_waste_mill_w[p]
+                    val_dict_wastetime[f"{w}_{p}"] = time_waste_mill_w[p]
 
     # write the data to disk
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi_hetero(
@@ -1013,7 +1013,7 @@ def aggregateRRDStats(log=logSupport.log):
                 stats[entry] = xmlParse.xmlfile2dict(
                     rrd_fname, always_singular_list={"timezone": {}}
                 )
-            except IOError:
+            except OSError:
                 if os.path.exists(rrd_fname):
                     log.debug(
                         "aggregateRRDStats %s exception: parse_xml, IOError" % rrd_fname
@@ -1030,9 +1030,9 @@ def aggregateRRDStats(log=logSupport.log):
         stats_entries.sort()
 
         # Get all the resolutions, data_sets and frontends... for totals
-        resolution = set([])
-        frontends = set([])
-        data_sets = set([])
+        resolution = set()
+        frontends = set()
+        data_sets = set()
         for entry in stats_entries:
             entry_resolution = list(stats[entry]["total"]["periods"].keys())
             if len(entry_resolution) == 0:
@@ -1211,7 +1211,7 @@ def aggregateRRDStats(log=logSupport.log):
 
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
-        except IOError:
+        except OSError:
             log.debug("write_file %s, IOError" % rrd_site(rrd))
 
     return

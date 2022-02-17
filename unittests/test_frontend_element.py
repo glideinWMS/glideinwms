@@ -19,7 +19,7 @@ import os
 import unittest
 
 import jsonpickle
-import mock
+from unittest import mock
 import xmlrunner
 
 import glideinwms.lib.condorExe
@@ -94,7 +94,7 @@ def fork_and_collect_side_effect():
     glideinFrontendElement::iterate_one from
     json artifact in fixtures
     """
-    with open("fixtures/frontend/pipe_out.iterate_one", "r") as fd:
+    with open("fixtures/frontend/pipe_out.iterate_one") as fd:
         json_str = fd.read()
         pipe_out_objs = uni_to_str_JSON(jsonpickle.decode(json_str, keys=True))
     for key in pipe_out_objs:
@@ -111,7 +111,7 @@ def bounded_fork_and_collect_side_effect():
     populate data structures in glideinFrontendElement::do_match
     from json artifact in fixtures
     """
-    with open("fixtures/frontend/pipe_out.do_match", "r") as fd:
+    with open("fixtures/frontend/pipe_out.do_match") as fd:
         json_str = fd.read()
         pipe_out_objs = uni_to_str_JSON(jsonpickle.decode(json_str, keys=True))
     for key in pipe_out_objs:
@@ -287,7 +287,7 @@ class FEElementTestCase(unittest.TestCase):
         """
 
         self.gfe.stats = {"group": glideinFrontendMonitoring.groupStats()}
-        self.gfe.published_frontend_name = "%s.XPVO_%s" % (
+        self.gfe.published_frontend_name = "{}.XPVO_{}".format(
             self.gfe.frontend_name,
             self.gfe.group_name,
         )
@@ -341,7 +341,7 @@ class FEElementTestCase(unittest.TestCase):
         req_voms = {}
         for elm in glideid_list:
             if elm and elm[0]:
-                glideid_str = "%s@%s" % (str(elm[1]), str(elm[0]))
+                glideid_str = f"{str(elm[1])}@{str(elm[0])}"
                 gdata = self.gfe.glidein_dict[elm]["attrs"]
                 glideids.append(glideid_str)
                 in_downtime[glideid_str] = safe_boolcomp(
@@ -386,12 +386,10 @@ class FEElementTestCase(unittest.TestCase):
 
                 if in_downtime[gid]:
                     self.assertTrue(
-                        upordown == "Down", "%s logs this as %s" % (gid, upordown)
+                        upordown == "Down", f"{gid} logs this as {upordown}"
                     )
                 else:
-                    self.assertTrue(
-                        upordown == "Up", "%s logs this as %s" % (gid, upordown)
-                    )
+                    self.assertTrue(upordown == "Up", f"{gid} logs this as {upordown}")
 
                 # GLIDEIN_REQUIRE_VOMS checks were done only when GlExec was enabled
                 # if use_voms:

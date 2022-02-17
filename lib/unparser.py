@@ -469,7 +469,7 @@ class Unparser:
         if t.conversion != -1:
             conversion = chr(t.conversion)
             assert conversion in "sra"
-            write("!{conversion}".format(conversion=conversion))
+            write(f"!{conversion}")
         if t.format_spec:
             write(":")
             meth = getattr(self, "_fstring_" + type(t.format_spec).__name__)
@@ -850,7 +850,7 @@ class Unparser:
 def roundtrip(filename, output=sys.stdout):
     with open(filename, "rb") as pyfile:
         encoding = tokenize.detect_encoding(pyfile.readline)[0]
-    with open(filename, "r", encoding=encoding) as pyfile:
+    with open(filename, encoding=encoding) as pyfile:
         source = pyfile.read()
     tree = compile(source, filename, "exec", ast.PyCF_ONLY_AST, dont_inherit=True)
     Unparser(tree, output)

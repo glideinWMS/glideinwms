@@ -169,7 +169,7 @@ class SymKey:
             str: key description in the string
 
         """
-        return "cypher:%s,key:%s,iv:%s" % (
+        return "cypher:{},key:{},iv:{}".format(
             self.cypher_name,
             self.key_str.decode(defaults.BINARY_ENCODING_CRYPTO),
             self.iv_str.decode(defaults.BINARY_ENCODING_CRYPTO),

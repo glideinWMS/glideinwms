@@ -172,7 +172,7 @@ def findGlobals(pool_name, auth_identity, classad_type, additional_constraint=No
         status_constraint += ' && (AuthenticatedIdentity=?="%s")' % auth_identity
 
     if additional_constraint is not None:
-        status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
+        status_constraint = f"{status_constraint} && ({additional_constraint})"
 
     status = condorMonitor.CondorStatus("any", pool_name=pool_name)
     # important, especially for proxy passing
@@ -188,7 +188,7 @@ def findMasterFrontendClassads(pool_name, frontend_name):
     Query the given pool to find master frontend classads
     """
 
-    status_constraint = '(GlideinMyType=?="%s")||(GlideinMyType=?="%s")' % (
+    status_constraint = '(GlideinMyType=?="{}")||(GlideinMyType=?="{}")'.format(
         "glideclientglobal",
         "glideclient",
     )
@@ -199,7 +199,7 @@ def findMasterFrontendClassads(pool_name, frontend_name):
     status = condorMonitor.CondorStatus("any", pool_name=pool_name)
     # important, especially for proxy passing
     status.require_integrity(True)
-    status.load("(%s)&&(%s)" % (status_constraint, frontend_constraint))
+    status.load(f"({status_constraint})&&({frontend_constraint})")
     data = status.fetchStored()
 
     return format_condor_dict(data)
@@ -217,7 +217,7 @@ def findGlideins(factory_pool, factory_identity, signtype, additional_constraint
         status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
 
     if signtype is not None:
-        status_constraint += ' && stringListMember("%s",%s)' % (
+        status_constraint += ' && stringListMember("{}",{})'.format(
             signtype,
             frontendConfig.factory_signtype_id,
         )
@@ -451,9 +451,7 @@ class Credential:
             hash_str = filename + dn
         else:
             hash_str = filename
-        logSupport.log.debug(
-            "Using hash_str=%s (%s)" % (hash_str, hash_nc(hash_str, 8))
-        )
+        logSupport.log.debug(f"Using hash_str={hash_str} ({hash_nc(hash_str, 8)})")
         return hash_nc(hash_str, 8)
 
     def time_left(self):
@@ -1043,7 +1041,7 @@ class MultiAdvertizeWork:
             if factory_pool in self.global_params:
                 request_name, security_name = self.global_params[factory_pool]
                 glidein_params_to_encrypt["SecurityName"] = security_name
-            classad_name = "%s@%s" % (request_name, self.descript_obj.my_name)
+            classad_name = f"{request_name}@{self.descript_obj.my_name}"
             fd.write('MyType = "%s"\n' % frontendConfig.client_global)
             fd.write('GlideinMyType = "%s"\n' % frontendConfig.client_global)
             fd.write('GlideinWMSVersion = "%s"\n' % frontendConfig.glideinwms_version)
@@ -1213,7 +1211,7 @@ class MultiAdvertizeWork:
 
         values = []
         try:
-            vmfile = open(filename, "r")
+            vmfile = open(filename)
             for line in vmfile.readlines():
                 sep_idx = line.find("=")
                 if sep_idx > 0:
@@ -1228,16 +1226,14 @@ class MultiAdvertizeWork:
 
         if len(values) > 1:
             logSupport.log.error(
-                "Found multiple lines that contain %s in %s" % (prefix, filename)
+                f"Found multiple lines that contain {prefix} in {filename}"
             )
             raise NoCredentialException
         elif len(values) == 0:
-            logSupport.log.error("File %s does not contain %s" % (filename, prefix))
+            logSupport.log.error(f"File {filename} does not contain {prefix}")
             raise NoCredentialException
 
-        logSupport.log.debug(
-            "Found %s = %s from file %s" % (prefix, values[0], filename)
-        )
+        logSupport.log.debug(f"Found {prefix} = {values[0]} from file {filename}")
         return values[0]
 
     def createAdvertizeWorkFile(
@@ -1291,7 +1287,7 @@ class MultiAdvertizeWork:
                     glidein_params_to_encrypt = {}
                 else:
                     glidein_params_to_encrypt = copy.deepcopy(glidein_params_to_encrypt)
-                classad_name = "%s@%s" % (params_obj.request_name, descript_obj.my_name)
+                classad_name = f"{params_obj.request_name}@{descript_obj.my_name}"
 
                 req_idle = 0
                 req_max_run = 0
@@ -1487,9 +1483,7 @@ class MultiAdvertizeWork:
                 )
                 for (prefix, data) in classad_info_tuples:
                     for attr in list(data.keys()):
-                        writeTypedClassadAttrToFile(
-                            fd, "%s%s" % (prefix, attr), data[attr]
-                        )
+                        writeTypedClassadAttrToFile(fd, f"{prefix}{attr}", data[attr])
 
                 for attr_name in params_obj.glidein_monitors:
                     prefix = frontendConfig.glidein_monitor_prefix
@@ -1506,9 +1500,7 @@ class MultiAdvertizeWork:
                         attr_value = glidein_monitors_this_cred.get(
                             attr_name, params_obj.glidein_monitors[attr_name]
                         )
-                    writeTypedClassadAttrToFile(
-                        fd, "%s%s" % (prefix, attr_name), attr_value
-                    )
+                    writeTypedClassadAttrToFile(fd, f"{prefix}{attr_name}", attr_value)
 
                 # Update Sequence number information
                 if classad_name in advertizeGCCounter:
@@ -1545,10 +1537,10 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
     """
     if isinstance(attr_value, (int, int, float)):
         # don't quote numeric values
-        fd.write("%s = %s\n" % (attr_name, attr_value))
+        fd.write(f"{attr_name} = {attr_value}\n")
     else:
         escaped_value = str(attr_value).replace('"', '\\"').replace("\n", "\\n")
-        fd.write('%s = "%s"\n' % (attr_name, escaped_value))
+        fd.write(f'{attr_name} = "{escaped_value}"\n')
 
 
 # Remove ClassAd from Collector
@@ -1630,7 +1622,7 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams["GlideinWMSVersion"] = frontendConfig.glideinwms_version
         self.adParams["GlideFactoryName"] = "%s" % factory_ref
         self.adParams["GlideClientName"] = "%s" % frontend_ref
-        self.adParams["Name"] = "%s@%s" % (factory_ref, frontend_ref)
+        self.adParams["Name"] = f"{factory_ref}@{frontend_ref}"
         self.adParams["GLIDEIN_In_Downtime"] = "False"
 
         if self.adParams["Name"] in advertizeGRCounter:
@@ -1906,7 +1898,7 @@ class FrontendMonitorClassad(classadSupport.Classad):
         @param perf_metrics: PerfMetric object for frontend or group
         """
         for event in perf_metrics.metric:
-            attr_name = "%s_%s_%s" % (
+            attr_name = "{}_{}_{}".format(
                 frontendConfig.glidein_perfmetric_prefix,
                 perf_metrics.name,
                 event,
@@ -1951,9 +1943,7 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
 
 
 def exe_condor_advertise(fname, command, pool, is_multi=False):
-    logSupport.log.debug(
-        "CONDOR ADVERTISE %s %s %s %s" % (fname, command, pool, is_multi)
-    )
+    logSupport.log.debug(f"CONDOR ADVERTISE {fname} {command} {pool} {is_multi}")
     return condorManager.condorAdvertise(
         fname, command, frontendConfig.advertise_use_tcp, is_multi, pool
     )

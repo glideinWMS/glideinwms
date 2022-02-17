@@ -36,12 +36,12 @@ def parse_date(str):
     try:
         mon = str2int_range(arr[1], 1, 12)
     except ValueError as e:
-        raise ValueError("Invalid month '%s'. %s" % (arr[1], e))
+        raise ValueError(f"Invalid month '{arr[1]}'. {e}")
 
     try:
         day = str2int_range(arr[2], 1, 31)
     except ValueError as e:
-        raise ValueError("Invalid day '%s'. %s" % (arr[2], e))
+        raise ValueError(f"Invalid day '{arr[2]}'. {e}")
 
     return (year, mon, day)
 
@@ -53,16 +53,16 @@ def parse_time(str):
     try:
         hour = str2int_range(arr[0], 0, 23)
     except ValueError as e:
-        raise ValueError("Invalid hour '%s'. %s" % (arr[0], e))
+        raise ValueError(f"Invalid hour '{arr[0]}'. {e}")
 
     try:
         min = str2int_range(arr[1], 0, 59)
     except ValueError as e:
-        raise ValueError("Invalid minute '%s'. %s" % (arr[1], e))
+        raise ValueError(f"Invalid minute '{arr[1]}'. {e}")
 
     try:
         sec = str2int_range(arr[2], 0, 59)
     except ValueError as e:
-        raise ValueError("Invalid second '%s'. %s" % (arr[2], e))
+        raise ValueError(f"Invalid second '{arr[2]}'. {e}")
 
     return (hour, min, sec)

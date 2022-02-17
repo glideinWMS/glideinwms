@@ -12,7 +12,6 @@ Author:
     Marco Mascheroni, marco.mascheroni@cern.ch
 """
 
-from __future__ import absolute_import, print_function
 
 import copy
 import unittest

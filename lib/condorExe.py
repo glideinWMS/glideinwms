@@ -81,7 +81,7 @@ def exe_cmd(condor_exe, args, stdin_data=None, env={}):
         raise UnconfigError("condor_bin_path is undefined!")
     condor_exe_path = os.path.join(condor_bin_path, condor_exe)
 
-    cmd = "%s %s" % (condor_exe_path, args)
+    cmd = f"{condor_exe_path} {args}"
 
     return iexe_cmd(cmd, stdin_data, env)
 
@@ -93,7 +93,7 @@ def exe_cmd_sbin(condor_exe, args, stdin_data=None, env={}):
         raise UnconfigError("condor_sbin_path is undefined!")
     condor_exe_path = os.path.join(condor_sbin_path, condor_exe)
 
-    cmd = "%s %s" % (condor_exe_path, args)
+    cmd = f"{condor_exe_path} {args}"
 
     return iexe_cmd(cmd, stdin_data, env)
 
@@ -124,7 +124,7 @@ def generate_bash_script(cmd, environment):
     # script.append('-' * 20 + ' begin script ' + '-' * 20)
     # script.append('#!/bin/bash')
 
-    script += ["%s=%s" % (k, v) for k, v in environment.items()]
+    script += [f"{k}={v}" for k, v in environment.items()]
     script.append(cmd)
     script.append("-" * 20 + "  end script  " + "-" * 20)
     cmd_list = cmd.split()
@@ -135,7 +135,7 @@ def generate_bash_script(cmd, environment):
             try:
                 with open(last_par) as f:
                     script += f.read().splitlines()
-            except IOError:
+            except OSError:
                 pass
             script.append("-" * 20 + "  end parameter file " + "-" * 20)
     return "\n".join(script)
@@ -164,7 +164,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
             cmd, stdin_data=stdin_data, child_env=child_env
         )
     except Exception as ex:
-        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (
+        msg = "Unexpected Error running '{}'. Details: {}. Stdout: {}".format(
             cmd,
             ex,
             stdout_data,

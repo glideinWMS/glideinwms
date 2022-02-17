@@ -261,7 +261,7 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     xml_data = condorExe.exe_cmd(
-        "condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint)
+        "condor_q", f"-g -l {attr_str} -xml -constraint '{q_constraint}'"
     )
 
     classads_xml = []
@@ -554,7 +554,7 @@ class CondorQuery(StoredQuery):
             for format_el in format_list:
                 attr_name, attr_type = format_el
                 attr_format = {"s": "%s", "i": "%i", "r": "%f", "b": "%i"}[attr_type]
-                format_arr.append('-format "%s" "%s"' % (attr_format, attr_name))
+                format_arr.append(f'-format "{attr_format}" "{attr_name}"')
             format_str = " ".join(format_arr)
 
         # set environment for security settings
@@ -755,7 +755,7 @@ class CondorStatus(CondorQuery):
             p = "default"
             if self.pool_name is not None:
                 p = self.pool_name
-            err_str = "Error querying pool %s using python bindings: %s" % (p, ex)
+            err_str = f"Error querying pool {p} using python bindings: {ex}"
             raise PBError(err_str).with_traceback(sys.exc_info()[2])
         finally:
             self.security_obj.restore_state()
@@ -1298,10 +1298,10 @@ def fetch2count_flat(data, hash_func):
     :return: a dictionary with a count of the hash values returned
     """
     data_list = sorted(hash_func(v) for v in list(data.values()))
-    count = dict(
-        (key, len(list(group)))
+    count = {
+        key: len(list(group))
         for key, group in groupby([i for i in data_list if i is not None])
-    )
+    }
     return count
 
 

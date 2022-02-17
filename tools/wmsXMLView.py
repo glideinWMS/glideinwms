@@ -68,7 +68,7 @@ if factory_name is not None:
         # just the generic factory name
         factory_constraints = 'FactoryName=?="%s"' % factory_name
     elif len(farr) == 2:
-        factory_constraints = '(FactoryName=?="%s")&&(GlideinName=?="%s")' % (
+        factory_constraints = '(FactoryName=?="{}")&&(GlideinName=?="{}")'.format(
             farr[1],
             farr[0],
         )
@@ -92,7 +92,7 @@ if factory_name is not None:
         factoryclient_constraints = 'ReqFactoryName=?="%s"' % factory_name
     elif len(farr) == 2:
         factoryclient_constraints = (
-            '(ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")' % (farr[1], farr[0])
+            f'(ReqFactoryName=?="{farr[1]}")&&(ReqGlideinName=?="{farr[0]}")'
         )
     elif len(farr) == 3:
         factoryclient_constraints = (
@@ -133,7 +133,7 @@ for glidein in glideins:
             # just the generic frontend name
             frontend_constraints = 'FrontendName=?="%s"' % frontend_name
         elif len(farr) == 2:
-            frontend_constraints = '(FrontendName=?="%s")&&(GroupName=?="%s")' % (
+            frontend_constraints = '(FrontendName=?="{}")&&(GroupName=?="{}")'.format(
                 farr[0],
                 farr[1],
             )

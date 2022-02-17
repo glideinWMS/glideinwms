@@ -6,7 +6,6 @@
 # Description:
 #   Generate the glidein_startup.sh command to be run manually for given entry
 
-from __future__ import print_function
 
 import argparse
 import itertools
@@ -273,7 +272,7 @@ def main(argv):
     command = options.glidein_startup
     for arg in glidein_startup_args:
         if not (glidein_startup_args[arg] in (None, "")):
-            command = "%s %s %s" % (command, arg, glidein_startup_args[arg])
+            command = f"{command} {arg} {glidein_startup_args[arg]}"
 
     if options.cmd_out_file:
         try:

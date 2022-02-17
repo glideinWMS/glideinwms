@@ -7,7 +7,6 @@
 #  This program clones (a subset of) entries
 #  from a remote xml config into a local one
 
-from __future__ import print_function
 
 import copy
 import os

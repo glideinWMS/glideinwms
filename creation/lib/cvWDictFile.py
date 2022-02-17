@@ -61,7 +61,7 @@ class ParamsDictFile(cWDictFile.DictFile):
         self.add(key, (type_str, val), allow_overwrite)
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s" % (key, self.vals[key][0], repr(self.vals[key][1]))
+        return f"{key} \t{self.vals[key][0]} \t{repr(self.vals[key][1])}"
 
     def parse_val(self, line):
         if len(line) == 0:

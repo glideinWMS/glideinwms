@@ -254,7 +254,7 @@ class GlideinHandler(BaseRotatingHandler):
                 f_out.write(dfn, os.path.basename(dfn), zipfile.ZIP_DEFLATED)
                 f_out.close()
                 os.remove(dfn)
-            except IOError as e:
+            except OSError as e:
                 alternate_log("Log file zip compression failed: %s" % e)
         elif self.compression == "gz":
             if os.path.exists(dfn + ".gz"):
@@ -267,7 +267,7 @@ class GlideinHandler(BaseRotatingHandler):
                     f_out.writelines(f_in)
                 f_out.close()
                 os.remove(dfn)
-            except IOError as e:
+            except OSError as e:
                 alternate_log("Log file gzip compression failed: %s" % e)
 
     def _open_new_log(self):
@@ -312,9 +312,7 @@ def add_processlog_handler(
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
 
-    logfile = os.path.expandvars(
-        "%s/%s.%s.log" % (log_dir, logger_name, extension.lower())
-    )
+    logfile = os.path.expandvars(f"{log_dir}/{logger_name}.{extension.lower()}.log")
 
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)

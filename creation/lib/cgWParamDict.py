@@ -232,7 +232,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 )
 
             for tar in condor_el_valid_tarballs:
-                condor_platform = "%s-%s-%s" % (tar["version"], tar["os"], tar["arch"])
+                condor_platform = "{}-{}-{}".format(
+                    tar["version"], tar["os"], tar["arch"]
+                )
                 cond_name = "CONDOR_PLATFORM_%s" % condor_platform
                 condor_platform_fname = cgWConsts.CONDOR_FILE % condor_platform
 
@@ -596,7 +598,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 for line in monitor_config_line:
                     monitor_config_fd.write(line + "\n")
-            except IOError as e:
+            except OSError as e:
                 raise RuntimeError("Error writing into file %s" % monitor_config_file)
         finally:
             monitor_config_fd.close()
@@ -820,9 +822,9 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
             for dname in ("attrs", "consts", "params"):
                 for attr_name in self.dicts[dname].keys:
-                    if (
-                        type(self.dicts[dname][attr_name]) in (type("a"), type("a"))
-                    ) and (self.dicts[dname][attr_name].find("$") != -1):
+                    if (type(self.dicts[dname][attr_name]) in (str, str)) and (
+                        self.dicts[dname][attr_name].find("$") != -1
+                    ):
                         self.dicts[dname].add(
                             attr_name,
                             cWExpand.expand_DLR(
@@ -1014,7 +1016,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         for key in list(unsorted_dict.keys()):
             d[i] = (key, unsorted_dict[key])
             i = i + 1
-        temp_list = sorted([(x[1][1], x[0]) for x in list(d.items())])
+        temp_list = sorted((x[1][1], x[0]) for x in list(d.items()))
         sortedList = []
         for (tmp, key) in temp_list:
             sortedList.append(d[key][0])
@@ -1140,7 +1142,7 @@ def add_attr_unparsed(attr, dicts, description):
         add_attr_unparsed_real(attr, dicts)
     except RuntimeError as e:
         raise RuntimeError(
-            "Error parsing attr %s[%s]: %s" % (description, attr["name"], str(e))
+            "Error parsing attr {}[{}]: {}".format(description, attr["name"], str(e))
         )
 
 
@@ -1209,7 +1211,7 @@ def add_attr_unparsed_real(attr, dicts):
                 or ((attr["type"] == "string") and (attr_var_type == "I"))
             ):
                 raise RuntimeError(
-                    "Types not compatible (%s,%s)" % (attr["type"], attr_var_type)
+                    "Types not compatible ({},{})".format(attr["type"], attr_var_type)
                 )
             attr_var_export = attr_var_el[4]
             if do_glidein_publish and (attr_var_export == "N"):
@@ -1318,7 +1320,7 @@ def populate_factory_descript(
         ):
             param_tname, str_tname = tel
             glidein_dict.add(
-                "%sRetention%s" % (str_lname, str_tname),
+                f"{str_lname}Retention{str_tname}",
                 log_retention.get_child(param_lname)[param_tname],
             )
 
@@ -1518,8 +1520,8 @@ def populate_gridmap(conf, gridmap_dict):
 def copy_file(infile, outfile):
     try:
         shutil.copy2(infile, outfile)
-    except IOError as e:
-        raise RuntimeError("Error copying %s in %s: %s" % (infile, outfile, e))
+    except OSError as e:
+        raise RuntimeError(f"Error copying {infile} in {outfile}: {e}")
 
 
 ###############################################

@@ -91,7 +91,7 @@ class cachedLogClass:
             self.loadFromLog()
             try:
                 self.saveCache()
-            except IOError:
+            except OSError:
                 return  # silently ignore, this was a load in the end
             # the log may have changed -> check
             fstat = os.lstat(self.logname)
@@ -691,7 +691,7 @@ class cacheDirClass:
             self.inactive_files += new_inactives
             try:
                 saveCache(self.inactive_files_cache, self.inactive_files)
-            except IOError:
+            except OSError:
                 return  # silently ignore, this was a load in the end
 
         return
@@ -978,7 +978,7 @@ def parseSubmitLogFastRaw(fname):
         # nothing to read, if empty
         return jobs
 
-    with open(fname, "r") as fd:
+    with open(fname) as fd:
         buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
         idx = 0
@@ -1033,7 +1033,7 @@ def parseSubmitLogFastRawTimings(fname):
         # nothing to read, if empty
         return jobs, first_time, last_time
 
-    with open(fname, "r") as fd:
+    with open(fname) as fd:
         buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
         idx = 0
@@ -1098,7 +1098,7 @@ def parseSubmitLogFastRawCallback(fname, callback):
         # nothing to read, if empty
         return
 
-    with open(fname, "r") as fd:
+    with open(fname) as fd:
         buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
 
         idx = 0

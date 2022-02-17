@@ -107,7 +107,7 @@ class Entry:
 
         cleaner = cleanupSupport.DirCleanupWSpace(
             self.logDir,
-            "(condor_activity_.*\.log\..*\.ftstpk)",
+            r"(condor_activity_.*\.log\..*\.ftstpk)",
             glideFactoryLib.days2sec(
                 float(self.glideinDescript.data["CondorLogRetentionMaxDays"])
             ),
@@ -120,7 +120,7 @@ class Entry:
 
         self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig(log=self.log)
         self.monitoringConfig.monitor_dir = self.monitorDir
-        self.monitoringConfig.my_name = "%s@%s" % (
+        self.monitoringConfig.my_name = "{}@{}".format(
             name,
             self.glideinDescript.data["GlideinName"],
         )
@@ -204,7 +204,7 @@ class Entry:
             user_log_dir = self.gflFactoryConfig.get_client_log_dir(self.name, username)
             cleaner = cleanupSupport.DirCleanupWSpace(
                 user_log_dir,
-                "(job\..*\.out)|(job\..*\.err)",
+                r"(job\..*\.out)|(job\..*\.err)",
                 glideFactoryLib.days2sec(
                     float(self.glideinDescript.data["JobLogRetentionMaxDays"])
                 ),
@@ -217,7 +217,7 @@ class Entry:
 
             cleaner = cleanupSupport.DirCleanupWSpace(
                 user_log_dir,
-                "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
+                r"(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
                 glideFactoryLib.days2sec(
                     float(self.glideinDescript.data["CondorLogRetentionMaxDays"])
                 ),
@@ -654,7 +654,7 @@ class Entry:
         for w in current_qc_total:
             for a in current_qc_total[w]:
                 # Summary stats to publish in GF and all GFC ClassAds
-                glidein_monitors["Total%s%s" % (w, a)] = current_qc_total[w][a]
+                glidein_monitors[f"Total{w}{a}"] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
         stats = util.file_pickle_load(
@@ -755,7 +755,7 @@ class Entry:
                 for a in client_qc_data[w]:
                     # report only numbers
                     if isinstance(client_qc_data[w][a], int):
-                        client_monitors["%s%s" % (w, a)] = client_qc_data[w][a]
+                        client_monitors[f"{w}{a}"] = client_qc_data[w][a]
             merged_monitors = glidein_monitors.copy()
             merged_monitors.update(client_monitors)
 
@@ -1257,7 +1257,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             continue
 
         entry.gflFactoryConfig.client_internals[client_int_name] = {
-            "CompleteName": "%s@%s" % (client_int_req, client_int_name),
+            "CompleteName": f"{client_int_req}@{client_int_name}",
             "CompleteNameWithCredentialsId": work_key,
             "ReqName": client_int_req,
         }
@@ -1432,7 +1432,7 @@ def unit_work_v3(
     )
 
     condortoken = "%s.idtoken" % entry.name
-    condortokenbase = "credential_%s_%s.idtoken" % (client_int_name, entry.name)
+    condortokenbase = f"credential_{client_int_name}_{entry.name}.idtoken"
     condortoken_file = os.path.join(submit_credentials.cred_dir, condortokenbase)
     condortoken_data = decrypted_params.get(condortoken)
     if condortoken_data:
@@ -1460,7 +1460,7 @@ def unit_work_v3(
                 % (condortoken_file, str(submit_credentials.identity_credentials))
             )
 
-    scitoken = "credential_%s_%s.scitoken" % (client_int_name, entry.name)
+    scitoken = f"credential_{client_int_name}_{entry.name}.scitoken"
     scitoken_file = os.path.join(submit_credentials.cred_dir, scitoken)
     scitoken_data = decrypted_params.get("frontend_scitoken")
     if scitoken_data:
@@ -1545,7 +1545,7 @@ def unit_work_v3(
         proxy_id = decrypted_params["SubmitProxy"]
 
         if not submit_credentials.add_security_credential(
-            "SubmitProxy", "%s_%s" % (client_int_name, proxy_id)
+            "SubmitProxy", f"{client_int_name}_{proxy_id}"
         ):
             entry.log.warning(
                 "Credential %s for the submit proxy cannot be found for client %s, skipping request."
@@ -1572,10 +1572,10 @@ def unit_work_v3(
             if grid_type in ("ec2", "gce"):
                 # the GlideinProxy must be compressed for usage within user data
                 # so we specify the compressed version of the credential
-                credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
+                credential_name = f"{client_int_name}_{proxy_id}_compressed"
             else:
                 # BOSCO is using regular proxy, not compressed
-                credential_name = "%s_%s" % (client_int_name, proxy_id)
+                credential_name = f"{client_int_name}_{proxy_id}"
             if not submit_credentials.add_security_credential(
                 "GlideinProxy", credential_name
             ):
@@ -1647,7 +1647,7 @@ def unit_work_v3(
             public_cert_id = decrypted_params.get("PublicCert")
             submit_credentials.id = public_cert_id
             if public_cert_id and not submit_credentials.add_security_credential(
-                "PublicCert", "%s_%s" % (client_int_name, public_cert_id)
+                "PublicCert", f"{client_int_name}_{public_cert_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the public certificate is not safe for client %s, skipping request."
@@ -1657,7 +1657,7 @@ def unit_work_v3(
 
             private_cert_id = decrypted_params.get("PrivateCert")
             if private_cert_id and submit_credentials.add_security_credential(
-                "PrivateCert", "%s_%s" % (client_int_name, private_cert_id)
+                "PrivateCert", f"{client_int_name}_{private_cert_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the private certificate is not safe for client %s, skipping request"
@@ -1670,7 +1670,7 @@ def unit_work_v3(
             public_key_id = decrypted_params.get("PublicKey")
             submit_credentials.id = public_key_id
             if public_key_id and not submit_credentials.add_security_credential(
-                "PublicKey", "%s_%s" % (client_int_name, public_key_id)
+                "PublicKey", f"{client_int_name}_{public_key_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the public key is not safe for client %s, skipping request"
@@ -1708,7 +1708,7 @@ def unit_work_v3(
 
             private_key_id = decrypted_params.get("PrivateKey")
             if private_key_id and not submit_credentials.add_security_credential(
-                "PrivateKey", "%s_%s" % (client_int_name, private_key_id)
+                "PrivateKey", f"{client_int_name}_{private_key_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the private key is not safe for client %s, skipping request"
@@ -1720,7 +1720,7 @@ def unit_work_v3(
             auth_file_id = decrypted_params.get("AuthFile")
             submit_credentials.id = auth_file_id
             if auth_file_id and not submit_credentials.add_security_credential(
-                "AuthFile", "%s_%s" % (client_int_name, auth_file_id)
+                "AuthFile", f"{client_int_name}_{auth_file_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the auth file is not safe for client %s, skipping request"
@@ -1732,7 +1732,7 @@ def unit_work_v3(
             username_id = decrypted_params.get("Username")
             submit_credentials.id = username_id
             if username_id and not submit_credentials.add_security_credential(
-                "Username", "%s_%s" % (client_int_name, username_id)
+                "Username", f"{client_int_name}_{username_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the username is not safe for client %s, skipping request"
@@ -1742,7 +1742,7 @@ def unit_work_v3(
 
             password_id = decrypted_params.get("Password")
             if password_id and not submit_credentials.add_security_credential(
-                "Password", "%s_%s" % (client_int_name, password_id)
+                "Password", f"{client_int_name}_{password_id}"
             ):
                 entry.log.warning(
                     "Credential %s for the password is not safe for client %s, skipping request"
@@ -1883,7 +1883,7 @@ def unit_work_v3(
     )
 
     # Map the identity to a frontend:sec_class for tracking totals
-    frontend_name = "%s:%s" % (
+    frontend_name = "{}:{}".format(
         entry.frontendDescript.get_frontend_name(client_expected_identity),
         credential_security_class,
     )
@@ -2144,7 +2144,7 @@ def write_descript(
 
     try:
         descript2XML.writeFile(monitor_dir + "/", xml_str, singleEntry=True)
-    except IOError:
+    except OSError:
         logSupport.log.debug("IOError in writeFile in descript2XML")
 
     return

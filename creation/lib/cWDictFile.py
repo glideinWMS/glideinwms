@@ -140,9 +140,7 @@ class DictFile:
                 return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise DictFileError(
-                "Trying to modify a readonly object (%s, %s)!" % (key, val)
-            )
+            raise DictFileError(f"Trying to modify a readonly object ({key}, {val})!")
 
         if key in self.keys:
             if not allow_overwrite:
@@ -217,8 +215,8 @@ class DictFile:
                 self.save_into_fd(
                     fd, sort_keys, set_readonly, reset_changed, want_comments
                 )
-        except IOError as e:
-            raise DictFileError("Error creating or writing to %s: %s" % (filepath, e))
+        except OSError as e:
+            raise DictFileError(f"Error creating or writing to {filepath}: {e}")
 
         # ensure that the file permissions are 644
         # This is to minimize a security risk where we load python code from
@@ -360,15 +358,15 @@ class DictFile:
         filepath = os.path.join(dir, fname)
         try:
             fd = open(filepath, "rb")
-        except IOError as e:
-            print("Error opening %s: %s" % (filepath, e))
+        except OSError as e:
+            print(f"Error opening {filepath}: {e}")
             print("Assuming blank, and re-creating...")
             return
         try:
             with fd:
                 self.load_from_fd(fd, erase_first, set_not_changed)
         except RuntimeError as e:
-            raise DictFileError("File %s: %s" % (filepath, str(e)))
+            raise DictFileError(f"File {filepath}: {str(e)}")
 
         if change_self:
             self.dir = dir
@@ -499,7 +497,7 @@ class DictFile:
             str: formatted key, value
 
         """
-        return "%s \t%s" % (key, self.vals[key])
+        return f"{key} \t{self.vals[key]}"
 
     def parse_val(self, line):
         """Parse a line and add it to the dictionary
@@ -583,9 +581,7 @@ class DictFileTwoKeys(DictFile):
                 return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise DictFileError(
-                "Trying to modify a readonly object (%s, %s)!" % (key, val)
-            )
+            raise DictFileError(f"Trying to modify a readonly object ({key}, {val})!")
 
         if key in self.keys:
             old_val = self.vals[key]
@@ -683,7 +679,7 @@ class DictFileTwoKeys(DictFile):
 # descriptions
 class DescriptionDictFile(DictFileTwoKeys):
     def format_val(self, key, want_comments):
-        return "%s \t%s" % (self.vals[key], key)
+        return f"{self.vals[key]} \t{key}"
 
     def parse_val(self, line):
         if not line or line[0] == "#":
@@ -703,7 +699,7 @@ class GridMapDict(DictFileTwoKeys):
         return None
 
     def format_val(self, key, want_comments):
-        return '"%s" %s' % (key, self.vals[key])
+        return f'"{key}" {self.vals[key]}'
 
     def parse_val(self, line):
         if not line or line[0] == "#":
@@ -764,7 +760,7 @@ class SHA1DictFile(DictFile):
             str: line for the file
 
         """
-        return "%s  %s" % (self.vals[key], key)
+        return f"{self.vals[key]}  {key}"
 
     def parse_val(self, line):
         """Parse a line into values for the dictionary
@@ -838,7 +834,7 @@ class SummarySHA1DictFile(DictFile):
         Returns:
 
         """
-        return "%s  %s  %s" % (self.vals[key][0], self.vals[key][1], key)
+        return f"{self.vals[key][0]}  {self.vals[key][1]}  {key}"
 
     def parse_val(self, line):
         """Parse a line and add the values to the dictionary
@@ -963,7 +959,7 @@ class SimpleFileDictFile(DictFile):
         try:
             with open(filepath, "rb") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
-        except IOError as e:
+        except OSError as e:
             raise DictFileError("Could not open file or read from it: %s" % filepath)
 
     def format_val(self, key, want_comments):
@@ -979,7 +975,7 @@ class SimpleFileDictFile(DictFile):
 
         """
         if self.vals[key][0] is not None:
-            return "%s \t%s" % (key, self.vals[key][0])
+            return f"{key} \t{self.vals[key][0]}"
         else:
             return key
 
@@ -1041,12 +1037,12 @@ class SimpleFileDictFile(DictFile):
                 raise DictFileError("File %s already exists" % filepath)
             try:
                 fd = open(filepath, "wb")
-            except IOError as e:
+            except OSError as e:
                 raise DictFileError("Could not create file %s" % filepath)
             try:
                 with fd:
                     fd.write(fdata)
-            except IOError as e:
+            except OSError as e:
                 raise DictFileError("Error writing into file %s" % filepath)
 
 
@@ -1237,7 +1233,7 @@ class FileDictFile(SimpleFileDictFile):
             )
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t%s \t%s \t%s \t%s" % (
+        return "{} \t{} \t{} \t{} \t{} \t{} \t{}".format(
             key,
             self.vals[key][0],
             self.vals[key][1],
@@ -1357,7 +1353,7 @@ class FileDictFile(SimpleFileDictFile):
 #   given that it does not call any parent methods, implement an interface first
 class ReprDictFileInterface:
     def format_val(self, key, want_comments):
-        return "%s \t%s" % (key, repr(self.vals[key]))
+        return f"{key} \t{repr(self.vals[key])}"
 
     def parse_val(self, line):
         if not line or line[0] == "#":
@@ -1515,7 +1511,7 @@ class VarsDictFile(DictFile):
         )
 
     def format_val(self, key, want_comments):
-        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s" % (
+        return "{} \t{} \t{} \t\t{} \t{} \t{} \t{}".format(
             key,
             self.vals[key][0],
             self.vals[key][1],
@@ -1656,8 +1652,8 @@ class ExeFile(SimpleFile):
                 self.save_into_fd(
                     fd, sort_keys, set_readonly, reset_changed, want_comments
                 )
-        except IOError as e:
-            raise RuntimeError("Error creating or writing to %s: %s" % (filepath, e))
+        except OSError as e:
+            raise RuntimeError(f"Error creating or writing to {filepath}: {e}")
         chmod(filepath, 0o755)
 
         return
@@ -1716,7 +1712,7 @@ class simpleDirSupport(dirSupport):
         try:
             os.mkdir(self.dir)
         except OSError as e:
-            raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
+            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}")
         return True
 
     def delete_dir(self):
@@ -1741,7 +1737,7 @@ class chmodDirSupport(simpleDirSupport):
         try:
             os.mkdir(self.dir, self.chmod)
         except OSError as e:
-            raise RuntimeError("Failed to create %s dir: %s" % (self.dir_name, e))
+            raise RuntimeError(f"Failed to create {self.dir_name} dir: {e}")
         return True
 
 
@@ -1766,7 +1762,7 @@ class symlinkSupport(dirSupport):
         try:
             os.symlink(self.target_dir, self.symlink)
         except OSError as e:
-            raise RuntimeError("Failed to create %s symlink: %s" % (self.dir_name, e))
+            raise RuntimeError(f"Failed to create {self.dir_name} symlink: {e}")
         return True
 
     def delete_dir(self):

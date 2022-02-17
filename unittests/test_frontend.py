@@ -23,7 +23,7 @@ import re
 import sys
 import unittest
 
-import mock
+from unittest import mock
 import xmlrunner
 
 import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
@@ -140,7 +140,7 @@ class FETestCaseBase(unittest.TestCase):
 
 class FETestCaseCount(FETestCaseBase):
     def setUp(self):
-        super(FETestCaseCount, self).setUp()
+        super().setUp()
 
     def test_countMatch_missingKey(self):
         with mock.patch.object(
@@ -600,7 +600,7 @@ class FETestCaseMisc(FETestCaseBase):
 
 class FETestCaseCondorQ(FETestCaseBase):
     def setUp(self):
-        super(FETestCaseCondorQ, self).setUp()
+        super().setUp()
         self.total_jobs = 13
 
     @mock.patch.object(glideinFrontendLib, "getClientCondorStatus")

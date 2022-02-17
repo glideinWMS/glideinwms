@@ -44,7 +44,7 @@ def argv_gdb(argv):
     script_lines.append(gdb_cmd)
     script_lines.append("quit")
     script_lines.append("EOF")
-    script_lines.append("gdb -command %s /proc/%s/exe %s" % (gdbcommand, pid, pid))
+    script_lines.append(f"gdb -command {gdbcommand} /proc/{pid}/exe {pid}")
     script_lines.append("rm -f %s" % gdbcommand)
 
     return script_lines

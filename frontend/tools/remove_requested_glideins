@@ -99,7 +99,7 @@ def main(argv):
 
     os.chdir(options.work_dir)
 
-    action = "remove%s%s" % (options.removal_type[:1].upper(), options.removal_type[1:])
+    action = f"remove{options.removal_type[:1].upper()}{options.removal_type[1:]}"
     if options.excess_only:
         action += "Excess"
     command_list = [
@@ -138,13 +138,13 @@ def main(argv):
             if len(tempOut) != 0:
                 if not options.quiet:
                     sys.stdout.write(tempOut)
-        except IOError:
+        except OSError:
             pass  # ignore
         try:
             tempErr = child.stderr.read()
             if len(tempErr) != 0:
                 sys.stderr.write(tempErr)
-        except IOError:
+        except OSError:
             pass  # ignore
 
     except:

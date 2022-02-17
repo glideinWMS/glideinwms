@@ -105,7 +105,7 @@ class TestDictFile(unittest.TestCase):
 
     def test_format_val(self):
         key = "GLIDEIN_Expose_Grid_Env"
-        expected = "%s \t%s" % (key, "'True'")
+        expected = "{} \t{}".format(key, "'True'")
         self.assertEqual(expected, self.dict_file.format_val(key, False))
 
     def test_get_dir(self):

@@ -3,7 +3,6 @@
 # SPDX-FileCopyrightText: 2009 Fermi Research Alliance, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import print_function
 
 import argparse
 import grp
@@ -106,7 +105,7 @@ def parse_opts():
 # pylint: disable=no-member
 def backup_dir(output_filename, source_dir):
     """Backup the directory "source_dir" into "output_filename" """
-    logging.info("Backing up %s into %s" % (source_dir, output_filename))
+    logging.info(f"Backing up {source_dir} into {output_filename}")
     with closing(tarfile.open(output_filename, "w:gz")) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
 
@@ -118,7 +117,7 @@ def mychown(path, uid, gid, fuid, test):
     """
     cid = os.stat(path).st_uid  # current id
     if cid != fuid:
-        logging.warning("Not changing %s since it's owner id is not %s" % (path, fuid))
+        logging.warning(f"Not changing {path} since it's owner id is not {fuid}")
     if test:
         logging.info("Test mode: not changing %s" % path)
     else:
@@ -163,7 +162,7 @@ def fix_jobqueue(jobqueue_file, user, options):
     else:
         logging.info("Fixing %s" % jobqueue_file)
         cmd = (
-            "sed -i.bk -e 's/103 \([-0-9.]*\) Owner \".*\"/103 \\1 Owner \"'%s'\"/' %s"
+            "sed -i.bk -e 's/103 \\([-0-9.]*\\) Owner \".*\"/103 \\1 Owner \"'%s'\"/' %s"
             % (user, jobqueue_file)
         )
         logging.debug("Executing: %s" % cmd)

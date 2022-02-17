@@ -59,13 +59,13 @@ class PerfMetric:
                 # Event still alive, consider current time instead of end time
                 if (lifetime < 0) and (check_active_event):
                     lifetime = time.time() - self.metric[event_name]["start_time"]
-        return float("{0:.3f}".format(lifetime))
+        return float(f"{lifetime:.3f}")
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return "{'%s': %s}" % (self.name, self.metric)
+        return f"{{'{self.name}': {self.metric}}}"
 
 
 # Internal global dict of performance metric objects

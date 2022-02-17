@@ -30,7 +30,7 @@ import os
 # Condor environment
 #
 # All info is in the state attribute
-class EnvState(object):
+class EnvState:
     def __init__(self, filter):
         # filter is a list of Condor variables to save
         self.filter = filter
@@ -76,7 +76,7 @@ def convert_sec_filter(sec_filter):
     filter = []
     for context in list(sec_filter.keys()):
         for feature in sec_filter[context]:
-            condor_key = "SEC_%s_%s" % (context, feature)
+            condor_key = f"SEC_{context}_{feature}"
             filter.append(condor_key)
     return filter
 
@@ -97,7 +97,7 @@ UNSET_VALUE = "UNSET"
 #############################################
 # This class handle requests for ensuring
 # the security state is in a particular state
-class SecEnvRequest(object):
+class SecEnvRequest:
     def __init__(self, requests=None):
         # requests is a dictionary of requests [context][feature]=VAL
         # TODO: requests can be a self initializinf dictionary of dictionaries in PY3
@@ -161,7 +161,7 @@ class SecEnvRequest(object):
     def enforce_requests(self):
         for context in list(self.requests.keys()):
             for feature in list(self.requests[context].keys()):
-                condor_key = "SEC_%s_%s" % (context, feature)
+                condor_key = f"SEC_{context}_{feature}"
                 env_key = "_CONDOR_%s" % condor_key
                 val = self.requests[context][feature]
                 if val != UNSET_VALUE:

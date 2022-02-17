@@ -75,7 +75,7 @@ class PidSupport:
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.lock_in_place = True
-        except IOError:
+        except OSError:
             fd.close()
             raise AlreadyRunning(
                 "Another process already running. Unable to acquire lock %s"
@@ -113,12 +113,12 @@ class PidSupport:
         if not os.path.isfile(self.pid_fname):
             return
 
-        with open(self.pid_fname, "r") as fd:
+        with open(self.pid_fname) as fd:
             try:
                 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 # if I can get a lock, it means that there is no process
                 return
-            except IOError:
+            except OSError:
                 # there is a process
                 # I will read it even if locked, so that I can report what the PID is
                 # if the data is corrupted, I will deal with it later
@@ -141,7 +141,7 @@ class PidSupport:
     ###############################
 
     def format_pid_file_content(self):
-        return "PID: %s\nStarted: %s\n" % (self.mypid, time.ctime(self.started_time))
+        return f"PID: {self.mypid}\nStarted: {time.ctime(self.started_time)}\n"
 
     def reset_to_default(self):
         self.mypid = None
@@ -193,7 +193,7 @@ class PidWParentSupport(PidSupport):
     ###############################
 
     def format_pid_file_content(self):
-        return "PID: %s\nParent PID:%s\nStarted: %s\n" % (
+        return "PID: {}\nParent PID:{}\nStarted: {}\n".format(
             self.mypid,
             self.parent_pid,
             time.ctime(self.started_time),

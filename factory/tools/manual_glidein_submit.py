@@ -209,7 +209,7 @@ def main():
         credentials = SubmitCredentials(user_name, security_class)
         credentials.id = proxyid
         credentials.cred_dir = conf.get_client_proxy_dirs()[user_name]
-        credfname = "%s_%s" % (ad_gc["ClientName"], proxyid)
+        credfname = "{}_{}".format(ad_gc["ClientName"], proxyid)
         if not credentials.add_security_credential("SubmitProxy", credfname):
             fname = os.path.join(credentials.cred_dir, "credential_%s" % credfname)
             logging.info(
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     set_condor_integrity_checks()
     try:
         sys.exit(main())
-    except IOError as ioe:
+    except OSError as ioe:
         if ioe.errno == 13:  # Permission denied when accessing the credential
             logging.error("Try to run the command as gfactory. Error: %s" % ioe)
         else:

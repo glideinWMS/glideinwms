@@ -153,7 +153,7 @@ class glideinFrontendElement:
         self.factory_pools = self.elementDescript.merged_data["FactoryCollectors"]
 
         # If the IgnoreDownEntries knob is set in the group use that, otherwise use the global one
-        if self.elementDescript.element_data.get("IgnoreDownEntries", "") is not "":
+        if self.elementDescript.element_data.get("IgnoreDownEntries", "") != "":
             self.ignore_down_entries = (
                 self.elementDescript.element_data["IgnoreDownEntries"] == "True"
             )
@@ -382,7 +382,7 @@ class glideinFrontendElement:
         self.stats = {"group": glideinFrontendMonitoring.groupStats()}
 
         if "X509Proxy" not in self.elementDescript.frontend_data:
-            self.published_frontend_name = "%s.%s" % (
+            self.published_frontend_name = "{}.{}".format(
                 self.frontend_name,
                 self.group_name,
             )
@@ -390,7 +390,7 @@ class glideinFrontendElement:
             # if using a VO proxy, label it as such
             # this way we don't risk of using the wrong proxy on the other side
             # if/when we decide to stop using the proxy
-            self.published_frontend_name = "%s.XPVO_%s" % (
+            self.published_frontend_name = "{}.XPVO_{}".format(
                 self.frontend_name,
                 self.group_name,
             )
@@ -759,7 +759,7 @@ class glideinFrontendElement:
             factory_pool_node = glideid[0]
             request_name = glideid[1]
             my_identity = str(glideid[2])  # get rid of unicode
-            glideid_str = "%s@%s" % (request_name, factory_pool_node)
+            glideid_str = f"{request_name}@{factory_pool_node}"
             self.processed_glideid_strs.append(glideid_str)
 
             glidein_el = self.glidein_dict[glideid]
@@ -1041,7 +1041,7 @@ class glideinFrontendElement:
                 if os.path.exists(scitoken_fullpath):
                     try:
                         logSupport.log.info("found scitoken %s" % scitoken_fullpath)
-                        with open(scitoken_fullpath, "r") as fbuf:
+                        with open(scitoken_fullpath) as fbuf:
                             for line in fbuf:
                                 stkn += line
                         stkn = stkn.strip()
@@ -1210,7 +1210,7 @@ class glideinFrontendElement:
                         "condor:/READ condor:/ADVERTISE_STARTD condor:/ADVERTISE_MASTER"
                     )
                     duration = 24 * one_hr
-                    identity = "%s@%s" % (glidein_site, socket.gethostname())
+                    identity = f"{glidein_site}@{socket.gethostname()}"
                     logSupport.log.debug("creating  token %s" % tkn_file)
                     logSupport.log.debug("pwd_flie= %s" % pwd_file)
                     logSupport.log.debug("scope= %s" % scope)
@@ -1228,7 +1228,7 @@ class glideinFrontendElement:
                     chmod(tkn_file, 0o600)
                     logSupport.log.info("created token %s" % tkn_file)
                 elif os.path.exists(tkn_file):
-                    with open(tkn_file, "r") as fbuf:
+                    with open(tkn_file) as fbuf:
                         for line in fbuf:
                             tkn_str += line
             except Exception as err:
@@ -1251,10 +1251,10 @@ class glideinFrontendElement:
                 # if no valid key
                 # if key needed, will handle the error later on
                 logSupport.log.warning(
-                    "Factory Globals '%s', invalid RSA key: %s" % (globalid, e)
+                    f"Factory Globals '{globalid}', invalid RSA key: {e}"
                 )
                 logSupport.log.exception(
-                    "Factory Globals '%s', invalid RSA key: %s" % (globalid, e)
+                    f"Factory Globals '{globalid}', invalid RSA key: {e}"
                 )
                 # but mark it for removal from the dictionary
                 bad_id_list.append(globalid)
@@ -2023,7 +2023,7 @@ class glideinFrontendElement:
 
         factory_entry_list.sort()  # sort for the sake of monitoring
         for request_name, factory_pool_node in factory_entry_list:
-            glideid_str = "%s@%s" % (request_name, factory_pool_node)
+            glideid_str = f"{request_name}@{factory_pool_node}"
             if glideid_str in processed_glideid_str_set:
                 continue  # already processed... ignore
 
@@ -2377,7 +2377,7 @@ class glideinFrontendElement:
             #    self.frontend_name, self.group_name, mc_idle_constraint)
 
             # Consider all slots for this group irrespective of slot type
-            constraint = '(GLIDECLIENT_Name=?="%s.%s")' % (
+            constraint = '(GLIDECLIENT_Name=?="{}.{}")'.format(
                 self.frontend_name,
                 self.group_name,
             )
@@ -2752,7 +2752,7 @@ def log_and_sum_factory_line(
             "%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s | "
             % tuple(form_arr)
         )
-        + ("%s %s" % (down_str, factory))
+        + (f"{down_str} {factory}")
     )
 
     if old_factory_stat_arr is None:
@@ -2789,7 +2789,7 @@ def expand_DD(qstr, attr_dict):
         str: expanded string
 
     """
-    robj = re.compile("\$\$\((?P<attrname>[^\)]*)\)")
+    robj = re.compile(r"\$\$\((?P<attrname>[^\)]*)\)")
     while True:
         m = robj.search(qstr)
         if m is None:
@@ -2802,7 +2802,7 @@ def expand_DD(qstr, attr_dict):
             attr_str = str(attr_val)
         else:  # assume it is a string for all other purposes... quote and escape existing quotes
             attr_str = '"%s"' % attr_val.replace('"', '\\"')
-        qstr = "%s%s%s" % (qstr[: m.start()], attr_str, qstr[m.end() :])
+        qstr = f"{qstr[: m.start()]}{attr_str}{qstr[m.end() :]}"
     return qstr
 
 

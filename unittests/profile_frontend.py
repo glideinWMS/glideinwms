@@ -28,7 +28,7 @@ from glideinwms.lib import logSupport
 
 
 # Replicating the class since this should be executed standalone on a production frontend
-class FakeLogger(object):
+class FakeLogger:
     """
     Super simple logger for the unittests
     """

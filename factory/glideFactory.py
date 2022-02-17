@@ -172,7 +172,7 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
 
     try:
         descript2XML.writeFile(monitor_dir, xml_str)
-    except IOError:
+    except OSError:
         logSupport.log.exception("Unable to write the descript.xml file: ")
 
 
@@ -218,9 +218,9 @@ def generate_log_tokens(startup_dir, glideinDescript):
         rsa.save(jwt_key)
 
     try:
-        with open(os.path.join(credentials_dir, "jwt_secret.key"), "r") as keyfile:
+        with open(os.path.join(credentials_dir, "jwt_secret.key")) as keyfile:
             secret = keyfile.readline().strip()
-    except IOError:
+    except OSError:
         logSupport.log.exception(
             "Cannot find the key for JWT generation (must be manually deposited)."
         )
@@ -300,8 +300,8 @@ def generate_log_tokens(startup_dir, glideinDescript):
                 with open(
                     os.path.join(entry_dir, "url_dirs.desc"), "a"
                 ) as url_dirs_desc:
-                    url_dirs_desc.write("%s %s\n" % (recipient_url, recipient_safe_url))
-            except IOError:
+                    url_dirs_desc.write(f"{recipient_url} {recipient_safe_url}\n")
+            except OSError:
                 logSupport.log.exception("Unable to create JWT file: ")
                 raise
 
@@ -437,18 +437,14 @@ def clean_exit(childs):
             try:
                 tempOut = child.stdout.read()
                 if len(tempOut) != 0:
-                    logSupport.log.warning(
-                        "EntryGroup %s STDOUT: %s" % (group, tempOut)
-                    )
-            except IOError:
+                    logSupport.log.warning(f"EntryGroup {group} STDOUT: {tempOut}")
+            except OSError:
                 pass  # ignore
             try:
                 tempErr = child.stderr.read()
                 if len(tempErr) != 0:
-                    logSupport.log.warning(
-                        "EntryGroup %s STDERR: %s" % (group, tempErr)
-                    )
-            except IOError:
+                    logSupport.log.warning(f"EntryGroup {group} STDERR: {tempErr}")
+            except OSError:
                 pass  # ignore
 
             # look for exited child
@@ -552,9 +548,7 @@ def spawn(
     try:
         for group in range(len(entry_groups)):
             entry_names = ":".join(entry_groups[group])
-            logSupport.log.info(
-                "Starting EntryGroup %s: %s" % (group, entry_groups[group])
-            )
+            logSupport.log.info(f"Starting EntryGroup {group}: {entry_groups[group]}")
 
             # Converted to using the subprocess module
             command_list = [
@@ -649,7 +643,7 @@ def spawn(
                         if (fronmonfrt, fronmonurl) not in urlset:
                             urlset.add((fronmonfrt, fronmonurl))
                             with open(fronmonpath, "w") as fronmonf:
-                                fronmonf.write("%s, %s" % (fronmonfrt, fronmonurl))
+                                fronmonf.write(f"{fronmonfrt}, {fronmonurl}")
 
             # Record the iteration start time
             iteration_stime = time.time()
@@ -730,18 +724,14 @@ def spawn(
                 try:
                     tempOut = child.stdout.read()
                     if tempOut and len(tempOut) != 0:
-                        logSupport.log.warning(
-                            "EntryGroup %s STDOUT: %s" % (group, tempOut)
-                        )
-                except IOError:
+                        logSupport.log.warning(f"EntryGroup {group} STDOUT: {tempOut}")
+                except OSError:
                     pass  # ignore
                 try:
                     tempErr = child.stderr.read()
                     if tempErr and len(tempErr) != 0:
-                        logSupport.log.warning(
-                            "EntryGroup %s STDERR: %s" % (group, tempErr)
-                        )
-                except IOError:
+                        logSupport.log.warning(f"EntryGroup {group} STDERR: {tempErr}")
+                except OSError:
                     pass  # ignore
 
                 # look for exited child
@@ -796,7 +786,7 @@ def spawn(
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
                         logSupport.log.warning(
-                            "EntryGroup startup/restart times: %s" % (childs_uptime,)
+                            f"EntryGroup startup/restart times: {childs_uptime}"
                         )
 
             # Aggregate Monitoring data periodically
@@ -1013,7 +1003,7 @@ def main(startup_dir):
                 "If you think the rsa key might be corrupted, try to remove it, and then reconfigure the factory to recreate it"
             )
         raise
-    except IOError as ioe:
+    except OSError as ioe:
         logSupport.log.exception(
             "Failed starting Factory. Exception occurred loading factory keys: "
         )

@@ -114,16 +114,16 @@ def dump_txt(release_tags, fname=None, versions=None):
             # TODO: add better formatting for multiline tags
             print(v, file=fd)
             for i in release_tags[v].get(FEATURE, []):
-                print("\t%s" % (i,), file=fd)
+                print(f"\t{i}", file=fd)
             for i in release_tags[v].get(BACKPORT, []):
-                print("\t%s: %s" % (BACKPORT, i), file=fd)
+                print(f"\t{BACKPORT}: {i}", file=fd)
             for i in release_tags[v].get(BUGFIX, []):
-                print("\t%s: %s" % (BUGFIX, i), file=fd)
+                print(f"\t{BUGFIX}: {i}", file=fd)
             for i in release_tags[v].get(NOTE, []):
-                print("\t%s: %s" % (NOTE, i), file=fd)
+                print(f"\t{NOTE}: {i}", file=fd)
             for k in [k for k in release_tags[v] if k not in PROCESSED_TAGS]:
                 for i in release_tags[v][k]:
-                    print("\t%s: %s" % (k, i), file=fd)
+                    print(f"\t{k}: {i}", file=fd)
             print(file=fd)
     finally:
         if fd:
@@ -181,7 +181,7 @@ def load_txt(infile):
 
     """
     rel_dict = {}
-    with open(infile, "r") as lines:
+    with open(infile) as lines:
         rel_lines = []
         version = None
         try:
@@ -216,7 +216,7 @@ def load_txt(infile):
                             continue
                         elif indent > block_indent:
                             # continue previous item
-                            rel_line = "%s\n%s" % (rel_line, current.lstrip())
+                            rel_line = f"{rel_line}\n{current.lstrip()}"
                             continue
                         elif indent < block_indent:
                             raise Exception(
@@ -269,7 +269,7 @@ def load_yaml(fname):
         the dictionary of releases
 
     """
-    with open(fname, "r") as stream:
+    with open(fname) as stream:
         release_tags = yaml.safe_load(stream)
     default = {}
     try:
@@ -336,14 +336,14 @@ def release2html(v, tags):
     for i in tags.get(FEATURE, []):
         lines.append("    <li>%s</li>" % i)
     for i in tags.get(BACKPORT, []):
-        lines.append("    <li>%s: %s</li>" % (BACKPORT, i))
+        lines.append(f"    <li>{BACKPORT}: {i}</li>")
     for i in tags.get(BUGFIX, []):
-        lines.append("    <li>%s: %s</li>" % (BUGFIX, i))
+        lines.append(f"    <li>{BUGFIX}: {i}</li>")
     for i in tags.get(NOTE, []):
-        lines.append("    <li>%s: %s</li>" % (NOTE, i))
+        lines.append(f"    <li>{NOTE}: {i}</li>")
     for k in [k for k in tags if k not in PROCESSED_TAGS]:
         for i in release_tags[v][k]:
-            lines.append("    <li>%s: %s</li>" % (k, i))
+            lines.append(f"    <li>{k}: {i}</li>")
     lines.append(
         """    </ul>
 </li>
@@ -396,7 +396,7 @@ def dump_history(release_tags, h_file="doc/history.html"):
     release_all.sort(reverse=True)
     if not h_file:
         h_file = "doc/history.html"
-    with open(h_file, "r") as h_old:
+    with open(h_file) as h_old:
         with open("%s.new.html" % h_file, "w") as h_new:
             end_string = None
             for line in h_old:
@@ -466,7 +466,7 @@ def main(fname="tags.yml"):
     Returns:
 
     """
-    with open(fname, "r") as stream:
+    with open(fname) as stream:
         release_tags = yaml.safe_load(stream)
     default = {}
     try:

@@ -52,7 +52,7 @@ class Cleanup:
             except OSError as e:
                 self.cleanup_pids.remove(pid)
                 logSupport.log.warning(
-                    "Received error %s while waiting for PID %s" % (e.strerror, pid)
+                    f"Received error {e.strerror} while waiting for PID {pid}"
                 )
 
     def cleanup(self):

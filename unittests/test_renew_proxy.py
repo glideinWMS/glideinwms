@@ -14,7 +14,7 @@ Author:
 
 import unittest
 
-import mock
+from unittest import mock
 import xmlrunner
 
 from glideinwms.frontend import gwms_renew_proxies as proxy
@@ -79,8 +79,8 @@ class TestUtils(unittest.TestCase):
         mock_voms_attr.name = "VoName"
 
         for role, expected_val in [("NULL", "name"), ("pilot", "voms")]:
-            mock_voms_attr.fqan = "/Role={0}/Capability=NULL".format(role)
-            mock_voms_attr.voms = "/{0}{1}".format(
+            mock_voms_attr.fqan = f"/Role={role}/Capability=NULL"
+            mock_voms_attr.voms = "/{}{}".format(
                 mock_voms_attr.name, mock_voms_attr.fqan
             )
             proxy.voms_proxy_init(mock_proxy, mock_voms_attr)
@@ -104,11 +104,11 @@ class TestVo(unittest.TestCase):
         self.cmd = "/Role=NULL/Capability=NULL"
 
     def assertVomsAttr(self, vo, vo_name, cmd):
-        self.assertEqual(vo.fqan, "/%s%s" % (vo_name, cmd))
-        self.assertEqual(vo.voms, "%s:/%s%s" % (vo_name, vo_name, cmd))
+        self.assertEqual(vo.fqan, f"/{vo_name}{cmd}")
+        self.assertEqual(vo.voms, f"{vo_name}:/{vo_name}{cmd}")
 
     def test_fqan_vo_prefix(self):
-        vo = proxy.VO(self.vo_name, "/%s%s" % (self.vo_name, self.cmd))
+        vo = proxy.VO(self.vo_name, f"/{self.vo_name}{self.cmd}")
         self.assertVomsAttr(vo, self.vo_name, self.cmd)
 
     def test_fqan_without_vo_prefix(self):

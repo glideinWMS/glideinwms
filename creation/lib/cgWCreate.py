@@ -239,10 +239,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype == "gce":
             self.add(
                 "Grid_Resource",
-                "%s %s $ENV(GRID_RESOURCE_OPTIONS)" % (gridtype, gatekeeper),
+                f"{gridtype} {gatekeeper} $ENV(GRID_RESOURCE_OPTIONS)",
             )
         else:
-            self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
+            self.add("Grid_Resource", f"{gridtype} {gatekeeper}")
         self.add("Executable", exe_fname)
 
         # set up the grid specific attributes
@@ -383,7 +383,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 or gridtype in ("condor", "gce", "ec2", "arc")
             ):
                 self.add(
-                    "%s%s" % (attr_prefix, submit_attr["name"]), submit_attr["value"]
+                    "{}{}".format(attr_prefix, submit_attr["name"]),
+                    submit_attr["value"],
                 )
 
     def populate_condorc_grid(self):
@@ -501,8 +502,8 @@ def copy_file(infile, outfile):
     """
     try:
         shutil.copy2(infile, outfile)
-    except IOError as e:
-        raise RuntimeError("Error copying %s in %s: %s" % (infile, outfile, e))
+    except OSError as e:
+        raise RuntimeError(f"Error copying {infile} in {outfile}: {e}")
 
 
 #####################################
@@ -533,9 +534,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
 
 
 def get_template(template_name, glideinWMS_dir):
-    with open(
-        "%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r"
-    ) as template_fd:
+    with open(f"{glideinWMS_dir}/creation/templates/{template_name}") as template_fd:
         template_str = template_fd.read()
     return template_str
 

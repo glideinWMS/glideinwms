@@ -190,7 +190,7 @@ class TestForkManager(unittest.TestCase):
             max_forks=50, log_progress=True, sleep_time=0.1
         )
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE, "r")
+        fd = open(LOG_FILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks =" in log_contents)
@@ -216,7 +216,7 @@ class TestForkManager(unittest.TestCase):
         fork.select = select
         # check results
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE, "r")
+        fd = open(LOG_FILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)
@@ -241,7 +241,7 @@ class TestForkManager(unittest.TestCase):
         fork.select = select
         # check results
         self.assertEqual(expected, results)
-        fd = open(LOG_FILE, "r")
+        fd = open(LOG_FILE)
         log_contents = fd.read()
         self.assertTrue(log_contents)  # False if Fakelogger is not working correctly
         self.assertTrue("Active forks = " in log_contents)

@@ -125,7 +125,7 @@ def fetch_fork_result(r, pid):
             s = os.read(r, 1024 * 1024)
         # pickle can fail w/ EOFError if rin is empty. Any output from pickle is never an empty string, e.g. None is 'N.'
         out = pickle.loads(rin)
-    except (OSError, IOError, EOFError, pickle.UnpicklingError) as err:
+    except (OSError, EOFError, pickle.UnpicklingError) as err:
         etype, evalue, etraceback = sys.exc_info()
         # Adding message in case close/waitpid fail and preempt raise
         logSupport.log.exception("Re-raising exception during read: %s" % err)
@@ -160,7 +160,7 @@ def fetch_fork_result_list(pipe_ids):
             out[key] = fetch_fork_result(pipe_ids[key]["r"], pipe_ids[key]["pid"])
         except (KeyError, OSError, FetchError) as err:
             # fetch_fork_result can raise OSError and FetchError
-            errmsg = "Failed to extract info from child '%s' %s" % (str(key), err)
+            errmsg = f"Failed to extract info from child '{str(key)}' {err}"
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)
             # Record failed keys
@@ -207,7 +207,7 @@ def fetch_ready_fork_result_list(pipe_ids):
     work_info = {}
     failures = 0
     failed = []
-    fds_to_entry = dict((pipe_ids[x]["r"], x) for x in pipe_ids)
+    fds_to_entry = {pipe_ids[x]["r"]: x for x in pipe_ids}
     poll_obj = None
     time_this = False
     t_begin = None
@@ -229,7 +229,7 @@ def fetch_ready_fork_result_list(pipe_ids):
                     | select.EPOLLRDBAND
                     | select.EPOLLRDNORM,
                 )
-            except IOError as err:
+            except OSError as err:
                 # Epoll (contrary to poll) complains about duplicate registrations:  IOError: [Errno 17] File exists
                 # All other errors are re-risen
                 if err.errno == errno.EEXIST:
@@ -247,7 +247,7 @@ def fetch_ready_fork_result_list(pipe_ids):
         # Filtering is not needed, done by epoll, both EPOLLIN and EPOLLPRI are OK
         # EPOLLHUP events are registered by default. The consumer will read eventual data and close the fd
         readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
-    except (AttributeError, IOError) as err:
+    except (AttributeError, OSError) as err:
         logSupport.log.warning("Failed to load select.epoll(): %s" % str(err))
         try:
             # no epoll(), try poll(). Still supports > 1024 fds and
@@ -259,7 +259,7 @@ def fetch_ready_fork_result_list(pipe_ids):
                     read_fd, select.POLLIN | select.POLLHUP | select.POLLERR
                 )
             readable_fds = [i[0] for i in poll_obj.poll(POLL_TIMEOUT)]
-        except (AttributeError, IOError) as err:
+        except (AttributeError, OSError) as err:
             logSupport.log.warning("Failed to load select.poll(): %s" % str(err))
             # no epoll() or poll(), use select()
             readable_fds = select.select(
@@ -283,12 +283,12 @@ def fetch_ready_fork_result_list(pipe_ids):
                 )  # Is this needed? the poll object is no more used, next time will be a new one
             work_info[key] = out
             count += 1
-        except (IOError, ValueError, KeyError, OSError, FetchError) as err:
+        except (OSError, ValueError, KeyError, FetchError) as err:
             # KeyError: inconsistent dictionary or reverse dictionary
             # IOError: Error in poll_obj.unregister()
             # OSError: [Errno 9] Bad file descriptor - fetch_fork_result with wrong file descriptor
             # FetchError: read error in fetch_fork_result
-            errmsg = "Failed to extract info from child '%s': %s" % (str(key), err)
+            errmsg = f"Failed to extract info from child '{str(key)}': {err}"
             logSupport.log.warning(errmsg)
             logSupport.log.exception(errmsg)
             # Record failed keys

@@ -67,7 +67,7 @@ def create_client_mapfile(
 
     """
     with open(mapfile_fname, "w") as fd:
-        fd.write('GSI "^%s$" %s\n' % (re.escape(my_DN), "me"))
+        fd.write('GSI "^{}$" {}\n'.format(re.escape(my_DN), "me"))
         for (uid, dns) in (
             ("factory", factory_DNs),
             ("schedd", schedd_DNs),
@@ -233,9 +233,7 @@ def filter_unwanted_config_attrs(attrs):
 
 
 def get_template(template_name, glideinWMS_dir):
-    with open(
-        "%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r"
-    ) as template_fd:
+    with open(f"{glideinWMS_dir}/creation/templates/{template_name}") as template_fd:
         template_str = template_fd.read()
 
     return template_str

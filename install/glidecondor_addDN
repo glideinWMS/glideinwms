@@ -6,7 +6,6 @@
 # Description:
 #   This tool adds a DN to the Condor security configuration
 
-from __future__ import print_function
 
 import errno
 import os
@@ -221,7 +220,7 @@ def parse_import_args(args, QUIET_OPS):
         if importfname == "-":
             lines = sys.stdin.readlines()
         else:
-            with open(importfname, "r") as fd:
+            with open(importfname) as fd:
                 lines = fd.readlines()
 
         count = 0
@@ -236,13 +235,13 @@ def parse_import_args(args, QUIET_OPS):
             larr = line.split(None, 2)
             if len(larr) != 3:
                 # Use IOError to simplify the exception handling
-                raise IOError(
+                raise OSError(
                     errno.EPROTO,
                     "Expected 3 tokens, got %i: %s:%i"
                     % (len(larr), importfname, count),
                 )
             if not (larr[1] in ("daemon", "nodaemon", "client")):
-                raise IOError(
+                raise OSError(
                     errno.EPROTO,
                     "Unexpected dn type '%s', should be either 'daemon' or 'client' :%s:%i"
                     % (larr[1], importfname, count),
@@ -250,8 +249,8 @@ def parse_import_args(args, QUIET_OPS):
             user = larr[0]
             try:
                 dn = expand_dn(larr[2], QUIET_OPS)
-            except IOError as e:
-                raise IOError(
+            except OSError as e:
+                raise OSError(
                     e.errno, "While processing %s:%i %s" % (importfname, count, str(e))
                 )
             is_daemon = larr[1] == "daemon"
@@ -284,10 +283,10 @@ def check_config(fname, opts):
             # and make it writable by owner only (but world readable)
             os.chmod(fname, 0o644)
         else:
-            raise IOError(errno.ENOENT, "Config file '%s' not found!" % fname)
+            raise OSError(errno.ENOENT, "Config file '%s' not found!" % fname)
 
     if not os.access(fname, os.R_OK | os.W_OK):
-        raise IOError(errno.EPERM, "Config file '%s' not writable!" % fname)
+        raise OSError(errno.EPERM, "Config file '%s' not writable!" % fname)
 
     return  # file seems OK
 
@@ -297,7 +296,7 @@ def update_mapfile(mapfile, dnlist, opts):
     enable_checks = opts["enable_checks"]
 
     mapmode = os.stat(mapfile)[stat.ST_MODE]
-    with open(mapfile, "r") as fd:
+    with open(mapfile) as fd:
         lines = fd.readlines()
 
     if enable_checks and (len(lines) < 2):
@@ -346,7 +345,7 @@ def update_mapfile(mapfile, dnlist, opts):
     for dnel in dnlist:
         dn = dnel["dn"]
         user = dnel["user"]
-        lines.insert(iline, 'GSI "^%s$" %s\n' % (re.escape(dn), user))
+        lines.insert(iline, f'GSI "^{re.escape(dn)}$" {user}\n')
         iline += 1
 
     if not found:
@@ -392,7 +391,7 @@ def cond_update_config(config_file, dnlist, opts):
         # if not allowing others, set to true, so GSI_DAEMON_NAME will be cleaned up
         is_first = not allow_others
     else:
-        with open(config_file, "r") as fd:
+        with open(config_file) as fd:
             lines = fd.readlines()
         # never destroy anything... we will just append to the end of the file
         is_first = False
@@ -450,7 +449,7 @@ def main(args):
                     "condor_config_val CERTIFICATE_MAPFILE"
                 )[0].rstrip("\n")
             except condorExe.ExeError as e:
-                raise IOError(errno.ENOENT, "Path to CERTIFICATE_MAPFILE not found")
+                raise OSError(errno.ENOENT, "Path to CERTIFICATE_MAPFILE not found")
         else:
             condor_mapfile = opts["mapfile"]
 
@@ -470,13 +469,13 @@ def main(args):
                 condor_config = os.path.join(condor_config_dir, "90_gwms_dns.config")
             else:
                 if not opts["allow_alternate"]:
-                    raise IOError(
+                    raise OSError(
                         errno.ENOENT,
                         "LOCAL_CONFIG_DIR not defined, and -allow-alternate not used",
                     )
 
                 if opts["recreate"]:
-                    raise IOError(
+                    raise OSError(
                         errno.ENOENT, "LOCAL_CONFIG_DIR not defined, but -recreate used"
                     )
 
@@ -492,12 +491,12 @@ def main(args):
                             1
                         ].strip()  # it is in the second line, and it is indented
                     except condorExe.ExeError as e:
-                        raise IOError(errno.ENOENT, "No alternate CONFIG_FILE found")
+                        raise OSError(errno.ENOENT, "No alternate CONFIG_FILE found")
         else:
             condor_config = opts["dnsfile"]
 
         check_config(condor_config, opts)
-    except IOError as e:
+    except OSError as e:
         print(e)
         print("Command failed")
         sys.exit(2)

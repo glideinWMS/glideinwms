@@ -21,7 +21,7 @@ import sys
 import tempfile
 import unittest
 
-import mock
+from unittest import mock
 import xmlrunner
 
 from glideinwms.creation.lib.cvWParams import (

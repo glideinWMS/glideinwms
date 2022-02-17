@@ -127,10 +127,10 @@ class DowntimeFile:
 # for example: [(1215339200,1215439170),(1215439271,None)]
 def read(fname, raise_on_error=False):
     try:
-        with open(fname, "r") as fd:
+        with open(fname) as fd:
             fcntl.flock(fd, fcntl.LOCK_SH)
             lines = fd.readlines()
-    except IOError as e:
+    except OSError as e:
         if raise_on_error:
             raise
         else:
@@ -275,7 +275,7 @@ def addPeriod(
 ):
     exists = os.path.isfile(fname)
     if (not exists) and (not create_if_empty):
-        raise IOError("[Errno 2] No such file or directory: '%s'" % fname)
+        raise OSError("[Errno 2] No such file or directory: '%s'" % fname)
 
     comment = comment.replace("\n", " ")
     comment = comment.replace("\r", " ")
@@ -323,7 +323,7 @@ def purgeOldPeriods(fname, cut_time=None, raise_on_error=False):
 
     try:
         fd = open(fname, "r+")
-    except IOError as e:
+    except OSError as e:
         if raise_on_error:
             raise
         else:
@@ -399,7 +399,7 @@ def endDowntime(
 
     try:
         fd = open(fname, "r+")
-    except IOError:
+    except OSError:
         return 0  # no file -> nothing to end
 
     with fd:
@@ -461,10 +461,10 @@ def endDowntime(
                         if t < 5:
                             outlines.append("%s%-20s" % (sep, param))
                         else:
-                            outlines.append("%s%s" % (sep, param))
+                            outlines.append(f"{sep}{param}")
                         t = t + 1
                 if comment != "":
-                    outlines.append("; %s" % (comment,))
+                    outlines.append(f"; {comment}")
                 outlines.append("\n")
                 closed_nr += 1
             else:

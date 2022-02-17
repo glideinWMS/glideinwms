@@ -55,7 +55,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
         self.add(None, (group_name,))
 
     def format_val(self, key, want_comments):
-        return '  <monitorgroup group_name="%s">' % (self.vals[key][0],)
+        return f'  <monitorgroup group_name="{self.vals[key][0]}">'
 
     def parse_val(self, line):
         if len(line) == 0:
@@ -166,7 +166,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
                 self.add(key, val)
             else:
                 # should add some protection about correct quoting
-                self.add("{} {}".format(val[:-1], self[key][1:]), True)
+                self.add(f"{val[:-1]} {self[key][1:]}", True)
         else:
             raise RuntimeError(
                 "CondorJDLDictFile append unsupported for key %s (val: %s)!"
@@ -195,7 +195,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         if self.vals[key] == "##PRINT_KEY_ONLY##":
             return "%s" % key
         else:
-            return "%s = %s" % (key, self.vals[key])
+            return f"{key} = {self.vals[key]}"
 
     def parse_val(self, line):
         if line[0] == "#":
@@ -637,9 +637,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
     def create_dir(self, fail_if_exists=True):
         base_dir = os.path.dirname(self.dir)
         if not os.path.isdir(base_dir):
-            raise RuntimeError(
-                "Missing base %s directory %s." % (self.dir_name, base_dir)
-            )
+            raise RuntimeError(f"Missing base {self.dir_name} directory {base_dir}.")
 
         if os.path.isdir(self.dir):
             if fail_if_exists:
@@ -657,22 +655,20 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             chmod(self.dir, 0o755)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
             raise RuntimeError(
-                "Failed to create %s dir (user %s): %s " % (self.dir_name, self.user, e)
+                f"Failed to create {self.dir_name} dir (user {self.user}): {e} "
             )
         return True
 
     def delete_dir(self):
         base_dir = os.path.dirname(self.dir)
         if not os.path.isdir(base_dir):
-            raise RuntimeError(
-                "Missing base %s directory %s!" % (self.dir_name, base_dir)
-            )
+            raise RuntimeError(f"Missing base {self.dir_name} directory {base_dir}!")
 
         try:
             os.rmdir(self.dir)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
             raise RuntimeError(
-                "Failed to remove %s dir (user %s): %s " % (self.dir_name, self.user, e)
+                f"Failed to remove {self.dir_name} dir (user {self.user}): {e} "
             )
 
 
@@ -684,9 +680,7 @@ class chmodClientDirSupport(clientDirSupport):
     def create_dir(self, fail_if_exists=True):
         base_dir = os.path.dirname(self.dir)
         if not os.path.isdir(base_dir):
-            raise RuntimeError(
-                "Missing base %s directory %s." % (self.dir_name, base_dir)
-            )
+            raise RuntimeError(f"Missing base {self.dir_name} directory {base_dir}.")
 
         if os.path.isdir(self.dir):
             if fail_if_exists:
@@ -703,7 +697,7 @@ class chmodClientDirSupport(clientDirSupport):
             chmod(self.dir, self.chmod)
         except glideinwms.lib.subprocessSupport.CalledProcessError as e:
             raise RuntimeError(
-                "Failed to create %s dir (user %s): %s " % (self.dir_name, self.user, e)
+                f"Failed to create {self.dir_name} dir (user {self.user}): {e} "
             )
         return True
 

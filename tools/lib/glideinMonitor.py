@@ -84,7 +84,7 @@ def monitor(
     except:
         raise RuntimeError("Invalid JID %s, expected Cluster.Proc" % jid)
 
-    constraint = "(ClusterId=?=%s) && (ProcId=?=%s)" % (jid_cluster, jid_proc)
+    constraint = f"(ClusterId=?={jid_cluster}) && (ProcId=?={jid_proc})"
 
     remoteVM = getRemoteVM(pool_name, schedd_name, constraint)
     monitorVM = getMonitorVM(pool_name, remoteVM)

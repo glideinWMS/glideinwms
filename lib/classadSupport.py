@@ -22,7 +22,7 @@ from . import condorManager, logSupport
 ###############################################################################
 
 
-class Classad(object):
+class Classad:
     """Base class describing a classad."""
 
     def __init__(self, adType, advertiseCmd, invalidateCmd):
@@ -58,10 +58,10 @@ class Classad(object):
         for k, v in list(params_dict.items()):
             if isinstance(v, int):
                 # don't quote ints
-                self.adParams["%s%s" % (prefix, k)] = v
+                self.adParams[f"{prefix}{k}"] = v
             else:
                 escaped_v = str(v).replace("\n", "\\n")
-                self.adParams["%s%s" % (prefix, k)] = "%s" % escaped_v
+                self.adParams[f"{prefix}{k}"] = "%s" % escaped_v
 
     def writeToFile(self, filename, append=True):
         """Write a ClassAd to file, adding a blank line if in append mode to separate the ClassAd
@@ -100,9 +100,9 @@ class Classad(object):
                 # Format according to Condor String Literal definition
                 # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
                 classad_value = value.replace('"', r"\"")
-                ad += '%s = "%s"\n' % (key, classad_value)
+                ad += f'{key} = "{classad_value}"\n'
             else:
-                ad += "%s = %s\n" % (key, value)
+                ad += f"{key} = {value}\n"
         return ad
 
 
@@ -324,7 +324,7 @@ class ClassadAdvertiser:
         ads = ""
 
         for ad in list(self.classads.keys()):
-            ads = "%s%s\n" % (ads, self.classads[ad])
+            ads = f"{ads}{self.classads[ad]}\n"
         return ads
 
     def getUniqClassadFilename(self):
@@ -374,6 +374,6 @@ def exe_condor_advertise(fname, command, pool, is_multi=False, use_tcp=False):
     """
 
     logSupport.log.debug(
-        "CONDOR ADVERTISE %s %s %s %s %s" % (fname, command, pool, is_multi, use_tcp)
+        f"CONDOR ADVERTISE {fname} {command} {pool} {is_multi} {use_tcp}"
     )
     return condorManager.condorAdvertise(fname, command, use_tcp, is_multi, pool)

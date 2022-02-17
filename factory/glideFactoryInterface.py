@@ -204,7 +204,7 @@ def findGroupWork(
 
     req_glideins = ""
     for entry in entry_names:
-        req_glideins = "%s@%s@%s,%s" % (entry, glidein_name, factory_name, req_glideins)
+        req_glideins = f"{entry}@{glidein_name}@{factory_name},{req_glideins}"
     # Strip off leading & trailing comma
     req_glideins = req_glideins.strip(",")
 
@@ -214,7 +214,7 @@ def findGroupWork(
     )
 
     if supported_signtypes is not None:
-        status_constraint += ' && stringListMember(%s%s,"%s")' % (
+        status_constraint += ' && stringListMember({}{},"{}")'.format(
             factoryConfig.client_web_prefix,
             factoryConfig.client_web_signtype_suffix,
             ",".join(supported_signtypes),
@@ -229,7 +229,7 @@ def findGroupWork(
         )
 
     if additional_constraints is not None:
-        status_constraint = "(%s)&&(%s)" % (status_constraint, additional_constraints)
+        status_constraint = f"({status_constraint})&&({additional_constraints})"
 
     status = condorMonitor.CondorStatus(
         subsystem_name="any", pool_name=factory_collector
@@ -446,7 +446,7 @@ def findWork(
     if factory_collector == DEFAULT_VAL:
         factory_collector = factoryConfig.factory_collector
 
-    status_constraint = '(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")' % (
+    status_constraint = '(GlideinMyType=?="{}") && (ReqGlidein=?="{}@{}@{}")'.format(
         factoryConfig.client_id,
         entry_name,
         glidein_name,
@@ -454,14 +454,14 @@ def findWork(
     )
 
     if supported_signtypes is not None:
-        status_constraint += ' && stringListMember(%s%s,"%s")' % (
+        status_constraint += ' && stringListMember({}{},"{}")'.format(
             factoryConfig.client_web_prefix,
             factoryConfig.client_web_signtype_suffix,
             ",".join(supported_signtypes),
         )
 
     if additional_constraints is not None:
-        status_constraint = "((%s)&&(%s))" % (status_constraint, additional_constraints)
+        status_constraint = f"(({status_constraint})&&({additional_constraints}))"
 
     status = condorMonitor.CondorStatus(
         subsystem_name="any", pool_name=factory_collector
@@ -656,7 +656,7 @@ class EntryClassad(classadSupport.Classad):
         )
 
         # Short hand for easy access
-        classad_name = "%s@%s@%s" % (entry_name, glidein_name, factory_name)
+        classad_name = f"{entry_name}@{glidein_name}@{factory_name}"
         self.adParams["Name"] = classad_name
         self.adParams["FactoryName"] = "%s" % factory_name
         self.adParams["GlideinName"] = "%s" % glidein_name
@@ -698,18 +698,18 @@ class EntryClassad(classadSupport.Classad):
                 el = data[attr]
                 if isinstance(el, int):
                     # don't quote ints
-                    self.adParams["%s%s" % (prefix, attr)] = el
+                    self.adParams[f"{prefix}{attr}"] = el
                 else:
                     escaped_el = str(el).replace("\n", "\\n")
-                    self.adParams["%s%s" % (prefix, attr)] = "%s" % escaped_el
+                    self.adParams[f"{prefix}{attr}"] = "%s" % escaped_el
 
         # write job completion statistics
         if glidein_stats:
             prefix = factoryConfig.glidein_monitor_prefix
             for k, v in list(glidein_stats["entry"].items()):
-                self.adParams["%s%s" % (prefix, k)] = v
+                self.adParams[f"{prefix}{k}"] = v
             for k, v in list(glidein_stats["total"].items()):
-                self.adParams["%s%s" % (prefix, k)] = v
+                self.adParams[f"{prefix}{k}"] = v
 
 
 ###############################################################################
@@ -746,7 +746,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         )
 
         # Short hand for easy access
-        classad_name = "%s@%s" % (glidein_name, factory_name)
+        classad_name = f"{glidein_name}@{factory_name}"
         self.adParams["Name"] = classad_name
         self.adParams["FactoryName"] = "%s" % factory_name
         self.adParams["GlideinName"] = "%s" % glidein_name
@@ -1115,9 +1115,7 @@ def createGlideinClientMonitoringFile(
             fd.write('GlideinMyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
             fd.write('Name = "%s"\n' % client_name)
-            fd.write(
-                'ReqGlidein = "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name)
-            )
+            fd.write(f'ReqGlidein = "{entry_name}@{glidein_name}@{factory_name}"\n')
             fd.write('ReqFactoryName = "%s"\n' % factory_name)
             fd.write('ReqGlideinName = "%s"\n' % glidein_name)
             fd.write('ReqEntryName = "%s"\n' % entry_name)
@@ -1139,10 +1137,10 @@ def createGlideinClientMonitoringFile(
                     el = data[attr]
                     if isinstance(el, int):
                         # don't quote ints
-                        fd.write("%s%s = %s\n" % (prefix, attr, el))
+                        fd.write(f"{prefix}{attr} = {el}\n")
                     else:
                         escaped_el = str(el).replace('"', '\\"')
-                        fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
+                        fd.write(f'{prefix}{attr} = "{escaped_el}"\n')
             # add a final empty line... useful when appending
             fd.write("\n")
     except:

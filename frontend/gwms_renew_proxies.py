@@ -39,7 +39,7 @@ class ConfigError(BaseException):
     pass
 
 
-class Proxy(object):
+class Proxy:
     """Class for holding information related to the proxy"""
 
     def __init__(
@@ -93,7 +93,7 @@ class Proxy(object):
         os.remove(self.tmp_output_fd.name)
 
 
-class VO(object):
+class VO:
     """Class for holding information related to VOMS attributes"""
 
     def __init__(self, vo, fqan):
@@ -108,7 +108,7 @@ class VO(object):
         if fqan.startswith("/%s/" % vo):
             pass
         elif fqan.startswith("/Role="):
-            fqan = "/%s%s" % (vo, fqan)
+            fqan = f"/{vo}{fqan}"
         else:
             raise ValueError(
                 'Malformed FQAN does not begin with "/%s/Role=" or "/Role=". Verify %s.'
@@ -153,10 +153,10 @@ def parse_vomses(vomses_contents):
         re.IGNORECASE,
     )
     # VO names are case-sensitive but we don't expect users to get the case right in proxies.ini
-    vo_names = dict([(vo[3].lower(), vo[3]) for vo in vo_info])
+    vo_names = {vo[3].lower(): vo[3] for vo in vo_info}
     # A mapping between VO certificate subject DNs and VOMS URI of the form "<HOSTNAME>:<PORT>"
     # We had to separate this out from the VO name because a VO could have multiple vomses entries
-    vo_uris = dict([(vo[2], vo[0] + ":" + vo[1]) for vo in vo_info])
+    vo_uris = {vo[2]: vo[0] + ":" + vo[1] for vo in vo_info}
     return vo_names, vo_uris
 
 
@@ -254,7 +254,7 @@ def main():
 
     # Load VOMS Admin server info for case-sensitive VO name and for faking the VOMS Admin server URI
     vomses = os.getenv("VOMS_USERCONF", "/etc/vomses")
-    with open(vomses, "r") as _:
+    with open(vomses) as _:
         vo_name_map, vo_uri_map = parse_vomses(_.read())
 
     retcode = 0
@@ -314,8 +314,8 @@ def main():
                 except KeyError:
                     retcode = 1
                     print(
-                        "ERROR: Failed to renew proxy {0}: ".format(proxy.output)
-                        + "Could not find entry in {0} for {1}. ".format(
+                        f"ERROR: Failed to renew proxy {proxy.output}: "
+                        + "Could not find entry in {} for {}. ".format(
                             vomses, vo_attr.cert
                         )
                         + "Please verify your VO data installation."
@@ -338,7 +338,7 @@ def main():
 
         if client_rc == 0:
             proxy.write()
-            print("Renewed proxy from '%s' to '%s'." % (proxy.cert, proxy.output))
+            print(f"Renewed proxy from '{proxy.cert}' to '{proxy.output}'.")
         else:
             retcode = 1
             # don't raise an exception here to continue renewing other proxies

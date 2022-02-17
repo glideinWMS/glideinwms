@@ -93,10 +93,10 @@ class SubmitCredentials:
         output += "cedential dir = %s; " % self.cred_dir
         output += "security credentials: "
         for sck, scv in self.security_credentials.items():
-            output += "    %s : %s; " % (sck, scv)
+            output += f"    {sck} : {scv}; "
         output += "identity credentials: "
         for ick, icv in self.identity_credentials.items():
-            output += "    %s : %s; " % (ick, icv)
+            output += f"    {ick} : {icv}; "
         return output
 
 
@@ -112,7 +112,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
     """
 
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
-    fname_short = "credential_%s_%s" % (
+    fname_short = "credential_{}_{}".format(
         request_clientname,
         glideFactoryLib.escapeParam(client_id),
     )
@@ -212,9 +212,7 @@ def get_key_obj(pub_key_obj, classad):
             sym_key_obj = pub_key_obj.extract_sym_key(classad["ReqEncKeyCode"])
             return sym_key_obj
         except:
-            logSupport.log.debug(
-                "\nclassad %s\npub_key_obj %s\n" % (classad, pub_key_obj)
-            )
+            logSupport.log.debug(f"\nclassad {classad}\npub_key_obj {pub_key_obj}\n")
             error_str = "Symmetric key extraction failed."
             logSupport.log.exception(error_str)
             raise CredentialError(error_str)
@@ -462,7 +460,7 @@ def safe_update(fname, credential_data):
             os.close(fd)
     else:
         # old file exists, check if same content
-        with open(fname, "r") as fl:
+        with open(fname) as fl:
             old_data = fl.read()
 
         #  if proxy_data == old_data nothing changed, done else
@@ -484,7 +482,7 @@ def safe_update(fname, credential_data):
             # copy the old file to a tmp bck and rename new one to the official name
             try:
                 shutil.copy2(fname, fname + ".old")
-            except (IOError, shutil.Error):
+            except (OSError, shutil.Error):
                 # file not found, permission error, same file
                 pass  # just protect
 

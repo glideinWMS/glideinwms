@@ -15,7 +15,6 @@
 # Usage: cat_named_log.py [-monitor] HTC_log GWMS_logname
 #
 
-from __future__ import print_function
 
 import os.path
 import sys
@@ -32,7 +31,7 @@ def main():
         lname = sys.argv[2]
         fname = sys.argv[3]
         # ((name1)|(name2)) allows to check for multiple names
-        condor_log_id = "%s.monitor" % (lname,)
+        condor_log_id = f"{lname}.monitor"
     else:
         condor_log_id = sys.argv[1]
         fname = sys.argv[2]
